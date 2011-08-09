@@ -1,0 +1,52 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+#pagination {
+    width: 100%;
+    font-size: 15px;
+}
+.pager {
+    margin: 0 auto;
+    text-align: center;
+    padding: 20px 0;
+    }
+.pager li {
+    display: inline;
+    border-left: 1px solid #ccc;
+    padding-left: 4px;
+    }
+.pager a, .pager span {
+    padding: 2px 8px;
+}
+.pager a:hover {
+    text-decoration: underline;
+    }
+.page-previous, .pager .first {
+    border: none !important;
+} /* .first not yet implemented */
+.page-previous a, .page-previous span {
+    padding-left: 0px !important;
+}
+/* Not yet implemented...
+    #pagination li.first, #pagination li.previous, #pagination li.next {
+    }
+    #pagination ul li a.current {
+        background-color: #E1E6D5;
+        color: #4d4d4d;
+        text-decoration: none;
+    }
+*/

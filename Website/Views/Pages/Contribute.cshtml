@@ -1,0 +1,41 @@
+﻿@using NuGetGallery;
+@{
+    ViewBag.Tab = "Contribute";
+}
+<div id="layout-main" class="aside-1 group">
+    
+    <aside id="aside-first" class="aside-first group">
+        <div class="zone zone-aside-first">
+            <nav id="leftNav">
+                <img src="@Url.Content("~/Content/Images/contribGraphic.png")" />
+                <p>
+                    Cooked up some tasty bites?
+                    <a href="@Url.RouteUrl(RouteName.Register)">Create an account and contribute.</a>
+                    <p>Already have an account? <a href="@Url.RouteUrl(RouteName.SignIn)">Sign in and contribute.</a></p>
+                </p>
+            </nav>
+        </div>
+    </aside>
+    
+    <div id="layout-content" class="group">
+        <div id="content" class="group">
+            <div class="zone zone-content">
+                <section>
+	                <header>
+                        <h2>Contribute to NuGet Gallery</h2>    
+                    </header>
+                    <section class="add-new">
+                        <h4 style="margin:20px 0;"><a href="@Url.RouteUrl(RouteName.SubmitPackage)">Add New Package</a></h4>
+                        <a class="silverButtonBig" href="@Url.RouteUrl(RouteName.SubmitPackage)">Get Started</a>
+                        <p style="margin:20px 20px 20px 0;">Upload and publish your package for other NuGet users to download and enjoy. You can upload multiple revisions of the same package, as long as the version is different.</p>
+                    </section>
+                    <h5><a href="/Contribute/MyPackages">Manage My Contributions</a></h5>
+                    <p>Edit contribution details or Remove contributions that you have previously uploaded.</p>
+                    <h5><a href="/Contribute/ManagePackageIds">Manage Package IDs</a></h5>
+                    <p>View the status and manage all of the package Ids registered to your account. You can also grab a reserved name for your module that you intend to upload.</p>
+                </section>
+            </div>
+        </div>
+    </div>
+ 
+</div>

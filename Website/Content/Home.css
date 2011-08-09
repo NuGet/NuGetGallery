@@ -1,0 +1,203 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+#hero {
+    background: url("../Content/Images/hero.png") no-repeat;
+    height:366px;
+    padding: 10px 0 0 65px;
+}
+#hero div.left header { display:none; }
+#hero div.left p { 
+    font-size: 1.25em;
+    margin: 10px 0;
+    padding: 205px 0 0;
+    width: 350px;
+    color: #000;
+}
+#hero #search { 
+    font-size: 1.2em; /* 15px */ 
+    width: 574px;
+    padding: 10px 10px 11px 10px;
+    background: url('../Content/Images/heroSearchBG.png');
+}
+#hero #search div { border-color:#139900;padding:6px 10px 4px;}
+#hero #search input[type=text] { width:386px; }
+#hero #search #drop-down {
+    left: 399px !important;
+    top: 30px !important;  
+}
+.widget-gallery-search-widget {
+    position: relative;
+    top: -20px;
+}
+#hero div.right { 
+    width: 319px;
+}
+    #hero div.right div {
+        background: #7F8C7D;
+        color: #fff;
+        padding: 12px;
+        font-size: 1em !important;
+        margin-bottom: 2px;
+    }
+        #hero div.right div a {
+            color: #94D4FF;
+        }
+        #hero div.right div header {
+            background: none !important;
+            font-size: 1.9em;
+            font-weight: normal;
+            padding: 0px;
+            margin: 0 0 5px;
+        }
+        #hero div.right div p {
+            width: auto;
+            padding: 0px;
+            margin: 0;
+        }
+        #hero div.right div ul {
+            padding-left: 20px;
+        }
+            #hero div.right div ul li {
+                list-style-type: disc;
+                border: none !important;
+            }
+
+/* Gallery Summary Widget
+*************************************/
+.widget-gallery-summary-widget { margin: 0px !important; background: #E1E6D5; }
+.widget-gallery-summary-widget header { display:none; }
+.widget-gallery-summary-widget ul { padding:10px 0 22px; height:34px; }
+.widget-gallery-summary-widget ul li {
+    border-bottom: none !important;
+    border-right: 1px solid #eee;
+    width: 244px;
+    display: block;
+    float:left;
+    padding: 0px !important;
+    font-size: 3em;
+    color:#39922C;
+    text-align: center;
+    clear: none !important;
+}
+.widget-gallery-summary-widget ul li:last-child {
+    border-right: none !important;
+}
+.widget-gallery-summary-widget ul li span {
+    font-size: 14px !important;
+    font-weight: bold;
+    color: #3E483C;
+    display:block;
+}
+/* Generic Widgets
+*************************************/
+.widget-recent-package-widget.widget, .widget-most-popular-package-widget.widget, .widget-most-popular-package-widget.widget + .widget-html-widget.widget {
+    width: 322px;
+    float: left;
+    margin: 0 17px 0 0;
+    display:block;
+}
+
+/* Google Chrome hack */
+body:nth-of-type(1) .zone-after-content .widget-html-widget:nth-child(1) {
+    width: 322px;
+    float: left;
+    margin: 0 17px 0 0;
+    display:block;
+}
+
+.widget-most-popular-package-widget.widget { margin: 0 10px !important; }
+
+.widget-control + .widget-control .widget-html-widget.widget {
+    width: 336px;
+    float: left !important;
+}
+
+.widget-control .widget-html-widget.widget + .widget-control .widget-html-widget.widget { clear: left !important; }
+#after-content .widget header h1 {
+    margin: 0 10px !important;
+}
+#after-content .widget ul li {
+    height: 45px;
+    padding-top: 13px;
+    font-size: 1.25em;
+}
+    #after-content .widget ul li a {
+        color: #39922C;
+    }
+    #after-content .widget ul li span {
+        font-size: 11px;
+        display: block;
+        padding-top: 2px;
+    }
+
+/* Orchard at MIX11 Styles
+*************************************/
+
+p#mixHeader {
+    background: url("../Content/Images/mixHeader.png") no-repeat;
+    clear: left;
+    color: #000000;
+    display: block;
+    font-size: 1.65em;
+    font-weight: bold;
+    padding: 31px 0 38px 17px;
+    width: 1000px;
+    margin: 0px !important;
+}
+div#mixUpdates {
+    border: 1px solid #E6E6E6;
+    border-top: none !important;
+    padding: 10px 20px;
+    position: relative;
+    top: -20px;
+    width: 617px;
+    clear: left;
+    float: left;
+}
+    div#mixUpdates h4 {
+        font-size: 20px !important;
+        color: #1A1A1A;
+        margin-bottom: 0px !important;
+    }
+    div#mixUpdates p {
+        margin: 5px 0 !important;
+    }
+.widget h4 {
+    clear:left;
+}
+
+.twtr-widget {
+    width: 325px;
+    float: right !important;
+    background-color: #FCFDF7;
+    top:-30px;
+}
+    .twtr-widget h3 {
+        font-size: 20px !important;
+        font-weight: normal !important;
+        color: #3E483C;
+    }
+.twtr-hd h3 { font-size: 20px; }
+#twtr-widget-1 .twtr-new-results, #twtr-widget-1 .twtr-results-inner, #twtr-widget-1 .twtr-timeline, .twtr-widget .twtr-tweet-wrap { background-color: #FCFDF7; }
+.twtr-ft { background-color: #E1E6D5; }
+
+#contestWinners { font-size: 1.1em; }
+#contestWinners p { margin: 10px 20px; }
+#contestWinners ul { font-size: 10px; }
+    #contestWinners ul li { height: 70px !important; line-height: 1.8em; }
+    #contestWinners ul li img { padding-bottom: 30px; width: 50px; float: left; }

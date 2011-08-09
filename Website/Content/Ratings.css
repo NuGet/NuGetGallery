@@ -1,0 +1,34 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+.stars-current-result {
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+} /* Needs 0 padding in tables */
+
+.stars-current-result .a-star, .stars-current-result .stars-clear, .stars-current-result .a-half-star {
+    background-image:url(../Content/Images/stars.png) !important;
+}
+header span.rating {
+    float: left;
+    margin-top: 6px;
+}
+/*
+div.zone-rating div.stars-rating div.stars-current-result {
+    padding-right: 10px !important;
+}
+*/

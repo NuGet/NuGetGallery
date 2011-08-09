@@ -1,0 +1,88 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+#footer-sig {
+    width: 100%;
+}
+#footer {
+    padding-top: 86px;
+}
+#layout-footer
+{
+    font-size:1.1em;
+    background-color: #7f8c7d;
+    background-image: url(../Content/Images/branchesBottom.png);
+    background-repeat: no-repeat;
+    clear: both;
+    color: #3e483c;
+    height:auto;
+    padding: 0 0 12px 0;
+    line-height: 0;
+    margin: 0 auto;
+    width: 1000px;
+    height: 256px;
+    margin-top: -268px;
+}
+    #layout-footer a {
+        color: #fff;
+        text-decoration: none;
+        line-height:1.6em;
+    }
+    #layout-footer h5.logo {
+        padding: 10px 35px 0px 20px;
+        float: left;
+    }
+        #layout-footer h5.logo a {
+            background-image: url(../Content/Images/logoFooter.png);
+            width: 190px;
+            height: 50px;
+            background-repeat:no-repeat;
+            display: block;
+            text-indent: -9999px;
+        }
+        #layout-footer h5 a.NPLogo {
+            background-image: none !important;
+            clear: left;
+            color: #99A397;
+            display: block;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 0 0 0 20px;
+            text-align: center;
+            text-indent: 0 !important;
+            width: 150px;
+        }
+        #layout-footer h6 {
+        font-weight: normal;
+        margin: 0;
+        padding-top: 20px;
+        padding-bottom: 12px;
+        text-transform: uppercase;
+        font-size: 1.2em;
+    }
+    #layout-footer li {
+        line-height: 1.2em;
+    }
+.credits { text-align: center; padding-top:15px; color:#ddd;}
+
+/******* Unused Styles *******/
+#layout-footer {}
+    #footer-quad {}
+        #footer-quad-first {}
+        #footer-quad-second {}
+        #footer-quad-third {}
+        #footer-quad-forth {}

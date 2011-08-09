@@ -1,0 +1,33 @@
+﻿section#content form div.group {
+	display:inline-block; /* for IE/Mac */
+}
+#currentPageToolbar input[type=submit] {
+	filter: none;
+}
+.zone-footer { 
+	*margin-top: 0px !important; /* IE7 and below*/
+}
+a.silverButton {
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFFFFF', endColorstr='#D5D5D5',GradientType=0 ); /* ie */
+}
+a.silverButton:hover {
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#D5D5D5', endColorstr='#FFFFFF',GradientType=0 ); /* ie */
+}
+a.greenButton {
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2C9E1B', endColorstr='#307A25',GradientType=0 ); /* ie */
+}
+a.greenButton:hover {
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#307A25', endColorstr='#2C9E1B',GradientType=0 ); /* ie */
+}
+.user-display {
+	*top: 0px !important; /* IE7 and below */
+}
+input[type=submit], button[type=submit] {
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2C9E1B', endColorstr='#307A25',GradientType=0 ); /* ie */
+}
+input[type=submit]:hover, button[type=submit]:hover {
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#307A25', endColorstr='#2C9E1B',GradientType=0 ); /* ie */
+}
+input[type=submit].silver {
+   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fefefe', endColorstr='#c0c0c0',GradientType=0 ); /* ie */
+}

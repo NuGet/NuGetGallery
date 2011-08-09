@@ -1,0 +1,352 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+/******** The styles for buttons that appear in forms are listed in Buttons.css *******/
+
+#form {
+}
+#form aside {
+    clear: both;
+    display: none;
+    float: right;
+    margin: 0 30px 0 0;
+}
+#form aside p {
+    margin: 0 0 0.5em;
+    line-height: 1.3em;
+}
+#form form {
+    padding: 10px 0;
+}
+#form>div {
+    clear: left;
+    padding-bottom: 6px;
+}
+#form>div>*, #form > #reportAbuseForm > div > *, #form > #contactOwnersForm > div > * {
+    margin-left: 20px;
+}
+#form div#makeRecommendedDiv, #form div#undoRecommendedDiv {
+    padding-top: 0px !important;
+}
+#form div#makeRecommendedDiv a.silverButtonBig, #form div#undoRecommendedDiv a.silverButtonBig {
+    float: left;
+}
+#form div#undoRecommendedDiv span.isRecommended {
+    margin-right: 97px;
+}
+#form a.silverButtonBig {
+    float: none;
+    width: 11.5em;
+}
+#form a img {
+    margin: 10px 0;
+    border: none;
+}
+#form a img.required {
+    border-left: 5px solid #39922C !important;
+}
+#form div.selected aside, #form div.invalid aside {
+    display: block;
+}
+#form div.selected {
+    background-color: #E1E6D5;
+}
+#form div:after {
+    content:".";
+    display:block;
+    height:0;
+    clear:both;
+    visibility:hidden;
+    width: 100%;
+}
+#externalPackageForm aside { width: 365px !important; }
+#form div.packageID { width: 330px; float: left; }
+#form div.version { width: 266px; float: left; clear: none; }
+#form div.version input#PackageVersion { width: 162px; }
+#form div.valid {
+    background-image: url(../Content/Images/checkmark.png);
+}
+#form div.invalid {
+    background-image: url(../Content/Images/xmark.png);
+}
+#form div.invalid input[type=text], #form div.invalid input[type=password], #form div.invalid input[type=url], #form div.invalid textarea {
+    border: 1px solid #c13a3f;
+}
+#form div.invalid aside p {
+    padding: 10px;
+}
+#form div.invalid aside > p {
+    background-color:#c13a3f;
+    margin-left: 21px;
+    margin-top: 0px;
+}
+#form div.invalid aside {
+    color: #fff;
+    background-image: url(../Content/Images/invalidBG.png);
+    background-repeat: no-repeat;
+    position: relative;
+    left: -50px;
+    position: relative;
+    top: 5px;
+}
+#form div.valid, #form div.invalid {
+    background-repeat: no-repeat;
+    background-position: 4px 41px;
+}
+#form input[type=text], #form input[type=password], #form textarea, #form div input[type=url] {
+    background-image: url(../Content/Images/inputBackground.png);
+    background-repeat: repeat-x;
+    border: 1px solid #CCCCCC;
+    color: #7F8C7D;
+    font-family: "Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+    font-size: 1.25em;
+    font-weight: normal;
+    height: 22px;
+    margin-bottom: 10px;
+    padding: 5px 0 5px 10px;
+    width: 296px;
+}
+#form input[type=text].disabled, #form input[type=password].disabled, #form div input[type=file].disabled, #form textarea.disabled, #form div input[type=url].disabled {
+    border: 1px solid #eee;
+    color: #a8a8a8;
+}
+#form div input[type=file] {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+#form textarea
+{
+    height: auto;
+    padding-right: 0;
+}
+#form select {
+    margin-bottom:20px;
+    border: 1px solid #ccc;
+    background: transparent url(../Content/Images/inputBackground.png) repeat-x 0 0;
+    font-size: 1.25em; /* 15px */
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #808080;
+    padding: 5px;
+}
+span.requiredKey {
+    border:1px solid #ccc;
+    border-left:;
+    background-image: url('../Content/Images/required.png');
+    background-repeat: repeat-x;
+    font-size:0.8em;
+    text-transform:uppercase;
+    color: #666;
+    display:block;
+    padding:3px 10px 3px 4px;
+}
+.required {
+    border-left: 5px solid #39922C !important;
+}
+#form input[type=text].required, #form input[type=password].required, textarea.required {
+    border-left: 5px solid #39922C !important;
+    width: 280px !important;
+}
+#form span.radioButton {
+    display: block;
+    padding: 5px 0;
+}
+#form input[type=checkbox] {
+    margin-top: 9px;
+    margin-right: 10px;
+    float: left;
+}
+#form div div {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+#form input[type=radio]+label {
+    display: inline;
+    margin-left: 0;
+}
+#form label {
+    display: block;
+    /*margin-top: 12px;
+    margin-bottom: 5px;*/
+    font-size: 1.25em; /* 15px */
+    color: #39922C;
+    padding: 9px 0;
+}
+#form .long {
+    width: 490px !important;
+}
+#form .longRequired {
+    border-left: 5px solid #39922C !important;
+    width: 490px !important;
+}
+#form textarea.longRequired {
+    width: 490px !important;
+    height: 200px;
+}
+#form .tall {
+    height: 167px !important;
+}
+#form h3 {
+    font-weight: normal;
+    font-size: 21px;
+    color: #39922C;
+}
+#form article.screenshot {
+    background-image: url(../Content/Images/addScreenshot.png);
+    height:129px;
+    width: 171px;
+    padding: 0;
+    float: left;
+    margin: 10px 0 10px 30px;
+}
+#form article.screenshot li {
+    float: left;
+    margin-left: 5px;
+    background: -webkit-gradient(linear, left bottom, left top, color-stop(1, rgb(255,255,255)), color-stop(0, rgb(213,213,213)));
+    background: -moz-linear-gradient(center bottom, rgb(255,255,255) 100%, rgb(213,213,213) 0%);
+    background-image: url(../Content/Images/backButtonBG.png);
+}
+#form article.screenshot ul {
+    position: relative;
+    left: 110px;
+}
+#form article.screenshot li a.edit, #form article.screenshot li a.delete {
+    background-image:url("../Content/Images/editIcon.png");
+    background-position:4px 4px;
+    background-repeat:no-repeat;
+    border:1px solid #ccc;
+    display:block;
+    height:12px;
+    padding:3px;
+    text-indent:-9999px;
+    width:12px;
+}
+#form div.buttons {
+    clear: both;
+    background: none !important;
+}
+#deleteScreenshotCancelLink {
+    padding-left: 20px;
+}
+.addNewScreenshot {
+    display: block;
+    text-indent: -999px;
+    height:129px;
+    width: 171px;
+}
+#form ul.module, #form ul.theme, #form ul.package {
+    margin-bottom: 20px;
+}
+#form .module li.logo, #form .theme li.logo, #form .package li.logo {
+    width: 130px !important;
+}
+#form .module li.logo + li, #form .theme li.logo + li, #form .package li.logo + li {
+    border-left: 1px solid #ccc;
+    padding: 0 0 0 18px;
+}
+#form .module li.logo img, #form .theme li.logo img, #form .package li.logo img {
+    border: 1px solid #ccc;
+    width: 128px !important;
+}
+#form ul.module li, #form ul.theme li, #form ul.package li {
+    float: left;
+    width: 170px;
+    margin: 0 18px 18px 0;
+    height: 130px;
+    display: block;
+    overflow: hidden;
+}
+#form ul.module li img, #form ul.theme li img, #form ul.package li img {
+    width: 170px;
+    height: 128px;
+}
+#form .removeScreenshot, #form span.violator {
+    display: block;
+    overflow: hidden;
+    position: relative;
+    text-indent: -999px;
+}
+#form .removeScreenshot {
+    background: url("../Content/Images/xmark.png") no-repeat scroll 3px 3px #FFFFFF;
+    border: 1px solid #999999;
+    height: 18px;
+    left: 151px;
+    top: -130px;
+    width: 17px;
+}
+#form span.violator {
+    width: 50px;
+    height: 50px;
+    left: 79px;
+    background: url(../Content/Images/violator.png) no-repeat;
+    top: -131px;
+}
+#sequence {
+    position:relative;
+    top:-26px;
+    color:#AAB09E;
+}
+    #sequence a {
+        color: #39922C;
+        text-decoration: none;
+    }
+        #sequence a:hover {
+            text-decoration:none;
+            color: #39922C !important;
+        }
+    #sequence li.past {
+        background-image:url(../Content/Images/leafVisited.png);
+    }
+    #sequence li.current {
+        background-image:url(../Content/Images/leafCurrent.png);
+    }
+        #sequence li.past a {
+            color: #939988;
+        }
+    #sequence a span, #sequence span {
+        color: #fff;
+    }
+    #sequence li {
+        background-image:url(../Content/Images/leafFuture.png);
+        background-repeat: no-repeat;
+        float: left;
+        margin: 0 0 0 10px;
+        padding: 4px 1px;
+    }
+        #sequence li span {
+            font-family: "Segoe Print", "Segoe UI", Arial;
+            font-size: 14px; /* Needs to be static size to fit inside leaf */
+            padding: 0 4px 0 2px;
+        }
+
+/******* Unused Styles *******/
+/*******
+form              { margin: 0; padding: 0; }
+legend            { font-size: 1.231em; font-weight: normal; margin: 0 0 1.2em 0; border:none; }
+fieldset          { padding:0em; margin: 0 0 0em 0; border: 0px solid #dbdbdb; }
+label.forcheckbox { margin:0 0 0 .4em; display:inline; }
+
+input[type="text"], input[type="password"] {
+    display: block;
+    padding: 0.3em;
+}
+
+input[type="checkbox"] {
+    margin:.2em 0 1.2em 0;
+}
+
+fieldset ol     { list-style-type:none; padding: 0; margin: 0; }
+fieldset ol li  { margin: 0 0 6px 0; }
+*****/

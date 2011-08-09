@@ -1,0 +1,31 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)' == ''">
+    <Configuration>Debug</Configuration>
+  </PropertyGroup>
+
+  <UsingTask AssemblyFile="$(SolutionDir)..\packages\MigratorDotNet.0.9.0.28138\tools\Migrator.MSBuild.dll" TaskName="Migrator.MSBuild.Migrate" />
+
+  <Target Name="Clean">
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration)"/>
+  </Target>
+
+  <Target Name="Build" DependsOnTargets="Clean">
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration)"/>
+  </Target>
+
+  <Target Name="RevertDatabase" DependsOnTargets="Build">
+    <Migrate
+      Provider="SQLServer"
+      Connectionstring="$(DbConnection)"
+      Migrations="..\Website\bin\NuGetGallery.Website.dll"
+      To="0" />
+  </Target>
+
+  <Target Name="UpdateDatabase" DependsOnTargets="Build">
+    <Migrate
+      Provider="SQLServer"
+      Connectionstring="$(DbConnection)"
+      Migrations="..\Website\bin\NuGetGallery.Website.dll" />
+  </Target>
+
+</Project>

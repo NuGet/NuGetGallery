@@ -1,0 +1,151 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+#currentPageToolbar {
+    background-color: #E1E6D5;
+    color: #4D4D4D;
+    font-size: 1.25em; /* 15px */
+    padding: 15px 30px 9px;
+    min-height: 32px;
+}
+#search {
+    width: 465px;
+    height: 31px;
+    margin: 0;
+    display: inline;
+    float: left;
+}
+#search div {
+    border-top: 1px solid #999;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    display: inline;
+    background: #fff;
+    padding: 7px 10px 5px;
+    *padding-top: 4px; /* IE6 */
+    padding: 6px 10px\0/; /* IE7+ */
+}
+#currentPageToolbar input[type=text], #hero input[type=text] {
+    font-family:"Segoe print", Tahoma, Geneva, Verdana, sans-serif;
+    font-weight:bold;
+    color: #7F8C7D;
+    display: inline;
+    border: none !important;
+    width: 275px;
+    background: none !important;
+    padding: 0 !important;
+    font-size: 0.933em; /* 14px */
+}
+a.search-category {
+    background: url(../Content/Images/arrowDown.png);
+    background-repeat: no-repeat;
+    background-position: 100% 6px;
+    color: #999;
+    text-decoration: none;
+    display: inline-block;
+    width: 124px;
+}
+    a.search-category:hover {
+        color: #999;
+        text-decoration: none;
+    }
+    a.search-category span {
+    border-left: 1px solid #999999;
+    display: block;
+    height: 17px;
+    line-height: 16px;
+    overflow: hidden;
+    padding: 0 20px 0 10px;
+}
+#search>div {
+    position: relative;
+}
+#search #drop-down {
+    background: none repeat scroll 0 0 #FFF;
+    border: 1px solid #ccc;
+    position: absolute;
+    left: 290px !important;
+    top: 32px !important;
+    width: 174px !important;
+    padding: 8px 3px;
+    display: none;
+    z-index: 999 !important;
+    -moz-box-shadow: 2px 3px 2px #999;
+    -webkit-box-shadow:2px 3px 2px #999;
+    box-shadow:2px 3px 2px #999;
+    max-height: 220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    *margin-top: 6px; /* IE6 */
+}
+    #drop-down li {
+        font-size: .8em !important; /* 12px */
+    }
+    #drop-down li a
+    {
+        display: block;
+        padding: 8px;
+    }
+    #drop-down li:hover  {
+        background: #E1E6D5
+    }
+    #drop-down li.current {
+        background: #E1E6D5;
+    }
+#sort {
+    display: inline;
+    width: 390px; /* Note: Anything lower than 390px will cause wrapping in Chrome */
+    float: right;
+}
+#sort > *, #search > * {
+    vertical-align: middle;
+}
+#currentPageToolbar input[type=submit], #hero input[type=submit] {
+    background: url(../Content/Images/searchButton.png) !important;
+    -moz-box-shadow: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    border: none !important;
+    cursor: pointer;
+    font-size: 1em !important;
+    line-height: 2.3em !important;
+    height: 34px;
+    left: -1px;
+    padding: 0;
+    position: relative;
+    text-indent: -9999px;
+    width: 34px;
+    margin-top: 0px !important;
+    filter: none !important; /* for IE */
+}
+#currentPageToolbar select, #hero select {
+    font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #808080;
+    padding: 5px;
+    font-size: 1em;
+}
+#currentPageToolbar label {
+    margin: 0 5px 0 20px;
+    display: inline;
+}
+#currentPageToolbar a.themeViewButton {
+    height: 26px;
+    position: relative;
+    top: 6px;
+    width: 26px;
+}

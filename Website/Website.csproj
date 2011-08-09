@@ -1,0 +1,304 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1DACF781-5CD0-4123-8BAC-CD385D864BE5}</ProjectGuid>
+    <ProjectTypeGuids>{E53F8FEA-EAE0-44A6-8774-FFD645390401};{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGetGallery</RootNamespace>
+    <AssemblyName>NuGetGallery.Website</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <MvcBuildViews>false</MvcBuildViews>
+    <UseIISExpress>false</UseIISExpress>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ColorCode">
+      <HintPath>..\packages\ColorCode.1.0.1\lib\ColorCode.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\packages\EntityFramework.4.1.10715.0\lib\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Fnord">
+      <HintPath>..\packages\Fnord.1.0\lib\Fnord.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Migrator, Version=0.9.0.28138, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MigratorDotNet.0.9.0.28138\lib\Net40\Migrator.dll</HintPath>
+    </Reference>
+    <Reference Include="Migrator.Framework, Version=0.9.0.26940, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MigratorDotNet.0.9.0.28138\lib\Net40\Migrator.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Migrator.Providers, Version=0.9.0.26941, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MigratorDotNet.0.9.0.28138\lib\Net40\Migrator.Providers.dll</HintPath>
+    </Reference>
+    <Reference Include="MvcMiniProfiler">
+      <HintPath>..\packages\MiniProfiler.1.7\lib\MvcMiniProfiler.dll</HintPath>
+    </Reference>
+    <Reference Include="Ninject">
+      <HintPath>..\packages\Ninject.2.2.1.4\lib\net40-Full\Ninject.dll</HintPath>
+    </Reference>
+    <Reference Include="Ninject.Web.Mvc">
+      <HintPath>..\packages\Ninject.MVC3.2.2.2.0\lib\net40-Full\Ninject.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Core, Version=1.4.20609.9012, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NuGet.Core.1.4.20615.9012\lib\net40\NuGet.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.Services" />
+    <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Activation" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web.Mvc, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Web.WebPages, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Web.Helpers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="WebActivator">
+      <HintPath>..\packages\WebActivator.1.4.1\lib\net40\WebActivator.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ActionNames.cs" />
+    <Compile Include="App_Start\MiniProfiler.cs" />
+    <Compile Include="App_Start\NinjectMVC3.cs" />
+    <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="Controllers\PackagesController.cs" />
+    <Compile Include="Controllers\AuthenticationController.cs" />
+    <Compile Include="Controllers\UsersController.cs" />
+    <Compile Include="Entities\PackageReview.cs" />
+    <Compile Include="Migrations\20110809083000_CreatePackageReviewsTable.cs" />
+    <Compile Include="Services\IPackageService.cs" />
+    <Compile Include="Services\PackageService.cs" />
+    <Compile Include="Entities\PackageDependency.cs" />
+    <Compile Include="Migrations\20110804120000_CreateUsersTable.cs" />
+    <Compile Include="Migrations\20110804130000_CreateEmailMessagesTable.cs" />
+    <Compile Include="Migrations\20110804140000_CreatePackageRegistrationsTable.cs" />
+    <Compile Include="Migrations\20110804150000_CreatePackagesTable.cs" />
+    <Compile Include="Migrations\20110804160000_CreatePackageRegistrationOwnersTable.cs" />
+    <Compile Include="Migrations\20110805190000_CreatePackageAuthorsTable.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="Const.cs" />
+    <Compile Include="Container.cs" />
+    <Compile Include="ContainerBindings.cs" />
+    <Compile Include="Services\CryptographyService.cs" />
+    <Compile Include="Entities\EntityException.cs" />
+    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="DataServices\FeedPackage.cs" />
+    <Compile Include="Services\FileSystemPackageFileService.cs" />
+    <Compile Include="Services\FormsAuthenticationService.cs" />
+    <Compile Include="IConfiguration.cs" />
+    <Compile Include="Services\ICryptographyService.cs" />
+    <Compile Include="Entities\IEntity.cs" />
+    <Compile Include="Services\IFormsAuthenticationService.cs" />
+    <Compile Include="Services\IPackageFileService.cs" />
+    <Compile Include="Entities\IEntityRepository.cs" />
+    <Compile Include="Services\IUsersService.cs" />
+    <Compile Include="Entities\EmailMessage.cs" />
+    <Compile Include="Entities\EntitiesContext.cs" />
+    <Compile Include="Entities\PackageRegistration.cs" />
+    <Compile Include="Entities\PackageAuthor.cs" />
+    <Compile Include="Entities\Package.cs" />
+    <Compile Include="Entities\EntityRepository.cs" />
+    <Compile Include="Migrations\20110808110000_CreatePackageDependenciesTable.cs" />
+    <Compile Include="RequestModels\DisplayPackageRequest.cs" />
+    <Compile Include="Strings.Designer.cs">
+      <DependentUpon>Strings.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Entities\User.cs" />
+    <Compile Include="Services\UsersService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequestModels\SignInRequest.cs" />
+    <Compile Include="RequestModels\RegisterRequest.cs" />
+    <Compile Include="Bootstrapper.cs" />
+    <Compile Include="RequestModels\SubmitPackageRequest.cs" />
+    <Compile Include="RouteNames.cs" />
+    <Compile Include="DataServices\FeedsContext.cs" />
+    <Compile Include="DataServices\Feeds.svc.cs">
+      <DependentUpon>Feeds.svc</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
+    <Compile Include="ViewModels\ListPackageViewModel.cs" />
+    <Compile Include="ViewModels\VerifyPackageViewModel.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="App_Data\NuGetGallery.mdf" />
+    <Content Include="App_Data\NuGetGallery_log.ldf">
+      <DependentUpon>NuGetGallery.mdf</DependentUpon>
+    </Content>
+    <Content Include="Content\Buttons.css" />
+    <Content Include="Content\Comments.css" />
+    <Content Include="Content\Confirmations.css" />
+    <Content Include="Content\Footer.css" />
+    <Content Include="Content\Forms.css" />
+    <Content Include="Content\Header.css" />
+    <Content Include="Content\Home.css" />
+    <Content Include="Content\ie-mac.css" />
+    <Content Include="Content\ie7.css" />
+    <Content Include="Content\Images\download.png" />
+    <Content Include="Content\Images\headerbackground.png" />
+    <Content Include="Content\Images\hero.png" />
+    <Content Include="Content\Images\herowithlogo.png" />
+    <Content Include="Content\Images\inputBackground.png" />
+    <Content Include="Content\Images\invalidBG.png" />
+    <Content Include="Content\Images\navbackground.png" />
+    <Content Include="Content\Images\newAccountGraphic.png" />
+    <Content Include="Content\Images\nugetlogo.png" />
+    <Content Include="Content\Images\nugetLogoFooter.png" />
+    <Content Include="Content\Images\required.png" />
+    <Content Include="Content\Images\userIconWhite.png" />
+    <Content Include="Content\Images\xmark.png" />
+    <Content Include="Content\jquery.lightbox-0.5.css" />
+    <Content Include="Content\MainNav.css" />
+    <Content Include="Content\nuget.css" />
+    <Content Include="Content\nuget.ico" />
+    <Content Include="Content\orchard.css" />
+    <Content Include="Content\Packages.css" />
+    <Content Include="Content\PageToolbar.css" />
+    <Content Include="Content\Pagination.css" />
+    <Content Include="Content\Ratings.css" />
+    <Content Include="Content\Reset.css" />
+    <Content Include="Content\Widgets.css" />
+    <Content Include="Scripts\gallery.form.js" />
+    <Content Include="Scripts\global.js" />
+    <Content Include="Scripts\html5.js" />
+    <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
+    <Content Include="Scripts\jquery-1.6.2.js" />
+    <Content Include="Scripts\jquery-1.6.2.min.js" />
+    <Content Include="Scripts\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\jquery.validate.js" />
+    <Content Include="Scripts\jquery.validate.min.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="DataServices\Feeds.svc" />
+    <Content Include="Web.config" />
+    <Content Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </Content>
+    <Content Include="Views\web.config" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Shared\Error.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Pages\Home.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Users\Register.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Authentication\SignIn.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\EditorTemplates\Object.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\Layout.cshtml" />
+    <Content Include="Views\Shared\UserDisplay.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\SubmitPackage.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\DisplayPackage.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\VerifyPackage.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Strings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Pages\Contribute.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\ListPackages.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\_ListPackage.cshtml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target> -->
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>2884</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>
+          </IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

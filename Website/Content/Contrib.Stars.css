@@ -1,0 +1,243 @@
+﻿.dyn .stars-rating form {
+    display:none;
+}
+.stars-current-result {
+    overflow:hidden;
+    padding:6px 0;
+}
+
+/*
+the base of the stars.
+
+sprite cheatsheet:
+ - 0 0 == empty star (default == grey)
+ - 0 -14 == user rating star (default == yellow/gold)
+ - 0 -28 == overall rating star (default == red)
+ - 0 -42 == inactive "clear stars" icon
+ - 0 -56 == active "clear stars" icon
+*/
+.stars-current-result .a-star,
+.stars-current-result .stars-clear {
+    background:url(images/stars.png) 0 0 no-repeat;
+    display:block;
+    float:left;
+    height:14px;
+    text-indent:-9999em;
+    padding:0 1px;
+    width:15px;
+}
+.stars-can-rate .a-star,
+.stars-current-result .stars-clear {
+    cursor:pointer;
+}
+
+/*
+half-sized rating stars for the *.5's
+*/
+.stars-current-result .a-half-star {
+    background:url(images/stars.png) 0 -28px no-repeat;
+    display:block;
+    float:left;
+    height:14px;
+    padding:0 0 0 1px;
+    text-indent:-9999em;
+    width:7px;
+}
+.stars-can-rate .stars-current-result .a-half-star {
+    display:none;
+}
+.stars-current-result .a-star.a-half-star {
+    background-position:-8px 0;
+    padding:0 2px 0 0;
+}
+.stars-can-rate .stars-current-result .a-star.a-half-star {
+    background-position:0 0;
+    display:block;
+    padding:0 1px;
+    width:15px;
+}
+
+/*
+clear stars icon/"button"
+*/
+.stars-current-result .stars-clear {
+    background-position:0 -42px;
+}
+.stars-current-result .stars-clear.mousey,
+.stars-current-result .stars-clear.active {
+    background-position:0 -56px;
+}
+
+/*
+overall rating stars (default == red) for when the user hasn't rated the item
+*/
+.stars-value-1 .star-1, .stars-value-2 .star-1, .stars-value-3 .star-1, .stars-value-4 .star-1, .stars-value-5 .star-1 {
+    background-position:0 -28px;
+}
+.stars-value-2 .star-2, .stars-value-3 .star-2, .stars-value-4 .star-2, .stars-value-5 .star-2 {
+    background-position:0 -28px;
+}
+.stars-value-3 .star-3, .stars-value-4 .star-3, .stars-value-5 .star-3 {
+    background-position:0 -28px;
+}
+.stars-value-4 .star-4, .stars-value-5 .star-4 {
+    background-position:0 -28px;
+}
+.stars-value-5 .star-5 {
+    background-position:0 -28px;
+}
+
+/*
+empty stars beyond the user's rating
+*/
+.stars-user-rating-1 .star-2 {
+    background-position:0 0;
+}
+.stars-user-rating-1 .star-3, .stars-user-rating-2 .star-3 {
+    background-position:0 0;
+}
+.stars-user-rating-1 .star-4, .stars-user-rating-2 .star-4, .stars-user-rating-3 .star-4 {
+    background-position:0 0;
+}
+.stars-user-rating-1 .star-5, .stars-user-rating-2 .star-5, .stars-user-rating-3 .star-5, .stars-user-rating-4 .star-5 {
+    background-position:0 0;
+}
+
+/*
+user rating star state (default == yellow/gold)
+ - first line is for the static display for what the user has rated
+ - second and third lines are for showing the correct yellow/gold star when the user puts the cursor over a star (possibly with the intention to rate)
+ - fourth line is for overriding a half-star display that could be set for the overral rating. the user's rating should override
+*/
+.stars-user-rating-1 .star-1, .stars-user-rating-2 .star-1, .stars-user-rating-3 .star-1, .stars-user-rating-4 .star-1, .stars-user-rating-5 .star-1,
+.stars-can-rate.star-1 .star-1, .stars-can-rate.star-2 .star-1, .stars-can-rate.star-3 .star-1, .stars-can-rate.star-4 .star-1, .stars-can-rate.star-5 .star-1,
+.stars-can-rate.star-1 .star-1.a-half-star, .stars-can-rate.star-2 .star-1.a-half-star, .stars-can-rate.star-3 .star-1.a-half-star, .stars-can-rate.star-4 .star-1.a-half-star, .stars-can-rate.star-5 .star-1.a-half-star,
+.stars-can-rate .stars-user-rating-1 .star-1.a-half-star, .stars-can-rate .stars-user-rating-2 .star-1.a-half-star, .stars-can-rate .stars-user-rating-3 .star-1.a-half-star, .stars-can-rate .stars-user-rating-4 .star-1.a-half-star, .stars-can-rate .stars-user-rating-5 .star-1.a-half-star {
+    background-position:0 -14px;
+}
+.stars-user-rating-2 .star-2, .stars-user-rating-3 .star-2, .stars-user-rating-4 .star-2, .stars-user-rating-5 .star-2,
+.stars-can-rate.star-2 .star-2, .stars-can-rate.star-3 .star-2, .stars-can-rate.star-4 .star-2, .stars-can-rate.star-5 .star-2,
+.stars-can-rate.star-2 .star-2.a-half-star, .stars-can-rate.star-3 .star-2.a-half-star, .stars-can-rate.star-4 .star-2.a-half-star, .stars-can-rate.star-5 .star-2.a-half-star,
+.stars-can-rate .stars-user-rating-2 .star-2.a-half-star, .stars-can-rate .stars-user-rating-3 .star-2.a-half-star, .stars-can-rate .stars-user-rating-4 .star-2.a-half-star, .stars-can-rate .stars-user-rating-5 .star-2.a-half-star {
+    background-position:0 -14px;
+}
+.stars-user-rating-3 .star-3, .stars-user-rating-4 .star-3, .stars-user-rating-5 .star-3,
+.stars-can-rate.star-3 .star-3, .stars-can-rate.star-4 .star-3, .stars-can-rate.star-5 .star-3,
+.stars-can-rate.star-3 .star-3.a-half-star, .stars-can-rate.star-4 .star-3.a-half-star, .stars-can-rate.star-5 .star-3.a-half-star,
+.stars-can-rate .stars-user-rating-3 .star-3.a-half-star, .stars-can-rate .stars-user-rating-4 .star-3.a-half-star, .stars-can-rate .stars-user-rating-5 .star-3.a-half-star {
+    background-position:0 -14px;
+}
+.stars-user-rating-4 .star-4, .stars-user-rating-5 .star-4,
+.stars-can-rate.star-4 .star-4, .stars-can-rate.star-5 .star-4,
+.stars-can-rate.star-4 .star-4.a-half-star, .stars-can-rate.star-5 .star-4.a-half-star,
+.stars-can-rate .stars-user-rating-4 .star-4.a-half-star, .stars-can-rate .stars-user-rating-5 .star-4.a-half-star {
+    background-position:0 -14px;
+}
+.stars-user-rating-5 .star-5,
+.stars-can-rate.star-5 .star-5,
+.stars-can-rate.star-5 .star-5.a-half-star,
+.stars-can-rate .stars-user-rating-5 .star-5.a-half-star {
+    background-position:0 -14px;
+}
+
+/*
+empty stars (e.g. to the right) for when the user puts the cursor over a star
+*/
+.stars-can-rate.star-1 .star-2 {
+    background-position:0 0 !important;
+}
+.stars-can-rate.star-1 .star-3, .stars-can-rate.star-2 .star-3 {
+    background-position:0 0 !important;
+}
+.stars-can-rate.star-1 .star-4, .stars-can-rate.star-2 .star-4, .stars-can-rate.star-3 .star-4 {
+    background-position:0 0 !important;
+}
+.stars-can-rate.star-1 .star-5, .stars-can-rate.star-2 .star-5, .stars-can-rate.star-3 .star-5, .stars-can-rate.star-4 .star-5 {
+    background-position:0 0 !important;
+}
+
+/* Statistics */
+
+ul.stars-details {
+    margin: 1px 0 0 10px;
+}
+ul.stars-details li {
+    display: inline;
+    padding: 0px 5px;
+    margin: 0px;
+}
+ul.stars-details li:first-child {
+    border-right: 1px solid #CCC;
+    padding-right: 8px;
+}
+
+/* Reviews */
+div.reviews-content header {
+    clear: both;
+}
+div.reviews-content header > div {
+    background-color: #eee;
+    padding: 15px 28px;
+    border-bottom: 1px solid #e6e6e6;
+    clear: both;
+}
+div.reviews-content header > div + div {
+    min-width: 0; /* peekaboo bug fix for IE7 */
+}
+div.reviews-content ul li {
+    list-style: none;
+    padding:20px 0 0px 25px;
+    border-bottom: 1px solid #e6e6e6;
+}
+    div.reviews-content ul li:last-child {
+        border: none !important;
+    }
+    div.reviews-content ul li.mine {
+        background-color: #eee;
+        padding-bottom: 1px;
+    }
+    div.reviews-content ul li div.stars-rating {
+        float: right;
+        margin-right: 25px;
+    }
+    div.reviews-content ul li p {
+        width: 96%;
+        margin: 4px 0 15px;
+    }
+div.reviews-content span.review-username {
+    font-weight: bold;
+    margin-right: 15px;
+}
+div.reviews-content span.review-timestamp {
+    color: #808080;
+}
+div#reviewFormDiv textarea {
+    width: 89%;
+}
+div#reviewFormDiv span {
+    font-weight: bold;
+}
+div#reviewFormDiv span.my-review, div#reviewFormDiv span.my-rating{
+    clear: left;
+    display: block;
+    float: left;
+    width: 70px;
+}
+div#reviewFormDiv span.my-rating, div#reviewFormDiv div.stars-rating {
+    margin-bottom: 10px;
+}
+div#reviewFormDiv input[type=submit] {
+    margin-top: 15px;
+    clear: both;
+}
+a#showAllReviewsLink {
+    font-size: 15px;
+    margin:10px 0 0;
+    padding: 5px 25px;
+    background: url(Images/arrowDown.png) 96% 50% no-repeat;
+    text-align: right;
+    padding-right: 40px;
+}
+a#showAllReviewsLink.less {
+    background: url(Images/arrowUp.png) 96% 50% no-repeat;
+}

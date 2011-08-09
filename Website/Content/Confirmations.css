@@ -1,0 +1,75 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+.message {
+    margin:10px 0 0;
+    font-size: 1.25em; /* 15px */
+    padding: 2px 5px;
+    font-weight:bold;
+    text-align: center;
+    line-height: 1.5em;
+}
+.message span {
+    font-size: .8em; /* 12px */
+    font-weight: normal;
+    display: block;
+    text-align: left;
+    line-height: 1.5em;
+    margin: 5px 15px 0;
+}
+.message-Information {
+    background-color: #39922C; /* green */
+    color: #fff;
+}
+.message-Warning {
+    background:#fdf5bc; /* yellow */
+    border:1px solid #ffea9b;
+}
+.critical.message {
+    background:#c13a3f; /* red */
+    color:#fff;
+}
+.confirmDialogWarning {
+    color:#c13a3f;
+    font-weight:bold;
+}
+.validation-summary-errors, .message-Error, .validation-summary-errors {
+    color:#c13a3f; /* red */
+}
+.validation-summary-errors, .validation-summary-errors {
+    line-height: 1.5em;
+}
+.message-Error {
+    border: 1px solid #c13a3f; /* red */
+}
+.field-validation-error { font-weight:bold; }
+
+.unfinishedPackage {
+    background: #fdf5bc;
+    padding: 10px;
+    margin-bottom: 16px;
+}
+.unfinishedPackage a {
+    font-weight: bold;
+}
+.unfinishedPackage header {
+    background: url("../content/images/warning.png") no-repeat;
+    width: 325px;
+    height: 20px;
+    padding: 3px 0;
+    margin: 0 auto;
+}

@@ -1,0 +1,475 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+.packageItem {
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 1px;
+    padding: 22px 10px;
+}
+.packageItem.theme {
+    min-height: 130px;
+}
+.packageItem.mine {
+    background: #E9F2FA url("../Content/Images/mine.png") no-repeat scroll right bottom;
+}
+.packageItem img.thumbnail {
+    float: left;
+}
+.theme .thumbnail {
+    margin: 0 50px 0 19px;
+    width:171px;
+    height: 128px;
+}
+.module .thumbnail {
+    margin:0;
+    width: 50px;
+    height: 50px;
+    border: 0 none;
+}
+.theme header {
+    margin-left: 240px;
+}
+.module header {
+    margin-left: 75px;
+}
+.packageItem header h3 {
+    font-size: 1.75em;
+    float: left;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+    .packageItem header h3 a {
+        color: #39922C;
+    }
+.packageItem header input {
+    float:right;
+    width: 78px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #666;
+}
+.zone-actions {
+    float: right;
+    width: 230px; /* Exact width set to make IE7 behave */
+}
+.zone-authors {
+    float: left;
+    padding-top: 2px;
+    width: auto;
+}
+.zone-actions ul, .package-owner-actions ul {
+    float: right;
+    width: 307px;
+    margin: 5px 0 12px 0;
+    text-align: right;
+}
+    .zone-actions ul li, .package-owner-actions li {
+        display: inline;
+        padding-left: 10px;
+    }
+    .zone-actions ul li:first-child, .package-owner-actions li:first-child {
+        padding-left: 0px;
+    }
+.zone-actions ul li a.edit, .package-owner-actions li a.edit {
+    background-position: 0 -18px;
+}
+.zone-actions ul li a.delete, .package-owner-actions li a.delete {
+    background-position: 0 -34px;
+}
+.zone-actions ul li a.manage-owners, .package-owner-actions li a.manage-owners {
+    background-position: 0 -3px;
+}
+.zone-actions ul li a.unpublishPackageLink, .package-owner-actions li a.unpublishPackageLink {
+    background-position: 0 -50px;
+}
+.zone-actions ul li a.publishPackageLink, .package-owner-actions li a.publishPackageLink {
+    background-position: 0 -66px;
+}
+.zone-actions ul li a, .package-owner-actions li a {
+    padding: 0 0 0 15px;
+    background-image: url(../Content/Images/packageOwnerActionIcons.png);
+    background-repeat: no-repeat;
+}
+.packageItem .theme .detail {
+    clear: right;
+    margin-left: 195px;
+}
+.packageItem .module .detail {
+    clear: right;
+    margin-left: 75px;
+}
+.screenshot > img {
+    width: 321px;
+    height: 240px;
+    float: left;
+}
+    div.screenshot-logo > img {
+        height: 200px;
+        padding: 18px 60px;
+        width: 200px;
+    }
+    div.screenshot-logo {
+    border: 1px solid #CCCCCC;
+    width: 319px !important;
+    }
+.icon > div {
+    margin-left: 130px;
+}
+.theme .detail {
+    clear: right;
+    margin-left: 240px;
+    margin-right: 45px;
+}
+.module .detail {
+    clear: right;
+    margin-left: 75px;
+    margin-right: 45px;
+}
+.packageItem .detail p, .packageItemDetail .detail p {
+    line-height: 1.6em;
+}
+.packageItem header div.package-actions {
+    float: right;
+    width: 220px;
+}
+.package-owner-actions {
+    clear: right;
+}
+header p.author {
+    width: auto;
+    display: inline;
+}
+    header p.author a {
+        color: #39922C;
+    }
+    header p.author + ul {
+
+    }
+span.isRecommended, span.isNotRecommended, span.isNotPublished {
+    float: right;
+    width: 114px;
+    height: 23px;
+}
+a.silverButtonBig + span.isRecommended, a.silverButtonBig + span.isNotRecommended, a.silverButtonBig + span.isNotPublished {
+    margin-left:10px;
+    float: left !important;
+}
+span.isRecommended.edit {
+    height: 36px !important;
+}
+span.isNotRecommended.edit {
+    width: auto !important;
+}
+span.isNotPublished {
+    padding: 5px 10px 5px 30px;
+    font-size: 11px;
+    background: url(../Content/Images/notPublished.png) no-repeat 10px 1px #FFFFC6;
+}
+span.isNotRecommended {
+    padding: 5px 10px 5px 30px;
+    font-size: 11px;
+    background: url(../Content/Images/notRecommended.png) no-repeat 10px 1px #f2f2f2;
+}
+span.isRecommended {
+    padding: 5px 0px 5px 40px;
+    background-image: url(../Content/Images/recommended.png);
+    background-repeat: no-repeat;
+    background-position: 8px 50%;
+    font-weight: bold;
+    background-color: #F2F5EA;
+    font-size: 12px;
+}
+span.isRecommended span {
+    font-size: 0.75em;
+    font-weight: normal !important;
+}
+span.isRecommended span.isRecommendedHover {
+    background-color: #E1E6D5;
+    display: block;
+    left: -40px;
+    padding: 12px;
+    position: relative;
+    top: 10px;
+    width: 130px;
+    font-weight: normal !important;
+    font-size: 1em !important;
+}
+div.theme header p.author {
+    display:block;
+}
+#layout-content header + p {
+    clear: right;
+}
+#thumbnails {
+    float: left;
+    margin: 0 !important;
+    padding-right: 30px;
+}
+#thumbnails .logo img {
+    width: 128px;
+    height: 128px;
+}
+#thumbnails .screenshot img {
+    width: 321px;
+    height: 240px;
+}
+#thumbnails ul {
+    clear: both;
+    padding: 10px 0 0 8px;
+    width: 313px;
+}
+#thumbnails ul li {
+    display: block;
+    padding: 0 5px 5px 0;
+    width: 98px;
+    height: 74px;
+    float: left;
+}
+#thumbnails ul img {
+    width: 98px;
+    height: 74px;
+}
+#thumbnails ul li img {
+    cursor: pointer;
+}
+.packageLogo, .packageLogo img {
+    width: 100px;
+    height: 100px;
+}
+.list-icon, .list-icon img {
+    width: 74px !important;
+}
+.packageItem ul.packageMeta {
+    margin: 0;
+    width: auto;
+}
+.packageItem ul.packageMeta li {
+    display: inline;
+    border-left: 1px solid #ccc;
+    padding: 3px 10px;
+    border-bottom: none;
+    line-height: 1.4em;
+}
+.packageItem ul.packageMeta li.comments {
+    border: none;
+    padding-left: 22px;
+    background: transparent url(../Content/Images/commentsIcon.png) no-repeat 0 5px;
+}
+.packageItemDetail header {
+    border-bottom: 1px solid #E6E6E6;
+    padding-bottom: 30px;
+}
+.packageItemDetail div.reviews-content header {
+    border-bottom: none;
+    padding-bottom: 0px;
+}
+.packageItemDetail ul.links {
+    margin: 20px 0;
+}
+    .packageItemDetail ul.links li {
+        font-size: 1.09em;
+        display: inline;
+        border-left: 1px solid #ccc;
+        padding: 1px 10px 2px;
+        border-bottom: none;
+    }
+        .packageItemDetail ul.links li:first-child {
+            border-left: 0 none;
+            padding-left: 0px;
+        }
+.packageItem input[type=submit], .packageItem input[type=submit], .packageItem .installButton {
+    clear: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 14px !important;
+}
+#packageDetails {
+    border-top: 1px solid #e6e6e6;
+}
+#packageDetails, #versionHistory {
+    width: 100%;
+    margin-bottom: 10px;
+}
+    #packageDetails thead td, #versionHistory thead td {
+        width: 100%;
+        font-size: 1.75em !important; /* 21px */
+        text-align: left;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 6px;
+        color: #3e483c;
+    }
+    #packageDetails td {
+        text-align: left;
+        padding: 6px 0;
+    }
+    #packageDetails th {
+        text-align: left;
+        padding: 6px 0 6px 28px;
+        width: 145px !important;
+    }
+h4.packageDetailsTableHeader, a.packageDetailsTableHeader, h4.reviews-heading {
+    width: 100%;
+    margin: 25px 0 0;
+    font-size: 1.75em !important;
+    padding-bottom: 6px;
+    display: block;
+}
+a.packageDetailsTableHeader:visited, a.packageDetailsTableHeader:active {
+    text-decoration: none !important;
+}
+h4.packageDetailsTableHeader, h4.reviews-heading {
+    color: #3E483C;
+    margin-top: 40px;
+}
+a.versionHistoryShowMore, a#showAllReviewsLink {
+    background: url(../Content/Images/blueArrowDown.png) 96% 50% no-repeat;
+    display: none;
+    margin:10px 0 0;
+    padding: 5px 50px;
+}
+a.versionHistoryShowMore.less, a#showAllReviewsLink.less {
+    background: url(../Content/Images/blueArrowUp.png) 96% 50% no-repeat;
+}
+.packageDetailsTableHeader + table {
+    margin-top: 5px !important;
+}
+/**    Version History, Unpublished Packages, and Manage Package ID Tables     **/
+h4 + header.registerPackageHeader { margin-top: 50px; }
+#versionHistory, #managePackageID, #unpublishedPackages {
+    border-bottom: 1px solid #e6e6e6;
+}
+ #managePackageID, #unpublishedPackages {    
+    padding-bottom: 5px;
+    margin-bottom: 40px;
+}
+#versionHistory thead tr.header, #managePackageID thead tr.header {
+    background-color: #F4F7ED;  /* Original styles */
+    /* height: 25px;*/
+}
+    #versionHistory tbody th.downloads, #versionHistory tbody td.downloads {
+        width: 60px !important;
+        text-align: right;
+        padding-right: 10px;
+    }
+    #versionHistory tbody tr td, #versionHistory thead tr th, #managePackageID tbody tr td, #unpublishedPackages thead tr th {
+        padding-right: 35px !important;
+    }
+    #versionHistory tbody tr:hover, #versionHistory tbody tr:hover td, #managePackageID tbody tr:hover, #managePackageID tbody tr:hover td, #unpublishedPackages tbody tr:hover td { /* Adding BG to TD fixes IE7 bug */
+        background-color: #eee !important;
+    }
+    #versionHistory tbody tr td, #managePackageID tbody tr td, #unpublishedPackages tbody tr td {
+        padding-top: 4px;
+        padding-bottom: 6px;
+    }
+    #versionHistory tbody tr td:first-child, #versionHistory thead tr th:first-child, #managePackageID tbody tr td:first-child, #managePackageID thead tr th:first-child, #unpublishedPackages thead tr th:first-child, #unpublishedPackages tbody tr td:first-child {
+        padding-left: 28px !important;
+    }
+    #versionHistory tbody tr td:last-child, #versionHistory thead tr th:last-child, #managePackageID tbody tr td:last-child, #managePackageID thead tr th:last-child, #unpublishedPackages thead tr th:last-child, #unpublishedPackages tbody tr td:last-child {
+        padding-right: 25px !important;
+    }
+    #versionHistory thead tr th, #managePackageID thead tr th, #unpublishedPackages thead tr th {
+        padding: 10px 0;
+    }
+    #versionHistory  tbody > tr.unpublished {
+        color: #bbb;
+    }
+    #versionHistory  tbody > tr.recommended > td.version {
+        background: url(../Content/Images/recommendedSmall.png) 5px 5px no-repeat;
+    }
+    #versionHistory  td.warning {
+        background: url(../Content/Images/warningBullet.png) 5px 2px no-repeat;
+    }
+    #versionHistory td.rating div {
+        float: right;
+        width: auto;
+    }
+    #versionHistory th.rating {
+        text-align: center;
+        width: 85px;
+    }
+    #versionHistory tr.current td {
+        font-weight: bold;
+    }
+    th.ownerActions {
+        width: 40px;
+    }
+    td.ownerActions ul {
+        margin: 0 auto;
+        width: 70px;
+        text-align: right;
+    }
+        td.ownerActions ul li {
+            display: inline;
+            width: 20px;
+            margin-right:8px;
+        }
+        td.ownerActions ul li:last-child {
+            margin: 0 !important;
+        }
+    #managePackageID td, #unpublishedPackages td {
+        font-weight: bold;
+    }
+.packageItemDetail div a.greenButton {
+    margin: 10px 0 20px;
+}
+#package-owner-list {
+    width: 500px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #ccc;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+}
+    #package-owner-list li {
+        background-image: url(../Content/Images/userIcon.png);
+        background-position: 25px 50%;
+        background-repeat: no-repeat;
+        border-top: 1px solid #CCCCCC;
+        line-height: 1.75em;
+        padding: 10px 30px 10px 43px;
+    }
+    #package-owner-list li:hover {
+        background-color: #E1E6D5;
+    }
+    #package-owner-list li a {
+        margin-left: 20px;
+        display:block;
+        *display: inline; /* IE6 */
+        float: right;
+        *float: none; /* IE6 */
+        width: auto;
+    }
+    #package-owner-list li a.delete {
+        background-position: -1px 3px;
+    }
+/* Reviews */
+div.reviews-content header div:first-child {
+    font-size: 15px;
+    border-bottom: none !important;
+}
+div.has-screenshot-margin div#reviewFormDiv textarea {
+    width: 85%;
+}
+div.reviews-content ul li.mine, div.reviews-content header > div {
+    background-color: #F4F7ED;
+    border-bottom: none !important;
+}
+p.review-character-limit {
+    margin: 0 0 0 70px;
+    font-size: 0.87em;
+}
+a#cancelCreateReviewLink {
+    margin-left: 10px;
+}

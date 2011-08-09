@@ -1,0 +1,222 @@
+﻿<div id="layout-main" class="group">
+    <div id="layout-content" class="group">
+        
+        <div id="content" class="group">
+            <div class="zone zone-content">
+                <section class="packageItemDetail icon">
+                    <div id="thumbnails">
+                        <div class="packageLogo">
+                            <img src="@Url.Content("~/Content/Images/packagesDefaultIcon.png")" alt="@Model.Id" />
+                        </div>
+                    </div>
+                    <div class="">
+                        <header>
+                            <div>
+                                <span class="isRecommended">Recommended Version</span>
+                                <h2>@Model.Id - @Model.Version</h2>
+                            </div>
+                            <div>
+                                <div class="zone zone-authors">
+                                    <p class="author">By
+                                        <a href="/List/Search?searchTerm=author%3A%20Microsoft">@Model.Authors</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </header>
+                        <p>@Model.Description</p>
+                        <ul class="links">
+                            <li><a href="http://msdn.com/data/ef" title="Visit the project site to learn more about this package">Project site</a></li>
+                            <li><a href="http://go.microsoft.com/fwlink/?LinkId=224682" title="Make sure you agree with the license">License</a></li>
+                            <li><a href="http://nuget.org/Package/ReportAbuse/EntityFramework/4.1.10715.0" title="Report Abuse">Report Abuse</a></li>
+                            <li><a href="/Package/ContactOwners/EntityFramework">Contact Owners</a></li>
+                        </ul>
+                        <div class="commandWrapper">
+                            <div class="commandPrompt">
+                                <p class="command">PM&#62; Install-Package @Model.Id</p>
+                            </div>
+                        </div>        
+                        <h4 class="packageDetailsTableHeader">Packages details</h4>
+                        <table id="packageDetails">
+                            <tr>
+                                <th>Rating:</th>
+                                <td>
+                                    <div class="zone zone-rating">
+                                        <div class="stars-rating " title="Log-in to rate this item">
+                                            <div class="stars-current-result stars-value-3 " style="display:inline;">
+                                                <span class="star-1 a-star">*</span>
+                                                <span class="star-2 a-star">*</span>
+                                                <span class="star-3 a-star">*</span>
+                                                <span class="star-4 a-star">-</span>
+                                                <span class="star-5 a-star">-</span>
+                                            </div>
+                                            <ul class="stars-details">
+                                                <li>Ratings: 2</li>
+                                                <li>Average: 3</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                            </tr>
+                            <tr>
+                                <th>Total Downloads:</th>
+                                <td>58029</td>
+                            </tr>
+                            <tr>
+                                <th>Last updated:</th>
+                                <td>7/25/2011</td>
+                            </tr>
+                            <tr>
+                                <th>Package ID:</th>
+                                <td>@Model.Id</td>
+                            </tr>
+                        </table>
+                        <h4 class="packageDetailsTableHeader">Version history</h4>
+                        <div id="versionHistory">
+                            <table id="versionHistoryTable" cellpadding="0" cellspacing="0">
+                                <thead>
+                                    <tr class="header">
+                                        <th class="version">Version</th>
+                                        <th class="downloads">Downloads</th>
+                                        <th class="lastUpdated">Last updated</th>
+                                        <th class="rating">Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="versionTableRow current recommended">
+                                        <td class="version">
+                                            EntityFramework 4.1.10715.0
+                                        </td>
+                                        <td class="downloads">7165</td>
+                                        <td class="lastUpdated">25 Jul 2011</td>
+                                        <td class="rating">
+                                            <div class="stars-rating">
+                                                <div class="stars-current-result stars-value-3">
+                                                    <span class="star-1 a-star">*</span>
+                                                    <span class="star-2 a-star">*</span>
+                                                    <span class="star-3 a-star">*</span>
+                                                    <span class="star-4 a-star">-</span>
+                                                    <span class="star-5 a-star">-</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <a href="#" class="versionHistoryShowMore">Show More</a>
+                        </div>
+                        <h4 class="reviews-heading" id="reviews-heading">Reviews</h4>
+                        <div class="reviews-content">
+                            <header>
+                                <div id="createReviewLinkDiv"><span id="createReviewLinkSpan"><a id="showReviewFormLink" href="/Users/Account/LogOn?ReturnUrl=%2FList%2FPackages%2FEntityFramework">Write a review!</a></span></div>
+                                    <div id="reviewFormDiv" style="display: none">
+                                        <span class="my-rating">My Rating:</span> 
+                                        <div class="stars-rating " title="Log-in to rate this item">
+                                            <div class="stars-current-result ">
+                                                <span class="star-1 a-star"></span>
+                                                <span class="star-2 a-star"></span>
+                                                <span class="star-3 a-star"></span>
+                                                <span class="star-4 a-star"></span>
+                                                <span class="star-5 a-star"></span>
+                                            </div>
+                                        </div>
+                                        <span class="my-review">My Review:</span>
+                                        <form action="/Contrib.Reviews/Review/Create" method="post">
+                                            <textarea cols="20" id="comment" maxLength="1200" name="comment" rows="4">
+                                            </textarea>
+                                            <input id="cotentId" name="contentId" type="hidden" value="14982" />
+                                            <input id="ReturnUrl" name="ReturnUrl" type="hidden" value="http://nuget.org/List/Packages/EntityFramework" />
+                                            <p class="review-character-limit"><span id="commentCharactersLeft"></span> character(s) remaining</p>
+                                            <input id="createReviewButton" type="submit" value="Submit Review" />
+                                            <a id="cancelCreateReviewLink" href="#">Cancel</a>
+                                            <input name="__RequestVerificationToken" type="hidden" value="d/I+zrKwK4r7uSRiBfJyR55YiL6HgQFR3xRu3qUsYr3RfN33OXuEniRKNA4B5fpDe73LOo/PMCwB3bYgJWimSjf72wC+yS1IZ9SZJtlcG9s8s/17WsQpeoTFZfVRwWx/B1ueoEI6FVcxpPacx+Jr6jmwxMsdcNMlh7gsXW/XV8mI+qnCTkDmXaagQiKJmqE8HWo68S+o1wVg2c6yBjUw9w==" />
+                                        </form>
+                                    </div>
+                            </header>
+    <ul id="reviewsList">
+            <li class="">
+                <div class="stars-rating">
+                    <div class="stars-current-result stars-value-1">
+                        <span class="star-1 a-star">*</span>
+                        <span class="star-2 a-star">-</span>
+                        <span class="star-3 a-star">-</span>
+                        <span class="star-4 a-star">-</span>
+                        <span class="star-5 a-star">-</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="review-username">EntityFrameworkSucks</span><span class="review-timestamp">8/5/2011 1:11:12 PM</span>
+                    <p class="review-comment">Don&#39;t upgrade, it introduces breaking changes.
+ 
+http://ayende.com/blog/75777/entity-framework-4-1-update-1-backward-compatibility-and-microsoft
+                    </p>
+                </div>
+            </li>
+    </ul>
+    <div><a id="showAllReviewsLink" href="#" style="display: none">Show All</a></div>
+</div>
+                        <div id="deleteReviewConfirmationDialogDiv" title="Confirm Deletion" style="display:none">
+                            <p>Are you sure you wish to delete your review? Your Rating will also be deleted.</p>
+                            <form action="/Contrib.Reviews/Review/Delete" id="deleteReviewForm" method="post">
+                                <input type="hidden" id="reviewId" name="reviewId" />
+                                <input type="hidden" id="returnUrl" name="returnUrl" value="http://nuget.org/List/Packages/EntityFramework" />
+                                <input type="submit" value="Yes" />
+                                <input type="button" value="No" id="cancelDeleteReviewButton" />
+                                <input name="__RequestVerificationToken" type="hidden" value="iBKfQkahPqXBXd079LQS9z5dV5mdxYodg3agHTIM3CEWJzMzb2GGU5i6KUg4GJ6kJdtw717po9yxKzTKZImIJLc/foCOpp6qMG07TpKoVOQimIGxBhJC5/UylJN72Vyea3c4tJytYCvF8u4qxwOtEYUHn2XI/ARXfX4TvYOJ/q+l0aFkf3+HCqOmPeTejgJnV/pKl2hhZB5DYCR6uSpAbQ==" />
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+        
+        <div id="after-content">
+            <div class="zone zone-after-content">
+                <div id="deletePackageConfirmationDialogDiv" title="Confirm Delete" style="display:none">
+                    <p>
+                        Are you sure you wish to delete the package <span id="packageIdToDeleteSpan"></span>, version <span id="packageVersionToDeleteSpan"></span>?
+                    </p>
+                    <p class="confirmDialogWarning">
+                        If you delete it, you will lose any associated downloads or reviews.
+                    </p>
+                    <form action="/Package/Delete" method="post">
+                        <input type="hidden" id="packageIdToDelete" name="packageId" />
+                        <input type="hidden" id="packageVersionToDelete" name="packageVersion" />
+                        <input type="hidden" id="shouldRedirect" name="shouldRedirect" />
+                        <input type="submit" value="Delete item anyway" />
+                        <input type="button" value="Cancel" onclick="CloseDeleteConfirmationDialogDiv(); return false;" />
+                        <input name="__RequestVerificationToken" type="hidden" value="kJogljoDg7l4akjYBGhYgSYmzWkuhMmVfaYZB2ctP5TNhQsQSN+MX7Llg1mGoIOnIOHsxLbwtypO/hwszyX6JVlJd63HaN+ASLtpBKWJMcvwpRQNBbMYS6agn2rRbaYkp37nEzmJspfg2iU5ER63gXF5Q9WY7i2Hhba+/N26OMH91V8ellpMy6/OagqBieNiBy2aUS55XhSoaAcdaIpo8w==" />
+                    </form>
+                </div>
+                <div id="unpublishPackageConfirmationDialogDiv" title="Confirm Unpublish" style="display:none">
+                    <p>
+                        Are you sure you wish to unpublish the package <span id="packageIdToUnpublishSpan"></span>, version <span id="packageVersionToUnpublishSpan"></span>?
+                    </p>
+                    <p>
+                        If you unpublish this item, users will no longer be able to view or download it. Download counts and reviews are retained, however.
+                    </p>
+                    <p>
+                        The item can still be downloaded from the feed, in case a dependent package requires it. If you want to remove the item from the feed, delete it instead.
+                    </p>
+                    <form action="/Orchard.Gallery/Package/Unpublish" method="post">
+                        <input type="hidden" id="packageIdToUnpublish" name="packageId" />
+                        <input type="hidden" id="packageVersionToUnpublish" name="packageVersion" />
+                        <input type="submit" value="Unpublish" />
+                        <input type="button" value="Cancel" onclick="CloseConfirmationDialogDiv(); return false;" />
+                        <input name="__RequestVerificationToken" type="hidden" value="ZvRArQBame0aiUbbmeRKm44g3TybW8KopxBshTIV9VA+fwE/WQeyiawslclO61C9U3ks8nOX01QhqMCnSQE2f9nFyJ60+H9mAr0VyCchz1TU94bLa5T5Jp52pefh2KLSn7M4C10cQAGgcZt2WsfV/8q50JX1Lx9D7hsD8BkneGUeZ9N9h+s8yqMYq3JGXaQ6Cy2bZ9XjBfPMFqPXLZr5JQ==" />
+                    </form>
+                </div>
+                <div id="deleteRatingConfirmationDialogDiv" title="Confirm Deletion" style="display:none">
+                    <p>When you clear your rating, if you've left a review it will also be deleted. Do you wish to proceed?</p>
+                    <input type="button" value="Yes" id="confirmDeleteRatingButton" />
+                    <input type="button" value="No" id="cancelDeleteRatingButton" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+@section BottomScripts {
+    <link href="@Url.Content("~/Content/Contrib.Stars.css")" rel="stylesheet" type="text/css" />
+}

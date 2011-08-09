@@ -1,0 +1,85 @@
+﻿@using NuGetGallery;
+@model IEnumerable<ListPackageViewModel>
+@{
+    ViewBag.Tab = "Packages";
+}
+<div id="layout-before-main" class="group">
+    <section id="currentPageToolbar">
+        <div class="zone zone-before-main">
+            <form action="/List/Search" method="get">
+                <div id="search">
+                    <div>
+                        <input type="text" name="searchTerm" id="searchTerm" value="Search Packages" />
+                    </div>
+                    <input type="submit" value=" "/>
+                </div>
+                <div id="sort">
+                    <label>Sort</label>
+                    <select name="sortOrder" id="sortOrder">
+                        <option value="package-title">A-Z</option>
+                        <option value="package-rating">Highest Rated</option>
+                        <option selected="selected" value="package-download-count">Popularity</option>
+                        <option value="package-created">Recent</option>
+                        <option value="sort-by-relevance">Relevance</option>
+                    </select>
+                    <label>Show</label>
+                    <select name="pageSize" id="pageSize">
+                        <option value="5">5 per page</option>
+                        <option selected="selected" value="10">10 per page</option>
+                        <option value="15">15 per page</option>
+                        <option value="25">25 per page</option>
+                        <option value="50">50 per page</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+
+<div id="layout-main" class="group">
+    <div id="layout-content" class="group">
+        
+        <div id="content" class="group">
+            <div class="zone zone-content">
+                <section>
+                    <header>
+                        <h2><span>@Model.Count() results for </span>Packages</h2>
+                        <span class="displayResults">Displaying results 1 - 10.</span>
+                    </header>
+                    <ul>
+                        @foreach (var listPackage in Model)
+                        {
+                            <li class="first">
+                                @Html.Partial("_ListPackage", listPackage);
+                            </li>
+                        }
+                    </ul>
+                    <div id="pagination">
+                        <ul class="group pager">
+                            <li class="page-previous">
+                                <span>Previous</span>
+                            </li>
+                            <li class="page-next">
+                                <a href="/List/Packages?page=2">Next</a>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+        </div>
+        
+        <div id="after-content">
+            <div class="zone zone-after-content">
+                <div id="deleteRatingConfirmationDialogDiv" title="Confirm Deletion" style="display:none">
+                    <p>When you clear your rating, if you've left a review it will also be deleted. Do you wish to proceed?</p>
+                    <input type="button" value="Yes" id="confirmDeleteRatingButton" />
+                    <input type="button" value="No" id="cancelDeleteRatingButton" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+@section BottomScripts {
+    <link href="@Url.Content("~/Content/Contrib.Stars.css")" rel="stylesheet" type="text/css" />
+}

@@ -1,0 +1,92 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+#comments { margin: 24px 0 0 0; padding: 0; }
+.comment-form { margin: 24px 0 0 0; padding: 0; }
+.comments { margin: 0; padding: 0; list-style: none; }
+.comments li { margin: 12px 0 0 0; padding: 12px; border: 1px solid #dbdbdb; }
+.comment { margin: 0; padding: 0; }
+.comment h4 { font-size: 1.077em; }
+.comment .who {}
+.comment .what {}
+.comment #add-comment {}
+.comment-form #comment-by { font-size: 1.231em; font-weight: normal; margin: 0 0 1.2em 0; border:none; }
+.comment-form #comment-text { width: 33.2em; }
+.comment-form input[type=text] { width: 32em; }
+.comment-disabled {}
+.comment-count { font-size: 1.231em; }
+#comments header {
+    background: #F4F7ED;
+}
+#comments ul.rating {
+    float: right;
+    margin-top: 5px;
+    margin-left: 10px;
+    margin-right: 0;
+}
+    #comments header li {
+        font-size: 1.25em; /* 15px */
+        float: left;
+        display: block;
+        border-left: 1px solid #ccc;
+        padding: 2px 10px;
+        border-bottom: none;
+        margin: 10px 0;
+    }
+        #comments header li:first-child {
+            border-left: 0 none;
+        }
+        #comments header li.rating {
+            float: right;
+            border-left: 0 none;
+            margin-right: 3px;
+            font-size: 1em;
+        }
+        #comments header li.rating span {
+            float: right;
+            margin-top: 1px;
+            margin-left: 10px;
+        }
+    #comments header ul li div {
+        font-size: .8em;
+        width: 390px;
+    }
+    #comments header ul li div p {
+        margin-bottom: 0px !important;
+    }
+    #comments > div > ul > li {
+        margin: 0;
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+    }
+    #comments div p {
+        margin: 12px 0 10px;
+    }
+    span.timestamp {
+        margin: 0 0 11px 20px;
+    }
+#comments footer {
+    margin: 20px 0;
+    text-align: right;
+    font-size: 1.25em;
+}
+#comments footer a {
+    padding-right: 15px;
+    background-image: url("../Content/Images/blueArrowDown.png");
+    background-position: 100% 50%;
+    background-repeat: no-repeat;
+}

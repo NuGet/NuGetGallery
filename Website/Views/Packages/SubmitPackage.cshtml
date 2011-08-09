@@ -1,0 +1,86 @@
+﻿@using NuGetGallery
+@model SubmitPackageRequest
+
+<div id="layout-main" class="aside-1 group">
+    
+    <aside id="aside-first" class="aside-first group">
+        <div class="zone zone-aside-first">
+            <nav id="leftNav">
+                <img src="@Url.Content("~/Content/Images/contribGraphic.png")" />
+                <p>Submit your package for others to enjoy.</p>
+            </nav>
+        </div>
+    </aside>
+    
+    <div id="layout-content" class="group">
+        <div id="content" class="group">
+            <div class="zone zone-content">
+                <section>
+                    <header>
+                        <h2>New Contribution</h2>
+                        <ul class="right" id="sequence">
+                            <li class="current"><a href="#"><span>1 </span>Submit</a></li>
+                            <li><span>2 </span>Verify Details</li>
+                            <li><span>3 </span>Add Visuals</li>
+                        </ul>
+                    </header>
+                    <div id="form">
+                            <div id="uploadFileForm" class="selected">
+                                @using (Html.BeginForm(ActionName.SubmitPackage, PackagesController.Name, FormMethod.Post, new { enctype = "multipart/form-data", @id = "uploadFileSubmissionForm" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.ValidationSummary(true)
+                                    <aside>
+                                        <p>Your package file will be uploaded and hosted on the gallery server.</p>
+                                    </aside>
+                                    <input type="file" id="PackageFile" name="PackageFile" />
+                                    <div class="buttons">
+                                        <input id="uploadFileButton" type="submit" value="Upload &raquo;" singleClickButton="true" />
+                                    </div>
+                                }
+                            </div>
+                    </div>
+                    @*<div id="form">
+                        <div>
+                            <aside style="margin-top: 20px;width: 280px;">
+                                <p> First, make sure your module or theme is packaged correctly and ready for upload from your local computer or for retrieval from your web site. <a href="#">Learn more about creating a theme or module.</a></p>
+                            </aside>
+                            <div>
+                                <span class="radioButton" onclick="ShowHideUploadForm('uploadFileForm','externalPackageForm')">
+                                    <input id="Radio1" type="radio" name="UploadType" checked="checked" />
+                                    <label for="Radio1" class="optionLabel">Upload a package file from my local computer</label>
+                                </span>
+                                <span class="radioButton" onclick="ShowHideUploadForm('externalPackageForm','uploadFileForm')">
+                                    <input id="Radio2" type="radio" name="UploadType" />
+                                    <label for="Radio2" class="optionLabel">Submit a URL to a package file located on my web site</label>
+                                </span>
+                            </div>
+                        </div>
+                        <div id="uploadFileForm" class="selected">
+                            <form action="/Orchard.Gallery/UploadPackage/Upload" enctype="multipart/form-data" id="uploadFileSubmissionForm" method="post">
+                                <aside>
+                                    <p>Your package file will be uploaded and hosted on the gallery server.</p>
+                                </aside>
+                                <input type="file" id="PackageFile" name="PackageFile" />
+                                <div class="buttons">
+                                    <input id="uploadFileButton" type="button" value="Upload &raquo;" singleClickButton="true" />
+                                </div>
+                                <input name="__RequestVerificationToken" type="hidden" value="jACz38O1R6iFai86z3tyKle12MU5aARUC1DLW0UwoOjfvfJFxcaOAqhun59XqlsVOB4ZAKkfSBVlUcEBLvSBHNQfPZTCgzkcoB/u74gVZfH9mRCx2+NsX6UaTpjCKA0iyJwcLNmcleNlY19irlvHwQ==" />
+                            </form>
+                        </div>
+                        <div id="externalPackageForm" style="display:none" class="selected">
+                            <form action="/Orchard.Gallery/UploadPackage/ExternalUrl" id="externalPackageSubmissionForm" method="post">
+                            <aside>
+                                <p>Use this option if want to host the package file yourself. Your package data will still appear on the gallery like any other, but requests to download the package will be redirected to your site.</p>
+                            </aside>
+                            <input id="externalPackageUrl" name="externalPackageUrl" type="text" value="" />            <div class="buttons">
+                            <input id="submitExternalPackageButton" type="button" value="Submit &raquo;" singleClickButton="true" />
+                        </div>
+                        <input name="__RequestVerificationToken" type="hidden" value="jACz38O1R6iFai86z3tyKle12MU5aARUC1DLW0UwoOjfvfJFxcaOAqhun59XqlsVOB4ZAKkfSBVlUcEBLvSBHNQfPZTCgzkcoB/u74gVZfH9mRCx2+NsX6UaTpjCKA0iyJwcLNmcleNlY19irlvHwQ==" /></form>        </div>
+                    </div>*@
+                </section>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,89 @@
+﻿/*
+Theme: Orchard Theme
+Author: NimblePros – http://www.NimblePros.com
+Copyright: 2010, NimblePros. All Rights Reserved
+*/
+
+
+/*  Color Palette
+**************************************************************
+
+Background: #fff
+Borders: #ccc
+Text: #666
+Main Accent: #39922C
+Links: #0071BC
+*/
+
+#layout-header {
+    width: 1000px;
+}
+    #branding {
+        font-size: 2.9em;
+        padding: 0;
+        margin: 0;
+    }
+    #branding a {
+        background-image:url(../Content/Images/logo.png);
+        width: 308px;
+        height: 65px;
+        margin: 14px 0 7px;
+        float: left;
+        display: block;
+        text-indent: -9999px;
+        float: left;
+    }
+
+#socialLinks, .user-display {
+    text-align:right;
+}
+#socialLinks {
+    text-transform:uppercase;
+    /*padding-top: 5px;*/
+    font-size: .92em;
+    position: absolute;
+    top:5px;
+    width: 1000px;
+    clear:left;
+}
+.user-display .user-actions {
+    font-size: .92em;
+    text-transform:uppercase;
+}
+.user-actions a {
+    margin: auto 0px auto 12px;
+}
+#socialLinks a {
+    padding-right: 20px;
+}
+#socialLinks a.socialIconLink {
+    padding: 1px;
+    position: relative;
+    top: 4px;
+}
+.user-display {
+    position:relative;
+    top: 70px;
+    padding-top: 5px;
+    *top: 0px !important; /* IE7 and below */
+}
+.user-display .welcome {
+    font-family: "Segoe Print", Tahoma, Geneva, Verdana, sans-serif;
+    color: #39922C;
+    padding: 0 0 0 16px;
+    background-image: url(../Content/Images/userIcon.png);
+    background-position: 0 4px;
+    background-repeat: no-repeat;
+}
+.user-display .welcome a {
+    color: #39922C;
+}
+a#country {
+    background-image: url(../Content/Images/world.png);
+    background-position: 0 1px;
+    text-transform:uppercase;
+}
+a#signInLink, a#country {
+    background-repeat:no-repeat;
+    padding: 2px 0 2px 20px;
+}

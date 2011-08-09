@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>$id$</id>
+        <version>$version$</version>
+        <description>$description$</description>
+        <authors>$author$</authors>
+        <licenseUrl>http://nuget.codeplex.com/license</licenseUrl>
+        <projectUrl>http://nuget.codeplex.com</projectUrl>
+        <frameworkAssemblies>
+          <frameworkAssembly assemblyName="System.ServiceModel" />
+          <frameworkAssembly assemblyName="System.ServiceModel.Web" />
+          <frameworkAssembly assemblyName="System.ServiceModel.Activation" />
+          <frameworkAssembly assemblyName="System.Data.Services" />
+        </frameworkAssemblies>
+        <dependencies>
+            <dependency id="NuGet.Core" version="1.5" />
+        </dependencies>
+    </metadata>
+</package>
