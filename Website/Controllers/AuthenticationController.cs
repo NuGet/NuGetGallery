@@ -5,13 +5,13 @@ namespace NuGetGallery {
         public const string Name = "Authentication";
 
         readonly IFormsAuthenticationService formsAuthSvc;
-        readonly IUsersService usersSvc;
+        readonly IUserService userSvc;
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthSvc,
-            IUsersService usersSvc) {
+            IUserService userSvc) {
             this.formsAuthSvc = formsAuthSvc;
-            this.usersSvc = usersSvc;
+            this.userSvc = userSvc;
         }
 
         [ActionName(ActionName.SignIn)]
@@ -30,7 +30,7 @@ namespace NuGetGallery {
                 return View();
 
             // TODO: allow users to sign in with email address in addition to user name
-            var user = usersSvc.FindByUsernameAndPassword(
+            var user = userSvc.FindByUsernameAndPassword(
                 request.UserNameOrEmail,
                 request.Password);
 

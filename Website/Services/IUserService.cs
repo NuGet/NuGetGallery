@@ -1,6 +1,6 @@
 ﻿
 namespace NuGetGallery {
-    public interface IUsersService {
+    public interface IUserService {
         User Create(
             string username,
             string password,

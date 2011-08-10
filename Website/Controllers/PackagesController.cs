@@ -15,17 +15,17 @@ namespace NuGetGallery {
         readonly ICryptographyService cryptoSvc;
         readonly IPackageService packageSvc;
         readonly IPackageFileService packageFileSvc;
-        readonly IUsersService usersSvc;
+        readonly IUserService userSvc;
 
         public PackagesController(
             ICryptographyService cryptoSvc,
             IPackageService packageSvc,
             IPackageFileService packageFileRepo,
-            IUsersService usersSvc) {
+            IUserService userSvc) {
             this.cryptoSvc = cryptoSvc;
             this.packageSvc = packageSvc;
             this.packageFileSvc = packageFileRepo;
-            this.usersSvc = usersSvc;
+            this.userSvc = userSvc;
         }
 
         [ActionName(ActionName.SubmitPackage), Authorize]
@@ -50,7 +50,7 @@ namespace NuGetGallery {
             }
 
             // TODO: This should never be null, but should probably decide what happens if it is
-            var currentUser = usersSvc.FindByUsername(User.Identity.Name);
+            var currentUser = userSvc.FindByUsername(User.Identity.Name);
 
             ZipPackage uploadedPackage;
             using (var uploadStream = packageFile.InputStream) {

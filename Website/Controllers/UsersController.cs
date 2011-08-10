@@ -5,11 +5,11 @@ namespace NuGetGallery {
         public const string Name = "Users";
 
         readonly IFormsAuthenticationService formsAuthSvc;
-        readonly IUsersService userService;
+        readonly IUserService userService;
 
         public UsersController(
             IFormsAuthenticationService formsAuthSvc,
-            IUsersService userSvc) {
+            IUserService userSvc) {
             this.formsAuthSvc = formsAuthSvc;
             this.userService = userSvc;
         }

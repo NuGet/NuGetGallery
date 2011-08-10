@@ -18,11 +18,11 @@ namespace NuGetGallery {
 
             [Fact]
             public void will_create_the_user() {
-                var usersSvc = new Mock<IUsersService>();
-                usersSvc
+                var userSvc = new Mock<IUserService>();
+                userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(new User() { Username = "theUsername" });
-                var controller = CreateController(usersSvc: usersSvc);
+                var controller = CreateController(userSvc: userSvc);
 
                 controller.Register(new RegisterRequest() {
                     Username = "theUsername",
@@ -30,7 +30,7 @@ namespace NuGetGallery {
                     EmailAddress = "theEmailAddress",
                 });
 
-                usersSvc.Verify(x => x.Create(
+                userSvc.Verify(x => x.Create(
                     "theUsername",
                     "thePassword",
                     "theEmailAddress"));
@@ -39,13 +39,13 @@ namespace NuGetGallery {
             [Fact]
             public void will_sign_the_user_in() {
                 var formsAuthSvc = new Mock<IFormsAuthenticationService>();
-                var usersSvc = new Mock<IUsersService>();
-                usersSvc
+                var userSvc = new Mock<IUserService>();
+                userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(new User() { Username = "theUsername" });
                 var controller = CreateController(
                     formsAuthSvc: formsAuthSvc,
-                    usersSvc: usersSvc);
+                    userSvc: userSvc);
 
                 controller.Register(new RegisterRequest() {
                     Username = "theUsername",
@@ -60,11 +60,11 @@ namespace NuGetGallery {
 
             [Fact]
             public void will_invalidate_model_state_and_show_the_view_with_errors_when_a_domain_exception_is_throw() {
-                var usersSvc = new Mock<IUsersService>();
-                usersSvc
+                var userSvc = new Mock<IUserService>();
+                userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Throws(new EntityException("aMessage"));
-                var controller = CreateController(usersSvc: usersSvc);
+                var controller = CreateController(userSvc: userSvc);
 
                 var result = controller.Register(new RegisterRequest() {
                     Username = "theUsername",
@@ -81,13 +81,13 @@ namespace NuGetGallery {
 
         static UsersController CreateController(
             Mock<IFormsAuthenticationService> formsAuthSvc = null,
-            Mock<IUsersService> usersSvc = null) {
+            Mock<IUserService> userSvc = null) {
             formsAuthSvc = formsAuthSvc ?? new Mock<IFormsAuthenticationService>();
-            usersSvc = usersSvc ?? new Mock<IUsersService>();
+            userSvc = userSvc ?? new Mock<IUserService>();
 
             return new UsersController(
                 formsAuthSvc.Object,
-                usersSvc.Object);
+                userSvc.Object);
         }
     }
 }

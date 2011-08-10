@@ -7,14 +7,14 @@ namespace NuGetGallery {
         public class The_Create_method {
             [Fact]
             public void will_throw_if_the_username_is_already_in_use() {
-                var usersSvc = CreateUsersService(setup: mockUsersSvc => {
-                        mockUsersSvc
+                var userSvc = CreateUsersService(setup: mockUserSvc => {
+                        mockUserSvc
                             .Setup(x => x.FindByUsername("theUsername"))
                             .Returns(new User());
                     });
 
                 var ex = Assert.Throws<EntityException>(() =>
-                    usersSvc.Create(
+                    userSvc.Create(
                         "theUsername",
                         "thePassword",
                         "theEmailAddress"));
@@ -23,14 +23,14 @@ namespace NuGetGallery {
 
             [Fact]
             public void will_throw_if_the_email_address_is_already_in_use() {
-                var usersSvc = CreateUsersService(setup: mockUsersSvc => {
-                    mockUsersSvc
+                var userSvc = CreateUsersService(setup: mockUserSvc => {
+                    mockUserSvc
                         .Setup(x => x.FindByEmailAddress("theEmailAddress"))
                         .Returns(new User());
                 });
 
                 var ex = Assert.Throws<EntityException>(() =>
-                    usersSvc.Create(
+                    userSvc.Create(
                         "theUsername",
                         "thePassword",
                         "theEmailAddress"));
@@ -43,9 +43,9 @@ namespace NuGetGallery {
                 cryptoSvc
                     .Setup(x => x.GenerateSaltedHash("thePassword", It.IsAny<string>()))
                     .Returns("theHashedPassword");
-                var usersSvc = CreateUsersService(cryptoSvc: cryptoSvc);
+                var userSvc = CreateUsersService(cryptoSvc: cryptoSvc);
 
-                var user = usersSvc.Create(
+                var user = userSvc.Create(
                     "theUsername",
                     "thePassword",
                     "theEmailAddress");
@@ -60,11 +60,11 @@ namespace NuGetGallery {
                     .Setup(x => x.GenerateSaltedHash(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns("theHashedPassword");
                 var userRepo = new Mock<IEntityRepository<User>>();
-                var usersSvc = CreateUsersService(
+                var userSvc = CreateUsersService(
                     cryptoSvc: cryptoSvc,
                     userRepo: userRepo);
 
-                var user = usersSvc.Create(
+                var user = userSvc.Create(
                     "theUsername",
                     "thePassword",
                     "theEmailAddress");
@@ -77,23 +77,23 @@ namespace NuGetGallery {
             }
         }
 
-        static UsersService CreateUsersService(
+        static UserService CreateUsersService(
             Mock<ICryptographyService> cryptoSvc = null,
             Mock<IEntityRepository<User>> userRepo = null,
-            Action<Mock<UsersService>> setup = null) {
+            Action<Mock<UserService>> setup = null) {
             cryptoSvc = cryptoSvc ?? new Mock<ICryptographyService>();
             userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
 
-            var usersSvc = new Mock<UsersService>(
+            var userSvc = new Mock<UserService>(
                 cryptoSvc.Object,
                 userRepo.Object);
 
-            usersSvc.CallBase = true;
+            userSvc.CallBase = true;
 
             if (setup != null)
-                setup(usersSvc);
+                setup(userSvc);
 
-            return usersSvc.Object;
+            return userSvc.Object;
         }
     }
 }

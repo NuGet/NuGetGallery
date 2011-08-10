@@ -1,11 +1,11 @@
 ﻿using System.Linq;
 
 namespace NuGetGallery {
-    public class UsersService : IUsersService {
+    public class UserService : IUserService {
         readonly ICryptographyService cryptoSvc;
         readonly IEntityRepository<User> userRepo;
 
-        public UsersService(
+        public UserService(
             ICryptographyService cryptoSvc,
             IEntityRepository<User> userRepo) {
             this.cryptoSvc = cryptoSvc;
