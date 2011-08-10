@@ -23,9 +23,7 @@ namespace NuGetGallery {
             this.packageFileSvc = packageFileSvc;
         }
 
-        public Package CreatePackage(
-            IPackage nugetPackage,
-            User currentUser) {
+        public Package CreatePackage(IPackage nugetPackage, User currentUser) {
             var packageRegistration = CreateOrGetPackageRegistration(currentUser, nugetPackage);
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
@@ -52,9 +50,7 @@ namespace NuGetGallery {
                 .SingleOrDefault();
         }
 
-        public Package FindPackageByIdAndVersion(
-            string id,
-            string version) {
+        public Package FindPackageByIdAndVersion(string id, string version) {
             return packageRepo.GetAll()
                 .Include(pv => pv.PackageRegistration)
                 .Where(pv => pv.PackageRegistration.Id == id && pv.Version == version)
@@ -67,7 +63,6 @@ namespace NuGetGallery {
                 .Where(pv => pv.Published != null && pv.IsLatest)
                 .ToList();
         }
-
 
         public void PublishPackage(Package package) {
             package.Published = DateTime.UtcNow;
@@ -83,9 +78,7 @@ namespace NuGetGallery {
             packageRepo.CommitChanges();
         }
 
-        PackageRegistration CreateOrGetPackageRegistration(
-            User currentUser,
-            IPackage nugetPackage) {
+        PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackage nugetPackage) {
             var packageRegistration = FindPackageRegistrationById(nugetPackage.Id);
 
             if (packageRegistration != null && !packageRegistration.Owners.Contains(currentUser))
@@ -104,9 +97,7 @@ namespace NuGetGallery {
             return packageRegistration;
         }
 
-        Package CreatePackageFromNuGetPackage(
-            PackageRegistration packageRegistration,
-            IPackage nugetPackage) {
+        Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, IPackage nugetPackage) {
             var package = packageRegistration.Packages
                 .Where(pv => pv.Version == nugetPackage.Version.ToString())
                 .SingleOrDefault();
