@@ -51,11 +51,21 @@ namespace NuGetGallery {
         }
 
         public virtual Package FindPackageByIdAndVersion(string id, string version = null) {
-            // TODO: Make this work with a null version
-            return packageRepo.GetAll()
-                .Include(pv => pv.PackageRegistration)
-                .Where(pv => pv.PackageRegistration.Id == id && pv.Version == version)
-                .SingleOrDefault();
+            if (string.IsNullOrWhiteSpace(id))
+                throw new ArgumentNullException("id");
+            
+            if (version == null) {
+                var packageRegistration = FindPackageRegistrationById(id);
+                
+                return packageRegistration.Packages
+                    .Where(p => new Version(p.Version) == packageRegistration.Packages.Max(p2 => new Version(p2.Version)))
+                    .SingleOrDefault();
+            }
+            else
+                return packageRepo.GetAll()
+                    .Include(p => p.PackageRegistration)
+                    .Where(p => p.PackageRegistration.Id == id && p.Version == version)
+                    .SingleOrDefault();
         }
 
         public IEnumerable<Package> GetLatestVersionOfPublishedPackages() {

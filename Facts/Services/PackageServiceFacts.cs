@@ -220,6 +220,45 @@ namespace NuGetGallery {
             }
         }
 
+        public class TheFindPackageByIdAndVersionMethod {
+            [Fact]
+            public void WillGetTheLatestVersionWhenTheVersionArgumentIsNull() {
+                var packageRegistration = new PackageRegistration { Id = "theId", Packages = new HashSet<Package>() };
+                packageRegistration.Packages.Add(new Package { Version = "1.0" });
+                packageRegistration.Packages.Add(new Package { Version = "2.0" });
+                var service = CreateService(
+                    setup: mockPackageSvc => {
+                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
+                    });
+
+                var package = service.FindPackageByIdAndVersion("theId", null);
+
+                Assert.Equal("2.0", package.Version);
+            }
+
+            [Fact]
+            public void WillGetSpecifiedVersionWhenTheVersionArgumentIsNotNull() {
+                var service = CreateService(
+                    setup: mockPackageSvc => {
+                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Throws(new Exception("This should not be called when the version is specified."));
+                    });
+
+                Assert.DoesNotThrow(() => service.FindPackageByIdAndVersion("theId", "1.0.42"));
+
+                // Nothing to assert because it's too damn complicated to test the actual LINQ expression.
+                // What we're testing via the throw above is that it didn't load the registration and get the latest version.
+            }
+
+            [Fact]
+            public void WillThrowIfIdIsNull() {
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentNullException>(() => service.FindPackageByIdAndVersion(null, "1.0.42"));
+
+                Assert.Equal("id", ex.ParamName);
+            }
+        }
+
         public class ThePublishPackageMethod {
             [Fact]
             public void WillSetThePublishedDateOnThePackageBeingPublished() {
