@@ -1,8 +1,6 @@
 ﻿
-namespace NuGetGallery
-{
-    public static class ActionName
-    {
+namespace NuGetGallery {
+    public static class ActionName {
         public const string Contribute = "Contribute";
         public const string DisplayPackage = "DisplayPackage";
         public const string Home = "Home";
@@ -12,5 +10,7 @@ namespace NuGetGallery
         public const string SignOut = "SignOut";
         public const string SubmitPackage = "SubmitPackage";
         public const string VerifyPackage = "VerifyPackage";
+        public const string ReportAbuse = "ReportAbuse";
+        public const string ContactOwners = "ContactOwners";
     }
 }

@@ -429,7 +429,7 @@ input[type=submit]:hover, button[type=submit]:hover, input[type=button]:hover {
 
 p.author a { color: #0071BC !important; }
 
-span.isRecommended {background-image: url("../Content/Images/recommended.png");}
+span.latest {background-image: url("../Content/Images/recommended.png");}
 
 /* Package Lists & Details
 **************************************************************/
@@ -490,7 +490,7 @@ h4.packageDetailsTableHeader {
 div.reviews-content ul li.mine, div.reviews-content header > div {
     background-color: #eee;
 }
-span.isRecommended {
+span.latest, span.prerelease {
     background-color: #E4F1F7;
 }
 
@@ -506,7 +506,7 @@ span.isRecommended {
 #form div.selected { background-color: #e4f1f7; }
 #sequence a { color: #52a4ca; }
 #sequence a:hover { color: #0071BC !important; }
-span.isRecommended span.isRecommendedHover { background-color: #e4f1f7; }
+span.latest span.latestHover { background-color: #e4f1f7; }
 #form .longRequired, #form textarea.longRequired, #form .long { width: 400px !important;}
 #externalPackageForm aside { width: 270px !important; }
 #form div.packageID { width: 330px; float: left; }

@@ -45,7 +45,7 @@ Links: #0071BC
 #form div#makeRecommendedDiv a.silverButtonBig, #form div#undoRecommendedDiv a.silverButtonBig {
     float: left;
 }
-#form div#undoRecommendedDiv span.isRecommended {
+#form div#undoRecommendedDiv span.latest {
     margin-right: 97px;
 }
 #form a.silverButtonBig {

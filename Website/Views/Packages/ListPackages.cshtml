@@ -6,10 +6,10 @@
 <div id="layout-before-main" class="group">
     <section id="currentPageToolbar">
         <div class="zone zone-before-main">
-            <form action="/List/Search" method="get">
+            <form action="@Url.RouteUrl(SearchController.Name)" method="get">
                 <div id="search">
                     <div>
-                        <input type="text" name="searchTerm" id="searchTerm" value="Search Packages" />
+                        <input type="text" name="q" id="searchTerm" value="Search Packages" />
                     </div>
                     <input type="submit" value=" "/>
                 </div>

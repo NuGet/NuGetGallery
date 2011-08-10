@@ -31,7 +31,6 @@ a.silverButton {
     width: 7.33em;
     border: 1px solid #aaa;
     display: block;
-    float: right;
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFFFFF', endColorstr='#D5D5D5',GradientType=0 ); /* ie */
 }
 a.silverButton:hover, input.silver[type="submit"]:hover {
@@ -57,7 +56,6 @@ a.silverButtonBig {
     width: 9.33em;
     border: 1px solid #aaa;
     display: block;
-    float: right;
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFFFFF', endColorstr='#D5D5D5',GradientType=0 ); /* ie */
     cursor: pointer;
 }

@@ -106,6 +106,7 @@
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
+    <Compile Include="Controllers\SearchController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Entities\PackageReview.cs" />
     <Compile Include="Migrations\20110809083000_CreatePackageReviewsTable.cs" />

@@ -158,16 +158,16 @@ header p.author {
     header p.author + ul {
 
     }
-span.isRecommended, span.isNotRecommended, span.isNotPublished {
+span.prerelease, span.latest, span.isNotRecommended, span.isNotPublished {
     float: right;
     width: 114px;
     height: 23px;
 }
-a.silverButtonBig + span.isRecommended, a.silverButtonBig + span.isNotRecommended, a.silverButtonBig + span.isNotPublished {
+a.silverButtonBig + span.prerelease, a.silverButtonBig + span.latest, a.silverButtonBig + span.isNotRecommended, a.silverButtonBig + span.isNotPublished {
     margin-left:10px;
     float: left !important;
 }
-span.isRecommended.edit {
+span.latest.edit, span.prerelease.edit {
     height: 36px !important;
 }
 span.isNotRecommended.edit {
@@ -183,20 +183,25 @@ span.isNotRecommended {
     font-size: 11px;
     background: url(../Content/Images/notRecommended.png) no-repeat 10px 1px #f2f2f2;
 }
-span.isRecommended {
+span.latest, span.prerelease {
     padding: 5px 0px 5px 40px;
-    background-image: url(../Content/Images/recommended.png);
     background-repeat: no-repeat;
     background-position: 8px 50%;
     font-weight: bold;
     background-color: #F2F5EA;
     font-size: 12px;
 }
-span.isRecommended span {
+
+/* TODO: Need an icon for pre-release */
+span.latest {
+    background-image: url(../Content/Images/recommended.png);
+}
+
+span.latest span, span.latest span {
     font-size: 0.75em;
     font-weight: normal !important;
 }
-span.isRecommended span.isRecommendedHover {
+span.prerelease span.prereleaseHover, span.latest span.latestHover {
     background-color: #E1E6D5;
     display: block;
     left: -40px;

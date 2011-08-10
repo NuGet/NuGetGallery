@@ -7,29 +7,38 @@
                 <section class="packageItemDetail icon">
                     <div id="thumbnails">
                         <div class="packageLogo">
-                            <img src="@Url.Content("~/Content/Images/packagesDefaultIcon.png")" alt="@Model.Id" />
+                            <img src="@Model.IconUrl" alt="Icon for package @Model.Id" />
                         </div>
                     </div>
-                    <div class="">
+                    <div>
                         <header>
                             <div>
-                                <span class="isRecommended">Recommended Version</span>
+                                @if (Model.Prerelease) { 
+                                    <span class="prerelease">Prerelease</span>
+                                }
+                                else if (Model.LatestVersion) {
+                                    <span class="latest">Latest Version</span>
+                                }
                                 <h2>@Model.Id - @Model.Version</h2>
                             </div>
                             <div>
                                 <div class="zone zone-authors">
-                                    <p class="author">By
-                                        <a href="/List/Search?searchTerm=author%3A%20Microsoft">@Model.Authors</a>
+                                    <p class="author">By 
+                                        @Model.Authors.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new {q = @item})">@item</a>)
                                     </p>
                                 </div>
                             </div>
                         </header>
                         <p>@Model.Description</p>
                         <ul class="links">
-                            <li><a href="http://msdn.com/data/ef" title="Visit the project site to learn more about this package">Project site</a></li>
-                            <li><a href="http://go.microsoft.com/fwlink/?LinkId=224682" title="Make sure you agree with the license">License</a></li>
-                            <li><a href="http://nuget.org/Package/ReportAbuse/EntityFramework/4.1.10715.0" title="Report Abuse">Report Abuse</a></li>
-                            <li><a href="/Package/ContactOwners/EntityFramework">Contact Owners</a></li>
+                            @if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
+                                <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">Project site</a></li>
+                            }
+                            @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
+                                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
+                            }
+                            <li><a href="@Url.RouteUrl(RouteName.ReportAbuse, new {id = Model.Id, version = Model.Version})" title="Report Abuse">Report Abuse</a></li>
+                            <li><a href="@Url.RouteUrl(RouteName.ContactOwners, new {id = Model.Id})">Contact Owners</a></li>
                         </ul>
                         <div class="commandWrapper">
                             <div class="commandPrompt">
@@ -43,16 +52,15 @@
                                 <td>
                                     <div class="zone zone-rating">
                                         <div class="stars-rating " title="Log-in to rate this item">
-                                            <div class="stars-current-result stars-value-3 " style="display:inline;">
-                                                <span class="star-1 a-star">*</span>
-                                                <span class="star-2 a-star">*</span>
-                                                <span class="star-3 a-star">*</span>
-                                                <span class="star-4 a-star">-</span>
-                                                <span class="star-5 a-star">-</span>
+                                            <div class="stars-current-result stars-value-@((int)Model.RatingAverage)" style="display:inline;">
+                                                @for (int i = 1; i < 6; i++) { 
+                                                    //TODO: Probably should be a helper.
+                                                    <span class="star-@i a-star">@if (i >= (int)Model.RatingAverage) {<text>*</text>} else {<text>-</text>}</span>
+                                                }
                                             </div>
                                             <ul class="stars-details">
-                                                <li>Ratings: 2</li>
-                                                <li>Average: 3</li>
+                                                <li>Ratings: @Model.RatingCount</li>
+                                                <li>Average: @Model.RatingAverage</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -62,7 +70,7 @@
                             </tr>
                             <tr>
                                 <th>Total Downloads:</th>
-                                <td>58029</td>
+                                <td>@Model.DownloadCount</td>
                             </tr>
                             <tr>
                                 <th>Last updated:</th>
