@@ -90,6 +90,7 @@ namespace NuGetGallery {
                 LicenseUrl = package.LicenseUrl,
                 Tags = package.Tags,
                 ProjectUrl = package.ProjectUrl,
+                Authors = package.FlattenedAuthors,
             });
         }
 
