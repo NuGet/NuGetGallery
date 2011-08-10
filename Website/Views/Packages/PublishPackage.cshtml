@@ -55,31 +55,31 @@
                             <aside>
                                 <p> Who's responsible for this package? Give proper attribution.</p>
                             </aside>
-                            <input class="longRequired" id="Authors" name="Authors" type="text" value="" />
+                            <input class="longRequired disabled" disabled id="Authors" name="Authors" type="text" value="" />
                         </div>
                         <div>
-                            <input id="RequireLicenseAcceptance" name="RequireLicenseAcceptance" type="checkbox" value="@Model.RequiresLicenseAcceptance.ToString()" /><input name="RequireLicenseAcceptance" type="hidden" value="false" /> <label for="RequireLicenseAcceptance">Require License Acceptance</label>
+                            <input id="RequireLicenseAcceptance" disabled name="RequireLicenseAcceptance" type="checkbox" value="@Model.RequiresLicenseAcceptance.ToString()" /><input name="RequireLicenseAcceptance" type="hidden" value="false" /> <label for="RequireLicenseAcceptance">Require License Acceptance</label>
                         </div>
                         <div>
                             <label for="LicenseURL">License URL</label>
                             <aside>
                                 <p></p>
                             </aside>
-                            <input class="long" id="LicenseURL" name="LicenseURL" type="text" value="@Model.LicenseUrl" />
+                            <input class="long disabled" disabled id="LicenseURL" name="LicenseURL" type="text" value="@Model.LicenseUrl" />
                         </div>
                         <div>
                             <label for="Tags">Tags</label>
                             <aside>
                                 <p>Add multiple tags separated by spaces.</p>
                             </aside>
-                            <input class="long" id="Tags" name="Tags" type="text" value="@Model.Tags" />
+                            <input class="long disabled" disabled id="Tags" name="Tags" type="text" value="@Model.Tags" />
                         </div>
                         <div>
                             <label for="ProjectUrl">Project URL</label>
                             <aside>
                                 <p>Optional. Enter the home page URL for the package here.</p>
                             </aside>
-                            <input class="long" id="ProjectUrl" name="ProjectUrl" type="url" value="@Model.ProjectUrl" />
+                            <input class="long disabled" disabled id="ProjectUrl" name="ProjectUrl" type="url" value="@Model.ProjectUrl" />
                         </div>
                         <div class="buttons">
                             <input id="packageEditSubmitButton" type="submit" value="Verify" singleClickButton="true" />
