@@ -80,7 +80,7 @@ namespace NuGetGallery {
             if (package == null)
                 return HttpNotFound();
 
-            return View(new VerifyPackageViewModel {
+            return View(new SubmitPackageViewModel {
                 Id = package.PackageRegistration.Id,
                 Version = package.Version,
                 Title = package.Title,

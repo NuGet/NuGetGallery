@@ -163,7 +163,7 @@
     </Compile>
     <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
     <Compile Include="ViewModels\ListPackageViewModel.cs" />
-    <Compile Include="ViewModels\VerifyPackageViewModel.cs" />
+    <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="App_Data\NuGetGallery.mdf" />
