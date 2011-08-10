@@ -85,17 +85,14 @@ namespace NuGetGallery {
 
         PackageRegistration CreateOrGetPackageRegistration(
             User currentUser,
-            IPackage nugetPackage)
-        {
+            IPackage nugetPackage) {
             var packageRegistration = FindPackageRegistrationById(nugetPackage.Id);
 
             if (packageRegistration != null && !packageRegistration.Owners.Contains(currentUser))
                 throw new EntityException(Strings.PackageIdNotAvailable, nugetPackage.Id);
 
-            if (packageRegistration == null)
-            {
-                packageRegistration = new PackageRegistration
-                {
+            if (packageRegistration == null) {
+                packageRegistration = new PackageRegistration {
                     Id = nugetPackage.Id
                 };
 
@@ -109,8 +106,7 @@ namespace NuGetGallery {
 
         Package CreatePackageFromNuGetPackage(
             PackageRegistration packageRegistration,
-            IPackage nugetPackage)
-        {
+            IPackage nugetPackage) {
             var package = packageRegistration.Packages
                 .Where(pv => pv.Version == nugetPackage.Version.ToString())
                 .SingleOrDefault();
@@ -123,8 +119,7 @@ namespace NuGetGallery {
             var now = DateTime.UtcNow;
             var packageFileStream = nugetPackage.GetStream();
 
-            package = new Package
-            {
+            package = new Package {
                 Version = nugetPackage.Version.ToString(),
                 Description = nugetPackage.Description,
                 RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
