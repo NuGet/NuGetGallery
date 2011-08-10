@@ -24,10 +24,10 @@ namespace NuGetGallery {
         }
 
         public Package CreatePackage(
-            ZipPackage zipPackage,
+            IPackage nugetPackage,
             User currentUser) {
             var packageRegistration = packageRegistrationRepo.GetAll()
-                .Where(p => p.Id == zipPackage.Id)
+                .Where(p => p.Id == nugetPackage.Id)
                 .SingleOrDefault();
 
             if (packageRegistration != null)
@@ -43,7 +43,7 @@ namespace NuGetGallery {
             }
 
             var package = packageRegistration.Packages
-                .Where(pv => pv.Version == zipPackage.Version.ToString())
+                .Where(pv => pv.Version == nugetPackage.Version.ToString())
                 .SingleOrDefault();
 
             if (package != null)
@@ -53,35 +53,35 @@ namespace NuGetGallery {
                 // TODO: add package size
                 var now = DateTime.UtcNow;
                 package = new Package {
-                    Description = zipPackage.Description,
-                    RequiresLicenseAcceptance = zipPackage.RequireLicenseAcceptance,
-                    Version = zipPackage.Version.ToString(),
+                    Description = nugetPackage.Description,
+                    RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
+                    Version = nugetPackage.Version.ToString(),
                     HashAlgorithm = cryptoSvc.HashAlgorithmId,
-                    Hash = cryptoSvc.GenerateHash(zipPackage.GetStream().ReadAllBytes()),
+                    Hash = cryptoSvc.GenerateHash(nugetPackage.GetStream().ReadAllBytes()),
                     Created = now,
                     LastUpdated = now,
                 };
 
-                foreach (var author in zipPackage.Authors)
+                foreach (var author in nugetPackage.Authors)
                     package.Authors.Add(new PackageAuthor { Name = author });
                 package.FlattenedAuthors = package.Authors.Flatten();
 
-                if (zipPackage.LicenseUrl != null)
-                    package.LicenseUrl = zipPackage.LicenseUrl.ToString();
-                if (zipPackage.ProjectUrl != null)
-                    package.ProjectUrl = zipPackage.ProjectUrl.ToString();
-                if (zipPackage.Summary != null)
-                    package.Summary = zipPackage.Summary;
-                if (zipPackage.Tags != null)
-                    package.Tags = zipPackage.Tags;
-                if (zipPackage.Title != null)
-                    package.Title = zipPackage.Title;
+                if (nugetPackage.LicenseUrl != null)
+                    package.LicenseUrl = nugetPackage.LicenseUrl.ToString();
+                if (nugetPackage.ProjectUrl != null)
+                    package.ProjectUrl = nugetPackage.ProjectUrl.ToString();
+                if (nugetPackage.Summary != null)
+                    package.Summary = nugetPackage.Summary;
+                if (nugetPackage.Tags != null)
+                    package.Tags = nugetPackage.Tags;
+                if (nugetPackage.Title != null)
+                    package.Title = nugetPackage.Title;
 
                 packageRegistration.Packages.Add(package);
             }
 
             using (var tx = new TransactionScope())
-            using (var stream = zipPackage.GetStream()) {
+            using (var stream = nugetPackage.GetStream()) {
                 packageFileSvc.Insert(
                     packageRegistration.Id,
                     package.Version,

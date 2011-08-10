@@ -4,7 +4,7 @@ using NuGet;
 namespace NuGetGallery {
     public interface IPackageService {
         Package CreatePackage(
-            ZipPackage zipPackage,
+            IPackage nugetPackage,
             User currentUser);
 
         Package FindByIdAndVersion(
