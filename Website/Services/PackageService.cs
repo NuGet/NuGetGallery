@@ -50,7 +50,8 @@ namespace NuGetGallery {
                 .SingleOrDefault();
         }
 
-        public Package FindPackageByIdAndVersion(string id, string version) {
+        public virtual Package FindPackageByIdAndVersion(string id, string version = null) {
+            // TODO: Make this work with a null version
             return packageRepo.GetAll()
                 .Include(pv => pv.PackageRegistration)
                 .Where(pv => pv.PackageRegistration.Id == id && pv.Version == version)
@@ -64,16 +65,15 @@ namespace NuGetGallery {
                 .ToList();
         }
 
-        public void PublishPackage(Package package) {
+        public void PublishPackage(string id, string version) {
+            var package = FindPackageByIdAndVersion(id, version);
+
+            if (package == null)
+                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
+
             package.Published = DateTime.UtcNow;
 
-            // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
-            foreach (var pv in package.PackageRegistration.Packages)
-                pv.IsLatest = false;
-
-            var latestVersion = package.PackageRegistration.Packages.Max(pv => new Version(pv.Version));
-
-            package.PackageRegistration.Packages.Where(pv => pv.Version == latestVersion.ToString()).Single().IsLatest = true;
+            UpdateIsLatest(package.PackageRegistration);
 
             packageRepo.CommitChanges();
         }
@@ -144,6 +144,16 @@ namespace NuGetGallery {
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             return package;
+        }
+
+        void UpdateIsLatest(PackageRegistration packageRegistration) {
+            // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
+            foreach (var pv in packageRegistration.Packages)
+                pv.IsLatest = false;
+
+            var latestVersion = packageRegistration.Packages.Max(pv => new Version(pv.Version));
+
+            packageRegistration.Packages.Where(pv => pv.Version == latestVersion.ToString()).Single().IsLatest = true;
         }
     }
 }

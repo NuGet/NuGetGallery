@@ -9,8 +9,9 @@
 //------------------------------------------------------------------------------
 
 namespace NuGetGallery {
-
-
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,15 +23,15 @@ namespace NuGetGallery {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
-
+        
         private static global::System.Resources.ResourceManager resourceMan;
-
+        
         private static global::System.Globalization.CultureInfo resourceCulture;
-
+        
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal Strings() {
         }
-
+        
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -44,7 +45,7 @@ namespace NuGetGallery {
                 return resourceMan;
             }
         }
-
+        
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -58,7 +59,7 @@ namespace NuGetGallery {
                 resourceCulture = value;
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The email address &apos;{0}&apos; is being used..
         /// </summary>
@@ -67,13 +68,22 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("EmailAddressBeingUsed", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The package identifier &apos;{0}&apos; is not available..
         /// </summary>
         public static string PackageIdNotAvailable {
             get {
                 return ResourceManager.GetString("PackageIdNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; does not exist..
+        /// </summary>
+        public static string PackageWithIdAndVersionNotFound {
+            get {
+                return ResourceManager.GetString("PackageWithIdAndVersionNotFound", resourceCulture);
             }
         }
         
@@ -85,7 +95,7 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("UsernameNotAvailable", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to A user with the provided user name and password does not exist..
         /// </summary>

@@ -220,6 +220,92 @@ namespace NuGetGallery {
             }
         }
 
+        public class ThePublishPackageMethod {
+            [Fact]
+            public void WillSetThePublishedDateOnThePackageBeingPublished() {
+                Package package = new Package {
+                    Version = "1.0.42",
+                    Published = null,
+                    PackageRegistration = new PackageRegistration() {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
+                package.PackageRegistration.Packages.Add(package);
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepo: packageRepo,
+                    setup: mockPackageSvc => {
+                        mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                    });
+
+                service.PublishPackage("theId", "1.0.42");
+
+                Assert.NotNull(package.Published);
+                packageRepo.Verify(x => x.CommitChanges());
+            }
+
+            [Fact]
+            public void WillSetUpdateIsLatestOnThePublishedPackageWhenItIsTheLatestVersion() {
+                Package package = new Package {
+                    Version = "1.0.42",
+                    Published = null,
+                    PackageRegistration = new PackageRegistration() {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
+                package.PackageRegistration.Packages.Add(package);
+                package.PackageRegistration.Packages.Add(new Package { Version = "1.0", PackageRegistration = package.PackageRegistration });
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepo: packageRepo,
+                    setup: mockPackageSvc => {
+                        mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                    });
+
+                service.PublishPackage("theId", "1.0.42");
+
+                Assert.True(package.IsLatest);
+            }
+
+            [Fact]
+            public void WillNotSetUpdateIsLatestOnThePublishedPackageWhenItIsNotTheLatestVersion() {
+                Package package = new Package {
+                    Version = "1.0.42",
+                    Published = null,
+                    PackageRegistration = new PackageRegistration() {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
+                package.PackageRegistration.Packages.Add(package);
+                package.PackageRegistration.Packages.Add(new Package { Version = "2.0", PackageRegistration = package.PackageRegistration });
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepo: packageRepo,
+                    setup: mockPackageSvc => {
+                        mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                    });
+
+                service.PublishPackage("theId", "1.0.42");
+
+                Assert.False(package.IsLatest);
+            }
+
+            [Fact]
+            public void WillThrowIfThePackageDoesNotExist() {
+                var service = CreateService(
+                    setup: mockPackageSvc => {
+                        mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)null);
+                    });
+
+                var ex = Assert.Throws<EntityException>(() => service.PublishPackage("theId", "1.0.42"));
+
+                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+            }
+        }
+
         static Mock<IPackage> CreateNuGetPackage(Action<Mock<IPackage>> setup = null) {
             var nugetPackage = new Mock<IPackage>();
 

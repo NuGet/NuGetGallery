@@ -104,7 +104,7 @@ namespace NuGetGallery {
             if (package == null)
                 return HttpNotFound();
 
-            packageSvc.PublishPackage(package);
+            packageSvc.PublishPackage(package.PackageRegistration.Id, package.Version);
 
             // TODO: add a flash success message
 

@@ -15,6 +15,8 @@ namespace NuGetGallery {
 
         IEnumerable<Package> GetLatestVersionOfPublishedPackages();
 
-        void PublishPackage(Package package);
+        void PublishPackage(
+            string id,
+            string version);
     }
 }
