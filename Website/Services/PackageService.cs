@@ -26,59 +26,10 @@ namespace NuGetGallery {
         public Package CreatePackage(
             IPackage nugetPackage,
             User currentUser) {
-            var packageRegistration = packageRegistrationRepo.GetAll()
-                .Where(p => p.Id == nugetPackage.Id)
-                .SingleOrDefault();
+            var packageRegistration = CreateOrGetPackageRegistration(currentUser, nugetPackage);
 
-            if (packageRegistration != null)
-                throw new EntityException("The package identifier '{0}' is not available.", packageRegistration.Id);
-            else {
-                packageRegistration = new PackageRegistration {
-                    Id = zipPackage.Id
-                };
-
-                packageRegistration.Owners.Add(currentUser);
-
-                packageRegistrationRepo.InsertOnCommit(packageRegistration);
-            }
-
-            var package = packageRegistration.Packages
-                .Where(pv => pv.Version == nugetPackage.Version.ToString())
-                .SingleOrDefault();
-
-            if (package != null)
-                throw new EntityException("A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
-            else {
-                // TODO: add flattened authors, and other properties
-                // TODO: add package size
-                var now = DateTime.UtcNow;
-                package = new Package {
-                    Description = nugetPackage.Description,
-                    RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
-                    Version = nugetPackage.Version.ToString(),
-                    HashAlgorithm = cryptoSvc.HashAlgorithmId,
-                    Hash = cryptoSvc.GenerateHash(nugetPackage.GetStream().ReadAllBytes()),
-                    Created = now,
-                    LastUpdated = now,
-                };
-
-                foreach (var author in nugetPackage.Authors)
-                    package.Authors.Add(new PackageAuthor { Name = author });
-                package.FlattenedAuthors = package.Authors.Flatten();
-
-                if (nugetPackage.LicenseUrl != null)
-                    package.LicenseUrl = nugetPackage.LicenseUrl.ToString();
-                if (nugetPackage.ProjectUrl != null)
-                    package.ProjectUrl = nugetPackage.ProjectUrl.ToString();
-                if (nugetPackage.Summary != null)
-                    package.Summary = nugetPackage.Summary;
-                if (nugetPackage.Tags != null)
-                    package.Tags = nugetPackage.Tags;
-                if (nugetPackage.Title != null)
-                    package.Title = nugetPackage.Title;
-
-                packageRegistration.Packages.Add(package);
-            }
+            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
+            packageRegistration.Packages.Add(package);
 
             using (var tx = new TransactionScope())
             using (var stream = nugetPackage.GetStream()) {
@@ -95,14 +46,13 @@ namespace NuGetGallery {
             return package;
         }
 
-        public Package FindById(string id) {
-            return packageRepo.GetAll()
-                .Include(pv => pv.PackageRegistration)
-                .Where(pv => pv.PackageRegistration.Id == id)
+        public virtual PackageRegistration FindPackageRegistrationById(string id) {
+            return packageRegistrationRepo.GetAll()
+                .Where(pr => pr.Id == id)
                 .SingleOrDefault();
         }
 
-        public Package FindByIdAndVersion(
+        public Package FindPackageByIdAndVersion(
             string id,
             string version) {
             return packageRepo.GetAll()
@@ -131,6 +81,83 @@ namespace NuGetGallery {
             package.PackageRegistration.Packages.Where(pv => pv.Version == latestVersion.ToString()).Single().IsLatest = true;
 
             packageRepo.CommitChanges();
+        }
+
+        PackageRegistration CreateOrGetPackageRegistration(
+            User currentUser,
+            IPackage nugetPackage)
+        {
+            var packageRegistration = FindPackageRegistrationById(nugetPackage.Id);
+
+            if (packageRegistration != null && !packageRegistration.Owners.Contains(currentUser))
+                throw new EntityException(Strings.PackageIdNotAvailable, nugetPackage.Id);
+
+            if (packageRegistration == null)
+            {
+                packageRegistration = new PackageRegistration
+                {
+                    Id = nugetPackage.Id
+                };
+
+                packageRegistration.Owners.Add(currentUser);
+
+                packageRegistrationRepo.InsertOnCommit(packageRegistration);
+            }
+
+            return packageRegistration;
+        }
+
+        Package CreatePackageFromNuGetPackage(
+            PackageRegistration packageRegistration,
+            IPackage nugetPackage)
+        {
+            var package = packageRegistration.Packages
+                .Where(pv => pv.Version == nugetPackage.Version.ToString())
+                .SingleOrDefault();
+
+            if (package != null)
+                throw new EntityException("A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
+
+            // TODO: add flattened authors, and other properties
+            // TODO: add package size
+            var now = DateTime.UtcNow;
+            var packageFileStream = nugetPackage.GetStream();
+
+            package = new Package
+            {
+                Version = nugetPackage.Version.ToString(),
+                Description = nugetPackage.Description,
+                RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
+                HashAlgorithm = cryptoSvc.HashAlgorithmId,
+                Hash = cryptoSvc.GenerateHash(packageFileStream.ReadAllBytes()),
+                PackageFileSize = packageFileStream.Length,
+                Created = now,
+                LastUpdated = now,
+            };
+
+            if (nugetPackage.IconUrl != null)
+                package.IconUrl = nugetPackage.IconUrl.ToString();
+            if (nugetPackage.LicenseUrl != null)
+                package.LicenseUrl = nugetPackage.LicenseUrl.ToString();
+            if (nugetPackage.ProjectUrl != null)
+                package.ProjectUrl = nugetPackage.ProjectUrl.ToString();
+            if (nugetPackage.Summary != null)
+                package.Summary = nugetPackage.Summary;
+            if (nugetPackage.Tags != null)
+                package.Tags = nugetPackage.Tags;
+            if (nugetPackage.Title != null)
+                package.Title = nugetPackage.Title;
+
+            foreach (var author in nugetPackage.Authors)
+                package.Authors.Add(new PackageAuthor { Name = author });
+
+            foreach (var dependency in nugetPackage.Dependencies)
+                package.Dependencies.Add(new PackageDependency { Id = dependency.Id, VersionRange = dependency.VersionSpec.ToString() });
+
+            package.FlattenedAuthors = package.Authors.Flatten();
+            package.FlattenedDependencies = package.Dependencies.Flatten();
+
+            return package;
         }
     }
 }

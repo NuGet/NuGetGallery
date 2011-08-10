@@ -69,6 +69,15 @@ namespace NuGetGallery {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The package identifier &apos;{0}&apos; is not available..
+        /// </summary>
+        public static string PackageIdNotAvailable {
+            get {
+                return ResourceManager.GetString("PackageIdNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The username &apos;{0}&apos; is not available..
         /// </summary>
         public static string UsernameNotAvailable {

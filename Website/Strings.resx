@@ -126,4 +126,7 @@
   <data name="UserNotFound" xml:space="preserve">
     <value>A user with the provided user name and password does not exist.</value>
   </data>
+  <data name="PackageIdNotAvailable" xml:space="preserve">
+    <value>The package identifier '{0}' is not available.</value>
+  </data>
 </root>

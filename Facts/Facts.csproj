@@ -35,6 +35,9 @@
     <Reference Include="Moq">
       <HintPath>..\packages\Moq.4.0.10827\lib\NET40\Moq.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Core, Version=1.4.20609.9012, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\NuGet.Core.1.4.20615.9012\lib\net40\NuGet.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web.Mvc, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
@@ -52,6 +55,7 @@
     <Compile Include="Controllers\UserControllerFacts.cs" />
     <Compile Include="Domain\UsersServiceFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\PackageServiceFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

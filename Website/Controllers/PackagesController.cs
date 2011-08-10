@@ -75,8 +75,8 @@ namespace NuGetGallery {
         public ActionResult ShowVerifyPackageForm(
             string id,
             string version) {
-            var package = packageSvc.FindByIdAndVersion(id, version);
-
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            
             if (package == null)
                 return HttpNotFound();
 
@@ -99,7 +99,7 @@ namespace NuGetGallery {
             string version) {
             // TODO: handle requesting to verify a package that is already verified; return 404?
 
-            var package = packageSvc.FindByIdAndVersion(id, version);
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null)
                 return HttpNotFound();
@@ -114,7 +114,9 @@ namespace NuGetGallery {
         public ActionResult DisplayPackage(
             string id,
             string version) {
-            var package = packageSvc.FindByIdAndVersion(id, version);
+            var package = packageSvc.FindPackageByIdAndVersion(
+                id,
+                version);
 
             if (package == null)
                 return HttpNotFound();
