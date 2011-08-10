@@ -24,7 +24,7 @@
                             <div>
                                 <div class="zone zone-authors">
                                     <p class="author">By 
-                                        @Model.Authors.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new {q = @item})">@item</a>)
+                                        @Model.Authors.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new { q = @item })">@item</a>)
                                     </p>
                                 </div>
                             </div>
@@ -37,8 +37,8 @@
                             @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
                                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
                             }
-                            <li><a href="@Url.RouteUrl(RouteName.ReportAbuse, new {id = Model.Id, version = Model.Version})" title="Report Abuse">Report Abuse</a></li>
-                            <li><a href="@Url.RouteUrl(RouteName.ContactOwners, new {id = Model.Id})">Contact Owners</a></li>
+                            <li><a href="@Url.RouteUrl(RouteName.ReportAbuse, new { id = Model.Id, version = Model.Version })" title="Report Abuse">Report Abuse</a></li>
+                            <li><a href="@Url.RouteUrl(RouteName.ContactOwners, new { id = Model.Id })">Contact Owners</a></li>
                         </ul>
                         <div class="commandWrapper">
                             <div class="commandPrompt">
@@ -52,12 +52,7 @@
                                 <td>
                                     <div class="zone zone-rating">
                                         <div class="stars-rating " title="Log-in to rate this item">
-                                            <div class="stars-current-result stars-value-@((int)Model.RatingAverage)" style="display:inline;">
-                                                @for (int i = 1; i < 6; i++) { 
-                                                    //TODO: Probably should be a helper.
-                                                    <span class="star-@i a-star">@if (i >= (int)Model.RatingAverage) {<text>*</text>} else {<text>-</text>}</span>
-                                                }
-                                            </div>
+                                            @ViewHelpers.DisplayRating(@Model.RatingAverage)
                                             <ul class="stars-details">
                                                 <li>Ratings: @Model.RatingCount</li>
                                                 <li>Average: @Model.RatingAverage</li>
@@ -74,7 +69,7 @@
                             </tr>
                             <tr>
                                 <th>Last updated:</th>
-                                <td>7/25/2011</td>
+                                <td>@Model.LastUpdated</td>
                             </tr>
                             <tr>
                                 <th>Package ID:</th>
@@ -93,27 +88,27 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr class="versionTableRow current recommended">
-                                        <td class="version">
-                                            EntityFramework 4.1.10715.0
-                                        </td>
-                                        <td class="downloads">7165</td>
-                                        <td class="lastUpdated">25 Jul 2011</td>
-                                        <td class="rating">
-                                            <div class="stars-rating">
-                                                <div class="stars-current-result stars-value-3">
-                                                    <span class="star-1 a-star">*</span>
-                                                    <span class="star-2 a-star">*</span>
-                                                    <span class="star-3 a-star">*</span>
-                                                    <span class="star-4 a-star">-</span>
-                                                    <span class="star-5 a-star">-</span>
+                                    @foreach (var version in Model.PackageVersions) {
+                                        <tr class="versionTableRow @if(version.LatestVersion) {<text>current recommended</text>}">
+                                            <td class="version">
+                                                @if (!version.LatestVersion) {
+                                                    <a href="@Url.RouteUrl(RouteName.DisplayPackage, new { id = Model.Id })">@version.Id @version.Version</a>
+                                                }
+                                                else {
+                                                    <span>@version.Id @version.Version</span>
+                                                }
+                                            </td>
+                                            <td class="downloads">@version.DownloadCount</td>
+                                            <td class="lastUpdated">@version.DownloadCount</td>
+                                            <td class="rating">
+                                                <div class="stars-rating">
+                                                    @ViewHelpers.DisplayRating(@version.RatingAverage)
                                                 </div>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                            </td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
-                            <a href="#" class="versionHistoryShowMore">Show More</a>
                         </div>
                         <h4 class="reviews-heading" id="reviews-heading">Reviews</h4>
                         <div class="reviews-content">

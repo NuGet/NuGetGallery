@@ -76,7 +76,7 @@ namespace NuGetGallery {
             string id,
             string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            
+
             if (package == null)
                 return HttpNotFound();
 
@@ -122,27 +122,9 @@ namespace NuGetGallery {
             if (package == null)
                 return HttpNotFound();
 
-            int ratingCount = package.Reviews.Count();
-            int ratingSum = package.Reviews.Sum(r => r.Rating);
-            float ratingAverage = 0;
-            if (ratingCount > 0) {
-                ratingAverage = (float)ratingSum / (float)ratingCount;
-            }
-
-            return View(new DisplayPackageViewModel(
-                package.PackageRegistration.Id,
-                package.Version) {
-                    Description = package.Description,
-                    Authors = package.Authors.Select(p => p.Name),
-                    IconUrl = package.IconUrl ?? Url.Content("~/Content/Images/packagesDefaultIcon.png"),
-                    ProjectUrl = package.ProjectUrl,
-                    LicenseUrl = package.LicenseUrl,
-                    LatestVersion = package.IsLatest,
-                    Prerelease = package.IsPrerelease,
-                    RatingCount = ratingCount,
-                    RatingAverage = ratingAverage,
-                    DownloadCount = package.DownloadCount
-                });
+            return View(new DisplayPackageViewModel(package) {
+                IconUrl = package.IconUrl ?? Url.Content("~/Content/Images/packagesDefaultIcon.png"),
+            });
         }
 
         [ActionName(ActionName.ListPackages)]
