@@ -33,7 +33,7 @@ namespace NuGetGallery {
 
             using (var tx = new TransactionScope())
             using (var stream = nugetPackage.GetStream()) {
-                packageFileSvc.Insert(
+                packageFileSvc.SavePackageFile(
                     packageRegistration.Id,
                     package.Version,
                     stream);

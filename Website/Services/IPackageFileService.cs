@@ -3,8 +3,9 @@ using System.IO;
 using System.Web.Mvc;
 
 namespace NuGetGallery {
-    public interface IPackageFileService {
-        void Insert(
+    public interface IPackageFileService
+    {
+        void SavePackageFile(
             string packageId,
             string packageVersion,
             Stream packageFile);

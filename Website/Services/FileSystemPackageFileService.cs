@@ -15,10 +15,10 @@ namespace NuGetGallery {
             this.configuration = configuration;
             this.packageRepo = packageRepo;
         }
-
-        public void Insert(
-            string packageId,
-            string packageVersion,
+        
+        public void SavePackageFile(
+            string packageId, 
+            string packageVersion, 
             Stream packageFile) {
             // TODO: verify that the package and version actually exist?
 
