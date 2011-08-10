@@ -49,9 +49,9 @@ namespace NuGetGallery {
                 new { controller = PackagesController.Name, action = ActionName.ContactOwners });
 
             routes.MapRoute(
-                RouteName.VerifyPackage,
+                RouteName.PublishPackage,
                 "Package/New/{id}/{version}",
-                new { controller = PackagesController.Name, action = ActionName.VerifyPackage });
+                new { controller = PackagesController.Name, action = ActionName.PublishPackage });
 
             routes.MapRoute(
                 RouteName.DisplayPackage,

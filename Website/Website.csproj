@@ -256,7 +256,7 @@
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\Packages\VerifyPackage.cshtml" />
+    <Content Include="Views\Packages\PublishPackage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Strings.resx">

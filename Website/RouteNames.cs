@@ -11,7 +11,7 @@ namespace NuGetGallery {
         public const string SignIn = "SignIn";
         public const string SignOut = "SignOut";
         public const string SubmitPackage = "SubmitPackage";
-        public const string VerifyPackage = "VerifyPackage";
+        public const string PublishPackage = "PublishPackage";
         public const string ReportAbuse = "ReportAbuse";
         public const string ContactOwners = "ContactOwners";
     }

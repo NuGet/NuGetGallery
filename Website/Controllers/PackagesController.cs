@@ -67,12 +67,12 @@ namespace NuGetGallery {
             }
 
             return RedirectToRoute(
-                RouteName.VerifyPackage,
+                RouteName.PublishPackage,
                 new { id = packageVersion.PackageRegistration.Id, version = packageVersion.Version });
         }
 
-        [ActionName(ActionName.VerifyPackage), Authorize]
-        public ActionResult ShowVerifyPackageForm(
+        [ActionName(ActionName.PublishPackage), Authorize]
+        public ActionResult ShowPublishPackageForm(
             string id,
             string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
@@ -93,8 +93,8 @@ namespace NuGetGallery {
             });
         }
 
-        [ActionName(ActionName.VerifyPackage), Authorize, HttpPost]
-        public ActionResult VerifyPackage(
+        [ActionName(ActionName.PublishPackage), Authorize, HttpPost]
+        public ActionResult PublishPackage(
             string id,
             string version) {
             // TODO: handle requesting to verify a package that is already verified; return 404?

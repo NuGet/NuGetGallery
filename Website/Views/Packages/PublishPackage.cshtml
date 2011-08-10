@@ -17,7 +17,7 @@
                     <header>
                         <h2>Submit Package</h2>
                     </header>
-                    @using (Html.BeginForm(ActionName.VerifyPackage, PackagesController.Name, new { id = Model.Id, version = Model.Version }, FormMethod.Post, new { @id = "form" }))
+                    @using (Html.BeginForm(ActionName.PublishPackage, PackagesController.Name, new { id = Model.Id, version = Model.Version }, FormMethod.Post, new { @id = "form" }))
                     {
                         <h3>Verify the details of your package</h3>
                         <p style="clear:both;margin:0 0 20px 20px;color:#A8A8A8;" class="long">These package details are read from the package file and cannot be changed. If you have a newer version of your package that you’d like to submit in place of this one, <a href="/Contribute/NewSubmission">click here to add a new contribution</a>. Ensure that the new version has the same Package ID, but a new Version number.</p>
