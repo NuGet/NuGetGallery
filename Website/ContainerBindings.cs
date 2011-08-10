@@ -1,12 +1,8 @@
 using Ninject.Modules;
-using System.Data.Entity;
 
-namespace NuGetGallery 
-{
-    public class ContainerBindings : NinjectModule 
-    {
-        public override void Load() 
-        {
+namespace NuGetGallery {
+    public class ContainerBindings : NinjectModule {
+        public override void Load() {
             Bind<IConfiguration>()
                 .To<Configuration>()
                 .InSingletonScope();
@@ -14,7 +10,7 @@ namespace NuGetGallery
             Bind<EntitiesContext>()
                 .ToMethod(context => new EntitiesContext())
                 .InRequestScope();
-            
+
             Bind<IEntityRepository<User>>()
                 .To<EntityRepository<User>>()
                 .InRequestScope();
@@ -34,7 +30,7 @@ namespace NuGetGallery
             Bind<IPackageService>()
                 .To<PackageService>()
                 .InRequestScope();
-            
+
             Bind<IPackageFileService>()
                 .To<FileSystemPackageFileService>()
                 .InRequestScope();

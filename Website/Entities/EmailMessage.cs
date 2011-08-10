@@ -1,21 +1,17 @@
 ﻿
-namespace NuGetGallery
-{
-    public class EmailMessage : IEntity
-    {
+namespace NuGetGallery {
+    public class EmailMessage : IEntity {
         public EmailMessage()
-            : this(null, null)
-        {
+            : this(null, null) {
         }
-        
+
         public EmailMessage(
             string subject,
-            string body)
-        {
+            string body) {
             Body = body;
             Subject = subject;
         }
-        
+
         public int Key { get; set; }
 
         public string Body { get; set; }

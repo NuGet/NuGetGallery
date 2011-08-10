@@ -5,41 +5,35 @@ using System.Linq;
 using System.Transactions;
 using NuGet;
 
-namespace NuGetGallery
-{
-    public class PackageService : IPackageService
-    {
+namespace NuGetGallery {
+    public class PackageService : IPackageService {
         readonly ICryptographyService cryptoSvc;
         readonly IEntityRepository<PackageRegistration> packageRegistrationRepo;
         readonly IEntityRepository<Package> packageRepo;
         readonly IPackageFileService packageFileSvc;
-        
+
         public PackageService(
             ICryptographyService cryptoSvc,
             IEntityRepository<PackageRegistration> packageRegistrationRepo,
             IEntityRepository<Package> packageRepo,
-            IPackageFileService packageFileSvc)
-        {
+            IPackageFileService packageFileSvc) {
             this.cryptoSvc = cryptoSvc;
             this.packageRegistrationRepo = packageRegistrationRepo;
             this.packageRepo = packageRepo;
             this.packageFileSvc = packageFileSvc;
         }
-        
+
         public Package CreatePackage(
             ZipPackage zipPackage,
-            User currentUser)
-        {
+            User currentUser) {
             var packageRegistration = packageRegistrationRepo.GetAll()
                 .Where(p => p.Id == zipPackage.Id)
                 .SingleOrDefault();
 
             if (packageRegistration != null)
                 throw new EntityException("The package identifier '{0}' is not available.", packageRegistration.Id);
-            else
-            {
-                packageRegistration = new PackageRegistration
-                {
+            else {
+                packageRegistration = new PackageRegistration {
                     Id = zipPackage.Id
                 };
 
@@ -54,13 +48,11 @@ namespace NuGetGallery
 
             if (package != null)
                 throw new EntityException("A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
-            else
-            {
+            else {
                 // TODO: add flattened authors, and other properties
                 // TODO: add package size
                 var now = DateTime.UtcNow;
-                package = new Package
-                {
+                package = new Package {
                     Description = zipPackage.Description,
                     RequiresLicenseAcceptance = zipPackage.RequireLicenseAcceptance,
                     Version = zipPackage.Version.ToString(),
@@ -89,8 +81,7 @@ namespace NuGetGallery
             }
 
             using (var tx = new TransactionScope())
-            using (var stream = zipPackage.GetStream())
-            {
+            using (var stream = zipPackage.GetStream()) {
                 packageFileSvc.Insert(
                     packageRegistration.Id,
                     package.Version,
@@ -104,8 +95,7 @@ namespace NuGetGallery
             return package;
         }
 
-        public Package FindById(string id)
-        {
+        public Package FindById(string id) {
             return packageRepo.GetAll()
                 .Include(pv => pv.PackageRegistration)
                 .Where(pv => pv.PackageRegistration.Id == id)
@@ -114,16 +104,14 @@ namespace NuGetGallery
 
         public Package FindByIdAndVersion(
             string id,
-            string version)
-        {
+            string version) {
             return packageRepo.GetAll()
                 .Include(pv => pv.PackageRegistration)
                 .Where(pv => pv.PackageRegistration.Id == id && pv.Version == version)
                 .SingleOrDefault();
         }
 
-        public IEnumerable<Package> GetLatestVersionOfPublishedPackages()
-        {
+        public IEnumerable<Package> GetLatestVersionOfPublishedPackages() {
             return packageRepo.GetAll()
                 .Include(x => x.PackageRegistration)
                 .Where(pv => pv.Published != null && pv.IsLatest)
@@ -131,8 +119,7 @@ namespace NuGetGallery
         }
 
 
-        public void PublishPackage(Package package)
-        {
+        public void PublishPackage(Package package) {
             package.Published = DateTime.UtcNow;
 
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
@@ -140,7 +127,7 @@ namespace NuGetGallery
                 pv.IsLatest = false;
 
             var latestVersion = package.PackageRegistration.Packages.Max(pv => new Version(pv.Version));
-            
+
             package.PackageRegistration.Packages.Where(pv => pv.Version == latestVersion.ToString()).Single().IsLatest = true;
 
             packageRepo.CommitChanges();

@@ -1,13 +1,10 @@
-﻿using Migrator.Framework;
-using System.Data;
+﻿using System.Data;
+using Migrator.Framework;
 
-namespace NuGetGallery.Data.Migrations
-{
+namespace NuGetGallery.Data.Migrations {
     [Migration(20110808110000)]
-    public class CreatePackageDependenciesTableMigration : Migration
-    {
-        public override void Up()
-        {
+    public class CreatePackageDependenciesTableMigration : Migration {
+        public override void Up() {
             Database.AddTable("PackageDependencies",
                 new Column("[Key]", DbType.Int32, ColumnProperty.PrimaryKey | ColumnProperty.Identity | ColumnProperty.NotNull),
                 new Column("PackageKey", DbType.Int32, ColumnProperty.NotNull),
@@ -17,8 +14,7 @@ namespace NuGetGallery.Data.Migrations
             Database.AddForeignKey("FK_PackageDependencies_Packages", "PackageDependencies", "PackageKey", "Packages", "[Key]");
         }
 
-        public override void Down()
-        {
+        public override void Down() {
             Database.RemoveTable("PackageDependencies");
         }
     }

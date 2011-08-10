@@ -12,55 +12,46 @@ using MvcMiniProfiler.MVCHelpers;
 
 [assembly: WebActivator.PostApplicationStartMethod(typeof(NuGetGallery.App_Start.MiniProfilerPackage), "PostStart")]
 
-namespace NuGetGallery.App_Start 
-{
-	public static class MiniProfilerPackage 
-    {
-		public static void PreStart() 
-        {
+namespace NuGetGallery.App_Start {
+    public static class MiniProfilerPackage {
+        public static void PreStart() {
             MiniProfiler.Settings.SqlFormatter = new MvcMiniProfiler.SqlFormatters.SqlServerFormatter();
-            
+
             var sqlConnectionFactory = new SqlConnectionFactory(ConfigurationManager.ConnectionStrings["NuGetGallery"].ConnectionString);
             var profiledConnectionFactory = new MvcMiniProfiler.Data.ProfiledDbConnectionFactory(sqlConnectionFactory);
             Database.DefaultConnectionFactory = profiledConnectionFactory;
-			
-			DynamicModuleUtility.RegisterModule(typeof(MiniProfilerStartupModule));
-			
-			GlobalFilters.Filters.Add(new ProfilingActionFilter());
-		}
-		
-		public static void PostStart() 
-        {
-			var viewEngines = ViewEngines.Engines.ToList();
-			
-            ViewEngines.Engines.Clear();
-			
-            foreach (var item in viewEngines) 
-				ViewEngines.Engines.Add(new ProfilingViewEngine(item));
-		}
-	}
 
-	public class MiniProfilerStartupModule : IHttpModule 
-    {
-		public void Init(HttpApplication context) 
-        {
-			context.BeginRequest += (sender, e) => 
-            {
-				var request = ((HttpApplication)sender).Request;
-				
-                //TODO: only profile for admin users
-				if (request.IsLocal)
-                    MiniProfiler.Start();
-			};
-            
-            context.EndRequest += (sender, e) => 
-            {
-				MiniProfiler.Stop();  
-			};
-		}
- 
-		public void Dispose() 
-        { 
+            DynamicModuleUtility.RegisterModule(typeof(MiniProfilerStartupModule));
+
+            GlobalFilters.Filters.Add(new ProfilingActionFilter());
         }
-	}
+
+        public static void PostStart() {
+            var viewEngines = ViewEngines.Engines.ToList();
+
+            ViewEngines.Engines.Clear();
+
+            foreach (var item in viewEngines)
+                ViewEngines.Engines.Add(new ProfilingViewEngine(item));
+        }
+    }
+
+    public class MiniProfilerStartupModule : IHttpModule {
+        public void Init(HttpApplication context) {
+            context.BeginRequest += (sender, e) => {
+                var request = ((HttpApplication)sender).Request;
+
+                //TODO: only profile for admin users
+                if (request.IsLocal)
+                    MiniProfiler.Start();
+            };
+
+            context.EndRequest += (sender, e) => {
+                MiniProfiler.Stop();
+            };
+        }
+
+        public void Dispose() {
+        }
+    }
 }

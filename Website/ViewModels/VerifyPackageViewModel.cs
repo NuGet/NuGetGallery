@@ -1,8 +1,6 @@
 ﻿
-namespace NuGetGallery
-{
-    public class VerifyPackageViewModel
-    {
+namespace NuGetGallery {
+    public class VerifyPackageViewModel {
         public string Id { get; set; }
         public string Version { get; set; }
 

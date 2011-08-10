@@ -1,8 +1,6 @@
 ﻿
-namespace NuGetGallery
-{
-    public class PackageReview : IEntity
-    {
+namespace NuGetGallery {
+    public class PackageReview : IEntity {
         public int Key { get; set; }
 
         public Package Package { get; set; }

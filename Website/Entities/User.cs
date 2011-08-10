@@ -1,19 +1,15 @@
 ﻿using System.Collections.Generic;
 
-namespace NuGetGallery
-{
-    public class User : IEntity
-    {
+namespace NuGetGallery {
+    public class User : IEntity {
         public User()
-            : this(null, null, null)
-        {
+            : this(null, null, null) {
         }
-        
+
         public User(
-            string username, 
-            string hashedPassword, 
-            string emailAddress)
-        {
+            string username,
+            string hashedPassword,
+            string emailAddress) {
             EmailAddress = emailAddress;
             HashedPassword = hashedPassword;
             Messages = new HashSet<EmailMessage>();

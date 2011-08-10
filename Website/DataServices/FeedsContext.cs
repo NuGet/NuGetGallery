@@ -1,28 +1,22 @@
 using System.Data.Entity;
 using System.Linq;
 
-namespace NuGetGallery 
-{
-    public class FeedsContext 
-    {
+namespace NuGetGallery {
+    public class FeedsContext {
         private IEntityRepository<Package> packageRepo;
 
-        public FeedsContext(IEntityRepository<Package> packageRepo) 
-        {
+        public FeedsContext(IEntityRepository<Package> packageRepo) {
             this.packageRepo = packageRepo;
         }
 
-        public IQueryable<FeedPackage> Packages 
-        {
-            get 
-            {
+        public IQueryable<FeedPackage> Packages {
+            get {
                 return packageRepo.GetAll()
                     .Include(p => p.PackageRegistration)
                     .Include(p => p.Authors)
                     .Include(p => p.Dependencies)
                     .Include(p => p.Reviews)
-                    .Select(p => new FeedPackage
-                    {
+                    .Select(p => new FeedPackage {
                         Id = p.PackageRegistration.Id,
                         Version = p.Version,
                         Authors = p.FlattenedAuthors,

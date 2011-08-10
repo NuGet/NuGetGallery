@@ -1,8 +1,6 @@
 ﻿
-namespace NuGetGallery
-{
-    public interface IEntity
-    {
+namespace NuGetGallery {
+    public interface IEntity {
         int Key { get; set; }
     }
 }

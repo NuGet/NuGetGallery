@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace NuGetGallery
-{
-    public class PackageRegistration : IEntity
-    {
-        public PackageRegistration()
-        {
+namespace NuGetGallery {
+    public class PackageRegistration : IEntity {
+        public PackageRegistration() {
             Owners = new HashSet<User>();
             Packages = new HashSet<Package>();
         }

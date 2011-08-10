@@ -1,11 +1,9 @@
 ﻿using System.Data.Entity;
 
-namespace NuGetGallery
-{
-    public class EntitiesContext : DbContext
-    {
-        public EntitiesContext() : base("NuGetGallery")
-        {
+namespace NuGetGallery {
+    public class EntitiesContext : DbContext {
+        public EntitiesContext()
+            : base("NuGetGallery") {
         }
 
         public DbSet<Package> Packages { get; set; }
@@ -13,8 +11,7 @@ namespace NuGetGallery
         public DbSet<EmailMessage> Messages { get; set; }
         public DbSet<User> Users { get; set; }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
+        protected override void OnModelCreating(DbModelBuilder modelBuilder) {
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Key);
 

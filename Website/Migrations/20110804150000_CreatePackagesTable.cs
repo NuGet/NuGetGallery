@@ -1,13 +1,10 @@
 ﻿using System.Data;
 using Migrator.Framework;
 
-namespace NuGetGallery.Data.Migrations
-{
+namespace NuGetGallery.Data.Migrations {
     [Migration(20110804150000)]
-    public class CreatePackagesTableMigration : Migration
-    {
-        public override void Up()
-        {
+    public class CreatePackagesTableMigration : Migration {
+        public override void Up() {
             // TODO: determine the right size for the string columns
             Database.AddTable("Packages",
                 new Column("[Key]", DbType.Int32, ColumnProperty.PrimaryKey | ColumnProperty.Identity | ColumnProperty.NotNull),
@@ -39,8 +36,7 @@ namespace NuGetGallery.Data.Migrations
             Database.AddUniqueConstraint("UQ_Packages_KeyAndVersion", "Packages", new[] { "[Key]", "Version" });
         }
 
-        public override void Down()
-        {
+        public override void Down() {
             Database.RemoveTable("Packages");
         }
     }

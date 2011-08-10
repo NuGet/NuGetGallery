@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NuGetGallery
-{
-    public class Package : IEntity
-    {
-        public Package()
-        {
+namespace NuGetGallery {
+    public class Package : IEntity {
+        public Package() {
             Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
             Reviews = new HashSet<PackageReview>();
         }
-        
+
         public int Key { get; set; }
 
         public PackageRegistration PackageRegistration { get; set; }

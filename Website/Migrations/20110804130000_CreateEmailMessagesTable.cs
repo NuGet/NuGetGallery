@@ -1,13 +1,10 @@
 ﻿using System.Data;
 using Migrator.Framework;
 
-namespace NuGetGallery.Data.Migrations
-{
+namespace NuGetGallery.Data.Migrations {
     [Migration(20110804130000)]
-    public class CreateEmailMessagesTableMigration : Migration
-    {
-        public override void Up()
-        {
+    public class CreateEmailMessagesTableMigration : Migration {
+        public override void Up() {
             Database.AddTable("EmailMessages",
                 new Column("[Key]", DbType.Int32, ColumnProperty.PrimaryKey | ColumnProperty.Identity | ColumnProperty.NotNull),
                 new Column("FromUserKey", DbType.Int32, ColumnProperty.Null),
@@ -20,8 +17,7 @@ namespace NuGetGallery.Data.Migrations
             Database.AddForeignKey("FK_Messages_ToUser", "EmailMessages", "ToUserKey", "Users", "[Key]");
         }
 
-        public override void Down()
-        {
+        public override void Down() {
             Database.RemoveTable("EmailMessages");
         }
     }

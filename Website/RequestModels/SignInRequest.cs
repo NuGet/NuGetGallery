@@ -2,10 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 
-namespace NuGetGallery
-{
-    public class SignInRequest
-    {
+namespace NuGetGallery {
+    public class SignInRequest {
         [Required]
         [DisplayName("Username")]
         [AdditionalMetadata("Hint", "Enter either your username or email address.")]

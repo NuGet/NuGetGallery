@@ -2,17 +2,15 @@
 using System.IO;
 using System.Web.Mvc;
 
-namespace NuGetGallery
-{
-    public interface IPackageFileService
-    {
+namespace NuGetGallery {
+    public interface IPackageFileService {
         void Insert(
             string packageId,
-            string packageVersion, 
+            string packageVersion,
             Stream packageFile);
 
         Uri GetDownloadUri(
-            string packageId, 
+            string packageId,
             string packageVersion);
 
         // TODO: This really doesn't belong here.

@@ -1,20 +1,16 @@
 ﻿using System.Web.Mvc;
 
-namespace NuGetGallery
-{
-    public class PagesController : Controller
-    {
+namespace NuGetGallery {
+    public class PagesController : Controller {
         public const string Name = "Pages";
 
         [ActionName(ActionName.Home)]
-        public ActionResult ShowHomePage()
-        {
+        public ActionResult ShowHomePage() {
             return View();
         }
 
         [ActionName(ActionName.Contribute)]
-        public ActionResult ShowContributePage()
-        {
+        public ActionResult ShowContributePage() {
             return View();
         }
     }
