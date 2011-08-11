@@ -28,6 +28,9 @@ namespace NuGetGallery {
         }
 
         public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template) {
+            if (items == null) {
+                return null;
+            }
             var formattedItems = items.Select(item => template(item).ToHtmlString());
 
             return new HelperResult(writer => {

@@ -19,7 +19,7 @@ namespace NuGetGallery {
             RatingSum = package.Reviews.Sum(r => r.Rating);
             DownloadCount = package.DownloadCount;
             LastUpdated = package.LastUpdated;
-            Tags = package.Tags.Trim().Split(' ');
+            Tags = package.Tags != null ? package.Tags.Trim().Split(' ') : null;
             PackageVersions = from p in package.PackageRegistration.Packages
                               select new DisplayPackageViewModel(p);
         }
