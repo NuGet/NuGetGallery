@@ -3,6 +3,7 @@
     <Configuration>Debug</Configuration>
   </PropertyGroup>
 
+  <UsingTask AssemblyFile="../3rdParty\xunit\xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
   <UsingTask AssemblyFile="$(SolutionDir)..\packages\MigratorDotNet.0.9.0.28138\tools\Migrator.MSBuild.dll" TaskName="Migrator.MSBuild.Migrate" />
 
   <Target Name="Clean">
@@ -11,6 +12,10 @@
 
   <Target Name="Build" DependsOnTargets="Clean">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration)"/>
+  </Target>
+
+  <Target Name="RunFacts" DependsOnTargets="Build">
+    <xunit Assembly="..\Facts\bin\$(Configuration)\NuGetGallery.Facts.dll" Xml="NuGetGallery.Facts.results.xml" />
   </Target>
 
   <Target Name="RevertDatabase" DependsOnTargets="Build">
@@ -27,5 +32,7 @@
       Connectionstring="$(DbConnection)"
       Migrations="..\Website\bin\NuGetGallery.Website.dll" />
   </Target>
+
+  <Target Name="FullBuild" DependsOnTargets="RunFacts;UpdateDatabase" />
 
 </Project>
