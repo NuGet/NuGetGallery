@@ -16,11 +16,11 @@ This is the Git workflow we're currently using:
         <run focused tests>
         git add .
         git commit -m "<description of work>"
-    # you’re ready to push the feature/unit of work
+    # you're ready to push the feature/unit of work
     <run all tests>
-    git fetch # we don’t git pull, because we don’t want to clutter history with merges
-    git rebase origin/master # this won’t be needed if there aren’t new commits on the remote
+    git fetch origin # we don't pull, because we don't want to clutter history with merges
+    git rebase origin/master # this won't be needed if there aren't new commits from origin in the step above
     git checkout master
-    git pull # because we rebased, there won’t be a merge
+    git pull # because we rebased, there won't be a merge
     git rebase <topic branch>
     git push
