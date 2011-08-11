@@ -150,10 +150,7 @@ namespace NuGetGallery {
                     nugetPackage.Object,
                     currentUser);
 
-                packageFileSvc.Verify(x => x.SavePackageFile(
-                    "theId",
-                    "1.0.42.0",
-                    nugetPackage.Object.GetStream()));
+                packageFileSvc.Verify(x => x.SavePackageFile(package, nugetPackage.Object.GetStream()));
                 Assert.Equal(8, package.PackageFileSize);
             }
 

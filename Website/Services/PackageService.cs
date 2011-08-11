@@ -31,13 +31,8 @@ namespace NuGetGallery {
 
             using (var tx = new TransactionScope())
             using (var stream = nugetPackage.GetStream()) {
-                packageFileSvc.SavePackageFile(
-                    packageRegistration.Id,
-                    package.Version,
-                    stream);
-
                 packageRegistrationRepo.CommitChanges();
-
+                packageFileSvc.SavePackageFile(package, stream);
                 tx.Complete();
             }
 

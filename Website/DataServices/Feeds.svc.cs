@@ -3,7 +3,9 @@ using System.Data.Services;
 using System.Data.Services.Common;
 using System.Data.Services.Providers;
 using System.IO;
+using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 
 namespace NuGetGallery {
     // TODO: make this work for both packages and screen shots?
@@ -50,8 +52,16 @@ namespace NuGetGallery {
             object entity,
             DataServiceOperationContext operationContext) {
             var package = (FeedPackage)entity;
-
-            return packageFileSvc.GetDownloadUri(package.Id, package.Version);
+            var httpContext = new HttpContextWrapper(HttpContext.Current);
+            var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
+            
+            string url = urlHelper.RouteUrl(
+                RouteName.DownloadPackage, 
+                new RouteValueDictionary { { "id", package.Id }, { "version", package.Version } },
+                "http",
+                httpContext.Request.Url.Host);
+            
+            return new Uri(url, UriKind.Absolute);
         }
 
         public string GetStreamContentType(

@@ -83,6 +83,11 @@ namespace NuGetGallery {
                 "Search",
                 new { controller = "Search", action = "Results" });
 
+            routes.MapRoute(
+                RouteName.DownloadPackage,
+                "packages/{id}/{version}/download",
+                new { controller = PackagesController.Name, action = ActionName.DownloadPackage });
+
             routes.MapServiceRoute(
                 RouteName.ApiFeeds,
                 "api/feeds",

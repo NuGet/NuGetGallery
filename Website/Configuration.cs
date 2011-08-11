@@ -18,14 +18,6 @@ namespace NuGetGallery {
             return configValue ?? environmentVariableValue ?? defaultValue;
         }
 
-        public string BaseUrl {
-            get {
-                return new Lazy<string>(() =>
-                    Configuration.ReadFromConfigOrEnvironment("BaseUrl", "http://localhost"))
-                        .Value;
-            }
-        }
-
         public string PackageFileDirectory {
             get {
                 return new Lazy<string>(() =>

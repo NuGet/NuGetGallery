@@ -4,54 +4,54 @@ using System.Web.Mvc;
 
 namespace NuGetGallery {
     public class FileSystemPackageFileService : IPackageFileService {
-        // TODO: abstract file system so we can write unit tests
-
         readonly IConfiguration configuration;
-        readonly IEntityRepository<Package> packageRepo;
         readonly IFileSystemService fileSystemSvc;
 
         public FileSystemPackageFileService(
             IConfiguration configuration,
-            IEntityRepository<Package> packageRepo,
             IFileSystemService fileSystemSvc) {
             this.configuration = configuration;
-            this.packageRepo = packageRepo;
             this.fileSystemSvc = fileSystemSvc;
         }
         
-        public void SavePackageFile(
-            string packageId, 
-            string packageVersion, 
-            Stream packageFile) {
-            // TODO: verify that the package and version actually exist?
+        public void SavePackageFile(Package package, Stream packageFile) {
+            if (package == null)
+                throw new ArgumentNullException("package");
+            if (packageFile == null)
+                throw new ArgumentNullException("packageFile");
+            if (package.PackageRegistration == null || string.IsNullOrWhiteSpace(package.PackageRegistration.Id) || string.IsNullOrWhiteSpace(package.Version))
+                throw new ArgumentException("The package is missing required data.", "package");
 
             if (!fileSystemSvc.DirectoryExists(configuration.PackageFileDirectory))
                 fileSystemSvc.CreateDirectory(configuration.PackageFileDirectory);
-
-            var path = Path.Combine(
-                configuration.PackageFileDirectory,
-                string.Format(Const.SavePackageFilePathTemplate, packageId, packageVersion, Const.PackageExtension));
-
+            var path = BuildPackageFileSavePath(package.PackageRegistration.Id, package.Version);
             using (var file = fileSystemSvc.OpenWrite(path)) {
                 packageFile.CopyTo(file);
             }
         }
 
-        public ActionResult CreateDownloadPackageResult(
-            string packageId,
-            string packageVersion) {
-            throw new NotImplementedException();
+        public ActionResult CreateDownloadPackageResult(Package package) {
+            if (package == null)
+                throw new ArgumentNullException("package");
+            if (package.PackageRegistration == null || string.IsNullOrWhiteSpace(package.PackageRegistration.Id) || string.IsNullOrWhiteSpace(package.Version))
+                throw new ArgumentException("The package is missing required data.", "package");
+
+            var fileName = BuildPackageFileSavePath(package.PackageRegistration.Id, package.Version);
+            var result = new FilePathResult(fileName, Const.PackageContentType);
+            result.FileDownloadName = new FileInfo(fileName).Name;
+            return result;
         }
 
+        string BuildPackageFileDownloadFileName(string id, string version) {
+            return Path.Combine(
+                configuration.PackageFileDirectory,
+                string.Format(Const.PackageFileSavePathTemplate, id, version));
+        }
 
-        public Uri GetDownloadUri(
-            string id,
-            string version) {
-            // TODO: validate inputs
-
-            return new Uri(
-                new Uri(configuration.BaseUrl, UriKind.Absolute),
-                new Uri(string.Format("Packages/{0}.{1}.{2}", id, version, Const.PackageExtension), UriKind.Relative));
+        string BuildPackageFileSavePath(string id, string version) {
+            return Path.Combine(
+                configuration.PackageFileDirectory,
+                string.Format(Const.PackageFileSavePathTemplate, id, version, Const.PackageFileExtension));
         }
     }
 }

@@ -45,7 +45,7 @@ namespace NuGetGallery {
 
             // TODO: what other security checks do we need to perform for uploaded packages?
             var extension = Path.GetExtension(packageFile.FileName).ToLowerInvariant();
-            if (extension != Const.PackageExtension) {
+            if (extension != Const.PackageFileExtension) {
                 ModelState.AddModelError(string.Empty, "The package file must be a .nupkg file.");
                 return View();
             }
@@ -149,6 +149,16 @@ namespace NuGetGallery {
         //TODO: Implement the get and post for this
         public ActionResult ContactOwners() {
             return View();
+        }
+
+        public ActionResult DownloadPackage(string id, string version) {
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            
+            if (package == null) {
+                return HttpNotFound();
+            }
+
+            return packageFileSvc.CreateDownloadPackageResult(package);
         }
     }
 }
