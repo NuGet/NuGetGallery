@@ -30,7 +30,7 @@ namespace NuGetGallery {
 
             var path = Path.Combine(
                 configuration.PackageFileDirectory,
-                string.Format("{0}.{1}{2}", packageId, packageVersion, Const.PackageExtension));
+                string.Format(Const.SavePackageFilePathTemplate, packageId, packageVersion, Const.PackageExtension));
 
             using (var file = fileSystemSvc.OpenWrite(path)) {
                 packageFile.CopyTo(file);

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.IO;
+﻿using System.IO;
 
 namespace NuGetGallery {
     public class FileSystemService : IFileSystemService {
@@ -14,7 +10,7 @@ namespace NuGetGallery {
             return Directory.Exists(path);
         }
 
-        public System.IO.FileStream OpenWrite(string path) {
+        public Stream OpenWrite(string path) {
             return File.OpenWrite(path);
         }
     }
