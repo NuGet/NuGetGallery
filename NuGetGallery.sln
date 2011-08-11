@@ -5,6 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Website", "Website\Website.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3D9D438F-93F6-4CDF-AABD-9990063BAD67}"
 	ProjectSection(SolutionItems) = preProject
+		Build-Solution.ps1 = Build-Solution.ps1
 		Scripts\Get-ConnectionString.ps1 = Scripts\Get-ConnectionString.ps1
 		Scripts\NuGetGallery.msbuild = Scripts\NuGetGallery.msbuild
 		Scripts\Revert-Database.ps1 = Scripts\Revert-Database.ps1
