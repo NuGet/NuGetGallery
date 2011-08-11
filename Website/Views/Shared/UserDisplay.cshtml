@@ -7,9 +7,8 @@
 else
 {
     <div class="user-display">
-        <span class="welcome">@User.Identity.Name</span>
+        <span class="welcome"><a href="#">@User.Identity.Name</a></span>
         <span class="user-actions">
-            <a href="#">My Account</a>
             <a href="@Url.RouteUrl("SignOut", new { ReturnUrl = HttpContext.Current.Request.Url.ToString() })">Sign Out</a>
         </span>
     </div>
