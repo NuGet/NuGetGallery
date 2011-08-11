@@ -42,6 +42,10 @@ namespace NuGetGallery {
             Bind<IFormsAuthenticationService>()
                 .To<FormsAuthenticationService>()
                 .InSingletonScope();
+
+            Bind<IFileSystemService>()
+                .To<FileSystemService>()
+                .InSingletonScope();
         }
     }
 }

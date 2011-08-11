@@ -8,12 +8,15 @@ namespace NuGetGallery {
 
         readonly IConfiguration configuration;
         readonly IEntityRepository<Package> packageRepo;
+        readonly IFileSystemService fileSystemSvc;
 
         public FileSystemPackageFileService(
             IConfiguration configuration,
-            IEntityRepository<Package> packageRepo) {
+            IEntityRepository<Package> packageRepo,
+            IFileSystemService fileSystemSvc) {
             this.configuration = configuration;
             this.packageRepo = packageRepo;
+            this.fileSystemSvc = fileSystemSvc;
         }
         
         public void SavePackageFile(
@@ -22,14 +25,14 @@ namespace NuGetGallery {
             Stream packageFile) {
             // TODO: verify that the package and version actually exist?
 
-            if (!Directory.Exists(configuration.PackageFileDirectory))
-                Directory.CreateDirectory(configuration.PackageFileDirectory);
+            if (!fileSystemSvc.DirectoryExists(configuration.PackageFileDirectory))
+                fileSystemSvc.CreateDirectory(configuration.PackageFileDirectory);
 
             var path = Path.Combine(
                 configuration.PackageFileDirectory,
                 string.Format("{0}.{1}{2}", packageId, packageVersion, Const.PackageExtension));
 
-            using (var file = File.OpenWrite(path)) {
+            using (var file = fileSystemSvc.OpenWrite(path)) {
                 packageFile.CopyTo(file);
             }
         }
