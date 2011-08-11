@@ -46,6 +46,7 @@ namespace NuGetGallery {
 
         public virtual PackageRegistration FindPackageRegistrationById(string id) {
             return packageRegistrationRepo.GetAll()
+                .Include(p => p.Owners)
                 .Where(pr => pr.Id == id)
                 .SingleOrDefault();
         }
@@ -53,10 +54,10 @@ namespace NuGetGallery {
         public virtual Package FindPackageByIdAndVersion(string id, string version = null) {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentNullException("id");
-            
+
             if (version == null) {
                 var packageRegistration = FindPackageRegistrationById(id);
-                
+
                 return packageRegistration.Packages
                     .Where(p => new Version(p.Version) == packageRegistration.Packages.Max(p2 => new Version(p2.Version)))
                     .SingleOrDefault();

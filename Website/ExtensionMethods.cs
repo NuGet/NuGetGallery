@@ -27,7 +27,7 @@ namespace NuGetGallery {
             return string.Join("|", dependencies.Select(d => string.Format("{0}:{1}", d.Id, d.VersionRange)).ToArray());
         }
 
-        public static HelperResult Flatten(this IEnumerable<string> items, Func<string, HelperResult> template) {
+        public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template) {
             var formattedItems = items.Select(item => template(item).ToHtmlString());
 
             return new HelperResult(writer => {

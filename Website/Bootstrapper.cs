@@ -49,9 +49,19 @@ namespace NuGetGallery {
                 new { controller = PackagesController.Name, action = ActionName.ContactOwners });
 
             routes.MapRoute(
+                RouteName.ManagePackageOwners,
+                "Package/ManagePackageOwners/{id}",
+                new { controller = PackagesController.Name, action = ActionName.ManagePackageOwners });
+
+            routes.MapRoute(
                 RouteName.PublishPackage,
                 "Package/New/{id}/{version}",
                 new { controller = PackagesController.Name, action = ActionName.PublishPackage });
+
+            routes.MapRoute(
+                RouteName.EditPackage,
+                "Package/Edit/{id}/{version}",
+                new { controller = PackagesController.Name, action = ActionName.EditPackage });
 
             routes.MapRoute(
                 RouteName.DisplayPackage,

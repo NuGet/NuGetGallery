@@ -21,6 +21,20 @@
                                 }
                                 <h2>@Model.Id - @Model.Version</h2>
                             </div>
+                            @if (Model.IsOwner(User)) {
+                            <div class="zone zone-actions">
+                            <ul>
+                                <li><a class="edit" href="@Url.RouteUrl(RouteName.EditPackage, new {id = Model.Id, version = Model.Version})">Edit</a></li>
+                                <li><a class="manage-owners" href="@Url.RouteUrl(RouteName.ManagePackageOwners, new {id = Model.Id})">Manage Owners</a></li>
+                                <li><a href="#" onclick="DeletePackage('RouteMagic', '1.1.1'); return false;" class="delete">Delete</a></li>
+                                <li>
+                                    <a href="#" title="Unpublish" class="unpublishPackageLink" data-package-id="RouteMagic" data-package-version="1.1.1">
+                                        Unpublish
+                                    </a>
+                                </li>
+                                </ul>
+                            </div>
+                            }
                             <div>
                                 <div class="zone zone-authors">
                                     <p class="author">By 
@@ -62,6 +76,8 @@
                                 </td>
                             </tr>
                             <tr>
+                                <th>Tags:</th>
+                                <td>@Model.Tags.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new { q = @item })">@item</a>)</td>
                             </tr>
                             <tr>
                                 <th>Total Downloads:</th>
@@ -99,7 +115,7 @@
                                                 }
                                             </td>
                                             <td class="downloads">@version.DownloadCount</td>
-                                            <td class="lastUpdated">@version.DownloadCount</td>
+                                            <td class="lastUpdated">@version.LastUpdated</td>
                                             <td class="rating">
                                                 <div class="stars-rating">
                                                     @ViewHelpers.DisplayRating(@version.RatingAverage)
@@ -109,66 +125,6 @@
                                     }
                                 </tbody>
                             </table>
-                        </div>
-                        <h4 class="reviews-heading" id="reviews-heading">Reviews</h4>
-                        <div class="reviews-content">
-                            <header>
-                                <div id="createReviewLinkDiv"><span id="createReviewLinkSpan"><a id="showReviewFormLink" href="/Users/Account/LogOn?ReturnUrl=%2FList%2FPackages%2FEntityFramework">Write a review!</a></span></div>
-                                    <div id="reviewFormDiv" style="display: none">
-                                        <span class="my-rating">My Rating:</span> 
-                                        <div class="stars-rating " title="Log-in to rate this item">
-                                            <div class="stars-current-result ">
-                                                <span class="star-1 a-star"></span>
-                                                <span class="star-2 a-star"></span>
-                                                <span class="star-3 a-star"></span>
-                                                <span class="star-4 a-star"></span>
-                                                <span class="star-5 a-star"></span>
-                                            </div>
-                                        </div>
-                                        <span class="my-review">My Review:</span>
-                                        <form action="/Contrib.Reviews/Review/Create" method="post">
-                                            <textarea cols="20" id="comment" maxLength="1200" name="comment" rows="4">
-                                            </textarea>
-                                            <input id="cotentId" name="contentId" type="hidden" value="14982" />
-                                            <input id="ReturnUrl" name="ReturnUrl" type="hidden" value="http://nuget.org/List/Packages/EntityFramework" />
-                                            <p class="review-character-limit"><span id="commentCharactersLeft"></span> character(s) remaining</p>
-                                            <input id="createReviewButton" type="submit" value="Submit Review" />
-                                            <a id="cancelCreateReviewLink" href="#">Cancel</a>
-                                            <input name="__RequestVerificationToken" type="hidden" value="d/I+zrKwK4r7uSRiBfJyR55YiL6HgQFR3xRu3qUsYr3RfN33OXuEniRKNA4B5fpDe73LOo/PMCwB3bYgJWimSjf72wC+yS1IZ9SZJtlcG9s8s/17WsQpeoTFZfVRwWx/B1ueoEI6FVcxpPacx+Jr6jmwxMsdcNMlh7gsXW/XV8mI+qnCTkDmXaagQiKJmqE8HWo68S+o1wVg2c6yBjUw9w==" />
-                                        </form>
-                                    </div>
-                            </header>
-    <ul id="reviewsList">
-            <li class="">
-                <div class="stars-rating">
-                    <div class="stars-current-result stars-value-1">
-                        <span class="star-1 a-star">*</span>
-                        <span class="star-2 a-star">-</span>
-                        <span class="star-3 a-star">-</span>
-                        <span class="star-4 a-star">-</span>
-                        <span class="star-5 a-star">-</span>
-                    </div>
-                </div>
-                <div>
-                    <span class="review-username">EntityFrameworkSucks</span><span class="review-timestamp">8/5/2011 1:11:12 PM</span>
-                    <p class="review-comment">Don&#39;t upgrade, it introduces breaking changes.
- 
-http://ayende.com/blog/75777/entity-framework-4-1-update-1-backward-compatibility-and-microsoft
-                    </p>
-                </div>
-            </li>
-    </ul>
-    <div><a id="showAllReviewsLink" href="#" style="display: none">Show All</a></div>
-</div>
-                        <div id="deleteReviewConfirmationDialogDiv" title="Confirm Deletion" style="display:none">
-                            <p>Are you sure you wish to delete your review? Your Rating will also be deleted.</p>
-                            <form action="/Contrib.Reviews/Review/Delete" id="deleteReviewForm" method="post">
-                                <input type="hidden" id="reviewId" name="reviewId" />
-                                <input type="hidden" id="returnUrl" name="returnUrl" value="http://nuget.org/List/Packages/EntityFramework" />
-                                <input type="submit" value="Yes" />
-                                <input type="button" value="No" id="cancelDeleteReviewButton" />
-                                <input name="__RequestVerificationToken" type="hidden" value="iBKfQkahPqXBXd079LQS9z5dV5mdxYodg3agHTIM3CEWJzMzb2GGU5i6KUg4GJ6kJdtw717po9yxKzTKZImIJLc/foCOpp6qMG07TpKoVOQimIGxBhJC5/UylJN72Vyea3c4tJytYCvF8u4qxwOtEYUHn2XI/ARXfX4TvYOJ/q+l0aFkf3+HCqOmPeTejgJnV/pKl2hhZB5DYCR6uSpAbQ==" />
-                            </form>
                         </div>
                     </div>
                 </section>

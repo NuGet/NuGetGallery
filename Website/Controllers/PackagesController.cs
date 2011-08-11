@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -49,8 +50,10 @@ namespace NuGetGallery {
                 return View();
             }
 
-            // TODO: This should never be null, but should probably decide what happens if it is
             var currentUser = userSvc.FindByUsername(User.Identity.Name);
+            if (currentUser == null) {
+                throw new InvalidOperationException("Current user is null. This should never happen!");
+            }
 
             ZipPackage uploadedPackage;
             using (var uploadStream = packageFile.InputStream) {
@@ -115,9 +118,7 @@ namespace NuGetGallery {
         public ActionResult DisplayPackage(
             string id,
             string version) {
-            var package = packageSvc.FindPackageByIdAndVersion(
-                id,
-                version);
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null)
                 return HttpNotFound();

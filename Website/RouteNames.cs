@@ -14,5 +14,7 @@ namespace NuGetGallery {
         public const string PublishPackage = "PublishPackage";
         public const string ReportAbuse = "ReportAbuse";
         public const string ContactOwners = "ContactOwners";
+        public const string EditPackage = "EditPackage";
+        public const string ManagePackageOwners = "ManagePackageOwners";
     }
 }

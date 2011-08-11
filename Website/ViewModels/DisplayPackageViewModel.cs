@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 
 namespace NuGetGallery {
     public class DisplayPackageViewModel {
@@ -8,7 +9,8 @@ namespace NuGetGallery {
             Id = package.PackageRegistration.Id;
             Version = package.Version;
             Description = package.Description;
-            Authors = package.Authors.Select(p => p.Name);
+            Authors = package.Authors;
+            Owners = package.PackageRegistration.Owners;
             ProjectUrl = package.ProjectUrl;
             LicenseUrl = package.LicenseUrl;
             LatestVersion = package.IsLatest;
@@ -17,7 +19,7 @@ namespace NuGetGallery {
             RatingSum = package.Reviews.Sum(r => r.Rating);
             DownloadCount = package.DownloadCount;
             LastUpdated = package.LastUpdated;
-
+            Tags = package.Tags.Trim().Split(' ');
             PackageVersions = from p in package.PackageRegistration.Packages
                               select new DisplayPackageViewModel(p);
         }
@@ -25,7 +27,9 @@ namespace NuGetGallery {
         public string Id { get; set; }
         public string Version { get; set; }
 
-        public IEnumerable<string> Authors { get; set; }
+        public IEnumerable<PackageAuthor> Authors { get; set; }
+        public ICollection<User> Owners { get; set; }
+        public IEnumerable<string> Tags { get; set; }
         public string Description { get; set; }
         public string IconUrl { get; set; }
         public string ProjectUrl { get; set; }
@@ -40,14 +44,20 @@ namespace NuGetGallery {
         public int RatingSum { get; set; }
         public float RatingAverage {
             get {
-                return 3.7F;
-                //if (RatingCount > 0) {
-                //    return (float)RatingSum / (float)RatingCount;
-                //}
-                //return 0;
+                if (RatingCount > 0) {
+                    return (float)RatingSum / (float)RatingCount;
+                }
+                return 0;
             }
         }
 
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
+
+        public bool IsOwner(IPrincipal user) {
+            if (user == null || user.Identity == null) {
+                return false;
+            }
+            return Owners.Any(u => u.Username == user.Identity.Name);
+        }
     }
 }
