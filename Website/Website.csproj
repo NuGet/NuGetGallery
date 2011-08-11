@@ -44,6 +44,8 @@
     <Reference Include="Fnord">
       <HintPath>..\packages\Fnord.1.0\lib\Fnord.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Migrator, Version=0.9.0.28138, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MigratorDotNet.0.9.0.28138\lib\Net40\Migrator.dll</HintPath>
@@ -103,6 +105,7 @@
     <Compile Include="ActionNames.cs" />
     <Compile Include="App_Start\MiniProfiler.cs" />
     <Compile Include="App_Start\NinjectMVC3.cs" />
+    <Compile Include="BuildTasks\CreateDatabase.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
@@ -168,10 +171,6 @@
     <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Data\NuGetGallery.mdf" />
-    <Content Include="App_Data\NuGetGallery_log.ldf">
-      <DependentUpon>NuGetGallery.mdf</DependentUpon>
-    </Content>
     <Content Include="Content\Buttons.css" />
     <Content Include="Content\Comments.css" />
     <Content Include="Content\Confirmations.css" />
