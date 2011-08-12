@@ -5,7 +5,7 @@ $scriptPath = Split-Path $MyInvocation.MyCommand.Path
 
 if ($connectionString.Trim() -eq "") 
 {
-  $connectionString = Get-ConnectionString -configPath (join-path $scriptPath Website\web.config) -connectionStringName NuGetGallery -dataDirectory (resolve-path (join-path $scriptPath Website\App_Data))
+  $connectionString = Get-ConnectionString -configPath (join-path $scriptPath Website\web.config) -connectionStringName NuGetGallery
 }
 
 $projFile = join-path $scriptPath Scripts\NuGetGallery.msbuild
