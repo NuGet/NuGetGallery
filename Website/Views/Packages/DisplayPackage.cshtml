@@ -37,8 +37,8 @@
                             }
                             <div>
                                 <div class="zone zone-authors">
-                                    <p class="author">By
-                                        @Model.Authors.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new { q = @item })">@item.Name</a>)
+                                    <p class="author">By 
+                                        @Model.Authors.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new { q = @item.Name })">@item.Name</a>)
                                     </p>
                                 </div>
                             </div>
