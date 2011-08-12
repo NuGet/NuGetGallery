@@ -1,6 +1,7 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)' == ''">
     <Configuration>Debug</Configuration>
+    <MvcBuildViews>false</MvcBuildViews>
   </PropertyGroup>
 
   <UsingTask AssemblyFile="../3rdParty\xunit\xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
@@ -12,7 +13,7 @@
   </Target>
 
   <Target Name="Build" DependsOnTargets="Clean">
-    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration)"/>
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);MvcBuildViews=$(MvcBuildViews);"/>
   </Target>
 
   <Target Name="RunFacts" DependsOnTargets="Build"> 

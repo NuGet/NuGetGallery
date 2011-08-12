@@ -10,4 +10,4 @@ if ($connectionString.Trim() -eq "")
 
 $projFile = join-path $scriptPath Scripts\NuGetGallery.msbuild
  
-& "$(get-content env:windir)\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $projFile /p:DbConnection=$connectionString /t:FullBuild
+& "$(get-content env:windir)\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $projFile /p:DbConnection=$connectionString /p:MvcBuildViews=true /t:FullBuild
