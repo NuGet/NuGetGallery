@@ -1,20 +1,13 @@
-﻿using System.Linq;
-using System.Web.Configuration;
-using System.Web.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
 using System.Web.Routing;
-using Migrator.Framework;
+using System.Web.Mvc;
 using RouteMagic;
 
-[assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.Bootstrapper), "Start")]
 namespace NuGetGallery {
-    public static class Bootstrapper {
-        public static void Start() {
-            UpdateDatabase();
-            RegisterRoutes(RouteTable.Routes);
-
-            // TODO: move profile bootstrapping and container bootstrapping to here
-        }
-
+    public static class Routes {
         public static void RegisterRoutes(RouteCollection routes) {
             routes.MapRoute(
                 RouteName.Home,
@@ -119,20 +112,6 @@ namespace NuGetGallery {
                     "List/Packages/{id}/{version}",
                     new { controller = PackagesController.Name, action = ActionName.DisplayPackage, version = UrlParameter.Optional }),
                 permanent: true).To(packageDisplayRoute);
-        }
-
-        private static void UpdateDatabase() {
-            var version = typeof(Bootstrapper).Assembly.GetTypes()
-                .Where(type => typeof(Migration).IsAssignableFrom(type))
-                .SelectMany(x => x.GetCustomAttributes(typeof(MigrationAttribute), false))
-                .Max(x => ((MigrationAttribute)x).Version);
-
-            var migrator = new Migrator.Migrator(
-                "SqlServer",
-                WebConfigurationManager.ConnectionStrings["NuGetGallery"].ConnectionString,
-                typeof(Bootstrapper).Assembly);
-
-            migrator.MigrateTo(version);
         }
     }
 }

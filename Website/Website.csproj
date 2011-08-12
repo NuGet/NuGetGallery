@@ -102,7 +102,7 @@
     <Compile Include="ActionNames.cs" />
     <Compile Include="App_Start\MiniProfiler.cs" />
     <Compile Include="App_Start\NinjectMVC3.cs" />
-    <Compile Include="Bootstrapper.cs" />
+    <Compile Include="App_Start\Bootstrapper.cs" />
     <Compile Include="BuildTasks\CreateDatabase.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
@@ -112,6 +112,7 @@
     <Compile Include="Entities\PackageReview.cs" />
     <Compile Include="Migrations\20110809083000_CreatePackageReviewsTable.cs" />
     <Compile Include="Migrations\20110811213000_AddApiKeyColumn.cs" />
+    <Compile Include="App_Start\Routes.cs" />
     <Compile Include="Services\FileSystemService.cs" />
     <Compile Include="Services\IFileSystemService.cs" />
     <Compile Include="Services\IPackageService.cs" />
@@ -123,7 +124,7 @@
     <Compile Include="Migrations\20110804150000_CreatePackagesTable.cs" />
     <Compile Include="Migrations\20110804160000_CreatePackageRegistrationOwnersTable.cs" />
     <Compile Include="Migrations\20110805190000_CreatePackageAuthorsTable.cs" />
-    <Compile Include="Configuration.cs" />
+    <Compile Include="App_Start\Configuration.cs" />
     <Compile Include="Const.cs" />
     <Compile Include="Container.cs" />
     <Compile Include="ContainerBindings.cs" />
@@ -133,7 +134,7 @@
     <Compile Include="DataServices\FeedPackage.cs" />
     <Compile Include="Services\FileSystemPackageFileService.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
-    <Compile Include="IConfiguration.cs" />
+    <Compile Include="App_Start\IConfiguration.cs" />
     <Compile Include="Services\ICryptographyService.cs" />
     <Compile Include="Entities\IEntity.cs" />
     <Compile Include="Services\IFormsAuthenticationService.cs" />
@@ -165,7 +166,7 @@
       <DependentUpon>Feeds.svc</DependentUpon>
     </Compile>
     <Compile Include="UrlExtensions.cs" />
-    <Compile Include="VersionRouteConstraint.cs" />
+    <Compile Include="App_Start\VersionRouteConstraint.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
     <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
   </ItemGroup>
