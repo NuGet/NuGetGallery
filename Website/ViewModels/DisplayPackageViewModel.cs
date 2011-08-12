@@ -22,6 +22,7 @@ namespace NuGetGallery {
             LastUpdated = package.LastUpdated;
             Tags = package.Tags != null ? package.Tags.Trim().Split(' ') : null;
             PackageVersions = from p in package.PackageRegistration.Packages
+                              orderby p.Version descending
                               select new DisplayPackageViewModel(p);
         }
 
