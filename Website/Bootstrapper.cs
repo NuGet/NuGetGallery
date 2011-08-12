@@ -1,11 +1,16 @@
-﻿using System.Web.Mvc;
+﻿using System.Linq;
+using System.Web.Mvc;
 using System.Web.Routing;
+using Migrator.Framework;
+using System.Configuration;
+using System.Web.Configuration;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.Bootstrapper), "Start")]
 
 namespace NuGetGallery {
     public static class Bootstrapper {
         public static void Start() {
+            UpdateDatabase();
             RegisterRoutes(RouteTable.Routes);
 
             // TODO: move profile bootstrapping and container bootstrapping to here
@@ -92,6 +97,20 @@ namespace NuGetGallery {
                 RouteName.ApiFeeds,
                 "api/feeds",
                 typeof(Feeds));
+        }
+
+        private static void UpdateDatabase() {
+            var version = typeof(Bootstrapper).Assembly.GetTypes()
+                .Where(type => typeof(Migration).IsAssignableFrom(type))
+                .SelectMany(x => x.GetCustomAttributes(typeof(MigrationAttribute), false))
+                .Max(x => ((MigrationAttribute)x).Version);
+
+            var migrator = new Migrator.Migrator(
+                "SqlServer",
+                WebConfigurationManager.ConnectionStrings["NuGetGallery"].ConnectionString,
+                typeof(Bootstrapper).Assembly);
+
+            migrator.MigrateTo(version);
         }
     }
 }
