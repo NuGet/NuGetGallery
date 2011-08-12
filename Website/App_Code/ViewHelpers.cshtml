@@ -10,3 +10,7 @@
         }
     </div>
 }
+
+@helper Option(string value, string label, string currentValue) {
+    <option value="@value" @if (value == currentValue){<text>selected="selected"</text>}>@label</option>    
+}

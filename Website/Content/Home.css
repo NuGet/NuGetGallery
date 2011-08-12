@@ -28,23 +28,7 @@ Links: #0071BC
     width: 350px;
     color: #000;
 }
-#hero #search { 
-    font-size: 1.2em; /* 15px */ 
-    width: 574px;
-    padding: 10px 10px 11px 10px;
-    background: url('../Content/Images/heroSearchBG.png');
-}
-#hero #search div { border-color:#139900;padding:6px 10px 4px;}
-#hero #search input[type=text] { width:386px; }
-#hero #search #drop-down {
-    left: 399px !important;
-    top: 30px !important;  
-}
-.widget-gallery-search-widget {
-    position: relative;
-    top: -20px;
-}
-#hero div.right { 
+#hero div.right {
     width: 319px;
 }
     #hero div.right div {

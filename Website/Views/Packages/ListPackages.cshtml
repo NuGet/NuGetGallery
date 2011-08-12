@@ -6,29 +6,23 @@
 <div id="layout-before-main" class="group">
     <section id="currentPageToolbar">
         <div class="zone zone-before-main">
-            <form action="@Url.RouteUrl(SearchController.Name)" method="get">
-                <div id="search">
-                    <div>
-                        <input type="text" name="q" id="searchTerm" value="Search Packages" />
-                    </div>
-                    <input type="submit" value=" "/>
-                </div>
+            <form id="search-filter-form" action="@Request.Url" method="get">
+                @* TODO: This hidden input hack can go away when we fully restructure the UI*@
+                <input type="hidden" name="q" value="@ViewBag.SearchTerm" />
                 <div id="sort">
                     <label>Sort</label>
                     <select name="sortOrder" id="sortOrder">
-                        <option value="package-title">A-Z</option>
-                        <option value="package-rating">Highest Rated</option>
-                        <option selected="selected" value="package-download-count">Popularity</option>
-                        <option value="package-created">Recent</option>
-                        <option value="sort-by-relevance">Relevance</option>
+                        @ViewHelpers.Option("package-title", "A-Z", ViewBag.SortOrder)
+                        @ViewHelpers.Option("package-rating", "Highest Rated", ViewBag.SortOrder)
+                        @ViewHelpers.Option("package-download-count", "Popularity", ViewBag.SortOrder)
+                        @ViewHelpers.Option("package-created", "Recent", ViewBag.SortOrder)
+                        @ViewHelpers.Option("package-relevance", "Relevance", ViewBag.SortOrder)
                     </select>
                     <label>Show</label>
                     <select name="pageSize" id="pageSize">
-                        <option value="5">5 per page</option>
-                        <option selected="selected" value="10">10 per page</option>
-                        <option value="15">15 per page</option>
-                        <option value="25">25 per page</option>
-                        <option value="50">50 per page</option>
+                        @ViewHelpers.Option("10", "10 per page", ViewBag.PageSize)
+                        @ViewHelpers.Option("20", "20 per page", ViewBag.PageSize)
+                        @ViewHelpers.Option("50", "50 per page", ViewBag.PageSize)
                     </select>
                 </div>
             </form>

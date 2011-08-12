@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System.Web.Mvc;
 using System.Web.Routing;
-using System.Web.Mvc;
 using RouteMagic;
 
 namespace NuGetGallery {
@@ -13,11 +9,6 @@ namespace NuGetGallery {
                 RouteName.Home,
                 "",
                 new { controller = PagesController.Name, action = ActionName.Home });
-
-            routes.MapRoute(
-                RouteName.Search,
-                "Search",
-                new { controller = SearchController.Name, action = ActionName.Results });
 
             var packageListRoute = routes.MapRoute(
                 RouteName.ListPackages,

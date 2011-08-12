@@ -22,7 +22,7 @@ namespace NuGetGallery {
             LicenseUrl = package.LicenseUrl;
             LatestVersion = package.IsLatest;
             Prerelease = package.IsPrerelease;
-            RatingCount = package.Reviews.Count();
+            RatingCount = package.Reviews.Count;
             RatingSum = package.Reviews.Sum(r => r.Rating);
             DownloadCount = package.DownloadCount;
             LastUpdated = package.LastUpdated;

@@ -380,6 +380,113 @@ input[type=submit]:hover, button[type=submit]:hover, input[type=button]:hover {
     background-color: #3c3d44;
 }
 
+/* Search
+**************************************************************/
+#search {
+    height: 31px;
+    margin: 3px 0 0 0;
+    display: inline;
+    float: right;
+}
+
+#search div {
+    border-top: 1px solid #999;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    display: inline;
+    background: #fff;
+    padding: 7px 10px 5px;
+    *padding-top: 4px; /* IE6 */
+    padding: 6px 10px\0/; /* IE7+ */
+}
+
+#search input[type=text] {
+    color: #7F8C7D;
+    display: inline;
+    border: none !important;
+    width: 275px;
+    background: none !important;
+    padding: 0 !important;
+}
+
+#search input[type=submit] {
+    background: url(../Content/Images/searchButton.png) no-repeat !important;
+    -moz-box-shadow: none !important;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+    border: none !important;
+    cursor: pointer;
+    font-size: 1em !important;
+    line-height: 2.3em !important;
+    height: 34px;
+    left: -2px;
+    top: 2px;
+    padding: 0;
+    position: relative;
+    text-indent: -9999px;
+    width: 34px;
+    margin-top: 0px !important;
+    filter: none !important; /* for IE */
+}
+
+a.search-category {
+    background: url(../Content/Images/arrowDown.png);
+    background-repeat: no-repeat;
+    background-position: 100% 6px;
+    color: #999;
+    text-decoration: none;
+    display: inline-block;
+    width: 124px;
+}
+    a.search-category:hover {
+        color: #999;
+        text-decoration: none;
+    }
+    a.search-category span {
+    border-left: 1px solid #999999;
+    display: block;
+    height: 17px;
+    line-height: 16px;
+    overflow: hidden;
+    padding: 0 20px 0 10px;
+}
+#search>div {
+    position: relative;
+}
+#search #drop-down {
+    background: none repeat scroll 0 0 #FFF;
+    border: 1px solid #ccc;
+    position: absolute;
+    left: 290px !important;
+    top: 32px !important;
+    width: 174px !important;
+    padding: 8px 3px;
+    display: none;
+    z-index: 999 !important;
+    -moz-box-shadow: 2px 3px 2px #999;
+    -webkit-box-shadow:2px 3px 2px #999;
+    box-shadow:2px 3px 2px #999;
+    max-height: 220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    *margin-top: 6px; /* IE6 */
+}
+    #drop-down li {
+        font-size: .8em !important; /* 12px */
+    }
+    #drop-down li a
+    {
+        display: block;
+        padding: 8px;
+    }
+    #drop-down li:hover  {
+        background: #E1E6D5
+    }
+    #drop-down li.current {
+        background: #E1E6D5;
+    }
+
 /* Page Toolbar
 **************************************************************/
 
@@ -387,25 +494,6 @@ input[type=submit]:hover, button[type=submit]:hover, input[type=button]:hover {
     background: #e4f1f7;
     font-size: 12px;
     padding:13px 54px 3px;
-}
-
-#currentPageToolbar input[type=submit] {
-    background: url(../Content/Images/searchButton.png) !important;
-    border: none !important;
-    cursor: pointer;
-    font-size: 1em !important;
-    line-height: 2.3em !important;
-    height: 29px;
-    left: -1px;
-    padding: 0;
-    position: relative;
-    text-indent: -9999px;
-    width: 30px;
-    margin-top: 0px !important;
-    filter: none !important; /* for IE */
-    border-radius: 0px 3px 3px 0px;
-    -webkit-border-radius: 0px 3px 3px 0px;
-    -moz-border-radius: 0px 3px 3px 0px;
 }
 
 #sort {

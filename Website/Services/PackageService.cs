@@ -41,7 +41,8 @@ namespace NuGetGallery {
 
         public virtual PackageRegistration FindPackageRegistrationById(string id) {
             return packageRegistrationRepo.GetAll()
-                .Include(p => p.Owners)
+                .Include(pr => pr.Owners)
+                .Include(pr => pr.Packages)
                 .Where(pr => pr.Id == id)
                 .SingleOrDefault();
         }
@@ -59,7 +60,10 @@ namespace NuGetGallery {
             }
             else
                 return packageRepo.GetAll()
+                    .Include(p => p.Authors)
+                    .Include(p => p.Reviews)
                     .Include(p => p.PackageRegistration)
+                    .Include(p => p.PackageRegistration.Packages)
                     .Where(p => p.PackageRegistration.Id == id && p.Version == version)
                     .SingleOrDefault();
         }
@@ -67,6 +71,10 @@ namespace NuGetGallery {
         public IEnumerable<Package> GetLatestVersionOfPublishedPackages() {
             return packageRepo.GetAll()
                 .Include(x => x.PackageRegistration)
+                .Include(x => x.Authors)
+                .Include(x => x.PackageRegistration.Owners)
+                .Include(x => x.PackageRegistration.Packages)
+                .Include(x => x.Reviews)
                 .Where(pv => pv.Published != null && pv.IsLatest)
                 .ToList();
         }

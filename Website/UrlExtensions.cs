@@ -53,7 +53,7 @@ namespace NuGetGallery {
         }
 
         public static string SearchUrl(this UrlHelper url, string searchTerm) {
-            return url.RouteUrl(RouteName.Search, new { q = searchTerm });
+            return url.RouteUrl(RouteName.ListPackages, new { q = searchTerm });
         }
     }
 

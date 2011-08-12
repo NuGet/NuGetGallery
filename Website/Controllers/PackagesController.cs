@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -119,9 +120,19 @@ namespace NuGetGallery {
             return View(new DisplayPackageViewModel(package, Url));
         }
 
-        public ActionResult ListPackages() {
-            var packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
+        public ActionResult ListPackages(string q, string sortOrder, int pageSize = 10) {
+            ViewBag.SearchTerm = q;
+            ViewBag.SortOrder = sortOrder ?? "package-download-count";
+            ViewBag.PageSize = pageSize.ToString();
 
+            IEnumerable<Package> packageVersions = null;
+            if (String.IsNullOrEmpty(q)) {
+                packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
+            }
+            else {
+                // TODO: Implement the actual searching
+                packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
+            }
             var viewModel = packageVersions.Select(pv => new DisplayPackageViewModel(pv, Url));
 
             return View(viewModel);

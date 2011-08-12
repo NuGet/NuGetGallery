@@ -70,3 +70,6 @@ This is the Git workflow we're currently using:
     # 6. Push changes.
     #    Now that you're master branch's history is correct and clean, you can push to origin.
     git push origin
+
+    # 7. Delete the topic branch
+    git branch -d <topic branch>
