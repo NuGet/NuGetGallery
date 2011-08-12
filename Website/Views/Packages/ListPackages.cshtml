@@ -1,5 +1,5 @@
 ﻿@using NuGetGallery;
-@model IEnumerable<ListPackageViewModel>
+@model IEnumerable<DisplayPackageViewModel>
 @{
     ViewBag.Tab = "Packages";
 }
@@ -47,8 +47,7 @@
                         <span class="displayResults">Displaying results 1 - 10.</span>
                     </header>
                     <ul>
-                        @foreach (var listPackage in Model)
-                        {
+                        @foreach (var listPackage in Model) {
                             <li class="first">
                                 @Html.Partial("_ListPackage", listPackage)
                             </li>

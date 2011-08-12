@@ -14,12 +14,11 @@ namespace NuGetGallery {
             this.userService = userSvc;
         }
 
-        [ActionName(ActionName.Register)]
-        public ActionResult ShowRegisterForm() {
+        public ActionResult Register() {
             return View();
         }
 
-        [ActionName(ActionName.Register), HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public ActionResult Register(RegisterRequest request) {
             // TODO: consider client-side validation for unique username
             // TODO: add email validation

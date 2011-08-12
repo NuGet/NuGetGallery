@@ -1,7 +1,7 @@
 ﻿@if (!User.Identity.IsAuthenticated)
 {
     <div class="user-display">
-        <span class="welcome"><a href="@Url.RouteUrl("SignIn", new { ReturnUrl = HttpContext.Current.Request.Url.ToString() })">Sign In</a></span>
+        <span class="welcome"><a href="@Url.LogOnUrl()">Log On</a></span>
     </div>
 }
 else
@@ -9,7 +9,7 @@ else
     <div class="user-display">
         <span class="welcome"><a href="#">@User.Identity.Name</a></span>
         <span class="user-actions">
-            <a href="@Url.RouteUrl("SignOut", new { ReturnUrl = HttpContext.Current.Request.Url.ToString() })">Sign Out</a>
+            <a href="@Url.LogOffUrl()">Log Off</a>
         </span>
     </div>
 }

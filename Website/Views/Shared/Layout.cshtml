@@ -36,7 +36,7 @@
                                 var contributeClass = ViewBag.Tab == "Contribute" ? "current" : "";
                             }
                             <li class="@homeClass"><a href="/">Home</a></li>
-                            <li class="@packagesClass"><a href="@Url.RouteUrl(RouteName.ListPackages)">Packages</a></li>
+                            <li class="@packagesClass"><a href="@Url.PackageListUrl()">Packages</a></li>
                             <li class="@contributeClass"><a href="@Url.RouteUrl(RouteName.Contribute)">Contribute</a></li>
                             <li><a href="http://docs.nuget.org">Documentation</a></li>
                         </ul>
@@ -53,11 +53,11 @@
                         <div class="zone zone-footer-quad-first">
                             <div style="margin: 33px 0 0 40px;">
                                 <ul style="margin:0; font-size:1.2em; width:400px;">
-	                                <li style="display:block; float:left;"><a href="#">Home</a>&nbsp;&#124;&nbsp;</li>
-	                                <li style="display:block; float:left;"><a href="#">Packages</a>&nbsp;&#124;&nbsp;</li>
-	                                <li style="display:block; float:left;"><a href="#">Contribute</a>&nbsp;&#124;&nbsp;</li>
-	                                <li style="display:block; float:left;"><a href="#">Terms of Use</a>&nbsp;&#124;&nbsp;</li>
-	                                <li style="display:block; float:left;"><a href="#">Privacy</a></li>
+                                    <li style="display:block; float:left;"><a href="#">Home</a>&nbsp;&#124;&nbsp;</li>
+                                    <li style="display:block; float:left;"><a href="#">Packages</a>&nbsp;&#124;&nbsp;</li>
+                                    <li style="display:block; float:left;"><a href="#">Contribute</a>&nbsp;&#124;&nbsp;</li>
+                                    <li style="display:block; float:left;"><a href="#">Terms of Use</a>&nbsp;&#124;&nbsp;</li>
+                                    <li style="display:block; float:left;"><a href="#">Privacy</a></li>
                                 </ul>
                             </div>
                         </div>

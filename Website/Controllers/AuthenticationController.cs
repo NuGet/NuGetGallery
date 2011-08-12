@@ -14,15 +14,12 @@ namespace NuGetGallery {
             this.userSvc = userSvc;
         }
 
-        [ActionName(ActionName.SignIn)]
-        public ActionResult ShowSignInForm() {
+        public ActionResult LogOn() {
             return View();
         }
 
-        [ActionName(ActionName.SignIn), HttpPost]
-        public ActionResult SignIn(
-            SignInRequest request,
-            string returnUrl) {
+        [HttpPost]
+        public ActionResult LogOn(SignInRequest request, string returnUrl) {
             // TODO: improve the styling of the validation summary
             // TODO: modify the Object.cshtml partial to make the first text box autofocus, or use additional metadata
 
@@ -49,8 +46,7 @@ namespace NuGetGallery {
             return SafeRedirect(returnUrl);
         }
 
-        [ActionName(ActionName.SignOut)]
-        public ActionResult SignOut(string returnUrl) {
+        public ActionResult LogOff(string returnUrl) {
             // TODO: this should really be a POST
 
             formsAuthSvc.SignOut();

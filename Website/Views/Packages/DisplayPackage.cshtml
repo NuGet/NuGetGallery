@@ -24,8 +24,8 @@
                             @if (Model.IsOwner(User)) {
                             <div class="zone zone-actions">
                             <ul>
-                                <li><a class="edit" href="@Url.RouteUrl(RouteName.EditPackage, new {id = Model.Id, version = Model.Version})">Edit</a></li>
-                                <li><a class="manage-owners" href="@Url.RouteUrl(RouteName.ManagePackageOwners, new {id = Model.Id})">Manage Owners</a></li>
+                                <li><a class="edit" href="@Url.PackageUrl(Model, PackageVersionAction.EditPackage)">Edit</a></li>
+                                <li><a class="manage-owners" href="@Url.PackageUrl(Model, PackageAction.ManagePackageOwners)">Manage Owners</a></li>
                                 <li><a href="#" onclick="DeletePackage('RouteMagic', '1.1.1'); return false;" class="delete">Delete</a></li>
                                 <li>
                                     <a href="#" title="Unpublish" class="unpublishPackageLink" data-package-id="RouteMagic" data-package-version="1.1.1">
@@ -38,7 +38,7 @@
                             <div>
                                 <div class="zone zone-authors">
                                     <p class="author">By 
-                                        @Model.Authors.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new { q = @item.Name })">@item.Name</a>)
+                                        @Model.Authors.Flatten(@<a href="@Url.SearchUrl(item.Name)">@item.Name</a>)
                                     </p>
                                 </div>
                             </div>
@@ -51,8 +51,8 @@
                             @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
                                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
                             }
-                            <li><a href="@Url.RouteUrl(RouteName.ReportAbuse, new { id = Model.Id, version = Model.Version })" title="Report Abuse">Report Abuse</a></li>
-                            <li><a href="@Url.RouteUrl(RouteName.ContactOwners, new { id = Model.Id })">Contact Owners</a></li>
+                            <li><a href="@Url.PackageUrl(Model, PackageVersionAction.ReportAbuse)" title="Report Abuse">Report Abuse</a></li>
+                            <li><a href="@Url.PackageUrl(Model, PackageAction.ContactOwners)">Contact Owners</a></li>
                         </ul>
                         <div class="commandWrapper">
                             <div class="commandPrompt">
@@ -77,7 +77,7 @@
                             </tr>
                             <tr>
                                 <th>Tags:</th>
-                                <td>@Model.Tags.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new { q = @item })">@item</a>)</td>
+                                <td>@Model.Tags.Flatten(@<a href="@Url.SearchUrl(item)">@item</a>)</td>
                             </tr>
                             <tr>
                                 <th>Total Downloads:</th>
@@ -104,21 +104,21 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var version in Model.PackageVersions) {
-                                        <tr class="versionTableRow @if(version.LatestVersion) {<text>current recommended</text>}">
+                                    @foreach (var packageVersion in Model.PackageVersions) {
+                                        <tr class="versionTableRow @if (packageVersion.LatestVersion) {<text>recommended </text>} @if (packageVersion.IsCurrent(Model)) {<text>current</text>} ">
                                             <td class="version">
-                                                @if (!version.LatestVersion) {
-                                                    <a href="@Url.RouteUrl(RouteName.DisplayPackage, new { id = Model.Id })">@version.Title @version.Version</a>
+                                                @if (!packageVersion.IsCurrent(Model)) {
+                                                    <a href="@Url.PackageUrl(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
                                                 }
                                                 else {
-                                                    <span>@version.Title @version.Version</span>
+                                                    <span>@packageVersion.Title @packageVersion.Version</span>
                                                 }
                                             </td>
-                                            <td class="downloads">@version.DownloadCount</td>
-                                            <td class="lastUpdated">@version.LastUpdated</td>
+                                            <td class="downloads">@packageVersion.DownloadCount</td>
+                                            <td class="lastUpdated">@packageVersion.LastUpdated</td>
                                             <td class="rating">
                                                 <div class="stars-rating">
-                                                    @ViewHelpers.DisplayRating(@version.RatingAverage)
+                                                    @ViewHelpers.DisplayRating(@packageVersion.RatingAverage)
                                                 </div>
                                             </td>
                                         </tr>

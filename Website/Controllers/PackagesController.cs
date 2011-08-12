@@ -29,12 +29,12 @@ namespace NuGetGallery {
             this.userSvc = userSvc;
         }
 
-        [ActionName(ActionName.SubmitPackage), Authorize]
-        public ActionResult ShowSubmitPackageForm() {
+        [Authorize]
+        public ActionResult SubmitPackage() {
             return View();
         }
 
-        [ActionName(ActionName.SubmitPackage), Authorize, HttpPost]
+        [Authorize, HttpPost]
         public ActionResult SubmitPackage(HttpPostedFileBase packageFile) {
             // TODO: validate package id and version don't already exist
 
@@ -69,15 +69,12 @@ namespace NuGetGallery {
                 return View();
             }
 
-            return RedirectToRoute(
-                RouteName.PublishPackage,
-                new { id = packageVersion.PackageRegistration.Id, version = packageVersion.Version });
+            string packagePublishUrl = Url.PackageUrl(packageVersion, PackageVersionAction.PublishPackage);
+            return Redirect(packagePublishUrl);
         }
 
         [ActionName(ActionName.PublishPackage), Authorize]
-        public ActionResult ShowPublishPackageForm(
-            string id,
-            string version) {
+        public ActionResult ShowPublishPackageForm(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null)
@@ -98,9 +95,7 @@ namespace NuGetGallery {
         }
 
         [ActionName(ActionName.PublishPackage), Authorize, HttpPost]
-        public ActionResult PublishPackage(
-            string id,
-            string version) {
+        public ActionResult PublishPackage(string id, string version) {
             // TODO: handle requesting to verify a package that is already verified; return 404?
 
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
@@ -112,32 +107,22 @@ namespace NuGetGallery {
 
             // TODO: add a flash success message
 
-            return RedirectToRoute(RouteName.DisplayPackage, new { id = package.PackageRegistration.Id, version = package.Version });
+            return Redirect(Url.PackageUrl(package));
         }
 
-        public ActionResult DisplayPackage(
-            string id,
-            string version) {
+        public ActionResult DisplayPackage(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null)
                 return HttpNotFound();
 
-            return View(new DisplayPackageViewModel(package) {
-                IconUrl = package.IconUrl ?? Url.Content("~/Content/Images/packagesDefaultIcon.png"),
-            });
+            return View(new DisplayPackageViewModel(package, Url));
         }
 
-        [ActionName(ActionName.ListPackages)]
         public ActionResult ListPackages() {
             var packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
 
-            var viewModel = packageVersions.Select(pv =>
-                new ListPackageViewModel {
-                    Id = pv.PackageRegistration.Id,
-                    Title = pv.Title ?? pv.PackageRegistration.Id,
-                    Version = pv.Version
-                });
+            var viewModel = packageVersions.Select(pv => new DisplayPackageViewModel(pv, Url));
 
             return View(viewModel);
         }

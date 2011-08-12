@@ -2,9 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+using System.Web.Mvc;
 
 namespace NuGetGallery {
     public class DisplayPackageViewModel {
+        public DisplayPackageViewModel(Package package, UrlHelper urlHelper)
+            : this(package) {
+            IconUrl = package.IconUrl ?? urlHelper.Content("~/Content/Images/packagesDefaultIcon.png");
+        }
+
         public DisplayPackageViewModel(Package package) {
             Id = package.PackageRegistration.Id;
             Version = package.Version;
@@ -28,7 +34,6 @@ namespace NuGetGallery {
 
         public string Id { get; set; }
         public string Version { get; set; }
-
         public string Title { get; set; }
         public IEnumerable<PackageAuthor> Authors { get; set; }
         public ICollection<User> Owners { get; set; }
@@ -61,6 +66,10 @@ namespace NuGetGallery {
                 return false;
             }
             return Owners.Any(u => u.Username == user.Identity.Name);
+        }
+
+        public bool IsCurrent(DisplayPackageViewModel current) {
+            return current.Version == Version && current.Id == Id;
         }
     }
 }

@@ -1,44 +1,36 @@
 ﻿@using NuGetGallery;
-@model ListPackageViewModel
+@model DisplayPackageViewModel
 <div class="content-item package">
     <div class="packageItem packages">
-        <a href="/List/Packages/EntityFramework">
-            <img src="@Url.Content("~/Content/Images/packagesDefaultIcon.png")" class="thumbnail"/>
+        <a href="@Url.PackageUrl(Model)">
+            <img src="@Model.IconUrl" class="thumbnail" title="@Model.Id Package icon" />
         </a>
         <header>
             <div>
                 <h3>
-                    <a href="@Url.RouteUrl(RouteName.DisplayPackage, new { id = Model.Id })">@Model.Title</a>
+                    <a href="@Url.PackageUrl(Model.Id)">@Model.Title</a>
                 </h3>
                 <div class="package-actions">
                     <span class="rating">
                         <div class="stars-rating " title="Log-in to rate this item">
-                            <div class="stars-current-result stars-value-3 ">
-                                <span class="star-1 a-star">*</span>
-                                <span class="star-2 a-star">*</span>
-                                <span class="star-3 a-star">*</span>
-                                <span class="star-4 a-star">-</span>
-                                <span class="star-5 a-star">-</span>
-                            </div>
+                            @ViewHelpers.DisplayRating(@Model.RatingAverage)
                         </div>
                     </span>
                 </div>
             </div>
             <div class="package-owner-actions">
                 <p class="author">By
-                    <a href="@Url.RouteUrl(SearchController.Name, new {q = "Microsoft"})">Microsoft</a>
+                    @Model.Authors.Flatten(@<a href="@Url.SearchUrl(item.Name)">@item.Name</a>)
                 </p>
             </div>
         </header>
         <div class="detail">
             <p>
                 DbContext API and Code First workflow for ADO.NET Entity Framework.
-                <a href="/List/Packages/EntityFramework">More information</a>
+                <a href="@Url.PackageUrl(Model)">More information</a>
             </p>
             <ul class="packageMeta">
-                <li class="comments"><a href="/List/Packages/EntityFramework#Reviews">1 Review</a>
-                </li>
-                <li>57727 Downloads</li>
+                <li>@Model.DownloadCount Downloads</li>
             </ul>
         </div>
     </div>

@@ -11,7 +11,7 @@ namespace NuGetGallery.Controllers {
                 var controller = CreateController();
                 controller.ModelState.AddModelError(string.Empty, "aFakeError");
 
-                var result = controller.SignIn(null, null) as ViewResult;
+                var result = controller.LogOn(null, null) as ViewResult;
 
                 Assert.NotNull(result);
                 Assert.Empty(result.ViewName);
@@ -27,7 +27,7 @@ namespace NuGetGallery.Controllers {
                     formsAuthSvc: formsAuthSvc,
                     userSvc: userSvc);
 
-                controller.SignIn(
+                controller.LogOn(
                     new SignInRequest() { UserNameOrEmail = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
 
@@ -43,7 +43,7 @@ namespace NuGetGallery.Controllers {
                     .Returns((User)null);
                 var controller = CreateController(userSvc: userSvc);
 
-                var result = controller.SignIn(new SignInRequest(), "theReturnUrl") as ViewResult;
+                var result = controller.LogOn(new SignInRequest(), "theReturnUrl") as ViewResult;
 
                 Assert.NotNull(result);
                 Assert.Empty(result.ViewName);
@@ -63,7 +63,7 @@ namespace NuGetGallery.Controllers {
                             .Returns(new RedirectResult("aSafeRedirectUrl"));
                     });
 
-                var result = controller.SignIn(new SignInRequest(), "theReturnUrl") as RedirectResult;
+                var result = controller.LogOn(new SignInRequest(), "theReturnUrl") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal("aSafeRedirectUrl", result.Url);
@@ -76,7 +76,7 @@ namespace NuGetGallery.Controllers {
                 var formsAuthSvc = new Mock<IFormsAuthenticationService>();
                 var controller = CreateController(formsAuthSvc: formsAuthSvc);
 
-                controller.SignOut("theReturnUrl");
+                controller.LogOff("theReturnUrl");
 
                 formsAuthSvc.Verify(x => x.SignOut());
             }
@@ -93,7 +93,7 @@ namespace NuGetGallery.Controllers {
                             .Returns(new RedirectResult("aSafeRedirectUrl"));
                     });
 
-                var result = controller.SignOut("theReturnUrl") as RedirectResult;
+                var result = controller.LogOff("theReturnUrl") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal("aSafeRedirectUrl", result.Url);

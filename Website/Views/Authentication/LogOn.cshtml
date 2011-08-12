@@ -20,7 +20,7 @@
                 <section>
                     <header>
                         <span class="right"><img src="@Url.Content("~/Content/Images/required.png")"/></span>
-                        <h2>Sign In</h2>
+                        <h2>Log On</h2>
                     </header>
                     @using (Html.BeginForm("sign-in", "UserAccount", FormMethod.Post, new { @id = "form" }))
                     {
@@ -28,7 +28,7 @@
                         @Html.ValidationSummary(true)
                         @Html.EditorForModel()
                         <div>
-                            <button type="submit" name="Register">Sign In</button>
+                            <button type="submit" name="Register">Log On</button>
                             <a href="/Users/Account/RequestLostPassword">Lost your Password?</a>
                         </div>
                     }
