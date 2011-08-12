@@ -13,7 +13,7 @@ namespace NuGetGallery {
             this.configuration = configuration;
             this.fileSystemSvc = fileSystemSvc;
         }
-        
+
         public void SavePackageFile(Package package, Stream packageFile) {
             if (package == null)
                 throw new ArgumentNullException("package");

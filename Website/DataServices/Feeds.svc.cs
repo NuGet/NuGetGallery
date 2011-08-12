@@ -54,13 +54,13 @@ namespace NuGetGallery {
             var package = (FeedPackage)entity;
             var httpContext = new HttpContextWrapper(HttpContext.Current);
             var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
-            
+
             string url = urlHelper.RouteUrl(
-                RouteName.DownloadPackage, 
+                RouteName.DownloadPackage,
                 new RouteValueDictionary { { "id", package.Id }, { "version", package.Version } },
                 "http",
                 httpContext.Request.Url.Host);
-            
+
             return new Uri(url, UriKind.Absolute);
         }
 

@@ -154,7 +154,7 @@ namespace NuGetGallery {
 
         public ActionResult DownloadPackage(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            
+
             if (package == null) {
                 return HttpNotFound();
             }

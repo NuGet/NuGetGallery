@@ -8,9 +8,9 @@ namespace NuGetGallery {
             User currentUser);
 
         PackageRegistration FindPackageRegistrationById(string id);
-        
+
         Package FindPackageByIdAndVersion(
-            string id, 
+            string id,
             string version = null);
 
         IEnumerable<Package> GetLatestVersionOfPublishedPackages();

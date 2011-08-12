@@ -2,19 +2,16 @@
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace NuGetGallery
-{
-    public class CreateDatabase : Task
-    {
-        public override bool Execute()
-        {
+namespace NuGetGallery {
+    public class CreateDatabase : Task {
+        public override bool Execute() {
             var sqlConnectionBuilder = new SqlConnectionStringBuilder(ConnectionString);
             var initialCatalog = sqlConnectionBuilder.InitialCatalog;
-            
+
             sqlConnectionBuilder.InitialCatalog = string.Empty;
 
             var connectionString = sqlConnectionBuilder.ToString();
-            
+
             if (string.IsNullOrWhiteSpace(initialCatalog)) {
                 Log.LogError("The connection string must specify an initial catalog.");
                 return false;
@@ -30,7 +27,7 @@ namespace NuGetGallery
             }
 
             Log.LogMessage("Conditionally Created database '{0}' on connection '{1}'.", initialCatalog, connectionString);
-            
+
             return true;
         }
 
