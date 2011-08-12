@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery {
     public class User : IEntity {
@@ -18,6 +20,8 @@ namespace NuGetGallery {
 
         public int Key { get; set; }
 
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public Guid ApiKey { get; set; }
         public string EmailAddress { get; set; }
         public string HashedPassword { get; set; }
         public virtual ICollection<EmailMessage> Messages { get; set; }
