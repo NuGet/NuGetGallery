@@ -8,6 +8,7 @@ namespace NuGetGallery {
         public DisplayPackageViewModel(Package package) {
             Id = package.PackageRegistration.Id;
             Version = package.Version;
+            Title = package.Title ?? package.PackageRegistration.Id;
             Description = package.Description;
             Authors = package.Authors;
             Owners = package.PackageRegistration.Owners;
@@ -27,6 +28,7 @@ namespace NuGetGallery {
         public string Id { get; set; }
         public string Version { get; set; }
 
+        public string Title { get; set; }
         public IEnumerable<PackageAuthor> Authors { get; set; }
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }

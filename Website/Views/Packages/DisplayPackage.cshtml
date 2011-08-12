@@ -19,7 +19,7 @@
                                 else if (Model.LatestVersion) {
                                     <span class="latest">Latest Version</span>
                                 }
-                                <h2>@Model.Id - @Model.Version</h2>
+                                <h2>@Model.Title - @Model.Version</h2>
                             </div>
                             @if (Model.IsOwner(User)) {
                             <div class="zone zone-actions">
@@ -37,8 +37,8 @@
                             }
                             <div>
                                 <div class="zone zone-authors">
-                                    <p class="author">By 
-                                        @Model.Authors.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new { q = @item })">@item</a>)
+                                    <p class="author">By
+                                        @Model.Authors.Flatten(@<a href="@Url.RouteUrl(RouteName.Search, new { q = @item })">@item.Name</a>)
                                     </p>
                                 </div>
                             </div>
@@ -108,10 +108,10 @@
                                         <tr class="versionTableRow @if(version.LatestVersion) {<text>current recommended</text>}">
                                             <td class="version">
                                                 @if (!version.LatestVersion) {
-                                                    <a href="@Url.RouteUrl(RouteName.DisplayPackage, new { id = Model.Id })">@version.Id @version.Version</a>
+                                                    <a href="@Url.RouteUrl(RouteName.DisplayPackage, new { id = Model.Id })">@version.Title @version.Version</a>
                                                 }
                                                 else {
-                                                    <span>@version.Id @version.Version</span>
+                                                    <span>@version.Title @version.Version</span>
                                                 }
                                             </td>
                                             <td class="downloads">@version.DownloadCount</td>

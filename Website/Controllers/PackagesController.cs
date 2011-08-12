@@ -135,7 +135,8 @@ namespace NuGetGallery {
             var viewModel = packageVersions.Select(pv =>
                 new ListPackageViewModel {
                     Id = pv.PackageRegistration.Id,
-                    Version = pv.Version,
+                    Title = pv.Title ?? pv.PackageRegistration.Id,
+                    Version = pv.Version
                 });
 
             return View(viewModel);
