@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data.Common;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using MvcMiniProfiler.Data;
 
@@ -16,6 +17,8 @@ namespace NuGetGallery {
         public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder) {
+            modelBuilder.Conventions.Remove<IncludeMetadataConvention>();
+
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Key);
 
