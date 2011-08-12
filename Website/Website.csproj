@@ -107,6 +107,7 @@
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Entities\PackageReview.cs" />
     <Compile Include="Migrations\20110809083000_CreatePackageReviewsTable.cs" />
+    <Compile Include="Migrations\20110811213000_AddApiKeyColumn.cs" />
     <Compile Include="Services\FileSystemService.cs" />
     <Compile Include="Services\IFileSystemService.cs" />
     <Compile Include="Services\IPackageService.cs" />
