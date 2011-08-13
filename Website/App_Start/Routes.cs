@@ -52,17 +52,17 @@ namespace NuGetGallery {
             routes.MapRoute(
                 RouteName.PushPackageApi,
                 "PackageFiles/{apiKey}/nupkg",
-                new { controller = ApiController.Name, action = ActionName.PushPackageApi });
+                new { controller = ApiController.Name, action = "PushPackageApi" });
 
             routes.MapRoute(
                 RouteName.PublishPackageApi,
                 "PublishedPackages/Publish",
-                new { controller = ApiController.Name, action = ActionName.PublishPackageApi });
+                new { controller = ApiController.Name, action = "PublishPackageApi" });
 
             routes.MapRoute(
                 RouteName.DeletePackageApi,
                 "Packages/{apiKey}/{id}/{version}",
-                new { controller = ApiController.Name, action = ActionName.DeletePackageApi });
+                new { controller = ApiController.Name, action = "DeletePackageApi" });
 
             routes.MapServiceRoute(
                 RouteName.ApiFeeds,
