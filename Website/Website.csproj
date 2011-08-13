@@ -106,6 +106,7 @@
     <Compile Include="App_Start\NinjectMVC3.cs" />
     <Compile Include="App_Start\Bootstrapper.cs" />
     <Compile Include="BuildTasks\CreateDatabase.cs" />
+    <Compile Include="Controllers\ApiController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
@@ -114,6 +115,7 @@
     <Compile Include="Migrations\20110809083000_CreatePackageReviewsTable.cs" />
     <Compile Include="Migrations\20110811213000_AddApiKeyColumn.cs" />
     <Compile Include="App_Start\Routes.cs" />
+    <Compile Include="Migrations\20110812222000_OnDeleteCascade.cs" />
     <Compile Include="Services\FileSystemService.cs" />
     <Compile Include="Services\IFileSystemService.cs" />
     <Compile Include="Services\IPackageService.cs" />

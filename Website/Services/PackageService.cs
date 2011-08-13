@@ -39,6 +39,25 @@ namespace NuGetGallery {
             return package;
         }
 
+        public void DeletePackage(string id, string version) {
+            var package = FindPackageByIdAndVersion(id, version);
+
+            if (package == null)
+                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
+
+            using (var tx = new TransactionScope()) {
+                var packageRegistration = package.PackageRegistration;
+                packageRepo.DeleteOnCommit(package);
+                packageFileSvc.DeletePackageFile(id, version);
+                packageRepo.CommitChanges();
+                if (packageRegistration.Packages.Count == 0) {
+                    packageRegistrationRepo.DeleteOnCommit(packageRegistration);
+                    packageRegistrationRepo.CommitChanges();
+                }
+                tx.Complete();
+            }
+        }
+
         public virtual PackageRegistration FindPackageRegistrationById(string id) {
             return packageRegistrationRepo.GetAll()
                 .Include(pr => pr.Owners)

@@ -53,5 +53,11 @@ namespace NuGetGallery {
                 configuration.PackageFileDirectory,
                 string.Format(Const.PackageFileSavePathTemplate, id, version, Const.PackageFileExtension));
         }
+
+        public void DeletePackageFile(string id, string version) {
+            var path = BuildPackageFileSavePath(id, version);
+            if (File.Exists(path))
+                File.Delete(path);
+        }
     }
 }

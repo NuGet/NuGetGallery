@@ -7,6 +7,8 @@ namespace NuGetGallery {
             IPackage nugetPackage,
             User currentUser);
 
+        void DeletePackage(string id, string version);  
+
         PackageRegistration FindPackageRegistrationById(string id);
 
         Package FindPackageByIdAndVersion(

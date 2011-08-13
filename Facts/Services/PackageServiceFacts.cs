@@ -217,6 +217,86 @@ namespace NuGetGallery {
             }
         }
 
+        public class TheDeletePackageMethod {
+            [Fact]
+            public void WillDeleteThePackage() {
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration };
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepo: packageRepo,
+                    setup: mockSvc => {
+                        mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)package);
+                    });
+
+                service.DeletePackage("theId", "1.0.42");
+
+                packageRepo.Verify(x => x.DeleteOnCommit(package));
+                packageRepo.Verify(x => x.CommitChanges());
+            }
+
+            [Fact]
+            public void WillDeleteThePackageFile() {
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration };
+                var packageFileSvc = new Mock<IPackageFileService>();
+                var service = CreateService(
+                    packageFileSvc: packageFileSvc,
+                    setup: mockSvc => {
+                        mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)package);
+                    });
+
+                service.DeletePackage("theId", "1.0.42");
+
+                packageFileSvc.Verify(x => x.DeletePackageFile("theId", "1.0.42"));
+            }
+
+            [Fact]
+            public void WillDeleteThePackageRegistrationIfThereAreNoOtherPackages() {
+                var packageRegistration = new PackageRegistration { };
+                var package = new Package { PackageRegistration = packageRegistration };
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(
+                    packageRegistrationRepo: packageRegistrationRepo,
+                    setup: mockSvc => {
+                        mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)package);
+                    });
+
+                service.DeletePackage("theId", "1.0.42");
+
+                packageRegistrationRepo.Verify(x => x.DeleteOnCommit(packageRegistration));
+            }
+
+            [Fact]
+            public void WillNotDeleteThePackageRegistrationIfThereAreOtherPackages() {
+                var packageRegistration = new PackageRegistration { Packages = new HashSet<Package>() };
+                var package = new Package { PackageRegistration = packageRegistration };
+                packageRegistration.Packages.Add(new Package());
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(
+                    packageRegistrationRepo: packageRegistrationRepo,
+                    setup: mockSvc => {
+                        mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)package);
+                    });
+
+                service.DeletePackage("theId", "1.0.42");
+
+                packageRegistrationRepo.Verify(x => x.DeleteOnCommit(packageRegistration), Times.Never());
+            }
+
+            [Fact]
+            public void WillThrowIfThePackageDoesNotExist() {
+                var service = CreateService(
+                    setup: mockSvc => {
+                        mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)null);
+                    });
+
+                var ex = Assert.Throws<EntityException>(() => service.DeletePackage("theId", "1.0.42"));
+
+                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+            }
+        }
+
         public class TheFindPackageByIdAndVersionMethod {
             [Fact]
             public void WillGetTheLatestVersionWhenTheVersionArgumentIsNull() {

@@ -54,6 +54,21 @@ namespace NuGetGallery {
                 "Contribute/Index",
                 new { controller = PagesController.Name, action = ActionName.Contribute });
 
+            routes.MapRoute(
+                RouteName.PushPackageApi,
+                "PackageFiles/{apiKey}/nupkg",
+                new { controller = ApiController.Name, action = ActionName.PushPackageApi });
+
+            routes.MapRoute(
+                RouteName.PublishPackageApi,
+                "PublishedPackages/Publish",
+                new { controller = ApiController.Name, action = ActionName.PublishPackageApi });
+
+            routes.MapRoute(
+                RouteName.DeletePackageApi,
+                "Packages/{apiKey}/{id}/{version}",
+                new { controller = ApiController.Name, action = ActionName.DeletePackageApi });
+
             routes.MapServiceRoute(
                 RouteName.ApiFeeds,
                 "api/feeds",

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace NuGetGallery {
     public class UserService : IUserService {
@@ -45,6 +46,12 @@ namespace NuGetGallery {
             userRepo.CommitChanges();
 
             return newUser;
+        }
+
+        public User FindByApiKey(Guid apiKey) {
+            return userRepo.GetAll()
+                .Where(u => u.ApiKey == apiKey)
+                .SingleOrDefault();
         }
 
         public virtual User FindByEmailAddress(string emailAddress) {

@@ -15,5 +15,8 @@ namespace NuGetGallery {
         public const string ReportAbuse = "ReportAbuse";
         public const string ContactOwners = "ContactOwners";
         public const string ManagePackageOwners = "ManagePackageOwners";
+        public const string PushPackageApi = "PushPackageApi";
+        public const string PublishPackageApi = "PublishPackageApi";
+        public const string DeletePackageApi = "DeletePackageApi";
     }
 }
