@@ -1,5 +1,6 @@
 using System.Data.Entity;
 using System.Linq;
+using OData.Linq;
 
 namespace NuGetGallery {
     public class FeedsContext {
@@ -12,6 +13,7 @@ namespace NuGetGallery {
         public IQueryable<FeedPackage> Packages {
             get {
                 return packageRepo.GetAll()
+                    .WithoutNullPropagation()
                     .Include(p => p.PackageRegistration)
                     .Include(p => p.Authors)
                     .Include(p => p.Dependencies)
