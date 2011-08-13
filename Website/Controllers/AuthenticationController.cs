@@ -64,7 +64,7 @@ namespace NuGetGallery {
                 return Redirect(returnUrl);
             }
             else {
-                return RedirectToRoute(RouteName.Home);
+                return Redirect(Url.Home());
             }
         }
     }

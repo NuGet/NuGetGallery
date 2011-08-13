@@ -14,3 +14,18 @@
 @helper Option(string value, string label, string currentValue) {
     <option value="@value" @if (value == currentValue){<text>selected="selected"</text>}>@label</option>    
 }
+
+@helper UploadSequence(int currentStep) {
+    @SequenceStep(1, "Upload", currentStep)
+    @SequenceStep(2, "Verify Details", currentStep)
+}
+
+@helper SequenceStep(int step, string caption, int currentStep) {
+    if (currentStep == step) {
+        <li class="current"><a href="#"><span>@step </span>@caption</a></li>
+    }
+    else {
+        <li><span>@step </span>@caption</li>
+    }
+    
+}

@@ -16,6 +16,9 @@
                 <section>
                     <header>
                         <h2>Submit Package</h2>
+                        <ul class="right" id="sequence">
+                            @ViewHelpers.UploadSequence(2)
+                        </ul>
                     </header>
                     @using (Html.BeginForm(ActionName.PublishPackage, PackagesController.Name, new { id = Model.Id, version = Model.Version }, FormMethod.Post, new { @id = "form" }))
                     {

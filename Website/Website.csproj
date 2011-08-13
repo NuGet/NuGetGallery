@@ -266,9 +266,6 @@
     <Content Include="Views\Shared\UserDisplay.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\Packages\SubmitPackage.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Views\Packages\PublishPackage.cshtml" />
   </ItemGroup>
   <ItemGroup>
@@ -276,9 +273,6 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Pages\Contribute.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Packages\ListPackages.cshtml" />
@@ -294,6 +288,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Authentication\LogOn.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\UploadPackage.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Users\Account.cshtml" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />

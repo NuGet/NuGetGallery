@@ -1,15 +1,14 @@
-﻿@if (!User.Identity.IsAuthenticated)
-{
-    <div class="user-display">
-        <span class="welcome"><a href="@Url.LogOnUrl()">Log On</a></span>
-    </div>
-}
-else
-{
-    <div class="user-display">
-        <span class="welcome"><a href="#">@User.Identity.Name</a></span>
+﻿<div class="user-display">
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <span class="welcome"><a href="@Url.LogOn()">Log On</a></span>
+    }
+    else
+    {
+        <span class="welcome"><a href="@Url.Account()">@User.Identity.Name</a></span>
         <span class="user-actions">
-            <a href="@Url.LogOffUrl()">Log Off</a>
+            <a href="@Url.UploadPackage()" class="submit-package">Upload Package</a>
+            <a href="@Url.LogOff()">Log Off</a> 
         </span>
-    </div>
-}
+    }
+</div>

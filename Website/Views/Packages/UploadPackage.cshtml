@@ -6,7 +6,7 @@
     <aside id="aside-first" class="aside-first group">
         <div class="zone zone-aside-first">
             <nav id="leftNav">
-                <img src="@Url.Content("~/Content/Images/contribGraphic.png")" />
+                <img src="@Url.Content("~/Content/Images/contribGraphic.png")" alt="Contribute" />
                 <p>Submit your package for others to enjoy.</p>
             </nav>
         </div>
@@ -17,17 +17,14 @@
             <div class="zone zone-content">
                 <section>
                     <header>
-                        <h2>New Contribution</h2>
+                        <h2>Upload Package</h2>
                         <ul class="right" id="sequence">
-                            <li class="current"><a href="#"><span>1 </span>Submit</a></li>
-                            <li><span>2 </span>Verify Details</li>
-                            <li><span>3 </span>Add Visuals</li>
+                            @ViewHelpers.UploadSequence(1)
                         </ul>
                     </header>
                     <div id="form">
                             <div id="uploadFileForm" class="selected">
-                                @using (Html.BeginForm(ActionName.SubmitPackage, PackagesController.Name, FormMethod.Post, new { enctype = "multipart/form-data", @id = "uploadFileSubmissionForm" }))
-                                {
+                                <form id="uploadFileSubmissionForm" method="post" action="@Url.UploadPackage()" enctype="multipart/form-data">
                                     @Html.AntiForgeryToken()
                                     @Html.ValidationSummary(true)
                                     <aside>
@@ -37,7 +34,7 @@
                                     <div class="buttons">
                                         <input id="uploadFileButton" type="submit" value="Upload &raquo;" singleClickButton="true" />
                                     </div>
-                                }
+                                </form>
                             </div>
                     </div>
                     @*<div id="form">

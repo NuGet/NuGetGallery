@@ -2,13 +2,13 @@
 @model DisplayPackageViewModel
 <div class="content-item package">
     <div class="packageItem packages">
-        <a href="@Url.PackageUrl(Model)">
+        <a href="@Url.Package(Model)">
             <img src="@Model.IconUrl" class="thumbnail" title="@Model.Id Package icon" />
         </a>
         <header>
             <div>
                 <h3>
-                    <a href="@Url.PackageUrl(Model.Id)">@Model.Title</a>
+                    <a href="@Url.Package(Model.Id)">@Model.Title</a>
                 </h3>
                 <div class="package-actions">
                     <span class="rating">
@@ -20,14 +20,14 @@
             </div>
             <div class="package-owner-actions">
                 <p class="author">By
-                    @Model.Authors.Flatten(@<a href="@Url.SearchUrl(item.Name)">@item.Name</a>)
+                    @Model.Authors.Flatten(@<a href="@Url.Search(item.Name)">@item.Name</a>)
                 </p>
             </div>
         </header>
         <div class="detail">
             <p>
                 DbContext API and Code First workflow for ADO.NET Entity Framework.
-                <a href="@Url.PackageUrl(Model)">More information</a>
+                <a href="@Url.Package(Model)">More information</a>
             </p>
             <ul class="packageMeta">
                 <li>@Model.DownloadCount Downloads</li>

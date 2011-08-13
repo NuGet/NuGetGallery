@@ -55,7 +55,7 @@ namespace NuGetGallery {
             var httpContext = new HttpContextWrapper(HttpContext.Current);
             var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
 
-            string url = urlHelper.PackageDownloadUrl(package.Id, package.Version);
+            string url = urlHelper.PackageDownload(package.Id, package.Version);
 
             return new Uri(url, UriKind.Absolute);
         }

@@ -9,7 +9,7 @@ namespace NuGetGallery {
             return View();
         }
 
-        [ActionName(ActionName.Contribute)]
+        [ActionName(ActionName.Account)]
         public ActionResult ShowContributePage() {
             return View();
         }

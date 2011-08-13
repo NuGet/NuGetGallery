@@ -42,7 +42,12 @@ namespace NuGetGallery {
                 user.Username,
                 true);
 
-            return RedirectToRoute(RouteName.Home);
+            return Redirect(Url.Home());
+        }
+
+        [Authorize]
+        public ActionResult Account() {
+            return View();
         }
     }
 }

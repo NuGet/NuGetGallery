@@ -31,12 +31,12 @@ namespace NuGetGallery {
         }
 
         [Authorize]
-        public ActionResult SubmitPackage() {
+        public ActionResult UploadPackage() {
             return View();
         }
 
         [Authorize, HttpPost]
-        public ActionResult SubmitPackage(HttpPostedFileBase packageFile) {
+        public ActionResult UploadPackage(HttpPostedFileBase packageFile) {
             // TODO: validate package id and version don't already exist
 
             if (packageFile == null) {
@@ -70,7 +70,7 @@ namespace NuGetGallery {
                 return View();
             }
 
-            string packagePublishUrl = Url.PackageUrl(packageVersion, PackageVersionAction.PublishPackage);
+            string packagePublishUrl = Url.Package(packageVersion, PackageVersionAction.PublishPackage);
             return Redirect(packagePublishUrl);
         }
 
@@ -108,7 +108,7 @@ namespace NuGetGallery {
 
             // TODO: add a flash success message
 
-            return Redirect(Url.PackageUrl(package));
+            return Redirect(Url.Package(package));
         }
 
         public ActionResult DisplayPackage(string id, string version) {

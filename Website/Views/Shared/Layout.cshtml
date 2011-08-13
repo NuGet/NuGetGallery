@@ -17,11 +17,9 @@
     <body>
         <div id="layout-wrapper">
             <header id="layout-header" class="group">
-                <div id="header">
-                    <div class="zone zone-header">
-                        <h1 id="branding"><a href="@Url.RouteUrl("Home")">NuGet Gallery</a></h1>
-                        @Html.Partial("UserDisplay")
-                    </div>
+                <div class="zone zone-header">
+                    <h1 id="branding"><a href="@Url.Home()">NuGet Gallery</a></h1>
+                    @Html.Partial("UserDisplay")
                 </div>
             </header>
             <div id="layout-navigation" class="group">
@@ -36,12 +34,11 @@
                                 var contributeClass = ViewBag.Tab == "Contribute" ? "current" : "";
                             }
                             <li class="@homeClass"><a href="/">Home</a></li>
-                            <li class="@packagesClass"><a href="@Url.PackageListUrl()">Packages</a></li>
-                            <li class="@contributeClass"><a href="@Url.RouteUrl(RouteName.Contribute)">Contribute</a></li>
+                            <li class="@packagesClass"><a href="@Url.PackageList()">Packages</a></li>
                             <li><a href="http://docs.nuget.org">Documentation</a></li>
                         </ul>
 
-                        <form id="search-form" action="@Url.PackageListUrl()" method="get">
+                        <form id="search-form" action="@Url.PackageList()" method="get">
                             <div id="search">
                                 <div>
                                     <input type="text" name="q" id="searchTerm" value="@(ViewBag.SearchTerm ?? "Search Packages")" />

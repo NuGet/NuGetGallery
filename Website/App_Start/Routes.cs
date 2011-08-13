@@ -45,14 +45,14 @@ namespace NuGetGallery {
                 new { controller = AuthenticationController.Name });
 
             routes.MapRoute(
-                RouteName.SubmitPackage,
-                "Contribute/NewSubmission",
-                new { controller = PackagesController.Name, action = ActionName.SubmitPackage });
+                RouteName.UploadPackage,
+                "upload/package",
+                new { controller = PackagesController.Name, action = ActionName.UploadPackage });
 
             routes.MapRoute(
-                RouteName.Contribute,
-                "Contribute/Index",
-                new { controller = PagesController.Name, action = ActionName.Contribute });
+                RouteName.Account,
+                "account",
+                new { controller = UsersController.Name, action = ActionName.Account });
 
             routes.MapRoute(
                 RouteName.PushPackageApi,
