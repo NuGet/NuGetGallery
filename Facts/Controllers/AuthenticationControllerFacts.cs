@@ -5,9 +5,9 @@ using Xunit;
 
 namespace NuGetGallery.Controllers {
     public class AuthenticationControllerFacts {
-        public class The_SignIn_action {
+        public class TheLogOnAction {
             [Fact]
-            public void will_show_the_view_with_errors_if_the_model_state_is_invalid() {
+            public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid() {
                 var controller = CreateController();
                 controller.ModelState.AddModelError(string.Empty, "aFakeError");
 
@@ -18,7 +18,7 @@ namespace NuGetGallery.Controllers {
             }
 
             [Fact]
-            public void will_sign_the_user_in_when_the_username_and_password_are_valid() {
+            public void WillLogTheUserOnWhenTheUsernameAndPasswordAreValid() {
                 var formsAuthSvc = new Mock<IFormsAuthenticationService>();
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByUsernameAndPassword("theUsername", "thePassword"))
@@ -37,7 +37,7 @@ namespace NuGetGallery.Controllers {
             }
 
             [Fact]
-            public void will_invalidate_model_state_and_show_the_view_with_errors_when_the_username_and_password_are_not_valid() {
+            public void WillInvalidateModelStateAndShowTheViewWithErrorsWhenTheUsernameAndPasswordAreNotValid() {
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByUsernameAndPassword(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns((User)null);
@@ -52,7 +52,7 @@ namespace NuGetGallery.Controllers {
             }
 
             [Fact]
-            public void will_redirect_to_the_return_url() {
+            public void WillRedirectToTheReturnUrl() {
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByUsernameAndPassword(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(new User("theUsername", null, null));
@@ -70,9 +70,9 @@ namespace NuGetGallery.Controllers {
             }
         }
 
-        public class The_SignOut_action {
+        public class TheLogOffAction {
             [Fact]
-            public void will_sign_the_user_out() {
+            public void WillLogTheUserOff() {
                 var formsAuthSvc = new Mock<IFormsAuthenticationService>();
                 var controller = CreateController(formsAuthSvc: formsAuthSvc);
 
@@ -82,7 +82,7 @@ namespace NuGetGallery.Controllers {
             }
 
             [Fact]
-            public void will_redirect_to_the_return_url() {
+            public void WillRedirectToTheReturnUrl() {
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByUsernameAndPassword(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(new User("theUsername", null, null));

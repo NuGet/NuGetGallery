@@ -4,9 +4,9 @@ using Xunit;
 
 namespace NuGetGallery {
     public class UsersServiceFacts {
-        public class The_Create_method {
+        public class TheCreateMethod {
             [Fact]
-            public void will_throw_if_the_username_is_already_in_use() {
+            public void WillThrowIfTheUsernameIsAlreadyInUse() {
                 var userSvc = CreateUsersService(setup: mockUserSvc => {
                         mockUserSvc
                             .Setup(x => x.FindByUsername("theUsername"))
@@ -22,7 +22,7 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void will_throw_if_the_email_address_is_already_in_use() {
+            public void WillThrowIfTheEmailAddressIsAlreadyInUse() {
                 var userSvc = CreateUsersService(setup: mockUserSvc => {
                     mockUserSvc
                         .Setup(x => x.FindByEmailAddress("theEmailAddress"))
@@ -38,7 +38,7 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void will_hash_the_password() {
+            public void WillHasThePassword() {
                 var cryptoSvc = new Mock<ICryptographyService>();
                 cryptoSvc
                     .Setup(x => x.GenerateSaltedHash("thePassword", It.IsAny<string>()))
@@ -54,7 +54,7 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void will_save_the_new_user() {
+            public void WillSaveTheNewUser() {
                 var cryptoSvc = new Mock<ICryptographyService>();
                 cryptoSvc
                     .Setup(x => x.GenerateSaltedHash(It.IsAny<string>(), It.IsAny<string>()))

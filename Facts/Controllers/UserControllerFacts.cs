@@ -4,9 +4,9 @@ using Xunit;
 
 namespace NuGetGallery {
     public class UserControllerFacts {
-        public class The_Register_method {
+        public class TheRegisterMethod {
             [Fact]
-            public void will_show_the_view_with_errors_if_the_model_state_is_invalid() {
+            public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid() {
                 var controller = CreateController();
                 controller.ModelState.AddModelError(string.Empty, "aFakeError");
 
@@ -17,7 +17,7 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void will_create_the_user() {
+            public void WillCreateTheUser() {
                 var userSvc = new Mock<IUserService>();
                 userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -37,7 +37,7 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void will_sign_the_user_in() {
+            public void WillSignTheUserIn() {
                 var formsAuthSvc = new Mock<IFormsAuthenticationService>();
                 var userSvc = new Mock<IUserService>();
                 userSvc
@@ -59,7 +59,7 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void will_invalidate_model_state_and_show_the_view_with_errors_when_a_domain_exception_is_throw() {
+            public void WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow() {
                 var userSvc = new Mock<IUserService>();
                 userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
