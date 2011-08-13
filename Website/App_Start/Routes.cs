@@ -8,19 +8,19 @@ namespace NuGetGallery {
             routes.MapRoute(
                 RouteName.Home,
                 "",
-                new { controller = PagesController.Name, action = ActionName.Home });
+                new { controller = PagesController.Name, action = "Home" });
 
             var packageListRoute = routes.MapRoute(
                 RouteName.ListPackages,
                 "packages",
-                new { controller = PackagesController.Name, action = ActionName.ListPackages });
+                new { controller = PackagesController.Name, action = "ListPackages" });
 
             // We need the following two routes (rather than just one) due to Routing's 
             // Consecutive Optional Parameter bug. :(
             var packageDisplayRoute = routes.MapRoute(
                 RouteName.DisplayPackage,
                 "packages/{id}/{version}",
-                new { controller = PackagesController.Name, action = ActionName.DisplayPackage, version = UrlParameter.Optional },
+                new { controller = PackagesController.Name, action = "DisplayPackage", version = UrlParameter.Optional },
                 new { version = new VersionRouteConstraint() });
 
             var packageVersionActionRoute = routes.MapRoute(
@@ -35,11 +35,6 @@ namespace NuGetGallery {
                 new { controller = PackagesController.Name });
 
             routes.MapRoute(
-                RouteName.Register,
-                "Users/Account/Register",
-                new { controller = UsersController.Name, action = ActionName.Register });
-
-            routes.MapRoute(
                 RouteName.Authentication,
                 "Users/Account/{action}",
                 new { controller = AuthenticationController.Name });
@@ -47,12 +42,12 @@ namespace NuGetGallery {
             routes.MapRoute(
                 RouteName.UploadPackage,
                 "upload/package",
-                new { controller = PackagesController.Name, action = ActionName.UploadPackage });
+                new { controller = PackagesController.Name, action = "UploadPackage" });
 
             routes.MapRoute(
                 RouteName.Account,
-                "account",
-                new { controller = UsersController.Name, action = ActionName.Account });
+                "account/{action}",
+                new { controller = UsersController.Name, action = "Account" });
 
             routes.MapRoute(
                 RouteName.PushPackageApi,
@@ -80,43 +75,45 @@ namespace NuGetGallery {
                 r => r.MapRoute(
                     "ReportAbuse",
                     "Package/ReportAbuse/{id}/{version}",
-                    new { controller = PackagesController.Name, action = ActionName.ReportAbuse }),
+                    new { controller = PackagesController.Name, action = "ReportAbuse" }),
                 permanent: true).To(packageVersionActionRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     "PackageActions",
                     "Package/{action}/{id}",
-                    new { controller = PackagesController.Name, action = ActionName.ContactOwners },
-                    new { action = ActionName.ContactOwners + "|" + ActionName.ManagePackageOwners }),
+                    new { controller = PackagesController.Name, action = "ContactOwners" },
+                    // This next bit looks bad, but it's not. It will never change because 
+                    // it's mapping the legacy routes to the new better routes.
+                    new { action = "ContactOwners|ManagePackageOwners" }),
                 permanent: true).To(packageActionRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     "PublishPackage",
                     "Package/New/{id}/{version}",
-                    new { controller = PackagesController.Name, action = ActionName.PublishPackage }),
+                    new { controller = PackagesController.Name, action = "PublishPackage" }),
                 permanent: true).To(packageVersionActionRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     "EditPackage",
                     "Package/Edit/{id}/{version}",
-                    new { controller = PackagesController.Name, action = ActionName.EditPackage }),
+                    new { controller = PackagesController.Name, action = "EditPackage" }),
                 permanent: true).To(packageVersionActionRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     RouteName.ListPackages,
                     "List/Packages",
-                    new { controller = PackagesController.Name, action = ActionName.ListPackages }),
+                    new { controller = PackagesController.Name, action = "ListPackages" }),
                 permanent: true).To(packageListRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     RouteName.DisplayPackage,
                     "List/Packages/{id}/{version}",
-                    new { controller = PackagesController.Name, action = ActionName.DisplayPackage, version = UrlParameter.Optional }),
+                    new { controller = PackagesController.Name, action = "DisplayPackage", version = UrlParameter.Optional }),
                 permanent: true).To(packageDisplayRoute);
         }
     }

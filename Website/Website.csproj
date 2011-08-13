@@ -101,7 +101,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionNames.cs" />
     <Compile Include="App_Start\MiniProfiler.cs" />
     <Compile Include="App_Start\NinjectMVC3.cs" />
     <Compile Include="App_Start\Bootstrapper.cs" />
@@ -112,6 +111,8 @@
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Entities\PackageReview.cs" />
+    <Compile Include="ViewModels\IPackageVersionModel.cs" />
+    <Compile Include="ViewModels\IPageableEnumerable.cs" />
     <Compile Include="Migrations\20110809083000_CreatePackageReviewsTable.cs" />
     <Compile Include="Migrations\20110811213000_AddApiKeyColumn.cs" />
     <Compile Include="App_Start\Routes.cs" />
@@ -171,6 +172,9 @@
     <Compile Include="UrlExtensions.cs" />
     <Compile Include="App_Start\VersionRouteConstraint.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
+    <Compile Include="ViewModels\IPreviousNextPager.cs" />
+    <Compile Include="ViewModels\PackageListViewModel.cs" />
+    <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
     <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
   </ItemGroup>
   <ItemGroup>

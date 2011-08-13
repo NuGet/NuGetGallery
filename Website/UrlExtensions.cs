@@ -10,8 +10,18 @@ namespace NuGetGallery {
             return url.RouteUrl(RouteName.Account);
         }
 
-        public static string Register(this UrlHelper url) {
-            return url.RouteUrl(RouteName.Register);
+        public static string Account(this UrlHelper url, AccountAction action) {
+            return url.RouteUrl(RouteName.Account, new { action = action.ToString() });
+        }
+
+        public static string PackageList(this UrlHelper url, int page, int pageSize, string sortOrder, string searchTerm) {
+            return url.RouteUrl(RouteName.ListPackages,
+                new {
+                    page,
+                    pageSize,
+                    q = searchTerm,
+                    sortOrder,
+                });
         }
 
         public static string PackageList(this UrlHelper url) {
@@ -30,7 +40,7 @@ namespace NuGetGallery {
             return url.Package(package.PackageRegistration.Id, package.Version);
         }
 
-        public static string Package(this UrlHelper url, DisplayPackageViewModel package) {
+        public static string Package(this UrlHelper url, IPackageVersionModel package) {
             return url.Package(package.Id, package.Version);
         }
 
@@ -38,11 +48,11 @@ namespace NuGetGallery {
             return url.Package(package.Id);
         }
 
-        public static string Package(this UrlHelper url, DisplayPackageViewModel package, PackageAction action) {
+        public static string Package(this UrlHelper url, IPackageVersionModel package, PackageAction action) {
             return url.RouteUrl(RouteName.PackageAction, new { id = package.Id, action = action.ToString() });
         }
 
-        public static string Package(this UrlHelper url, DisplayPackageViewModel package, PackageVersionAction action) {
+        public static string Package(this UrlHelper url, IPackageVersionModel package, PackageVersionAction action) {
             return url.RouteUrl(RouteName.PackageVersionAction, new { id = package.Id, version = package.Version, action = action.ToString() });
         }
 
@@ -52,16 +62,16 @@ namespace NuGetGallery {
 
         public static string PackageDownload(this UrlHelper url, string id, string version) {
             return url.RouteUrl(RouteName.PackageVersionAction,
-                new { id, version, action = ActionName.DownloadPackage },
+                new { id, version, action = "DownloadPackage" },
                 "http");
         }
 
         public static string LogOn(this UrlHelper url) {
-            return url.RouteUrl(RouteName.Authentication, new { action = ActionName.LogOn, returnUrl = url.RequestContext.HttpContext.Request.Url });
+            return url.RouteUrl(RouteName.Authentication, new { action = "LogOn", returnUrl = url.RequestContext.HttpContext.Request.Url });
         }
 
         public static string LogOff(this UrlHelper url) {
-            return url.RouteUrl(RouteName.Authentication, new { action = ActionName.LogOff, ReturnUrl = url.RequestContext.HttpContext.Request.Url });
+            return url.RouteUrl(RouteName.Authentication, new { action = "LogOff", ReturnUrl = url.RequestContext.HttpContext.Request.Url });
         }
 
         public static string Search(this UrlHelper url, string searchTerm) {
@@ -82,5 +92,13 @@ namespace NuGetGallery {
     public enum PackageAction {
         ContactOwners,
         ManagePackageOwners
+    }
+
+    public enum AccountAction {
+        Register,
+        ChangePassword,
+        Packages,
+        GenerateApiKey,
+        ForgotPassword
     }
 }

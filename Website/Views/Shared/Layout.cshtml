@@ -33,7 +33,7 @@
                                 var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
                                 var contributeClass = ViewBag.Tab == "Contribute" ? "current" : "";
                             }
-                            <li class="@homeClass"><a href="/">Home</a></li>
+                            <li class="@homeClass"><a href="@Url.Home()">Home</a></li>
                             <li class="@packagesClass"><a href="@Url.PackageList()">Packages</a></li>
                             <li><a href="http://docs.nuget.org">Documentation</a></li>
                         </ul>
@@ -41,7 +41,7 @@
                         <form id="search-form" action="@Url.PackageList()" method="get">
                             <div id="search">
                                 <div>
-                                    <input type="text" name="q" id="searchTerm" value="@(ViewBag.SearchTerm ?? "Search Packages")" />
+                                    <input type="text" name="q" id="searchTerm" value="@(Model != null ? Model.SearchTerm ?? "Search Packages" : "Search Packages")" />
                                 </div>
                                 @* TODO: This hidden input hack can go away when we fully restructure the UI*@
                                 <input type="hidden" name="sortOrder" value="" />

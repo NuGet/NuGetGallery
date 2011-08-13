@@ -5,9 +5,9 @@
     <aside id="aside-first" class="aside-first group">
         <div class="zone zone-aside-first">
             <nav id="leftNav">
-                <img src="@Url.Content("~/Content/Images/newAccountGraphic.png")" style="padding-left:50px"/>
+                <img src="@Url.Content("~/Content/Images/newAccountGraphic.png")" style="padding-left:50px" alt="New Account Image"/>
                 <p>With your account, you’ll be able to achieve all kinds of fame and glory by rating and reviewing packages as well as submitting your own.</p>
-                <p>Already have an account? <a href="@Url.LogOnUrl()">Log On.</a></p>
+                <p>Already have an account? <a href="@Url.LogOn()">Log On.</a></p>
             </nav>
         </div>
     </aside>
@@ -16,18 +16,17 @@
             <div class="zone zone-content">
                 <section>
                     <header>
-                        <span class="right"><img src="@Url.Content("~/Content/Images/required.png")"/></span>
+                        <span class="right"><img src="@Url.Content("~/Content/Images/required.png")" alt="Required" /></span>
                         <h2>Create A New Account</h2>
-                    </header>   
-                    @using (Html.BeginForm("register", "UserAccount", FormMethod.Post, new { @id = "form" }))
-                    {
+                    </header>
+                    <form id="form" method="post" action="@Url.Account(AccountAction.Register)">
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true)
                         @Html.EditorForModel()
                         <div>
                             <button type="submit" name="Register">Register</button>
                         </div>
-                    }
+                    </form>
                 </section>
             </div>
         </div>

@@ -5,7 +5,7 @@ using System.Security.Principal;
 using System.Web.Mvc;
 
 namespace NuGetGallery {
-    public class DisplayPackageViewModel {
+    public class DisplayPackageViewModel : IPackageVersionModel {
         public DisplayPackageViewModel(Package package, UrlHelper urlHelper)
             : this(package) {
             IconUrl = package.IconUrl ?? urlHelper.Content("~/Content/Images/packagesDefaultIcon.png");

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
@@ -74,7 +73,7 @@ namespace NuGetGallery {
             return Redirect(packagePublishUrl);
         }
 
-        [ActionName(ActionName.PublishPackage), Authorize]
+        [ActionName("PublishPackage"), Authorize]
         public ActionResult ShowPublishPackageForm(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
@@ -95,7 +94,7 @@ namespace NuGetGallery {
             });
         }
 
-        [ActionName(ActionName.PublishPackage), Authorize, HttpPost]
+        [Authorize, HttpPost]
         public ActionResult PublishPackage(string id, string version) {
             // TODO: handle requesting to verify a package that is already verified; return 404?
 
@@ -120,11 +119,10 @@ namespace NuGetGallery {
             return View(new DisplayPackageViewModel(package, Url));
         }
 
-        public ActionResult ListPackages(string q, string sortOrder, int pageSize = 10) {
-            ViewBag.SearchTerm = q;
-            ViewBag.SortOrder = sortOrder ?? "package-download-count";
-            ViewBag.PageSize = pageSize.ToString();
-
+        public ActionResult ListPackages(string q, string sortOrder = "package-download-count", int page = 1, int pageSize = 10) {
+            if (page < 1) {
+                page = 1;
+            }
             IEnumerable<Package> packageVersions = null;
             if (String.IsNullOrEmpty(q)) {
                 packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
@@ -133,7 +131,12 @@ namespace NuGetGallery {
                 // TODO: Implement the actual searching
                 packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
             }
-            var viewModel = packageVersions.Select(pv => new DisplayPackageViewModel(pv, Url));
+            var viewModel = new PackageListViewModel(packageVersions,
+                q,
+                sortOrder,
+                page - 1,
+                pageSize,
+                Url);
 
             return View(viewModel);
         }

@@ -1,5 +1,5 @@
 ﻿@using NuGetGallery;
-@model IEnumerable<DisplayPackageViewModel>
+@model PackageListViewModel
 @{
     ViewBag.Tab = "Packages";
 }
@@ -8,21 +8,21 @@
         <div class="zone zone-before-main">
             <form id="search-filter-form" action="@Request.Url" method="get">
                 @* TODO: This hidden input hack can go away when we fully restructure the UI*@
-                <input type="hidden" name="q" value="@ViewBag.SearchTerm" />
+                <input type="hidden" name="q" value="@Model.SearchTerm" />
                 <div id="sort">
                     <label>Sort</label>
                     <select name="sortOrder" id="sortOrder">
-                        @ViewHelpers.Option("package-title", "A-Z", ViewBag.SortOrder)
-                        @ViewHelpers.Option("package-rating", "Highest Rated", ViewBag.SortOrder)
-                        @ViewHelpers.Option("package-download-count", "Popularity", ViewBag.SortOrder)
-                        @ViewHelpers.Option("package-created", "Recent", ViewBag.SortOrder)
-                        @ViewHelpers.Option("package-relevance", "Relevance", ViewBag.SortOrder)
+                        @ViewHelpers.Option("package-title", "A-Z", Model.SortOrder)
+                        @ViewHelpers.Option("package-rating", "Highest Rated", Model.SortOrder)
+                        @ViewHelpers.Option("package-download-count", "Popularity", Model.SortOrder)
+                        @ViewHelpers.Option("package-created", "Recent", Model.SortOrder)
+                        @ViewHelpers.Option("package-relevance", "Relevance", Model.SortOrder)
                     </select>
                     <label>Show</label>
                     <select name="pageSize" id="pageSize">
-                        @ViewHelpers.Option("10", "10 per page", ViewBag.PageSize)
-                        @ViewHelpers.Option("20", "20 per page", ViewBag.PageSize)
-                        @ViewHelpers.Option("50", "50 per page", ViewBag.PageSize)
+                        @ViewHelpers.Option("10", "10 per page", Model.PageSize.ToString())
+                        @ViewHelpers.Option("20", "20 per page", Model.PageSize.ToString())
+                        @ViewHelpers.Option("50", "50 per page", Model.PageSize.ToString())
                     </select>
                 </div>
             </form>
@@ -37,25 +37,18 @@
             <div class="zone zone-content">
                 <section>
                     <header>
-                        <h2><span>@Model.Count() results for </span>Packages</h2>
+                        <h2><span>@Model.TotalCount results for </span>Packages</h2>
                         <span class="displayResults">Displaying results 1 - 10.</span>
                     </header>
                     <ul>
-                        @foreach (var listPackage in Model) {
+                        @foreach (var listPackage in Model.Items) {
                             <li class="first">
                                 @Html.Partial("_ListPackage", listPackage)
                             </li>
                         }
                     </ul>
                     <div id="pagination">
-                        <ul class="group pager">
-                            <li class="page-previous">
-                                <span>Previous</span>
-                            </li>
-                            <li class="page-next">
-                                <a href="/List/Packages?page=2">Next</a>
-                            </li>
-                        </ul>
+                        @ViewHelpers.PreviousNextPager(Model.Pager)
                     </div>
                 </section>
             </div>

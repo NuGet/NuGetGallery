@@ -61,6 +61,7 @@
     <Compile Include="Services\FileSystemPackageFileServiceFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
     <Compile Include="Services\UsersServiceFacts.cs" />
+    <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

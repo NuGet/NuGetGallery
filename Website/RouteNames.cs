@@ -7,7 +7,6 @@ namespace NuGetGallery {
         public const string DownloadPackage = "DownloadPackage";
         public const string Home = "Home";
         public const string ListPackages = "ListPackages";
-        public const string Register = "Register";
         public const string Authentication = "SignIn";
         public const string UploadPackage = "UploadPackage";
         public const string ManagePackageOwners = "ManagePackageOwners";

@@ -4,7 +4,7 @@
     <aside id="aside-first" class="aside-first group">
         <div class="zone zone-aside-first">
             <nav id="leftNav">
-                <img src="@Url.Content("~/Content/Images/contribGraphic.png")"/>
+                <img src="@Url.Content("~/Content/Images/contribGraphic.png")" alt="Contribution image" />
                 <p>Submit your package for others to enjoy.</p>
             </nav>
         </div>
@@ -20,10 +20,15 @@
                             @ViewHelpers.UploadSequence(2)
                         </ul>
                     </header>
-                    @using (Html.BeginForm(ActionName.PublishPackage, PackagesController.Name, new { id = Model.Id, version = Model.Version }, FormMethod.Post, new { @id = "form" }))
-                    {
+                    <form id="form" method="post" action="@Url.Package(Model, PackageVersionAction.PublishPackage)">
                         <h3>Verify the details of your package</h3>
-                        <p style="clear:both;margin:0 0 20px 20px;color:#A8A8A8;" class="long">These package details are read from the package file and cannot be changed. If you have a newer version of your package that you’d like to submit in place of this one, <a href="/Contribute/NewSubmission">click here to add a new contribution</a>. Ensure that the new version has the same Package ID, but a new Version number.</p>
+                        <p style="clear:both;margin:0 0 20px 20px;color:#A8A8A8;" class="long">
+                            These package details are read from the package file and cannot be changed. 
+                            If you have a newer version of your package that you’d like to submit in place 
+                            of this one, <a href="@Url.UploadPackage()">click here to add a new 
+                            contribution</a>. Ensure that the new version has the same Package ID, but a 
+                            new Version number.
+                        </p>
                         <div class="packageID">
                             <label for="PackageId">Package ID</label>
                             <input class="disabled" disabled id="PackageId" name="PackageId" type="text" value="@Model.Id" />
@@ -87,7 +92,7 @@
                         <div class="buttons">
                             <input id="packageEditSubmitButton" type="submit" value="Verify" singleClickButton="true" />
                         </div>
-                    }
+                    </form>
                 </section>
             </div>
         </div>

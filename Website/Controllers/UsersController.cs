@@ -14,6 +14,12 @@ namespace NuGetGallery {
             this.userService = userSvc;
         }
 
+        [Authorize]
+        public ActionResult Account() {
+            var user = userService.FindByUsername(HttpContext.User.Identity.Name);
+            return View(user);
+        }
+
         public ActionResult Register() {
             return View();
         }
@@ -42,11 +48,20 @@ namespace NuGetGallery {
                 user.Username,
                 true);
 
-            return Redirect(Url.Home());
+            return RedirectToRoute(RouteName.Home);
         }
 
         [Authorize]
-        public ActionResult Account() {
+        public ActionResult Packages() {
+            return View();
+        }
+
+        [Authorize]
+        public ActionResult GenerateApiKey() {
+            return Redirect(Request.Url.ToString());
+        }
+
+        public ActionResult ForgotPassword() {
             return View();
         }
     }

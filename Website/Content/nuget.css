@@ -71,33 +71,33 @@ p  { margin: 0 0 1em; }
 /* Home Page
 ***************************************************************/
 .hero {
-	background:#f6fbfe;
-	border:1px solid #e4f1f7;
-	min-height:240px;
-	margin:16px;
-	padding:16px;
-	font-size:1.2em;
+    background:#f6fbfe;
+    border:1px solid #e4f1f7;
+    min-height:240px;
+    margin:16px;
+    padding:16px;
+    font-size:1.2em;
 
-	border-radius: 8px;
+    border-radius: 8px;
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
 }
 
 .install {
-	background:url('../Content/Images/download.png') no-repeat 24px 12px #4687ad;
-	border:1px solid #405f71;
+    background:url('../Content/Images/download.png') no-repeat 24px 12px #4687ad;
+    border:1px solid #405f71;
     color:#f3f4fc;
-	font-size:24px;
-	padding:8px 18px 10px 18px;
-	margin:24px;
-	width:200px;
-	cursor:pointer;
-	text-align:center;
+    font-size:24px;
+    padding:8px 18px 10px 18px;
+    margin:24px;
+    width:200px;
+    cursor:pointer;
+    text-align:center;
     display:block;
 
-	
-	/*CSS3 properties*/
-	text-shadow: 0px -1px 0px rgba(0, 0, 0 ,.8);
+    
+    /*CSS3 properties*/
+    text-shadow: 0px -1px 0px rgba(0, 0, 0 ,.8);
     filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0, startColorstr='#4687ad',  endColorstr='#366581');
     background: url('../Content/Images/download.png') no-repeat 24px 12px, -webkit-gradient(linear, left top, left bottom, from(#4687ad), to(#366581));
     background: url('../Content/Images/download.png') no-repeat 24px 12px, -moz-linear-gradient(top , #4687ad, #366581);
@@ -295,14 +295,14 @@ input[type=submit], button[type=submit], input[type=button] {
 input[type=submit]:hover, button[type=submit]:hover, input[type=button]:hover {
     /* old browsers */
     background-position: 0% 0%;
-	background-image: -moz-linear-gradient(
+    background-image: -moz-linear-gradient(
         center bottom,
         #54A3CB 32%,
         #316880 100%
     ) !important;
-	background-color: #316880;
-	background-repeat: repeat;
-	background-attachment: scroll;
+    background-color: #316880;
+    background-repeat: repeat;
+    background-attachment: scroll;
 }
 
 /* Site Header
@@ -384,7 +384,7 @@ input[type=submit]:hover, button[type=submit]:hover, input[type=button]:hover {
 **************************************************************/
 #search {
     height: 31px;
-    margin: 3px 0 0 0;
+    margin: 4px 0 0 0;
     display: inline;
     float: right;
 }
@@ -616,9 +616,9 @@ footer#footer {
     padding-top: 0px;
     padding-bottom: 0px;
     position: relative;
-	margin-top: -101px; /* negative value of footer height - added 1px for the top border */
-	height: 100px;
-	clear: both;
+    margin-top: -101px; /* negative value of footer height - added 1px for the top border */
+    height: 100px;
+    clear: both;
     width: auto;
     font-size: inherit;
 }
@@ -640,30 +640,30 @@ footer#footer {
 ***************************************************************/
 
 .MIX-hero {
-	color:#494a52;
-	background:url("../Content/Images/hero.png") no-repeat 448px 18px #f6f6f6;
-	height:325px;
-	margin:12px -48px 18px -48px;
-	padding:18px 12px;
-	border:1px solid #dedede;
-	
-	/*CSS3 properties*/
+    color:#494a52;
+    background:url("../Content/Images/hero.png") no-repeat 448px 18px #f6f6f6;
+    height:325px;
+    margin:12px -48px 18px -48px;
+    padding:18px 12px;
+    border:1px solid #dedede;
+    
+    /*CSS3 properties*/
     -webkit-border-radius: 2px;
     -moz-border-radius: 2px;
      border-radius: 2px;
 }
 
 .MIX-hero-text {
-	margin:0 0 0 8px;
-	width:410px;
+    margin:0 0 0 8px;
+    width:410px;
 }
 
 .MIX-hero-text h2 {
-	color:#494a52;
-	margin:6px 0 24px 0;
+    color:#494a52;
+    margin:6px 0 24px 0;
 }
 
 
 .MIX-secondary {
-	margin:18px -48px;	
+    margin:18px -48px;	
 }

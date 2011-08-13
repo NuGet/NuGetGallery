@@ -6,9 +6,9 @@
     <aside id="aside-first" class="aside-first group">
         <div class="zone zone-aside-first">
             <nav id="leftNav">
-                <img src="@Url.Content("~/Content/Images/userGraphic.png")" style="padding-left:70px"/>
+                <img src="@Url.Content("~/Content/Images/userGraphic.png")" style="padding-left:70px" alt="Blue User" />
                 <p>
-                    Don't have an account yet? <a href="/Users/Account/Register">Register now.</a>
+                    Don't have an account yet? <a href="@Url.Account(AccountAction.Register)">Register now.</a>
                 </p>
             </nav>
         </div>
@@ -19,19 +19,18 @@
             <div class="zone zone-content">
                 <section>
                     <header>
-                        <span class="right"><img src="@Url.Content("~/Content/Images/required.png")"/></span>
+                        <span class="right"><img src="@Url.Content("~/Content/Images/required.png")" alt="Required" /></span>
                         <h2>Log On</h2>
                     </header>
-                    @using (Html.BeginForm("sign-in", "UserAccount", FormMethod.Post, new { @id = "form" }))
-                    {
+                    <form id="form" method="post" action="@Url.LogOn()">
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true)
                         @Html.EditorForModel()
                         <div>
                             <button type="submit" name="Register">Log On</button>
-                            <a href="/Users/Account/RequestLostPassword">Lost your Password?</a>
+                            <a href="@Url.Account(AccountAction.ForgotPassword)">Lost your Password?</a>
                         </div>
-                    }
+                    </form>
                 </section>
             </div>
         </div>
