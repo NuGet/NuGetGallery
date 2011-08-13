@@ -19,14 +19,11 @@ namespace NuGetGallery {
         }
 
         public T Get(int key) {
-            return entities.Set<T>()
-                .Where(e => e.Key == key)
-                .Single();
+            return entities.Set<T>().Find(key);
         }
 
         public IQueryable<T> GetAll() {
-            return entities.Set<T>()
-                .AsQueryable();
+            return entities.Set<T>();
         }
 
         public int InsertOnCommit(T entity) {

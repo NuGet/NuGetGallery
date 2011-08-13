@@ -11,11 +11,6 @@ namespace NuGetGallery {
             : base(GetConnection("NuGetGallery"), contextOwnsConnection: true) {
         }
 
-        public DbSet<Package> Packages { get; set; }
-        public DbSet<PackageRegistration> PackageVersions { get; set; }
-        public DbSet<EmailMessage> Messages { get; set; }
-        public DbSet<User> Users { get; set; }
-
         protected override void OnModelCreating(DbModelBuilder modelBuilder) {
             modelBuilder.Conventions.Remove<IncludeMetadataConvention>();
 
