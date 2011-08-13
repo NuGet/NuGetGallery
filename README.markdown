@@ -44,6 +44,8 @@ This is the Git workflow we're currently using:
     Now you're finished with your feature or unit of work, and ready to push your changes, 
     you need to integrate changes that other developers may have pushed chances since you 
     started.
+
+    __PRO TIP: CLOSE VISUAL STUDIO__
     
     There are a few steps to follow to make sure you keep the history clean as you integrate.
     
