@@ -119,7 +119,7 @@ namespace NuGetGallery {
             return View(new DisplayPackageViewModel(package, Url));
         }
 
-        public ActionResult ListPackages(string q, string sortOrder = "package-download-count", int page = 1, int pageSize = 10) {
+        public ActionResult ListPackages(string q, string sortOrder = Const.DefaultPackageListSortOrder, int page = 1) {
             if (page < 1) {
                 page = 1;
             }
@@ -135,8 +135,10 @@ namespace NuGetGallery {
                 q,
                 sortOrder,
                 page - 1,
-                pageSize,
+                Const.DefaultPackageListPageSize,
                 Url);
+
+            ViewBag.SearchTerm = q;
 
             return View(viewModel);
         }

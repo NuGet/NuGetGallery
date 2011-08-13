@@ -20,7 +20,7 @@ namespace NuGetGallery {
                 items,
                 PageIndex,
                 PageSize,
-                page => url.PackageList(page, pageSize, sortOrder, searchTerm)
+                page => url.PackageList(page, sortOrder, searchTerm)
             );
             Items = pager.Items;
             Pager = pager;

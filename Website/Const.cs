@@ -7,5 +7,7 @@ namespace NuGetGallery {
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
         public const string Sha512HashAlgorithmId = "SHA512";
+        public const int DefaultPackageListPageSize = 20;
+        public const string DefaultPackageListSortOrder = "package-download-count";
     }
 }

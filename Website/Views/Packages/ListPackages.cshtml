@@ -18,12 +18,6 @@
                         @ViewHelpers.Option("package-created", "Recent", Model.SortOrder)
                         @ViewHelpers.Option("package-relevance", "Relevance", Model.SortOrder)
                     </select>
-                    <label>Show</label>
-                    <select name="pageSize" id="pageSize">
-                        @ViewHelpers.Option("10", "10 per page", Model.PageSize.ToString())
-                        @ViewHelpers.Option("20", "20 per page", Model.PageSize.ToString())
-                        @ViewHelpers.Option("50", "50 per page", Model.PageSize.ToString())
-                    </select>
                 </div>
             </form>
         </div>

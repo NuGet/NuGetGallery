@@ -14,11 +14,10 @@ namespace NuGetGallery {
             return url.RouteUrl(RouteName.Account, new { action = action.ToString() });
         }
 
-        public static string PackageList(this UrlHelper url, int page, int pageSize, string sortOrder, string searchTerm) {
+        public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm) {
             return url.RouteUrl(RouteName.ListPackages,
                 new {
                     page,
-                    pageSize,
                     q = searchTerm,
                     sortOrder,
                 });
