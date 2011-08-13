@@ -2,12 +2,17 @@
 
 namespace NuGetGallery {
     public static class UrlExtensions {
+        // Shorthand for current url
+        public static string Current(this UrlHelper url) {
+            return url.RequestContext.HttpContext.Request.RawUrl;
+        }
+
         public static string Home(this UrlHelper url) {
             return url.RouteUrl(RouteName.Home);
         }
 
         public static string Account(this UrlHelper url) {
-            return url.RouteUrl(RouteName.Account);
+            return url.RouteUrl(RouteName.Account, new { action = "Account" });
         }
 
         public static string Account(this UrlHelper url, AccountAction action) {

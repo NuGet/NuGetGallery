@@ -1,7 +1,17 @@
 ﻿@model DisplayPackageViewModel
+@{
+    ViewBag.Tab = "Packages";
+}
 <div id="layout-main" class="group">
     <div id="layout-content" class="group">
-        
+        @if (TempData.ContainsKey("Message")) {
+            <div id="messages">
+                <div class="zone zone-messages">
+                    <div class="message message-Information">@TempData["Message"]</div>
+                </div>
+            </div>
+        }
+
         <div id="content" class="group">
             <div class="zone zone-content">
                 <section class="packageItemDetail icon">

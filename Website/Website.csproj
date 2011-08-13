@@ -117,6 +117,7 @@
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Entities\PackageReview.cs" />
+    <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
     <Compile Include="Migrations\20110809083000_CreatePackageReviewsTable.cs" />
@@ -228,6 +229,7 @@
     <Content Include="Content\Pagination.css" />
     <Content Include="Content\Ratings.css" />
     <Content Include="Content\Reset.css" />
+    <Content Include="Content\Images\sendMessageGraphic.png" />
     <Content Include="Content\Widgets.css" />
     <Content Include="license.txt" />
     <Content Include="Scripts\gallery.form.js" />
@@ -304,6 +306,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Users\Account.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Packages\ContactOwners.cshtml" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />

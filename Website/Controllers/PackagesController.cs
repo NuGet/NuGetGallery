@@ -149,8 +149,31 @@ namespace NuGetGallery {
         }
 
         //TODO: Implement the get and post for this
-        public ActionResult ContactOwners() {
-            return View();
+        [Authorize]
+        public ActionResult ContactOwners(string id) {
+            var package = packageSvc.FindPackageRegistrationById(id);
+
+            var model = new ContactOwnersViewModel {
+                PackageId = package.Id,
+                Owners = package.Owners
+            };
+
+            return View(model);
+        }
+
+        [HttpPost, Authorize, ValidateAntiForgeryToken]
+        public ActionResult ContactOwners(string id, ContactOwnersViewModel contactForm) {
+            if (!ModelState.IsValid) {
+                return ContactOwners(id);
+            }
+
+            var package = packageSvc.FindPackageRegistrationById(id);
+            // TODO: Email!
+
+
+            string message = String.Format("Your message has been sent to the owners of {0}.", id);
+            TempData["Message"] = message;
+            return Redirect(Url.Package(id));
         }
 
         public ActionResult DownloadPackage(string id, string version) {
