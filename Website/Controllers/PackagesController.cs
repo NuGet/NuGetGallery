@@ -77,8 +77,9 @@ namespace NuGetGallery {
         public ActionResult ShowPublishPackageForm(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
-            if (package == null)
-                return HttpNotFound();
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
 
             return View(new SubmitPackageViewModel {
                 Id = package.PackageRegistration.Id,
@@ -100,8 +101,9 @@ namespace NuGetGallery {
 
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
-            if (package == null)
-                return HttpNotFound();
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
 
             packageSvc.PublishPackage(package.PackageRegistration.Id, package.Version);
 
@@ -113,8 +115,9 @@ namespace NuGetGallery {
         public ActionResult DisplayPackage(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
-            if (package == null)
-                return HttpNotFound();
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
 
             return View(new DisplayPackageViewModel(package, Url));
         }
@@ -143,15 +146,55 @@ namespace NuGetGallery {
             return View(viewModel);
         }
 
-        //TODO: Implement the get and post for this
-        public ActionResult ReportAbuse() {
-            return View();
+        // NOTE: Intentionally NOT requiring authentication
+        public ActionResult ReportAbuse(string id, string version) {
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
+
+            var model = new ReportAbuseViewModel {
+                PackageId = id,
+                PackageVersion = package.Version
+            };
+
+            if (Request.IsAuthenticated) {
+                var user = userSvc.FindByUsername(HttpContext.User.Identity.Name);
+                model.Email = user.EmailAddress;
+            }
+
+            return View(model);
         }
 
-        //TODO: Implement the get and post for this
+        [HttpPost, ValidateAntiForgeryToken]
+        public ActionResult ReportAbuse(string id, string version, ReportAbuseViewModel reportForm) {
+            if (!ModelState.IsValid) {
+                return ReportAbuse(id, version);
+            }
+            var package = packageSvc.FindPackageByIdAndVersion(id);
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
+
+            if (Request.IsAuthenticated) {
+                var user = userSvc.FindByUsername(HttpContext.User.Identity.Name);
+                reportForm.Email = user.EmailAddress;
+                // TODO: Add more details before we send the message.
+            }
+            // TODO: Email!
+
+            TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
+            return Redirect(Url.Package(id));
+        }
+
         [Authorize]
         public ActionResult ContactOwners(string id) {
             var package = packageSvc.FindPackageRegistrationById(id);
+
+            if (package == null) {
+                return PackageNotFound(id);
+            }
 
             var model = new ContactOwnersViewModel {
                 PackageId = package.Id,
@@ -168,6 +211,9 @@ namespace NuGetGallery {
             }
 
             var package = packageSvc.FindPackageRegistrationById(id);
+            if (package == null) {
+                return PackageNotFound(id);
+            }
             // TODO: Email!
 
 
@@ -180,10 +226,18 @@ namespace NuGetGallery {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null) {
-                return HttpNotFound();
+                return PackageNotFound(id, version);
             }
 
             return packageFileSvc.CreateDownloadPackageResult(package);
+        }
+
+        // We may want to have a specific behavior for package not found
+        private ActionResult PackageNotFound(string id) {
+            return PackageNotFound(id, null);
+        }
+        private ActionResult PackageNotFound(string id, string version) {
+            return HttpNotFound();
         }
     }
 }

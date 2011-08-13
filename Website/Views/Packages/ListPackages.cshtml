@@ -6,7 +6,7 @@
 <div id="layout-before-main" class="group">
     <section id="currentPageToolbar">
         <div class="zone zone-before-main">
-            <form id="search-filter-form" action="@Request.Url" method="get">
+            <form id="search-filter-form" action="@Url.Current()" method="get">
                 @* TODO: This hidden input hack can go away when we fully restructure the UI*@
                 <input type="hidden" name="q" value="@Model.SearchTerm" />
                 <div id="sort">

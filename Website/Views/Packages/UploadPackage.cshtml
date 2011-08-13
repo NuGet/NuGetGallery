@@ -24,7 +24,7 @@
                     </header>
                     <div id="form">
                             <div id="uploadFileForm" class="selected">
-                                <form id="uploadFileSubmissionForm" method="post" action="@Url.UploadPackage()" enctype="multipart/form-data">
+                                <form id="uploadFileSubmissionForm" method="post" action="@Url.Current()" enctype="multipart/form-data">
                                     @Html.AntiForgeryToken()
                                     @Html.ValidationSummary(true)
                                     <aside>

@@ -19,7 +19,7 @@
                         <span class="right"><img src="@Url.Content("~/Content/Images/required.png")" alt="Required" /></span>
                         <h2>Create A New Account</h2>
                     </header>
-                    <form id="form" method="post" action="@Url.Account(AccountAction.Register)">
+                    <form id="form" method="post" action="@Url.Current()">
                         @Html.AntiForgeryToken()
                         @Html.ValidationSummary(true)
                         @Html.EditorForModel()

@@ -52,6 +52,10 @@ namespace NuGetGallery {
             return url.Package(package.Id);
         }
 
+        public static string Package(this UrlHelper url, string packageId, PackageAction action) {
+            return url.RouteUrl(RouteName.PackageAction, new { id = packageId, action = action.ToString() });
+        }
+
         public static string Package(this UrlHelper url, IPackageVersionModel package, PackageAction action) {
             return url.RouteUrl(RouteName.PackageAction, new { id = package.Id, action = action.ToString() });
         }
@@ -71,11 +75,11 @@ namespace NuGetGallery {
         }
 
         public static string LogOn(this UrlHelper url) {
-            return url.RouteUrl(RouteName.Authentication, new { action = "LogOn", returnUrl = url.RequestContext.HttpContext.Request.Url });
+            return url.RouteUrl(RouteName.Authentication, new { action = "LogOn", returnUrl = url.Current() });
         }
 
         public static string LogOff(this UrlHelper url) {
-            return url.RouteUrl(RouteName.Authentication, new { action = "LogOff", ReturnUrl = url.RequestContext.HttpContext.Request.Url });
+            return url.RouteUrl(RouteName.Authentication, new { action = "LogOff", ReturnUrl = url.Current() });
         }
 
         public static string Search(this UrlHelper url, string searchTerm) {

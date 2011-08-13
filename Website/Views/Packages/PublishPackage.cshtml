@@ -20,7 +20,7 @@
                             @ViewHelpers.UploadSequence(2)
                         </ul>
                     </header>
-                    <form id="form" method="post" action="@Url.Package(Model, PackageVersionAction.PublishPackage)">
+                    <form id="form" method="post" action="@Url.Current()">
                         <h3>Verify the details of your package</h3>
                         <p style="clear:both;margin:0 0 20px 20px;color:#A8A8A8;" class="long">
                             These package details are read from the package file and cannot be changed. 
