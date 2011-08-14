@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using MvcMiniProfiler;
 
 namespace NuGetGallery {
     public class PackageListViewModel {
@@ -11,12 +12,14 @@ namespace NuGetGallery {
             int pageSize,
             UrlHelper url) {
             // TODO: Implement actual sorting
-            var items = packages.OrderBy(p => p.PackageRegistration.DownloadCount)
-                                .Skip(pageIndex * pageSize)
-                                .Take(pageSize)
-                                .ToList()
-                                .Select(pv => new DisplayPackageViewModel(pv));
-
+            IEnumerable<DisplayPackageViewModel> items;
+            using (MiniProfiler.Current.Step("Querying and mapping packages to list")) {
+                items = packages.OrderBy(p => p.PackageRegistration.DownloadCount)
+                                    .Skip(pageIndex * pageSize)
+                                    .Take(pageSize)
+                                    .ToList()
+                                    .Select(pv => new DisplayPackageViewModel(pv));
+            }
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = packages.Count();
