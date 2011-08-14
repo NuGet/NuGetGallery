@@ -24,7 +24,15 @@ namespace NuGetGallery {
         }
 
         public static string Flatten(this ICollection<PackageDependency> dependencies) {
-            return string.Join("|", dependencies.Select(d => string.Format("{0}:{1}", d.Id, d.VersionRange)).ToArray());
+            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionRange.ToString())));
+        }
+
+        public static string Flatten(this IEnumerable<NuGet.PackageDependency> dependencies) {
+            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionSpec.ToString())));
+        }
+
+        static string FlattenDependencies(IEnumerable<Tuple<string, string>> dependencies) {
+            return string.Join("|", dependencies.Select(d => string.Format("{0}:{1}", d.Item1, d.Item2)).ToArray());
         }
 
         public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template) {

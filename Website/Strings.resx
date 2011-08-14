@@ -132,4 +132,7 @@
   <data name="PackageWithIdAndVersionNotFound" xml:space="preserve">
     <value>A package with id '{0}' and version '{1}' does not exist.</value>
   </data>
+  <data name="NuGetPackagePropertyTooLong" xml:space="preserve">
+    <value>A nuget package's {0} property may not be more than {1} characters long.</value>
+  </data>
 </root>

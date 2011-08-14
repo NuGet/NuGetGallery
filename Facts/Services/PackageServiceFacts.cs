@@ -215,6 +215,119 @@ namespace NuGetGallery {
 
                 Assert.Equal(string.Format(Strings.PackageIdNotAvailable, "theId"), ex.Message);
             }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageIdIsLongerThan128() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.Id).Returns("theId".PadRight(129, '_'));
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Id", "128"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageAuthorsIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.Authors).Returns(new [] { "theFirstAuthor".PadRight(2001, '_'), "theSecondAuthor".PadRight(2001, '_') });
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Authors", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageDependenciesIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.Dependencies).Returns(new[] { 
+                    new NuGet.PackageDependency("theFirstDependency".PadRight(2000, '_'), new VersionSpec(){ MinVersion = new Version(1,0), MaxVersion = new Version(2,0), IsMinInclusive = true, IsMaxInclusive = false }),
+                    new NuGet.PackageDependency("theSecondDependency".PadRight(2000, '_'), new VersionSpec(new Version(1,0))), 
+                });
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Dependencies", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageDescriptionIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.Description).Returns("theDescription".PadRight(4001, '_'));
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Description", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageIconUrlIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.IconUrl).Returns(new Uri("http://theIconUrl/".PadRight(4001, '-'), UriKind.Absolute));
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageLicenseUrlIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.LicenseUrl).Returns(new Uri("http://theLicenseUrl/".PadRight(4001, '-'), UriKind.Absolute));
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageProjectUrlIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.ProjectUrl).Returns(new Uri("http://theProjectUrl/".PadRight(4001, '-'), UriKind.Absolute));
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageSummaryIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.Summary).Returns("theSummary".PadRight(4001, '_'));
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Summary", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageTagsIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.Tags).Returns("theTags".PadRight(4001, '_'));
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Tags", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageTitleIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.Title).Returns("theTitle".PadRight(4001, '_'));
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Title", "4000"), ex.Message);
+            }
         }
 
         public class TheDeletePackageMethod {

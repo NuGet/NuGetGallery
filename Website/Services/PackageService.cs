@@ -24,6 +24,8 @@ namespace NuGetGallery {
         }
 
         public Package CreatePackage(IPackage nugetPackage, User currentUser) {
+            ValidateNuGetPackage(nugetPackage);
+
             var packageRegistration = CreateOrGetPackageRegistration(currentUser, nugetPackage);
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
@@ -199,6 +201,29 @@ namespace NuGetGallery {
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             return package;
+        }
+
+        static void ValidateNuGetPackage(IPackage nugetPackage) {
+            if (nugetPackage.Id.Length > 128)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "128");
+            if (nugetPackage.Authors != null && string.Join(",", nugetPackage.Authors.ToArray()).Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
+            if (nugetPackage.Dependencies != null && nugetPackage.Dependencies.Flatten().Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", "4000");
+            if (nugetPackage.Description != null && nugetPackage.Description.Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Description", "4000");
+            if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.ToString().Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000");
+            if (nugetPackage.LicenseUrl != null && nugetPackage.LicenseUrl.ToString().Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000");
+            if (nugetPackage.ProjectUrl != null && nugetPackage.ProjectUrl.ToString().Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000");
+            if (nugetPackage.Summary != null && nugetPackage.Summary.ToString().Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Summary", "4000");
+            if (nugetPackage.Tags != null && nugetPackage.Tags.ToString().Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Tags", "4000");
+            if (nugetPackage.Title != null && nugetPackage.Title.ToString().Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "4000");
         }
 
         void UpdateIsLatest(PackageRegistration packageRegistration) {

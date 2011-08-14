@@ -70,6 +70,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
+        /// </summary>
+        public static string NuGetPackagePropertyTooLong {
+            get {
+                return ResourceManager.GetString("NuGetPackagePropertyTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package identifier &apos;{0}&apos; is not available..
         /// </summary>
         public static string PackageIdNotAvailable {
