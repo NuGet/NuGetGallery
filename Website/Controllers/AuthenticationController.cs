@@ -1,9 +1,7 @@
 ﻿using System.Web.Mvc;
 
 namespace NuGetGallery {
-    public class AuthenticationController : Controller {
-        public const string Name = "Authentication";
-
+    public partial class AuthenticationController : Controller {
         readonly IFormsAuthenticationService formsAuthSvc;
         readonly IUserService userSvc;
 
@@ -14,12 +12,12 @@ namespace NuGetGallery {
             this.userSvc = userSvc;
         }
 
-        public ActionResult LogOn() {
+        public virtual ActionResult LogOn() {
             return View();
         }
 
         [HttpPost]
-        public ActionResult LogOn(SignInRequest request, string returnUrl) {
+        public virtual ActionResult LogOn(SignInRequest request, string returnUrl) {
             // TODO: improve the styling of the validation summary
             // TODO: modify the Object.cshtml partial to make the first text box autofocus, or use additional metadata
 
@@ -46,7 +44,7 @@ namespace NuGetGallery {
             return SafeRedirect(returnUrl);
         }
 
-        public ActionResult LogOff(string returnUrl) {
+        public virtual ActionResult LogOff(string returnUrl) {
             // TODO: this should really be a POST
 
             formsAuthSvc.SignOut();

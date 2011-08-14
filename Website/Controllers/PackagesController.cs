@@ -6,9 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet;
 namespace NuGetGallery {
-    public class PackagesController : Controller {
-        public const string Name = "Packages";
-
+    public partial class PackagesController : Controller {
         // TODO: add support for URL-based package submission
         // TODO: add support for uploading logos and screenshots
         // TODO: improve validation summary emphasis
@@ -30,12 +28,12 @@ namespace NuGetGallery {
         }
 
         [Authorize]
-        public ActionResult UploadPackage() {
+        public virtual ActionResult UploadPackage() {
             return View();
         }
 
         [Authorize, HttpPost]
-        public ActionResult UploadPackage(HttpPostedFileBase packageFile) {
+        public virtual ActionResult UploadPackage(HttpPostedFileBase packageFile) {
             // TODO: validate package id and version don't already exist
 
             if (packageFile == null) {
@@ -74,7 +72,7 @@ namespace NuGetGallery {
         }
 
         [ActionName("PublishPackage"), Authorize]
-        public ActionResult ShowPublishPackageForm(string id, string version) {
+        public virtual ActionResult ShowPublishPackageForm(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null) {
@@ -96,7 +94,7 @@ namespace NuGetGallery {
         }
 
         [Authorize, HttpPost]
-        public ActionResult PublishPackage(string id, string version) {
+        public virtual ActionResult PublishPackage(string id, string version) {
             // TODO: handle requesting to verify a package that is already verified; return 404?
 
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
@@ -112,7 +110,7 @@ namespace NuGetGallery {
             return Redirect(Url.Package(package));
         }
 
-        public ActionResult DisplayPackage(string id, string version) {
+        public virtual ActionResult DisplayPackage(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null) {
@@ -123,7 +121,7 @@ namespace NuGetGallery {
             return View(model);
         }
 
-        public ActionResult ListPackages(string q, string sortOrder = Const.DefaultPackageListSortOrder, int page = 1) {
+        public virtual ActionResult ListPackages(string q, string sortOrder = Const.DefaultPackageListSortOrder, int page = 1) {
             if (page < 1) {
                 page = 1;
             }
@@ -148,7 +146,7 @@ namespace NuGetGallery {
         }
 
         // NOTE: Intentionally NOT requiring authentication
-        public ActionResult ReportAbuse(string id, string version) {
+        public virtual ActionResult ReportAbuse(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null) {
@@ -164,7 +162,7 @@ namespace NuGetGallery {
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult ReportAbuse(string id, string version, ReportAbuseViewModel reportForm) {
+        public virtual ActionResult ReportAbuse(string id, string version, ReportAbuseViewModel reportForm) {
             if (!ModelState.IsValid) {
                 return ReportAbuse(id, version);
             }
@@ -185,7 +183,7 @@ namespace NuGetGallery {
         }
 
         [Authorize]
-        public ActionResult ContactOwners(string id) {
+        public virtual ActionResult ContactOwners(string id) {
             var package = packageSvc.FindPackageRegistrationById(id);
 
             if (package == null) {
@@ -201,7 +199,7 @@ namespace NuGetGallery {
         }
 
         [HttpPost, Authorize, ValidateAntiForgeryToken]
-        public ActionResult ContactOwners(string id, ContactOwnersViewModel contactForm) {
+        public virtual ActionResult ContactOwners(string id, ContactOwnersViewModel contactForm) {
             if (!ModelState.IsValid) {
                 return ContactOwners(id);
             }
@@ -218,7 +216,7 @@ namespace NuGetGallery {
             return Redirect(Url.Package(id));
         }
 
-        public ActionResult DownloadPackage(string id, string version) {
+        public virtual ActionResult DownloadPackage(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null) {

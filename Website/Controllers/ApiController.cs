@@ -3,9 +3,7 @@ using System.Web.Mvc;
 using NuGet;
 
 namespace NuGetGallery {
-    public class ApiController : Controller {
-        public static string Name = "Api";
-
+    public partial class ApiController : Controller {
         readonly IPackageService packageSvc;
         readonly IUserService userSvc;
 
@@ -15,7 +13,7 @@ namespace NuGetGallery {
         }
 
         [ActionName("PushPackageApi"), HttpPost]
-        public ActionResult CreatePackage(Guid apiKey) {
+        public virtual ActionResult CreatePackage(Guid apiKey) {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
                 throw new Exception("The specified API key does not provide the authority to push packages.");
@@ -32,7 +30,7 @@ namespace NuGetGallery {
         }
 
         [ActionName("DeletePackageApi"), HttpDelete]
-        public ActionResult DeletePackage(Guid apiKey, string id, string version) {
+        public virtual ActionResult DeletePackage(Guid apiKey, string id, string version) {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
                 throw new Exception("The specified API key does not provide the authority to push packages.");
@@ -46,7 +44,7 @@ namespace NuGetGallery {
         }
 
         [ActionName("PublishPackageApi"), HttpPost]
-        public ActionResult PublishPackage(Guid key, string id, string version) {
+        public virtual ActionResult PublishPackage(Guid key, string id, string version) {
             var user = userSvc.FindByApiKey(key);
             if (user == null)
                 throw new Exception("The specified API key does not provide the authority to push packages.");

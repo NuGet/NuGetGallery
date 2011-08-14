@@ -2,9 +2,7 @@
 using System.Web.Mvc;
 
 namespace NuGetGallery {
-    public class UsersController : Controller {
-        public const string Name = "Users";
-
+    public partial class UsersController : Controller {
         readonly IFormsAuthenticationService formsAuthSvc;
         readonly IUserService userService;
         readonly IPackageService packageService;
@@ -19,17 +17,17 @@ namespace NuGetGallery {
         }
 
         [Authorize]
-        public ActionResult Account() {
+        public virtual ActionResult Account() {
             var user = userService.FindByUsername(HttpContext.User.Identity.Name);
             return View(user);
         }
 
-        public ActionResult Register() {
+        public virtual ActionResult Register() {
             return View();
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public ActionResult Register(RegisterRequest request) {
+        public virtual ActionResult Register(RegisterRequest request) {
             // TODO: consider client-side validation for unique username
             // TODO: add email validation
 
@@ -56,7 +54,7 @@ namespace NuGetGallery {
         }
 
         [Authorize]
-        public ActionResult Packages() {
+        public virtual ActionResult Packages() {
             var user = userService.FindByUsername(HttpContext.User.Identity.Name);
             var packages = packageService.FindPackagesByOwner(user);
 
@@ -78,11 +76,11 @@ namespace NuGetGallery {
         }
 
         [Authorize]
-        public ActionResult GenerateApiKey() {
+        public virtual ActionResult GenerateApiKey() {
             return Redirect(Request.Url.ToString());
         }
 
-        public ActionResult ForgotPassword() {
+        public virtual ActionResult ForgotPassword() {
             return View();
         }
     }

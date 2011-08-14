@@ -36,7 +36,7 @@
                     <ul>
                         @foreach (var listPackage in Model.Items) {
                             <li class="first">
-                                @Html.Partial("_ListPackage", listPackage)
+                                @Html.Partial(MVC.Packages.Views._ListPackage, listPackage)
                             </li>
                         }
                     </ul>
