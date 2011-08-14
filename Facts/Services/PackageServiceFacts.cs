@@ -303,7 +303,7 @@ namespace NuGetGallery {
                 var packageRegistration = new PackageRegistration { Id = "theId" };
                 var packages = new[] {
                     new Package { Version = "1.0", PackageRegistration = packageRegistration },
-                    new Package { Version = "2.0", PackageRegistration = packageRegistration } 
+                    new Package { Version = "2.0", PackageRegistration = packageRegistration, IsLatest = true } 
                 }.AsQueryable();
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 packageRepo.Setup(r => r.GetAll()).Returns(packages);

@@ -83,8 +83,13 @@ namespace NuGetGallery {
             Package package = null;
             if (version == null) {
                 package = packageVersions
-                    .Where(p => new Version(p.Version) == packageVersions.Max(p2 => new Version(p2.Version)))
+                    .Where(p => p.IsLatest)
                     .SingleOrDefault();
+
+                if (package == null && packageVersions.Any()) {
+                    // Should never happen.
+                    throw new InvalidOperationException("Packages are in a bad state. At least one should have IsLatest set");
+                }
             }
             else {
                 package = packageVersions
