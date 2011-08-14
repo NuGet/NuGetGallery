@@ -353,59 +353,66 @@ a.versionHistoryShowMore.less, a#showAllReviewsLink.less {
 }
 /**    Version History, Unpublished Packages, and Manage Package ID Tables     **/
 h4 + header.registerPackageHeader { margin-top: 50px; }
-#versionHistory, #managePackageID, #unpublishedPackages {
+table.packages {
     border-bottom: 1px solid #e6e6e6;
 }
- #managePackageID, #unpublishedPackages {    
+table.packages.owned {    
     padding-bottom: 5px;
     margin-bottom: 40px;
+    width: auto;
 }
-#versionHistory thead tr.header, #managePackageID thead tr.header {
+table.packages.owned td {
+    font-weight: bold;
+}
+table.packages.owned td p {
+    font-weight: normal;
+}
+table.packages thead tr.header {
     background-color: #F4F7ED;  /* Original styles */
     /* height: 25px;*/
 }
-    #versionHistory tbody th.downloads, #versionHistory tbody td.downloads {
+    table.packages tbody th.downloads, table.packages tbody td.downloads {
         width: 60px !important;
         text-align: right;
         padding-right: 10px;
     }
-    #versionHistory tbody tr td, #versionHistory thead tr th, #managePackageID tbody tr td, #unpublishedPackages thead tr th {
+    table.packages tbody tr td, table.packages thead tr th {
         padding-right: 35px !important;
     }
-    #versionHistory tbody tr:hover, #versionHistory tbody tr:hover td, #managePackageID tbody tr:hover, #managePackageID tbody tr:hover td, #unpublishedPackages tbody tr:hover td { /* Adding BG to TD fixes IE7 bug */
+    table.packages tbody tr:hover { /* Adding BG to TD fixes IE7 bug */
         background-color: #eee !important;
     }
-    #versionHistory tbody tr td, #managePackageID tbody tr td, #unpublishedPackages tbody tr td {
+    table.packages tbody tr td {
         padding-top: 4px;
         padding-bottom: 6px;
     }
-    #versionHistory tbody tr td:first-child, #versionHistory thead tr th:first-child, #managePackageID tbody tr td:first-child, #managePackageID thead tr th:first-child, #unpublishedPackages thead tr th:first-child, #unpublishedPackages tbody tr td:first-child {
+    table.packages tbody tr td:first-child, table.packages thead tr th:first-child {
         padding-left: 28px !important;
     }
-    #versionHistory tbody tr td:last-child, #versionHistory thead tr th:last-child, #managePackageID tbody tr td:last-child, #managePackageID thead tr th:last-child, #unpublishedPackages thead tr th:last-child, #unpublishedPackages tbody tr td:last-child {
+    table.packages tbody tr td:last-child, table.packages thead tr th:last-child {
         padding-right: 25px !important;
     }
-    #versionHistory thead tr th, #managePackageID thead tr th, #unpublishedPackages thead tr th {
+    table.packages thead tr th {
         padding: 10px 0;
     }
-    #versionHistory  tbody > tr.unpublished {
+    table.packages tbody > tr.unpublished {
         color: #bbb;
     }
-    #versionHistory  tbody > tr.recommended > td.version {
+    table.packages tbody > tr.recommended > td.version {
         background: url(../Content/Images/recommendedSmall.png) 5px 5px no-repeat;
     }
-    #versionHistory  td.warning {
+    table.packages td.warning {
         background: url(../Content/Images/warningBullet.png) 5px 2px no-repeat;
     }
-    #versionHistory td.rating div {
+    table.packages td.rating div {
         float: right;
         width: auto;
     }
-    #versionHistory th.rating {
+    table.packages th.rating {
         text-align: center;
         width: 85px;
     }
-    #versionHistory tr.current td {
+    table.packages tr.current td {
         font-weight: bold;
     }
     th.ownerActions {
@@ -414,19 +421,16 @@ h4 + header.registerPackageHeader { margin-top: 50px; }
     td.ownerActions ul {
         margin: 0 auto;
         width: 70px;
-        text-align: right;
     }
         td.ownerActions ul li {
             display: inline;
             width: 20px;
             margin-right:8px;
+            padding-left: 4px;
         }
         td.ownerActions ul li:last-child {
             margin: 0 !important;
         }
-    #managePackageID td, #unpublishedPackages td {
-        font-weight: bold;
-    }
 .packageItemDetail div a.greenButton {
     margin: 10px 0 20px;
 }

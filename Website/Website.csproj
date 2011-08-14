@@ -180,7 +180,9 @@
     <Compile Include="App_Start\VersionRouteConstraint.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
     <Compile Include="ViewModels\IPreviousNextPager.cs" />
+    <Compile Include="ViewModels\ManagePackagesViewModel.cs" />
     <Compile Include="ViewModels\PackageListViewModel.cs" />
+    <Compile Include="ViewModels\PackageViewModel.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
@@ -199,7 +201,9 @@
     <Content Include="Content\Images\blueStar.png" />
     <Content Include="Content\Images\contribGraphic.png" />
     <Content Include="Content\Images\download.png" />
+    <Content Include="Content\Images\editIcon.png" />
     <Content Include="Content\Images\grayStar.png" />
+    <Content Include="Content\Images\greenArrow.png" />
     <Content Include="Content\Images\headerbackground.png" />
     <Content Include="Content\Images\hero.png" />
     <Content Include="Content\Images\herowithlogo.png" />
@@ -217,6 +221,7 @@
     <Content Include="Content\Images\required.png" />
     <Content Include="Content\Images\searchButton.png" />
     <Content Include="Content\Images\stars.png" />
+    <Content Include="Content\Images\trash.png" />
     <Content Include="Content\Images\userGraphic.png" />
     <Content Include="Content\Images\userIconWhite.png" />
     <Content Include="Content\Images\xmark.png" />
@@ -313,6 +318,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Users\Packages.cshtml" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />

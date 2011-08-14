@@ -19,6 +19,14 @@ namespace NuGetGallery {
             return url.RouteUrl(RouteName.Account, new { action = action.ToString() });
         }
 
+        public static string Publish(this UrlHelper url, Package package) {
+            return url.Package(package, PackageVersionAction.PublishPackage);
+        }
+
+        public static string Publish(this UrlHelper url, IPackageVersionModel package) {
+            return url.Package(package, PackageVersionAction.PublishPackage);
+        }
+
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm) {
             return url.RouteUrl(RouteName.ListPackages,
                 new {

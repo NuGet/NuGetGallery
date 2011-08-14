@@ -84,10 +84,12 @@ namespace NuGetGallery {
             Mock<IUserService> userSvc = null) {
             formsAuthSvc = formsAuthSvc ?? new Mock<IFormsAuthenticationService>();
             userSvc = userSvc ?? new Mock<IUserService>();
+            var packageService = new Mock<IPackageService>();
 
             return new UsersController(
                 formsAuthSvc.Object,
-                userSvc.Object);
+                userSvc.Object,
+                packageService.Object);
         }
     }
 }

@@ -69,7 +69,7 @@ namespace NuGetGallery {
                 return View();
             }
 
-            string packagePublishUrl = Url.Package(packageVersion, PackageVersionAction.PublishPackage);
+            string packagePublishUrl = Url.Publish(packageVersion);
             return Redirect(packagePublishUrl);
         }
 
@@ -119,7 +119,7 @@ namespace NuGetGallery {
                 return PackageNotFound(id, version);
             }
 
-            return View(new DisplayPackageViewModel(package, Url));
+            return View(new DisplayPackageViewModel(package));
         }
 
         public ActionResult ListPackages(string q, string sortOrder = Const.DefaultPackageListSortOrder, int page = 1) {
@@ -158,11 +158,6 @@ namespace NuGetGallery {
                 PackageId = id,
                 PackageVersion = package.Version
             };
-
-            if (Request.IsAuthenticated) {
-                var user = userSvc.FindByUsername(HttpContext.User.Identity.Name);
-                model.Email = user.EmailAddress;
-            }
 
             return View(model);
         }

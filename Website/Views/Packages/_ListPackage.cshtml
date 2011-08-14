@@ -3,7 +3,7 @@
 <div class="content-item package">
     <div class="packageItem packages">
         <a href="@Url.Package(Model)">
-            <img src="@Model.IconUrl" class="thumbnail" title="@Model.Id Package icon" />
+            <img src="@(Model.IconUrl ?? Url.Content("~/Content/Images/packagesDefaultIcon.png"))" class="thumbnail" title="@Model.Id Package icon" />
         </a>
         <header>
             <div>

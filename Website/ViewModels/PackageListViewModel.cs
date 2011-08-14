@@ -10,7 +10,7 @@ namespace NuGetGallery {
             int pageIndex,
             int pageSize,
             UrlHelper url) {
-            var items = packages.Select(pv => new DisplayPackageViewModel(pv, url));
+            var items = packages.Select(pv => new DisplayPackageViewModel(pv));
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = packages.Count();

@@ -36,7 +36,7 @@
                             </p>
                             }
                             else {
-                                @Html.HiddenFor(m => m.Email)
+                                <input type="hidden" name="Email" value="*" />
                             }
                             
                             @Html.LabelFor(m => m.Message, "Provide a detailed abuse report. Include exactly what the package did.")

@@ -98,6 +98,14 @@ namespace NuGetGallery {
                 .ToList();
         }
 
+        public IEnumerable<Package> FindPackagesByOwner(User user) {
+            return (from pr in packageRegistrationRepo.GetAll()
+                    from u in pr.Owners
+                    where u.Username == user.Username
+                    from p in pr.Packages
+                    select p).Include(p => p.PackageRegistration).ToList();
+        }
+
         public void PublishPackage(string id, string version) {
             var package = FindPackageByIdAndVersion(id, version);
 
