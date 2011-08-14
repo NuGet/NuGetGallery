@@ -141,6 +141,7 @@
     <Compile Include="UsersController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20110813170000_FixPackageColumnSizes.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
