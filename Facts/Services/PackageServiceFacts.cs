@@ -300,13 +300,14 @@ namespace NuGetGallery {
         public class TheFindPackageByIdAndVersionMethod {
             [Fact]
             public void WillGetTheLatestVersionWhenTheVersionArgumentIsNull() {
-                var packageRegistration = new PackageRegistration { Id = "theId", Packages = new HashSet<Package>() };
-                packageRegistration.Packages.Add(new Package { Version = "1.0" });
-                packageRegistration.Packages.Add(new Package { Version = "2.0" });
-                var service = CreateService(
-                    setup: mockPackageSvc => {
-                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
-                    });
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var packages = new[] {
+                    new Package { Version = "1.0", PackageRegistration = packageRegistration },
+                    new Package { Version = "2.0", PackageRegistration = packageRegistration } 
+                }.AsQueryable();
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                packageRepo.Setup(r => r.GetAll()).Returns(packages);
+                var service = CreateService(packageRepo: packageRepo);
 
                 var package = service.FindPackageByIdAndVersion("theId", null);
 

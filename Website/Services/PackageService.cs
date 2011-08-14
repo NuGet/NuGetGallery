@@ -61,7 +61,6 @@ namespace NuGetGallery {
         public virtual PackageRegistration FindPackageRegistrationById(string id) {
             return packageRegistrationRepo.GetAll()
                 .Include(pr => pr.Owners)
-                .Include(pr => pr.Packages)
                 .Where(pr => pr.Id == id)
                 .SingleOrDefault();
         }
@@ -70,21 +69,32 @@ namespace NuGetGallery {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentNullException("id");
 
-            if (version == null) {
-                var packageRegistration = FindPackageRegistrationById(id);
-
-                return packageRegistration.Packages
-                    .Where(p => new Version(p.Version) == packageRegistration.Packages.Max(p2 => new Version(p2.Version)))
-                    .SingleOrDefault();
-            }
-            else
-                return packageRepo.GetAll()
+            // Optimization: Everytime we look at a package we almost always want to see 
+            // all the other packages with the same via the PackageRegistration property. 
+            // This resulted in a gnarly query. 
+            // Instead, we can always query for all packages with the ID and then fix up 
+            // the Packages property for the one we plan to return.
+            var packageVersions = packageRepo.GetAll()
                     .Include(p => p.Authors)
                     .Include(p => p.Reviews)
                     .Include(p => p.PackageRegistration)
-                    .Include(p => p.PackageRegistration.Packages)
+                    .Where(p => p.PackageRegistration.Id == id).ToList();
+
+            Package package = null;
+            if (version == null) {
+                package = packageVersions
+                    .Where(p => new Version(p.Version) == packageVersions.Max(p2 => new Version(p2.Version)))
+                    .SingleOrDefault();
+            }
+            else {
+                package = packageVersions
                     .Where(p => p.PackageRegistration.Id == id && p.Version == version)
                     .SingleOrDefault();
+            }
+            if (package != null) {
+                package.PackageRegistration.Packages = packageVersions;
+            }
+            return package;
         }
 
         public IEnumerable<Package> GetLatestVersionOfPublishedPackages() {
