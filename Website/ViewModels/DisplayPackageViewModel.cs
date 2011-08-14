@@ -5,21 +5,27 @@ using System.Security.Principal;
 namespace NuGetGallery {
     public class DisplayPackageViewModel : PackageViewModel {
         public DisplayPackageViewModel(Package package)
+            : this(package, true) {
+        }
+
+        public DisplayPackageViewModel(Package package, bool includePackageVersions)
             : base(package) {
 
-            Authors = package.Authors;
-            Owners = package.PackageRegistration.Owners;
             RatingCount = package.Reviews.Count;
             RatingSum = package.Reviews.Sum(r => r.Rating);
             Tags = package.Tags != null ? package.Tags.Trim().Split(' ') : null;
-            PackageVersions = from p in package.PackageRegistration.Packages
-                              orderby p.Version descending
-                              select new DisplayPackageViewModel(p);
+            if (includePackageVersions) {
+                Authors = package.Authors;
+                Owners = package.PackageRegistration.Owners;
+                PackageVersions = from p in package.PackageRegistration.Packages
+                                  orderby p.Version descending
+                                  select new DisplayPackageViewModel(p, false);
+            }
         }
-
         public IEnumerable<PackageAuthor> Authors { get; set; }
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
+        public int TotalDownloadCount { get; set; }
         public int RatingCount { get; set; }
         public int RatingSum { get; set; }
         public float RatingAverage {

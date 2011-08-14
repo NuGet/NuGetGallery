@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
-
 namespace NuGetGallery {
     public class PackagesController : Controller {
         public const string Name = "Packages";
@@ -118,8 +118,9 @@ namespace NuGetGallery {
             if (package == null) {
                 return PackageNotFound(id, version);
             }
-
-            return View(new DisplayPackageViewModel(package));
+            var model = new DisplayPackageViewModel(package);
+            model.TotalDownloadCount = model.PackageVersions.Sum(p => p.DownloadCount);
+            return View(model);
         }
 
         public ActionResult ListPackages(string q, string sortOrder = Const.DefaultPackageListSortOrder, int page = 1) {
