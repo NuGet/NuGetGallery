@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using NuGet;
 
 namespace NuGetGallery {
@@ -11,7 +12,7 @@ namespace NuGetGallery {
 
         Package FindPackageByIdAndVersion(string id, string version = null);
 
-        IEnumerable<Package> GetLatestVersionOfPublishedPackages();
+        IQueryable<Package> GetLatestVersionOfPublishedPackages();
 
         void PublishPackage(string id, string version);
 

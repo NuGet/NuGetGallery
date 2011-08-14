@@ -125,7 +125,8 @@ namespace NuGetGallery {
             if (page < 1) {
                 page = 1;
             }
-            IEnumerable<Package> packageVersions = null;
+
+            IQueryable<Package> packageVersions = null;
             if (String.IsNullOrEmpty(q)) {
                 packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
             }
@@ -133,6 +134,7 @@ namespace NuGetGallery {
                 // TODO: Implement the actual searching
                 packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
             }
+
             var viewModel = new PackageListViewModel(packageVersions,
                 q,
                 sortOrder,

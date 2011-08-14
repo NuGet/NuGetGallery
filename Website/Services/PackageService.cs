@@ -97,15 +97,14 @@ namespace NuGetGallery {
             return package;
         }
 
-        public IEnumerable<Package> GetLatestVersionOfPublishedPackages() {
+        public IQueryable<Package> GetLatestVersionOfPublishedPackages() {
             return packageRepo.GetAll()
                 .Include(x => x.PackageRegistration)
                 .Include(x => x.Authors)
                 .Include(x => x.PackageRegistration.Owners)
                 .Include(x => x.PackageRegistration.Packages)
                 .Include(x => x.Reviews)
-                .Where(pv => pv.Published != null && pv.IsLatest)
-                .ToList();
+                .Where(pv => pv.Published != null && pv.IsLatest);
         }
 
         public IEnumerable<Package> FindPackagesByOwner(User user) {

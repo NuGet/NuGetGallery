@@ -4,13 +4,19 @@ using System.Web.Mvc;
 
 namespace NuGetGallery {
     public class PackageListViewModel {
-        public PackageListViewModel(IEnumerable<Package> packages,
+        public PackageListViewModel(IQueryable<Package> packages,
             string searchTerm,
             string sortOrder,
             int pageIndex,
             int pageSize,
             UrlHelper url) {
-            var items = packages.Select(pv => new DisplayPackageViewModel(pv));
+            // TODO: Implement actual sorting
+            var items = packages.OrderBy(p => p.PackageRegistration.DownloadCount)
+                                .Skip(pageIndex * pageSize)
+                                .Take(pageSize)
+                                .ToList()
+                                .Select(pv => new DisplayPackageViewModel(pv));
+
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = packages.Count();
