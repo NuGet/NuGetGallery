@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+
 namespace NuGetGallery {
     public partial class PackagesController : Controller {
         // TODO: add support for URL-based package submission
@@ -131,8 +132,7 @@ namespace NuGetGallery {
                 packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
             }
             else {
-                // TODO: Implement the actual searching
-                packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
+                packageVersions = packageSvc.GetLatestVersionOfPublishedPackages().Search(q);
             }
 
             var viewModel = new PackageListViewModel(packageVersions,
