@@ -158,18 +158,12 @@ header p.author {
     header p.author + ul {
 
     }
-span.prerelease, span.latest, span.isNotRecommended, span.isNotPublished {
-    float: right;
-    width: 114px;
-    height: 23px;
-}
+
 a.silverButtonBig + span.prerelease, a.silverButtonBig + span.latest, a.silverButtonBig + span.isNotRecommended, a.silverButtonBig + span.isNotPublished {
     margin-left:10px;
     float: left !important;
 }
-span.latest.edit, span.prerelease.edit {
-    height: 36px !important;
-}
+
 span.isNotRecommended.edit {
     width: auto !important;
 }
@@ -188,8 +182,8 @@ span.latest, span.prerelease {
     background-repeat: no-repeat;
     background-position: 8px 50%;
     font-weight: bold;
-    background-color: #F2F5EA;
-    font-size: 12px;
+    font-size: .5em;
+    float: right;
 }
 
 /* TODO: Need an icon for pre-release */
@@ -197,21 +191,6 @@ span.latest {
     background-image: url(../Content/Images/recommended.png);
 }
 
-span.latest span, span.latest span {
-    font-size: 0.75em;
-    font-weight: normal !important;
-}
-span.prerelease span.prereleaseHover, span.latest span.latestHover {
-    background-color: #E1E6D5;
-    display: block;
-    left: -40px;
-    padding: 12px;
-    position: relative;
-    top: 10px;
-    width: 130px;
-    font-weight: normal !important;
-    font-size: 1em !important;
-}
 div.theme header p.author {
     display:block;
 }
@@ -274,15 +253,14 @@ div.theme header p.author {
     background: transparent url(../Content/Images/commentsIcon.png) no-repeat 0 5px;
 }
 .packageItemDetail header {
-    border-bottom: 1px solid #E6E6E6;
-    padding-bottom: 30px;
+    padding-bottom: 15px;
 }
 .packageItemDetail div.reviews-content header {
     border-bottom: none;
     padding-bottom: 0px;
 }
 .packageItemDetail ul.links {
-    margin: 20px 0;
+    margin: 5px 0 30px 0;
 }
     .packageItemDetail ul.links li {
         font-size: 1.09em;
@@ -301,11 +279,55 @@ div.theme header p.author {
     padding: 0 !important;
     font-size: 14px !important;
 }
+
+div.stats {
+    display: inline-block;
+    width: 49%;
+    color: #9b918d;
+    vertical-align: top;
+    text-align: right;
+}
+
+div.stats span.downloads {
+    display: inline-block;
+    margin-left: 10px;
+    text-align: right;
+}
+
+div.stats span.downloads strong
+{
+    display: block;
+    font-size: 2.3em;
+}
+
+
+div.stats div.ratings {
+    display: block;
+    text-align: right;
+    margin-top: 8px;
+}
+
+div.stats div.ratings div.ratings-wrapper {
+    display: block;
+    float: right;
+}
+
+div.stats div.ratings div.ratings-wrapper .a-star {
+    text-indent: 9999px;
+}
+
+div.stats ul.stars-details 
+{
+    display: block;
+    float: right;
+}
+
 #packageDetails {
     border-top: 1px solid #e6e6e6;
+    display: inline-block;
+    width: 49%;
 }
 #packageDetails, #versionHistory {
-    width: 100%;
     margin-bottom: 10px;
 }
     #packageDetails thead td, #versionHistory thead td {
@@ -322,8 +344,7 @@ div.theme header p.author {
     }
     #packageDetails th {
         text-align: left;
-        padding: 6px 0 6px 28px;
-        width: 145px !important;
+        padding: 6px 18px 6px 28px;
     }
 h4.packageDetailsTableHeader, a.packageDetailsTableHeader, h4.reviews-heading {
     width: 100%;

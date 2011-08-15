@@ -11,7 +11,6 @@
                 </div>
             </div>
         }
-
         <div id="content" class="group">
             <div class="zone zone-content">
                 <section class="packageItemDetail icon">
@@ -22,95 +21,126 @@
                     </div>
                     <div>
                         <header>
-                            <div>
-                                @if (Model.Prerelease) { 
+                            <div class="title">
+                                <h2>@Model.Title</h2>
+                                <h3>
+                                    @Model.Version
+                                    @if (Model.Prerelease) { 
                                     <span class="prerelease">Prerelease</span>
-                                }
-                                else if (Model.LatestVersion) {
-                                    <span class="latest">Latest Version</span>
-                                }
-                                <h2>@Model.Title - @Model.Version</h2>
+                                    }
+                                    else if (Model.LatestVersion) {
+                                        <span class="latest">Latest Version</span>
+                                    }
+                                </h3>
                             </div>
-                            @if (Model.IsOwner(User)) {
-                            <div class="zone zone-actions">
-                            <ul>
-                                <li><a class="edit" href="@Url.Package(Model, PackageVersionAction.EditPackage)">Edit</a></li>
-                                <li><a class="manage-owners" href="@Url.Package(Model, PackageAction.ManagePackageOwners)">Manage Owners</a></li>
-                                <li><a href="#" onclick="DeletePackage('RouteMagic', '1.1.1'); return false;" class="delete">Delete</a></li>
-                                <li>
-                                    <a href="#" title="Unpublish" class="unpublishPackageLink" data-package-id="RouteMagic" data-package-version="1.1.1">
-                                        Unpublish
-                                    </a>
-                                </li>
-                                </ul>
-                            </div>
-                            }
-                            <div>
-                                <div class="zone zone-authors">
-                                    <p class="author">By 
-                                        @Model.Authors.Flatten(@<a href="@Url.Search(item.Name)">@item.Name</a>)
-                                    </p>
-                                </div>
+                            <div class="description">
+                                <p>
+                                    @Model.Description
+                                </p>
+                                <p>
+                                    To install @Model.Title, run the following command in 
+                                    the Package Manager Console:
+                                    <code class="command">
+                                        Install-Package @Model.Id
+                                    </code>
+                                </p>
                             </div>
                         </header>
-                        <p>@Model.Description</p>
+                        
+                        <h4 class="details-header">Packages details</h4>
                         <ul class="links">
                             @if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
-                                <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">Project site</a></li>
+                                <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
+                                    Project site</a></li>
                             }
                             @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
                                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
                             }
                             <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">Report Abuse</a></li>
                             <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
+                            <li><a href="@Url.Package(Model, PackageVersionAction.ReportAbuse)" title="Report Abuse">
+                                Report Abuse</a></li>
                         </ul>
-                        <div class="commandWrapper">
-                            <div class="commandPrompt">
-                                <p class="command">PM&#62; Install-Package @Model.Id</p>
-                            </div>
-                        </div>        
-                        <h4 class="packageDetailsTableHeader">Packages details</h4>
+
                         <table id="packageDetails">
                             <tr>
-                                <th>Rating:</th>
+                                <th>
+                                    <strong>Package ID:</strong>
+                                </th>
                                 <td>
-                                    <div class="zone zone-rating">
-                                        <div class="stars-rating " title="Log-in to rate this item">
-                                            @ViewHelpers.DisplayRating(@Model.RatingAverage)
-                                            <ul class="stars-details">
-                                                <li>Ratings: @Model.RatingCount</li>
-                                                <li>Average: @Model.RatingAverage</li>
-                                            </ul>
-                                        </div>
-                                    </div>
+                                    <strong>@Model.Id</strong>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>
+                                    Authors
+                                </th>
+                                <td>@Model.Authors.Flatten(@<a href="@Url.Search(item.Name)">@item.Name</a>)
                                 </td>
                             </tr>
                             <tr>
-                                <th>Tags:</th>
-                                <td>@Model.Tags.Flatten(@<a href="@Url.Search(item)">@item</a>)</td>
+                                <th>
+                                    Owners
+                                </th>
+                                <td>@Model.Owners.Flatten(@<a href="@Url.Search(item.Username)">@item.Username</a>)
+                                </td>
                             </tr>
                             <tr>
-                                <th>Total Downloads:</th>
-                                <td>@Model.TotalDownloadCount</td>
+                                <th>
+                                    Tags:
+                                </th>
+                                <td>@Model.Tags.Flatten(@<a href="@Url.Search(item)">@item</a>)
+                                </td>
                             </tr>
                             <tr>
-                                <th>Last updated:</th>
-                                <td>@Model.LastUpdated</td>
-                            </tr>
-                            <tr>
-                                <th>Package ID:</th>
-                                <td>@Model.Id</td>
+                                <th>
+                                    Last updated:
+                                </th>
+                                <td>@Model.LastUpdated.ToString("F")
+                                </td>
                             </tr>
                         </table>
-                        <h4 class="packageDetailsTableHeader">Version history</h4>
+
+                        <div class="stats">
+                            <span class="downloads">
+                                <strong>@Model.TotalDownloadCount</strong>
+                                <label>total downloads</label>
+                            </span>
+                            <span class="downloads">
+                                <strong>@Model.DownloadCount</strong>
+                                <label>for this version</label>
+                            </span>
+                            <div class="ratings">
+                                <div class="ratings-wrapper">
+                                    <div class="stars-rating" title="Log-in to rate this item">
+                                        @ViewHelpers.DisplayRating(@Model.RatingAverage)
+                                        <ul class="stars-details">
+                                            <li>Ratings: @Model.RatingCount</li>
+                                            <li>Average: @Model.RatingAverage</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 class="details-header">Version history</h4>
                         <div id="versionHistory">
                             <table class="packages" cellpadding="0" cellspacing="0">
                                 <thead>
                                     <tr class="header">
-                                        <th class="version">Version</th>
-                                        <th class="downloads">Downloads</th>
-                                        <th class="lastUpdated">Last updated</th>
-                                        <th class="rating">Rating</th>
+                                        <th class="version">
+                                            Version
+                                        </th>
+                                        <th class="downloads">
+                                            Downloads
+                                        </th>
+                                        <th class="lastUpdated">
+                                            Last updated
+                                        </th>
+                                        <th class="rating">
+                                            Rating
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -124,8 +154,10 @@
                                                     <span>@packageVersion.Title @packageVersion.Version</span>
                                                 }
                                             </td>
-                                            <td class="downloads">@packageVersion.DownloadCount</td>
-                                            <td class="lastUpdated">@packageVersion.LastUpdated</td>
+                                            <td class="downloads">@packageVersion.DownloadCount
+                                            </td>
+                                            <td class="lastUpdated">@packageVersion.LastUpdated.ToString("D")
+                                            </td>
                                             <td class="rating">
                                                 <div class="stars-rating">
                                                     @ViewHelpers.DisplayRating(@packageVersion.RatingAverage)
@@ -140,51 +172,55 @@
                 </section>
             </div>
         </div>
-        
         <div id="after-content">
             <div class="zone zone-after-content">
-                <div id="deletePackageConfirmationDialogDiv" title="Confirm Delete" style="display:none">
+                <div id="deletePackageConfirmationDialogDiv" title="Confirm Delete" style="display: none">
                     <p>
-                        Are you sure you wish to delete the package <span id="packageIdToDeleteSpan"></span>, version <span id="packageVersionToDeleteSpan"></span>?
+                        Are you sure you wish to delete the package <span id="packageIdToDeleteSpan"></span>
+                        , version <span id="packageVersionToDeleteSpan"></span>?
                     </p>
                     <p class="confirmDialogWarning">
                         If you delete it, you will lose any associated downloads or reviews.
                     </p>
                     <form action="/Package/Delete" method="post">
-                        <input type="hidden" id="packageIdToDelete" name="packageId" />
-                        <input type="hidden" id="packageVersionToDelete" name="packageVersion" />
-                        <input type="hidden" id="shouldRedirect" name="shouldRedirect" />
-                        <input type="submit" value="Delete item anyway" />
-                        <input type="button" value="Cancel" onclick="CloseDeleteConfirmationDialogDiv(); return false;" />
-                        <input name="__RequestVerificationToken" type="hidden" value="kJogljoDg7l4akjYBGhYgSYmzWkuhMmVfaYZB2ctP5TNhQsQSN+MX7Llg1mGoIOnIOHsxLbwtypO/hwszyX6JVlJd63HaN+ASLtpBKWJMcvwpRQNBbMYS6agn2rRbaYkp37nEzmJspfg2iU5ER63gXF5Q9WY7i2Hhba+/N26OMH91V8ellpMy6/OagqBieNiBy2aUS55XhSoaAcdaIpo8w==" />
+                    <input type="hidden" id="packageIdToDelete" name="packageId" />
+                    <input type="hidden" id="packageVersionToDelete" name="packageVersion" />
+                    <input type="hidden" id="shouldRedirect" name="shouldRedirect" />
+                    <input type="submit" value="Delete item anyway" />
+                    <input type="button" value="Cancel" onclick="CloseDeleteConfirmationDialogDiv(); return false;" />
+                    <input name="__RequestVerificationToken" type="hidden" value="kJogljoDg7l4akjYBGhYgSYmzWkuhMmVfaYZB2ctP5TNhQsQSN+MX7Llg1mGoIOnIOHsxLbwtypO/hwszyX6JVlJd63HaN+ASLtpBKWJMcvwpRQNBbMYS6agn2rRbaYkp37nEzmJspfg2iU5ER63gXF5Q9WY7i2Hhba+/N26OMH91V8ellpMy6/OagqBieNiBy2aUS55XhSoaAcdaIpo8w==" />
                     </form>
                 </div>
-                <div id="unpublishPackageConfirmationDialogDiv" title="Confirm Unpublish" style="display:none">
+                <div id="unpublishPackageConfirmationDialogDiv" title="Confirm Unpublish" style="display: none">
                     <p>
-                        Are you sure you wish to unpublish the package <span id="packageIdToUnpublishSpan"></span>, version <span id="packageVersionToUnpublishSpan"></span>?
+                        Are you sure you wish to unpublish the package <span id="packageIdToUnpublishSpan">
+                        </span>, version <span id="packageVersionToUnpublishSpan"></span>?
                     </p>
                     <p>
-                        If you unpublish this item, users will no longer be able to view or download it. Download counts and reviews are retained, however.
+                        If you unpublish this item, users will no longer be able to view or download it.
+                        Download counts and reviews are retained, however.
                     </p>
                     <p>
-                        The item can still be downloaded from the feed, in case a dependent package requires it. If you want to remove the item from the feed, delete it instead.
+                        The item can still be downloaded from the feed, in case a dependent package requires
+                        it. If you want to remove the item from the feed, delete it instead.
                     </p>
                     <form action="/Orchard.Gallery/Package/Unpublish" method="post">
-                        <input type="hidden" id="packageIdToUnpublish" name="packageId" />
-                        <input type="hidden" id="packageVersionToUnpublish" name="packageVersion" />
-                        <input type="submit" value="Unpublish" />
-                        <input type="button" value="Cancel" onclick="CloseConfirmationDialogDiv(); return false;" />
-                        <input name="__RequestVerificationToken" type="hidden" value="ZvRArQBame0aiUbbmeRKm44g3TybW8KopxBshTIV9VA+fwE/WQeyiawslclO61C9U3ks8nOX01QhqMCnSQE2f9nFyJ60+H9mAr0VyCchz1TU94bLa5T5Jp52pefh2KLSn7M4C10cQAGgcZt2WsfV/8q50JX1Lx9D7hsD8BkneGUeZ9N9h+s8yqMYq3JGXaQ6Cy2bZ9XjBfPMFqPXLZr5JQ==" />
+                    <input type="hidden" id="packageIdToUnpublish" name="packageId" />
+                    <input type="hidden" id="packageVersionToUnpublish" name="packageVersion" />
+                    <input type="submit" value="Unpublish" />
+                    <input type="button" value="Cancel" onclick="CloseConfirmationDialogDiv(); return false;" />
+                    <input name="__RequestVerificationToken" type="hidden" value="ZvRArQBame0aiUbbmeRKm44g3TybW8KopxBshTIV9VA+fwE/WQeyiawslclO61C9U3ks8nOX01QhqMCnSQE2f9nFyJ60+H9mAr0VyCchz1TU94bLa5T5Jp52pefh2KLSn7M4C10cQAGgcZt2WsfV/8q50JX1Lx9D7hsD8BkneGUeZ9N9h+s8yqMYq3JGXaQ6Cy2bZ9XjBfPMFqPXLZr5JQ==" />
                     </form>
                 </div>
-                <div id="deleteRatingConfirmationDialogDiv" title="Confirm Deletion" style="display:none">
-                    <p>When you clear your rating, if you've left a review it will also be deleted. Do you wish to proceed?</p>
+                <div id="deleteRatingConfirmationDialogDiv" title="Confirm Deletion" style="display: none">
+                    <p>
+                        When you clear your rating, if you've left a review it will also be deleted. Do
+                        you wish to proceed?</p>
                     <input type="button" value="Yes" id="confirmDeleteRatingButton" />
                     <input type="button" value="No" id="cancelDeleteRatingButton" />
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 @section BottomScripts {
