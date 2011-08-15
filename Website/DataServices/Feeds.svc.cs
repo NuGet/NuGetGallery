@@ -3,6 +3,9 @@ using System.Data.Services;
 using System.Data.Services.Common;
 using System.Data.Services.Providers;
 using System.IO;
+using System.Linq;
+using System.ServiceModel;
+using System.ServiceModel.Web;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -11,21 +14,20 @@ namespace NuGetGallery {
     // TODO: make this work for both packages and screen shots?
 
     // TODO: Disable for live service
-    [System.ServiceModel.ServiceBehavior(IncludeExceptionDetailInFaults = true)]
+    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
     public class Feeds : DataService<FeedsContext>, IDataServiceStreamProvider, IServiceProvider {
         readonly IEntityRepository<Package> packageRepo;
-        readonly IPackageFileService packageFileSvc;
 
         public Feeds() {
             // TODO: See if there is a way to do proper DI with data services
             packageRepo = DependencyResolver.Current.GetService<IEntityRepository<Package>>();
-            packageFileSvc = DependencyResolver.Current.GetService<IPackageFileService>();
         }
 
         // This method is called only once to initialize service-wide policies.
         public static void InitializeService(DataServiceConfiguration config) {
+            config.SetServiceOperationAccessRule("Search", ServiceOperationRights.AllRead);
             config.SetEntitySetAccessRule("Packages", EntitySetRights.AllRead);
-
+            config.SetEntitySetPageSize("Packages", 100);
             config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
             config.UseVerboseErrors = true;
         }
@@ -96,6 +98,13 @@ namespace NuGetGallery {
             }
 
             return null;
+        }
+
+        [WebGet]
+        public IQueryable<FeedPackage> Search(string searchTerm, string targetFramework) {
+            return packageRepo.GetAll()
+                              .Search(searchTerm)
+                              .ToFeedPackageQuery();
         }
     }
 }

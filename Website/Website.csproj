@@ -128,6 +128,7 @@
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
+    <Compile Include="DataServices\PackageExtensions.cs" />
     <Compile Include="Entities\PackageReview.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
