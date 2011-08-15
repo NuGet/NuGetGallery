@@ -5,6 +5,7 @@ using OData.Linq;
 
 namespace NuGetGallery {
     public static class PackageExtensions {
+        static DateTime magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions = new DateTime(1900, 1, 1, 0, 0, 0);
         public static IQueryable<FeedPackage> ToFeedPackageQuery(this IQueryable<Package> packages) {
             return packages
                      .WithoutNullPropagation()
@@ -31,8 +32,8 @@ namespace NuGetGallery {
                          PackageHash = p.Hash,
                          PackageHashAlgorithm = p.HashAlgorithm,
                          PackageSize = p.PackageFileSize,
-                         ProjectUrl = p.ProjectUrl,
-                         Published = p.Published ?? new DateTime(1900, 1, 1, 0, 0, 0),
+                         ProjectUrl = p.ProjectUrl, 
+                         Published = p.Published ?? magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions,
                          Rating = p.PackageRegistration.RatingMean,
                          RatingsCount = p.PackageRegistration.RatingCount,
                          // TODO: build the report abuse URL for real
