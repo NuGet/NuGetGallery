@@ -61,6 +61,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified API key does not provide the authority to {0} packages..
+        /// </summary>
+        public static string ApiKeyNotAuthorized {
+            get {
+                return ResourceManager.GetString("ApiKeyNotAuthorized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The email address &apos;{0}&apos; is being used..
         /// </summary>
         public static string EmailAddressBeingUsed {
@@ -75,6 +84,15 @@ namespace NuGetGallery {
         public static string NuGetPackagePropertyTooLong {
             get {
                 return ResourceManager.GetString("NuGetPackagePropertyTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
+        /// </summary>
+        public static string PackageExistsAndCannotBeModified {
+            get {
+                return ResourceManager.GetString("PackageExistsAndCannotBeModified", resourceCulture);
             }
         }
         
