@@ -18,8 +18,12 @@ namespace NuGetGallery {
         private static Func<string, Expression<Func<Package, bool>>> tagCriteria = term =>
             p => p.Tags.Contains(term);
 
+        private static Func<string, Expression<Func<Package, bool>>> authorCriteria = term =>
+            p => p.Authors.Any(a => a.Name.Contains(term));
+
         private static Func<string, Expression<Func<Package, bool>>>[] searchCriteria = new[] { 
                 idCriteria, 
+                authorCriteria,
                 descriptionCriteria, 
                 summaryCriteria, 
                 tagCriteria 
@@ -62,7 +66,8 @@ namespace NuGetGallery {
             }
 
             protected override Expression VisitParameter(ParameterExpression node) {
-                if (node != _parameterExpr) {
+                if (node.Type == _parameterExpr.Type && 
+                    node != _parameterExpr) {
                     return _parameterExpr;
                 }
                 return base.VisitParameter(node);
