@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using System.Web.Configuration;
+using System.Web.Mvc;
 using System.Web.Routing;
+using Elmah.Contrib.Mvc;
 using Migrator.Framework;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.Bootstrapper), "Start")]
@@ -11,6 +13,7 @@ namespace NuGetGallery {
             Routes.RegisterRoutes(RouteTable.Routes);
 
             // TODO: move profile bootstrapping and container bootstrapping to here
+            GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
         }
 
         private static void UpdateDatabase() {

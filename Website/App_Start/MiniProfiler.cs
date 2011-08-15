@@ -9,7 +9,6 @@ using MvcMiniProfiler;
 using MvcMiniProfiler.MVCHelpers;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.App_Start.MiniProfilerPackage), "PreStart")]
-
 [assembly: WebActivator.PostApplicationStartMethod(typeof(NuGetGallery.App_Start.MiniProfilerPackage), "PostStart")]
 
 namespace NuGetGallery.App_Start {
@@ -22,7 +21,6 @@ namespace NuGetGallery.App_Start {
             Database.DefaultConnectionFactory = profiledConnectionFactory;
 
             DynamicModuleUtility.RegisterModule(typeof(MiniProfilerStartupModule));
-
             GlobalFilters.Filters.Add(new ProfilingActionFilter());
         }
 
@@ -41,7 +39,7 @@ namespace NuGetGallery.App_Start {
             context.BeginRequest += (sender, e) => {
                 var request = ((HttpApplication)sender).Request;
 
-                //TODO: only profile for admin users
+                // TODO: only profile for admin users
                 if (request.IsLocal)
                     MiniProfiler.Start();
             };
