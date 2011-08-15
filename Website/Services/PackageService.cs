@@ -195,7 +195,7 @@ namespace NuGetGallery {
                 package.Authors.Add(new PackageAuthor { Name = author });
 
             foreach (var dependency in nugetPackage.Dependencies)
-                package.Dependencies.Add(new PackageDependency { Id = dependency.Id, VersionRange = dependency.VersionSpec.ToString() });
+                package.Dependencies.Add(new PackageDependency { Id = dependency.Id, VersionRange = dependency.VersionSpec.ToStringSafe() });
 
             package.FlattenedAuthors = package.Authors.Flatten();
             package.FlattenedDependencies = package.Dependencies.Flatten();

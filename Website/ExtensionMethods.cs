@@ -19,16 +19,23 @@ namespace NuGetGallery {
             routes.Add(routeName, serviceRoute);
         }
 
+        public static string ToStringSafe(this object obj) {
+            if (obj != null) {
+                return obj.ToString();
+            }
+            return String.Empty;
+        }
+
         public static string Flatten(this ICollection<PackageAuthor> authors) {
             return string.Join(",", authors.Select(a => a.Name).ToArray());
         }
 
         public static string Flatten(this ICollection<PackageDependency> dependencies) {
-            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionRange.ToString())));
+            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionRange.ToStringSafe())));
         }
 
         public static string Flatten(this IEnumerable<NuGet.PackageDependency> dependencies) {
-            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionSpec.ToString())));
+            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionSpec.ToStringSafe())));
         }
 
         static string FlattenDependencies(IEnumerable<Tuple<string, string>> dependencies) {

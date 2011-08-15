@@ -82,7 +82,7 @@ namespace NuGetGallery {
                 Assert.Equal("theTitle", package.Title);
 
                 Assert.Equal("theFirstAuthor,theSecondAuthor", package.FlattenedAuthors);
-                Assert.Equal("theFirstDependency:[1.0, 2.0)|theSecondDependency:[1.0]", package.FlattenedDependencies);
+                Assert.Equal("theFirstDependency:[1.0, 2.0)|theSecondDependency:[1.0]|theThirdDependency:", package.FlattenedDependencies);
             }
 
             [Fact]
@@ -546,7 +546,8 @@ namespace NuGetGallery {
             nugetPackage.Setup(x => x.Dependencies).Returns(new[] 
             { 
                 new NuGet.PackageDependency("theFirstDependency", new VersionSpec(){ MinVersion = new Version(1,0), MaxVersion = new Version(2,0), IsMinInclusive = true, IsMaxInclusive = false }),
-                new NuGet.PackageDependency("theSecondDependency", new VersionSpec(new Version(1,0))), 
+                new NuGet.PackageDependency("theSecondDependency", new VersionSpec(new Version(1,0))),
+                new NuGet.PackageDependency("theThirdDependency")
             });
             nugetPackage.Setup(x => x.Description).Returns("theDescription");
             nugetPackage.Setup(x => x.IconUrl).Returns(new Uri("http://theiconurl/"));
