@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using OData.Linq;
 
@@ -31,7 +32,7 @@ namespace NuGetGallery {
                          PackageHashAlgorithm = p.HashAlgorithm,
                          PackageSize = p.PackageFileSize,
                          ProjectUrl = p.ProjectUrl,
-                         Published = p.Published,
+                         Published = p.Published ?? new DateTime(1900, 1, 1, 0, 0, 0),
                          Rating = p.PackageRegistration.RatingMean,
                          RatingsCount = p.PackageRegistration.RatingCount,
                          // TODO: build the report abuse URL for real
