@@ -25,17 +25,17 @@
                 <td class="ownerActions">
                     <ul>
                         <li>
-                            <a href="@Url.Publish(package)" title="Publish"><img src="@Url.Content("~/Content/Images/greenArrow.png")" alt="Publish" /></a>
+                            <a href="@Url.Publish(package)" title="Publish"><img src="@Links.Content.Images.greenArrow_png" alt="Publish" /></a>
                         </li>
                         @*
                         // TODO: Since we don't allow editing the package via the web right now, 
                         this link probably doesn't need to exist.
                         <li>
-                            <a href="@Url.Package(package, PackageVersionAction.EditPackage)" title="Edit"><img src="@Url.Content("~/Content/Images/editIcon.png")" alt="Edit" /></a>
+                            <a href="@Url.Package(package, PackageVersionAction.EditPackage)" title="Edit"><img src="@Links.Content.Images.editIcon_png" alt="Edit" /></a>
                         </li>*@
                         <li>
                             <a href="#" title="Delete" class="deletePackageLink" data-package-id="RouteMagic.Mvc"
-                            data-package-version="0.2.2" data-should-redirect="True"><img src="@Url.Content("~/Content/Images/trash.png")" alt="Delete" /></a>
+                            data-package-version="0.2.2" data-should-redirect="True"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
                         </li>
                     </ul>
                 </td>
@@ -72,7 +72,7 @@
                     <ul>
                         <li>
                             <a href="#" title="Delete" class="deletePackageLink" data-package-id="RouteMagic.Mvc"
-                            data-package-version="0.2.2" data-should-redirect="True"><img src="@Url.Content("~/Content/Images/trash.png")" alt="Delete" /></a>
+                            data-package-version="0.2.2" data-should-redirect="True"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
                         </li>
                     </ul>
                 </td>

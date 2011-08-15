@@ -6,7 +6,7 @@
     <aside id="aside-first" class="aside-first group">
         <div class="zone zone-aside-first">
             <nav id="leftNav">
-                <img src="@Url.Content("~/Content/Images/userGraphic.png")" style="padding-left:70px" alt="Blue User" />
+                <img src="@Links.Content.Images.userGraphic_png" style="padding-left:70px" alt="Blue User" />
                 <p>
                     Don't have an account yet? <a href="@Url.Action(MVC.Users.Register())">Register now.</a>
                 </p>
@@ -19,7 +19,7 @@
             <div class="zone zone-content">
                 <section>
                     <header>
-                        <span class="right"><img src="@Url.Content("~/Content/Images/required.png")" alt="Required" /></span>
+                        <span class="right"><img src="@Links.Content.Images.required_png" alt="Required" /></span>
                         <h2>Log On</h2>
                     </header>
                     <form id="form" method="post" action="@Url.Current()">
