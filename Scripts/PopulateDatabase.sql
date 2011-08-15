@@ -4,6 +4,7 @@ DELETE FROM PackageAuthors
 DELETE FROM Packages
 DELETE FROM PackageRegistrationOwners
 DELETE FROM PackageRegistrations
+DELETE FROM EmailMessages
 DELETE FROM Users
 
 DECLARE @count INT
