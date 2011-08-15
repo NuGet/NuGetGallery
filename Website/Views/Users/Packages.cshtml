@@ -45,16 +45,15 @@
 }
 
 @if (Model.PublishedPackages.Any()) {
-    <header>
+    <header class="manage-packages">
         <h2>Manage My Packages</h2>
         <p>These packages are currently published for the world to see.</p>
-        <span class="displayResults">Displaying results 1 - 10 of 26.</span>
     </header>
 
    <table class="packages owned">
         <thead class="header">
             <tr>
-                <th></th>
+                <th>Package</th>
                 <th>Package ID</th>
                 <th>Downloads</th>
                 <th class="ownerActions">Actions</th>

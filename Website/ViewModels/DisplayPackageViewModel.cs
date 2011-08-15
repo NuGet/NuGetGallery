@@ -16,7 +16,7 @@ namespace NuGetGallery {
             Tags = package.Tags != null ? package.Tags.Trim().Split(' ') : null;
             if (includePackageVersions) {
                 Authors = package.Authors;
-                Dependencies = package.Dependencies;
+                Dependencies = package.Dependencies.Select(d => new DependencyViewModel(d));
                 Owners = package.PackageRegistration.Owners;
                 PackageVersions = from p in package.PackageRegistration.Packages
                                   orderby p.Version descending
@@ -24,7 +24,7 @@ namespace NuGetGallery {
             }
         }
         public IEnumerable<PackageAuthor> Authors { get; set; }
-        public ICollection<PackageDependency> Dependencies { get; set; }
+        public IEnumerable<DependencyViewModel> Dependencies { get; set; }
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public int TotalDownloadCount { get; set; }

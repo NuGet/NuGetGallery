@@ -151,7 +151,7 @@ p  { margin: 0 0 1em; }
        display: block;
 }
 
-#versionHistory  tbody > tr.recommended > td.version {
+table.packages tbody > tr.recommended > td.version {
     background: url(../Content/Images/recommendedSmall.png) 5px 5px no-repeat;
 }
 
@@ -534,15 +534,18 @@ header span.rating {
 }
 
 .details-header {
+    margin-top: 20px;
     border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
 }
-#packageDetails, #versionHistory {
+table.packages {
     border-top: none;
+    border-bottom: none;
 }
-#versionHistory thead tr.header, #managePackageID thead tr.header {
+table.packages thead tr.header {
     background-color: #fff;
 }
-#versionHistory thead tr th {
+table.packages thead tr th {
     padding-bottom: 10px;
     border-bottom: 1px solid #ddd;
 }

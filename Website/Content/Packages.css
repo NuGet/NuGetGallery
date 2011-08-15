@@ -254,7 +254,7 @@ div.theme header p.author {
     background: transparent url(../Content/Images/commentsIcon.png) no-repeat 0 5px;
 }
 .packageItemDetail header {
-    padding-bottom: 15px;
+    padding-bottom: 5px;
 }
 .packageItemDetail div.reviews-content header {
     border-bottom: none;
@@ -295,43 +295,39 @@ div.stats span.downloads {
     text-align: right;
 }
 
-div.stats span.downloads strong
-{
+div.stats span.downloads strong {
     display: block;
     font-size: 2.3em;
 }
 
+div.stats span.downloads label {
+    font-size: 1.1em;
+}
 
 div.stats div.ratings {
     display: block;
-    text-align: right;
+    text-align: left;
     margin-top: 8px;
 }
 
-div.stats div.ratings div.ratings-wrapper {
+div.stats div.ratings div.stars-rating {
     display: block;
     float: right;
 }
 
-div.stats div.ratings div.ratings-wrapper .a-star {
-    text-indent: 9999px;
-}
-
-div.stats ul.stars-details 
-{
+div.stats ul.stars-details {
     display: block;
     float: right;
 }
 
 #packageDetails {
-    border-top: 1px solid #e6e6e6;
     display: inline-block;
     width: 49%;
 }
-#packageDetails, #versionHistory {
+#packageDetails, table.packages {
     margin-bottom: 10px;
 }
-    #packageDetails thead td, #versionHistory thead td {
+    #packageDetails thead td, table.packages thead td {
         width: 100%;
         font-size: 1.75em !important; /* 21px */
         text-align: left;
@@ -374,12 +370,13 @@ a.versionHistoryShowMore.less, a#showAllReviewsLink.less {
     margin-top: 5px !important;
 }
 
-.dependencies {
-    margin: 0 0 28px 28px;
-}
-
 /**    Version History, Unpublished Packages, and Manage Package ID Tables     **/
 h4 + header.registerPackageHeader { margin-top: 50px; }
+
+header.manage-packages 
+{
+    margin-top: 30px;
+}
 table.packages {
     border-bottom: 1px solid #e6e6e6;
 }

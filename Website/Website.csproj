@@ -150,6 +150,7 @@
     </Compile>
     <Compile Include="Migrations\20110813170000_FixPackageColumnSizes.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
+    <Compile Include="ViewModels\DependencyViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
     <Compile Include="Migrations\20110809083000_CreatePackageReviewsTable.cs" />
@@ -378,7 +379,7 @@
         <WebProjectProperties>
           <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>55485</DevelopmentServerPort>
+          <DevelopmentServerPort>46723</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>
           </IISUrl>

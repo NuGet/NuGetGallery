@@ -46,7 +46,7 @@
                                 </p>
                             </div>
                         </header>
-                        
+                                        
                         <h4 class="details-header">Packages details</h4>
                         @if (Model.IsOwner(User)) {
                             <div class="package-owner-actions">
@@ -124,72 +124,80 @@
                                 <label>for this version</label>
                             </span>
                             <div class="ratings">
-                                <div class="ratings-wrapper">
-                                    <div class="stars-rating" title="Log-in to rate this item">
-                                        @ViewHelpers.DisplayRating(@Model.RatingAverage)
-                                        <ul class="stars-details">
-                                            <li>Ratings: @Model.RatingCount</li>
-                                            <li>Average: @Model.RatingAverage</li>
-                                        </ul>
-                                    </div>
+                                <div class="stars-rating" title="Log-in to rate this item">
+                                    @ViewHelpers.DisplayRating(@Model.RatingAverage)
+                                    <ul class="stars-details">
+                                        <li>Ratings: @Model.RatingCount</li>
+                                        <li>Average: @Model.RatingAverage</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
 
                         <h4 class="details-header">Dependencies</h4>
-                        <ul class="dependencies">
-                        @foreach (var dependency in Model.Dependencies) {
-                            <li>
-                                <a href="@Url.Package(dependency.Id)">@dependency.Id</a> 
-                                @dependency.VersionRange
-                            </li>
-                        }
-                        </ul>
-                            
-                        <h4 class="details-header">Version history</h4>
-                        <div id="versionHistory">
-                            <table class="packages" cellpadding="0" cellspacing="0">
+                        @if (Model.Dependencies.Any()) {
+                            <table class="packages dependencies">
                                 <thead>
                                     <tr class="header">
-                                        <th class="version">
-                                            Version
-                                        </th>
-                                        <th class="downloads">
-                                            Downloads
-                                        </th>
-                                        <th class="lastUpdated">
-                                            Last updated
-                                        </th>
-                                        <th class="rating">
-                                            Rating
-                                        </th>
+                                        <th style="width: 10%;">Id</th>
+                                        <th class="version">Version Range</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    @foreach (var packageVersion in Model.PackageVersions) {
-                                        <tr class="versionTableRow @if (packageVersion.LatestVersion) {<text>recommended </text>} @if (packageVersion.IsCurrent(Model)) {<text>current</text>} ">
-                                            <td class="version">
-                                                @if (!packageVersion.IsCurrent(Model)) {
-                                                    <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
-                                                }
-                                                else {
-                                                    <span>@packageVersion.Title @packageVersion.Version</span>
-                                                }
-                                            </td>
-                                            <td class="downloads">@packageVersion.DownloadCount
-                                            </td>
-                                            <td class="lastUpdated">@packageVersion.LastUpdated.ToString("D")
-                                            </td>
-                                            <td class="rating">
-                                                <div class="stars-rating">
-                                                    @ViewHelpers.DisplayRating(@packageVersion.RatingAverage)
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
+                            @foreach (var dependency in Model.Dependencies) {
+                                <tr>
+                                    <td style="width: auto;"><a href="@Url.Package(dependency.Id)">@dependency.Id</a></td>
+                                    <td>@dependency.VersionSpec</td>
+                                </tr>
+                            }
                             </table>
-                        </div>
+                        }
+                        else {
+                            <div class="dependencies">
+                                <em>No Dependencies</em>
+                            </div>
+                        }                            
+                        <h4 class="details-header">Version history</h4>
+                        <table class="packages" cellpadding="0" cellspacing="0">
+                            <thead>
+                                <tr class="header">
+                                    <th class="version">
+                                        Version
+                                    </th>
+                                    <th class="downloads">
+                                        Downloads
+                                    </th>
+                                    <th class="lastUpdated">
+                                        Last updated
+                                    </th>
+                                    <th class="rating">
+                                        Rating
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var packageVersion in Model.PackageVersions) {
+                                    <tr class="versionTableRow @if (packageVersion.LatestVersion) {<text>recommended </text>} @if (packageVersion.IsCurrent(Model)) {<text>current</text>} ">
+                                        <td class="version" @if (packageVersion.LatestVersion) {<text>title="Latest Version"</text>}>
+                                            @if (!packageVersion.IsCurrent(Model)) {
+                                                <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
+                                            }
+                                            else {
+                                                <span>@packageVersion.Title @packageVersion.Version</span>
+                                            }
+                                        </td>
+                                        <td class="downloads">@packageVersion.DownloadCount
+                                        </td>
+                                        <td class="lastUpdated">@packageVersion.LastUpdated.ToString("D")
+                                        </td>
+                                        <td class="rating">
+                                            <div class="stars-rating">
+                                                @ViewHelpers.DisplayRating(@packageVersion.RatingAverage)
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </section>
             </div>
