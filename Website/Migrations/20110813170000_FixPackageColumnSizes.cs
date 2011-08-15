@@ -13,18 +13,18 @@ AS
     DECLARE @indices CURSOR
    
     SET @indices = CURSOR FOR
-        select sysindexes.name from sysindexkeys,syscolumns,sysindexes
+        select sys.indexes.name from sys.index_columns,sys.columns,sys.indexes
             WHERE
-                syscolumns.[id] = OBJECT_ID(@table)
-                AND sysindexkeys.[id] = OBJECT_ID(@table)
-                AND sysindexes.[id] = OBJECT_ID(@table)
-                AND syscolumns.name=@column
-                AND sysindexkeys.colid=syscolumns.colid
-                AND sysindexes.[indid]=sysindexkeys.[indid]
+                sys.columns.object_id = OBJECT_ID(@table)
+                AND sys.index_columns.object_id = OBJECT_ID(@table)
+                AND sys.indexes.object_id = OBJECT_ID(@table)
+                AND sys.columns.name=@column
+                AND sys.index_columns.column_id=sys.columns.column_id
+                AND sys.indexes.index_id=sys.index_columns.index_id
                 AND (
-                    SELECT COUNT(*) FROM sysindexkeys AS si2
-                    WHERE si2.id=sysindexes.id
-                    AND si2.indid=sysindexes.indid
+                    SELECT COUNT(*) FROM sys.index_columns AS si2
+                    WHERE si2.object_id=sys.indexes.object_id
+                    AND si2.index_id=sys.indexes.index_id
                 )=1
     OPEN @indices
     DECLARE @index Nvarchar(255)
