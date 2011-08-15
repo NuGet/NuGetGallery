@@ -5,7 +5,7 @@ using OData.Linq;
 
 namespace NuGetGallery {
     public static class PackageExtensions {
-        static DateTime magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions = new DateTime(1900, 1, 1, 0, 0, 0);
+        static readonly DateTime magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions = new DateTime(1900, 1, 1, 0, 0, 0);
         public static IQueryable<FeedPackage> ToFeedPackageQuery(this IQueryable<Package> packages) {
             return packages
                      .WithoutNullPropagation()
