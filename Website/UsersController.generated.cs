@@ -58,6 +58,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string Account = "~/Views/Users/Account.cshtml";
+            public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string Register = "~/Views/Users/Register.cshtml";
         }
     }

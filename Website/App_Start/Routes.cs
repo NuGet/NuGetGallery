@@ -15,6 +15,11 @@ namespace NuGetGallery {
                 "packages",
                 MVC.Packages.ListPackages());
 
+            routes.MapRoute(
+                RouteName.UploadPackage,
+                "upload/package",
+                MVC.Packages.UploadPackage());
+
             // We need the following two routes (rather than just one) due to Routing's 
             // Consecutive Optional Parameter bug. :(
             var packageDisplayRoute = routes.MapRoute(
@@ -39,11 +44,6 @@ namespace NuGetGallery {
                 RouteName.Authentication,
                 "Users/Account/{action}",
                 new { controller = MVC.Authentication.Name });
-
-            routes.MapRoute(
-                RouteName.UploadPackage,
-                "upload/package",
-                MVC.Packages.UploadPackage());
 
             routes.MapRoute(
                 RouteName.Account,

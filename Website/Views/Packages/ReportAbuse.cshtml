@@ -25,7 +25,7 @@
                                 <strong>Important:</strong> This form is for reporting <strong>abusive</strong> packages such as 
                                 packages containing <strong>malicious code</strong> or spam. If the package simply doesn&#8217;t 
                                 appear to work or work correctly, please 
-                                <a href="@Url.Package(Model.PackageId, PackageAction.ContactOwners)" title="contact the owners">contact the package owners.</a> 
+                                <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the package owners.</a> 
                             </p>                            
 
                             @if (!Request.IsAuthenticated) {

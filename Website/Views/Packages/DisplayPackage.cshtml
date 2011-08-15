@@ -61,8 +61,8 @@
                             @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
                                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
                             }
-                            <li><a href="@Url.Package(Model, PackageVersionAction.ReportAbuse)" title="Report Abuse">Report Abuse</a></li>
-                            <li><a href="@Url.Package(Model, PackageAction.ContactOwners)">Contact Owners</a></li>
+                            <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">Report Abuse</a></li>
+                            <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
                         </ul>
                         <div class="commandWrapper">
                             <div class="commandPrompt">

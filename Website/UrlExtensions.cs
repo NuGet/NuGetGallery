@@ -12,7 +12,7 @@ namespace NuGetGallery {
         }
 
         public static string Account(this UrlHelper url) {
-            return url.RouteUrl(RouteName.Account, new { action = "Account" });
+            return url.Action(MVC.Users.Account());
         }
 
         public static string Account(this UrlHelper url, AccountAction action) {
@@ -20,20 +20,15 @@ namespace NuGetGallery {
         }
 
         public static string Publish(this UrlHelper url, Package package) {
-            return url.Package(package, PackageVersionAction.PublishPackage);
+            return url.Action(MVC.Packages.PublishPackage(package.PackageRegistration.Id, package.Version));
         }
 
         public static string Publish(this UrlHelper url, IPackageVersionModel package) {
-            return url.Package(package, PackageVersionAction.PublishPackage);
+            return url.Action(MVC.Packages.PublishPackage(package.Id, package.Version));
         }
 
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm) {
-            return url.RouteUrl(RouteName.ListPackages,
-                new {
-                    page,
-                    q = searchTerm,
-                    sortOrder,
-                });
+            return url.Action(MVC.Packages.ListPackages(searchTerm, sortOrder, page));
         }
 
         public static string PackageList(this UrlHelper url) {
@@ -77,9 +72,7 @@ namespace NuGetGallery {
         }
 
         public static string PackageDownload(this UrlHelper url, string id, string version) {
-            return url.RouteUrl(RouteName.PackageVersionAction,
-                new { id, version, action = "DownloadPackage" },
-                "http");
+            return url.Action(MVC.Packages.DownloadPackage(id, version), protocol: "http");
         }
 
         public static string LogOn(this UrlHelper url) {
@@ -87,7 +80,7 @@ namespace NuGetGallery {
         }
 
         public static string LogOff(this UrlHelper url) {
-            return url.RouteUrl(RouteName.Authentication, new { action = "LogOff", ReturnUrl = url.Current() });
+            return url.Action(MVC.Authentication.LogOff(url.Current()));
         }
 
         public static string Search(this UrlHelper url, string searchTerm) {
@@ -95,26 +88,21 @@ namespace NuGetGallery {
         }
 
         public static string UploadPackage(this UrlHelper url) {
-            return url.RouteUrl(RouteName.UploadPackage);
+            return url.Action(MVC.Packages.UploadPackage());
         }
     }
 
     public enum PackageVersionAction {
-        ReportAbuse,
-        EditPackage,
-        PublishPackage
+        EditPackage // NOTE: there is currently no action by this name!
     }
 
     public enum PackageAction {
-        ContactOwners,
-        ManagePackageOwners
+        ManagePackageOwners // NOTE: there is currently no action by this name!
     }
 
     public enum AccountAction {
         Register,
-        ChangePassword,
-        Packages,
-        GenerateApiKey,
-        ForgotPassword
+        ChangePassword, // NOTE: there is currently no action by this name!
+        Packages
     }
 }

@@ -350,7 +350,9 @@ namespace Links {
             public static readonly string blueStar_png = Url("blueStar.png");
             public static readonly string contribGraphic_png = Url("contribGraphic.png");
             public static readonly string download_png = Url("download.png");
+            public static readonly string editIcon_png = Url("editIcon.png");
             public static readonly string grayStar_png = Url("grayStar.png");
+            public static readonly string greenArrow_png = Url("greenArrow.png");
             public static readonly string headerbackground_png = Url("headerbackground.png");
             public static readonly string hero_png = Url("hero.png");
             public static readonly string herowithlogo_png = Url("herowithlogo.png");
@@ -369,6 +371,7 @@ namespace Links {
             public static readonly string searchButton_png = Url("searchButton.png");
             public static readonly string sendMessageGraphic_png = Url("sendMessageGraphic.png");
             public static readonly string stars_png = Url("stars.png");
+            public static readonly string trash_png = Url("trash.png");
             public static readonly string userGraphic_png = Url("userGraphic.png");
             public static readonly string userIconWhite_png = Url("userIconWhite.png");
             public static readonly string xmark_png = Url("xmark.png");

@@ -8,7 +8,7 @@
             <nav id="leftNav">
                 <img src="@Url.Content("~/Content/Images/userGraphic.png")" style="padding-left:70px" alt="Blue User" />
                 <p>
-                    Don't have an account yet? <a href="@Url.Account(AccountAction.Register)">Register now.</a>
+                    Don't have an account yet? <a href="@Url.Action(MVC.Users.Register())">Register now.</a>
                 </p>
             </nav>
         </div>
@@ -28,7 +28,7 @@
                         @Html.EditorForModel()
                         <div>
                             <button type="submit" name="Register">Log On</button>
-                            <a href="@Url.Account(AccountAction.ForgotPassword)">Lost your Password?</a>
+                            <a href="@Url.Action(MVC.Users.ForgotPassword())">Lost your Password?</a>
                         </div>
                     </form>
                 </section>

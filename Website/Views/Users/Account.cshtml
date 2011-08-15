@@ -30,7 +30,7 @@
                         </p>
                     </section>
                     <section>
-                        <h5><a href="@Url.Account(AccountAction.Packages)">Manage My Contributions</a></h5>
+                        <h5><a href="@Url.Action(MVC.Users.Packages())">Manage My Contributions</a></h5>
                         <p>Edit contribution details or Remove contributions that you have previously uploaded.</p>
                     </section>
                     <section>
@@ -50,7 +50,7 @@
                         <div style="border: 1px solid #ccc;padding:0 15px 15px;width:350px;margin-top:20px;">
                             <h4>Your access key is: </h4>
                             <p id="accessKey">@Model.ApiKey</p>
-                            <form Id="generateKeyForm" action="@Url.Account(AccountAction.GenerateApiKey)" method="post">            
+                            <form Id="generateKeyForm" action="@Url.Action(MVC.Users.GenerateApiKey())" method="post">            
                                 <input id="generateKeyButton" type="button" value="Generate New Key" singleClickButton="true" />
                             </form>
                         </div>
