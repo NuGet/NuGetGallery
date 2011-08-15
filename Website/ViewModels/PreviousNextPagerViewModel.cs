@@ -8,13 +8,14 @@ namespace NuGetGallery {
         public PreviousNextPagerViewModel(IEnumerable<T> items,
             int pageIndex,
             int pageSize,
+            int totalPages,
             Func<int, string> url) {
-
-            HasPreviousPage = pageIndex > 0;
-            Items = items.Skip(pageIndex * pageSize).Take(pageSize);
-            HasNextPage = items.Skip((pageIndex + 1) * pageSize).Any();
-            NextPageUrl = url(pageIndex + 2);
-            PreviousPageUrl = url(pageIndex);
+            int pageNumber = pageIndex + 1;
+            Items = items;
+            HasPreviousPage = pageNumber > 1;
+            HasNextPage = pageNumber < totalPages;
+            NextPageUrl = url(pageNumber + 1);
+            PreviousPageUrl = url(pageNumber - 1);
         }
 
         public bool HasNextPage { get; private set; }

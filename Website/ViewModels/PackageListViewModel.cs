@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using MvcMiniProfiler;
@@ -25,10 +26,13 @@ namespace NuGetGallery {
             TotalCount = packages.Count();
             SortOrder = sortOrder;
             SearchTerm = searchTerm;
+            int pageCount = (TotalCount + PageSize - 1) / PageSize;
+
             var pager = new PreviousNextPagerViewModel<ListPackageItemViewModel>(
                 items,
                 PageIndex,
                 PageSize,
+                pageCount,
                 page => url.PackageList(page, sortOrder, searchTerm)
             );
             Items = pager.Items;
