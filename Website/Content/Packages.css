@@ -61,44 +61,45 @@ Links: #0071BC
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: #666;
 }
-.zone-actions {
+.package-owner-actions {
     float: right;
     width: 230px; /* Exact width set to make IE7 behave */
+    margin-top: -4px;
 }
 .zone-authors {
     float: left;
     padding-top: 2px;
     width: auto;
 }
-.zone-actions ul, .package-owner-actions ul {
+.package-owner-actions ul, .package-owner-actions ul {
     float: right;
     width: 307px;
     margin: 5px 0 12px 0;
     text-align: right;
 }
-    .zone-actions ul li, .package-owner-actions li {
+    .package-owner-actions ul li, .package-owner-actions li {
         display: inline;
         padding-left: 10px;
     }
-    .zone-actions ul li:first-child, .package-owner-actions li:first-child {
+    .package-owner-actions ul li:first-child, .package-owner-actions li:first-child {
         padding-left: 0px;
     }
-.zone-actions ul li a.edit, .package-owner-actions li a.edit {
+.package-owner-actions ul li a.edit, .package-owner-actions li a.edit {
     background-position: 0 -18px;
 }
-.zone-actions ul li a.delete, .package-owner-actions li a.delete {
+.package-owner-actions ul li a.delete, .package-owner-actions li a.delete {
     background-position: 0 -34px;
 }
-.zone-actions ul li a.manage-owners, .package-owner-actions li a.manage-owners {
+.package-owner-actions ul li a.manage-owners, .package-owner-actions li a.manage-owners {
     background-position: 0 -3px;
 }
-.zone-actions ul li a.unpublishPackageLink, .package-owner-actions li a.unpublishPackageLink {
+.package-owner-actions ul li a.unpublishPackageLink, .package-owner-actions li a.unpublishPackageLink {
     background-position: 0 -50px;
 }
-.zone-actions ul li a.publishPackageLink, .package-owner-actions li a.publishPackageLink {
+.package-owner-actions ul li a.publishPackageLink, .package-owner-actions li a.publishPackageLink {
     background-position: 0 -66px;
 }
-.zone-actions ul li a, .package-owner-actions li a {
+.package-owner-actions ul li a, .package-owner-actions li a {
     padding: 0 0 0 15px;
     background-image: url(../Content/Images/packageOwnerActionIcons.png);
     background-repeat: no-repeat;
@@ -372,6 +373,11 @@ a.versionHistoryShowMore.less, a#showAllReviewsLink.less {
 .packageDetailsTableHeader + table {
     margin-top: 5px !important;
 }
+
+.dependencies {
+    margin: 0 0 28px 28px;
+}
+
 /**    Version History, Unpublished Packages, and Manage Package ID Tables     **/
 h4 + header.registerPackageHeader { margin-top: 50px; }
 table.packages {
