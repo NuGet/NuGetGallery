@@ -84,6 +84,60 @@ namespace NuGetGallery {
             }
         }
 
+        public class TheDeletePackageAction {
+            [Fact]
+            public void WillThrowIfTheApiKeyDoesNotExist() {
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
+                var controller = CreateController(userSvc: userSvc);
+
+                var ex = Assert.Throws<EntityException>(() => controller.DeletePackage(Guid.NewGuid(), "theId", "1.0.42"));
+
+                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), ex.Message);
+            }
+
+            [Fact]
+            public void WillThrowIfAPackageWithTheIdAndVersionDoesNotExist() {
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)null);
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+
+                var ex = Assert.Throws<EntityException>(() => controller.DeletePackage(Guid.NewGuid(), "theId", "1.0.42"));
+
+                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+            }
+
+            [Fact]
+            public void WillFindTheUserThatMatchesTheApiKey() {
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+                var apiKey = Guid.NewGuid();
+
+                controller.DeletePackage(apiKey, "theId", "1.0.42");
+
+                userSvc.Verify(x => x.FindByApiKey(apiKey));
+            }
+
+            [Fact]
+            public void WillDeleteThePackage() {
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+                var apiKey = Guid.NewGuid();
+
+                controller.DeletePackage(apiKey, "theId", "1.0.42");
+
+                packageSvc.Verify(x => x.DeletePackage("theId", "1.0.42"));
+            }
+        }
+
         static ApiController CreateController(
             Mock<IPackageService> packageSvc = null,
             Mock<IUserService> userSvc = null,

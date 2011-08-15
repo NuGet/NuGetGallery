@@ -32,11 +32,11 @@ namespace NuGetGallery {
         public virtual ActionResult DeletePackage(Guid apiKey, string id, string version) {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
-                throw new Exception("The specified API key does not provide the authority to push packages.");
+                throw new EntityException(Strings.ApiKeyNotAuthorized, "delete");
 
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
-                throw new Exception(string.Format("A package with id '{0}' and version '{1}' does not exist.", id, version));
+                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
 
             packageSvc.DeletePackage(id, version);
             return new EmptyResult();
