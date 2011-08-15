@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Xunit;
 using Moq;
 using NuGet;
+using Xunit;
 
 namespace NuGetGallery {
     public class ApiControllerFacts {
@@ -135,6 +132,60 @@ namespace NuGetGallery {
                 controller.DeletePackage(apiKey, "theId", "1.0.42");
 
                 packageSvc.Verify(x => x.DeletePackage("theId", "1.0.42"));
+            }
+        }
+
+        public class ThePublishPackageAction {
+            [Fact]
+            public void WillThrowIfTheApiKeyDoesNotExist() {
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
+                var controller = CreateController(userSvc: userSvc);
+
+                var ex = Assert.Throws<EntityException>(() => controller.PublishPackage(Guid.NewGuid(), "theId", "1.0.42"));
+
+                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "publish"), ex.Message);
+            }
+
+            [Fact]
+            public void WillThrowIfAPackageWithTheIdAndVersionDoesNotExist() {
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)null);
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+
+                var ex = Assert.Throws<EntityException>(() => controller.PublishPackage(Guid.NewGuid(), "theId", "1.0.42"));
+
+                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+            }
+
+            [Fact]
+            public void WillFindTheUserThatMatchesTheApiKey() {
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+                var apiKey = Guid.NewGuid();
+
+                controller.PublishPackage(apiKey, "theId", "1.0.42");
+
+                userSvc.Verify(x => x.FindByApiKey(apiKey));
+            }
+
+            [Fact]
+            public void WillPublishThePackage() {
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+                var apiKey = Guid.NewGuid();
+
+                controller.PublishPackage(apiKey, "theId", "1.0.42");
+
+                packageSvc.Verify(x => x.PublishPackage("theId", "1.0.42"));
             }
         }
 
