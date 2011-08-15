@@ -109,8 +109,6 @@ namespace NuGetGallery {
                 .Include(x => x.PackageRegistration)
                 .Include(x => x.Authors)
                 .Include(x => x.PackageRegistration.Owners)
-                .Include(x => x.PackageRegistration.Packages)
-                .Include(x => x.Reviews)
                 .Where(pv => pv.Published != null && pv.IsLatest);
         }
 

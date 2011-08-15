@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -118,7 +117,6 @@ namespace NuGetGallery {
                 return PackageNotFound(id, version);
             }
             var model = new DisplayPackageViewModel(package);
-            model.TotalDownloadCount = model.PackageVersions.Sum(p => p.DownloadCount);
             return View(model);
         }
 

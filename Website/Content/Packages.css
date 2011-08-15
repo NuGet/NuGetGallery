@@ -248,10 +248,8 @@ div.theme header p.author {
     border-bottom: none;
     line-height: 1.4em;
 }
-.packageItem ul.packageMeta li.comments {
+.packageItem ul.packageMeta li:first-child {
     border: none;
-    padding-left: 22px;
-    background: transparent url(../Content/Images/commentsIcon.png) no-repeat 0 5px;
 }
 .packageItemDetail header {
     padding-bottom: 5px;
@@ -287,6 +285,13 @@ div.stats {
     color: #9b918d;
     vertical-align: top;
     text-align: right;
+}
+
+.packageItem .downloads {
+    float: right; 
+    text-align: right; 
+    display: inline-block;
+    font-size: 1.1em;
 }
 
 div.stats span.downloads {

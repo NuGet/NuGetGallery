@@ -52,5 +52,12 @@ namespace NuGetGallery {
                 writer.Write(string.Join(", ", formattedItems.ToArray()));
             });
         }
+
+        public static bool AnySafe<T>(this IEnumerable<T> items) {
+            if (items == null) {
+                return false;
+            }
+            return items.Any();
+        }
     }
 }

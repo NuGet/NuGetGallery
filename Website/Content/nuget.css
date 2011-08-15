@@ -499,9 +499,6 @@ span.latest {background-image: url("../Content/Images/recommended.png");}
 .packageItem {
     border-bottom: 1px solid #ddd;
     padding: 10px 5px 30px 5px;
-}
-
-.packageItem {
     min-height: 80px;
 }
 
@@ -516,16 +513,23 @@ span.latest {background-image: url("../Content/Images/recommended.png");}
     margin-left: 75px;
 }
 
+.packageItem header h3 {
+    float: none;
+    display: block;
+}
+
 .packageItem header h3 a {
     color: #0071bc;
+}
+
+.packageItem .detail .description {
+    margin-top: 0;
 }
 
 .package .detail {
     clear: right;
     margin-left: 75px;
 }
-
-.packageItem header div.package-actions { margin-bottom: 5px;}
 
 header span.rating {
     display: block;

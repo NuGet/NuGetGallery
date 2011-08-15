@@ -12,20 +12,20 @@ namespace NuGetGallery {
             int pageSize,
             UrlHelper url) {
             // TODO: Implement actual sorting
-            IEnumerable<DisplayPackageViewModel> items;
+            IEnumerable<ListPackageItemViewModel> items;
             using (MiniProfiler.Current.Step("Querying and mapping packages to list")) {
                 items = packages.OrderBy(p => p.PackageRegistration.DownloadCount)
                                     .Skip(pageIndex * pageSize)
                                     .Take(pageSize)
                                     .ToList()
-                                    .Select(pv => new DisplayPackageViewModel(pv));
+                                    .Select(pv => new ListPackageItemViewModel(pv));
             }
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = packages.Count();
             SortOrder = sortOrder;
             SearchTerm = searchTerm;
-            var pager = new PreviousNextPagerViewModel<DisplayPackageViewModel>(
+            var pager = new PreviousNextPagerViewModel<ListPackageItemViewModel>(
                 items,
                 PageIndex,
                 PageSize,
@@ -35,7 +35,7 @@ namespace NuGetGallery {
             Pager = pager;
         }
 
-        public IEnumerable<DisplayPackageViewModel> Items { get; private set; }
+        public IEnumerable<ListPackageItemViewModel> Items { get; private set; }
 
         public IPreviousNextPager Pager { get; private set; }
 

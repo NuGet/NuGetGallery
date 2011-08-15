@@ -214,6 +214,7 @@
     <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
     <Compile Include="ViewModels\IPreviousNextPager.cs" />
     <Compile Include="ViewModels\ManagePackagesViewModel.cs" />
+    <Compile Include="ViewModels\ListPackageItemViewModel.cs" />
     <Compile Include="ViewModels\PackageListViewModel.cs" />
     <Compile Include="ViewModels\PackageViewModel.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />

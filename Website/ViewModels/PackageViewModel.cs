@@ -26,5 +26,9 @@ namespace NuGetGallery {
         public bool LatestVersion { get; set; }
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
+
+        public bool IsCurrent(IPackageVersionModel current) {
+            return current.Version == Version && current.Id == Id;
+        }
     }
 }
