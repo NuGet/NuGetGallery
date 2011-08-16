@@ -1,0 +1,30 @@
+﻿@model DisplayPackageViewModel
+@{
+    ViewBag.Tab = "Packages";
+}
+
+<div id="layout-main" class="aside-1 group">
+    <aside id="aside-first" class="aside-first group">
+        <div class="zone zone-aside-first">
+            <nav id="leftNav">
+                <img src="@Links.Content.Images.contribGraphic_png" alt="Edit" />
+            </nav></div>
+    </aside>
+    <div id="layout-content" class="group">
+        <div id="content" class="group">
+            <div class="zone zone-content">
+                <section>
+                    <header>
+                        <h2>Edit Package</h2>
+                    </header>
+                    <div>
+                        <p class="description">
+                            To edit your package, modify the source package file and then 
+                            <a href="@Url.UploadPackage()">reupload the package</a>.
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>

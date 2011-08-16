@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Services;
 using System.Linq;
+using System.Security.Principal;
 using System.ServiceModel.Activation;
 using System.Web.Routing;
 using System.Web.WebPages;
@@ -58,6 +59,20 @@ namespace NuGetGallery {
                 return false;
             }
             return items.Any();
+        }
+
+        public static bool IsOwner(this Package package, IPrincipal user) {
+            return package.PackageRegistration.IsOwner(user);
+        }
+
+        public static bool IsOwner(this PackageRegistration package, IPrincipal user) {
+            if (package == null) {
+                throw new ArgumentNullException("package");
+            }
+            if (user == null || user.Identity == null) {
+                return false;
+            }
+            return package.Owners.Any(u => u.Username == user.Identity.Name);
         }
     }
 }

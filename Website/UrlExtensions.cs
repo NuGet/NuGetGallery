@@ -55,22 +55,6 @@ namespace NuGetGallery {
             return url.Package(package.Id);
         }
 
-        public static string Package(this UrlHelper url, string packageId, PackageAction action) {
-            return url.RouteUrl(RouteName.PackageAction, new { id = packageId, action = action.ToString() });
-        }
-
-        public static string Package(this UrlHelper url, IPackageVersionModel package, PackageAction action) {
-            return url.RouteUrl(RouteName.PackageAction, new { id = package.Id, action = action.ToString() });
-        }
-
-        public static string Package(this UrlHelper url, IPackageVersionModel package, PackageVersionAction action) {
-            return url.RouteUrl(RouteName.PackageVersionAction, new { id = package.Id, version = package.Version, action = action.ToString() });
-        }
-
-        public static string Package(this UrlHelper url, Package package, PackageVersionAction action) {
-            return url.RouteUrl(RouteName.PackageVersionAction, new { id = package.PackageRegistration.Id, version = package.Version, action = action.ToString() });
-        }
-
         public static string PackageDownload(this UrlHelper url, string id, string version) {
             return url.Action(MVC.Packages.DownloadPackage(id, version), protocol: "http");
         }
@@ -90,14 +74,18 @@ namespace NuGetGallery {
         public static string UploadPackage(this UrlHelper url) {
             return url.Action(MVC.Packages.UploadPackage());
         }
-    }
 
-    public enum PackageVersionAction {
-        EditPackage // NOTE: there is currently no action by this name!
-    }
+        public static string EditPackage(this UrlHelper url, IPackageVersionModel package) {
+            return url.Action(MVC.Packages.Edit(package.Id, package.Version));
+        }
 
-    public enum PackageAction {
-        ManagePackageOwners // NOTE: there is currently no action by this name!
+        public static string DeletePackage(this UrlHelper url, IPackageVersionModel package) {
+            return url.Action(MVC.Packages.Delete(package.Id, package.Version));
+        }
+
+        public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package) {
+            return url.Action(MVC.Packages.ManagePackageOwners(package.Id, package.Version));
+        }
     }
 
     public enum AccountAction {

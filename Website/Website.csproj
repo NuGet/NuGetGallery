@@ -362,6 +362,8 @@
       <LastGenOutput>T4MVC.cs</LastGenOutput>
     </None>
     <None Include="T4MVC.tt.settings.t4" />
+    <Content Include="Views\Packages\Delete.cshtml" />
+    <Content Include="Views\Packages\Edit.cshtml" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />

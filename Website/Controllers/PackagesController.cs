@@ -78,6 +78,9 @@ namespace NuGetGallery {
             if (package == null) {
                 return PackageNotFound(id, version);
             }
+            if (!package.IsOwner(HttpContext.User)) {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
 
             return View(new SubmitPackageViewModel {
                 Id = package.PackageRegistration.Id,
@@ -96,11 +99,13 @@ namespace NuGetGallery {
         [Authorize, HttpPost]
         public virtual ActionResult PublishPackage(string id, string version) {
             // TODO: handle requesting to verify a package that is already verified; return 404?
-
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
             if (package == null) {
                 return PackageNotFound(id, version);
+            }
+            if (!package.IsOwner(HttpContext.User)) {
+                return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
             packageSvc.PublishPackage(package.PackageRegistration.Id, package.Version);
@@ -226,10 +231,39 @@ namespace NuGetGallery {
             return packageFileSvc.CreateDownloadPackageResult(package);
         }
 
+        [Authorize]
+        public virtual ActionResult ManagePackageOwners(string id, string version) {
+            return GetPackageOwnerActionFormResult(id, version);
+        }
+
+        [Authorize]
+        public virtual ActionResult Delete(string id, string version) {
+            return GetPackageOwnerActionFormResult(id, version);
+        }
+
+        [Authorize]
+        public virtual ActionResult Edit(string id, string version) {
+            return GetPackageOwnerActionFormResult(id, version);
+        }
+
+        private ActionResult GetPackageOwnerActionFormResult(string id, string version) {
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
+            if (!package.IsOwner(HttpContext.User)) {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            var model = new DisplayPackageViewModel(package);
+            return View(model);
+        }
+
         // We may want to have a specific behavior for package not found
         private ActionResult PackageNotFound(string id) {
             return PackageNotFound(id, null);
         }
+
         private ActionResult PackageNotFound(string id, string version) {
             return HttpNotFound();
         }

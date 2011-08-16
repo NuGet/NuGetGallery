@@ -51,9 +51,9 @@
                         @if (Model.IsOwner(User)) {
                             <div class="package-owner-actions">
                             <ul>
-                                <li><a class="edit" href="@Url.Package(Model, PackageVersionAction.EditPackage)">Edit</a></li>
-                                <li><a class="manage-owners" href="@Url.Package(Model, PackageAction.ManagePackageOwners)">Manage Owners</a></li>
-                                <li><a href="#" onclick="DeletePackage('RouteMagic', '1.1.1'); return false;" class="delete">Delete</a></li>
+                                <li><a class="edit" href="@Url.EditPackage(Model)">Edit</a></li>
+                                <li><a class="manage-owners" href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
+                                <li><a href="@Url.DeletePackage(Model)" class="delete">Delete</a></li>
                                 <li>
                                     <a href="#" title="Unpublish" class="unpublishPackageLink" data-package-id="RouteMagic" data-package-version="1.1.1">
                                         Unpublish
@@ -204,23 +204,6 @@
         </div>
         <div id="after-content">
             <div class="zone zone-after-content">
-                <div id="deletePackageConfirmationDialogDiv" title="Confirm Delete" style="display: none">
-                    <p>
-                        Are you sure you wish to delete the package <span id="packageIdToDeleteSpan"></span>
-                        , version <span id="packageVersionToDeleteSpan"></span>?
-                    </p>
-                    <p class="confirmDialogWarning">
-                        If you delete it, you will lose any associated downloads or reviews.
-                    </p>
-                    <form action="/Package/Delete" method="post">
-                    <input type="hidden" id="packageIdToDelete" name="packageId" />
-                    <input type="hidden" id="packageVersionToDelete" name="packageVersion" />
-                    <input type="hidden" id="shouldRedirect" name="shouldRedirect" />
-                    <input type="submit" value="Delete item anyway" />
-                    <input type="button" value="Cancel" onclick="CloseDeleteConfirmationDialogDiv(); return false;" />
-                    <input name="__RequestVerificationToken" type="hidden" value="kJogljoDg7l4akjYBGhYgSYmzWkuhMmVfaYZB2ctP5TNhQsQSN+MX7Llg1mGoIOnIOHsxLbwtypO/hwszyX6JVlJd63HaN+ASLtpBKWJMcvwpRQNBbMYS6agn2rRbaYkp37nEzmJspfg2iU5ER63gXF5Q9WY7i2Hhba+/N26OMH91V8ellpMy6/OagqBieNiBy2aUS55XhSoaAcdaIpo8w==" />
-                    </form>
-                </div>
                 <div id="unpublishPackageConfirmationDialogDiv" title="Confirm Unpublish" style="display: none">
                     <p>
                         Are you sure you wish to unpublish the package <span id="packageIdToUnpublishSpan">
