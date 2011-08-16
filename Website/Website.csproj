@@ -130,6 +130,7 @@
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="DataServices\PackageExtensions.cs" />
     <Compile Include="Entities\PackageReview.cs" />
+    <Compile Include="Migrations\20110816113000_AddIsAdminColumn.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>

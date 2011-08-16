@@ -24,6 +24,7 @@ namespace NuGetGallery {
         public Guid ApiKey { get; set; }
         public string EmailAddress { get; set; }
         public string HashedPassword { get; set; }
+        public bool IsAdmin { get; set; }
         public virtual ICollection<EmailMessage> Messages { get; set; }
         public string Username { get; set; }
     }
