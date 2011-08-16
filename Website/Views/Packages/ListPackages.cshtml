@@ -2,9 +2,6 @@
 @model PackageListViewModel
 @{
     ViewBag.Tab = "Packages";
-    var firstResult = 1 + (Model.PageIndex * Model.PageSize);
-    var resultsCount = Model.Items.Count();
-    var lastResult = firstResult + resultsCount - 1;
 }
 <div id="layout-before-main" class="group">
     <section id="currentPageToolbar">
@@ -34,8 +31,8 @@
                 <section>
                     <header>
                         <h2><span>@Model.TotalCount results for </span>Packages</h2>
-                        @if (resultsCount > 0) {
-                            <span class="displayResults">Displaying results @firstResult - @lastResult.</span>
+                        @if (Model.Items.Count() > 0) {
+                            <span class="displayResults">Displaying results @Model.FirstResultIndex - @Model.LastResultIndex.</span>
                         }
                     </header>
                     <ul>

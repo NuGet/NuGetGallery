@@ -36,10 +36,16 @@ namespace NuGetGallery {
                 page => url.PackageList(page, sortOrder, searchTerm)
             );
             Items = pager.Items;
+            FirstResultIndex = 1 + (PageIndex * PageSize);
+            LastResultIndex = FirstResultIndex + Items.Count() - 1;
             Pager = pager;
         }
 
+        public int FirstResultIndex { get; set; }
+        
         public IEnumerable<ListPackageItemViewModel> Items { get; private set; }
+
+        public int LastResultIndex { get; set; }
 
         public IPreviousNextPager Pager { get; private set; }
 
