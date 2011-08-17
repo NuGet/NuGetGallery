@@ -231,7 +231,7 @@ namespace NuGetGallery {
             void WillThrowIfTheNuGetPackageAuthorsIsLongerThan4000() {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
-                nugetPackage.Setup(x => x.Authors).Returns(new [] { "theFirstAuthor".PadRight(2001, '_'), "theSecondAuthor".PadRight(2001, '_') });
+                nugetPackage.Setup(x => x.Authors).Returns(new[] { "theFirstAuthor".PadRight(2001, '_'), "theSecondAuthor".PadRight(2001, '_') });
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
@@ -510,7 +510,11 @@ namespace NuGetGallery {
                     }
                 };
                 package.PackageRegistration.Packages.Add(package);
-                package.PackageRegistration.Packages.Add(new Package { Version = "2.0", PackageRegistration = package.PackageRegistration });
+                package.PackageRegistration.Packages.Add(new Package {
+                    Version = "2.0",
+                    PackageRegistration = package.PackageRegistration,
+                    Published = DateTime.UtcNow
+                });
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(
                     packageRepo: packageRepo,
@@ -521,6 +525,35 @@ namespace NuGetGallery {
                 service.PublishPackage("theId", "1.0.42");
 
                 Assert.False(package.IsLatest);
+            }
+
+            [Fact]
+            public void WillNotSetUpdateIsLatestOnAnUnpublishedPackage() {
+                Package package = new Package {
+                    Version = "1.0.42",
+                    Published = null,
+                    PackageRegistration = new PackageRegistration() {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
+                package.PackageRegistration.Packages.Add(package);
+                var unpublishedPackage = new Package {
+                    Version = "2.0",
+                    PackageRegistration = package.PackageRegistration,
+                    Published = null
+                };
+                package.PackageRegistration.Packages.Add(unpublishedPackage);
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepo: packageRepo,
+                    setup: mockPackageSvc => {
+                        mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                    });
+
+                service.PublishPackage("theId", "1.0.42");
+                Assert.False(unpublishedPackage.IsLatest);
+                Assert.True(package.IsLatest);
             }
 
             [Fact]

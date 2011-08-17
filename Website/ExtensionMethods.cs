@@ -74,5 +74,10 @@ namespace NuGetGallery {
             }
             return package.Owners.Any(u => u.Username == user.Identity.Name);
         }
+
+        // apple polish!
+        public static string CardinalityLabel(this int count, string singular, string plural) {
+            return count == 1 ? singular : plural;
+        }
     }
 }

@@ -492,22 +492,24 @@ table.packages thead tr.header {
     #package-owner-list li a.delete {
         background-position: -1px 3px;
     }
-/* Reviews */
-div.reviews-content header div:first-child {
-    font-size: 15px;
-    border-bottom: none !important;
+
+ul.dependents {
+    padding: 8px;
 }
-div.has-screenshot-margin div#reviewFormDiv textarea {
-    width: 85%;
-}
-div.reviews-content ul li.mine, div.reviews-content header > div {
-    background-color: #F4F7ED;
-    border-bottom: none !important;
-}
-p.review-character-limit {
-    margin: 0 0 0 70px;
-    font-size: 0.87em;
-}
-a#cancelCreateReviewLink {
+
+ul.dependents li {
+    font-size: 1.2em;
     margin-left: 10px;
+    line-height: 1.3em;
+    font-weight: bold;
+}
+
+a.cancel {
+    font-size: 1.2em;
+    margin-left: 10px;
+    text-decoration: underline;
+}
+
+a.cancel:hover {
+    color: #3c3d44;
 }

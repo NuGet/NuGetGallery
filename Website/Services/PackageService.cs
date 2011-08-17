@@ -120,6 +120,21 @@ namespace NuGetGallery {
                     select p).Include(p => p.PackageRegistration).ToList();
         }
 
+        public IEnumerable<Package> FindDependentPackages(Package package) {
+            // Grab all candidates
+            var candidateDependents = (from p in packageRepo.GetAll()
+                                       from d in p.Dependencies
+                                       where d.Id == package.PackageRegistration.Id
+                                       select d).Include(pk => pk.Package.PackageRegistration).ToList();
+            // Now filter by version range.
+            var packageVersion = Version.Parse(package.Version);
+            var dependents = from d in candidateDependents
+                             where VersionUtility.ParseVersionSpec(d.VersionRange).Satisfies(packageVersion)
+                             select d;
+
+            return dependents.Select(d => d.Package);
+        }
+
         public void PublishPackage(string id, string version) {
             var package = FindPackageByIdAndVersion(id, version);
 
@@ -229,7 +244,8 @@ namespace NuGetGallery {
             foreach (var pv in packageRegistration.Packages)
                 pv.IsLatest = false;
 
-            var latestVersion = packageRegistration.Packages.Max(pv => new Version(pv.Version));
+            var latestVersion = packageRegistration.Packages.Where(p => p.Published != null).
+                Max(p => new Version(p.Version));
 
             packageRegistration.Packages.Where(pv => pv.Version == latestVersion.ToString()).Single().IsLatest = true;
         }

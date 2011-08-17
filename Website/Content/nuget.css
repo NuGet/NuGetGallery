@@ -68,6 +68,8 @@ p  { margin: 0 0 1em; }
 
 .message { margin: 0 0 20px; }
 
+.warning { color: #c00;}
+
 /* Home Page
 ***************************************************************/
 .hero {

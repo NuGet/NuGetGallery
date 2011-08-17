@@ -238,7 +238,42 @@ namespace NuGetGallery {
 
         [Authorize]
         public virtual ActionResult Delete(string id, string version) {
-            return GetPackageOwnerActionFormResult(id, version);
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
+            if (!package.IsOwner(HttpContext.User)) {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            var dependents = packageSvc.FindDependentPackages(package);
+            var model = new DeletePackageViewModel(package, dependents);
+
+            return View(model);
+        }
+
+        [ActionName("Delete"), Authorize, HttpPost, ValidateAntiForgeryToken]
+        public virtual ActionResult DeletePackage(string id, string version) {
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
+            if (!package.IsOwner(HttpContext.User)) {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            var dependents = packageSvc.FindDependentPackages(package);
+            var model = new DeletePackageViewModel(package, dependents);
+
+            if (!model.MayDelete) {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            packageSvc.DeletePackage(id, version);
+
+            TempData["Message"] = "The package was deleted";
+
+            return Redirect(Url.PackageList());
         }
 
         [Authorize]

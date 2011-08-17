@@ -1,0 +1,35 @@
+﻿@model ListPackageItemViewModel
+
+<table id="packageDetails">
+    <tr>
+        <th>
+            <strong>Package ID:</strong>
+        </th>
+        <td>
+            <strong>@Model.Id</strong>
+        </td>
+    </tr>
+
+    <tr>
+        <th>Authors</th>
+        <td>@Model.Authors.Flatten(@<a href="@Url.Search(item.Name)">@item.Name</a>)
+        </td>
+    </tr>
+    <tr>
+        <th>Owners</th>
+        <td>@Model.Owners.Flatten(@<a href="@Url.Search(item.Username)">@item.Username</a>)
+        </td>
+    </tr>
+    @if (Model.Tags.AnySafe()) {
+        <tr>
+            <th>Tags:</th>
+            <td>@Model.Tags.Flatten(@<a href="@Url.Search(item)">@item</a>)
+            </td>
+        </tr>
+    }
+    <tr>
+        <th>Last updated:</th>
+        <td>@Model.LastUpdated.ToString("F")
+        </td>
+    </tr>
+</table>

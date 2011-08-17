@@ -27,15 +27,8 @@
                         <li>
                             <a href="@Url.Publish(package)" title="Publish"><img src="@Links.Content.Images.greenArrow_png" alt="Publish" /></a>
                         </li>
-                        @*
-                        // TODO: Since we don't allow editing the package via the web right now, 
-                        this link probably doesn't need to exist.
                         <li>
-                            <a href="@Url.Package(package, PackageVersionAction.EditPackage)" title="Edit"><img src="@Links.Content.Images.editIcon_png" alt="Edit" /></a>
-                        </li>*@
-                        <li>
-                            <a href="#" title="Delete" class="deletePackageLink" data-package-id="RouteMagic.Mvc"
-                            data-package-version="0.2.2" data-should-redirect="True"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
+                            <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
                         </li>
                     </ul>
                 </td>
@@ -70,8 +63,7 @@
                 <td class="ownerActions">
                     <ul>
                         <li>
-                            <a href="#" title="Delete" class="deletePackageLink" data-package-id="RouteMagic.Mvc"
-                            data-package-version="0.2.2" data-should-redirect="True"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
+                            <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
                         </li>
                     </ul>
                 </td>

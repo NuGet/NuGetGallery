@@ -50,15 +50,10 @@
                         <h4 class="details-header">Packages details</h4>
                         @if (Model.IsOwner(User)) {
                             <div class="package-owner-actions">
-                            <ul>
-                                <li><a class="edit" href="@Url.EditPackage(Model)">Edit</a></li>
-                                <li><a class="manage-owners" href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
-                                <li><a href="@Url.DeletePackage(Model)" class="delete">Delete</a></li>
-                                <li>
-                                    <a href="#" title="Unpublish" class="unpublishPackageLink" data-package-id="RouteMagic" data-package-version="1.1.1">
-                                        Unpublish
-                                    </a>
-                                </li>
+                                <ul>
+                                    <li><a class="edit" href="@Url.EditPackage(Model)">Edit</a></li>
+                                    <li><a class="manage-owners" href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
+                                    <li><a href="@Url.DeletePackage(Model)" class="delete">Delete</a></li>
                                 </ul>
                             </div>
                         }
@@ -74,45 +69,7 @@
                             <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
                         </ul>
 
-                        <table id="packageDetails">
-                            <tr>
-                                <th>
-                                    <strong>Package ID:</strong>
-                                </th>
-                                <td>
-                                    <strong>@Model.Id</strong>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <th>
-                                    Authors
-                                </th>
-                                <td>@Model.Authors.Flatten(@<a href="@Url.Search(item.Name)">@item.Name</a>)
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    Owners
-                                </th>
-                                <td>@Model.Owners.Flatten(@<a href="@Url.Search(item.Username)">@item.Username</a>)
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    Tags:
-                                </th>
-                                <td>@Model.Tags.Flatten(@<a href="@Url.Search(item)">@item</a>)
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>
-                                    Last updated:
-                                </th>
-                                <td>@Model.LastUpdated.ToString("F")
-                                </td>
-                            </tr>
-                        </table>
+                        @Html.Partial("_PackageDetailsTable", Model)
 
                         <div class="stats">
                             <span class="downloads">

@@ -17,5 +17,7 @@ namespace NuGetGallery {
         void PublishPackage(string id, string version);
 
         IEnumerable<Package> FindPackagesByOwner(User user);
+
+        IEnumerable<Package> FindDependentPackages(Package package);
     }
 }

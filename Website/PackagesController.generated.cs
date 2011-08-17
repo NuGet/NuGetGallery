@@ -68,8 +68,18 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ManagePackageOwners() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ManagePackageOwners);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult Delete() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Delete);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult DeletePackage() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -97,7 +107,9 @@ namespace NuGetGallery {
             public readonly string ReportAbuse = "ReportAbuse";
             public readonly string ContactOwners = "ContactOwners";
             public readonly string DownloadPackage = "DownloadPackage";
+            public readonly string ManagePackageOwners = "ManagePackageOwners";
             public readonly string Delete = "Delete";
+            public readonly string DeletePackage = "Delete";
             public readonly string Edit = "Edit";
         }
 
@@ -108,6 +120,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string _ListPackage = "~/Views/Packages/_ListPackage.cshtml";
+            public readonly string _PackageDetailsTable = "~/Views/Packages/_PackageDetailsTable.cshtml";
             public readonly string ContactOwners = "~/Views/Packages/ContactOwners.cshtml";
             public readonly string Delete = "~/Views/Packages/Delete.cshtml";
             public readonly string DisplayPackage = "~/Views/Packages/DisplayPackage.cshtml";
@@ -198,8 +211,22 @@ namespace NuGetGallery {
             return callInfo;
         }
 
+        public override System.Web.Mvc.ActionResult ManagePackageOwners(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ManagePackageOwners);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
         public override System.Web.Mvc.ActionResult Delete(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Delete);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult DeletePackage(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
