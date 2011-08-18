@@ -13,7 +13,6 @@
                     <label>Sort</label>
                     <select name="sortOrder" id="sortOrder">
                         @ViewHelpers.Option("package-title", "A-Z", Model.SortOrder)
-                        @ViewHelpers.Option("package-rating", "Highest Rated", Model.SortOrder)
                         @ViewHelpers.Option("package-download-count", "Popularity", Model.SortOrder)
                         @ViewHelpers.Option("package-created", "Recent", Model.SortOrder)
                         @ViewHelpers.Option("package-relevance", "Relevance", Model.SortOrder)
@@ -56,19 +55,5 @@
                 </section>
             </div>
         </div>
-        
-        <div id="after-content">
-            <div class="zone zone-after-content">
-                <div id="deleteRatingConfirmationDialogDiv" title="Confirm Deletion" style="display:none">
-                    <p>When you clear your rating, if you've left a review it will also be deleted. Do you wish to proceed?</p>
-                    <input type="button" value="Yes" id="confirmDeleteRatingButton" />
-                    <input type="button" value="No" id="cancelDeleteRatingButton" />
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
-@section BottomScripts {
-    <link href="@Url.Content("~/Content/Contrib.Stars.css")" rel="stylesheet" type="text/css" />
-}

@@ -333,9 +333,7 @@ namespace Links {
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
         public static readonly string Buttons_css = Url("Buttons.css");
-        public static readonly string Comments_css = Url("Comments.css");
         public static readonly string Confirmations_css = Url("Confirmations.css");
-        public static readonly string Contrib_Stars_css = Url("Contrib.Stars.css");
         public static readonly string Footer_css = Url("Footer.css");
         public static readonly string Forms_css = Url("Forms.css");
         public static readonly string Header_css = Url("Header.css");
@@ -347,11 +345,9 @@ namespace Links {
             private const string URLPATH = "~/Content/Images";
             public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
             public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-            public static readonly string blueStar_png = Url("blueStar.png");
             public static readonly string contribGraphic_png = Url("contribGraphic.png");
             public static readonly string download_png = Url("download.png");
             public static readonly string editIcon_png = Url("editIcon.png");
-            public static readonly string grayStar_png = Url("grayStar.png");
             public static readonly string greenArrow_png = Url("greenArrow.png");
             public static readonly string headerbackground_png = Url("headerbackground.png");
             public static readonly string hero_png = Url("hero.png");
@@ -370,7 +366,6 @@ namespace Links {
             public static readonly string required_png = Url("required.png");
             public static readonly string searchButton_png = Url("searchButton.png");
             public static readonly string sendMessageGraphic_png = Url("sendMessageGraphic.png");
-            public static readonly string stars_png = Url("stars.png");
             public static readonly string trash_png = Url("trash.png");
             public static readonly string userGraphic_png = Url("userGraphic.png");
             public static readonly string userIconWhite_png = Url("userIconWhite.png");
@@ -385,7 +380,6 @@ namespace Links {
         public static readonly string Packages_css = Url("Packages.css");
         public static readonly string PageToolbar_css = Url("PageToolbar.css");
         public static readonly string Pagination_css = Url("Pagination.css");
-        public static readonly string Ratings_css = Url("Ratings.css");
         public static readonly string Reset_css = Url("Reset.css");
         public static readonly string Widgets_css = Url("Widgets.css");
     }

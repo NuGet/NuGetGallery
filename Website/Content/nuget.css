@@ -533,12 +533,6 @@ span.latest {background-image: url("../Content/Images/recommended.png");}
     margin-left: 75px;
 }
 
-header span.rating {
-    display: block;
-    float: right;
-    margin-top: 6px;
-}
-
 .details-header {
     margin-top: 20px;
     border-bottom: 1px solid #ddd;
@@ -554,12 +548,6 @@ table.packages thead tr.header {
 table.packages thead tr th {
     padding-bottom: 10px;
     border-bottom: 1px solid #ddd;
-}
-.reviews-content {
-    margin-bottom: 20px;
-}
-div.reviews-content ul li.mine, div.reviews-content header > div {
-    background-color: #eee;
 }
 
 /* Forms

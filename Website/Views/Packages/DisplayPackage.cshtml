@@ -80,15 +80,6 @@
                                 <strong>@Model.DownloadCount</strong>
                                 <label>for this version</label>
                             </span>
-                            <div class="ratings">
-                                <div class="stars-rating" title="Log-in to rate this item">
-                                    @ViewHelpers.DisplayRating(@Model.RatingAverage)
-                                    <ul class="stars-details">
-                                        <li>Ratings: @Model.RatingCount</li>
-                                        <li>Average: @Model.RatingAverage</li>
-                                    </ul>
-                                </div>
-                            </div>
                         </div>
 
                         <h4 class="details-header">Dependencies</h4>
@@ -126,9 +117,6 @@
                                     <th class="lastUpdated">
                                         Last updated
                                     </th>
-                                    <th class="rating">
-                                        Rating
-                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -146,11 +134,6 @@
                                         </td>
                                         <td class="lastUpdated">@packageVersion.LastUpdated.ToString("D")
                                         </td>
-                                        <td class="rating">
-                                            <div class="stars-rating">
-                                                @ViewHelpers.DisplayRating(@packageVersion.RatingAverage)
-                                            </div>
-                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -159,40 +142,5 @@
                 </section>
             </div>
         </div>
-        <div id="after-content">
-            <div class="zone zone-after-content">
-                <div id="unpublishPackageConfirmationDialogDiv" title="Confirm Unpublish" style="display: none">
-                    <p>
-                        Are you sure you wish to unpublish the package <span id="packageIdToUnpublishSpan">
-                        </span>, version <span id="packageVersionToUnpublishSpan"></span>?
-                    </p>
-                    <p>
-                        If you unpublish this item, users will no longer be able to view or download it.
-                        Download counts and reviews are retained, however.
-                    </p>
-                    <p>
-                        The item can still be downloaded from the feed, in case a dependent package requires
-                        it. If you want to remove the item from the feed, delete it instead.
-                    </p>
-                    <form action="/Orchard.Gallery/Package/Unpublish" method="post">
-                    <input type="hidden" id="packageIdToUnpublish" name="packageId" />
-                    <input type="hidden" id="packageVersionToUnpublish" name="packageVersion" />
-                    <input type="submit" value="Unpublish" />
-                    <input type="button" value="Cancel" onclick="CloseConfirmationDialogDiv(); return false;" />
-                    <input name="__RequestVerificationToken" type="hidden" value="ZvRArQBame0aiUbbmeRKm44g3TybW8KopxBshTIV9VA+fwE/WQeyiawslclO61C9U3ks8nOX01QhqMCnSQE2f9nFyJ60+H9mAr0VyCchz1TU94bLa5T5Jp52pefh2KLSn7M4C10cQAGgcZt2WsfV/8q50JX1Lx9D7hsD8BkneGUeZ9N9h+s8yqMYq3JGXaQ6Cy2bZ9XjBfPMFqPXLZr5JQ==" />
-                    </form>
-                </div>
-                <div id="deleteRatingConfirmationDialogDiv" title="Confirm Deletion" style="display: none">
-                    <p>
-                        When you clear your rating, if you've left a review it will also be deleted. Do
-                        you wish to proceed?</p>
-                    <input type="button" value="Yes" id="confirmDeleteRatingButton" />
-                    <input type="button" value="No" id="cancelDeleteRatingButton" />
-                </div>
-            </div>
-        </div>
     </div>
 </div>
-@section BottomScripts {
-    <link href="@Url.Content("~/Content/Contrib.Stars.css")" rel="stylesheet" type="text/css" />
-}

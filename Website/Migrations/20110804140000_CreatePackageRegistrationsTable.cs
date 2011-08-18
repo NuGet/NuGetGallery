@@ -8,9 +8,7 @@ namespace NuGetGallery.Data.Migrations {
             Database.AddTable("PackageRegistrations",
                 new Column("[Key]", DbType.Int32, ColumnProperty.PrimaryKey | ColumnProperty.Identity | ColumnProperty.NotNull),
                 new Column("Id", DbType.String, ColumnProperty.NotNull | ColumnProperty.Unique),
-                new Column("DownloadCount", DbType.Int32, ColumnProperty.NotNull, 0),
-                new Column("RatingCount", DbType.Int32, ColumnProperty.NotNull, 0),
-                new Column("RatingMean", DbType.Double, ColumnProperty.NotNull, 0));
+                new Column("DownloadCount", DbType.Int32, ColumnProperty.NotNull, 0));
         }
 
         public override void Down() {

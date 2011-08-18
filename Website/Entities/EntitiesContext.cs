@@ -69,11 +69,6 @@ namespace NuGetGallery {
                 .WithOptional()
                 .HasForeignKey(pd => pd.PackageKey);
 
-            modelBuilder.Entity<Package>()
-                .HasMany<PackageReview>(p => p.Reviews)
-                .WithOptional()
-                .HasForeignKey(pr => pr.PackageKey);
-
             modelBuilder.Entity<PackageAuthor>()
                 .HasKey(pa => pa.Key);
 
@@ -89,14 +84,6 @@ namespace NuGetGallery {
                 .HasRequired<Package>(pd => pd.Package)
                 .WithMany()
                 .HasForeignKey(pd => pd.PackageKey);
-
-            modelBuilder.Entity<PackageReview>()
-                .HasKey(pr => pr.Key);
-
-            modelBuilder.Entity<PackageReview>()
-                .HasRequired<Package>(pr => pr.Package)
-                .WithMany()
-                .HasForeignKey(pr => pr.PackageKey);
         }
 
         private static DbConnection GetConnection(string connectionStringName) {

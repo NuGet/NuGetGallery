@@ -1,5 +1,4 @@
-﻿using System.Data;
-using Migrator.Framework;
+﻿using Migrator.Framework;
 
 namespace NuGetGallery.Data.Migrations {
     [Migration(20110812222000)]
@@ -10,14 +9,11 @@ namespace NuGetGallery.Data.Migrations {
             Database.RemoveForeignKey("PackageRegistrationOwners", "FK_PackageRegistrationOwners_Users");
             Database.RemoveForeignKey("PackageAuthors", "FK_PackageAuthors_Packages");
             Database.RemoveForeignKey("PackageDependencies", "FK_PackageDependencies_Packages");
-            Database.RemoveForeignKey("PackageReviews", "FK_PackageReviews_Packages");
             Database.AddForeignKey("FK_Packages_PackageRegistrations", "Packages", "PackageRegistrationKey", "PackageRegistrations", "[Key]", Migrator.Framework.ForeignKeyConstraint.Cascade);
             Database.AddForeignKey("FK_PackageRegistrationOwners_PackageRegistrations", "PackageRegistrationOwners", "PackageRegistrationKey", "PackageRegistrations", "[Key]", Migrator.Framework.ForeignKeyConstraint.Cascade);
             Database.AddForeignKey("FK_PackageRegistrationOwners_Users", "PackageRegistrationOwners", "UserKey", "Users", "[Key]", Migrator.Framework.ForeignKeyConstraint.Cascade);
             Database.AddForeignKey("FK_PackageAuthors_Packages", "PackageAuthors", "PackageKey", "Packages", "[Key]", Migrator.Framework.ForeignKeyConstraint.Cascade);
             Database.AddForeignKey("FK_PackageDependencies_Packages", "PackageDependencies", "PackageKey", "Packages", "[Key]", Migrator.Framework.ForeignKeyConstraint.Cascade);
-            Database.AddForeignKey("FK_PackageReviews_Packages", "PackageReviews", "PackageKey", "Packages", "[Key]", Migrator.Framework.ForeignKeyConstraint.Cascade);
-
         }
 
         public override void Down() {
@@ -26,13 +22,11 @@ namespace NuGetGallery.Data.Migrations {
             Database.RemoveForeignKey("PackageRegistrationOwners", "FK_PackageRegistrationOwners_Users");
             Database.RemoveForeignKey("PackageAuthors", "FK_PackageAuthors_Packages");
             Database.RemoveForeignKey("PackageDependencies", "FK_PackageDependencies_Packages");
-            Database.RemoveForeignKey("PackageReviews", "FK_PackageReviews_Packages");
             Database.AddForeignKey("FK_Packages_PackageRegistrations", "Packages", "PackageRegistrationKey", "PackageRegistrations", "[Key]");
             Database.AddForeignKey("FK_PackageRegistrationOwners_PackageRegistrations", "PackageRegistrationOwners", "PackageRegistrationKey", "PackageRegistrations", "[Key]");
             Database.AddForeignKey("FK_PackageRegistrationOwners_Users", "PackageRegistrationOwners", "UserKey", "Users", "[Key]");
             Database.AddForeignKey("FK_PackageAuthors_Packages", "PackageAuthors", "PackageKey", "Packages", "[Key]");
             Database.AddForeignKey("FK_PackageDependencies_Packages", "PackageDependencies", "PackageKey", "Packages", "[Key]");
-            Database.AddForeignKey("FK_PackageReviews_Packages", "PackageReviews", "PackageKey", "Packages", "[Key]");
         }
     }
 }

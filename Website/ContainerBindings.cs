@@ -23,10 +23,6 @@ namespace NuGetGallery {
                 .To<EntityRepository<Package>>()
                 .InRequestScope();
 
-            Bind<IEntityRepository<PackageReview>>()
-                .To<EntityRepository<PackageReview>>()
-                .InRequestScope();
-
             Bind<IEntityRepository<PackageAuthor>>()
                 .To<EntityRepository<PackageAuthor>>()
                 .InRequestScope();

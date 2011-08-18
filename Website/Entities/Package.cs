@@ -6,7 +6,6 @@ namespace NuGetGallery {
         public Package() {
             Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
-            Reviews = new HashSet<PackageReview>();
         }
 
         public int Key { get; set; }
@@ -31,7 +30,6 @@ namespace NuGetGallery {
         public DateTime? Published { get; set; }
         public long PackageFileSize { get; set; }
         public string ProjectUrl { get; set; }
-        public virtual ICollection<PackageReview> Reviews { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }

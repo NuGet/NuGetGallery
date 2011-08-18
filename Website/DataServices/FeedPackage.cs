@@ -29,16 +29,12 @@ namespace NuGetGallery {
         public long PackageSize { get; set; }
         public string ProjectUrl { get; set; }
         public DateTime? Published { get; set; }
-        public double? Rating { get; set; }
-        public int RatingsCount { get; set; }
         public string ReportAbuseUrl { get; set; }
         public bool RequireLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
         public string Title { get; set; }
         public int VersionDownloadCount { get; set; }
-        public double? VersionRating { get; set; }
-        public int? VersionRatingsCount { get; set; }
 
         // TODO: remove these from the feed in the future, is possible, if they aren't used
         public string Categories { get { return string.Empty; } }

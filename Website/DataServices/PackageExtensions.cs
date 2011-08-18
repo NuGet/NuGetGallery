@@ -12,7 +12,6 @@ namespace NuGetGallery {
                      .Include(p => p.PackageRegistration)
                      .Include(p => p.Authors)
                      .Include(p => p.Dependencies)
-                     .Include(p => p.Reviews)
                      .Select(p => new FeedPackage {
                          Id = p.PackageRegistration.Id,
                          Version = p.Version,
@@ -32,10 +31,8 @@ namespace NuGetGallery {
                          PackageHash = p.Hash,
                          PackageHashAlgorithm = p.HashAlgorithm,
                          PackageSize = p.PackageFileSize,
-                         ProjectUrl = p.ProjectUrl, 
+                         ProjectUrl = p.ProjectUrl,
                          Published = p.Published ?? magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions,
-                         Rating = p.PackageRegistration.RatingMean,
-                         RatingsCount = p.PackageRegistration.RatingCount,
                          // TODO: build the report abuse URL for real
                          ReportAbuseUrl = "http://localhost",
                          RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
@@ -43,8 +40,6 @@ namespace NuGetGallery {
                          Tags = p.Tags,
                          Title = p.Title,
                          VersionDownloadCount = p.DownloadCount,
-                         VersionRating = p.Reviews.Average(pr => pr.Rating),
-                         VersionRatingsCount = p.Reviews.Sum(pr => pr.Rating),
                      });
         }
     }

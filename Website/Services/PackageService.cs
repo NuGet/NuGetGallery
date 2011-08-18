@@ -78,7 +78,6 @@ namespace NuGetGallery {
             // the Packages property for the one we plan to return.
             var packageVersions = packageRepo.GetAll()
                     .Include(p => p.Authors)
-                    .Include(p => p.Reviews)
                     .Include(p => p.PackageRegistration)
                     .Where(p => p.PackageRegistration.Id == id).ToList();
 

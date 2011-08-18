@@ -357,7 +357,6 @@
     <Compile Include="DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
-    <Compile Include="Entities\PackageReview.cs" />
     <Compile Include="Migrations\20110816113000_AddIsAdminColumn.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
@@ -383,7 +382,6 @@
     <Compile Include="ViewModels\DependencyViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
-    <Compile Include="Migrations\20110809083000_CreatePackageReviewsTable.cs" />
     <Compile Include="Migrations\20110811213000_AddApiKeyColumn.cs" />
     <Compile Include="App_Start\Routes.cs" />
     <Compile Include="Migrations\20110812222000_OnDeleteCascade.cs" />
@@ -453,20 +451,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Buttons.css" />
-    <Content Include="Content\Comments.css" />
     <Content Include="Content\Confirmations.css" />
-    <Content Include="Content\Contrib.Stars.css" />
     <Content Include="Content\Footer.css" />
     <Content Include="Content\Forms.css" />
     <Content Include="Content\Header.css" />
     <Content Include="Content\Home.css" />
     <Content Include="Content\ie-mac.css" />
     <Content Include="Content\ie7.css" />
-    <Content Include="Content\Images\blueStar.png" />
     <Content Include="Content\Images\contribGraphic.png" />
     <Content Include="Content\Images\download.png" />
     <Content Include="Content\Images\editIcon.png" />
-    <Content Include="Content\Images\grayStar.png" />
     <Content Include="Content\Images\greenArrow.png" />
     <Content Include="Content\Images\headerbackground.png" />
     <Content Include="Content\Images\hero.png" />
@@ -484,7 +478,6 @@
     <Content Include="Content\Images\recommendedSmall.png" />
     <Content Include="Content\Images\required.png" />
     <Content Include="Content\Images\searchButton.png" />
-    <Content Include="Content\Images\stars.png" />
     <Content Include="Content\Images\trash.png" />
     <Content Include="Content\Images\userGraphic.png" />
     <Content Include="Content\Images\userIconWhite.png" />
@@ -497,7 +490,6 @@
     <Content Include="Content\Packages.css" />
     <Content Include="Content\PageToolbar.css" />
     <Content Include="Content\Pagination.css" />
-    <Content Include="Content\Ratings.css" />
     <Content Include="Content\Reset.css" />
     <Content Include="Content\Images\sendMessageGraphic.png" />
     <Content Include="Content\Widgets.css" />

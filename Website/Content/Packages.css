@@ -254,10 +254,6 @@ div.theme header p.author {
 .packageItemDetail header {
     padding-bottom: 5px;
 }
-.packageItemDetail div.reviews-content header {
-    border-bottom: none;
-    padding-bottom: 0px;
-}
 .packageItemDetail ul.links {
     margin: 5px 0 30px 0;
 }
@@ -309,22 +305,6 @@ div.stats span.downloads label {
     font-size: 1.1em;
 }
 
-div.stats div.ratings {
-    display: block;
-    text-align: left;
-    margin-top: 8px;
-}
-
-div.stats div.ratings div.stars-rating {
-    display: block;
-    float: right;
-}
-
-div.stats ul.stars-details {
-    display: block;
-    float: right;
-}
-
 #packageDetails {
     display: inline-block;
     width: 49%;
@@ -348,7 +328,7 @@ div.stats ul.stars-details {
         text-align: left;
         padding: 6px 18px 6px 28px;
     }
-h4.packageDetailsTableHeader, a.packageDetailsTableHeader, h4.reviews-heading {
+h4.packageDetailsTableHeader, a.packageDetailsTableHeader {
     width: 100%;
     margin: 25px 0 0;
     font-size: 1.75em !important;
@@ -358,17 +338,17 @@ h4.packageDetailsTableHeader, a.packageDetailsTableHeader, h4.reviews-heading {
 a.packageDetailsTableHeader:visited, a.packageDetailsTableHeader:active {
     text-decoration: none !important;
 }
-h4.packageDetailsTableHeader, h4.reviews-heading {
+h4.packageDetailsTableHeader {
     color: #3E483C;
     margin-top: 40px;
 }
-a.versionHistoryShowMore, a#showAllReviewsLink {
+a.versionHistoryShowMore {
     background: url(../Content/Images/blueArrowDown.png) 96% 50% no-repeat;
     display: none;
     margin:10px 0 0;
     padding: 5px 50px;
 }
-a.versionHistoryShowMore.less, a#showAllReviewsLink.less {
+a.versionHistoryShowMore.less {
     background: url(../Content/Images/blueArrowUp.png) 96% 50% no-repeat;
 }
 .packageDetailsTableHeader + table {
@@ -432,14 +412,6 @@ table.packages thead tr.header {
     }
     table.packages td.warning {
         background: url(../Content/Images/warningBullet.png) 5px 2px no-repeat;
-    }
-    table.packages td.rating div {
-        float: right;
-        width: auto;
-    }
-    table.packages th.rating {
-        text-align: center;
-        width: 85px;
     }
     table.packages tr.current td {
         font-weight: bold;

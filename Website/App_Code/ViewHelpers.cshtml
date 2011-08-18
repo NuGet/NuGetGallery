@@ -25,21 +25,6 @@
     }
 }
 
-
-@helper DisplayRating(float averageRating) {
-    int flooredAverageRating = (int)averageRating;
-    
-    <div class="stars-current-result stars-value-@flooredAverageRating" style="display:inline;">
-        @for (int i = 1; i < 6; i++) {
-            //TODO: Probably should be a helper.
-            <span class="star-@i a-star" title="Average Rating: @averageRating">
-                @if (i >= flooredAverageRating) {<text>*</text>}
-                else {<text>-</text>}
-            </span>
-        }
-    </div>
-}
-
 @helper Option(string value, string label, string currentValue) {
     <option value="@value" @if (value == currentValue) {<text>selected="selected"</text>}>@label</option>    
 }
