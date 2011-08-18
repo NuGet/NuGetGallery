@@ -48,6 +48,8 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string Home = "Home";
+            public readonly string TermsOfUse = "Terms";
+            public readonly string Privacy = "Privacy";
         }
 
 
@@ -66,6 +68,16 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult Home() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Home);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Terms() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.TermsOfUse);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Privacy() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Privacy);
             return callInfo;
         }
 

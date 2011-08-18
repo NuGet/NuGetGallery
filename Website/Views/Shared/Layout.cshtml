@@ -55,40 +55,20 @@
         </div>
         <div id="layout-footer" class="group">
             <footer id="footer">
-                <h5 class="logo"><a href="#">Orchard Gallery</a></h5>
+                <h5 class="logo"><a href="#">NuGet Gallery</a></h5>
                 <div id="footer-quad" class="group">
-                    <div id="footer-quad-first">
-                        <div class="zone zone-footer-quad-first">
-                            <div style="margin: 33px 0 0 40px;">
-                                <ul style="margin:0; font-size:1.2em; width:400px;">
-                                    <li style="display:block; float:left;"><a href="#">Home</a>&nbsp;&#124;&nbsp;</li>
-                                    <li style="display:block; float:left;"><a href="#">Packages</a>&nbsp;&#124;&nbsp;</li>
-                                    <li style="display:block; float:left;"><a href="#">Contribute</a>&nbsp;&#124;&nbsp;</li>
-                                    <li style="display:block; float:left;"><a href="#">Terms of Use</a>&nbsp;&#124;&nbsp;</li>
-                                    <li style="display:block; float:left;"><a href="#">Privacy</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="footer-quad-second">
-                        <div class="zone zone-footer-quad-second">
-                        </div>
-                    </div>
-                    <div id="footer-quad-third">
-                        <div class="zone zone-footer-quad-third">
-                        </div>
-                    </div>
-                    <div id="footer-quad-fourth">
-                        <div class="zone zone-footer-quad-fourth">
-                        </div>
+                    <div style="margin: 33px 0 0 40px;">
+                        <ul class="footer-links">
+                            <li><a href="@Url.Home()">Home</a>&nbsp;&#124;&nbsp;</li>
+                            <li><a href="@Url.PackageList()">Packages</a>&nbsp;&#124;&nbsp;</li>
+                            <li><a href="@Url.UploadPackage()">Upload</a>&nbsp;&#124;&nbsp;</li>
+                            <li><a href="@Url.Action(MVC.Pages.TermsOfUse())">Terms of Use</a>&nbsp;&#124;&nbsp;</li>
+                            <li><a href="@Url.Action(MVC.Pages.Privacy())">Privacy</a></li>
+                        </ul>
                     </div>
                 </div>
-                <div id="footer-sig" class="group">
-                    <div class="zone zone-footer">
-                        <div class="credits">
-                            <span class="poweredby">Powered by <a href="http://www.orchardproject.net" target="_blank">Orchard</a></span> <span class="copyright">&#169; 2010 Outercurve Foundation.</span>
-                        </div>
-                    </div>
+                <div class="credits">
+                    <span class="copyright">&#169; @DateTime.UtcNow.Year Outercurve Foundation.</span>
                 </div>
             </footer>
         </div>

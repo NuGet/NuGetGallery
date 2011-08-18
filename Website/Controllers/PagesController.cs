@@ -5,5 +5,13 @@ namespace NuGetGallery {
         public virtual ActionResult Home() {
             return View();
         }
+
+        public virtual ActionResult Terms() {
+            return View();
+        }
+
+        public virtual ActionResult Privacy() {
+            return View();
+        }
     }
 }
