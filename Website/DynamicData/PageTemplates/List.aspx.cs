@@ -6,6 +6,7 @@ using System.Web.Routing;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Web.UI.WebControls.Expressions;
+using System.Linq;
 
 namespace DynamicDataEFCodeFirst {
     public partial class List : System.Web.UI.Page {
@@ -21,6 +22,10 @@ namespace DynamicDataEFCodeFirst {
         protected void Page_Load(object sender, EventArgs e) {
             Title = table.DisplayName;
             GridDataSource.Include = table.ForeignKeyColumnsNames;
+
+            // Set the search data fields to all the string columns
+            var searchExpression = (SearchExpression)GridQueryExtender.Expressions[1];
+            searchExpression.DataFields = String.Join(",", table.Columns.Where(c => c.IsString).Select(c => c.Name));
 
             // Disable various options if the table is readonly
             if (table.IsReadOnly) {
