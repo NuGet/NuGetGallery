@@ -1,27 +1,22 @@
 ﻿using System;
-using System.Data;
-using System.Data.Objects;
-using System.Data.Objects.DataClasses;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Configuration;
 using System.Collections;
-using System.Collections.Specialized;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Objects;
 using System.Linq;
-using System.Web;
-using System.Web.Security;
+using System.Web.DynamicData;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Web.UI.WebControls.WebParts;
-using System.Web.UI.HtmlControls;
-using System.Xml.Linq;
-using System.Web.DynamicData;
 
 namespace DynamicDataEFCodeFirst {
     public partial class ManyToMany_EditField : System.Web.DynamicData.FieldTemplateUserControl {
+        protected ObjectContext ObjectContext { get; set; }
+
         public void Page_Load(object sender, EventArgs e) {
             // Register for the DataSource's updating event
             EntityDataSource ds = (EntityDataSource)this.FindDataSourceControl();
+
+            ds.ContextCreated += (_, ctxCreatedEventArg) => ObjectContext = ctxCreatedEventArg.Context;
 
             // This field template is used both for Editing and Inserting
             ds.Updating += new EventHandler<EntityDataSourceChangingEventArgs>(DataSource_UpdatingOrInserting);
@@ -34,23 +29,15 @@ namespace DynamicDataEFCodeFirst {
             // Comments assume employee/territory for illustration, but the code is generic
 
             // Get the collection of territories for this employee
-            RelatedEnd entityCollection = (RelatedEnd)Column.EntityTypeProperty.GetValue(e.Entity, null);
+            dynamic entityList = Column.EntityTypeProperty.GetValue(e.Entity, null);
 
-            // In Edit mode, make sure it's loaded (doesn't make sense in Insert mode)
-            if (Mode == DataBoundControlMode.Edit && !entityCollection.IsLoaded) {
-                entityCollection.Load();
-            }
-
-            // Get an IList from it (i.e. the list of territories for the current employee)
-            // REVIEW: we should be using EntityCollection directly, but EF doesn't have a
-            // non generic type for it. They will add this in vnext
-            IList entityList = ((IListSource)entityCollection).GetList();
+            ObjectContext.LoadProperty(e.Entity, Column.Name);
 
             // Go through all the territories (not just those for this employee)
-            foreach (object childEntity in childTable.GetQuery(e.Context)) {
+            foreach (dynamic childEntity in childTable.GetQuery(e.Context)) {
 
                 // Check if the employee currently has this territory
-                bool isCurrentlyInList = entityList.Contains(childEntity);
+                bool isCurrentlyInList = ListContainsEntity(childTable, entityList, childEntity);
 
                 // Find the checkbox for this territory, which gives us the new state
                 string pkString = childTable.GetPrimaryKeyString(childEntity);
@@ -75,8 +62,7 @@ namespace DynamicDataEFCodeFirst {
 
             // Comments assume employee/territory for illustration, but the code is generic
 
-            IList entityList = null;
-            ObjectContext objectContext = null;
+            IEnumerable<object> entityList = null;
 
             if (Mode == DataBoundControlMode.Edit) {
                 object entity;
@@ -89,42 +75,35 @@ namespace DynamicDataEFCodeFirst {
                     entity = Row;
                 }
 
-                // Get the collection of territories for this employee and make sure it's loaded
-                RelatedEnd entityCollection = Column.EntityTypeProperty.GetValue(entity, null) as RelatedEnd;
-                if (entityCollection == null) {
-                    throw new InvalidOperationException(String.Format("The ManyToMany template does not support the collection type of the '{0}' column on the '{1}' table.", Column.Name, Table.Name));
-                }
-                if (!entityCollection.IsLoaded) {
-                    entityCollection.Load();
-                }
-
-                // Get an IList from it (i.e. the list of territories for the current employee)
-                // REVIEW: we should be using EntityCollection directly, but EF doesn't have a
-                // non generic type for it. They will add this in vnext
-                entityList = ((IListSource)entityCollection).GetList();
-
-                // Get the current ObjectContext
-                // REVIEW: this is quite a dirty way of doing this. Look for better alternative
-                ObjectQuery objectQuery = (ObjectQuery)entityCollection.GetType().GetMethod(
-                    "CreateSourceQuery").Invoke(entityCollection, null);
-                objectContext = objectQuery.Context;
+                // Get the collection of territories for this employee
+                entityList = (IEnumerable<object>)Column.EntityTypeProperty.GetValue(entity, null);
             }
 
             // Go through all the territories (not just those for this employee)
-            foreach (object childEntity in childTable.GetQuery(objectContext)) {
-                MetaTable actualTable = MetaTable.GetTable(childEntity.GetType());
+            foreach (object childEntity in childTable.GetQuery(ObjectContext)) {
                 // Create a checkbox for it
                 ListItem listItem = new ListItem(
-                    actualTable.GetDisplayString(childEntity),
-                    actualTable.GetPrimaryKeyString(childEntity));
+                    childTable.GetDisplayString(childEntity),
+                    childTable.GetPrimaryKeyString(childEntity));
 
                 // Make it selected if the current employee has that territory
                 if (Mode == DataBoundControlMode.Edit) {
-                    listItem.Selected = entityList.Contains(childEntity);
+                    listItem.Selected = ListContainsEntity(childTable, entityList, childEntity);
                 }
 
                 CheckBoxList1.Items.Add(listItem);
             }
+        }
+
+        private static bool ListContainsEntity(MetaTable table, IEnumerable<object> list, object entity) {
+            return list.Any(e => AreEntitiesEqual(table, e, entity));
+        }
+
+        private static bool AreEntitiesEqual(MetaTable table, object entity1, object entity2) {
+            var pks1 = table.GetPrimaryKeyValues(entity1);
+            var pks2 = table.GetPrimaryKeyValues(entity2);
+
+            return Enumerable.SequenceEqual(pks1, pks2);
         }
 
         public override Control DataControl {
