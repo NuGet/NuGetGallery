@@ -19,16 +19,11 @@ namespace NuGetGallery {
 
             modelBuilder.Entity<User>()
                 .HasMany<EmailMessage>(u => u.Messages)
-                .WithOptional()
+                .WithRequired(em => em.ToUser)
                 .HasForeignKey(em => em.ToUserKey);
 
             modelBuilder.Entity<EmailMessage>()
                 .HasKey(em => em.Key);
-
-            modelBuilder.Entity<EmailMessage>()
-                .HasRequired<User>(em => em.ToUser)
-                .WithMany()
-                .HasForeignKey(em => em.ToUserKey);
 
             modelBuilder.Entity<EmailMessage>()
                 .HasOptional<User>(em => em.FromUser)
@@ -40,7 +35,7 @@ namespace NuGetGallery {
 
             modelBuilder.Entity<PackageRegistration>()
                 .HasMany<Package>(pr => pr.Packages)
-                .WithOptional()
+                .WithRequired(p => p.PackageRegistration)
                 .HasForeignKey(p => p.PackageRegistrationKey);
 
             modelBuilder.Entity<PackageRegistration>()
@@ -55,35 +50,20 @@ namespace NuGetGallery {
                 .HasKey(p => p.Key);
 
             modelBuilder.Entity<Package>()
-                .HasRequired<PackageRegistration>(p => p.PackageRegistration)
-                .WithMany()
-                .HasForeignKey(p => p.PackageRegistrationKey);
-
-            modelBuilder.Entity<Package>()
                 .HasMany<PackageAuthor>(p => p.Authors)
-                .WithOptional()
+                .WithRequired(pa => pa.Package)
                 .HasForeignKey(pa => pa.PackageKey);
 
             modelBuilder.Entity<Package>()
                 .HasMany<PackageDependency>(p => p.Dependencies)
-                .WithOptional()
+                .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
 
             modelBuilder.Entity<PackageAuthor>()
                 .HasKey(pa => pa.Key);
 
-            modelBuilder.Entity<PackageAuthor>()
-                .HasRequired<Package>(pa => pa.Package)
-                .WithMany()
-                .HasForeignKey(pa => pa.PackageKey);
-
             modelBuilder.Entity<PackageDependency>()
                 .HasKey(pd => pd.Key);
-
-            modelBuilder.Entity<PackageDependency>()
-                .HasRequired<Package>(pd => pd.Package)
-                .WithMany()
-                .HasForeignKey(pd => pd.PackageKey);
         }
 
         private static DbConnection GetConnection(string connectionStringName) {
