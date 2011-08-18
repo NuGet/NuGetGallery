@@ -233,7 +233,17 @@ namespace NuGetGallery {
 
         [Authorize]
         public virtual ActionResult ManagePackageOwners(string id, string version) {
-            return GetPackageOwnerActionFormResult(id, version);
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
+            if (!package.IsOwner(HttpContext.User)) {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            var model = new ManagePackageOwnersViewModel(package, HttpContext.User);
+
+            return View(model);
         }
 
         [Authorize]

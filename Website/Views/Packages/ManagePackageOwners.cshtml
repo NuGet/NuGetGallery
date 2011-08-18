@@ -1,0 +1,91 @@
+﻿@model ManagePackageOwnersViewModel
+@{
+    ViewBag.Tab = "Packages";
+}
+<div id="layout-main" class="group">
+    <div id="layout-content" class="group">
+        <div id="content" class="group">
+            <div class="zone zone-content">
+                <section>
+                    <header>
+                        <h2>Manage Owners for Package "@Model.Title"</h2>
+                    </header>
+                    <div id="form">
+                        <div>
+                            <label>Current Owners</label>
+                            @if (Model.OtherOwners.Any()) {
+                                <ul id="package-owner-list">
+                                    <li>@Model.CurrentOwnerUsername</li>
+                                    @foreach (var owner in Model.OtherOwners) {
+                                        <li>
+                                            @owner.Username 
+                                            <a href="#" onclick="RemoveOwnerFromPackage(@owner.Key, '@owner.Username'); return false;" class="delete">Remove</a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else {
+                                <p>
+                                    No other owners are associated with "@Model.Id".
+                                </p>
+                            }
+                        </div>
+                    </div>
+                    <div>
+                        <form action="@Url.Current()" id="form" method="post">
+                        <div>
+                            <label for="newOwnerUserName">Add New Owner</label>
+                            <p>
+                                Enter an owner's username to add them as a package owner.
+                            </p>
+                            <aside style="width: 357px !important;">
+                                <p>
+                                    <strong>NOTE:</strong> All package owners have full control over their packages,
+                                    including the ability to remove other users as owners.</p>
+                            </aside>
+                            <input type="text" id="newOwnerUserName" name="newOwnerUserName" class="long" />
+                        </div>
+                        @Html.AntiForgeryToken()
+                        <div class="buttons">
+                            <input type="submit" value="Add" />
+                        </div>
+                    </div>
+                    <div id="removeUserConfirmationDialogDiv" title="Confirm Owner Removal">
+                        <p>
+                            Are you sure you wish to remove "<span id="nameOfUserToRemoveSpan"></span>" from
+                            this package?</p>
+                        <form action="/Orchard.Gallery/ManagePackageOwners/RemoveOwner" method="post">
+                        <input id="PackageId" name="PackageId" type="hidden" value="RouteMagic" />
+                        <input type="hidden" id="idOfUserToRemove" name="idOfUserToRemove" />
+                        <input type="hidden" id="nameOfUserToRemove" name="nameOfUserToRemove" />
+                        <input type="submit" value="Yes" />
+                        <a href="#" onclick="CloseConfirmationDialogDiv(); return false;">No</a>
+                        <input name="__RequestVerificationToken" type="hidden" value="txc0nxDDSIzbPzRmr+7LXz6PgkChS+eVIpQsBIIeGEwqDhcGPhpv3mRTOgHBxl0W0V8tpiC5Zv9osHv26+Xpszz++cWT7RfFTW3nyInLyeDutGdtzXnzAAIB4C/JNZoi3d31HH/ayfBkJ1NHh9XqZ41rR0p/EC0lhPoG2HTAi8pf4QgvFQOi/2xY5QmiBfDAiFgpxgcwn7ollZ0vUrZObILELe7SdLyapfI3lIsNL5Y=" /></form>
+                    </div>
+                </section>
+            </div>
+    </div>
+</div>
+</div> 
+
+<script type="text/javascript">
+        //<![CDATA[
+    var $removeUserConfirmationDialogDiv = $('#removeUserConfirmationDialogDiv');
+    $(function() {
+        $removeUserConfirmationDialogDiv.dialog({ autoOpen: false, modal: true, resizable: false });
+    });
+
+    function RemoveOwnerFromPackage(idOfUserToRemove, nameOfUserToRemove) {
+        $('#idOfUserToRemove').val(idOfUserToRemove);
+        $('#nameOfUserToRemove').val(nameOfUserToRemove);
+        $('#nameOfUserToRemoveSpan').text(nameOfUserToRemove);
+        $removeUserConfirmationDialogDiv.dialog('open');
+        return false;
+    }
+
+    function CloseConfirmationDialogDiv() {
+        $removeUserConfirmationDialogDiv.dialog('close');
+        return false;
+    }
+        //]]>
+        </script>

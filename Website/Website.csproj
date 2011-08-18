@@ -378,6 +378,7 @@
     </Compile>
     <Compile Include="Migrations\20110813170000_FixPackageColumnSizes.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
+    <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
     <Compile Include="ViewModels\DeletePackageViewModel.cs" />
     <Compile Include="ViewModels\DependencyViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
@@ -467,6 +468,7 @@
     <Content Include="Content\Images\herowithlogo.png" />
     <Content Include="Content\Images\inputBackground.png" />
     <Content Include="Content\Images\invalidBG.png" />
+    <Content Include="Content\Images\mine.png" />
     <Content Include="Content\Images\navbackground.png" />
     <Content Include="Content\Images\newAccountGraphic.png" />
     <Content Include="Content\Images\nugetlogo.png" />
@@ -480,6 +482,7 @@
     <Content Include="Content\Images\searchButton.png" />
     <Content Include="Content\Images\trash.png" />
     <Content Include="Content\Images\userGraphic.png" />
+    <Content Include="Content\Images\userIcon.png" />
     <Content Include="Content\Images\userIconWhite.png" />
     <Content Include="Content\Images\xmark.png" />
     <Content Include="Content\jquery.lightbox-0.5.css" />
@@ -628,6 +631,9 @@
     <Content Include="Views\Packages\Delete.cshtml" />
     <Content Include="Views\Packages\Edit.cshtml" />
     <Content Include="Views\Packages\_PackageDetailsTable.cshtml" />
+    <Content Include="Views\Pages\Terms.cshtml" />
+    <Content Include="Views\Pages\Privacy.cshtml" />
+    <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />
