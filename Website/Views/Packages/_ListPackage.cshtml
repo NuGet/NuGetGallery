@@ -1,7 +1,7 @@
 ﻿@using NuGetGallery;
 @model ListPackageItemViewModel
 <div class="content-item package">
-    <div class="packageItem packages">
+    <div class="packageItem packages @if (Model.IsOwner(User)) {<text>mine</text>}">
         <a href="@Url.Package(Model)">
             <img src="@(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_png)" class="thumbnail" title="@Model.Id Package icon" />
         </a>
