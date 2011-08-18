@@ -1,0 +1,247 @@
+﻿/*	Global classes	*/
+.DDMainHeader
+{
+	font: small-caps bold 1.6em Trebuchet MS, Arial, sans-serif;
+	color:#888;
+	padding-bottom: 12px;
+    border-bottom: 1px dotted #bbbbbb;
+}
+
+.DDSubHeader
+{
+	margin-bottom: 10px;
+    font:1.2em Trebuchet MS, Arial, sans-serif;
+    color: #888;
+}
+
+.DD 
+{
+	padding: 0px 8px;
+    font: .75em Tahoma, Arial, sans-serif;
+    color: #666;
+}
+
+.DDLightHeader
+{
+	font-weight: bold;
+	background-color: #F7F7FF;
+} 
+
+.DDTextBox, .DDDropDown
+{
+	color: #666;
+	font: .95em Tahoma, Arial, Sans-Serif;
+	border: solid 1px #dcdcdc;
+	background-color: #FEFEFE;
+}
+
+.DDDropDown
+{
+	padding:2px;
+}
+
+.DDFilter
+{
+	font: .95em Tahoma, Arial, Sans-serif;
+	color:#666;
+}
+
+.DDControl
+{
+    padding: 0px;
+    font: .95em Tahoma, Arial, Sans-Serif;
+    color: #666;
+}
+
+.DDFloatLeft
+{
+	float:left;
+}
+
+.DDFloatRight
+{
+	float:right;
+}
+
+.DDFooter
+{
+	background-color: #dbddff;
+}
+
+.DDSelected
+{
+	background-color: #fdffb8;
+}
+
+div.DDNoItem
+{
+	color:Red;
+	font-family:Trebuchet MS, Arial, sans-serif;
+}
+
+.DDValidator
+{
+	color:Red;
+	font-family:Trebuchet MS, Arial, sans-serif;
+}
+
+
+/*	Navigation	*/
+
+div.DDNavigation
+{
+	font:.75em Tahoma, Arial, Sans-Serif;
+	position: relative;
+    top: -28px;
+    margin-bottom: -10px;
+    padding: 0px 5px;
+}
+
+div.DDNavigation img
+{
+    position: relative;
+    margin-top: 0em;
+    padding: 0px 8px;
+    border: none;
+    background-color: #fff;
+}
+div.DDNavigation a
+{
+    color: #839ce7;
+    text-decoration: none;
+    background-color: #fff;
+    padding-right: 8px;
+    top: -.2em;
+    left: .25em;
+}
+div.DDNavigation a:hover
+{
+    color: #000099;
+    text-decoration: underline !important;
+}
+
+
+/*	Details VIEW/EDIT	*/
+table.DDDetailsTable
+{
+	color: #666;
+	background-color: #FCFDFE;
+	border: 1px solid #dbddff;
+	border-bottom-width: 3px;
+}
+
+table.DDDetailsTable a
+{
+	color:#718ABE;
+	text-decoration: none;
+	padding-right: 6px;
+}
+
+table.DDDetailsTable a:hover
+{
+    color: #000099;
+    text-decoration: underline !important;
+}
+
+table.DDDetailsTable .td
+{
+	padding: 3px 6px;
+	border: 1px solid #dbddff;
+	border-bottom-style: dotted;
+	font-size: .7em;
+	font-family:Tahoma, Arial, Sans-Serif;
+}
+
+
+/*	DDGridView/DDListView	*/
+table.DDGridView, table.DDListView
+{
+	width: 100%;
+	color: #666;
+	border:solid 1px #dbddff;
+	font: .7em Tahoma, Arial, Sans-Serif;
+}
+
+table.DDGridView .th, table.DDGridView .td, table.DDListView .th, table.DDListView .td
+{
+	white-space: nowrap;
+}
+
+table.DDGridView .th, table.DDListView .th
+{
+	background: url(DynamicData/Content/Images/header_back.gif) repeat-x;
+	line-height:1.3em;
+	text-align: left;
+	font-size: 1em;
+	border:solid 1px #dbddff;
+}
+
+table.DDGridView .th a, table.DDListView .th a
+{
+	color: #666;
+	text-decoration: none;
+}
+
+table.DDGridView .td, table.DDListView .td
+{
+	border: dotted 1px #dbddff;
+	border-left-width:0px;
+	border-right-width:0px;
+	padding: 6px;
+}
+
+table.DDGridView .td a, table.DDListView .td a
+{
+	color: #718ABE;
+    text-decoration: none;
+    margin-right: 6px;
+	
+}
+
+table.DDGridView .DDSelected a, table.DDListView .DDSelected a
+{
+	color: #718ABE;
+    text-decoration: none;
+    margin-right: 6px;
+	
+}
+
+table.DDGridView .DDSelected a:hover, table.DDListView .DDSelected a:hover
+{
+	color: #000099;
+	text-decoration: underline;
+}
+
+table.DDGridView .td a:hover, table.DDListView .td a:hover
+{
+	color: #000099;
+	text-decoration: underline;
+}
+
+/*	DataPager	*/
+div.DDPager
+{
+    padding: 0px 6px;
+}
+
+
+/* Bottom hyperlink design*/
+div.DDBottomHyperLink
+{	
+    font: .75em Tahoma, Arial, Sans-Serif;
+}
+div.DDBottomHyperLink a
+{
+    color: #839ce7;
+    text-decoration: none;
+}
+div.DDBottomHyperLink a:hover
+{
+    color: #000099;
+    text-decoration: underline !important;
+}
+div.DDBottomHyperLink img
+{
+    padding-right: 5px;
+    border: none;
+}

@@ -12,6 +12,8 @@ namespace NuGetGallery {
             UpdateDatabase();
             Routes.RegisterRoutes(RouteTable.Routes);
 
+            DynamicDataEFCodeFirst.Registration.Register(RouteTable.Routes);
+
             // TODO: move profile bootstrapping and container bootstrapping to here
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
         }
