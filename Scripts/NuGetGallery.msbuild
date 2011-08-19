@@ -35,7 +35,6 @@
       />
     </ItemGroup>
     <Delete Files="@(FilesToRemove)" />
-    <RemoveDir Directories="@(DirectoriesToRemove)" />
   </Target>
 
   <Target Name="RevertDatabase" DependsOnTargets="Build">
