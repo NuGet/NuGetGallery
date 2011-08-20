@@ -41,7 +41,7 @@
                                     To install @Model.Title, run the following command in 
                                     the Package Manager Console:
                                     <code class="command">
-                                        Install-Package @Model.Id
+                                        Install-Package @Model.Id @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}
                                     </code>
                                 </p>
                             </div>
