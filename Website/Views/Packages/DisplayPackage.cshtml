@@ -38,11 +38,13 @@
                                     @Model.Description
                                 </p>
                                 <p>
-                                    To install @Model.Title, run the following command in 
-                                    the Package Manager Console:
-                                    <code class="command">
-                                        Install-Package @Model.Id @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}
-                                    </code>
+                                    To install @Model.Title, run the following command in the 
+                                    <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">Package Manager Console</a>:
+                                    <div class="commandWrapper">
+                                        <div class="commandPrompt">
+                                            <p class="command">PM&gt; Install-Package @Model.Id @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}</p>
+                                        </div>
+                                    </div>
                                 </p>
                             </div>
                         </header>
