@@ -295,13 +295,20 @@ input[type=submit]:hover, button[type=submit]:hover, input[type=button]:hover {
     float: left;
 }
 
-.user-actions a, #socialLinks a, .user-display .welcome a {
+.user-actions a, #socialLinks a, .user-display a, .user-display .welcome a {
     color:#fff;
 }
 
 .user-display .welcome {
     color: #fff;
     background-image: url(../Content/Images/userIconWhite.png);
+}   
+
+a.register {
+    color: #fff;
+    text-transform: none;
+    margin-left: 10px;
+    font-family: "Segoe Print",Tahoma,Geneva,Verdana,sans-serif;
 }
 
 /* Main Navigation
