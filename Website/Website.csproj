@@ -480,6 +480,7 @@
     <Content Include="Content\Images\newAccountGraphic.png" />
     <Content Include="Content\Images\nugetlogo.png" />
     <Content Include="Content\Images\nugetLogoFooter.png" />
+    <Content Include="Content\Images\packageDefaultIcon-50x50.png" />
     <Content Include="Content\Images\packageDefaultIcon.png" />
     <Content Include="Content\Images\packageOwnerActionIcons.png" />
     <Content Include="Content\Images\packagesDefaultIcon.png" />

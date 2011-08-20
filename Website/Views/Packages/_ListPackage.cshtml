@@ -3,7 +3,7 @@
 <div class="content-item package">
     <div class="packageItem packages @if (Model.IsOwner(User)) {<text>mine</text>}">
         <a href="@Url.Package(Model)">
-            <img src="@(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_png)" class="thumbnail" title="@Model.Id Package icon" />
+            <img src="@(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" class="thumbnail" title="@Model.Id Package icon" />
         </a>
         <header>
             <h3 style="display: inline-block;">

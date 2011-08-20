@@ -320,18 +320,13 @@ namespace Links {
         public static readonly string jquery_1_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2.min.js") ? Url("jquery-1.6.2.min.js") : Url("jquery-1.6.2.js");
                       
         public static readonly string jquery_1_6_2_min_js = Url("jquery-1.6.2.min.js");
-        public static readonly string jQuery_tmpl_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jQuery.tmpl.min.js") ? Url("jQuery.tmpl.min.js") : Url("jQuery.tmpl.js");
-                      
-        public static readonly string jQuery_tmpl_min_js = Url("jQuery.tmpl.min.js");
         public static readonly string jquery_validate_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate-vsdoc.min.js") ? Url("jquery.validate-vsdoc.min.js") : Url("jquery.validate-vsdoc.js");
                       
         public static readonly string jquery_validate_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate.min.js") ? Url("jquery.validate.min.js") : Url("jquery.validate.js");
                       
         public static readonly string jquery_validate_min_js = Url("jquery.validate.min.js");
         public static readonly string jquery_validate_unobtrusive_min_js = Url("jquery.validate.unobtrusive.min.js");
-        public static readonly string knockout_1_2_1_debug_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/knockout-1.2.1.debug.min.js") ? Url("knockout-1.2.1.debug.min.js") : Url("knockout-1.2.1.debug.js");
-                      
-        public static readonly string knockout_1_2_1_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/knockout-1.2.1.min.js") ? Url("knockout-1.2.1.min.js") : Url("knockout-1.2.1.js");
+        public static readonly string knockout_latest_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/knockout-latest.min.js") ? Url("knockout-latest.min.js") : Url("knockout-latest.js");
                       
     }
 
@@ -367,6 +362,7 @@ namespace Links {
             public static readonly string newAccountGraphic_png = Url("newAccountGraphic.png");
             public static readonly string nugetlogo_png = Url("nugetlogo.png");
             public static readonly string nugetLogoFooter_png = Url("nugetLogoFooter.png");
+            public static readonly string packageDefaultIcon_50x50_png = Url("packageDefaultIcon-50x50.png");
             public static readonly string packageDefaultIcon_png = Url("packageDefaultIcon.png");
             public static readonly string packageOwnerActionIcons_png = Url("packageOwnerActionIcons.png");
             public static readonly string packagesDefaultIcon_png = Url("packagesDefaultIcon.png");
