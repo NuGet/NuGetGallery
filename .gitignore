@@ -1,3 +1,4 @@
+_ReSharper*
 bin
 obj
 *.user
@@ -5,3 +6,4 @@ obj
 App_Data
 *.results.xml
 packages
+*.sln.docstates
