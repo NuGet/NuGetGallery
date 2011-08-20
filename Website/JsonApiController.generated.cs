@@ -20,13 +20,10 @@ using System.Web.Mvc.Ajax;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
-namespace NuGetGallery {
-    public partial class PagesController {
+namespace NuGetGallery.Controllers {
+    public partial class JsonApiController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public PagesController() { }
-
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        protected PagesController(Dummy d) { }
+        protected JsonApiController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected RedirectToRouteResult RedirectToAction(ActionResult result) {
@@ -36,20 +33,17 @@ namespace NuGetGallery {
 
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public PagesController Actions { get { return MVC.Pages; } }
+        public JsonApiController Actions { get { return MVC.JsonApi; } }
         [GeneratedCode("T4MVC", "2.0")]
         public readonly string Area = "";
         [GeneratedCode("T4MVC", "2.0")]
-        public readonly string Name = "Pages";
+        public readonly string Name = "JsonApi";
 
         static readonly ActionNamesClass s_actions = new ActionNamesClass();
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string Home = "Home";
-            public readonly string Terms = "Terms";
-            public readonly string Privacy = "Privacy";
         }
 
 
@@ -58,30 +52,12 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-            public readonly string Home = "~/Views/Pages/Home.cshtml";
-            public readonly string Privacy = "~/Views/Pages/Privacy.cshtml";
-            public readonly string Terms = "~/Views/Pages/Terms.cshtml";
         }
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_PagesController: NuGetGallery.PagesController {
-        public T4MVC_PagesController() : base(Dummy.Instance) { }
-
-        public override System.Web.Mvc.ActionResult Home() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Home);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Terms() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Terms);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Privacy() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Privacy);
-            return callInfo;
-        }
+    public class T4MVC_JsonApiController: NuGetGallery.Controllers.JsonApiController {
+        public T4MVC_JsonApiController() : base(Dummy.Instance) { }
 
     }
 }

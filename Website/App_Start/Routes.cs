@@ -1,5 +1,6 @@
 ﻿using System.Web.Mvc;
 using System.Web.Routing;
+using MvcHaack.Ajax;
 using RouteMagic;
 
 namespace NuGetGallery {
@@ -9,6 +10,8 @@ namespace NuGetGallery {
                 RouteName.Home,
                 "",
                 MVC.Pages.Home());
+
+            routes.Add(new JsonRoute("json/{controller}"));
 
             routes.MapRoute(
                 RouteName.Policies,

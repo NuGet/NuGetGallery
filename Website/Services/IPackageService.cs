@@ -19,5 +19,9 @@ namespace NuGetGallery {
         IEnumerable<Package> FindPackagesByOwner(User user);
 
         IEnumerable<Package> FindDependentPackages(Package package);
+
+        void AddPackageOwner(Package package, User user);
+
+        void RemovePackageOwner(Package package, User user);
     }
 }

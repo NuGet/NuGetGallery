@@ -9,83 +9,110 @@
                 <section>
                     <header>
                         <h2>Manage Owners for Package "@Model.Title"</h2>
+                        <div class="message message-Error validation-summary-errors" data-bind="text: message, visible: message"></div>
                     </header>
                     <div id="form">
                         <div>
                             <label>Current Owners</label>
-                            @if (Model.OtherOwners.Any()) {
-                                <ul id="package-owner-list">
-                                    <li>@Model.CurrentOwnerUsername</li>
-                                    @foreach (var owner in Model.OtherOwners) {
-                                        <li>
-                                            @owner.Username 
-                                            <a href="#" onclick="RemoveOwnerFromPackage(@owner.Key, '@owner.Username'); return false;" class="delete">Remove</a>
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                            else {
-                                <p>
-                                    No other owners are associated with "@Model.Id".
-                                </p>
-                            }
+                            <ul id="package-owner-list" data-bind="foreach: owners">
+                                <li>
+                                    <span data-bind="text: name"></span>
+                                    <a href="#" class="delete" data-bind="visible: !current, click: remove">Remove</a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                     <div>
                         <form action="@Url.Current()" id="form" method="post">
-                        <div>
-                            <label for="newOwnerUserName">Add New Owner</label>
-                            <p>
-                                Enter an owner's username to add them as a package owner.
-                            </p>
-                            <aside style="width: 357px !important;">
+                            <div>
+                                <label for="newOwnerUserName">Add New Owner</label>
                                 <p>
-                                    <strong>NOTE:</strong> All package owners have full control over their packages,
-                                    including the ability to remove other users as owners.</p>
-                            </aside>
-                            <input type="text" id="newOwnerUserName" name="newOwnerUserName" class="long" />
-                        </div>
-                        @Html.AntiForgeryToken()
-                        <div class="buttons">
-                            <input type="submit" value="Add" />
-                        </div>
-                    </div>
-                    <div id="removeUserConfirmationDialogDiv" title="Confirm Owner Removal">
-                        <p>
-                            Are you sure you wish to remove "<span id="nameOfUserToRemoveSpan"></span>" from
-                            this package?</p>
-                        <form action="/Orchard.Gallery/ManagePackageOwners/RemoveOwner" method="post">
-                        <input id="PackageId" name="PackageId" type="hidden" value="RouteMagic" />
-                        <input type="hidden" id="idOfUserToRemove" name="idOfUserToRemove" />
-                        <input type="hidden" id="nameOfUserToRemove" name="nameOfUserToRemove" />
-                        <input type="submit" value="Yes" />
-                        <a href="#" onclick="CloseConfirmationDialogDiv(); return false;">No</a>
-                        <input name="__RequestVerificationToken" type="hidden" value="txc0nxDDSIzbPzRmr+7LXz6PgkChS+eVIpQsBIIeGEwqDhcGPhpv3mRTOgHBxl0W0V8tpiC5Zv9osHv26+Xpszz++cWT7RfFTW3nyInLyeDutGdtzXnzAAIB4C/JNZoi3d31HH/ayfBkJ1NHh9XqZ41rR0p/EC0lhPoG2HTAi8pf4QgvFQOi/2xY5QmiBfDAiFgpxgcwn7ollZ0vUrZObILELe7SdLyapfI3lIsNL5Y=" /></form>
+                                    Enter an owner's username to add them as a package owner.
+                                </p>
+                                <aside style="width: 357px !important;">
+                                    <p>
+                                        <strong>NOTE:</strong> All package owners have full control over their packages,
+                                        including the ability to remove other users as owners.</p>
+                                </aside>
+                                <input type="text" id="newOwnerUserName" data-bind="value: newOwner().name" class="long" />
+                            </div>
+                            <div class="buttons">   
+                                <input type="submit" value="Add" data-bind="click: addOwner" />
+                            </div>
+                        </form>
                     </div>
                 </section>
             </div>
     </div>
 </div>
 </div> 
-
+<script src="@Url.Content("~/Scripts/knockout-latest.js")" type="text/javascript"></script>
+<script src="@Url.Content("~/json/JsonApi?json")" type="text/javascript"></script>
 <script type="text/javascript">
-        //<![CDATA[
-    var $removeUserConfirmationDialogDiv = $('#removeUserConfirmationDialogDiv');
     $(function() {
-        $removeUserConfirmationDialogDiv.dialog({ autoOpen: false, modal: true, resizable: false });
+        //TODO Move this to its own script file when we set up QUnit tests
+        var failHandler = function() {
+            alert('An unexpected error occurred!');
+        };
+
+        var viewModel = {
+            package: { id: '@Model.Id', version: '@Model.Version' },
+            owners: ko.observableArray([]),
+            newOwner: ko.observable(new Owner(null)),
+            message: ko.observable(''),
+            addOwner: function() {
+                var ownerInputModel = viewModel.newOwner().toJS();
+                ownerInputModel.id = viewModel.package.id;
+                
+                $mvc.JsonApi.AddPackageOwner(ownerInputModel)
+                    .done(function(data) {
+                        if (data.success) {
+                            viewModel.newOwner().name(data.name);
+                            viewModel.owners.push(viewModel.newOwner());
+                            viewModel.newOwner(new Owner(null));
+                        }
+                        else {
+                            viewModel.message(data.message);
+                        }
+                    })
+                    .fail(failHandler);
+            },
+
+            removeOwner: function(item) {
+                var package = viewModel.package;
+                $mvc.JsonApi.RemovePackageOwner({ id: package.id, version: package.version, username: item.name() })
+                    .done(function(data) {
+                        if (data.success) {
+                            viewModel.owners.remove(item);
+                        }
+                        else {
+                            viewModel.message(data.message);
+                        }
+                    }).fail(failHandler);
+            }
+        };
+        ko.applyBindings(viewModel);
+
+        // Load initial owners.
+        $mvc.JsonApi.GetPackageOwners(viewModel.package)
+        .done(function(data) {
+            viewModel.owners($.map(data, function(item) { return new Owner(item) }));
+        })
+        .fail(failHandler);
+
+        function Owner(item) {
+            var $this = this;
+
+            item = item || {};
+
+            this.name = ko.observable(item.name);
+            this.current = item.current;
+            this.remove = function() {
+                viewModel.removeOwner(this);
+            };
+            this.toJS = function() {
+                return { username: this.name() };
+            };
+        }
     });
-
-    function RemoveOwnerFromPackage(idOfUserToRemove, nameOfUserToRemove) {
-        $('#idOfUserToRemove').val(idOfUserToRemove);
-        $('#nameOfUserToRemove').val(nameOfUserToRemove);
-        $('#nameOfUserToRemoveSpan').text(nameOfUserToRemove);
-        $removeUserConfirmationDialogDiv.dialog('open');
-        return false;
-    }
-
-    function CloseConfirmationDialogDiv() {
-        $removeUserConfirmationDialogDiv.dialog('close');
-        return false;
-    }
-        //]]>
-        </script>
+</script>

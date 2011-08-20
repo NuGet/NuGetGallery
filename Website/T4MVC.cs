@@ -25,6 +25,7 @@ using T4MVC;
 public static class MVC {
     public static NuGetGallery.ApiController Api = new NuGetGallery.T4MVC_ApiController();
     public static NuGetGallery.AuthenticationController Authentication = new NuGetGallery.T4MVC_AuthenticationController();
+    public static NuGetGallery.Controllers.JsonApiController JsonApi = new NuGetGallery.Controllers.T4MVC_JsonApiController();
     public static NuGetGallery.PackagesController Packages = new NuGetGallery.T4MVC_PackagesController();
     public static NuGetGallery.PagesController Pages = new NuGetGallery.T4MVC_PagesController();
     public static NuGetGallery.UsersController Users = new NuGetGallery.T4MVC_UsersController();
@@ -319,12 +320,19 @@ namespace Links {
         public static readonly string jquery_1_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2.min.js") ? Url("jquery-1.6.2.min.js") : Url("jquery-1.6.2.js");
                       
         public static readonly string jquery_1_6_2_min_js = Url("jquery-1.6.2.min.js");
+        public static readonly string jQuery_tmpl_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jQuery.tmpl.min.js") ? Url("jQuery.tmpl.min.js") : Url("jQuery.tmpl.js");
+                      
+        public static readonly string jQuery_tmpl_min_js = Url("jQuery.tmpl.min.js");
         public static readonly string jquery_validate_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate-vsdoc.min.js") ? Url("jquery.validate-vsdoc.min.js") : Url("jquery.validate-vsdoc.js");
                       
         public static readonly string jquery_validate_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate.min.js") ? Url("jquery.validate.min.js") : Url("jquery.validate.js");
                       
         public static readonly string jquery_validate_min_js = Url("jquery.validate.min.js");
         public static readonly string jquery_validate_unobtrusive_min_js = Url("jquery.validate.unobtrusive.min.js");
+        public static readonly string knockout_1_2_1_debug_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/knockout-1.2.1.debug.min.js") ? Url("knockout-1.2.1.debug.min.js") : Url("knockout-1.2.1.debug.js");
+                      
+        public static readonly string knockout_1_2_1_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/knockout-1.2.1.min.js") ? Url("knockout-1.2.1.min.js") : Url("knockout-1.2.1.js");
+                      
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -354,6 +362,7 @@ namespace Links {
             public static readonly string herowithlogo_png = Url("herowithlogo.png");
             public static readonly string inputBackground_png = Url("inputBackground.png");
             public static readonly string invalidBG_png = Url("invalidBG.png");
+            public static readonly string mine_png = Url("mine.png");
             public static readonly string navbackground_png = Url("navbackground.png");
             public static readonly string newAccountGraphic_png = Url("newAccountGraphic.png");
             public static readonly string nugetlogo_png = Url("nugetlogo.png");
@@ -368,6 +377,7 @@ namespace Links {
             public static readonly string sendMessageGraphic_png = Url("sendMessageGraphic.png");
             public static readonly string trash_png = Url("trash.png");
             public static readonly string userGraphic_png = Url("userGraphic.png");
+            public static readonly string userIcon_png = Url("userIcon.png");
             public static readonly string userIconWhite_png = Url("userIconWhite.png");
             public static readonly string xmark_png = Url("xmark.png");
         }

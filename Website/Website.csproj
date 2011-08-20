@@ -61,6 +61,9 @@
     <Reference Include="Migrator.Providers, Version=0.9.0.26941, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MigratorDotNet.0.9.0.28138\lib\Net40\Migrator.Providers.dll</HintPath>
     </Reference>
+    <Reference Include="MvcHaack.Ajax">
+      <HintPath>..\packages\MvcHaack.Ajax.1.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
+    </Reference>
     <Reference Include="MvcMiniProfiler">
       <HintPath>..\packages\MiniProfiler.1.7\lib\MvcMiniProfiler.dll</HintPath>
     </Reference>
@@ -127,6 +130,7 @@
     </Compile>
     <Compile Include="BuildTasks\CreateDatabase.cs" />
     <Compile Include="Controllers\ApiController.cs" />
+    <Compile Include="Controllers\JsonApiController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
@@ -357,6 +361,9 @@
     <Compile Include="DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
+    <Compile Include="JsonApiController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\20110816113000_AddIsAdminColumn.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
@@ -547,6 +554,7 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="DataServices\Feeds.svc" />
+    <Content Include="Scripts\knockout-latest.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>

@@ -248,5 +248,15 @@ namespace NuGetGallery {
 
             packageRegistration.Packages.Where(pv => pv.Version == latestVersion.ToString()).Single().IsLatest = true;
         }
+
+        public void AddPackageOwner(Package package, User user) {
+            package.PackageRegistration.Owners.Add(user);
+            packageRepo.CommitChanges();
+        }
+
+        public void RemovePackageOwner(Package package, User user) {
+            package.PackageRegistration.Owners.Remove(user);
+            packageRepo.CommitChanges();
+        }
     }
 }

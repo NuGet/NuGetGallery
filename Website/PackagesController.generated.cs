@@ -126,6 +126,7 @@ namespace NuGetGallery {
             public readonly string DisplayPackage = "~/Views/Packages/DisplayPackage.cshtml";
             public readonly string Edit = "~/Views/Packages/Edit.cshtml";
             public readonly string ListPackages = "~/Views/Packages/ListPackages.cshtml";
+            public readonly string ManagePackageOwners = "~/Views/Packages/ManagePackageOwners.cshtml";
             public readonly string PublishPackage = "~/Views/Packages/PublishPackage.cshtml";
             public readonly string ReportAbuse = "~/Views/Packages/ReportAbuse.cshtml";
             public readonly string UploadPackage = "~/Views/Packages/UploadPackage.cshtml";
