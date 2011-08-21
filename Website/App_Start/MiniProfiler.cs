@@ -40,8 +40,8 @@ namespace NuGetGallery.App_Start {
                 var request = ((HttpApplication)sender).Request;
 
                 // TODO: only profile for admin users
-                if (request.IsLocal)
-                    MiniProfiler.Start();
+                // Temporarily commenting this out for demo purposes. if (request.IsLocal)
+                MiniProfiler.Start();
             };
 
             context.EndRequest += (sender, e) => {
