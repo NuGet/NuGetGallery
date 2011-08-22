@@ -28,6 +28,11 @@ namespace NuGetGallery {
                 "upload/package",
                 MVC.Packages.UploadPackage());
 
+            routes.MapRoute(
+                RouteName.DownloadPackage,
+                "download/package/{id}/{version}",
+                MVC.Packages.DownloadPackage());
+
             // We need the following two routes (rather than just one) due to Routing's 
             // Consecutive Optional Parameter bug. :(
             var packageDisplayRoute = routes.MapRoute(

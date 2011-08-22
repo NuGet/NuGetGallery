@@ -221,6 +221,7 @@ namespace NuGetGallery {
             return Redirect(Url.Package(id));
         }
 
+        [HttpGet]
         public virtual ActionResult DownloadPackage(string id, string version) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
