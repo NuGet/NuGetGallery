@@ -69,6 +69,7 @@
                             }
                             <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">Report Abuse</a></li>
                             <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
+                            <li><a href="@Url.PackageDownload(Model.Id, Model.Version)">Download</a></li>
                         </ul>
 
                         @Html.Partial("_PackageDetailsTable", Model)
