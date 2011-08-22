@@ -1,4 +1,4 @@
-This is a re-write of the NuGet Gallery.
+This is an implementation of the NuGet Gallery and OData Package Feed.
 
 ## Getting Started
 
