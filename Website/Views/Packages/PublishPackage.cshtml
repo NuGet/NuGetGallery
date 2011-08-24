@@ -94,6 +94,7 @@
                             <input class="long disabled" disabled id="ProjectUrl" name="ProjectUrl" type="url" value="@Model.ProjectUrl" />
                         </div>
                         <div class="buttons">
+                            @Html.AntiForgeryToken()
                             <input id="packageEditSubmitButton" type="submit" value="Verify" singleClickButton="true" />
                         </div>
                     </form>

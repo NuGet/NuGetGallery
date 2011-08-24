@@ -75,7 +75,7 @@ namespace NuGetGallery {
             return View(model);
         }
 
-        [Authorize]
+        [Authorize, ValidateAntiForgeryToken]
         public virtual ActionResult GenerateApiKey() {
             userService.GenerateApiKey(HttpContext.User.Identity.Name);
             return RedirectToAction(MVC.Users.Account());

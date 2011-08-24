@@ -96,7 +96,7 @@ namespace NuGetGallery {
             });
         }
 
-        [Authorize, HttpPost]
+        [Authorize, HttpPost, ValidateAntiForgeryToken]
         public virtual ActionResult PublishPackage(string id, string version) {
             // TODO: handle requesting to verify a package that is already verified; return 404?
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
