@@ -13,6 +13,12 @@ Website:      http://code.google.com/p/elmah/
 Copyright:    Copyright (c) 2010 Atif Azis
 License:      Apache 2.0
 
+Elmah.Contrib.Mvc 1.0
+----
+Website:      http://nuget.org/List/Packages/Elmah.Contrib.Mvc
+Copyright:    Copyright (c) 2011, Fabian Vilers
+License:      Ms-PL
+
 jQuery 1.6.2
 ----
 Website:      http://jquery.com/
@@ -22,7 +28,7 @@ License:      MIT
 jQuery Validation 1.8.1
 ----
 Website:      http://bassistance.de/jquery-plugins/jquery-plugin-validation/
-Copyright:    Copyright (c) 2006 - 2011 Jörn Zaefferer
+Copyright:    Copyright (c) 2006 - 2011 Jï¿½rn Zaefferer
 License:      MIT
 
 MigratorDotNet 0.9.0.28138
@@ -53,7 +59,7 @@ RouteMagic 1.1.1
 ----
 Website:      http://routemagic.codeplex.com/
 Copyright:    Copyright (c) 2011 Phil Haack
-License:      MS-PL
+License:      Ms-PL
 
 MvcContrib (T4MVC)
 ----
@@ -65,4 +71,3 @@ CodeHaacks (MvcHaack.Ajax)
 ----
 Website:      https://github.com/Haacked/CodeHaacks
 Copyright:    Copyright (c) 2011 Phil Haack
-License:      Unknown
