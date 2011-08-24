@@ -77,7 +77,8 @@ namespace NuGetGallery {
 
         [Authorize]
         public virtual ActionResult GenerateApiKey() {
-            return Redirect(Request.Url.ToString());
+            userService.GenerateApiKey(HttpContext.User.Identity.Name);
+            return RedirectToAction(MVC.Users.Account());
         }
 
         public virtual ActionResult ForgotPassword() {

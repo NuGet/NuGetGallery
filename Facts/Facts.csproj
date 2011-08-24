@@ -56,7 +56,7 @@
   <ItemGroup>
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
-    <Compile Include="Controllers\UserControllerFacts.cs" />
+    <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\FileSystemPackageFileServiceFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />

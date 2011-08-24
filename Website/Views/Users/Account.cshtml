@@ -51,7 +51,7 @@
                             <h4>Your access key is: </h4>
                             <p id="accessKey">@Model.ApiKey</p>
                             <form Id="generateKeyForm" action="@Url.Action(MVC.Users.GenerateApiKey())" method="post">            
-                                <input id="generateKeyButton" type="button" value="Generate New Key" singleClickButton="true" />
+                                <input id="generateKeyButton" type="submit" value="Generate New Key" singleClickButton="true" />
                             </form>
                         </div>
                     </section>

@@ -1,9 +1,11 @@
-﻿using System.Web.Mvc;
+﻿using System.Web;
+using System.Web.Mvc;
+using System.Web.Routing;
 using Moq;
 using Xunit;
 
 namespace NuGetGallery {
-    public class UserControllerFacts {
+    public class UsersControllerFacts {
         public class TheRegisterMethod {
             [Fact]
             public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid() {
@@ -79,17 +81,53 @@ namespace NuGetGallery {
             }
         }
 
+        public class TheGenerateApiKeyMethod {
+            [Fact]
+            public void RedirectsToAccountPage() {
+                var controller = CreateController(currentUserName: "the-username");
+
+                var result = controller.GenerateApiKey() as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("Account", result.RouteValues["action"]);
+                Assert.Equal("Users", result.RouteValues["controller"]);
+            }
+
+            [Fact]
+            public void GeneratesAnApiKey() {
+                var userService = new Mock<IUserService>();
+                userService.Setup(s => s.GenerateApiKey("the-username")).Verifiable();
+                var controller = CreateController(userSvc: userService, currentUserName: "the-username");
+
+                var result = controller.GenerateApiKey() as RedirectToRouteResult;
+
+                userService.VerifyAll();
+            }
+        }
+
         static UsersController CreateController(
             Mock<IFormsAuthenticationService> formsAuthSvc = null,
-            Mock<IUserService> userSvc = null) {
+            Mock<IUserService> userSvc = null,
+            string currentUserName = null) {
             formsAuthSvc = formsAuthSvc ?? new Mock<IFormsAuthenticationService>();
             userSvc = userSvc ?? new Mock<IUserService>();
             var packageService = new Mock<IPackageService>();
 
-            return new UsersController(
+            var controller = new UsersController(
                 formsAuthSvc.Object,
                 userSvc.Object,
                 packageService.Object);
+
+            // TODO: See this following block? This is a code smell. We
+            //       need a better way to grab the current username perhaps?
+            if (currentUserName != null) {
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.User.Identity.Name).Returns(currentUserName);
+                var controllerContext = new ControllerContext(httpContext.Object, new RouteData(), controller);
+                controller.ControllerContext = controllerContext;
+            }
+
+            return controller;
         }
     }
 }

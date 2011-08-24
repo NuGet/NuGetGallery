@@ -35,7 +35,7 @@ namespace NuGetGallery {
             var newUser = new User(
                 username,
                 hashedPassword,
-                emailAddress);
+                emailAddress) { ApiKey = Guid.NewGuid() };
 
             // TODO: enqueue a real message instead of one with a dummy subject and body
             newUser.Messages.Add(new EmailMessage(
@@ -84,6 +84,18 @@ namespace NuGetGallery {
                 return null;
 
             return user;
+        }
+
+        public string GenerateApiKey(string username) {
+            var user = FindByUsername(username);
+            if (user == null) {
+                return null;
+            }
+
+            var newApiKey = Guid.NewGuid();
+            user.ApiKey = newApiKey;
+            userRepo.CommitChanges();
+            return newApiKey.ToString();
         }
     }
 }

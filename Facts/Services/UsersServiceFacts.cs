@@ -8,10 +8,10 @@ namespace NuGetGallery {
             [Fact]
             public void WillThrowIfTheUsernameIsAlreadyInUse() {
                 var userSvc = CreateUsersService(setup: mockUserSvc => {
-                        mockUserSvc
-                            .Setup(x => x.FindByUsername("theUsername"))
-                            .Returns(new User());
-                    });
+                    mockUserSvc
+                        .Setup(x => x.FindByUsername("theUsername"))
+                        .Returns(new User());
+                });
 
                 var ex = Assert.Throws<EntityException>(() =>
                     userSvc.Create(
@@ -74,6 +74,37 @@ namespace NuGetGallery {
                     u.HashedPassword == "theHashedPassword" &&
                     u.EmailAddress == "theEmailAddress")));
                 userRepo.Verify(x => x.CommitChanges());
+            }
+
+            [Fact]
+            public void SetsAnApiKey() {
+                var userRepo = new Mock<IEntityRepository<User>>();
+                var userSvc = CreateUsersService(
+                    userRepo: userRepo);
+
+                var user = userSvc.Create(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                Assert.NotEqual(Guid.Empty, user.ApiKey);
+            }
+        }
+
+        public class TheGenerateApiKeyMethod {
+            [Fact]
+            public void SetsApiKeyToNewGuid() {
+                var user = new User { ApiKey = Guid.Empty };
+                var userSvc = CreateUsersService(setup: mockUserSvc => {
+                    mockUserSvc
+                        .Setup(x => x.FindByUsername("theUsername"))
+                        .Returns(user);
+                });
+
+                var apiKey = userSvc.GenerateApiKey("theUsername");
+
+                Assert.NotEqual(Guid.Empty, user.ApiKey);
+                Assert.Equal(apiKey, user.ApiKey.ToString());
             }
         }
 
