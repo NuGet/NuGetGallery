@@ -2,47 +2,33 @@
 @model SubmitPackageRequest
 @{
     ViewBag.Tab = "Upload";
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-<div id="layout-main" class="aside-1 group">
-    
-    <aside id="aside-first" class="aside-first group">
-        <div class="zone zone-aside-first">
-            <nav id="leftNav">
-                <img src="@Links.Content.Images.contribGraphic_png" alt="Contribute" />
-                <p>Submit your package for others to enjoy.</p>
-            </nav>
-        </div>
-    </aside>
-    
-    <div id="layout-content" class="group">
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <section>
-                    <header>
-                        <h2>Upload Package</h2>
-                        <ul class="right" id="sequence">
-                            @ViewHelpers.UploadSequence(1)
-                        </ul>
-                    </header>
-                    <div id="form">
-                        <div id="uploadFileForm" class="selected">
-                            <form id="uploadFileSubmissionForm" method="post" action="@Url.Current()" enctype="multipart/form-data">
-                                @Html.AntiForgeryToken()
-                                @Html.ValidationSummary(true)
-                                <aside>
-                                    <p>Your package file will be uploaded and hosted on the gallery server.</p>
-                                </aside>
-                                <input type="file" id="PackageFile" name="PackageFile" />
-                                <div class="buttons">
-                                    <input id="uploadFileButton" type="submit" value="Upload &raquo;" singleClickButton="true" />
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </div>
+@section LeftNav {
+    <img src="@Links.Content.Images.contribGraphic_png" alt="Contribute" />
+    <p>Submit your package for others to enjoy.</p>
+}    
 
+@section ContentHeader {            
+    <h2>Upload Package</h2>
+    <ul class="right" id="sequence">
+        @ViewHelpers.UploadSequence(1)
+    </ul>
+}
+
+<div id="form">
+    <div id="uploadFileForm" class="selected">
+        <form id="uploadFileSubmissionForm" method="post" action="@Url.Current()" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true)
+            <aside>
+                <p>Your package file will be uploaded and hosted on the gallery server.</p>
+            </aside>
+            <input type="file" id="PackageFile" name="PackageFile" />
+            <div class="buttons">
+                <input id="uploadFileButton" type="submit" value="Upload &raquo;" singleClickButton="true" />
+            </div>
+        </form>
+    </div>
 </div>

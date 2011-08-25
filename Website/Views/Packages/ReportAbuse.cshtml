@@ -1,54 +1,44 @@
-﻿@{
+﻿@model ReportAbuseViewModel
+@{
     ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
-@model ReportAbuseViewModel
 
-<div id="layout-main" class="aside-1 group">
-    <aside id="aside-first" class="aside-first group">
-        <div class="zone zone-aside-first">
-            <nav id="leftNav">
-                <img src="@Links.Content.Images.sendMessageGraphic_png" style="padding-left: 55px" />
-            </nav></div>
-    </aside>
-    <div id="layout-content" class="group">
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <section>
-                    <header>
-                        <h2>Report Abuse</h2>
-                    </header>
-                    <div id="form">
-                        <form action="@Url.Current()" id="reportAbuseForm" method="post">
-                        <div>
-                            @Html.LabelFor(m => m.Message, String.Format("Submit an abuse report for Package \"{0}\', version \"{1}\".", Model.PackageId, Model.PackageVersion))
-                            <p>
-                                <strong>Important:</strong> This form is for reporting <strong>abusive</strong> packages such as 
-                                packages containing <strong>malicious code</strong> or spam. If the package simply doesn&#8217;t 
-                                appear to work or work correctly, please 
-                                <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the package owners.</a> 
-                            </p>                            
+@section LeftNav {
+    <img src="@Links.Content.Images.sendMessageGraphic_png" style="padding-left: 55px" />
+}    
 
-                            @if (!Request.IsAuthenticated) {
-                            <p>
-                                @Html.LabelFor(m => m.Email, "Provide your email address so we can follow up with you or LogOn first.")
-                                @Html.ValidationMessageFor(m => m.Email)
-                                @Html.TextBoxFor(m => m.Email, new { style = "display: block;" })
-                            </p>
-                            }
-                            else {
-                                <input type="hidden" name="Email" value="*" />
-                            }
+@section ContentHeader {            
+    <h2>Report Abuse</h2>
+}
+<div id="form">
+    <form action="@Url.Current()" id="reportAbuseForm" method="post">
+        <div>
+            @Html.LabelFor(m => m.Message, String.Format("Submit an abuse report for Package \"{0}\', version \"{1}\".", Model.PackageId, Model.PackageVersion))
+            <p>
+                <strong>Important:</strong> This form is for reporting <strong>abusive</strong> packages such as 
+                packages containing <strong>malicious code</strong> or spam. If the package simply doesn&#8217;t 
+                appear to work or work correctly, please 
+                <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the package owners.</a> 
+            </p>                            
+
+            @if (!Request.IsAuthenticated) {
+            <p>
+                @Html.LabelFor(m => m.Email, "Provide your email address so we can follow up with you or LogOn first.")
+                @Html.ValidationMessageFor(m => m.Email)
+                @Html.TextBoxFor(m => m.Email, new { style = "display: block;" })
+            </p>
+            }
+            else {
+                <input type="hidden" name="Email" value="*" />
+            }
                             
-                            @Html.LabelFor(m => m.Message, "Provide a detailed abuse report. Include exactly what the package did.")
-                            @Html.ValidationMessageFor(m => m.Message)
-                            @Html.TextAreaFor(m => m.Message, 5, 20, new { @class="long required" });
+            @Html.LabelFor(m => m.Message, "Provide a detailed abuse report. Include exactly what the package did.")
+            @Html.ValidationMessageFor(m => m.Message)
+            @Html.TextAreaFor(m => m.Message, 5, 20, new { @class="long required" })
                             
-                        </div>
-                        @Html.AntiForgeryToken()
-                        <input id="sendReportButton" type="submit" name="Send Report" value="Send Report" singleclickbutton="true" />
-                    </div>
-                </section>
-            </div>
         </div>
-    </div>
+        @Html.AntiForgeryToken()
+        <input id="sendReportButton" type="submit" name="Send Report" value="Send Report" singleclickbutton="true" />
+    </form>
 </div>

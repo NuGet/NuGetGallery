@@ -1,37 +1,28 @@
 ﻿@using NuGetGallery;
 @model RegisterRequest
+@{
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+}
 
-<div id="layout-main" class="aside-1 group">
-    <aside id="aside-first" class="aside-first group">
-        <div class="zone zone-aside-first">
-            <nav id="leftNav">
-                <img src="@Links.Content.Images.newAccountGraphic_png" style="padding-left:50px" alt="New Account Image"/>
-                <p>With your account, you’ll be able to achieve all kinds of fame and glory by submitting your own packages.</p>
-                <p>Already have an account? <a href="@Url.LogOn()">Log On.</a></p>
-            </nav>
-        </div>
-    </aside>
-    <div id="layout-content" class="group">
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <section>
-                    <header>
-                        <span class="right"><img src="@Links.Content.Images.required_png" alt="Required" /></span>
-                        <h2>Create A New Account</h2>
-                    </header>
-                    <form id="form" method="post" action="@Url.Current()">
-                        @Html.AntiForgeryToken()
-                        @Html.ValidationSummary(true)
-                        @Html.EditorForModel()
-                        <div>
-                            <button type="submit" name="Register">Register</button>
-                        </div>
-                    </form>
-                </section>
-            </div>
-        </div>
+@section LeftNav {
+    <img src="@Links.Content.Images.newAccountGraphic_png" style="padding-left:50px" alt="New Account Image"/>
+    <p>With your account, you’ll be able to achieve all kinds of fame and glory by submitting your own packages.</p>
+    <p>Already have an account? <a href="@Url.LogOn()">Log On.</a></p>
+}
+
+@section ContentHeader {
+    <span class="right"><img src="@Links.Content.Images.required_png" alt="Required" /></span>
+    <h2>Create A New Account</h2>
+}
+
+<form id="form" method="post" action="@Url.Current()">
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.EditorForModel()
+    <div>
+        <button type="submit" name="Register">Register</button>
     </div>
-</div>
+</form>
 
 @section BottomScripts {
     <script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>

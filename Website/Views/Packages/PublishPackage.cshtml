@@ -2,105 +2,86 @@
 @model SubmitPackageViewModel
 @{
     ViewBag.Tab = "Upload";
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-<div id="layout-main" class="aside-1 group">
-    <aside id="aside-first" class="aside-first group">
-        <div class="zone zone-aside-first">
-            <nav id="leftNav">
-                <img src="@Links.Content.Images.contribGraphic_png" alt="Contribution image" />
-                <p>Submit your package for others to enjoy.</p>
-            </nav>
-        </div>
-    </aside>
-    
-    <div id="layout-content" class="group">
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <section>
-                    <header>
-                        <h2>Submit Package</h2>
-                        <ul class="right" id="sequence">
-                            @ViewHelpers.UploadSequence(2)
-                        </ul>
-                    </header>
-                    <form id="form" method="post" action="@Url.Current()">
-                        <h3>Verify the details of your package</h3>
-                        <p style="clear:both;margin:0 0 20px 20px;color:#A8A8A8;" class="long">
-                            These package details are read from the package file and cannot be changed. 
-                            If you have a newer version of your package that you’d like to submit in place 
-                            of this one, <a href="@Url.UploadPackage()">click here to add a new 
-                            contribution</a>. Ensure that the new version has the same Package ID, but a 
-                            new Version number.
-                        </p>
-                        <div class="packageID">
-                            <label for="PackageId">Package ID</label>
-                            <input class="disabled" disabled id="PackageId" name="PackageId" type="text" value="@Model.Id" />
-                        </div>
-                        <div class="version">
-                            <label for="PackageVersion">Version</label>
-                            <input class="disabled" disabled id="PackageVersion" name="PackageVersion" type="text" value="@Model.Version" />
-                            <input id="PackageId" name="PackageId" type="hidden" value="ColorCode" />
-                            <input id="PackageVersion" name="PackageVersion" type="hidden" value="1.0.1" />
-                            <input id="IsExternalPackage" name="IsExternalPackage" type="hidden" value="False" />
-                        </div>
-                        <div>
-                            <input id="IsLatestVersion" name="IsLatestVersion" type="hidden" value="True" />
-                        </div>
-                        <div>
-                            <label for="Title">Title</label>
-                            <input class="disabled" disabled id="Title" name="Title" type="text" value="@Model.Title" />
-                        </div>
-                        <div>
-                            <label for="Summary">Summary</label>
-                            <input class="disabled" disabled id="Summary" name="Summary" type="text" value="@Model.Summary" />
-                        </div>
-                        <div>
-                            <label for="Description">Description</label>
-                            <aside>
-                                <p> 4,000 character limit. A detailed description of your package.</p>
-                            </aside>
-                            <textarea class="disabled" disabled cols="20" id="Description" name="Description" rows="2">@Model.Description</textarea>
-                        </div>
-                        <div>
-                            <label for="Authors">Authors</label>
-                            <aside>
-                                <p> Who's responsible for this package? Give proper attribution.</p>
-                            </aside>
-                            <input class="longRequired disabled" disabled id="Authors" name="Authors" type="text" value="@Model.Authors" />
-                        </div>
-                        <div>
-                            <input id="RequireLicenseAcceptance" disabled name="RequireLicenseAcceptance" type="checkbox" value="@Model.RequiresLicenseAcceptance.ToString()" /><input name="RequireLicenseAcceptance" type="hidden" value="false" /> <label for="RequireLicenseAcceptance">Require License Acceptance</label>
-                        </div>
-                        <div>
-                            <label for="LicenseURL">License URL</label>
-                            <aside>
-                                <p></p>
-                            </aside>
-                            <input class="long disabled" disabled id="LicenseURL" name="LicenseURL" type="text" value="@Model.LicenseUrl" />
-                        </div>
-                        <div>
-                            <label for="Tags">Tags</label>
-                            <aside>
-                                <p>Add multiple tags separated by spaces.</p>
-                            </aside>
-                            <input class="long disabled" disabled id="Tags" name="Tags" type="text" value="@Model.Tags" />
-                        </div>
-                        <div>
-                            <label for="ProjectUrl">Project URL</label>
-                            <aside>
-                                <p>Optional. Enter the home page URL for the package here.</p>
-                            </aside>
-                            <input class="long disabled" disabled id="ProjectUrl" name="ProjectUrl" type="url" value="@Model.ProjectUrl" />
-                        </div>
-                        <div class="buttons">
-                            @Html.AntiForgeryToken()
-                            <input id="packageEditSubmitButton" type="submit" value="Verify" singleClickButton="true" />
-                        </div>
-                    </form>
-                </section>
-            </div>
-        </div>
-    </div>
+@section LeftNav {
+    <img src="@Links.Content.Images.contribGraphic_png" alt="Contribution image" />
+    <p>Submit your package for others to enjoy.</p>
+}    
 
-</div>
+@section ContentHeader {            
+    <h2>Submit Package</h2>
+    <ul class="right" id="sequence">
+        @ViewHelpers.UploadSequence(2)
+    </ul>
+}
+   
+<form id="form" method="post" action="@Url.Current()">
+    <h3>Verify the details of your package</h3>
+    <p style="clear:both;margin:0 0 20px 20px;color:#A8A8A8;" class="long">
+        These package details are read from the package file and cannot be changed. 
+        If you have a newer version of your package that you’d like to submit in place 
+        of this one, <a href="@Url.UploadPackage()">click here to add a new 
+        contribution</a>. Ensure that the new version has the same Package ID, but a 
+        new Version number.
+    </p>
+    <div class="packageID">
+        <label for="PackageId">Package ID</label>
+        <input class="disabled" disabled type="text" value="@Model.Id" />
+    </div>
+    <div class="version">
+        <label for="PackageVersion">Version</label>
+        <input class="disabled" disabled type="text" value="@Model.Version" />
+    </div>
+    <div>
+        <label for="Title">Title</label>
+        <input class="disabled" disabled type="text" value="@Model.Title" />
+    </div>
+    <div>
+        <label for="Summary">Summary</label>
+        <input class="disabled" disabled type="text" value="@Model.Summary" />
+    </div>
+    <div>
+        <label for="Description">Description</label>
+        <aside>
+            <p> 4,000 character limit. A detailed description of your package.</p>
+        </aside>
+        <textarea class="disabled" disabled cols="20" rows="2">@Model.Description</textarea>
+    </div>
+    <div>
+        <label for="Authors">Authors</label>
+        <aside>
+            <p> Who's responsible for this package? Give proper attribution.</p>
+        </aside>
+        <input class="longRequired disabled" disabled type="text" value="@Model.Authors" />
+    </div>
+    <div>
+        <input disabled @if (Model.RequiresLicenseAcceptance) {<text>checked="checked"</text>} type="checkbox" /> <label>Require License Acceptance</label>
+    </div>
+    <div>
+        <label for="LicenseURL">License URL</label>
+        <aside>
+            <p></p>
+        </aside>
+        <input class="long disabled" disabled type="text" value="@Model.LicenseUrl" />
+    </div>
+    <div>
+        <label for="Tags">Tags</label>
+        <aside>
+            <p>Add multiple tags separated by spaces.</p>
+        </aside>
+        <input class="long disabled" disabled type="text" value="@Model.Tags" />
+    </div>
+    <div>
+        <label for="ProjectUrl">Project URL</label>
+        <aside>
+            <p>Optional. Enter the home page URL for the package here.</p>
+        </aside>
+        <input class="long disabled" disabled type="url" value="@Model.ProjectUrl" />
+    </div>
+    <div class="buttons">
+        @Html.AntiForgeryToken()
+        <input id="packageEditSubmitButton" type="submit" value="Verify" singleClickButton="true" />
+    </div>
+</form>

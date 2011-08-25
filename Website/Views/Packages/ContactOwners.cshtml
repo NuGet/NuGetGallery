@@ -1,47 +1,38 @@
 ﻿@model ContactOwnersViewModel
 @{
     ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
-<div id="layout-main" class="aside-1 group">
-    <aside id="aside-first" class="aside-first group">
-        <div class="zone zone-aside-first">
-            <nav id="leftNav">
-                <img src="@Links.Content.Images.sendMessageGraphic_png" style="padding-left: 55px" />
-            </nav></div>
-    </aside>
-    <div id="layout-content" class="group">
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <section>
-                    <header>
-                        <h2>Contact Owners</h2>
-                    </header>
-                    <p>
-                        Use this form to contact the owners of <strong>"@Model.PackageId"</strong>. 
-                    </p>
-                    <p>
-                        By submitting this form, you agree to <strong>disclose your email address</strong> 
-                        to the package owners listed below so they can reply to you.
-                    </p>
-                    <div id="form">
-                        <form action="@Url.Current()" id="contactOwnersForm" method="post">
-                            <label style="padding-left: 20px;">
-                                To: @Model.Owners.Flatten(@<strong><a href="@Url.Search(item.Username)" title="Search packages for this user">@item.Username</a></strong>)
-                            </label>
-                            <div>
-                                @Html.LabelFor(m => m.Message)
+
+@section LeftNav {
+    <img src="@Links.Content.Images.sendMessageGraphic_png" style="padding-left: 55px" />
+}    
+
+@section ContentHeader {            
+    <h2>Contact Owners</h2>
+}
+    
+<p>
+    Use this form to contact the owners of <strong>"@Model.PackageId"</strong>. 
+</p>
+<p>
+    By submitting this form, you agree to <strong>disclose your email address</strong> 
+    to the package owners listed below so they can reply to you.
+</p>
+<div id="form">
+    <form action="@Url.Current()" id="contactOwnersForm" method="post">
+        <label style="padding-left: 20px;">
+            To: @Model.Owners.Flatten(@<strong><a href="@Url.Search(item.Username)" title="Search packages for this user">@item.Username</a></strong>)
+        </label>
+        <div>
+            @Html.LabelFor(m => m.Message)
                                 
-                                @Html.TextAreaFor(m => m.Message, 5, 20, null)
-                                <div style="display: block;">
-                                    @Html.ValidationMessageFor(m => m.Message)
-                                </div>
-                            </div>
-                            @Html.AntiForgeryToken()
-                            <input id="contactOwnersButton" type="submit" value="Send" singleclickbutton="true" />
-                        </form>
-                    </div>
-                </section>
+            @Html.TextAreaFor(m => m.Message, 5, 20, null)
+            <div style="display: block;">
+                @Html.ValidationMessageFor(m => m.Message)
             </div>
         </div>
-    </div>
+        @Html.AntiForgeryToken()
+        <input id="contactOwnersButton" type="submit" value="Send" singleclickbutton="true" />
+    </form>
 </div>

@@ -1,45 +1,28 @@
 ﻿@using NuGetGallery;
 @model SignInRequest
 
-<div id="layout-main" class="aside-1 group">
-    
-    <aside id="aside-first" class="aside-first group">
-        <div class="zone zone-aside-first">
-            <nav id="leftNav">
-                <img src="@Links.Content.Images.userGraphic_png" style="padding-left:70px" alt="Blue User" />
-                <p>
-                    Don't have an account yet? <a href="@Url.Action(MVC.Users.Register())">Register now.</a>
-                </p>
-            </nav>
-        </div>
-    </aside>
-    
-    <div id="layout-content" class="group">
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <section>
-                    <header>
-                        <span class="right"><img src="@Links.Content.Images.required_png" alt="Required" /></span>
-                        <h2>Log On</h2>
-                    </header>
-                    <form id="form" method="post" action="@Url.Current()">
-                        @Html.AntiForgeryToken()
-                        @Html.ValidationSummary(true)
-                        @Html.EditorForModel()
-                        <div>
-                            <button type="submit" name="Register">Log On</button>
-                            <a href="@Url.Action(MVC.Users.ForgotPassword())">Lost your Password?</a>
-                        </div>
-                    </form>
-                </section>
-            </div>
-        </div>
-    </div>
- 
-</div>
-
-@section BottomScripts {
-    <script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>
-    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")" type="text/javascript"></script>
-    <script src="@Url.Content("~/Scripts/gallery.form.js")" type="text/javascript"></script>
+@{
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
+
+@section LeftNav {
+    <img src="@Links.Content.Images.userGraphic_png" style="padding-left:70px" alt="Blue User" />
+    <p>
+        Don't have an account yet? <a href="@Url.Action(MVC.Users.Register())">Register now.</a>
+    </p>
+}    
+
+@section ContentHeader {            
+    <span class="right"><img src="@Links.Content.Images.required_png" alt="Required" /></span>
+    <h2>Log On</h2>
+}
+
+<form id="form" method="post" action="@Url.Current()">
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.EditorForModel()
+    <div>
+        <button type="submit" name="Register">Log On</button>
+        <a href="@Url.Action(MVC.Users.ForgotPassword())">Lost your Password?</a>
+    </div>
+</form>
