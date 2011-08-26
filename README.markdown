@@ -1,8 +1,53 @@
-This is an implementation of the NuGet Gallery and OData Package Feed.
+[NuGet Gallery](http://nuget.org/) - Where packages are found
+=======================================================================
+This is an implementation of the NuGet Gallery and OData Package Feed. This serves as the back-end and community 
+website for the NuGet client. For information about the NuGet clients, visit http://nuget.codeplex.com/
 
 ## Getting Started
 
-The Build-Solution.ps1 script will build the solution, run the facts (unit tests), and update the database (from migrations).
+To compile the project, you'll need Visual Studio 2010 or later and PowerShell 2.0. You'll also need to 
+[install NuGet](http://docs.nuget.org/docs/start-here/installing-nuget). 
+
+To build the project, clone it locally:
+
+    git clone git@github.com:NuGet/NuGetGallery.git
+    cd NuGetGallery
+    .\Build-Solution.ps1
+
+The `Build-Solution.ps1` script will build the solution, run the facts (unit tests), and update the database (from migrations).
+
+## Contribute
+If you find a bug with the gallery, please visit the Issue tracker (https://github.com/NuGet/NuGetGallery/issues) and 
+create an issue. If you're feeling generous, please search to see if the issue is already logged before creating a 
+new one.
+
+When creating an issue, clearly explain
+* What you were trying to do.
+* What you expected to happen.
+* What actually happened.
+* Steps to reproduce the problem.
+
+Also include any information you think is relevant to reproducing the problem such as the browser version you used. 
+Does it happen when you switch browsers. And so on.
+
+## Submit a patch
+Before starting work on an issue, either create an issue or comment on an existing issue to ensure that we're all 
+communicating.
+
+To contribute to the gallery, make sure to create a fork first. Make your changes in the fork following 
+the Git Workflow. When you are done with your changes, send us a pull request.
+
+## Copyright and License
+Copyright 2011 Outercurve Foundation
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with 
+the License. You may obtain a copy of the License in the LICENSE file, or at:
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on 
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+specific language governing permissions and limitations under the License.
 
 ## The Git Workflow
 
