@@ -1,3 +1,4 @@
+using System.Web.Mvc;
 using Ninject.Modules;
 
 namespace NuGetGallery {
@@ -54,6 +55,10 @@ namespace NuGetGallery {
             Bind<IFileSystemService>()
                 .To<FileSystemService>()
                 .InSingletonScope();
+
+            Bind<IControllerFactory>()
+                .To<NuGetControllerFactory>()
+                .InRequestScope();
         }
     }
 }

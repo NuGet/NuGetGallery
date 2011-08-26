@@ -362,6 +362,8 @@
     <Compile Include="DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
+    <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
+    <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
     <Compile Include="JsonApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
