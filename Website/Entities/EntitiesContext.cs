@@ -22,6 +22,17 @@ namespace NuGetGallery {
                 .WithRequired(em => em.ToUser)
                 .HasForeignKey(em => em.ToUserKey);
 
+            modelBuilder.Entity<User>()
+                .HasMany<Role>(u => u.Roles)
+                .WithMany(r => r.Users)
+                .Map(c => c
+                    .ToTable("UserRoles")
+                    .MapLeftKey("UserKey")
+                    .MapRightKey("RoleKey")); ;
+
+            modelBuilder.Entity<Role>()
+                .HasKey(u => u.Key);
+
             modelBuilder.Entity<EmailMessage>()
                 .HasKey(em => em.Key);
 

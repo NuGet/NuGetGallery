@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Web.Mvc;
 using Moq;
 using Xunit;
@@ -33,7 +35,29 @@ namespace NuGetGallery.Controllers {
 
                 formsAuthSvc.Verify(x => x.SetAuthCookie(
                     "theUsername",
-                    true));
+                    true,
+                    null));
+            }
+
+            [Fact]
+            public void WillLogTheUserOnWithRolesWhenTheUsernameAndPasswordAreValid() {
+                var formsAuthSvc = new Mock<IFormsAuthenticationService>();
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByUsernameAndPassword("theUsername", "thePassword"))
+                    .Returns(new User("theUsername", null, null) { Roles = new[] { new Role { Name = "Administrators" } } });
+                var controller = CreateController(
+                    formsAuthSvc: formsAuthSvc,
+                    userSvc: userSvc);
+
+                controller.LogOn(
+                    new SignInRequest() { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    "theReturnUrl");
+
+                formsAuthSvc.Verify(x => x.SetAuthCookie(
+                    "theUsername",
+                    true,
+                    It.Is<IEnumerable<string>>(roles => roles.Count() == 1 && roles.First() == "Administrators")));
+
             }
 
             [Fact]

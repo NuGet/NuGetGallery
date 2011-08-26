@@ -1,4 +1,6 @@
-﻿using System.Web.Mvc;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Web.Mvc;
 
 namespace NuGetGallery {
     public partial class AuthenticationController : Controller {
@@ -37,9 +39,15 @@ namespace NuGetGallery {
                 return View();
             }
 
+            IEnumerable<string> roles = null;
+            if (user.Roles.AnySafe()) {
+                roles = user.Roles.Select(r => r.Name);
+            }
+
             formsAuthSvc.SetAuthCookie(
                 user.Username,
-                true);
+                true,
+                roles);
 
             return SafeRedirect(returnUrl);
         }

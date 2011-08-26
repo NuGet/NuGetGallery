@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 
 namespace NuGetGallery {
@@ -66,6 +67,7 @@ namespace NuGetGallery {
             // TODO: validate input
 
             return userRepo.GetAll()
+                .Include(u => u.Roles)
                 .Where(u => u.Username == username)
                 .SingleOrDefault();
         }

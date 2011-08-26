@@ -123,6 +123,7 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="App_Start\AuthenticationModule.cs" />
     <Compile Include="App_Start\MiniProfiler.cs" />
     <Compile Include="App_Start\NinjectMVC3.cs" />
     <Compile Include="App_Start\Bootstrapper.cs" />
@@ -362,6 +363,7 @@
     <Compile Include="DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
+    <Compile Include="Entities\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
     <Compile Include="JsonApiController.generated.cs">
@@ -369,6 +371,8 @@
     </Compile>
     <Compile Include="Migrations\20110816113000_AddIsAdminColumn.cs" />
     <Compile Include="Migrations\20110821181500_AddElmahSupport.cs" />
+    <Compile Include="Migrations\20110825225500_CreateRolesTable.cs" />
+    <Compile Include="Migrations\20110825230500_CreateUserRolesTable.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>

@@ -37,6 +37,7 @@ namespace NuGetGallery.Data.Migrations {
         }
 
         public override void Down() {
+            Database.RemoveForeignKey("Packages", "FK_Packages_PackageRegistrations");
             Database.RemoveTable("Packages");
         }
     }

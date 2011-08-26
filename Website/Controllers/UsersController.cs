@@ -48,7 +48,8 @@ namespace NuGetGallery {
 
             formsAuthSvc.SetAuthCookie(
                 user.Username,
-                true);
+                true,
+                null);
 
             return RedirectToRoute(RouteName.Home);
         }

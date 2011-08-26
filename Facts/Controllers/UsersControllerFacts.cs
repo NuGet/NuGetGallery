@@ -57,7 +57,8 @@ namespace NuGetGallery {
 
                 formsAuthSvc.Verify(x => x.SetAuthCookie(
                     "theUsername",
-                    true));
+                    true,
+                    null));
             }
 
             [Fact]
