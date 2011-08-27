@@ -560,7 +560,6 @@
     <Content Include="DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="DynamicData\PageTemplates\List.aspx" />
     <Content Include="DynamicData\Site.css" />
-    <Content Include="license.txt" />
     <Content Include="Scripts\gallery.form.js" />
     <Content Include="Scripts\global.js" />
     <Content Include="Scripts\html5.js" />
