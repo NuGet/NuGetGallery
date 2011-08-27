@@ -47,6 +47,6 @@
 
   <Target Name="FullBuild" DependsOnTargets="RunFacts;UpdateDatabase;BuildViews" />
   
-  <Target Name="CIBuild" DependsOnTargets="RunFacts;BuildViews" />
+  <Target Name="CIBuild" DependsOnTargets="RunFacts" />
 
 </Project>
