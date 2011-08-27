@@ -175,20 +175,24 @@ namespace NuGetGallery {
             if (!ModelState.IsValid) {
                 return ReportAbuse(id, version);
             }
-            var package = packageSvc.FindPackageByIdAndVersion(id);
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null) {
                 return PackageNotFound(id, version);
             }
 
+            MailAddress from = null;
             if (Request.IsAuthenticated) {
                 var user = userSvc.FindByUsername(HttpContext.User.Identity.Name);
-                reportForm.Email = user.EmailAddress;
-                // TODO: Add more details before we send the message.
+                from = new MailAddress(user.EmailAddress, user.Username);
             }
-            // TODO: Email!
+            else {
+                from = new MailAddress(reportForm.Email);
+            }
+
+            messageService.ReportAbuse(from, package, reportForm.Message);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
-            return Redirect(Url.Package(id));
+            return RedirectToAction(MVC.Packages.DisplayPackage(id, version));
         }
 
         [Authorize]
@@ -224,7 +228,7 @@ namespace NuGetGallery {
 
             string message = String.Format("Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
-            return Redirect(Url.Package(id));
+            return RedirectToAction(MVC.Packages.DisplayPackage(id, null));
         }
 
         public virtual ActionResult DownloadPackage(string id, string version) {

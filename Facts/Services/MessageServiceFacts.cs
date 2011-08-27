@@ -16,10 +16,11 @@ namespace NuGetGallery.Services {
                     new User {EmailAddress = "flynt@example.com", EmailAllowed = true }
                 };
                 var mailSender = new Mock<IMailSender>();
-                var messageService = new MessageService(mailSender.Object);
+                var messageService = new MessageService(mailSender.Object, new Mock<IConfiguration>().Object);
 
                 var message = messageService.SendContactOwnersMessage(from, package, "Test message");
 
+                mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()));
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Contains("NuGet.org: Message for owners of the package 'smangit'", message.Subject);
@@ -36,7 +37,7 @@ namespace NuGetGallery.Services {
                     new User {EmailAddress = "flynt@example.com", EmailAllowed = false }
                 };
                 var mailSender = new Mock<IMailSender>();
-                var messageService = new MessageService(mailSender.Object);
+                var messageService = new MessageService(mailSender.Object, new Mock<IConfiguration>().Object);
 
                 var message = messageService.SendContactOwnersMessage(from, package, "Test message");
 
@@ -54,11 +55,33 @@ namespace NuGetGallery.Services {
                 };
                 var mailSender = new Mock<IMailSender>();
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Throws(new InvalidOperationException());
-                var messageService = new MessageService(mailSender.Object);
+                var messageService = new MessageService(mailSender.Object, new Mock<IConfiguration>().Object);
 
                 var message = messageService.SendContactOwnersMessage(from, package, "Test message");
 
                 Assert.Equal(0, message.To.Count);
+            }
+        }
+
+        public class TheReportAbuseMethod {
+            [Fact]
+            public void WillSendEmailToGalleryOwner() {
+                var from = new MailAddress("legit@example.com", "too");
+                var package = new Package {
+                    PackageRegistration = new PackageRegistration { Id = "smangit" },
+                    Version = "1.42.0.1"
+                };
+                var config = new Mock<IConfiguration>();
+                config.Setup(c => c.GalleryOwnerEmail).Returns("Joe Schmoe <joe@example.com>");
+                var mailSender = new Mock<IMailSender>();
+                var messageService = new MessageService(mailSender.Object, config.Object);
+
+                var message = messageService.ReportAbuse(from, package, "Abuse!");
+
+                Assert.Equal("joe@example.com", message.To[0].Address);
+                Assert.Equal("Abuse Report for Package 'smangit' Version '1.42.0.1'", message.Subject);
+                Assert.Contains("Abuse!", message.Body);
+                Assert.Contains("User too (legit@example.com) reports the package 'smangit' version '1.42.0.1' as abusive", message.Body);
             }
         }
     }

@@ -4,9 +4,12 @@ using System.Web;
 
 namespace NuGetGallery {
     public class Configuration : IConfiguration {
-        private static readonly Lazy<string> packageFileDirectory = 
-            new Lazy<string>(() => 
-                Configuration.ReadFromConfigOrEnvironment("PackageFileDirectory", 
+        static readonly Lazy<string> galleryOwnerEmail =
+            new Lazy<string>(() =>
+                Configuration.ReadFromConfigOrEnvironment("GalleryOwnerEmail"));
+        static readonly Lazy<string> packageFileDirectory =
+            new Lazy<string>(() =>
+                Configuration.ReadFromConfigOrEnvironment("PackageFileDirectory",
                                                           HttpContext.Current.Server.MapPath("~/App_Data/Packages")));
 
         public static string ReadFromConfigOrEnvironment(
@@ -26,6 +29,12 @@ namespace NuGetGallery {
         public string PackageFileDirectory {
             get {
                 return packageFileDirectory.Value;
+            }
+        }
+
+        public string GalleryOwnerEmail {
+            get {
+                return galleryOwnerEmail.Value;
             }
         }
     }

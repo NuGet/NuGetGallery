@@ -6,9 +6,30 @@ using AnglicanGeek.MarkdownMailer;
 namespace NuGetGallery {
     public class MessageService : IMessageService {
         readonly IMailSender mailSender;
+        IConfiguration configuration;
 
-        public MessageService(IMailSender mailSender) {
+        public MessageService(IMailSender mailSender, IConfiguration configuration) {
             this.mailSender = mailSender;
+            this.configuration = configuration;
+        }
+
+        public MailMessage ReportAbuse(MailAddress fromAddress, Package package, string message) {
+            string subject = "Abuse Report for Package '{0}' Version '{1}'";
+            string body = @"_User {0} ({1}) reports the package '{2}' version '{3}' as abusive. 
+{0} left the following information in the report:_
+
+{4}
+
+_Message sent from NuGet.org_
+";
+            var mailMessage = new MailMessage {
+                Subject = String.Format(subject, package.PackageRegistration.Id, package.Version),
+                Body = String.Format(body, fromAddress.DisplayName, fromAddress.Address, package.PackageRegistration.Id, package.Version, message),
+                From = fromAddress,
+            };
+            mailMessage.To.Add(new MailAddress(configuration.GalleryOwnerEmail));
+            mailSender.Send(mailMessage);
+            return mailMessage;
         }
 
         public MailMessage SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message) {
