@@ -1,4 +1,8 @@
+using System;
+using System.Net.Mail;
+using System.Web;
 using System.Web.Mvc;
+using AnglicanGeek.MarkdownMailer;
 using Ninject.Modules;
 
 namespace NuGetGallery {
@@ -59,6 +63,21 @@ namespace NuGetGallery {
             Bind<IControllerFactory>()
                 .To<NuGetControllerFactory>()
                 .InRequestScope();
+
+            Lazy<IMailSender> mailSenderThunk = new Lazy<IMailSender>(() => {
+                var mailSenderConfiguration = new MailSenderConfiguration() {
+                    DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
+                    PickupDirectoryLocation = HttpContext.Current.Server.MapPath("~/App_Data/Mail")
+                };
+
+                return new MailSender(mailSenderConfiguration);
+            });
+
+            Bind<IMailSender>()
+                .ToMethod(context => mailSenderThunk.Value);
+
+            Bind<IMessageService>()
+                .To<MessageService>();
         }
     }
 }

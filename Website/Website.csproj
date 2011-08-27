@@ -37,6 +37,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AnglicanGeek.MarkdownMailer">
+      <HintPath>..\packages\AnglicanGeek.MarkdownMailer.1.0\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
+    </Reference>
     <Reference Include="DynamicData.EFCodeFirstProvider">
       <HintPath>..\packages\DynamicData.EFCodeFirstProvider.0.2\lib\net40\DynamicData.EFCodeFirstProvider.dll</HintPath>
     </Reference>
@@ -49,6 +52,9 @@
     </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.4.1.10715.0\lib\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="MarkdownSharp">
+      <HintPath>..\packages\MarkdownSharp.1.13.0.0\lib\35\MarkdownSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
@@ -373,6 +379,7 @@
     <Compile Include="Migrations\20110821181500_AddElmahSupport.cs" />
     <Compile Include="Migrations\20110825225500_CreateRolesTable.cs" />
     <Compile Include="Migrations\20110825230500_CreateUserRolesTable.cs" />
+    <Compile Include="Migrations\20110826215600_AddEmailAllowedColumn.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -380,6 +387,8 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Services\Extensions.cs" />
+    <Compile Include="Services\IMessageService.cs" />
+    <Compile Include="Services\MessageService.cs" />
     <Compile Include="SharedController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>

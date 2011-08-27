@@ -25,5 +25,6 @@ namespace NuGetGallery {
         public virtual ICollection<EmailMessage> Messages { get; set; }
         public string Username { get; set; }
         public virtual ICollection<Role> Roles { get; set; }
+        public bool EmailAllowed { get; set; }
     }
 }

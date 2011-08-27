@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
@@ -15,16 +16,19 @@ namespace NuGetGallery {
         readonly IPackageService packageSvc;
         readonly IPackageFileService packageFileSvc;
         readonly IUserService userSvc;
+        readonly IMessageService messageService;
 
         public PackagesController(
             ICryptographyService cryptoSvc,
             IPackageService packageSvc,
             IPackageFileService packageFileRepo,
-            IUserService userSvc) {
+            IUserService userSvc,
+            IMessageService messageService) {
             this.cryptoSvc = cryptoSvc;
             this.packageSvc = packageSvc;
             this.packageFileSvc = packageFileRepo;
             this.userSvc = userSvc;
+            this.messageService = messageService;
         }
 
         [Authorize]
@@ -213,8 +217,10 @@ namespace NuGetGallery {
             if (package == null) {
                 return PackageNotFound(id);
             }
-            // TODO: Email!
 
+            var user = userSvc.FindByUsername(HttpContext.User.Identity.Name);
+            var fromAddress = new MailAddress(user.EmailAddress, user.Username);
+            messageService.SendContactOwnersMessage(fromAddress, package, contactForm.Message);
 
             string message = String.Format("Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;

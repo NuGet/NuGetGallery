@@ -36,7 +36,10 @@ namespace NuGetGallery {
             var newUser = new User(
                 username,
                 hashedPassword,
-                emailAddress) { ApiKey = Guid.NewGuid() };
+                emailAddress) {
+                    ApiKey = Guid.NewGuid(),
+                    EmailAllowed = true
+                };
 
             // TODO: enqueue a real message instead of one with a dummy subject and body
             newUser.Messages.Add(new EmailMessage(

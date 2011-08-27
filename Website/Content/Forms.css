@@ -120,6 +120,11 @@ Links: #0071BC
     padding: 5px 0 5px 10px;
     width: 296px;
 }
+
+#form textarea {
+    width: auto;
+}
+
 #form input[type=text].disabled, #form input[type=password].disabled, #form div input[type=file].disabled, #form textarea.disabled, #form div input[type=url].disabled {
     border: 1px solid #eee;
     color: #a8a8a8;
