@@ -12,6 +12,7 @@ namespace NuGetGallery {
                      .Include(p => p.PackageRegistration)
                      .Include(p => p.Authors)
                      .Include(p => p.Dependencies)
+                     .Include(p => p.DownloadStatistics)
                      .Select(p => new FeedPackage {
                          Id = p.PackageRegistration.Id,
                          Version = p.Version,
@@ -39,7 +40,7 @@ namespace NuGetGallery {
                          Summary = p.Summary,
                          Tags = p.Tags,
                          Title = p.Title,
-                         VersionDownloadCount = p.DownloadCount,
+                         VersionDownloadCount = p.DownloadStatistics.Count,
                      });
         }
     }
