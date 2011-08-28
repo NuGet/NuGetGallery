@@ -16,7 +16,10 @@ namespace NuGetGallery {
                                   orderby p.Version descending
                                   select new DisplayPackageViewModel(p, isVersionHistory: true);
             }
+
+            DownloadCount = package.DownloadStatistics.Count;
         }
+
         public IEnumerable<DependencyViewModel> Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
     }

@@ -11,7 +11,6 @@ namespace NuGetGallery {
             LicenseUrl = package.LicenseUrl;
             LatestVersion = package.IsLatest;
             Prerelease = package.IsPrerelease;
-            DownloadCount = package.DownloadStatistics.Count;
             LastUpdated = package.LastUpdated;
         }
 
