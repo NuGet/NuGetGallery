@@ -1,6 +1,6 @@
 using System;
 using System.Net.Mail;
-using System.Web;
+using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Ninject.Modules;
@@ -67,7 +67,7 @@ namespace NuGetGallery {
             Lazy<IMailSender> mailSenderThunk = new Lazy<IMailSender>(() => {
                 var mailSenderConfiguration = new MailSenderConfiguration() {
                     DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
-                    PickupDirectoryLocation = HttpContext.Current.Server.MapPath("~/App_Data/Mail")
+                    PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
                 };
 
                 return new MailSender(mailSenderConfiguration);
