@@ -66,12 +66,20 @@ namespace NuGetGallery {
                 .HasForeignKey(pa => pa.PackageKey);
 
             modelBuilder.Entity<Package>()
+                .HasMany<PackageStatistics>(p => p.DownloadStatistics)
+                .WithRequired(ps => ps.Package)
+                .HasForeignKey(ps => ps.PackageKey);
+
+            modelBuilder.Entity<Package>()
                 .HasMany<PackageDependency>(p => p.Dependencies)
                 .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
 
             modelBuilder.Entity<PackageAuthor>()
                 .HasKey(pa => pa.Key);
+
+            modelBuilder.Entity<PackageStatistics>()
+                .HasKey(ps => ps.Key);
 
             modelBuilder.Entity<PackageDependency>()
                 .HasKey(pd => pd.Key);

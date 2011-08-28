@@ -369,6 +369,7 @@
     <Compile Include="DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
+    <Compile Include="Entities\PackageStatistics.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
@@ -380,6 +381,7 @@
     <Compile Include="Migrations\20110825225500_CreateRolesTable.cs" />
     <Compile Include="Migrations\20110825230500_CreateUserRolesTable.cs" />
     <Compile Include="Migrations\20110826215600_AddEmailAllowedColumn.cs" />
+    <Compile Include="Migrations\20110827063348_AddPackageStatistics.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>

@@ -23,5 +23,7 @@ namespace NuGetGallery {
         void AddPackageOwner(Package package, User user);
 
         void RemovePackageOwner(Package package, User user);
+
+        void AddDownloadStatistics(Package package, string userHostAddress, string userAgent);
     }
 }

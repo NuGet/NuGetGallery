@@ -36,6 +36,10 @@ namespace NuGetGallery {
                 .To<EntityRepository<PackageDependency>>()
                 .InRequestScope();
 
+            Bind<IEntityRepository<PackageStatistics>>()
+                .To<EntityRepository<PackageStatistics>>()
+                .InRequestScope();
+
             Bind<IUserService>()
                 .To<UserService>()
                 .InRequestScope();

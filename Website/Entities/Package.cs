@@ -13,6 +13,7 @@ namespace NuGetGallery {
         public PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
 
+        public virtual ICollection<PackageStatistics> DownloadStatistics { get; set; }
         public virtual ICollection<PackageAuthor> Authors { get; set; }
         public string Copyright { get; set; }
         public DateTime Created { get; set; }

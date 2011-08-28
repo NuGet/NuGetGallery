@@ -238,6 +238,10 @@ namespace NuGetGallery {
                 return PackageNotFound(id, version);
             }
 
+            packageSvc.AddDownloadStatistics(package,
+                                             Request.UserHostAddress,
+                                             Request.UserAgent);
+
             return packageFileSvc.CreateDownloadPackageResult(package);
         }
 

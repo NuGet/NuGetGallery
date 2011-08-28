@@ -7,7 +7,7 @@ using NuGet;
 using Xunit;
 
 namespace NuGetGallery {
-    public class PackageServiceFacts {
+    public class PackageServiceFacts {        
         public class TheCreatePackageMethod {
             [Fact]
             public void WillCreateANewPackageRegistrationUsingTheNugetPackIdWhenOneDoesNotAlreadyExist() {
@@ -568,6 +568,32 @@ namespace NuGetGallery {
                 Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
             }
         }
+        
+        public class TheAddDownloadStatisticsMethod {
+            [Fact]
+            public void WillInsertNewRecordIntoTheStatisticsRepository() {
+                var packageStatsRepo = new Mock<IEntityRepository<PackageStatistics>>();
+                var service = CreateService(packageStatsRepo: packageStatsRepo);
+                var package = new Package();
+
+                service.AddDownloadStatistics(package, "::1", "Unit Test");
+
+                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package)));
+                packageStatsRepo.Verify(x => x.CommitChanges());
+            }
+
+            [Fact]
+            public void WillAllowNullsForUserAgentAndUserHostAddress() {
+                var packageStatsRepo = new Mock<IEntityRepository<PackageStatistics>>();
+                var service = CreateService(packageStatsRepo: packageStatsRepo);
+                var package = new Package();
+
+                service.AddDownloadStatistics(package, null, null);
+
+                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package)));
+                packageStatsRepo.Verify(x => x.CommitChanges());
+            }
+        }
 
         static Mock<IPackage> CreateNuGetPackage(Action<Mock<IPackage>> setup = null) {
             var nugetPackage = new Mock<IPackage>();
@@ -603,6 +629,7 @@ namespace NuGetGallery {
             Mock<ICryptographyService> cryptoSvc = null,
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepo = null,
             Mock<IEntityRepository<Package>> packageRepo = null,
+            Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null,
             Mock<IPackageFileService> packageFileSvc = null,
             Action<Mock<PackageService>> setup = null) {
             if (cryptoSvc == null) {
@@ -615,11 +642,13 @@ namespace NuGetGallery {
             packageRegistrationRepo = packageRegistrationRepo ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepo = packageRepo ?? new Mock<IEntityRepository<Package>>();
             packageFileSvc = packageFileSvc ?? new Mock<IPackageFileService>();
+            packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
 
             var packageSvc = new Mock<PackageService>(
                 cryptoSvc.Object,
                 packageRegistrationRepo.Object,
                 packageRepo.Object,
+                packageStatsRepo.Object,
                 packageFileSvc.Object);
 
             packageSvc.CallBase = true;

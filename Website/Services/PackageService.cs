@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Transactions;
+using MvcMiniProfiler;
 using NuGet;
 
 namespace NuGetGallery {
@@ -10,16 +11,19 @@ namespace NuGetGallery {
         readonly ICryptographyService cryptoSvc;
         readonly IEntityRepository<PackageRegistration> packageRegistrationRepo;
         readonly IEntityRepository<Package> packageRepo;
+        readonly IEntityRepository<PackageStatistics> packageStatsRepo;
         readonly IPackageFileService packageFileSvc;
 
         public PackageService(
             ICryptographyService cryptoSvc,
             IEntityRepository<PackageRegistration> packageRegistrationRepo,
             IEntityRepository<Package> packageRepo,
+            IEntityRepository<PackageStatistics> packageStatsRepo,
             IPackageFileService packageFileSvc) {
             this.cryptoSvc = cryptoSvc;
             this.packageRegistrationRepo = packageRegistrationRepo;
             this.packageRepo = packageRepo;
+            this.packageStatsRepo = packageStatsRepo;
             this.packageFileSvc = packageFileSvc;
         }
 
@@ -145,6 +149,19 @@ namespace NuGetGallery {
             UpdateIsLatest(package.PackageRegistration);
 
             packageRepo.CommitChanges();
+        }
+
+        public void AddDownloadStatistics(Package package, string userHostAddress, string userAgent) {
+            using (MiniProfiler.Current.Step("Updating package stats")) {
+                packageStatsRepo.InsertOnCommit(new PackageStatistics {
+                    Timestamp = DateTime.UtcNow,
+                    IPAddress = userHostAddress,
+                    UserAgent = userAgent,
+                    Package = package
+                });
+
+                packageStatsRepo.CommitChanges();
+            }
         }
 
         PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackage nugetPackage) {
