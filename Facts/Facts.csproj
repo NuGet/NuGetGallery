@@ -64,6 +64,7 @@
     <Compile Include="Controllers\ApiControllerFacts.cs" />
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\FileSystemPackageFileServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
