@@ -91,5 +91,13 @@ namespace NuGetGallery {
             if (!id.Equals(Const.Sha512HashAlgorithmId, StringComparison.InvariantCultureIgnoreCase))
                 throw new Exception(string.Format("Unexpected hash algorithm identifier '{0}'", id));
         }
+
+        public string GenerateToken() {
+            byte[] data = new byte[0x10];
+            using (var crypto = new RNGCryptoServiceProvider()) {
+                crypto.GetBytes(data);
+                return Convert.ToBase64String(data);
+            }
+        }
     }
 }

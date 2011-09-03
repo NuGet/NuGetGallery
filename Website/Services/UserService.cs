@@ -21,7 +21,6 @@ namespace NuGetGallery {
             // TODO: validate input
             // TODO: add email verification workflow
             // TODO: consider encrypting email address with a public key, and having the background process that send messages have the private key to decrypt
-            // TODO: allow the message system to use markdown for email bodies to make it easy to send text and HTML messages properly
 
             var existingUser = FindByUsername(username);
             if (existingUser != null)
@@ -38,13 +37,9 @@ namespace NuGetGallery {
                 hashedPassword,
                 emailAddress) {
                     ApiKey = Guid.NewGuid(),
-                    EmailAllowed = true
+                    EmailAllowed = true,
+                    ConfirmationToken = cryptoSvc.GenerateToken()
                 };
-
-            // TODO: enqueue a real message instead of one with a dummy subject and body
-            newUser.Messages.Add(new EmailMessage(
-                "theSubject",
-                "theBody"));
 
             userRepo.InsertOnCommit(newUser);
             userRepo.CommitChanges();

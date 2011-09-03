@@ -382,6 +382,7 @@
     <Compile Include="Migrations\20110825230500_CreateUserRolesTable.cs" />
     <Compile Include="Migrations\20110826215600_AddEmailAllowedColumn.cs" />
     <Compile Include="Migrations\20110827063348_AddPackageStatistics.cs" />
+    <Compile Include="Migrations\20110903132100_AccountConfirmationColumns.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>

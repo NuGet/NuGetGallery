@@ -42,10 +42,10 @@ _Message sent from NuGet.org_
 _This email is sent from an automated service - please do not reply directly to this email._
 
 <em style=""font-size: 0.8em;"">We take your privacy seriously. To opt-out of future emails from NuGet.org, send an email 
-message with subject line __NuGet.org Opt-out__ to [nugetgallery@outercurve.org](mailto:nugetgallery@outercurve.org?subject=NuGet.org%20Opt-out).</em>";
+message with subject line __NuGet.org Opt-out__ to [{4}](mailto:{4}?subject=NuGet.org%20Opt-out).</em>";
             var mailMessage = new MailMessage {
                 Subject = String.Format(subject, packageRegistration.Id),
-                Body = String.Format(body, fromAddress.DisplayName, fromAddress.Address, packageRegistration.Id, message),
+                Body = String.Format(body, fromAddress.DisplayName, fromAddress.Address, packageRegistration.Id, message, configuration.GalleryOwnerEmail),
                 From = fromAddress,
             };
 
@@ -60,6 +60,32 @@ message with subject line __NuGet.org Opt-out__ to [nugetgallery@outercurve.org]
             foreach (var owner in packageRegistration.Owners.Where(o => o.EmailAllowed)) {
                 mailMessage.To.Add(new MailAddress(owner.EmailAddress, owner.Username));
             }
+        }
+
+
+        public MailMessage SendNewAccountEmail(MailAddress toAddress, string confirmationToken) {
+            string body = @"Thank you for registering with NuGet Gallery.
+
+__Final Step__
+To verify that you own this e-mail address, please click the following link:
+[http://nuget.org/Account/Verify?token={0}](http://nuget.org/Account/Verify?token={0})
+
+__Troubleshooting:__
+If clicking on the link above does not work, try the following:
+
+Select and copy the entire link.
+Open a browser window and paste the link in the address bar.
+Click on __Go__ or press the __Enter__ or __Return__ key.
+
+If you continue to have access problems or want to report other issues, please [Contact Us](mailto:{1}).";
+            var mailMessage = new MailMessage {
+                Subject = "Please verify your NuGet.org account.",
+                Body = String.Format(body, confirmationToken, configuration.GalleryOwnerEmail),
+                From = new MailAddress(configuration.GalleryOwnerEmail),
+            };
+            mailMessage.To.Add(toAddress);
+            mailSender.Send(mailMessage);
+            return mailMessage;
         }
     }
 }

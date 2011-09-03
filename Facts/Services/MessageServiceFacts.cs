@@ -84,5 +84,22 @@ namespace NuGetGallery.Services {
                 Assert.Contains("User too (legit@example.com) reports the package 'smangit' version '1.42.0.1' as abusive", message.Body);
             }
         }
+
+        public class TheSendNewAccountEmailMethod {
+            [Fact]
+            public void WillSendEmailToNewUser() {
+                var to = new MailAddress("legit@example.com", "too");
+                var config = new Mock<IConfiguration>();
+                config.Setup(c => c.GalleryOwnerEmail).Returns("Joe Schmoe <joe@example.com>");
+                var mailSender = new Mock<IMailSender>();
+                var messageService = new MessageService(mailSender.Object, config.Object);
+
+                var message = messageService.SendNewAccountEmail(to, "confirmation-token");
+
+                Assert.Equal("legit@example.com", message.To[0].Address);
+                Assert.Equal("Please verify your NuGet.org account.", message.Subject);
+                Assert.Contains("http://nuget.org/Account/Verify?token=confirmation-token", message.Body);
+            }
+        }
     }
 }

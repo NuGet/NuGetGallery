@@ -23,5 +23,7 @@ namespace NuGetGallery {
             string hash,
             string input,
             string hashAlgorithmId = Const.Sha512HashAlgorithmId);
+
+        string GenerateToken();
     }
 }

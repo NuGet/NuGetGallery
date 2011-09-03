@@ -89,6 +89,21 @@ namespace NuGetGallery {
 
                 Assert.NotEqual(Guid.Empty, user.ApiKey);
             }
+
+            [Fact]
+            public void SetsAConfirmationToken() {
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.GenerateToken()).Returns("secret!");
+                var userSvc = CreateUsersService(cryptoSvc: crypto);
+
+                var user = userSvc.Create(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                Assert.Equal("secret!", user.ConfirmationToken);
+                Assert.False(user.Confirmed);
+            }
         }
 
         public class TheGenerateApiKeyMethod {
