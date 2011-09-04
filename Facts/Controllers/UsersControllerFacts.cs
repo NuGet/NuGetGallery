@@ -1,4 +1,5 @@
-﻿using System.Web;
+﻿using System.Net.Mail;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
@@ -23,7 +24,7 @@ namespace NuGetGallery {
                 var userSvc = new Mock<IUserService>();
                 userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(new User() { Username = "theUsername" });
+                    .Returns(new User() { Username = "theUsername", EmailAddress = "to@example.com" });
                 var controller = CreateController(userSvc: userSvc);
 
                 controller.Register(new RegisterRequest() {
@@ -44,7 +45,7 @@ namespace NuGetGallery {
                 var userSvc = new Mock<IUserService>();
                 userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(new User() { Username = "theUsername" });
+                    .Returns(new User() { Username = "theUsername", EmailAddress = "to@example.com" });
                 var controller = CreateController(
                     formsAuthSvc: formsAuthSvc,
                     userSvc: userSvc);
@@ -80,6 +81,31 @@ namespace NuGetGallery {
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal("aMessage", controller.ModelState[string.Empty].Errors[0].ErrorMessage);
             }
+
+            [Fact]
+            public void WillSendNewUserEmail() {
+                var messageSvc = new Mock<IMessageService>();
+                messageSvc.Setup(m => m.SendNewAccountEmail(It.IsAny<MailAddress>(), It.IsAny<string>())).Verifiable();
+                var userSvc = new Mock<IUserService>();
+                userSvc
+                    .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(new User() {
+                        Username = "theUsername",
+                        EmailAddress = "to@example.com",
+                        ConfirmationToken = "confirmation"
+                    });
+                var controller = CreateController(userSvc: userSvc, messageSvc: messageSvc);
+
+                controller.Register(new RegisterRequest() {
+                    Username = "theUsername",
+                    Password = "thePassword",
+                    EmailAddress = "to@example.com",
+                });
+
+                messageSvc.Verify(x => x.SendNewAccountEmail(
+                    It.Is<MailAddress>(m => m.Address == "to@example.com"), "confirmation"));
+            }
+
         }
 
         public class TheGenerateApiKeyMethod {
@@ -109,15 +135,18 @@ namespace NuGetGallery {
         static UsersController CreateController(
             Mock<IFormsAuthenticationService> formsAuthSvc = null,
             Mock<IUserService> userSvc = null,
+            Mock<IMessageService> messageSvc = null,
             string currentUserName = null) {
             formsAuthSvc = formsAuthSvc ?? new Mock<IFormsAuthenticationService>();
             userSvc = userSvc ?? new Mock<IUserService>();
             var packageService = new Mock<IPackageService>();
+            messageSvc = messageSvc ?? new Mock<IMessageService>();
 
             var controller = new UsersController(
                 formsAuthSvc.Object,
                 userSvc.Object,
-                packageService.Object);
+                packageService.Object,
+                messageSvc.Object);
 
             // TODO: See this following block? This is a code smell. We
             //       need a better way to grab the current username perhaps?

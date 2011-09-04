@@ -19,7 +19,6 @@ namespace NuGetGallery {
             string password,
             string emailAddress) {
             // TODO: validate input
-            // TODO: add email verification workflow
             // TODO: consider encrypting email address with a public key, and having the background process that send messages have the private key to decrypt
 
             var existingUser = FindByUsername(username);

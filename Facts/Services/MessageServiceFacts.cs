@@ -72,7 +72,7 @@ namespace NuGetGallery.Services {
                     Version = "1.42.0.1"
                 };
                 var config = new Mock<IConfiguration>();
-                config.Setup(c => c.GalleryOwnerEmail).Returns("Joe Schmoe <joe@example.com>");
+                config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("Joe Schmoe <joe@example.com>"));
                 var mailSender = new Mock<IMailSender>();
                 var messageService = new MessageService(mailSender.Object, config.Object);
 
@@ -90,7 +90,7 @@ namespace NuGetGallery.Services {
             public void WillSendEmailToNewUser() {
                 var to = new MailAddress("legit@example.com", "too");
                 var config = new Mock<IConfiguration>();
-                config.Setup(c => c.GalleryOwnerEmail).Returns("Joe Schmoe <joe@example.com>");
+                config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("Joe Schmoe <joe@example.com>"));
                 var mailSender = new Mock<IMailSender>();
                 var messageService = new MessageService(mailSender.Object, config.Object);
 

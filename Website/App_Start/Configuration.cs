@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Configuration;
+using System.Net.Mail;
 using System.Web;
 
 namespace NuGetGallery {
     public class Configuration : IConfiguration {
-        static readonly Lazy<string> galleryOwnerEmail =
-            new Lazy<string>(() =>
-                Configuration.ReadFromConfigOrEnvironment("GalleryOwnerEmail"));
+        static readonly Lazy<MailAddress> galleryOwnerEmail =
+            new Lazy<MailAddress>(() =>
+                new MailAddress(Configuration.ReadFromConfigOrEnvironment("GalleryOwnerEmail")));
         static readonly Lazy<string> packageFileDirectory =
             new Lazy<string>(() =>
                 Configuration.ReadFromConfigOrEnvironment("PackageFileDirectory",
@@ -32,7 +33,7 @@ namespace NuGetGallery {
             }
         }
 
-        public string GalleryOwnerEmail {
+        public MailAddress GalleryOwnerEmailAddress {
             get {
                 return galleryOwnerEmail.Value;
             }

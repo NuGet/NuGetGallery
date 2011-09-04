@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net.Mail;
 using System.Web.Mvc;
 
 namespace NuGetGallery {
@@ -6,14 +7,17 @@ namespace NuGetGallery {
         readonly IFormsAuthenticationService formsAuthSvc;
         readonly IUserService userService;
         readonly IPackageService packageService;
+        readonly IMessageService messageService;
 
         public UsersController(
             IFormsAuthenticationService formsAuthSvc,
             IUserService userSvc,
-            IPackageService packageService) {
+            IPackageService packageService,
+            IMessageService messageService) {
             this.formsAuthSvc = formsAuthSvc;
             this.userService = userSvc;
             this.packageService = packageService;
+            this.messageService = messageService;
         }
 
         [Authorize]
@@ -45,6 +49,8 @@ namespace NuGetGallery {
                 ModelState.AddModelError(string.Empty, ex.Message);
                 return View();
             }
+
+            messageService.SendNewAccountEmail(new MailAddress(user.EmailAddress), user.ConfirmationToken);
 
             formsAuthSvc.SetAuthCookie(
                 user.Username,

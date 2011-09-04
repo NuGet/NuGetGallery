@@ -27,7 +27,7 @@ _Message sent from NuGet.org_
                 Body = String.Format(body, fromAddress.DisplayName, fromAddress.Address, package.PackageRegistration.Id, package.Version, message),
                 From = fromAddress,
             };
-            mailMessage.To.Add(new MailAddress(configuration.GalleryOwnerEmail));
+            mailMessage.To.Add(configuration.GalleryOwnerEmailAddress);
             mailSender.Send(mailMessage);
             return mailMessage;
         }
@@ -45,7 +45,7 @@ _This email is sent from an automated service - please do not reply directly to 
 message with subject line __NuGet.org Opt-out__ to [{4}](mailto:{4}?subject=NuGet.org%20Opt-out).</em>";
             var mailMessage = new MailMessage {
                 Subject = String.Format(subject, packageRegistration.Id),
-                Body = String.Format(body, fromAddress.DisplayName, fromAddress.Address, packageRegistration.Id, message, configuration.GalleryOwnerEmail),
+                Body = String.Format(body, fromAddress.DisplayName, fromAddress.Address, packageRegistration.Id, message, configuration.GalleryOwnerEmailAddress.Address),
                 From = fromAddress,
             };
 
@@ -77,11 +77,11 @@ Select and copy the entire link.
 Open a browser window and paste the link in the address bar.
 Click on __Go__ or press the __Enter__ or __Return__ key.
 
-If you continue to have access problems or want to report other issues, please [Contact Us](mailto:{1}).";
+If you continue to have access problems or want to report other issues, please [contact us](mailto:{1}).";
             var mailMessage = new MailMessage {
                 Subject = "Please verify your NuGet.org account.",
-                Body = String.Format(body, confirmationToken, configuration.GalleryOwnerEmail),
-                From = new MailAddress(configuration.GalleryOwnerEmail),
+                Body = String.Format(body, confirmationToken, configuration.GalleryOwnerEmailAddress.Address),
+                From = configuration.GalleryOwnerEmailAddress,
             };
             mailMessage.To.Add(toAddress);
             mailSender.Send(mailMessage);

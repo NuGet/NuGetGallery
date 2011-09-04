@@ -1,7 +1,8 @@
 ﻿
+using System.Net.Mail;
 namespace NuGetGallery {
     public interface IConfiguration {
         string PackageFileDirectory { get; }
-        string GalleryOwnerEmail { get; }
+        MailAddress GalleryOwnerEmailAddress { get; }
     }
 }
