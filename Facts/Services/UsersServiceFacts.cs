@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Moq;
 using Xunit;
 
@@ -120,6 +121,39 @@ namespace NuGetGallery {
 
                 Assert.NotEqual(Guid.Empty, user.ApiKey);
                 Assert.Equal(apiKey, user.ApiKey.ToString());
+            }
+        }
+
+        public class TheConfirmAccountMethod {
+            [Fact]
+            public void WithTokenThatDoesNotMatchUserReturnsFalse() {
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { new User() }.AsQueryable());
+                var service = CreateUsersService(userRepo: userRepository);
+
+                var confirmed = service.ConfirmAccount("token");
+
+                Assert.False(confirmed);
+            }
+
+            [Fact]
+            public void WithTokenThatDoesNotMatchUserConfirmsUserAndReturnsTrue() {
+                var userRepository = new Mock<IEntityRepository<User>>();
+                var user = new User { ConfirmationToken = "secret" };
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+                var service = CreateUsersService(userRepo: userRepository);
+
+                var confirmed = service.ConfirmAccount("secret");
+
+                Assert.True(confirmed);
+                Assert.True(user.Confirmed);
+            }
+
+            [Fact]
+            public void WithEmptyTokenThrowsArgumentNullException() {
+                var service = CreateUsersService();
+
+                Assert.Throws<ArgumentNullException>(() => service.ConfirmAccount(""));
             }
         }
 

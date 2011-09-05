@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net.Mail;
 using System.Web.Mvc;
 
@@ -50,7 +51,10 @@ namespace NuGetGallery {
                 return View();
             }
 
-            messageService.SendNewAccountEmail(new MailAddress(user.EmailAddress), user.ConfirmationToken);
+            // Passing in scheme to force fully qualified URL
+            var confirmationUrl = Url.Action(MVC.Users.Confirm().AddRouteValue("token", user.ConfirmationToken), protocol: Request.Url.Scheme);
+
+            messageService.SendNewAccountEmail(new MailAddress(user.EmailAddress), confirmationUrl);
 
             formsAuthSvc.SetAuthCookie(
                 user.Username,
@@ -89,6 +93,15 @@ namespace NuGetGallery {
         }
 
         public virtual ActionResult ForgotPassword() {
+            return View();
+        }
+
+        public virtual ActionResult Confirm(string token) {
+            bool? confirmed = null;
+            if (!String.IsNullOrEmpty(token)) {
+                confirmed = userService.ConfirmAccount(token);
+            }
+            ViewBag.Confirmed = confirmed;
             return View();
         }
     }

@@ -63,12 +63,12 @@ message with subject line __NuGet.org Opt-out__ to [{4}](mailto:{4}?subject=NuGe
         }
 
 
-        public MailMessage SendNewAccountEmail(MailAddress toAddress, string confirmationToken) {
+        public MailMessage SendNewAccountEmail(MailAddress toAddress, string confirmationUrl) {
             string body = @"Thank you for registering with NuGet Gallery.
 
 __Final Step__
 To verify that you own this e-mail address, please click the following link:
-[http://nuget.org/Account/Verify?token={0}](http://nuget.org/Account/Verify?token={0})
+[{0}]({0})
 
 __Troubleshooting:__
 If clicking on the link above does not work, try the following:
@@ -80,7 +80,7 @@ Click on __Go__ or press the __Enter__ or __Return__ key.
 If you continue to have access problems or want to report other issues, please [contact us](mailto:{1}).";
             var mailMessage = new MailMessage {
                 Subject = "Please verify your NuGet.org account.",
-                Body = String.Format(body, confirmationToken, configuration.GalleryOwnerEmailAddress.Address),
+                Body = String.Format(body, confirmationUrl, configuration.GalleryOwnerEmailAddress.Address),
                 From = configuration.GalleryOwnerEmailAddress,
             };
             mailMessage.To.Add(toAddress);

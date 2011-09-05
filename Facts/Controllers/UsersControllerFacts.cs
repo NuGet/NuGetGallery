@@ -1,4 +1,5 @@
-﻿using System.Net.Mail;
+﻿using System;
+using System.Net.Mail;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -102,10 +103,11 @@ namespace NuGetGallery {
                     EmailAddress = "to@example.com",
                 });
 
+                // We use a catch-all route for unit tests so we can see the parameters 
+                // are passed correctly.
                 messageSvc.Verify(x => x.SendNewAccountEmail(
-                    It.Is<MailAddress>(m => m.Address == "to@example.com"), "confirmation"));
+                    It.Is<MailAddress>(m => m.Address == "to@example.com"), "https://example.org/?Controller=Users&Action=Confirm&token=confirmation"));
             }
-
         }
 
         public class TheGenerateApiKeyMethod {
@@ -132,6 +134,39 @@ namespace NuGetGallery {
             }
         }
 
+        public class TheConfirmMethod {
+            [Fact]
+            public void ReturnsNullConfirmedWhenTokenIsEmpty() {
+                var controller = CreateController();
+
+                var result = controller.Confirm("") as ViewResult;
+
+                Assert.Null(result.ViewBag.Confirmed);
+            }
+
+            [Fact]
+            public void ReturnsConfirmedWhenTokenIsMatchesUser() {
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.ConfirmAccount("the-token")).Returns(true);
+                var controller = CreateController(userSvc: userService);
+
+                var result = controller.Confirm("the-token") as ViewResult;
+
+                Assert.True(result.ViewBag.Confirmed);
+            }
+
+            [Fact]
+            public void ReturnsFalseWhenTokenDoesNotMatchUser() {
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.ConfirmAccount("the-token")).Returns(false);
+                var controller = CreateController(userSvc: userService);
+
+                var result = controller.Confirm("the-token") as ViewResult;
+
+                Assert.False(result.ViewBag.Confirmed);
+            }
+        }
+
         static UsersController CreateController(
             Mock<IFormsAuthenticationService> formsAuthSvc = null,
             Mock<IUserService> userSvc = null,
@@ -150,12 +185,20 @@ namespace NuGetGallery {
 
             // TODO: See this following block? This is a code smell. We
             //       need a better way to grab the current username perhaps?
+
+            var httpContext = new Mock<HttpContextBase>();
             if (currentUserName != null) {
-                var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.User.Identity.Name).Returns(currentUserName);
-                var controllerContext = new ControllerContext(httpContext.Object, new RouteData(), controller);
-                controller.ControllerContext = controllerContext;
             }
+            httpContext.Setup(c => c.Request.Url).Returns(new Uri("https://example.org/"));
+            httpContext.Setup(c => c.Request.ApplicationPath).Returns("/");
+            httpContext.Setup(c => c.Response.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(s => s);
+            var requestContext = new RequestContext(httpContext.Object, new RouteData());
+            var controllerContext = new ControllerContext(requestContext, controller);
+            controller.ControllerContext = controllerContext;
+            var routeCollection = new RouteCollection();
+            routeCollection.MapRoute("catch-all", "{*catchall}");
+            controller.Url = new UrlHelper(requestContext, routeCollection);
 
             return controller;
         }

@@ -96,5 +96,24 @@ namespace NuGetGallery {
             userRepo.CommitChanges();
             return newApiKey.ToString();
         }
+
+        public bool ConfirmAccount(string token) {
+            if (String.IsNullOrEmpty(token)) {
+                throw new ArgumentNullException("token");
+            }
+            var user = (from u in userRepo.GetAll()
+                        where u.ConfirmationToken == token
+                        select u).FirstOrDefault();
+            if (user == null) {
+                return false;
+            }
+
+            if (user.ConfirmationToken != token) {
+                return false;
+            }
+            user.Confirmed = true;
+            userRepo.CommitChanges();
+            return true;
+        }
     }
 }

@@ -30,6 +30,7 @@ namespace T4MVC {
         public class ViewNames {
             public readonly string Error = "~/Views/Shared/Error.cshtml";
             public readonly string Layout = "~/Views/Shared/Layout.cshtml";
+            public readonly string TwoColumnLayout = "~/Views/Shared/TwoColumnLayout.cshtml";
             public readonly string UserDisplay = "~/Views/Shared/UserDisplay.cshtml";
             static readonly _EditorTemplates s_EditorTemplates = new _EditorTemplates();
             public _EditorTemplates EditorTemplates { get { return s_EditorTemplates; } }

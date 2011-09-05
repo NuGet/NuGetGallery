@@ -31,6 +31,11 @@ namespace NuGetGallery {
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
 
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult Confirm() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public UsersController Actions { get { return MVC.Users; } }
@@ -49,6 +54,7 @@ namespace NuGetGallery {
             public readonly string Packages = "Packages";
             public readonly string GenerateApiKey = "GenerateApiKey";
             public readonly string ForgotPassword = "ForgotPassword";
+            public readonly string Confirm = "Confirm";
         }
 
 
@@ -58,6 +64,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string Account = "~/Views/Users/Account.cshtml";
+            public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string Register = "~/Views/Users/Register.cshtml";
         }
@@ -95,6 +102,12 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult ForgotPassword() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ForgotPassword);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Confirm(string token) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
+            callInfo.RouteValueDictionary.Add("token", token);
             return callInfo;
         }
 

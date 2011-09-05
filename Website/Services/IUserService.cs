@@ -18,5 +18,7 @@ namespace NuGetGallery {
             string password);
 
         string GenerateApiKey(string username);
+
+        bool ConfirmAccount(string token);
     }
 }

@@ -1,0 +1,52 @@
+﻿@{
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+}
+
+@section LeftNav {
+        <img src="@Links.Content.Images.newAccountGraphic_png" style="padding-left:50px" alt="New Account Image"/>
+}                
+
+@section ContentHeader {
+    <span class="right"><img src="@Links.Content.Images.required_png" alt="Required" /></span>
+    <h2>Confirm registration</h2>
+}
+
+@if (ViewBag.Confirmed != null) {
+    <div class="zone-messages">
+        @if (ViewBag.Confirmed) {
+            <div class="message message-Information">
+                Registration Confirmed!
+            </div>
+            <p>
+                Click on the Login link to log in to the site.
+            </p>
+            <p>
+                You may now upload packages and make your mark in 
+                the community.
+            </p>
+        }
+        else {
+            <div class="message critical message">
+                Could not confirm your registration.
+            </div>
+            <p>
+                Make sure you copied the registration code from the email we sent correctly.
+            </p>
+        }
+    </div>
+}
+else {
+    <form id="form" method="post" action="@Url.Current()">
+        <p>
+            Please enter the confirmation code sent to you via email and 
+            then click the <em>Confirm</em> button.
+        </p>
+        <label for="confirmationCode">
+            Confirmation Code
+        </label>
+        @Html.TextBox("token")
+        <div>
+            <input type="submit" value="Confirm" />
+        </div>
+    </form>
+}
