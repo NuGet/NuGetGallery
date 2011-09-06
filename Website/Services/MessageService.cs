@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Mail;
+using System.Web;
 using AnglicanGeek.MarkdownMailer;
 
 namespace NuGetGallery {
@@ -68,7 +69,7 @@ message with subject line __NuGet.org Opt-out__ to [{4}](mailto:{4}?subject=NuGe
 
 __Final Step__
 To verify that you own this e-mail address, please click the following link:
-[{0}]({0})
+[{0}]({1})
 
 __Troubleshooting:__
 If clicking on the link above does not work, try the following:
@@ -77,10 +78,10 @@ Select and copy the entire link.
 Open a browser window and paste the link in the address bar.
 Click on __Go__ or press the __Enter__ or __Return__ key.
 
-If you continue to have access problems or want to report other issues, please [contact us](mailto:{1}).";
+If you continue to have access problems or want to report other issues, please [contact us](mailto:{2}).";
             var mailMessage = new MailMessage {
                 Subject = "Please verify your NuGet.org account.",
-                Body = String.Format(body, confirmationUrl, configuration.GalleryOwnerEmailAddress.Address),
+                Body = String.Format(body, HttpUtility.UrlDecode(confirmationUrl), confirmationUrl, configuration.GalleryOwnerEmailAddress.Address),
                 From = configuration.GalleryOwnerEmailAddress,
             };
             mailMessage.To.Add(toAddress);

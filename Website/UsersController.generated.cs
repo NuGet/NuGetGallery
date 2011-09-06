@@ -51,6 +51,7 @@ namespace NuGetGallery {
         public class ActionNamesClass {
             public readonly string Account = "Account";
             public readonly string Register = "Register";
+            public readonly string Thanks = "Thanks";
             public readonly string Packages = "Packages";
             public readonly string GenerateApiKey = "GenerateApiKey";
             public readonly string ForgotPassword = "ForgotPassword";
@@ -67,6 +68,7 @@ namespace NuGetGallery {
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string Register = "~/Views/Users/Register.cshtml";
+            public readonly string Thanks = "~/Views/Users/Thanks.cshtml";
         }
     }
 
@@ -87,6 +89,11 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult Register(NuGetGallery.RegisterRequest request) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
             callInfo.RouteValueDictionary.Add("request", request);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Thanks() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Thanks);
             return callInfo;
         }
 

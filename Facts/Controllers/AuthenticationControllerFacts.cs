@@ -20,11 +20,11 @@ namespace NuGetGallery.Controllers {
             }
 
             [Fact]
-            public void WillLogTheUserOnWhenTheUsernameAndPasswordAreValid() {
+            public void WillLogTheUserOnWhenTheUsernameAndPasswordAreValidAndUserIsConfirmed() {
                 var formsAuthSvc = new Mock<IFormsAuthenticationService>();
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByUsernameAndPassword("theUsername", "thePassword"))
-                    .Returns(new User("theUsername", null, null));
+                    .Returns(new User("theUsername", null, null) { Confirmed = true });
                 var controller = CreateController(
                     formsAuthSvc: formsAuthSvc,
                     userSvc: userSvc);
@@ -40,11 +40,30 @@ namespace NuGetGallery.Controllers {
             }
 
             [Fact]
+            public void WillNotLogTheUserOnWhenTheUsernameAndPasswordAreValidAndUserIsNotConfirmed() {
+                var formsAuthSvc = new Mock<IFormsAuthenticationService>();
+                formsAuthSvc.Setup(x => x.SetAuthCookie(It.IsAny<string>(), It.IsAny<bool>(), null)).Throws(new InvalidOperationException());
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByUsernameAndPassword("theUsername", "thePassword"))
+                    .Returns(new User("theUsername", null, null) { Confirmed = false });
+                var controller = CreateController(
+                    formsAuthSvc: formsAuthSvc,
+                    userSvc: userSvc);
+
+                controller.LogOn(
+                    new SignInRequest() { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    "theReturnUrl");
+            }
+
+            [Fact]
             public void WillLogTheUserOnWithRolesWhenTheUsernameAndPasswordAreValid() {
                 var formsAuthSvc = new Mock<IFormsAuthenticationService>();
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByUsernameAndPassword("theUsername", "thePassword"))
-                    .Returns(new User("theUsername", null, null) { Roles = new[] { new Role { Name = "Administrators" } } });
+                    .Returns(new User("theUsername", null, null) {
+                        Roles = new[] { new Role { Name = "Administrators" } },
+                        Confirmed = true
+                    });
                 var controller = CreateController(
                     formsAuthSvc: formsAuthSvc,
                     userSvc: userSvc);
@@ -57,7 +76,6 @@ namespace NuGetGallery.Controllers {
                     "theUsername",
                     true,
                     It.Is<IEnumerable<string>>(roles => roles.Count() == 1 && roles.First() == "Administrators")));
-
             }
 
             [Fact]
@@ -79,7 +97,7 @@ namespace NuGetGallery.Controllers {
             public void WillRedirectToTheReturnUrl() {
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByUsernameAndPassword(It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(new User("theUsername", null, null));
+                    .Returns(new User("theUsername", null, null) { Confirmed = true });
                 var controller = CreateController(
                     userSvc: userSvc,
                     setup: mock => {

@@ -1,0 +1,37 @@
+﻿@using NuGetGallery;
+@{
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+}
+
+@section LeftNav {
+    <img src="@Links.Content.Images.newAccountGraphic_png" style="padding-left:50px" alt="New Account Image"/>
+}
+
+@section ContentHeader {
+    @if (!Request.IsAuthenticated) {
+        <h2>Thanks for registering</h2>
+    }
+    else {
+        <h2>You are all set</h2>
+    }
+}
+
+<div class="description">
+@if (!Request.IsAuthenticated) {
+    <strong>But you&#8217;re not done yet!</strong>
+    <p>
+        An email with instructions on how to activate your account is on its way 
+        to you.
+    </p>
+}
+else {
+    <p>
+        It looks like you&#8217;ve already confirmed your account and are 
+        good to go.
+    </p>
+    <p>
+        Click on the <em>Upload package</em> link in the menu to start 
+        uploading packages.
+    </p>
+}
+</div>

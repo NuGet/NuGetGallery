@@ -18,8 +18,14 @@
 }
 
 <form id="form" method="post" action="@Url.Current()">
+
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
+    @if (ViewBag.ConfirmationRequired != null && ViewBag.ConfirmationRequired) {
+        <p class="description">
+            <span class="validation-summary-errors">Before you can log on, you&#8217;ll need to <a href="@Url.Action(MVC.Users.Confirm())">confirm your account</a></span>
+        </p>
+    }
     @Html.EditorForModel()
     <div>
         <button type="submit" name="Register">Log On</button>

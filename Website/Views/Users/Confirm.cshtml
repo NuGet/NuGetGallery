@@ -12,7 +12,7 @@
 }
 
 @if (ViewBag.Confirmed != null) {
-    <div class="zone-messages">
+    <div class="zone-messages description">
         @if (ViewBag.Confirmed) {
             <div class="message message-Information">
                 Registration Confirmed!
@@ -37,7 +37,7 @@
 }
 else {
     <form id="form" method="post" action="@Url.Current()">
-        <p>
+        <p class="description">
             Please enter the confirmation code sent to you via email and 
             then click the <em>Confirm</em> button.
         </p>

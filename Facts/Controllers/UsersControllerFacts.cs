@@ -41,29 +41,6 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillSignTheUserIn() {
-                var formsAuthSvc = new Mock<IFormsAuthenticationService>();
-                var userSvc = new Mock<IUserService>();
-                userSvc
-                    .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(new User() { Username = "theUsername", EmailAddress = "to@example.com" });
-                var controller = CreateController(
-                    formsAuthSvc: formsAuthSvc,
-                    userSvc: userSvc);
-
-                controller.Register(new RegisterRequest() {
-                    Username = "theUsername",
-                    Password = "thePassword",
-                    EmailAddress = "theEmailAddress",
-                });
-
-                formsAuthSvc.Verify(x => x.SetAuthCookie(
-                    "theUsername",
-                    true,
-                    null));
-            }
-
-            [Fact]
             public void WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow() {
                 var userSvc = new Mock<IUserService>();
                 userSvc

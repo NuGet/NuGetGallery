@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -33,9 +34,14 @@ namespace NuGetGallery {
 
             if (user == null) {
                 ModelState.AddModelError(
-                    string.Empty,
+                    String.Empty,
                     Strings.UserNotFound);
 
+                return View();
+            }
+
+            if (!user.Confirmed) {
+                ViewBag.ConfirmationRequired = true;
                 return View();
             }
 

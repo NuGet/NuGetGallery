@@ -55,13 +55,11 @@ namespace NuGetGallery {
             var confirmationUrl = Url.Action(MVC.Users.Confirm().AddRouteValue("token", user.ConfirmationToken), protocol: Request.Url.Scheme);
 
             messageService.SendNewAccountEmail(new MailAddress(user.EmailAddress), confirmationUrl);
+            return RedirectToRoute(MVC.Users.Thanks());
+        }
 
-            formsAuthSvc.SetAuthCookie(
-                user.Username,
-                true,
-                null);
-
-            return RedirectToRoute(RouteName.Home);
+        public virtual ActionResult Thanks() {
+            return View();
         }
 
         [Authorize]
