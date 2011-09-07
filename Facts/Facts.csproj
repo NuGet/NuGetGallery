@@ -69,6 +69,7 @@
     <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
     <Compile Include="Services\UsersServiceFacts.cs" />
+    <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
