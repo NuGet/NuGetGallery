@@ -12,5 +12,6 @@ namespace NuGetGallery {
         public string Summary { get; set; }
         public string Tags { get; set; }
         public string Title { get; set; }
+        public bool UnlistedPackage { get; set; }
     }
 }

@@ -716,3 +716,15 @@ article.privacy
        line-height:24px;
        margin:24px 8px;
 }
+
+.package-form ul {
+    font-size:larger;
+}
+
+.package-form strong {
+    color:#52a4ca;
+}
+
+.package-form .note {
+    color:#A8A8A8;
+}

@@ -29,6 +29,7 @@ namespace NuGetGallery.Data.Migrations {
                 new Column("Tags", DbType.String, ColumnProperty.Null),
                 new Column("Title", DbType.String, ColumnProperty.Null),
                 new Column("Version", DbType.String, ColumnProperty.NotNull),
+                new Column("Unlisted", DbType.Boolean, ColumnProperty.NotNull),
                 new Column("FlattenedAuthors", DbType.String, ColumnProperty.NotNull),
                 new Column("FlattenedDependencies", DbType.String, ColumnProperty.Null));
 

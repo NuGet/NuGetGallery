@@ -42,8 +42,30 @@
         <h2>Manage My Packages</h2>
         <p>These packages are currently published for the world to see.</p>
     </header>
+    @PrintPublishedPackages(Model.PublishedPackages.Where(p => !p.Unlisted))
 
-   <table class="packages owned">
+    var unlistedPackages = Model.PublishedPackages.Where(p => p.Unlisted);
+    if (unlistedPackages.Any()) {
+        <header class="manage-packages">
+            <h2>Unlisted Packages</h2>
+            <p>These packages are currently published but unlisted.</p>
+        </header>
+        @PrintPublishedPackages(unlistedPackages)
+    }
+}
+else {
+<header>
+    <h2>No Packages?</h2>
+</header>
+<p>
+    You don&#8217;t have any published packages. Maybe now is a good time to 
+    <a href="@Url.UploadPackage()" class="silverButtonBig">Upload a Package</a>
+</p>
+}
+
+
+@helper PrintPublishedPackages(IEnumerable<PackageViewModel> packages) {
+    <table class="packages owned">
         <thead class="header">
             <tr>
                 <th>Package</th>
@@ -52,7 +74,7 @@
                 <th class="ownerActions">Actions</th>
             </tr>
         </thead>
-        @foreach (var package in Model.PublishedPackages) {
+        @foreach (var package in packages) {
             <tr>
                 <td>
                     <strong><a href="@Url.Package(package)">@package.Title</a></strong>
@@ -63,6 +85,8 @@
                 <td class="ownerActions">
                     <ul>
                         <li>
+                            <a href="@Url.EditPackage(package)" title="Edit" class="editPackageLink"><img src="@Links.Content.Images.editIcon_png" alt="Edit" /></a>
+                            &nbsp;
                             <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
                         </li>
                     </ul>
@@ -70,17 +94,4 @@
             </tr>
         }
     </table>
-    <p>
-        Why not make the world a better place and 
-        <a href="@Url.UploadPackage()" class="silverButtonBig">Upload a Package</a>
-    </p>
-}
-else {
-<header>
-    <h2>No Packages?</h2>
-</header>
-<p>
-    You don&#8217;t have any published packages. Maybe now is a good time to 
-    <a href="@Url.UploadPackage()" class="silverButtonBig">Upload a Package</a>
-</p>
 }

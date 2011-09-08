@@ -13,8 +13,19 @@
 }
 
 <div>
-    <p class="description">
-        To edit your package, modify the source package file and then 
-        <a href="@Url.UploadPackage()">reupload the package</a>.
+    <form method="post" action="@Url.Current()" class="package-form">
+    <p class="note">
+        You may only edit certain package properties listed below. To modify or update any other package properties, <a href="@Url.UploadPackage()">reupload the package</a>.
     </p>
+    <ul>
+        <li>
+            @Html.EditorFor(package => package.Unlisted) 
+            @Html.LabelFor(package => package.Unlisted, "Prevent this package from being listed in results")
+        </li>
+        <li class="buttons">
+            @Html.AntiForgeryToken()
+            <input type="submit" value="Submit" />
+        </li>
+    </ul>
+    </form>
 </div>

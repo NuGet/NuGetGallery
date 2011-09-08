@@ -20,11 +20,11 @@ namespace NuGetGallery {
         }
 
         public static string Publish(this UrlHelper url, Package package) {
-            return url.Action(MVC.Packages.PublishPackage(package.PackageRegistration.Id, package.Version));
+            return url.Action(MVC.Packages.PublishPackage(package.PackageRegistration.Id, package.Version, package.Unlisted));
         }
 
         public static string Publish(this UrlHelper url, IPackageVersionModel package) {
-            return url.Action(MVC.Packages.PublishPackage(package.Id, package.Version));
+            return url.Action(MVC.Packages.PublishPackage(package.Id, package.Version, null));
         }
 
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm) {

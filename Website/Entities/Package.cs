@@ -36,6 +36,7 @@ namespace NuGetGallery {
         public string Tags { get; set; }
         public string Title { get; set; }
         public string Version { get; set; }
+        public bool Unlisted { get; set; }
 
         // TODO: it would be nice if we could change the feed so that we don't need to flatten authors and dependencies
         public string FlattenedAuthors { get; set; }

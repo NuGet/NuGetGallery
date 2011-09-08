@@ -112,7 +112,7 @@ namespace NuGetGallery {
                 .Include(x => x.PackageRegistration)
                 .Include(x => x.Authors)
                 .Include(x => x.PackageRegistration.Owners)
-                .Where(pv => pv.Published != null && pv.IsLatest);
+                .Where(package => package.Published != null && package.IsLatest && !package.Unlisted);
         }
 
         public IEnumerable<Package> FindPackagesByOwner(User user) {
@@ -273,6 +273,16 @@ namespace NuGetGallery {
 
         public void RemovePackageOwner(Package package, User user) {
             package.PackageRegistration.Owners.Remove(user);
+            packageRepo.CommitChanges();
+        }
+
+        public void MarkPackageListed(Package package) {
+            package.Unlisted = false;
+            packageRepo.CommitChanges();
+        }
+
+        public void MarkPackageUnlisted(Package package) {
+            package.Unlisted = true;
             packageRepo.CommitChanges();
         }
     }

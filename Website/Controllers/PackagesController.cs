@@ -101,7 +101,7 @@ namespace NuGetGallery {
         }
 
         [Authorize, HttpPost, ValidateAntiForgeryToken]
-        public virtual ActionResult PublishPackage(string id, string version) {
+        public virtual ActionResult PublishPackage(string id, string version, bool? unlistedPackage) {
             // TODO: handle requesting to verify a package that is already verified; return 404?
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
@@ -113,6 +113,9 @@ namespace NuGetGallery {
             }
 
             packageSvc.PublishPackage(package.PackageRegistration.Id, package.Version);
+            if (unlistedPackage.HasValue && unlistedPackage.Value) {
+                packageSvc.MarkPackageUnlisted(package);
+            }
 
             // TODO: add a flash success message
 
@@ -303,6 +306,25 @@ namespace NuGetGallery {
         [Authorize]
         public virtual ActionResult Edit(string id, string version) {
             return GetPackageOwnerActionFormResult(id, version);
+        }
+
+        [Authorize, HttpPost, ValidateAntiForgeryToken]
+        public virtual ActionResult Edit(string id, string version, bool? unlisted) {
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null) {
+                return PackageNotFound(id, version);
+            }
+            if (!package.IsOwner(HttpContext.User)) {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            if (unlisted.HasValue && unlisted.Value) {
+                packageSvc.MarkPackageUnlisted(package);
+            }
+            else {
+                packageSvc.MarkPackageListed(package);
+            }
+            return Redirect(Url.Package(id, version));
         }
 
         private ActionResult GetPackageOwnerActionFormResult(string id, string version) {
