@@ -19,7 +19,7 @@ namespace NuGetGallery {
 
         protected virtual IDictionary<string, object> LoadTempData(ControllerContext controllerContext) {
             var cookie = httpContext.Request.Cookies[TempDataCookieKey];
-            var dictionary = new Dictionary<string, object>();
+            var dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
             if ((cookie == null) || string.IsNullOrEmpty(cookie.Value)) {
                 return dictionary;
             }
