@@ -2,7 +2,7 @@
 @using System.Collections;
 @using NuGetGallery;
 
-@helper PreviousNextPager(IPreviousNextPager pager) {
+@helper PreviousNextPager(this HtmlHelper helper, IPreviousNextPager pager) {
     if (pager.HasNextPage || pager.HasPreviousPage) {
         <ul class="group pager">        
             <li class="page-previous">
@@ -25,16 +25,16 @@
     }
 }
 
-@helper Option(string value, string label, string currentValue) {
+@helper Option(this HtmlHelper helper, string value, string label, string currentValue) {
     <option value="@value" @if (value == currentValue) {<text>selected="selected"</text>}>@label</option>    
 }
 
-@helper UploadSequence(int currentStep) {
-    @SequenceStep(1, "Upload", currentStep)
-    @SequenceStep(2, "Verify Details", currentStep)
+@helper UploadSequence(this HtmlHelper helper, int currentStep) {
+    @SequenceStep(helper, 1, "Upload", currentStep)
+    @SequenceStep(helper, 2, "Verify Details", currentStep)
 }
 
-@helper SequenceStep(int step, string caption, int currentStep) {
+@helper SequenceStep(this HtmlHelper helper, int step, string caption, int currentStep) {
     if (currentStep == step) {
         <li class="current"><a href="#"><span>@step </span>@caption</a></li>
     }
