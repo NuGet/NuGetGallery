@@ -90,6 +90,9 @@
     <Reference Include="QueryInterceptor">
       <HintPath>..\packages\QueryInterceptor.0.1.4237.2400\lib\net40\QueryInterceptor.dll</HintPath>
     </Reference>
+    <Reference Include="RazorGenerator.Mvc">
+      <HintPath>..\packages\RazorGenerator.Mvc.1.2.1\lib\net40\RazorGenerator.Mvc.dll</HintPath>
+    </Reference>
     <Reference Include="RouteMagic, Version=1.1.1.0, Culture=neutral, PublicKeyToken=84b59be021aa4cee, processorArchitecture=MSIL">
       <HintPath>..\packages\RouteMagic.1.1.1\lib\net40\RouteMagic.dll</HintPath>
     </Reference>
@@ -133,6 +136,7 @@
     <Compile Include="App_Start\MiniProfiler.cs" />
     <Compile Include="App_Start\NinjectMVC3.cs" />
     <Compile Include="App_Start\Bootstrapper.cs" />
+    <Compile Include="App_Start\PrecompiledMvcViewEngineStart.cs" />
     <Compile Include="AuthenticationController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -589,6 +593,9 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Users\Confirm.cshtml" />
     <Content Include="Views\Users\Thanks.cshtml" />
+    <Content Include="Views\Helpers\_ViewHelpers.cshtml">
+      <CustomToolNamespace>NuGetGallery</CustomToolNamespace>
+    </Content>
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
@@ -634,9 +641,6 @@
     <Content Include="Views\Packages\_ListPackage.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="App_Code\ViewHelpers.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
   </ItemGroup>
   <ItemGroup>
@@ -674,10 +678,12 @@
     <Content Include="Views\Shared\TwoColumnLayout.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="App_Code\" />
     <Folder Include="DynamicData\CustomPages\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
+  <Import Project="$(MsBuildProjectDirectory)\..\3rdParty\RazorGenerator\RazorGenerator.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
