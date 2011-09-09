@@ -102,6 +102,10 @@ namespace NuGetGallery {
 
         [Authorize, HttpPost, ValidateAntiForgeryToken]
         public virtual ActionResult PublishPackage(string id, string version, bool? unlistedPackage) {
+            return PublishPackage(id, version, unlistedPackage, Url.Package); 
+        }
+
+        internal ActionResult PublishPackage(string id, string version, bool? unlistedPackage, Func<Package, string> urlFactory) {
             // TODO: handle requesting to verify a package that is already verified; return 404?
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
@@ -118,8 +122,7 @@ namespace NuGetGallery {
             }
 
             // TODO: add a flash success message
-
-            return Redirect(Url.Package(package));
+            return Redirect(urlFactory(package));
         }
 
         public virtual ActionResult DisplayPackage(string id, string version) {
@@ -310,6 +313,10 @@ namespace NuGetGallery {
 
         [Authorize, HttpPost, ValidateAntiForgeryToken]
         public virtual ActionResult Edit(string id, string version, bool? unlisted) {
+            return Edit(id, version, unlisted, Url.Package);
+        }
+        
+        internal virtual ActionResult Edit(string id, string version, bool? unlisted, Func<Package, string> urlFactory) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null) {
                 return PackageNotFound(id, version);
@@ -324,7 +331,7 @@ namespace NuGetGallery {
             else {
                 packageSvc.MarkPackageListed(package);
             }
-            return Redirect(Url.Package(id, version));
+            return Redirect(urlFactory(package));
         }
 
         private ActionResult GetPackageOwnerActionFormResult(string id, string version) {

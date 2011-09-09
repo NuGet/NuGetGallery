@@ -4,6 +4,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using Xunit;
+using System;
 
 namespace NuGetGallery.Controllers {
     public class PackagesControllerFacts {
@@ -110,6 +111,131 @@ namespace NuGetGallery.Controllers {
             }
         }
 
+        [Fact]
+        public void PublishPackageDoesNotUpdateUnlistedValueIfNotSelected() {
+            // Arrange
+            var package = new Package {
+                PackageRegistration = new PackageRegistration { Id = "Foo" },
+                Version = "1.0"
+            };
+            package.PackageRegistration.Owners.Add(new User("Frodo", "foo", "frodo@thesquire.com"));
+
+            var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+            packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
+            packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
+            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0")).Returns(package).Verifiable();
+            packageService.Setup(svc => svc.PublishPackage("Foo", "1.0")).Verifiable();
+
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+            httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
+
+            var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
+            controller.Url = new UrlHelper(new RequestContext());
+
+            // Act
+            var result = controller.PublishPackage("Foo", "1.0", unlistedPackage: null, urlFactory: p => @"~\Bar.cshtml");
+
+            // Assert
+            // If we got this far, we know listing methods were not invoked.
+            packageService.Verify();
+            Assert.IsType<RedirectResult>(result);
+            Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+        }
+
+        [Fact]
+        public void PublishPackageUpdatesUnlistedValueIfSelected() {
+            // Arrange
+            var package = new Package {
+                PackageRegistration = new PackageRegistration { Id = "Foo" },
+                Version = "1.0"
+            };
+            package.PackageRegistration.Owners.Add(new User("Frodo", "foo", "frodo@thesquire.com"));
+
+            var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+            packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
+            packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Verifiable();
+            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0")).Returns(package).Verifiable();
+            packageService.Setup(svc => svc.PublishPackage("Foo", "1.0")).Verifiable();
+
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+            httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
+
+            var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
+            controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+            // Act
+            var result = controller.PublishPackage("Foo", "1.0", unlistedPackage: true, urlFactory: p => @"~\Bar.cshtml");
+
+            // Assert
+            packageService.Verify();
+            Assert.IsType<RedirectResult>(result);
+            Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+        }
+
+        [Fact]
+        public void EditControllerUpdatesUnlistedIfSelected() {
+            // Arrange
+            var package = new Package {
+                PackageRegistration = new PackageRegistration { Id = "Foo" },
+                Version = "1.0",
+                Unlisted = false
+            };
+            package.PackageRegistration.Owners.Add(new User("Frodo", "foo", "frodo@thesquire.com"));
+
+            var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+            packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
+            packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Verifiable();
+            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0")).Returns(package).Verifiable();
+
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+            httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
+
+            var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
+            controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+            // Act
+            var result = controller.Edit("Foo", "1.0", unlisted: true, urlFactory: p => @"~\Bar.cshtml");
+
+            // Assert
+            packageService.Verify();
+            Assert.IsType<RedirectResult>(result);
+            Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+        }
+
+        [Fact]
+        public void EditControllerUpdatesUnlistedIfNotSelected() {
+            // Arrange
+            var package = new Package {
+                PackageRegistration = new PackageRegistration { Id = "Foo" },
+                Version = "1.0",
+                Unlisted = false
+            };
+            package.PackageRegistration.Owners.Add(new User("Frodo", "foo", "frodo@thesquire.com"));
+
+            var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+            packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Verifiable();
+            packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
+            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0")).Returns(package).Verifiable();
+
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+            httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
+
+            var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
+            controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+            // Act
+            var result = controller.Edit("Foo", "1.0", unlisted: null, urlFactory: p => @"~\Bar.cshtml");
+
+            // Assert
+            packageService.Verify();
+            Assert.IsType<RedirectResult>(result);
+            Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+        }
+
         static PackagesController CreateController(
             Mock<ICryptographyService> cryptoSvc = null,
             Mock<IPackageService> packageSvc = null,
@@ -139,6 +265,5 @@ namespace NuGetGallery.Controllers {
 
             return controller;
         }
-
     }
 }
