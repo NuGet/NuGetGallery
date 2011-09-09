@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Web;
 using System.Web.Mvc;
 
@@ -19,28 +17,15 @@ namespace NuGetGallery {
             this.httpContext = httpContext;
         }
 
-        public static IDictionary<string, object> Base64StringToDictionary(string base64EncodedSerializedTempData) {
-            using (MemoryStream stream = new MemoryStream(Convert.FromBase64String(base64EncodedSerializedTempData))) {
-                var formatter = new BinaryFormatter();
-                return (formatter.Deserialize(stream, null) as IDictionary<string, object>);
-            }
-        }
-
-        public static string DictionaryToBase64String(IDictionary<string, object> values) {
-            using (MemoryStream stream = new MemoryStream()) {
-                stream.Seek(0L, SeekOrigin.Begin);
-                new BinaryFormatter().Serialize(stream, values);
-                stream.Seek(0L, SeekOrigin.Begin);
-                return Convert.ToBase64String(stream.ToArray());
-            }
-        }
-
         protected virtual IDictionary<string, object> LoadTempData(ControllerContext controllerContext) {
             var cookie = httpContext.Request.Cookies[TempDataCookieKey];
+            var dictionary = new Dictionary<string, object>();
             if ((cookie == null) || string.IsNullOrEmpty(cookie.Value)) {
-                return new Dictionary<string, object>();
+                return dictionary;
             }
-            var dictionary = Base64StringToDictionary(cookie.Value);
+            foreach (var key in cookie.Values.AllKeys) {
+                dictionary[key] = cookie[key];
+            }
             cookie.Expires = DateTime.MinValue;
             cookie.Value = string.Empty;
             if (CookieHasTempData) {
@@ -58,10 +43,11 @@ namespace NuGetGallery {
 
         protected virtual void SaveTempData(ControllerContext controllerContext, IDictionary<string, object> values) {
             if (values.Count > 0) {
-                string str = DictionaryToBase64String(values);
                 var cookie = new HttpCookie(TempDataCookieKey);
                 cookie.HttpOnly = true;
-                cookie.Value = str;
+                foreach (var item in values) {
+                    cookie[item.Key] = Convert.ToString(item.Value);
+                }
                 httpContext.Response.Cookies.Add(cookie);
             }
         }
