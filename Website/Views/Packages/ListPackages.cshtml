@@ -12,9 +12,9 @@
                 <div id="sort">
                     <label>Sort</label>
                     <select name="sortOrder" id="sortOrder">
-                        @ViewHelpers.Option("package-title", "A-Z", Model.SortOrder)
-                        @ViewHelpers.Option("package-download-count", "Popularity", Model.SortOrder)
-                        @ViewHelpers.Option("package-created", "Recent", Model.SortOrder)
+                        @Html.Option("package-title", "A-Z", Model.SortOrder)
+                        @Html.Option("package-download-count", "Popularity", Model.SortOrder)
+                        @Html.Option("package-created", "Recent", Model.SortOrder)
                     </select>
                 </div>
             </form>
@@ -49,7 +49,7 @@
                         }
                     </ul>
                     <div id="pagination">
-                        @ViewHelpers.PreviousNextPager(Model.Pager)
+                        @Html.PreviousNextPager(Model.Pager)
                     </div>
                 </section>
             </div>
