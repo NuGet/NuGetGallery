@@ -36,6 +36,11 @@ namespace NuGetGallery {
         public System.Web.Mvc.ActionResult Confirm() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
         }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult Profiles() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.Profiles);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public UsersController Actions { get { return MVC.Users; } }
@@ -56,6 +61,7 @@ namespace NuGetGallery {
             public readonly string GenerateApiKey = "GenerateApiKey";
             public readonly string ForgotPassword = "ForgotPassword";
             public readonly string Confirm = "Confirm";
+            public readonly string Profiles = "Profiles";
         }
 
 
@@ -115,6 +121,12 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult Confirm(string token) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
             callInfo.RouteValueDictionary.Add("token", token);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Profiles(string username) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Profiles);
+            callInfo.RouteValueDictionary.Add("username", username);
             return callInfo;
         }
 

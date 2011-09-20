@@ -58,6 +58,9 @@
     </Reference>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
+    <Reference Include="Microsoft.Web.Helpers">
+      <HintPath>..\packages\microsoft-web-helpers.1.15\lib\Microsoft.Web.Helpers.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Migrator, Version=0.9.0.28138, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MigratorDotNet.0.9.0.28138\lib\Net40\Migrator.dll</HintPath>
@@ -375,6 +378,9 @@
     </Compile>
     <Compile Include="Entities\PackageStatistics.cs" />
     <Compile Include="Entities\Role.cs" />
+    <Compile Include="HelpersController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
     <Compile Include="JsonApiController.generated.cs">
@@ -480,6 +486,7 @@
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
+    <Compile Include="ViewModels\UserProfileModel.cs" />
     <Compile Include="Views\Authentication\LogOn.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -702,6 +709,7 @@
     <Content Include="DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="DynamicData\PageTemplates\List.aspx" />
     <Content Include="DynamicData\Site.css" />
+    <Content Include="Release Notes - Microsoft.Web.Helpers.txt" />
     <Content Include="Scripts\gallery.form.js" />
     <Content Include="Scripts\global.js" />
     <Content Include="Scripts\html5.js" />
@@ -745,6 +753,7 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>_ViewHelpers.generated.cs</LastGenOutput>
     </Content>
+    <Content Include="Views\Users\Profiles.cshtml" />
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />

@@ -728,3 +728,32 @@ article.privacy
 .package-form .note {
     color:#A8A8A8;
 }
+
+div.profile ul {
+    margin-top: 10px;
+}
+
+body header.profile {
+    border-bottom: none;
+    margin-bottom: 20px;
+}
+
+header.profile img.gravatar {
+    border: solid 1px #fff;
+    outline: solid 8px #333;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+header.profile h2 {
+    display: inline-block;
+    font-size: 4em;
+    padding: 0 20px;
+    position: relative;
+    vertical-align: top;
+}
+
+div.profile .packageItem {
+    padding-bottom: 5px;
+    min-height: 20px;
+}

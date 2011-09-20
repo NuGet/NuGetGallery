@@ -50,8 +50,13 @@ namespace NuGetGallery {
 
             routes.MapRoute(
                 RouteName.Authentication,
-                "Users/Account/{action}",
+                "users/account/{action}",
                 new { controller = MVC.Authentication.Name });
+
+            routes.MapRoute(
+                RouteName.Profile,
+                "profiles/{username}",
+                MVC.Users.Profiles());
 
             routes.MapRoute(
                 RouteName.Account,

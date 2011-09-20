@@ -1,0 +1,11 @@
+Release Notes
+-------------
+
+In this new update to the ASP.NET Web Helpers Library, we have integrated the Twitter and Facebook helpers to just be included. 
+These will continue to be updated in the future.
+
+We have also fixed the URL change that Google recently made so the ReCaptcha helper will now work again (see 
+http://groups.google.com/group/recaptcha-announce/browse_thread/thread/c1ff6844420c9e63).
+
+Bing has removed their support for the underlying mechanism for the Bing.AdvancedSearchBox to work. Therefore, this method has been removed in this release.  
+Bing has a replacement API and we will add this back in a future version.

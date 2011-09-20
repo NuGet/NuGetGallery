@@ -102,5 +102,24 @@ namespace NuGetGallery {
             ViewBag.Confirmed = confirmed;
             return View();
         }
+
+        public virtual ActionResult Profiles(string username) {
+            var user = userService.FindByUsername(username);
+            if (user == null) {
+                return HttpNotFound();
+            }
+
+            var packages = (from p in packageService.FindPackagesByOwner(user)
+                            select new PackageViewModel(p)).ToList();
+
+            var model = new UserProfileModel {
+                Username = user.Username,
+                EmailAddress = user.EmailAddress,
+                Packages = packages,
+                TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount)
+            };
+
+            return View(model);
+        }
     }
 }

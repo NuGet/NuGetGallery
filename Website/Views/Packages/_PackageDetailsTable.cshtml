@@ -17,7 +17,7 @@
     </tr>
     <tr>
         <th>Owners</th>
-        <td>@Model.Owners.Flatten(@<a href="@Url.Search(item.Username)">@item.Username</a>)
+        <td>@Model.Owners.Flatten(@<a href="@Url.Action(MVC.Users.Profiles(item.Username))">@item.Username</a>)
         </td>
     </tr>
     @if (Model.Tags.AnySafe()) {

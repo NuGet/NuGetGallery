@@ -1,7 +1,7 @@
 ﻿namespace NuGetGallery {
     public interface IPackageVersionModel {
-        string Id { get; set; }
+        string Id { get; }
         string Version { get; set; }
-        string Title { get; set; }
+        string Title { get; }
     }
 }
