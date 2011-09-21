@@ -4,12 +4,15 @@ using System.Linq;
 
 namespace NuGetGallery {
     public class UserService : IUserService {
+        readonly IConfiguration configuration;
         readonly ICryptographyService cryptoSvc;
         readonly IEntityRepository<User> userRepo;
 
         public UserService(
+            IConfiguration configuration,
             ICryptographyService cryptoSvc,
             IEntityRepository<User> userRepo) {
+            this.configuration = configuration;
             this.cryptoSvc = cryptoSvc;
             this.userRepo = userRepo;
         }
@@ -39,6 +42,9 @@ namespace NuGetGallery {
                     EmailAllowed = true,
                     ConfirmationToken = cryptoSvc.GenerateToken()
                 };
+
+            if (!configuration.ConfirmEmailAddresses)
+                newUser.Confirmed = true;
 
             userRepo.InsertOnCommit(newUser);
             userRepo.CommitChanges();
