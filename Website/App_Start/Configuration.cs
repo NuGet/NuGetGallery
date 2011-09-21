@@ -5,6 +5,9 @@ using System.Web;
 
 namespace NuGetGallery {
     public class Configuration : IConfiguration {
+        static readonly Lazy<bool> confirmEmailAddresses =
+            new Lazy<bool>(() =>
+                bool.Parse(Configuration.ReadFromConfigOrEnvironment("ConfirmEmailAddresses", bool.FalseString)));
         static readonly Lazy<MailAddress> galleryOwnerEmail =
             new Lazy<MailAddress>(() =>
                 new MailAddress(Configuration.ReadFromConfigOrEnvironment("GalleryOwnerEmail")));
@@ -27,6 +30,14 @@ namespace NuGetGallery {
             return configValue ?? environmentVariableValue ?? defaultValue;
         }
 
+        public bool ConfirmEmailAddresses
+        {
+            get
+            {
+                return confirmEmailAddresses.Value;
+            }
+        }
+        
         public string PackageFileDirectory {
             get {
                 return packageFileDirectory.Value;
