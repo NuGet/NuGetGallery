@@ -2,40 +2,51 @@
 using System.Configuration;
 using System.Net.Mail;
 using System.Web;
+using System.Collections.Generic;
 
 namespace NuGetGallery {
     public class Configuration : IConfiguration {
-        static readonly Lazy<MailAddress> galleryOwnerEmail =
-            new Lazy<MailAddress>(() =>
-                new MailAddress(Configuration.ReadFromConfigOrEnvironment("GalleryOwnerEmail")));
-        static readonly Lazy<string> packageFileDirectory =
-            new Lazy<string>(() =>
-                Configuration.ReadFromConfigOrEnvironment("PackageFileDirectory",
-                                                          HttpContext.Current.Server.MapPath("~/App_Data/Packages")));
+        static readonly Dictionary<string, Lazy<object>> configThunks = new Dictionary<string, Lazy<object>>();
 
-        public static string ReadFromConfigOrEnvironment(
+        public static string ReadAppSetting(string key) {
+            var appSettingKey = "NuGetGallery:" + key;
+            var configValue = ConfigurationManager.AppSettings[appSettingKey];
+            return configValue;
+        }
+        
+        public static T ReadConfiguration<T>(
             string key,
-            string defaultValue = null) {
-            var configKey = "NuGetGallery:" + key;
-            var environmentVariableName = "NUGET_GALLERY_" + key.ToUpperInvariant().Replace(":", "_");
-
-            var configValue = ConfigurationManager.AppSettings[configKey];
-            var environmentVariableValue = Environment.GetEnvironmentVariable(
-                environmentVariableName,
-                EnvironmentVariableTarget.Machine);
-
-            return configValue ?? environmentVariableValue ?? defaultValue;
+            Func<string, T> thunk) {
+                if (!configThunks.ContainsKey(key))
+                    configThunks.Add(key, new Lazy<object>(() => {
+                        var value = ReadAppSetting(key);
+                        return thunk(value);
+                    }));
+                
+            return (T)configThunks[key].Value;
         }
 
+        public bool ConfirmEmailAddresses {
+            get {
+                return ReadConfiguration<bool>(
+                    "ConfirmEmailAddresses", 
+                    (value) => bool.Parse(value ?? bool.FalseString));
+            }
+        }
+        
         public string PackageFileDirectory {
             get {
-                return packageFileDirectory.Value;
+                return ReadConfiguration<string>(
+                    "PackageFileDirectory",
+                    (value) => value ?? HttpContext.Current.Server.MapPath("~/App_Data/Packages"));
             }
         }
 
         public MailAddress GalleryOwnerEmailAddress {
             get {
-                return galleryOwnerEmail.Value;
+                return ReadConfiguration<MailAddress>(
+                    "GalleryOwnerEmail", 
+                    (value) => new MailAddress(value)); 
             }
         }
     }

@@ -105,6 +105,23 @@ namespace NuGetGallery {
                 Assert.Equal("secret!", user.ConfirmationToken);
                 Assert.False(user.Confirmed);
             }
+
+            [Fact]
+            public void SetsTheUserToConfirmedWhenEmailConfirmationIsNotEnabled()
+            {
+                var configuration = new Mock<IConfiguration>();
+                configuration.Setup(c => c.ConfirmEmailAddresses).Returns(false);
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.GenerateToken()).Returns("secret!");
+                var userSvc = CreateUsersService(configuration: configuration, cryptoSvc: crypto);
+
+                var user = userSvc.Create(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                Assert.Equal(true, user.Confirmed);
+            }
         }
 
         public class TheGenerateApiKeyMethod {
@@ -158,13 +175,20 @@ namespace NuGetGallery {
         }
 
         static UserService CreateUsersService(
+            Mock<IConfiguration> configuration = null,
             Mock<ICryptographyService> cryptoSvc = null,
             Mock<IEntityRepository<User>> userRepo = null,
             Action<Mock<UserService>> setup = null) {
+            if (configuration == null)
+            {
+                configuration = new Mock<IConfiguration>();
+                configuration.Setup(x => x.ConfirmEmailAddresses).Returns(true);
+            }
             cryptoSvc = cryptoSvc ?? new Mock<ICryptographyService>();
             userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
 
             var userSvc = new Mock<UserService>(
+                configuration.Object,
                 cryptoSvc.Object,
                 userRepo.Object);
 
