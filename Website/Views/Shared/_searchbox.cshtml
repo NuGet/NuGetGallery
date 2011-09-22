@@ -1,0 +1,10 @@
+﻿<form id="search-form" action="@Url.PackageList()" method="get">
+    <div id="search">
+        <div>
+            <input type="text" name="q" id="searchTerm" value="@(ViewBag.SearchTerm ?? "Search Packages")" />
+        </div>
+        @* TODO: This hidden input hack can go away when we fully restructure the UI*@
+        <input type="hidden" name="sortOrder" value="@Const.DefaultPackageListSortOrder" />
+        <input type="submit" value=" "/>
+    </div>
+</form>

@@ -93,9 +93,6 @@
     <Reference Include="QueryInterceptor">
       <HintPath>..\packages\QueryInterceptor.0.1.4237.2400\lib\net40\QueryInterceptor.dll</HintPath>
     </Reference>
-    <Reference Include="RazorGenerator.Mvc">
-      <HintPath>..\packages\RazorGenerator.Mvc.1.2.1\lib\net40\RazorGenerator.Mvc.dll</HintPath>
-    </Reference>
     <Reference Include="RouteMagic, Version=1.1.1.0, Culture=neutral, PublicKeyToken=84b59be021aa4cee, processorArchitecture=MSIL">
       <HintPath>..\packages\RouteMagic.1.1.1\lib\net40\RouteMagic.dll</HintPath>
     </Reference>
@@ -139,7 +136,6 @@
     <Compile Include="App_Start\MiniProfiler.cs" />
     <Compile Include="App_Start\NinjectMVC3.cs" />
     <Compile Include="App_Start\Bootstrapper.cs" />
-    <Compile Include="App_Start\PrecompiledMvcViewEngineStart.cs" />
     <Compile Include="AuthenticationController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -487,141 +483,6 @@
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
-    <Compile Include="Views\Authentication\LogOn.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>LogOn.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Helpers\_ViewHelpers.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_ViewHelpers.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\ContactOwners.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ContactOwners.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\Delete.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Delete.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\DisplayPackage.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DisplayPackage.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\Edit.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Edit.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\ListPackages.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ListPackages.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\ManagePackageOwners.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ManagePackageOwners.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\PublishPackage.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>PublishPackage.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\ReportAbuse.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ReportAbuse.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\UploadPackage.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>UploadPackage.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\_ListPackage.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_ListPackage.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\_PackageDetailsTable.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_PackageDetailsTable.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Pages\Home.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Home.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Pages\Privacy.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Privacy.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Pages\Terms.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Terms.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\EditorTemplates\Object.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Object.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\Error.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Error.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\Layout.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Layout.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\TwoColumnLayout.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>TwoColumnLayout.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Shared\UserDisplay.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>UserDisplay.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Users\Account.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Account.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Users\Confirm.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Confirm.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Users\Packages.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Packages.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Users\Register.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Register.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Users\Thanks.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Thanks.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\_ViewStart.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_ViewStart.cshtml</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Buttons.css" />
@@ -669,6 +530,7 @@
     <Content Include="Content\Pagination.css" />
     <Content Include="Content\Reset.css" />
     <Content Include="Content\Images\sendMessageGraphic.png" />
+    <Content Include="Content\Site.css" />
     <Content Include="Content\Widgets.css" />
     <Content Include="DynamicData\Content\GridViewPager.ascx" />
     <Content Include="DynamicData\Content\Images\Back.gif" />
@@ -712,7 +574,6 @@
     <Content Include="Release Notes - Microsoft.Web.Helpers.txt" />
     <Content Include="Scripts\gallery.form.js" />
     <Content Include="Scripts\global.js" />
-    <Content Include="Scripts\html5.js" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
     <Content Include="Scripts\jquery-1.6.2.min.js" />
@@ -722,6 +583,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="DataServices\Feeds.svc" />
     <Content Include="Scripts\knockout-latest.js" />
+    <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -754,6 +616,7 @@
       <LastGenOutput>_ViewHelpers.generated.cs</LastGenOutput>
     </Content>
     <Content Include="Views\Users\Profiles.cshtml" />
+    <Content Include="Views\Shared\_searchbox.cshtml" />
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
@@ -768,101 +631,15 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\Pages\Home.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Home.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Users\Register.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Register.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Shared\EditorTemplates\Object.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Object.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Shared\Layout.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Layout.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Shared\UserDisplay.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>UserDisplay.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\PublishPackage.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>PublishPackage.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
+
+
   <ItemGroup>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\ListPackages.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>ListPackages.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\_ListPackage.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_ListPackage.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\DisplayPackage.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>DisplayPackage.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Authentication\LogOn.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>LogOn.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\UploadPackage.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>UploadPackage.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Users\Account.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Account.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\ContactOwners.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>ContactOwners.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Packages\ReportAbuse.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>ReportAbuse.generated.cs</LastGenOutput>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Views\Users\Packages.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>Packages.generated.cs</LastGenOutput>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="DynamicData\web.config" />
