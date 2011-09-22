@@ -45,7 +45,7 @@
     <MSBuild Projects="..\Website\Website.csproj" Targets="MvcBuildViews" Properties="MvcBuildViews=true" />
   </Target>
 
-  <Target Name="CIBuild" DependsOnTargets="RunFacts" /
+  <Target Name="CIBuild" DependsOnTargets="RunFacts" />
 
   <Target Name="FullBuild" DependsOnTargets="RunFacts;UpdateDatabase;BuildViews" />
 
