@@ -38,6 +38,10 @@ namespace NuGetGallery {
             if (package == null)
                 throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
 
+            if (!package.IsOwner(user)) {
+                throw new EntityException(Strings.ApiKeyNotAuthorized, "delete");
+            }
+
             packageSvc.DeletePackage(id, version);
             return new EmptyResult();
         }

@@ -108,10 +108,14 @@ namespace NuGetGallery {
 
             [Fact]
             public void WillFindTheUserThatMatchesTheApiKey() {
+                var owner = new User { Key = 1 };
+                var package = new Package {
+                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                };
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
                 var userSvc = new Mock<IUserService>();
-                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
                 var apiKey = Guid.NewGuid();
 
@@ -121,11 +125,32 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillDeleteThePackage() {
+            public void WillNotDeleteThePackageIfApiKeyDoesNotBelongToAnOwner() {
+                var owner = new User { Key = 1 };
+                var package = new Package {
+                    PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
+                };
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                packageSvc.Setup(svc => svc.DeletePackage(It.IsAny<string>(), It.IsAny<string>())).Throws(new InvalidOperationException("Should not have deleted the package!"));
                 var userSvc = new Mock<IUserService>();
-                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+                var apiKey = Guid.NewGuid();
+
+                Assert.Throws<EntityException>(() => controller.DeletePackage(apiKey, "theId", "1.0.42"));
+            }
+
+            [Fact]
+            public void WillDeleteThePackageIfApiKeyBelongsToAnOwner() {
+                var owner = new User { Key = 1 };
+                var package = new Package {
+                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                };
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
                 var apiKey = Guid.NewGuid();
 

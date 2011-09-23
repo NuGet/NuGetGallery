@@ -66,6 +66,10 @@ namespace NuGetGallery {
             return package.PackageRegistration.IsOwner(user);
         }
 
+        public static bool IsOwner(this Package package, User user) {
+            return package.PackageRegistration.IsOwner(user);
+        }
+
         public static bool IsOwner(this PackageRegistration package, IPrincipal user) {
             if (package == null) {
                 throw new ArgumentNullException("package");
@@ -74,6 +78,16 @@ namespace NuGetGallery {
                 return false;
             }
             return package.Owners.Any(u => u.Username == user.Identity.Name);
+        }
+
+        public static bool IsOwner(this PackageRegistration package, User user) {
+            if (package == null) {
+                throw new ArgumentNullException("package");
+            }
+            if (user == null) {
+                return false;
+            }
+            return package.Owners.Any(u => u.Key == user.Key);
         }
 
         // apple polish!
