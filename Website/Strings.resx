@@ -141,4 +141,7 @@
   <data name="PackageExistsAndCannotBeModified" xml:space="preserve">
     <value>A package with id '{0}' and version '{1}' already exists and cannot be modified.</value>
   </data>
+  <data name="CurrentPasswordIncorrect" xml:space="preserve">
+    <value>The current password you provided is incorrect.</value>
+  </data>
 </root>

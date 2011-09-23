@@ -103,6 +103,18 @@ namespace NuGetGallery {
             return newApiKey.ToString();
         }
 
+        public bool ChangePassword(string username, string oldPassword, string newPassword) {
+            var user = FindByUsernameAndPassword(username, oldPassword);
+            if (user == null) {
+                return false;
+            }
+
+            var hashedPassword = cryptoSvc.GenerateSaltedHash(newPassword);
+            user.HashedPassword = hashedPassword;
+            userRepo.CommitChanges();
+            return true;
+        }
+
         public bool ConfirmAccount(string token) {
             if (String.IsNullOrEmpty(token)) {
                 throw new ArgumentNullException("token");

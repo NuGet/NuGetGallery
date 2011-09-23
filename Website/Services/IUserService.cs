@@ -20,5 +20,7 @@ namespace NuGetGallery {
         string GenerateApiKey(string username);
 
         bool ConfirmAccount(string token);
+
+        bool ChangePassword(string username, string oldPassword, string newPassword);
     }
 }

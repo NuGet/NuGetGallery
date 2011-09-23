@@ -56,7 +56,7 @@ Links: #0071BC
 .message-Error {
     border: 1px solid #c13a3f; /* red */
 }
-.field-validation-error { color: #c13a3f; font-weight:bold; }
+.field-validation-error { color: #fff; font-weight:bold; }
 
 .unfinishedPackage {
     background: #fdf5bc;

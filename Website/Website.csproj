@@ -415,6 +415,7 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Migrations\20110813170000_FixPackageColumnSizes.cs" />
+    <Compile Include="ViewModels\ChangePasswordViewModel.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
     <Compile Include="ViewModels\DeletePackageViewModel.cs" />
@@ -535,7 +536,6 @@
     <Content Include="Content\Pagination.css" />
     <Content Include="Content\Reset.css" />
     <Content Include="Content\Images\sendMessageGraphic.png" />
-    <Content Include="Content\Site.css" />
     <Content Include="Content\Widgets.css" />
     <Content Include="DynamicData\Content\GridViewPager.ascx" />
     <Content Include="DynamicData\Content\Images\Back.gif" />
@@ -634,6 +634,11 @@
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="Views\Users\Register.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
+    <Content Include="Views\Users\ChangePassword.cshtml" />
+    <Content Include="Views\Users\ChangePasswordSuccess.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Thanks.generated.cs</LastGenOutput>
+    </Content>
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />

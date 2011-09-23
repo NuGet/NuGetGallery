@@ -389,7 +389,6 @@ namespace Links {
         public static readonly string PageToolbar_css = Url("PageToolbar.css");
         public static readonly string Pagination_css = Url("Pagination.css");
         public static readonly string Reset_css = Url("Reset.css");
-        public static readonly string Site_css = Url("Site.css");
         public static readonly string Widgets_css = Url("Widgets.css");
     }
 

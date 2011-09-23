@@ -62,6 +62,8 @@ namespace NuGetGallery {
             public readonly string ForgotPassword = "ForgotPassword";
             public readonly string Confirm = "Confirm";
             public readonly string Profiles = "Profiles";
+            public readonly string ChangePassword = "ChangePassword";
+            public readonly string ChangePasswordSuccess = "ChangePasswordSuccess";
         }
 
 
@@ -71,6 +73,8 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string Account = "~/Views/Users/Account.cshtml";
+            public readonly string ChangePassword = "~/Views/Users/ChangePassword.cshtml";
+            public readonly string ChangePasswordSuccess = "~/Views/Users/ChangePasswordSuccess.cshtml";
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string Profiles = "~/Views/Users/Profiles.cshtml";
@@ -128,6 +132,22 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult Profiles(string username) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Profiles);
             callInfo.RouteValueDictionary.Add("username", username);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ChangePassword() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangePassword);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ChangePassword(NuGetGallery.ChangePasswordViewModel model) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangePassword);
+            callInfo.RouteValueDictionary.Add("model", model);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ChangePasswordSuccess() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangePasswordSuccess);
             return callInfo;
         }
 

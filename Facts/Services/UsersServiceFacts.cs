@@ -107,8 +107,7 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void SetsTheUserToConfirmedWhenEmailConfirmationIsNotEnabled()
-            {
+            public void SetsTheUserToConfirmedWhenEmailConfirmationIsNotEnabled() {
                 var configuration = new Mock<IConfiguration>();
                 configuration.Setup(c => c.ConfirmEmailAddresses).Returns(false);
                 var crypto = new Mock<ICryptographyService>();
@@ -174,13 +173,57 @@ namespace NuGetGallery {
             }
         }
 
+        public class TheChangePasswordMethod {
+            [Fact]
+            public void ReturnsFalseIfUserIsNotFound() {
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<User>().AsQueryable());
+                var service = CreateUsersService(userRepo: userRepository);
+
+                var changed = service.ChangePassword("username", "oldpwd", "newpwd");
+
+                Assert.False(changed);
+            }
+
+            [Fact]
+            public void ReturnsFalseIfPasswordDoesNotMatchUser() {
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { 
+                    new User { Username = "user", HashedPassword = "hashed" }
+                }.AsQueryable());
+                var cryptoService = new Mock<ICryptographyService>();
+                cryptoService.Setup(s => s.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), Const.Sha512HashAlgorithmId)).Returns(false);
+                var service = CreateUsersService(userRepo: userRepository, cryptoSvc: cryptoService);
+
+                var changed = service.ChangePassword("user", "oldpwd", "newpwd");
+
+                Assert.False(changed);
+            }
+
+            [Fact]
+            public void ReturnsTrueWhenSuccessful() {
+                var crypto = new CryptographyService();
+                var user = new User { Username = "user", HashedPassword = "old hash" };
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+                var cryptoService = new Mock<ICryptographyService>();
+                cryptoService.Setup(s => s.ValidateSaltedHash("old hash", "oldpwd", Const.Sha512HashAlgorithmId)).Returns(true);
+                cryptoService.Setup(s => s.GenerateSaltedHash("newpwd", Const.Sha512HashAlgorithmId)).Returns("hash and bacon");
+                var service = CreateUsersService(userRepo: userRepository, cryptoSvc: cryptoService);
+
+                var changed = service.ChangePassword("user", "oldpwd", "newpwd");
+
+                Assert.True(changed);
+                Assert.Equal("hash and bacon", user.HashedPassword);
+            }
+        }
+
         static UserService CreateUsersService(
             Mock<IConfiguration> configuration = null,
             Mock<ICryptographyService> cryptoSvc = null,
             Mock<IEntityRepository<User>> userRepo = null,
             Action<Mock<UserService>> setup = null) {
-            if (configuration == null)
-            {
+            if (configuration == null) {
                 configuration = new Mock<IConfiguration>();
                 configuration.Setup(x => x.ConfirmEmailAddresses).Returns(true);
             }

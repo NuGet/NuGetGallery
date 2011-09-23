@@ -121,5 +121,32 @@ namespace NuGetGallery {
 
             return View(model);
         }
+
+        [Authorize]
+        public virtual ActionResult ChangePassword() {
+            return View();
+        }
+
+        [HttpPost, ValidateAntiForgeryToken, Authorize]
+        public virtual ActionResult ChangePassword(ChangePasswordViewModel model) {
+            if (ModelState.IsValid) {
+                if (!userService.ChangePassword(HttpContext.User.Identity.Name, model.OldPassword, model.NewPassword)) {
+                    ModelState.AddModelError(
+                        "OldPassword",
+                        Strings.CurrentPasswordIncorrect);
+                }
+            }
+
+            if (!ModelState.IsValid) {
+                return View(model);
+            }
+
+            return RedirectToAction("ChangePasswordSuccess");
+        }
+
+        [Authorize]
+        public virtual ActionResult ChangePasswordSuccess() {
+            return View();
+        }
     }
 }
