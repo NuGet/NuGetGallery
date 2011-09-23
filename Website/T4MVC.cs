@@ -29,7 +29,6 @@ public static class MVC {
     public static NuGetGallery.PackagesController Packages = new NuGetGallery.T4MVC_PackagesController();
     public static NuGetGallery.PagesController Pages = new NuGetGallery.T4MVC_PagesController();
     public static NuGetGallery.UsersController Users = new NuGetGallery.T4MVC_UsersController();
-    public static T4MVC.HelpersController Helpers = new T4MVC.HelpersController();
     public static T4MVC.SharedController Shared = new T4MVC.SharedController();
 }
 
@@ -329,6 +328,8 @@ namespace Links {
         public static readonly string jquery_validate_unobtrusive_min_js = Url("jquery.validate.unobtrusive.min.js");
         public static readonly string knockout_latest_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/knockout-latest.min.js") ? Url("knockout-latest.min.js") : Url("knockout-latest.js");
                       
+        public static readonly string modernizr_2_0_6_development_only_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/modernizr-2.0.6-development-only.min.js") ? Url("modernizr-2.0.6-development-only.min.js") : Url("modernizr-2.0.6-development-only.js");
+                      
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -388,6 +389,7 @@ namespace Links {
         public static readonly string PageToolbar_css = Url("PageToolbar.css");
         public static readonly string Pagination_css = Url("Pagination.css");
         public static readonly string Reset_css = Url("Reset.css");
+        public static readonly string Site_css = Url("Site.css");
         public static readonly string Widgets_css = Url("Widgets.css");
     }
 

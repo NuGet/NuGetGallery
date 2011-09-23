@@ -36,7 +36,7 @@ namespace NuGetGallery {
             return View();
         }
 
-        [Authorize, HttpPost]
+        [Authorize, HttpPost, ValidateAntiForgeryToken]
         public virtual ActionResult UploadPackage(HttpPostedFileBase packageFile) {
             // TODO: validate package id and version don't already exist
 
@@ -102,7 +102,7 @@ namespace NuGetGallery {
 
         [Authorize, HttpPost, ValidateAntiForgeryToken]
         public virtual ActionResult PublishPackage(string id, string version, bool? unlistedPackage) {
-            return PublishPackage(id, version, unlistedPackage, Url.Package); 
+            return PublishPackage(id, version, unlistedPackage, Url.Package);
         }
 
         internal ActionResult PublishPackage(string id, string version, bool? unlistedPackage, Func<Package, string> urlFactory) {
@@ -315,7 +315,7 @@ namespace NuGetGallery {
         public virtual ActionResult Edit(string id, string version, bool? unlisted) {
             return Edit(id, version, unlisted, Url.Package);
         }
-        
+
         internal virtual ActionResult Edit(string id, string version, bool? unlisted, Func<Package, string> urlFactory) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null) {

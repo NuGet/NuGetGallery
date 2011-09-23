@@ -36,11 +36,6 @@ namespace NuGetGallery {
         public System.Web.Mvc.ActionResult LogOff() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
         }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult SafeRedirect() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.SafeRedirect);
-        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public AuthenticationController Actions { get { return MVC.Authentication; } }
@@ -56,7 +51,6 @@ namespace NuGetGallery {
         public class ActionNamesClass {
             public readonly string LogOn = "LogOn";
             public readonly string LogOff = "LogOff";
-            public readonly string SafeRedirect = "SafeRedirect";
         }
 
 
@@ -87,12 +81,6 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult LogOff(string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
-            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult SafeRedirect(string returnUrl) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.SafeRedirect);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
             return callInfo;
         }

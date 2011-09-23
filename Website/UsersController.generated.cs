@@ -73,6 +73,7 @@ namespace NuGetGallery {
             public readonly string Account = "~/Views/Users/Account.cshtml";
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
+            public readonly string Profiles = "~/Views/Users/Profiles.cshtml";
             public readonly string Register = "~/Views/Users/Register.cshtml";
             public readonly string Thanks = "~/Views/Users/Thanks.cshtml";
         }

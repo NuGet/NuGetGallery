@@ -66,6 +66,7 @@ namespace NuGetGallery {
             return SafeRedirect(returnUrl);
         }
 
+        [NonAction]
         public virtual ActionResult SafeRedirect(string returnUrl) {
             if (!string.IsNullOrWhiteSpace(returnUrl)
                 && Url.IsLocalUrl(returnUrl)
