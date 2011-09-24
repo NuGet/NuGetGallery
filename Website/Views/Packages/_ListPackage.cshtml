@@ -1,5 +1,4 @@
-﻿@using NuGetGallery;
-@model ListPackageItemViewModel
+﻿@model ListPackageItemViewModel
 <div class="content-item package">
     <div class="packageItem packages @if (Model.IsOwner(User)) {<text>mine</text>}">
         <a href="@Url.Package(Model)">

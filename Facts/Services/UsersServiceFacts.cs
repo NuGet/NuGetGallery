@@ -127,16 +127,164 @@ namespace NuGetGallery {
             [Fact]
             public void SetsApiKeyToNewGuid() {
                 var user = new User { ApiKey = Guid.Empty };
+                var userRepo = new Mock<IEntityRepository<User>>();
                 var userSvc = CreateUsersService(setup: mockUserSvc => {
                     mockUserSvc
                         .Setup(x => x.FindByUsername("theUsername"))
                         .Returns(user);
-                });
+                }, userRepo: userRepo);
 
                 var apiKey = userSvc.GenerateApiKey("theUsername");
 
                 Assert.NotEqual(Guid.Empty, user.ApiKey);
                 Assert.Equal(apiKey, user.ApiKey.ToString());
+                userRepo.Verify(r => r.CommitChanges());
+            }
+        }
+
+        public class TheGeneratePasswordResetTokenMethod {
+            [Fact]
+            public void ReturnsNullIfEmailIsNotFound() {
+                var userSvc = CreateUsersService(setup: mockUserSvc => {
+                    mockUserSvc
+                        .Setup(x => x.FindByEmailAddress("email@example.com"))
+                        .Returns((User)null);
+                });
+
+                var token = userSvc.GeneratePasswordResetToken("email@example.com", 1440);
+                Assert.Null(token);
+            }
+
+            [Fact]
+            public void ThrowsExceptionIfUserIsNotConfirmed() {
+                var user = new User { Username = "user", Confirmed = false };
+                var cryptoSvc = new Mock<ICryptographyService>();
+                cryptoSvc.Setup(s => s.GenerateToken()).Returns("reset-token");
+                var userSvc = CreateUsersService(setup: mockUserSvc => {
+                    mockUserSvc
+                        .Setup(x => x.FindByEmailAddress("user@example.com"))
+                        .Returns(user);
+                }, cryptoSvc: cryptoSvc);
+
+                Assert.Throws<InvalidOperationException>(() => userSvc.GeneratePasswordResetToken("user@example.com", 1440));
+            }
+
+            [Fact]
+            public void SetsPasswordResetTokenUsingEmail() {
+                var user = new User { Username = "user", Confirmed = true };
+                var cryptoSvc = new Mock<ICryptographyService>();
+                cryptoSvc.Setup(s => s.GenerateToken()).Returns("reset-token");
+                var userSvc = CreateUsersService(setup: mockUserSvc => {
+                    mockUserSvc
+                        .Setup(x => x.FindByEmailAddress("email@example.com"))
+                        .Returns(user);
+                }, cryptoSvc: cryptoSvc);
+                var currentDate = DateTime.UtcNow;
+
+                var returnedUser = userSvc.GeneratePasswordResetToken("email@example.com", 1440);
+
+                Assert.Same(user, returnedUser);
+                Assert.Equal("reset-token", user.PasswordResetToken);
+                Assert.True(user.PasswordResetTokenExpirationDate >= currentDate.AddMinutes(1440));
+            }
+
+            [Fact]
+            public void WithExistingNotYetExpiredTokenReturnsExistingToken() {
+                var user = new User {
+                    Username = "user",
+                    Confirmed = true,
+                    PasswordResetToken = "existing-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                };
+                var cryptoSvc = new Mock<ICryptographyService>();
+                cryptoSvc.Setup(s => s.GenerateToken()).Throws(new InvalidOperationException("Should not get called"));
+                var userSvc = CreateUsersService(setup: mockUserSvc => {
+                    mockUserSvc
+                        .Setup(x => x.FindByEmailAddress("user@example.com"))
+                        .Returns(user);
+                }, cryptoSvc: cryptoSvc);
+
+                var returnedUser = userSvc.GeneratePasswordResetToken("user@example.com", 1440);
+
+                Assert.Same(user, returnedUser);
+                Assert.Equal("existing-token", user.PasswordResetToken);
+            }
+
+            [Fact]
+            public void WithExistingExpiredTokenReturnsNewToken() {
+                var user = new User {
+                    Username = "user",
+                    Confirmed = true,
+                    PasswordResetToken = "existing-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMilliseconds(-1)
+                };
+                var cryptoSvc = new Mock<ICryptographyService>();
+                cryptoSvc.Setup(s => s.GenerateToken()).Returns("reset-token");
+                var userSvc = CreateUsersService(setup: mockUserSvc => {
+                    mockUserSvc
+                        .Setup(x => x.FindByEmailAddress("user@example.com"))
+                        .Returns(user);
+                }, cryptoSvc: cryptoSvc);
+                var currentDate = DateTime.UtcNow;
+
+                var returnedUser = userSvc.GeneratePasswordResetToken("user@example.com", 1440);
+
+                Assert.Same(user, returnedUser);
+                Assert.Equal("reset-token", user.PasswordResetToken);
+                Assert.True(user.PasswordResetTokenExpirationDate >= currentDate.AddMinutes(1440));
+            }
+        }
+
+        public class TheResetPasswordWithTokenMethod {
+            [Fact]
+            public void ReturnsFalseIfUserNotFound() {
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<User>().AsQueryable());
+                var userSvc = CreateUsersService(userRepo: userRepository);
+
+                bool result = userSvc.ResetPasswordWithToken("user", "some-token", "new-password");
+
+                Assert.False(result);
+            }
+
+            [Fact]
+            public void ThrowsExceptionIfUserNotConfirmed() {
+                var user = new User {
+                    Username = "user",
+                    Confirmed = false,
+                    PasswordResetToken = "some-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                };
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.GenerateSaltedHash("new-password", Const.Sha512HashAlgorithmId)).Returns("bacon-hash-and-eggs");
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+                var userSvc = CreateUsersService(userRepo: userRepository, cryptoSvc: crypto);
+
+                Assert.Throws<InvalidOperationException>(() => userSvc.ResetPasswordWithToken("user", "some-token", "new-password"));
+            }
+
+            [Fact]
+            public void ResetsPasswordAndPasswordTokenAndPasswordTokenDate() {
+                var user = new User {
+                    Username = "user",
+                    Confirmed = true,
+                    PasswordResetToken = "some-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                };
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.GenerateSaltedHash("new-password", Const.Sha512HashAlgorithmId)).Returns("bacon-hash-and-eggs");
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+                var userSvc = CreateUsersService(userRepo: userRepository, cryptoSvc: crypto);
+
+                bool result = userSvc.ResetPasswordWithToken("user", "some-token", "new-password");
+
+                Assert.True(result);
+                Assert.Equal("bacon-hash-and-eggs", user.HashedPassword);
+                Assert.Null(user.PasswordResetToken);
+                Assert.Null(user.PasswordResetTokenExpirationDate);
+                userRepository.Verify(u => u.CommitChanges());
             }
         }
 

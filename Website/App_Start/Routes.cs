@@ -59,6 +59,11 @@ namespace NuGetGallery {
                 MVC.Users.Profiles());
 
             routes.MapRoute(
+                RouteName.PasswordReset,
+                "account/{action}/{username}/{token}",
+                MVC.Users.ResetPassword());
+
+            routes.MapRoute(
                 RouteName.Account,
                 "account/{action}",
                 MVC.Users.Account());

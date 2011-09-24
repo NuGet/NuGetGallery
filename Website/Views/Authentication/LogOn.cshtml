@@ -23,7 +23,8 @@
     @Html.ValidationSummary(true)
     @if (ViewBag.ConfirmationRequired != null && ViewBag.ConfirmationRequired) {
         <p class="description">
-            <span class="validation-summary-errors">Before you can log on, you&#8217;ll need to <a href="@Url.Action(MVC.Users.Confirm())">confirm your account</a></span>
+            <span class="validation-summary-errors">Before you can log on, 
+            you&#8217;ll need to <a href="@Url.Action(MVC.Users.Confirm())">confirm your account</a></span>
         </p>
     }
     @Html.EditorForModel()

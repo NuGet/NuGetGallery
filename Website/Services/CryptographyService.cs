@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
 
 namespace NuGetGallery {
     public class CryptographyService : ICryptographyService {
@@ -96,8 +97,18 @@ namespace NuGetGallery {
             byte[] data = new byte[0x10];
             using (var crypto = new RNGCryptoServiceProvider()) {
                 crypto.GetBytes(data);
-                return Convert.ToBase64String(data);
+
+                return HttpServerUtility.UrlTokenEncode(data);
             }
+        }
+
+        public string ConvertToBase64UrlString(byte[] data) {
+            // It's possible for the token to have a slash in it which is bad for routing. :(
+            // URL encoding is not enough as ASP.NET or IIS still translates it as a slash 
+            // to avoid path canonicalization hacks.
+
+            // Using a modified Base64 for URL encoding instead: http://en.wikipedia.org/wiki/Base64#RFC_4648.        
+            return Convert.ToBase64String(data).Replace('+', '-').Replace('/', '_').Replace("=", String.Empty);
         }
     }
 }

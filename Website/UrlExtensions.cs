@@ -60,7 +60,7 @@ namespace NuGetGallery {
         }
 
         public static string LogOn(this UrlHelper url) {
-            return url.RouteUrl(RouteName.Authentication, new { action = "LogOn", returnUrl = url.Current() });
+            return url.RouteUrl(RouteName.Authentication, new { action = "LogOn" });
         }
 
         public static string LogOff(this UrlHelper url) {

@@ -29,6 +29,7 @@ public static class MVC {
     public static NuGetGallery.PackagesController Packages = new NuGetGallery.T4MVC_PackagesController();
     public static NuGetGallery.PagesController Pages = new NuGetGallery.T4MVC_PagesController();
     public static NuGetGallery.UsersController Users = new NuGetGallery.T4MVC_UsersController();
+    public static T4MVC.HelpersController Helpers = new T4MVC.HelpersController();
     public static T4MVC.SharedController Shared = new T4MVC.SharedController();
 }
 

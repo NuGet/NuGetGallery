@@ -9,5 +9,6 @@ namespace NuGetGallery {
         public const string Sha512HashAlgorithmId = "SHA512";
         public const int DefaultPackageListPageSize = 20;
         public const string DefaultPackageListSortOrder = "package-download-count";
+        public const int DefaultPasswordResetTokenExpirationHours = 24;
     }
 }

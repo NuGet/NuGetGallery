@@ -144,4 +144,7 @@
   <data name="CurrentPasswordIncorrect" xml:space="preserve">
     <value>The current password you provided is incorrect.</value>
   </data>
+  <data name="UserIsNotYetConfirmed" xml:space="preserve">
+    <value>You cannot reset your password until you confirm your account.</value>
+  </data>
 </root>

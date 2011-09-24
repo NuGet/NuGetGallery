@@ -2,12 +2,7 @@
 using System.Web.Mvc;
 
 namespace NuGetGallery {
-    public class ChangePasswordViewModel {
-        [Required]
-        [DataType(DataType.Password)]
-        [Display(Name = "Current password")]
-        public string OldPassword { get; set; }
-
+    public class PasswordResetViewModel {
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New password")]
@@ -20,5 +15,4 @@ namespace NuGetGallery {
         [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
     }
-
 }

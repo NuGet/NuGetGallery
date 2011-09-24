@@ -28,5 +28,7 @@ namespace NuGetGallery {
         public bool EmailAllowed { get; set; }
         public bool Confirmed { get; set; }
         public string ConfirmationToken { get; set; }
+        public string PasswordResetToken { get; set; }
+        public DateTime? PasswordResetTokenExpirationDate { get; set; }
     }
 }

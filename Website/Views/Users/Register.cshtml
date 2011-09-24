@@ -1,5 +1,4 @@
-﻿@using NuGetGallery;
-@model RegisterRequest
+﻿@model RegisterRequest
 @{
     ViewBag.Title = "Register";
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
@@ -21,7 +20,7 @@
     @Html.ValidationSummary(true)
     @Html.EditorForModel()
     <div>
-        <button type="submit" name="Register">Register</button>
+        <button type="submit" title="Register">Register</button>
     </div>
 </form>
 

@@ -22,5 +22,9 @@ namespace NuGetGallery {
         bool ConfirmAccount(string token);
 
         bool ChangePassword(string username, string oldPassword, string newPassword);
+
+        User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes);
+
+        bool ResetPasswordWithToken(string username, string token, string newPassword);
     }
 }

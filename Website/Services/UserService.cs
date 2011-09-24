@@ -109,10 +109,14 @@ namespace NuGetGallery {
                 return false;
             }
 
-            var hashedPassword = cryptoSvc.GenerateSaltedHash(newPassword);
-            user.HashedPassword = hashedPassword;
+            ChangePassword(user, newPassword);
             userRepo.CommitChanges();
             return true;
+        }
+
+        private void ChangePassword(User user, string newPassword) {
+            var hashedPassword = cryptoSvc.GenerateSaltedHash(newPassword);
+            user.HashedPassword = hashedPassword;
         }
 
         public bool ConfirmAccount(string token) {
@@ -132,6 +136,58 @@ namespace NuGetGallery {
             user.Confirmed = true;
             userRepo.CommitChanges();
             return true;
+        }
+
+        public User GeneratePasswordResetToken(string email, int tokenExpirationMinutes) {
+            if (String.IsNullOrEmpty(email)) {
+                throw new ArgumentNullException("email");
+            }
+            if (tokenExpirationMinutes < 1) {
+                throw new ArgumentException("Token expiration should give the user at least a minute to change their password", "tokenExpirationMinutes");
+            }
+
+            var user = FindByEmailAddress(email);
+            if (user == null) {
+                return null;
+            }
+
+            if (!user.Confirmed) {
+                throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
+            }
+
+            if (!String.IsNullOrEmpty(user.PasswordResetToken) && !user.PasswordResetTokenExpirationDate.IsInThePast()) {
+                return user;
+            }
+
+            user.PasswordResetToken = cryptoSvc.GenerateToken();
+            user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(tokenExpirationMinutes);
+
+            userRepo.CommitChanges();
+            return user;
+        }
+
+        public bool ResetPasswordWithToken(string username, string token, string newPassword) {
+            if (String.IsNullOrEmpty(newPassword)) {
+                throw new ArgumentNullException("newPassword");
+            }
+
+            var user = (from u in userRepo.GetAll()
+                        where u.Username == username
+                        select u).FirstOrDefault();
+
+            if (user != null && user.PasswordResetToken == token && !user.PasswordResetTokenExpirationDate.IsInThePast()) {
+                if (!user.Confirmed) {
+                    throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
+                }
+
+                ChangePassword(user, newPassword);
+                user.PasswordResetToken = null;
+                user.PasswordResetTokenExpirationDate = null;
+                userRepo.CommitChanges();
+                return true;
+            }
+
+            return false;
         }
     }
 }

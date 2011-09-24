@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Mail;
+using System.Web;
 using System.Web.Mvc;
 
 namespace NuGetGallery {
@@ -9,7 +10,6 @@ namespace NuGetGallery {
         readonly IUserService userService;
         readonly IPackageService packageService;
         readonly IMessageService messageService;
-
         public UsersController(
             IFormsAuthenticationService formsAuthSvc,
             IUserService userSvc,
@@ -94,6 +94,50 @@ namespace NuGetGallery {
             return View();
         }
 
+        [HttpPost, ValidateAntiForgeryToken]
+        public virtual ActionResult ForgotPassword(ForgotPasswordViewModel model) {
+            if (ModelState.IsValid) {
+                var user = userService.GeneratePasswordResetToken(model.Email, Const.DefaultPasswordResetTokenExpirationHours * 60);
+                if (user != null) {
+                    var token = HttpUtility.UrlEncode(user.PasswordResetToken);
+                    var routeValues = MVC.Users.ResetPassword()
+                        .AddRouteValue("username", user.Username)
+                        .AddRouteValue("token", user.PasswordResetToken);
+                    var resetPasswordUrl = Url.Action(routeValues, protocol: Request.Url.Scheme);
+                    messageService.SendResetPasswordInstructions(new MailAddress(user.EmailAddress, user.Username), resetPasswordUrl);
+
+                    TempData["Email"] = user.EmailAddress;
+                    return RedirectToAction(MVC.Users.PasswordSent());
+                }
+
+                ModelState.AddModelError("Email", "Could not find anyone with that email.");
+            }
+
+            return View(model);
+        }
+
+        public virtual ActionResult PasswordSent() {
+            ViewBag.Email = TempData["Email"];
+            ViewBag.Expiration = Const.DefaultPasswordResetTokenExpirationHours;
+            return View();
+        }
+
+        public virtual ActionResult ResetPassword() {
+            ViewBag.ResetTokenValid = true;
+            return View();
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public virtual ActionResult ResetPassword(string username, string token, PasswordResetViewModel model) {
+            ViewBag.ResetTokenValid = userService.ResetPasswordWithToken(username, token, model.NewPassword);
+
+            if (!ViewBag.ResetTokenValid) {
+                ModelState.AddModelError("", "The Password Reset Token is not valid or expired.");
+                return View(model);
+            }
+            return RedirectToAction(MVC.Users.PasswordChanged());
+        }
+
         public virtual ActionResult Confirm(string token) {
             bool? confirmed = null;
             if (!String.IsNullOrEmpty(token)) {
@@ -128,7 +172,7 @@ namespace NuGetGallery {
         }
 
         [HttpPost, ValidateAntiForgeryToken, Authorize]
-        public virtual ActionResult ChangePassword(ChangePasswordViewModel model) {
+        public virtual ActionResult ChangePassword(PasswordChangeViewModel model) {
             if (ModelState.IsValid) {
                 if (!userService.ChangePassword(HttpContext.User.Identity.Name, model.OldPassword, model.NewPassword)) {
                     ModelState.AddModelError(
@@ -141,11 +185,10 @@ namespace NuGetGallery {
                 return View(model);
             }
 
-            return RedirectToAction("ChangePasswordSuccess");
+            return RedirectToAction(MVC.Users.PasswordChanged());
         }
 
-        [Authorize]
-        public virtual ActionResult ChangePasswordSuccess() {
+        public virtual ActionResult PasswordChanged() {
             return View();
         }
     }

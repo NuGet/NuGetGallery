@@ -124,6 +124,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot reset your password until you confirm your account..
+        /// </summary>
+        public static string UserIsNotYetConfirmed {
+            get {
+                return ResourceManager.GetString("UserIsNotYetConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The username &apos;{0}&apos; is not available..
         /// </summary>
         public static string UsernameNotAvailable {

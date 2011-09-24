@@ -95,6 +95,14 @@ namespace NuGetGallery {
             return count == 1 ? singular : plural;
         }
 
+        public static bool IsInThePast(this DateTime? datetime) {
+            return datetime.Value.IsInThePast();
+        }
+
+        public static bool IsInThePast(this DateTime datetime) {
+            return datetime < DateTime.UtcNow;
+        }
+
         public static IQueryable<T> SortBy<T>(this IQueryable<T> source, string sortExpression) {
             if (source == null) {
                 throw new ArgumentNullException("source");

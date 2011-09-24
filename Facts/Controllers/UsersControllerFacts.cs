@@ -144,6 +144,98 @@ namespace NuGetGallery {
             }
         }
 
+        public class TheForgotPasswordMethod {
+            [Fact]
+            public void SendsEmailWithPasswordResetUrl() {
+                var messageService = new Mock<IMessageService>();
+                string resetUrl = "https://example.org/?Controller=Users&Action=ResetPassword&username=somebody&token=confirmation";
+                messageService.Setup(s => s.SendResetPasswordInstructions(
+                    It.Is<MailAddress>(addr => addr.Address == "some@example.com" && addr.DisplayName == "somebody"),
+                    resetUrl)
+                );
+
+                var user = new User {
+                    EmailAddress = "some@example.com",
+                    Username = "somebody",
+                    PasswordResetToken = "confirmation",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                };
+                var userService = new Mock<IUserService>();
+                userService.Setup(s => s.GeneratePasswordResetToken("user", 1440)).Returns(user);
+                var controller = CreateController(userSvc: userService, messageSvc: messageService);
+                var model = new ForgotPasswordViewModel { Email = "user" };
+
+                var result = controller.ForgotPassword(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                messageService.Verify(s => s.SendResetPasswordInstructions(
+                    It.Is<MailAddress>(addr => addr.Address == "some@example.com" && addr.DisplayName == "somebody"),
+                    resetUrl)
+                );
+            }
+
+            [Fact]
+            public void RedirectsAfterGeneratingToken() {
+                var userService = new Mock<IUserService>();
+                var user = new User { EmailAddress = "some@example.com", Username = "somebody" };
+                userService.Setup(s => s.GeneratePasswordResetToken("user", 1440)).Returns(user).Verifiable();
+                var controller = CreateController(userSvc: userService);
+                var model = new ForgotPasswordViewModel { Email = "user" };
+
+                var result = controller.ForgotPassword(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                userService.Verify(s => s.GeneratePasswordResetToken("user", 1440));
+            }
+
+            [Fact]
+            public void ReturnsSameViewIfTokenGenerationFails() {
+                var userService = new Mock<IUserService>();
+                userService.Setup(s => s.GeneratePasswordResetToken("user", 1440)).Returns((User)null);
+                var controller = CreateController(userSvc: userService);
+                var model = new ForgotPasswordViewModel { Email = "user" };
+
+                var result = controller.ForgotPassword(model) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.IsNotType(typeof(RedirectResult), result);
+            }
+        }
+
+        public class TheResetPasswordMethod {
+            [Fact]
+            public void ShowsErrorIfTokenExpired() {
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd")).Returns(false);
+                var controller = CreateController(userSvc: userService);
+                var model = new PasswordResetViewModel {
+                    ConfirmPassword = "pwd",
+                    NewPassword = "newpwd"
+                };
+
+                var result = controller.ResetPassword("user", "token", model) as ViewResult;
+
+                Assert.Equal("The Password Reset Token is not valid or expired.", controller.ModelState[""].Errors[0].ErrorMessage);
+                userService.Verify(u => u.ResetPasswordWithToken("user", "token", "newpwd"));
+            }
+
+            [Fact]
+            public void ResetsPasswordForValidToken() {
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd")).Returns(true);
+                var controller = CreateController(userSvc: userService);
+                var model = new PasswordResetViewModel {
+                    ConfirmPassword = "pwd",
+                    NewPassword = "newpwd"
+                };
+
+                var result = controller.ResetPassword("user", "token", model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                userService.Verify(u => u.ResetPasswordWithToken("user", "token", "newpwd"));
+            }
+        }
+
         static UsersController CreateController(
             Mock<IFormsAuthenticationService> formsAuthSvc = null,
             Mock<IUserService> userSvc = null,
