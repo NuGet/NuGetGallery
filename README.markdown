@@ -114,7 +114,10 @@ This is the Git workflow we're currently using:
     3.  __Test your changes with the new code integrated.__
         This would be a good time to run your full suite of unit and integration tests.
         
+            git clean -xdf
             .\Build-Solution.ps1
+            
+        The first command cleans any untracked files that could get in the way of a good commit.
 
 5.  __Integrate your changes into the master branch.__
     Now that your topic branch has a clean history, it's easy to use `git rebase` to integrate
