@@ -9,266 +9,254 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGetGallery.Views.Packages {
+namespace NuGetGallery.Views.Packages
+{
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+    using System.Text;
+    using System.Web;
+    using System.Web.Helpers;
     using System.Web.Mvc;
+    using System.Web.Mvc.Ajax;
+    using System.Web.Mvc.Html;
+    using System.Web.Routing;
+    using System.Web.Security;
+    using System.Web.UI;
+    using System.Web.WebPages;
+    using Microsoft.Web.Helpers;
     using NuGetGallery;
-
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Packages/_ListPackage.cshtml")]
-    public class _ListPackage : System.Web.Mvc.WebViewPage<ListPackageItemViewModel> {
-        public _ListPackage() {
+    public class _ListPackage : System.Web.Mvc.WebViewPage<ListPackageItemViewModel>
+    {
+        public _ListPackage()
+        {
         }
-        public override void Execute() {
+        public override void Execute()
+        {
 
 
+            
+            #line 2 "..\..\Views\Packages\_ListPackage.cshtml"
+WriteLiteral("<div class=\"content-item package\">\r\n    <div class=\"packageItem packages ");
 
-#line 2 "..\..\Views\Packages\_ListPackage.cshtml"
-            WriteLiteral("<div class=\"content-item package\">\r\n    <div class=\"packageItem packages ");
-
-
-#line default
-#line hidden
-
-#line 3 "..\..\Views\Packages\_ListPackage.cshtml"
-            if (Model.IsOwner(User)) {
-
-#line default
-#line hidden
-                WriteLiteral("mine");
-
-
-
-#line 3 "..\..\Views\Packages\_ListPackage.cshtml"
-            }
-
-#line default
-#line hidden
-            WriteLiteral("\">\r\n        <a href=\"");
+            
+            #line default
+            #line hidden
+            
+            #line 3 "..\..\Views\Packages\_ListPackage.cshtml"
+                                      if (Model.IsOwner(User)) {
+            
+            #line default
+            #line hidden
+WriteLiteral("mine");
 
 
+            
+            #line 3 "..\..\Views\Packages\_ListPackage.cshtml"
+                                                                                 }
+            
+            #line default
+            #line hidden
+WriteLiteral("\">\r\n        <a href=\"");
 
-#line 4 "..\..\Views\Packages\_ListPackage.cshtml"
+
+            
+            #line 4 "..\..\Views\Packages\_ListPackage.cshtml"
             Write(Url.Package(Model));
 
+            
+            #line default
+            #line hidden
+WriteLiteral("\">\r\n            <img src=\"");
 
-#line default
-#line hidden
-            WriteLiteral("\">\r\n            <img src=\"");
 
+            
+            #line 5 "..\..\Views\Packages\_ListPackage.cshtml"
+                  Write(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png);
 
+            
+            #line default
+            #line hidden
+WriteLiteral("\" class=\"thumbnail\" title=\"");
 
-#line 5 "..\..\Views\Packages\_ListPackage.cshtml"
-            Write(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png);
 
+            
+            #line 5 "..\..\Views\Packages\_ListPackage.cshtml"
+                                                                                                                 Write(Model.Id);
 
-#line default
-#line hidden
-            WriteLiteral("\" class=\"thumbnail\" title=\"");
+            
+            #line default
+            #line hidden
+WriteLiteral(" Package icon\" />\r\n        </a>\r\n        <header>\r\n            <h3 style=\"display" +
+": inline-block;\">\r\n                <a href=\"");
 
 
+            
+            #line 9 "..\..\Views\Packages\_ListPackage.cshtml"
+                    Write(Url.Package(Model.Id));
 
-#line 5 "..\..\Views\Packages\_ListPackage.cshtml"
-            Write(Model.Id);
+            
+            #line default
+            #line hidden
+WriteLiteral("\">");
 
 
-#line default
-#line hidden
-            WriteLiteral(" Package icon\" />\r\n        </a>\r\n        <header>\r\n            <h3 style=\"display" +
-            ": inline-block;\">\r\n                <a href=\"");
+            
+            #line 9 "..\..\Views\Packages\_ListPackage.cshtml"
+                                            Write(Model.Title);
 
+            
+            #line default
+            #line hidden
+WriteLiteral("</a>\r\n            </h3>\r\n            <div class=\"downloads\">\r\n                ");
 
 
-#line 9 "..\..\Views\Packages\_ListPackage.cshtml"
-            Write(Url.Package(Model.Id));
+            
+            #line 12 "..\..\Views\Packages\_ListPackage.cshtml"
+           Write(Model.DownloadCount);
 
+            
+            #line default
+            #line hidden
+WriteLiteral(" Downloads\r\n            </div>\r\n        </header>\r\n        <div class=\"detail\">\r\n" +
+"            <p class=\"description\">\r\n                ");
 
-#line default
-#line hidden
-            WriteLiteral("\">");
 
+            
+            #line 17 "..\..\Views\Packages\_ListPackage.cshtml"
+           Write(Model.Description);
 
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                <a href=\"");
 
-#line 9 "..\..\Views\Packages\_ListPackage.cshtml"
-            Write(Model.Title);
 
+            
+            #line 18 "..\..\Views\Packages\_ListPackage.cshtml"
+                    Write(Url.Package(Model));
 
-#line default
-#line hidden
-            WriteLiteral("</a>\r\n            </h3>\r\n            <div class=\"downloads\">\r\n                ");
+            
+            #line default
+            #line hidden
+WriteLiteral("\">More information</a>\r\n            </p>\r\n            <ul class=\"packageMeta\">\r\n");
 
 
+            
+            #line 21 "..\..\Views\Packages\_ListPackage.cshtml"
+                 if (Model.Tags.AnySafe()) {
 
-#line 12 "..\..\Views\Packages\_ListPackage.cshtml"
-            Write(Model.DownloadCount);
+            
+            #line default
+            #line hidden
+WriteLiteral("                    <li>Tags: ");
 
 
-#line default
-#line hidden
-            WriteLiteral(" Downloads\r\n            </div>\r\n        </header>\r\n        <div class=\"detail\">\r\n" +
-            "            <p class=\"description\">\r\n                ");
+            
+            #line 22 "..\..\Views\Packages\_ListPackage.cshtml"
+                         Write(Model.Tags.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer => {
 
+            
+            #line default
+            #line hidden
 
+WriteLiteralTo(@__razor_template_writer, "<a href=\"");
 
-#line 17 "..\..\Views\Packages\_ListPackage.cshtml"
-            Write(Model.Description);
 
+            
+            #line 22 "..\..\Views\Packages\_ListPackage.cshtml"
+                           WriteTo(@__razor_template_writer, Url.Search(item));
 
-#line default
-#line hidden
-            WriteLiteral("\r\n                <a href=\"");
+            
+            #line default
+            #line hidden
+WriteLiteralTo(@__razor_template_writer, "\">");
 
 
+            
+            #line 22 "..\..\Views\Packages\_ListPackage.cshtml"
+                                              WriteTo(@__razor_template_writer, item);
 
-#line 18 "..\..\Views\Packages\_ListPackage.cshtml"
-            Write(Url.Package(Model));
+            
+            #line default
+            #line hidden
+WriteLiteralTo(@__razor_template_writer, "</a>");
 
 
-#line default
-#line hidden
-            WriteLiteral("\">More information</a>\r\n            </p>\r\n            <ul class=\"packageMeta\">\r\n");
+            
+            #line 22 "..\..\Views\Packages\_ListPackage.cshtml"
+                                                                                      })));
 
+            
+            #line default
+            #line hidden
+WriteLiteral("</li>\r\n");
 
 
-#line 21 "..\..\Views\Packages\_ListPackage.cshtml"
-            if (Model.Tags.AnySafe()) {
+            
+            #line 23 "..\..\Views\Packages\_ListPackage.cshtml"
+                }
 
+            
+            #line default
+            #line hidden
+WriteLiteral("                <li>Owners: ");
 
-#line default
-#line hidden
-                WriteLiteral("                    <li>Tags: ");
 
+            
+            #line 24 "..\..\Views\Packages\_ListPackage.cshtml"
+                       Write(ViewHelpers.OwnersGravatar(Model.Owners, 24, Url, showName: false));
 
+            
+            #line default
+            #line hidden
+WriteLiteral("</li>\r\n                <li>Authors: ");
 
-#line 22 "..\..\Views\Packages\_ListPackage.cshtml"
-                Write(Model.Tags.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer => {
 
+            
+            #line 25 "..\..\Views\Packages\_ListPackage.cshtml"
+                        Write(Model.Authors.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer => {
 
-#line default
-#line hidden
+            
+            #line default
+            #line hidden
 
-                    WriteLiteralTo(@__razor_template_writer, "<a href=\"");
+WriteLiteralTo(@__razor_template_writer, "<a href=\"");
 
 
+            
+            #line 25 "..\..\Views\Packages\_ListPackage.cshtml"
+                             WriteTo(@__razor_template_writer, Url.Search(item.Name));
 
-#line 22 "..\..\Views\Packages\_ListPackage.cshtml"
-                    WriteTo(@__razor_template_writer, Url.Search(item));
+            
+            #line default
+            #line hidden
+WriteLiteralTo(@__razor_template_writer, "\">");
 
 
-#line default
-#line hidden
-                    WriteLiteralTo(@__razor_template_writer, "\">");
+            
+            #line 25 "..\..\Views\Packages\_ListPackage.cshtml"
+                                                     WriteTo(@__razor_template_writer, item.Name);
 
+            
+            #line default
+            #line hidden
+WriteLiteralTo(@__razor_template_writer, "</a>");
 
 
-#line 22 "..\..\Views\Packages\_ListPackage.cshtml"
-                    WriteTo(@__razor_template_writer, item);
+            
+            #line 25 "..\..\Views\Packages\_ListPackage.cshtml"
+                                                                                                  })));
 
-
-#line default
-#line hidden
-                    WriteLiteralTo(@__razor_template_writer, "</a>");
-
-
-
-#line 22 "..\..\Views\Packages\_ListPackage.cshtml"
-                })));
-
-
-#line default
-#line hidden
-                WriteLiteral("</li>\r\n");
-
-
-
-#line 23 "..\..\Views\Packages\_ListPackage.cshtml"
-            }
-
-
-#line default
-#line hidden
-            WriteLiteral("                <li>Owners: ");
-
-
-
-#line 24 "..\..\Views\Packages\_ListPackage.cshtml"
-            Write(Model.Owners.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer => {
-
-
-#line default
-#line hidden
-
-                WriteLiteralTo(@__razor_template_writer, "<a href=\"");
-
-
-
-#line 24 "..\..\Views\Packages\_ListPackage.cshtml"
-                WriteTo(@__razor_template_writer, Url.Action(MVC.Users.Profiles(item.Username)));
-
-
-#line default
-#line hidden
-                WriteLiteralTo(@__razor_template_writer, "\">");
-
-
-
-#line 24 "..\..\Views\Packages\_ListPackage.cshtml"
-                WriteTo(@__razor_template_writer, item.Username);
-
-
-#line default
-#line hidden
-                WriteLiteralTo(@__razor_template_writer, "</a>");
-
-
-
-#line 24 "..\..\Views\Packages\_ListPackage.cshtml"
-            })));
-
-
-#line default
-#line hidden
-            WriteLiteral("</li>\r\n                <li>Authors: ");
-
-
-
-#line 25 "..\..\Views\Packages\_ListPackage.cshtml"
-            Write(Model.Authors.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer => {
-
-
-#line default
-#line hidden
-
-                WriteLiteralTo(@__razor_template_writer, "<a href=\"");
-
-
-
-#line 25 "..\..\Views\Packages\_ListPackage.cshtml"
-                WriteTo(@__razor_template_writer, Url.Search(item.Name));
-
-
-#line default
-#line hidden
-                WriteLiteralTo(@__razor_template_writer, "\">");
-
-
-
-#line 25 "..\..\Views\Packages\_ListPackage.cshtml"
-                WriteTo(@__razor_template_writer, item.Name);
-
-
-#line default
-#line hidden
-                WriteLiteralTo(@__razor_template_writer, "</a>");
-
-
-
-#line 25 "..\..\Views\Packages\_ListPackage.cshtml"
-            })));
-
-
-#line default
-#line hidden
-            WriteLiteral("</li>\r\n            </ul>\r\n        </div>\r\n    </div>\r\n</div>");
+            
+            #line default
+            #line hidden
+WriteLiteral("</li>\r\n            </ul>\r\n        </div>\r\n    </div>\r\n</div>");
 
 
         }

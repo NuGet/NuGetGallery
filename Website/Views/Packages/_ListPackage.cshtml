@@ -21,7 +21,7 @@
                 @if (Model.Tags.AnySafe()) {
                     <li>Tags: @Model.Tags.Flatten(@<a href="@Url.Search(item)">@item</a>)</li>
                 }
-                <li>Owners: @Model.Owners.Flatten(@<a href="@Url.Action(MVC.Users.Profiles(item.Username))">@item.Username</a>)</li>
+                <li>Owners: @ViewHelpers.OwnersGravatar(Model.Owners, 24, Url, showName: false)</li>
                 <li>Authors: @Model.Authors.Flatten(@<a href="@Url.Search(item.Name)">@item.Name</a>)</li>
             </ul>
         </div>

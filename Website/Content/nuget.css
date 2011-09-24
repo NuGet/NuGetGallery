@@ -757,3 +757,38 @@ div.profile .packageItem {
     padding-bottom: 5px;
     min-height: 20px;
 }
+
+div.owner-gravatar {
+    display: inline-block;
+    padding-right: 8px;
+    text-align: center;
+}
+
+label div.owner-gravatar {
+    text-align: left;
+}
+
+div.packages div.owner-gravatar {
+    padding-right: 4px;
+}
+
+    div.owner-gravatar span.owner-name {
+        display: block;
+    }
+    
+    label div.owner-gravatar {
+        vertical-align: bottom;
+        margin-left: 4px;
+        padding: 0;
+    }
+    
+    label div.owner-gravatar a img {
+        display: inline;
+        margin: 0 !important;
+        padding: 0;
+    }
+    
+    label div.owner-gravatar span.owner-name {
+        display: inline;
+        font-size: 1.4em;
+    }

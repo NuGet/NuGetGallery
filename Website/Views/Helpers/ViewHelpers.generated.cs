@@ -349,6 +349,158 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</li>\r\n");
 }
 
 
+public static System.Web.WebPages.HelperResult OwnersGravatar(IEnumerable<User> owners, int size, UrlHelper url, bool showName = true) {
+return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+
+
+
+#line 48 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                                                                                                 
+    foreach (var owner in owners) {
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "        <div class=\"owner-gravatar\">");
+
+
+
+#line 50 "..\..\Views\Helpers\ViewHelpers.cshtml"
+WebViewPage.WriteTo(@__razor_helper_writer, ViewHelpers.OwnerGravatar(owner, size, url, showName));
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</div>\r\n");
+
+
+
+#line 51 "..\..\Views\Helpers\ViewHelpers.cshtml"
+    }    
+
+#line default
+#line hidden
+
+});
+
+}
+
+
+public static System.Web.WebPages.HelperResult OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true) {
+return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+
+
+
+#line 54 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                                                                                  
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    <a href=\"");
+
+
+
+#line 55 "..\..\Views\Helpers\ViewHelpers.cshtml"
+WebViewPage.WriteTo(@__razor_helper_writer, url.Action(MVC.Users.Profiles(owner.Username)));
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"");
+
+
+
+#line 55 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                          WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">\r\n        <img src=\"");
+
+
+
+#line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
+WebViewPage.WriteTo(@__razor_helper_writer, Gravatar.GetUrl(owner.EmailAddress, size));
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" width=\"");
+
+
+
+#line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                          WebViewPage.WriteTo(@__razor_helper_writer, size);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" height=\"");
+
+
+
+#line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                                         WebViewPage.WriteTo(@__razor_helper_writer, size);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"");
+
+
+
+#line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                                                       WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" />\r\n");
+
+
+
+#line 57 "..\..\Views\Helpers\ViewHelpers.cshtml"
+         if (showName) {
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "            <span class=\"owner-name\">");
+
+
+
+#line 58 "..\..\Views\Helpers\ViewHelpers.cshtml"
+WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</span>\r\n");
+
+
+
+#line 59 "..\..\Views\Helpers\ViewHelpers.cshtml"
+        }
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    </a>    \r\n");
+
+
+
+#line 61 "..\..\Views\Helpers\ViewHelpers.cshtml"
+
+#line default
+#line hidden
+
+});
+
+}
+
+
     }
 }
 #pragma warning restore 1591

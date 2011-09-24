@@ -45,3 +45,17 @@
     }    
 }
 
+@helper OwnersGravatar(IEnumerable<User> owners, int size, UrlHelper url, bool showName = true) {
+    foreach (var owner in owners) {
+        <div class="owner-gravatar">@ViewHelpers.OwnerGravatar(owner, size, url, showName)</div>
+    }    
+}
+
+@helper OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true) {
+    <a href="@url.Action(MVC.Users.Profiles(owner.Username))" title="@owner.Username">
+        <img src="@Gravatar.GetUrl(owner.EmailAddress, size)" width="@size" height="@size" title="@owner.Username" />
+        @if (showName) {
+            <span class="owner-name">@owner.Username</span>
+        }
+    </a>    
+}

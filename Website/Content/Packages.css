@@ -327,6 +327,7 @@ div.stats span.downloads label {
     #packageDetails th {
         text-align: left;
         padding: 6px 18px 6px 28px;
+        vertical-align: top;
     }
 h4.packageDetailsTableHeader, a.packageDetailsTableHeader {
     width: 100%;

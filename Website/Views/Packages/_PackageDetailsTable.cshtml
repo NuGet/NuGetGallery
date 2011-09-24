@@ -9,15 +9,15 @@
             <strong>@Model.Id</strong>
         </td>
     </tr>
-
     <tr>
-        <th>Authors</th>
-        <td>@Model.Authors.Flatten(@<a href="@Url.Search(item.Name)">@item.Name</a>)
+        <th>Owners</th>
+        <td>
+            @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)
         </td>
     </tr>
     <tr>
-        <th>Owners</th>
-        <td>@Model.Owners.Flatten(@<a href="@Url.Action(MVC.Users.Profiles(item.Username))">@item.Username</a>)
+        <th>Authors</th>
+        <td>@Model.Authors.Flatten(@<a href="@Url.Search(item.Name)">@item.Name</a>)
         </td>
     </tr>
     @if (Model.Tags.AnySafe()) {
@@ -29,7 +29,6 @@
     }
     <tr>
         <th>Last updated:</th>
-        <td>@Model.LastUpdated.ToString("F")
-        </td>
+        <td>@Model.LastUpdated.ToString("F") UTC</td>
     </tr>
 </table>

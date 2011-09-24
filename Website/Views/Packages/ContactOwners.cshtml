@@ -9,20 +9,19 @@
 }    
 
 @section ContentHeader {            
-    <h2>Contact Owners</h2>
+    <h2>Contact the Owners of <em>@Model.PackageId</em></h2>
 }
-    
-<p>
-    Use this form to contact the owners of <strong>"@Model.PackageId"</strong>. 
-</p>
+
+<div class="description">
 <p>
     By submitting this form, you agree to <strong>disclose your email address</strong> 
     to the package owners listed below so they can reply to you.
 </p>
+</div> 
 <div id="form">
     <form action="@Url.Current()" id="contactOwnersForm" method="post">
         <label style="padding-left: 20px;">
-            To: @Model.Owners.Flatten(@<strong><a href="@Url.Search(item.Username)" title="Search packages for this user">@item.Username</a></strong>)
+            To: @ViewHelpers.OwnersGravatar(Model.Owners, 24, Url)
         </label>
         <div>
             @Html.LabelFor(m => m.Message)

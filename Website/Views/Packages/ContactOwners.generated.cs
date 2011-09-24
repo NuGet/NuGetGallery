@@ -75,28 +75,29 @@ WriteLiteral("    \r\n\r\n");
 
 DefineSection("ContentHeader", () => {
 
-WriteLiteral("            \r\n    <h2>Contact Owners</h2>\r\n");
-
-
-});
-
-WriteLiteral("\r\n    \r\n<p>\r\n    Use this form to contact the owners of <strong>\"");
+WriteLiteral("            \r\n    <h2>Contact the Owners of <em>");
 
 
             
-            #line 16 "..\..\Views\Packages\ContactOwners.cshtml"
-                                               Write(Model.PackageId);
+            #line 12 "..\..\Views\Packages\ContactOwners.cshtml"
+                             Write(Model.PackageId);
 
             
             #line default
             #line hidden
-WriteLiteral("\"</strong>. \r\n</p>\r\n<p>\r\n    By submitting this form, you agree to <strong>disclo" +
-"se your email address</strong> \r\n    to the package owners listed below so they " +
-"can reply to you.\r\n</p>\r\n<div id=\"form\">\r\n    <form action=\"");
+WriteLiteral("</em></h2>\r\n");
+
+
+});
+
+WriteLiteral("\r\n\r\n<div class=\"description\">\r\n<p>\r\n    By submitting this form, you agree to <st" +
+"rong>disclose your email address</strong> \r\n    to the package owners listed bel" +
+"ow so they can reply to you.\r\n</p>\r\n</div> \r\n<div id=\"form\">\r\n    <form action=\"" +
+"");
 
 
             
-            #line 23 "..\..\Views\Packages\ContactOwners.cshtml"
+            #line 22 "..\..\Views\Packages\ContactOwners.cshtml"
              Write(Url.Current());
 
             
@@ -107,39 +108,8 @@ WriteLiteral("\" id=\"contactOwnersForm\" method=\"post\">\r\n        <label sty
 
 
             
-            #line 25 "..\..\Views\Packages\ContactOwners.cshtml"
-           Write(Model.Owners.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer => {
-
-            
-            #line default
-            #line hidden
-
-WriteLiteralTo(@__razor_template_writer, "<strong><a href=\"");
-
-
-            
-            #line 25 "..\..\Views\Packages\ContactOwners.cshtml"
-                       WriteTo(@__razor_template_writer, Url.Search(item.Username));
-
-            
-            #line default
-            #line hidden
-WriteLiteralTo(@__razor_template_writer, "\" title=\"Search packages for this user\">");
-
-
-            
-            #line 25 "..\..\Views\Packages\ContactOwners.cshtml"
-                                                                                         WriteTo(@__razor_template_writer, item.Username);
-
-            
-            #line default
-            #line hidden
-WriteLiteralTo(@__razor_template_writer, "</a></strong>");
-
-
-            
-            #line 25 "..\..\Views\Packages\ContactOwners.cshtml"
-                                                                                                                                                   })));
+            #line 24 "..\..\Views\Packages\ContactOwners.cshtml"
+           Write(ViewHelpers.OwnersGravatar(Model.Owners, 24, Url));
 
             
             #line default
@@ -148,7 +118,7 @@ WriteLiteral("\r\n        </label>\r\n        <div>\r\n            ");
 
 
             
-            #line 28 "..\..\Views\Packages\ContactOwners.cshtml"
+            #line 27 "..\..\Views\Packages\ContactOwners.cshtml"
        Write(Html.LabelFor(m => m.Message));
 
             
@@ -158,7 +128,7 @@ WriteLiteral("\r\n                                \r\n            ");
 
 
             
-            #line 30 "..\..\Views\Packages\ContactOwners.cshtml"
+            #line 29 "..\..\Views\Packages\ContactOwners.cshtml"
        Write(Html.TextAreaFor(m => m.Message, 10, 60, null));
 
             
@@ -168,7 +138,7 @@ WriteLiteral("\r\n            <div style=\"display: block;\">\r\n               
 
 
             
-            #line 32 "..\..\Views\Packages\ContactOwners.cshtml"
+            #line 31 "..\..\Views\Packages\ContactOwners.cshtml"
            Write(Html.ValidationMessageFor(m => m.Message));
 
             
@@ -178,7 +148,7 @@ WriteLiteral("\r\n            </div>\r\n        </div>\r\n        ");
 
 
             
-            #line 35 "..\..\Views\Packages\ContactOwners.cshtml"
+            #line 34 "..\..\Views\Packages\ContactOwners.cshtml"
    Write(Html.AntiForgeryToken());
 
             
