@@ -10,7 +10,7 @@
             <div class="zone zone-content">
                 <section>
                     <header class="profile">
-                        <img src="@Gravatar.GetUrl(Model.EmailAddress, 80)" alt="Gravatar" width="80" height="80" class="gravatar" />
+                        <img src="@Gravatar.GetUrl(Model.EmailAddress, 80, rating: GravatarRating.G)" alt="Gravatar" width="80" height="80" class="gravatar" />
                         <h2>@Model.Username</h2>
                         <div class="stats">
                             <span class="downloads">

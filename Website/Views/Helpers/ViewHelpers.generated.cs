@@ -422,7 +422,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">\r\n        <img src=\"")
 
 
 #line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, Gravatar.GetUrl(owner.EmailAddress, size));
+WebViewPage.WriteTo(@__razor_helper_writer, Gravatar.GetUrl(owner.EmailAddress, size, rating: GravatarRating.G));
 
 #line default
 #line hidden
@@ -432,7 +432,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" width=\"");
 
 
 #line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                          WebViewPage.WriteTo(@__razor_helper_writer, size);
+                                                    WebViewPage.WriteTo(@__razor_helper_writer, size);
 
 #line default
 #line hidden
@@ -442,7 +442,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" height=\"");
 
 
 #line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                         WebViewPage.WriteTo(@__razor_helper_writer, size);
+                                                                   WebViewPage.WriteTo(@__razor_helper_writer, size);
 
 #line default
 #line hidden
@@ -452,7 +452,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"");
 
 
 #line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                       WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
+                                                                                 WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
 
 #line default
 #line hidden

@@ -53,7 +53,7 @@
 
 @helper OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true) {
     <a href="@url.Action(MVC.Users.Profiles(owner.Username))" title="@owner.Username">
-        <img src="@Gravatar.GetUrl(owner.EmailAddress, size)" width="@size" height="@size" title="@owner.Username" />
+        <img src="@Gravatar.GetUrl(owner.EmailAddress, size, rating: GravatarRating.G)" width="@size" height="@size" title="@owner.Username" />
         @if (showName) {
             <span class="owner-name">@owner.Username</span>
         }

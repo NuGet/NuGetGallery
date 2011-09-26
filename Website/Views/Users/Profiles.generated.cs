@@ -63,7 +63,7 @@ WriteLiteral("\r\n<div id=\"layout-main\" class=\"profile\">\r\n    <div id=\"la
 
             
             #line 13 "..\..\Views\Users\Profiles.cshtml"
-                             Write(Gravatar.GetUrl(Model.EmailAddress, 80));
+                             Write(Gravatar.GetUrl(Model.EmailAddress, 80, rating: GravatarRating.G));
 
             
             #line default
