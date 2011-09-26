@@ -6,7 +6,7 @@ namespace NuGetGallery {
     public class RegisterRequest {
         [Required]
         [StringLength(64)]
-        [RegularExpression(@"(?i)[a-z0-9_-. ]*", ErrorMessage = "User names may only contain letters, numbers, dashes, and hyphens.")]
+        [RegularExpression(@"(?i)[a-z0-9_.-]*", ErrorMessage = "User names may only contain letters, numbers, dashes, and hyphens.")]
         [AdditionalMetadata("Hint", "Choose something unique so others will know which contributions are yours.")]
         public string Username { get; set; }
 
