@@ -58,18 +58,17 @@ namespace NuGetGallery.Views.Users
 WriteLiteral("\r\n<div id=\"layout-main\" class=\"profile\">\r\n    <div id=\"layout-content\">\r\n        " +
 "<div id=\"content\">\r\n            <div class=\"zone zone-content\">\r\n               " +
 " <section>\r\n                    <header class=\"profile\">\r\n                      " +
-"  <img src=\"");
+"  ");
 
 
             
             #line 13 "..\..\Views\Users\Profiles.cshtml"
-                             Write(Gravatar.GetUrl(Model.EmailAddress, 80, rating: GravatarRating.G));
+                   Write(ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 80));
 
             
             #line default
             #line hidden
-WriteLiteral("\" alt=\"Gravatar\" width=\"80\" height=\"80\" class=\"gravatar\" />\r\n                    " +
-"    <h2>");
+WriteLiteral("\r\n                        <h2>");
 
 
             

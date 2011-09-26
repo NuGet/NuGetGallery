@@ -417,47 +417,17 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"");
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">\r\n        <img src=\"");
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">\r\n        ");
 
 
 
 #line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, Gravatar.GetUrl(owner.EmailAddress, size, rating: GravatarRating.G));
+WebViewPage.WriteTo(@__razor_helper_writer, GravatarImage(owner.EmailAddress, owner.Username, size));
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" width=\"");
-
-
-
-#line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                    WebViewPage.WriteTo(@__razor_helper_writer, size);
-
-#line default
-#line hidden
-
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" height=\"");
-
-
-
-#line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                                   WebViewPage.WriteTo(@__razor_helper_writer, size);
-
-#line default
-#line hidden
-
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"");
-
-
-
-#line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                                                 WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
-
-#line default
-#line hidden
-
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" />\r\n");
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n");
 
 
 
@@ -492,6 +462,45 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    </a>    \r\n");
 
 
 #line 61 "..\..\Views\Helpers\ViewHelpers.cshtml"
+
+#line default
+#line hidden
+
+});
+
+}
+
+
+public static System.Web.WebPages.HelperResult GravatarImage(string email, string username, int size) {
+return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+
+
+
+#line 63 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                                                                
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    ");
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n    ");
+
+
+
+#line 65 "..\..\Views\Helpers\ViewHelpers.cshtml"
+WebViewPage.WriteTo(@__razor_helper_writer, Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "gravatar"}));
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n    ");
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n");
+
+
+
+#line 67 "..\..\Views\Helpers\ViewHelpers.cshtml"
 
 #line default
 #line hidden
