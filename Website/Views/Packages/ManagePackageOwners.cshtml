@@ -97,6 +97,7 @@
             item = item || {};
 
             this.name = ko.observable(item.name);
+            this.pending = item.pending;
             this.current = item.current;
             this.remove = function () {
                 viewModel.removeOwner(this);

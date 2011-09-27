@@ -878,6 +878,86 @@ namespace NuGetGallery
             }
         }
 
+        public class TheRequestPackageOwnerMethod {
+            [Fact]
+            public void CreatesPackageOwnerRequest() {
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var package = new PackageRegistration { Key = 1 };
+                var owner = new User { Key = 100 };
+                var newOwner = new User { Key = 200 };
+
+                service.RequestPackageOwner(package, owner, newOwner);
+
+                packageOwnerRequestRepository.Verify(r => r.InsertOnCommit(
+                    It.Is<PackageOwnerRequest>(req => req.PackageRegistrationKey == 1 && req.RequestingOwnerKey == 100 && req.NewOwnerKey == 200))
+                );
+            }
+
+            [Fact]
+            public void ReturnsExistingMatchingPackageOwnerRequest() {
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(new[]{
+                    new PackageOwnerRequest { 
+                        PackageRegistrationKey = 1, 
+                        RequestingOwnerKey = 99,
+                        NewOwnerKey = 200}
+                }.AsQueryable());
+                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var package = new PackageRegistration { Key = 1 };
+                var owner = new User { Key = 100 };
+                var newOwner = new User { Key = 200 };
+
+                var request = service.RequestPackageOwner(package, owner, newOwner);
+
+                Assert.Equal(99, request.RequestingOwnerKey);
+            }
+        }
+
+        public class TheRemovePackageOwnerMethod {
+            [Fact]
+            public void RemovesPackageOwner() {
+                var service = CreateService();
+                var owner = new User { };
+                var package = new Package {
+                    PackageRegistration = new PackageRegistration {
+                        Owners = new List<User> { owner }
+                    }
+                };
+
+                service.RemovePackageOwner(package, owner);
+
+                Assert.DoesNotContain(owner, package.PackageRegistration.Owners);
+            }
+
+            [Fact]
+            public void RemovesPendingPackageOwner() {
+                var packageOwnerRequest = new PackageOwnerRequest {
+                    PackageRegistrationKey = 1,
+                    RequestingOwnerKey = 99,
+                    NewOwnerKey = 200
+                };
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(new[] { packageOwnerRequest }.AsQueryable());
+                packageOwnerRequestRepository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
+                packageOwnerRequestRepository.Setup(r => r.CommitChanges()).Verifiable();
+                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var pendingOwner = new User { Key = 200 };
+                var owner = new User { };
+                var package = new Package {
+                    PackageRegistration = new PackageRegistration {
+                        Key = 1,
+                        Owners = new List<User> { owner }
+                    }
+                };
+
+                service.RemovePackageOwner(package, pendingOwner);
+
+                Assert.Contains(owner, package.PackageRegistration.Owners);
+                packageOwnerRequestRepository.VerifyAll();
+            }
+        }
+
         static Mock<IPackage> CreateNuGetPackage(Action<Mock<IPackage>> setup = null)
         {
             var nugetPackage = new Mock<IPackage>();
@@ -921,26 +1001,30 @@ namespace NuGetGallery
             Mock<IEntityRepository<Package>> packageRepo = null,
             Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null,
             Mock<IPackageFileService> packageFileSvc = null,
+            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Action<Mock<PackageService>> setup = null)
         {
             if (cryptoSvc == null)
             {
-                cryptoSvc = new Mock<ICryptographyService>();
+				cryptoSvc = new Mock<ICryptographyService>();
+                cryptoSvc.Setup(x => x.HashAlgorithmId).Returns(Const.Sha512HashAlgorithmId);
                 cryptoSvc.Setup(x => x.GenerateHash(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, Const.Sha512HashAlgorithmId))
                     .Returns("theHash");
-            }
+			}
 
             packageRegistrationRepo = packageRegistrationRepo ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepo = packageRepo ?? new Mock<IEntityRepository<Package>>();
             packageFileSvc = packageFileSvc ?? new Mock<IPackageFileService>();
             packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
+            packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
 
             var packageSvc = new Mock<PackageService>(
                 cryptoSvc.Object,
                 packageRegistrationRepo.Object,
                 packageRepo.Object,
                 packageStatsRepo.Object,
-                packageFileSvc.Object);
+                packageFileSvc.Object,
+                packageOwnerRequestRepo.Object);
 
             packageSvc.CallBase = true;
 
