@@ -22,6 +22,8 @@ namespace NuGetGallery
 
         IEnumerable<Package> FindDependentPackages(Package package);
 
+        PackageOwnerRequest RequestPackageOwner(PackageRegistration package, User currentOwner, User newOwner);
+
         void AddPackageOwner(Package package, User user);
 
         void RemovePackageOwner(Package package, User user);

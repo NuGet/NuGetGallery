@@ -99,8 +99,10 @@ namespace NuGetGallery
 
             modelBuilder.Entity<WorkItem>()
                 .HasKey(pd => pd.Id);
+                
+			modelBuilder.Entity<PackageOwnerRequest>()
+                .HasKey(pd => pd.Key);
         }
-
 
         public IDbSet<WorkItem> WorkItems
         {
