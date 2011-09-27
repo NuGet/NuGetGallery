@@ -15,6 +15,7 @@ namespace NuGetGallery
         public string Id { get; set; }
         public int DownloadCount { get; set; }
         public virtual ICollection<User> Owners { get; set; }
+        public virtual ICollection<User> PendingOwners { get; set; }
         public virtual ICollection<Package> Packages { get; set; }
     }
 }

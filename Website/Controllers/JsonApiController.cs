@@ -9,11 +9,13 @@ namespace NuGetGallery
     {
         IPackageService packageSvc;
         IUserService userSvc;
+        IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository;
 
-        public JsonApiController(IPackageService packageSvc, IUserService userSvc)
+        public JsonApiController(IPackageService packageSvc, IUserService userSvc, IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository)
         {
             this.packageSvc = packageSvc;
             this.userSvc = userSvc;
+            this.packageOwnerRequestRepository = packageOwnerRequestRepository;
         }
 
         [Authorize]
@@ -30,9 +32,17 @@ namespace NuGetGallery
             }
 
             var owners = from u in package.PackageRegistration.Owners
-                         select new OwnerModel { name = u.Username, current = u.Username == HttpContext.User.Identity.Name }; ;
+                         select new OwnerModel {
+                             name = u.Username,
+                             current = u.Username == HttpContext.User.Identity.Name,
+                             pending = false
+                         };
 
-            return owners;
+            var pending = from u in packageOwnerRequestRepository.GetAll()
+                          where u.PackageRegistrationKey == package.PackageRegistration.Key
+                          select new OwnerModel { name = u.NewOwner.Username, current = false, pending = true };
+
+            return owners.Union(pending);
         }
 
         public object AddPackageOwner(string id, string version, string username)
@@ -52,8 +62,10 @@ namespace NuGetGallery
                 return new { success = false, message = "Owner not found" };
             }
 
-            packageSvc.AddPackageOwner(package, user);
-            return new { success = true, name = user.Username };
+            var currentUser = userSvc.FindByUsername(HttpContext.User.Identity.Name);
+
+            packageSvc.RequestPackageOwner(package.PackageRegistration, currentUser, user);
+            return new { success = true, name = user.Username, pending = true };
         }
 
         public object RemovePackageOwner(string id, string version, string username)
@@ -81,6 +93,7 @@ namespace NuGetGallery
         {
             public string name { get; set; }
             public bool current { get; set; }
+            public bool pending { get; set; }
         }
     }
 }

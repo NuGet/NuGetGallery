@@ -134,6 +134,9 @@ namespace NuGetGallery
 
             Bind<IPackageFileService>()
                 .To<PackageFileService>()
+
+            Bind<IEntityRepository<PackageOwnerRequest>>()
+                .To<EntityRepository<PackageOwnerRequest>>()
                 .InRequestScope();
         }
     }
