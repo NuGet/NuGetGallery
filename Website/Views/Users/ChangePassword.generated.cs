@@ -136,7 +136,7 @@ WriteLiteral("\r\n    <div>\r\n        <button type=\"submit\" title=\"Change pa
 
             
             #line 21 "..\..\Views\Users\ChangePassword.cshtml"
-                                                                                   Write(Url.Account());
+                                                                                   Write(Url.Action(MVC.Users.Account()));
 
             
             #line default

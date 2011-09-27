@@ -65,7 +65,7 @@ WriteLiteral("\r\n    <img src=\"");
             
             #line default
             #line hidden
-WriteLiteral("\" style=\"padding-left: 55px\" />\r\n");
+WriteLiteral("\" style=\"padding-left: 55px\" alt=\"\" />\r\n");
 
 
 });
@@ -80,145 +80,231 @@ WriteLiteral("            \r\n    <h2>Report Abuse</h2>\r\n");
 
 });
 
-WriteLiteral("\r\n<div id=\"form\">\r\n    <form action=\"");
+WriteLiteral("\r\n\r\n<form id=\"form\" method=\"post\" action=\"");
 
 
             
             #line 15 "..\..\Views\Packages\ReportAbuse.cshtml"
-             Write(Url.Current());
+                                 Write(Url.Current());
 
             
             #line default
             #line hidden
-WriteLiteral("\" id=\"reportAbuseForm\" method=\"post\">\r\n        <div>\r\n            ");
+WriteLiteral("\">\r\n    ");
+
+
+            
+            #line 16 "..\..\Views\Packages\ReportAbuse.cshtml"
+Write(Html.AntiForgeryToken());
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n    ");
 
 
             
             #line 17 "..\..\Views\Packages\ReportAbuse.cshtml"
-       Write(Html.LabelFor(m => m.Message, String.Format("Submit an abuse report for Package \"{0}\', version \"{1}\".", Model.PackageId, Model.PackageVersion)));
+Write(Html.LabelFor(m => m.Message, String.Format("Submit an abuse report for Package \"{0}\', version \"{1}\".", Model.PackageId, Model.PackageVersion)));
 
             
             #line default
             #line hidden
 WriteLiteral(@"
-            <p>
-                <strong>Important:</strong> This form is for reporting <strong>abusive</strong> packages such as 
-                packages containing <strong>malicious code</strong> or spam. If the package simply doesn&#8217;t 
-                appear to work or work correctly, please 
-                <a href=""");
+    <p>
+        <strong>Important:</strong> This form is for reporting <strong>abusive</strong> packages such as 
+        packages containing <strong>malicious code</strong> or spam. If the package simply doesn&#8217;t 
+        appear to work or work correctly, please 
+        <a href=""");
 
 
             
             #line 22 "..\..\Views\Packages\ReportAbuse.cshtml"
-                    Write(Url.Action(MVC.Packages.ContactOwners(Model.PackageId)));
+            Write(Url.Action(MVC.Packages.ContactOwners(Model.PackageId)));
 
             
             #line default
             #line hidden
-WriteLiteral("\" title=\"contact the owners\">contact the package owners.</a> \r\n            </p>  " +
-"                          \r\n\r\n");
+WriteLiteral("\" title=\"contact the owners\">contact the package owners.</a> \r\n    </p>          " +
+"                  \r\n\r\n");
 
 
             
             #line 25 "..\..\Views\Packages\ReportAbuse.cshtml"
-             if (!Request.IsAuthenticated) {
+     if (!Model.ConfirmedUser) {
 
             
             #line default
             #line hidden
-WriteLiteral("            <p>\r\n                ");
+
+            
+            #line 26 "..\..\Views\Packages\ReportAbuse.cshtml"
+WriteLiteral("        <div ");
+
+            
+            #line default
+            #line hidden
+            
+            #line 26 "..\..\Views\Packages\ReportAbuse.cshtml"
+              if (Html.IsError(m => m.Message)) {
+            
+            #line default
+            #line hidden
+WriteLiteral("class=\"invalid\"");
+
+
+            
+            #line 26 "..\..\Views\Packages\ReportAbuse.cshtml"
+                                                                             }
+            
+            #line default
+            #line hidden
+WriteLiteral(">\r\n            ");
 
 
             
             #line 27 "..\..\Views\Packages\ReportAbuse.cshtml"
-           Write(Html.LabelFor(m => m.Email, "Provide your email address so we can follow up with you or LogOn first."));
+       Write(Html.LabelFor(m => m.Email));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                ");
+WriteLiteral("\r\n            <aside>\r\n                <p>\r\n                    <strong>");
 
 
             
-            #line 28 "..\..\Views\Packages\ReportAbuse.cshtml"
-           Write(Html.ValidationMessageFor(m => m.Email));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                ");
-
-
-            
-            #line 29 "..\..\Views\Packages\ReportAbuse.cshtml"
-           Write(Html.TextBoxFor(m => m.Email, new { style = "display: block;" }));
+            #line 30 "..\..\Views\Packages\ReportAbuse.cshtml"
+                       Write(Html.ValidationMessageFor(m => m.Email));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n            </p>\r\n");
-
-
-            
-            #line 31 "..\..\Views\Packages\ReportAbuse.cshtml"
-            }
-            else {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                <input type=\"hidden\" name=\"Email\" value=\"*\" />\r\n");
+WriteLiteral("</strong>\r\n                    Provide your email address so we can follow up wit" +
+"h you.\r\n                </p>\r\n            </aside>\r\n            ");
 
 
             
             #line 34 "..\..\Views\Packages\ReportAbuse.cshtml"
-            }
+       Write(Html.EditorFor(m => m.Email));
 
             
             #line default
             #line hidden
-WriteLiteral("                            \r\n            ");
+WriteLiteral("\r\n        </div>\r\n");
 
 
             
             #line 36 "..\..\Views\Packages\ReportAbuse.cshtml"
-       Write(Html.LabelFor(m => m.Message, "Provide a detailed abuse report. Include exactly what the package did."));
+    }
+    else {
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n            ");
+WriteLiteral("        <input type=\"hidden\" name=\"Email\" value=\"test@example.com\" />\r\n");
 
 
             
-            #line 37 "..\..\Views\Packages\ReportAbuse.cshtml"
-       Write(Html.ValidationMessageFor(m => m.Message));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            ");
-
-
-            
-            #line 38 "..\..\Views\Packages\ReportAbuse.cshtml"
-       Write(Html.TextAreaFor(m => m.Message, 5, 20, new { @class="long required" }));
+            #line 39 "..\..\Views\Packages\ReportAbuse.cshtml"
+    }
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                            \r\n        </div>\r\n        ");
+
+            
+            #line 40 "..\..\Views\Packages\ReportAbuse.cshtml"
+WriteLiteral("            \r\n    <div ");
+
+            
+            #line default
+            #line hidden
+            
+            #line 41 "..\..\Views\Packages\ReportAbuse.cshtml"
+          if (Html.IsError(m => m.Message)) {
+            
+            #line default
+            #line hidden
+WriteLiteral("class=\"invalid\"");
 
 
             
             #line 41 "..\..\Views\Packages\ReportAbuse.cshtml"
-   Write(Html.AntiForgeryToken());
+                                                                         }
+            
+            #line default
+            #line hidden
+WriteLiteral(">\r\n        ");
+
+
+            
+            #line 42 "..\..\Views\Packages\ReportAbuse.cshtml"
+   Write(Html.LabelFor(m => m.Message));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n        <input id=\"sendReportButton\" type=\"submit\" name=\"Send Report\" value=\"Se" +
-"nd Report\" singleclickbutton=\"true\" />\r\n    </form>\r\n</div>\r\n");
+WriteLiteral("\r\n        <aside>\r\n            <p>\r\n                <strong>");
+
+
+            
+            #line 45 "..\..\Views\Packages\ReportAbuse.cshtml"
+                   Write(Html.ValidationMessageFor(m => m.Message));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</strong>\r\n                Please provide a detailed abuse report. Include exactl" +
+"y what the package did.\r\n            </p>\r\n        </aside>\r\n        ");
+
+
+            
+            #line 49 "..\..\Views\Packages\ReportAbuse.cshtml"
+   Write(Html.TextAreaFor(m => m.Message, 10, 50, null));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n    </div>\r\n        \r\n    <div>\r\n        <button type=\"submit\" title=\"Send Repo" +
+"rt\" singleclickbutton=\"true\">Send Report</button>\r\n    </div>\r\n</form>\r\n\r\n");
+
+
+DefineSection("BottomScripts", () => {
+
+WriteLiteral("\r\n    <script src=\"");
+
+
+            
+            #line 58 "..\..\Views\Packages\ReportAbuse.cshtml"
+            Write(Url.Content("~/Scripts/jquery.validate.min.js"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+            
+            #line 59 "..\..\Views\Packages\ReportAbuse.cshtml"
+            Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+            
+            #line 60 "..\..\Views\Packages\ReportAbuse.cshtml"
+            Write(Url.Content("~/Scripts/gallery.form.js"));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+
+
+});
 
 
         }

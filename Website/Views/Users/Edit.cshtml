@@ -1,0 +1,64 @@
+﻿@model EditProfileViewModel
+@{
+    ViewBag.Title = "Edit Profile";
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+}
+
+@section LeftNav {
+    <img src="@Links.Content.Images.userGraphic_png" alt="The unknown user image" />
+}                
+
+@section ContentHeader {
+    <span class="right"><img src="@Links.Content.Images.required_png" alt="Required" /></span>
+    <h2>Edit Profile</h2>    
+}
+
+@using (Html.BeginForm(MVC.Users.Edit(), FormMethod.Post, new {id = "form"})) {
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    if (!String.IsNullOrEmpty(Model.PendingNewEmailAddress)) {
+        <div>
+            <label>Pending email address change</label>
+            @Html.HiddenFor(m => m.PendingNewEmailAddress)
+            <p>
+                You recently requested to change your email address to <strong>@Model.PendingNewEmailAddress</strong>. 
+                This change will take effect when you confirm the address. Check your inbox (or spam folder) for an 
+                email with a confirmation link.
+            </p>
+        </div>
+    }
+    
+    <div @if (Html.IsError(m => m.EmailAddress)) {<text>class="invalid"</text>}>
+        @Html.LabelFor(m => m.EmailAddress)
+        <aside>
+            <p>
+                <strong>@Html.ValidationMessageFor(m => m.EmailAddress)</strong>
+                If you change your email address, you will need to confirm 
+                your new address for it to take effect.
+            </p>
+        </aside>
+        @Html.EditorFor(m => m.EmailAddress)
+    </div>
+
+    <div>
+        <label>
+            @Html.EditorFor(m => m.EmailAllowed) Receive Email Notifications 
+        </label>
+        <p>
+            <strong>Important:</strong> This setting allows other <em>registered</em> users of the site to contact you 
+            about packages that you own using the <em>Contact Owners</em> form. Unchecking this means users cannot 
+            contact you about issues with your packages.
+        </p>
+    </div>
+
+    <div>
+        <button type="submit" title="Edit Profile">Save Changes</button> <a href="@Url.Action(MVC.Users.Account())">Go Back</a>
+    </div>
+}
+
+@section BottomScripts {
+    <script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/gallery.form.js")" type="text/javascript"></script>
+}

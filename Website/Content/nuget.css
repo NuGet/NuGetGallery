@@ -792,3 +792,10 @@ div.packages div.owner-gravatar {
         display: inline;
         font-size: 1.4em;
     }
+ 
+ /* hack to get around some wack styles */
+ html .sane-form .field-validation-error {
+     color: #c00;
+     display: block;
+     padding-bottom: 10px;
+ }

@@ -16,20 +16,10 @@ namespace NuGetGallery.Data.Migrations {
 
             Database.AddForeignKey("FK_UserRoles_Users", "UserRoles", "UserKey", "Users", "[Key]");
             Database.AddForeignKey("FK_UserRoles_Roles", "UserRoles", "RoleKey", "Roles", "[Key]");
-
-            Database.ExecuteNonQuery(@"INSERT UserRoles SELECT UserKey = u.[Key], RoleKey = r.[Key] 
-FROM Users u INNER JOIN Roles r ON r.Name = 'Administrators' WHERE u.IsAdmin = 1");
-
-            Database.RemoveColumn("Users", "IsAdmin");
         }
 
         public override void Down() {
-            Database.AddColumn("Users", "IsAdmin", DbType.Boolean, false);
-            Database.ExecuteNonQuery(@"UPDATE Users Set IsAdmin = 1 WHERE [Key] IN (
-SELECT UserKey FROM UserRoles INNER JOIN Roles ON [Key] = RoleKey WHERE Name = 'Administrators'
-)");
             Database.RemoveTable("UserRoles");
-
         }
     }
 }

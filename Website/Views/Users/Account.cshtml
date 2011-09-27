@@ -9,7 +9,14 @@
 }                
 
 @section ContentHeader {
-    <h2>My Account</h2>    
+    <h2>My Account</h2>
+    @if (TempData.ContainsKey("Message")) {
+        <div id="messages">
+            <div class="zone zone-messages">
+                <div class="message message-Information">@TempData["Message"]</div>
+            </div>
+        </div>
+    }
 }
 <h3>Actions</h3>
 <section class="add-new">
@@ -25,7 +32,10 @@
     <p>Edit contribution details or Remove contributions that you have previously uploaded.</p>
 </section>
 <section>
-    <h5><a href="@Url.Account(AccountAction.ChangePassword)">Change Password</a></h5>
+    <h5><a href="@Url.Action(MVC.Users.Edit())">Edit Profile</a></h5>
+</section>
+<section>
+    <h5><a href="@Url.Action(MVC.Users.ChangePassword())">Change Password</a></h5>
 </section>
 
 <section>

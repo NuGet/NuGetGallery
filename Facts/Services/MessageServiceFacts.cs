@@ -20,14 +20,14 @@ namespace NuGetGallery.Services {
                 config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("NuGet Gallery <joe@example.com>"));
                 var messageService = new MessageService(mailSender.Object, config.Object);
 
-                var message = messageService.SendContactOwnersMessage(from, package, "Test message");
+                var message = messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/");
 
                 mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()));
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Contains("[NuGet Gallery] Message for owners of the package 'smangit'", message.Subject);
                 Assert.Contains("Test message", message.Body);
-                Assert.Contains("User flossy (smangit@example.com) sends the following message to the owners of Package 'smangit'.", message.Body);
+                Assert.Contains("User flossy &lt;smangit@example.com&gt; sends the following message to the owners of Package 'smangit'.", message.Body);
             }
 
             [Fact]
@@ -43,7 +43,7 @@ namespace NuGetGallery.Services {
                 config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("Joe Schmoe <joe@example.com>"));
                 var messageService = new MessageService(mailSender.Object, config.Object);
 
-                var message = messageService.SendContactOwnersMessage(from, package, "Test message");
+                var message = messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/");
 
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal(1, message.To.Count);
@@ -63,7 +63,7 @@ namespace NuGetGallery.Services {
                 config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("Joe Schmoe <joe@example.com>"));
                 var messageService = new MessageService(mailSender.Object, config.Object);
 
-                var message = messageService.SendContactOwnersMessage(from, package, "Test message");
+                var message = messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/");
 
                 Assert.Equal(0, message.To.Count);
             }
@@ -111,13 +111,13 @@ namespace NuGetGallery.Services {
         public class TheSendResetPasswordInstructionsMethod {
             [Fact]
             public void WillSendInstructions() {
-                var to = new MailAddress("legit@example.com", "too");
+                var user = new User { EmailAddress = "legit@example.com", Username = "too" };
                 var config = new Mock<IConfiguration>();
                 config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("NuGet Gallery <joe@example.com>"));
                 var mailSender = new Mock<IMailSender>();
                 var messageService = new MessageService(mailSender.Object, config.Object);
 
-                var message = messageService.SendResetPasswordInstructions(to, "http://example.com/pwd-reset-token-url");
+                var message = messageService.SendPasswordResetInstructions(user, "http://example.com/pwd-reset-token-url");
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
                 Assert.Equal("[NuGet Gallery] Please reset your password.", message.Subject);

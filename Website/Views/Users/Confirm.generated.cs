@@ -31,7 +31,7 @@ namespace NuGetGallery.Views.Users
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/Confirm.cshtml")]
-    public class Confirm : System.Web.Mvc.WebViewPage<dynamic>
+    public class Confirm : System.Web.Mvc.WebViewPage<EmailConfirmationModel>
     {
         public Confirm()
         {
@@ -39,8 +39,9 @@ namespace NuGetGallery.Views.Users
         public override void Execute()
         {
 
+
             
-            #line 1 "..\..\Views\Users\Confirm.cshtml"
+            #line 2 "..\..\Views\Users\Confirm.cshtml"
   
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
@@ -57,7 +58,7 @@ WriteLiteral("\r\n        <img src=\"");
 
 
             
-            #line 6 "..\..\Views\Users\Confirm.cshtml"
+            #line 7 "..\..\Views\Users\Confirm.cshtml"
              Write(Links.Content.Images.newAccountGraphic_png);
 
             
@@ -77,7 +78,7 @@ WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
 
 
             
-            #line 10 "..\..\Views\Users\Confirm.cshtml"
+            #line 11 "..\..\Views\Users\Confirm.cshtml"
                              Write(Links.Content.Images.required_png);
 
             
@@ -88,32 +89,62 @@ WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Confirm registration</h2>
 
 });
 
-WriteLiteral("\r\n\r\n");
-
-
-            
-            #line 14 "..\..\Views\Users\Confirm.cshtml"
- if (ViewBag.Confirmed != null) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    <div class=\"zone-messages description\">\r\n");
+WriteLiteral("\r\n\r\n<div class=\"zone-messages description\">\r\n");
 
 
             
             #line 16 "..\..\Views\Users\Confirm.cshtml"
-         if (ViewBag.Confirmed) {
+     if (Model.SuccessfulConfirmation) {
 
             
             #line default
             #line hidden
-WriteLiteral("            <div class=\"message message-Information\">\r\n                Registrati" +
-"on Confirmed!\r\n            </div>\r\n");
+WriteLiteral("        <div class=\"message message-Information\">\r\n");
 
 
+            
+            #line 18 "..\..\Views\Users\Confirm.cshtml"
+             if (Model.ConfirmingNewAccount) {
 
-WriteLiteral("            <p>\r\n                Click on the Login link to log in to the site.\r\n" +
+            
+            #line default
+            #line hidden
+WriteLiteral("                ");
+
+WriteLiteral(" Account registration completed!\r\n");
+
+
+            
+            #line 20 "..\..\Views\Users\Confirm.cshtml"
+            }
+            else {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("                ");
+
+WriteLiteral(" Email address change confirmed!\r\n");
+
+
+            
+            #line 23 "..\..\Views\Users\Confirm.cshtml"
+            }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        </div>\r\n");
+
+
+            
+            #line 25 "..\..\Views\Users\Confirm.cshtml"
+        if (Model.ConfirmingNewAccount) {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("            <p>\r\n                Click on the Log On link to logon to the site.\r\n" +
 "            </p>\r\n");
 
 
@@ -123,78 +154,44 @@ WriteLiteral("            <p>\r\n                You may now upload packages and
 
 
             
-            #line 27 "..\..\Views\Users\Confirm.cshtml"
+            #line 33 "..\..\Views\Users\Confirm.cshtml"
         }
         else {
 
             
             #line default
             #line hidden
-WriteLiteral("            <div class=\"message critical message\">\r\n                Could not con" +
-"firm your registration.\r\n            </div>\r\n");
-
-
-
-WriteLiteral("            <p>\r\n                Make sure you copied the registration code from " +
-"the email we sent correctly.\r\n            </p>\r\n");
+WriteLiteral("            <p>\r\n                Your email address is now updated.\r\n            " +
+"</p>\r\n");
 
 
             
-            #line 35 "..\..\Views\Users\Confirm.cshtml"
+            #line 38 "..\..\Views\Users\Confirm.cshtml"
         }
+    }
+    else {
 
             
             #line default
             #line hidden
-WriteLiteral("    </div>\r\n");
+WriteLiteral("        <div class=\"message critical message\">\r\n            Could not confirm you" +
+"r email address.\r\n        </div>\r\n");
 
 
-            
-            #line 37 "..\..\Views\Users\Confirm.cshtml"
-}
-else {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("    <form id=\"form\" method=\"post\" action=\"");
-
-
-            
-            #line 39 "..\..\Views\Users\Confirm.cshtml"
-                                     Write(Url.Current());
-
-            
-            #line default
-            #line hidden
-WriteLiteral(@""">
-        <p class=""description"">
-            Please enter the confirmation code sent to you via email and 
-            then click the <em>Confirm</em> button.
-        </p>
-        <label for=""confirmationCode"">
-            Confirmation Code
-        </label>
-        ");
+WriteLiteral("        <p>\r\n            Make sure you clicked on the confirmation URL in the ema" +
+"il we sent.\r\n        </p>\r\n");
 
 
             
             #line 47 "..\..\Views\Users\Confirm.cshtml"
-   Write(Html.TextBox("token"));
+    }
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n        <div>\r\n            <input type=\"submit\" value=\"Confirm\" />\r\n        </d" +
-"iv>\r\n    </form>\r\n");
+WriteLiteral("</div>");
 
-
-            
-            #line 52 "..\..\Views\Users\Confirm.cshtml"
-}
-            
-            #line default
-            #line hidden
 
         }
     }

@@ -55,6 +55,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string Account = "Account";
+            public readonly string Edit = "Edit";
             public readonly string Register = "Register";
             public readonly string Thanks = "Thanks";
             public readonly string Packages = "Packages";
@@ -77,6 +78,7 @@ namespace NuGetGallery {
             public readonly string Account = "~/Views/Users/Account.cshtml";
             public readonly string ChangePassword = "~/Views/Users/ChangePassword.cshtml";
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
+            public readonly string Edit = "~/Views/Users/Edit.cshtml";
             public readonly string ForgotPassword = "~/Views/Users/ForgotPassword.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string PasswordChanged = "~/Views/Users/PasswordChanged.cshtml";
@@ -94,6 +96,17 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult Account() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Account);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Edit() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Edit(NuGetGallery.EditProfileViewModel profile) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
+            callInfo.RouteValueDictionary.Add("profile", profile);
             return callInfo;
         }
 
@@ -152,8 +165,9 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Confirm(string token) {
+        public override System.Web.Mvc.ActionResult Confirm(string username, string token) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
+            callInfo.RouteValueDictionary.Add("username", username);
             callInfo.RouteValueDictionary.Add("token", token);
             return callInfo;
         }

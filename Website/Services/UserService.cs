@@ -36,20 +36,40 @@ namespace NuGetGallery {
 
             var newUser = new User(
                 username,
-                hashedPassword,
-                emailAddress) {
+                hashedPassword) {
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
-                    ConfirmationToken = cryptoSvc.GenerateToken()
+                    UnconfirmedEmailAddress = emailAddress,
+                    EmailConfirmationToken = cryptoSvc.GenerateToken()
                 };
 
-            if (!configuration.ConfirmEmailAddresses)
-                newUser.Confirmed = true;
+            if (!configuration.ConfirmEmailAddresses) {
+                newUser.ConfirmEmailAddress();
+            }
 
             userRepo.InsertOnCommit(newUser);
             userRepo.CommitChanges();
 
             return newUser;
+        }
+
+        public string UpdateProfile(User user, string emailAddress, bool emailAllowed) {
+            if (user == null) {
+                throw new ArgumentNullException("user");
+            }
+
+            if (emailAddress != user.EmailAddress) {
+                var existingUser = FindByEmailAddress(emailAddress);
+                if (existingUser != null && existingUser.Key != user.Key) {
+                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+                }
+                user.UnconfirmedEmailAddress = emailAddress;
+                user.EmailConfirmationToken = cryptoSvc.GenerateToken();
+            }
+
+            user.EmailAllowed = emailAllowed;
+            userRepo.CommitChanges();
+            return user.EmailConfirmationToken;
         }
 
         public User FindByApiKey(Guid apiKey) {
@@ -119,21 +139,20 @@ namespace NuGetGallery {
             user.HashedPassword = hashedPassword;
         }
 
-        public bool ConfirmAccount(string token) {
+        public bool ConfirmEmailAddress(User user, string token) {
+            if (user == null) {
+                throw new ArgumentNullException("user");
+            }
             if (String.IsNullOrEmpty(token)) {
                 throw new ArgumentNullException("token");
             }
-            var user = (from u in userRepo.GetAll()
-                        where u.ConfirmationToken == token
-                        select u).FirstOrDefault();
-            if (user == null) {
+
+            if (user.EmailConfirmationToken != token) {
                 return false;
             }
 
-            if (user.ConfirmationToken != token) {
-                return false;
-            }
-            user.Confirmed = true;
+            user.ConfirmEmailAddress();
+
             userRepo.CommitChanges();
             return true;
         }

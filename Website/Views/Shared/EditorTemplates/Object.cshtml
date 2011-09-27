@@ -21,7 +21,7 @@ else
                 @Html.Label(prop.PropertyName)
                 <aside>
                     <p>
-                        @Html.ValidationMessage(prop.PropertyName)
+                        <strong>@Html.ValidationMessage(prop.PropertyName)</strong>
                         @if (prop.AdditionalValues.ContainsKey("Hint"))
                         {
                             @prop.AdditionalValues["Hint"]   

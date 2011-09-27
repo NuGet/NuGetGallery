@@ -20,7 +20,7 @@ using System.Web.Mvc.Ajax;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
-namespace NuGetGallery.Controllers {
+namespace NuGetGallery {
     public partial class JsonApiController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected JsonApiController(Dummy d) { }
@@ -56,7 +56,7 @@ namespace NuGetGallery.Controllers {
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_JsonApiController: NuGetGallery.Controllers.JsonApiController {
+    public class T4MVC_JsonApiController: NuGetGallery.JsonApiController {
         public T4MVC_JsonApiController() : base(Dummy.Instance) { }
 
     }

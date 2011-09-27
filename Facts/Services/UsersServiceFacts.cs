@@ -73,7 +73,33 @@ namespace NuGetGallery {
                 userRepo.Verify(x => x.InsertOnCommit(It.Is<User>(u =>
                     u.Username == "theUsername" &&
                     u.HashedPassword == "theHashedPassword" &&
-                    u.EmailAddress == "theEmailAddress")));
+                    u.UnconfirmedEmailAddress == "theEmailAddress")));
+                userRepo.Verify(x => x.CommitChanges());
+            }
+
+            [Fact]
+            public void WillSaveTheNewUserAsConfirmedWhenConfigured() {
+                var cryptoSvc = new Mock<ICryptographyService>();
+                cryptoSvc
+                    .Setup(x => x.GenerateSaltedHash(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns("theHashedPassword");
+                var userRepo = new Mock<IEntityRepository<User>>();
+                var config = new Mock<IConfiguration>();
+                config.Setup(c => c.ConfirmEmailAddresses).Returns(false);
+                var userSvc = CreateUsersService(
+                    configuration: config,
+                    cryptoSvc: cryptoSvc,
+                    userRepo: userRepo);
+
+                var user = userSvc.Create(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                userRepo.Verify(x => x.InsertOnCommit(It.Is<User>(u =>
+                    u.Username == "theUsername" &&
+                    u.HashedPassword == "theHashedPassword" &&
+                    u.Confirmed)));
                 userRepo.Verify(x => x.CommitChanges());
             }
 
@@ -102,7 +128,7 @@ namespace NuGetGallery {
                     "thePassword",
                     "theEmailAddress");
 
-                Assert.Equal("secret!", user.ConfirmationToken);
+                Assert.Equal("secret!", user.EmailConfirmationToken);
                 Assert.False(user.Confirmed);
             }
 
@@ -157,7 +183,7 @@ namespace NuGetGallery {
 
             [Fact]
             public void ThrowsExceptionIfUserIsNotConfirmed() {
-                var user = new User { Username = "user", Confirmed = false };
+                var user = new User { Username = "user" };
                 var cryptoSvc = new Mock<ICryptographyService>();
                 cryptoSvc.Setup(s => s.GenerateToken()).Returns("reset-token");
                 var userSvc = CreateUsersService(setup: mockUserSvc => {
@@ -171,7 +197,7 @@ namespace NuGetGallery {
 
             [Fact]
             public void SetsPasswordResetTokenUsingEmail() {
-                var user = new User { Username = "user", Confirmed = true };
+                var user = new User { Username = "user", EmailAddress = "confirmed@example.com" };
                 var cryptoSvc = new Mock<ICryptographyService>();
                 cryptoSvc.Setup(s => s.GenerateToken()).Returns("reset-token");
                 var userSvc = CreateUsersService(setup: mockUserSvc => {
@@ -192,7 +218,7 @@ namespace NuGetGallery {
             public void WithExistingNotYetExpiredTokenReturnsExistingToken() {
                 var user = new User {
                     Username = "user",
-                    Confirmed = true,
+                    EmailAddress = "confirmed@example.com",
                     PasswordResetToken = "existing-token",
                     PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
                 };
@@ -214,7 +240,7 @@ namespace NuGetGallery {
             public void WithExistingExpiredTokenReturnsNewToken() {
                 var user = new User {
                     Username = "user",
-                    Confirmed = true,
+                    EmailAddress = "confirmed@example.com",
                     PasswordResetToken = "existing-token",
                     PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMilliseconds(-1)
                 };
@@ -251,7 +277,6 @@ namespace NuGetGallery {
             public void ThrowsExceptionIfUserNotConfirmed() {
                 var user = new User {
                     Username = "user",
-                    Confirmed = false,
                     PasswordResetToken = "some-token",
                     PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
                 };
@@ -268,7 +293,7 @@ namespace NuGetGallery {
             public void ResetsPasswordAndPasswordTokenAndPasswordTokenDate() {
                 var user = new User {
                     Username = "user",
-                    Confirmed = true,
+                    EmailAddress = "confirmed@example.com",
                     PasswordResetToken = "some-token",
                     PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
                 };
@@ -288,36 +313,66 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheConfirmAccountMethod {
+        public class TheConfirmEmailAddressMethod {
             [Fact]
             public void WithTokenThatDoesNotMatchUserReturnsFalse() {
-                var userRepository = new Mock<IEntityRepository<User>>();
-                userRepository.Setup(r => r.GetAll()).Returns(new[] { new User() }.AsQueryable());
-                var service = CreateUsersService(userRepo: userRepository);
+                var user = new User { Username = "username", EmailConfirmationToken = "token" };
+                var service = CreateUsersService();
 
-                var confirmed = service.ConfirmAccount("token");
+                var confirmed = service.ConfirmEmailAddress(user, "not-token");
 
                 Assert.False(confirmed);
             }
 
             [Fact]
-            public void WithTokenThatDoesNotMatchUserConfirmsUserAndReturnsTrue() {
-                var userRepository = new Mock<IEntityRepository<User>>();
-                var user = new User { ConfirmationToken = "secret" };
-                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
-                var service = CreateUsersService(userRepo: userRepository);
+            public void WithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue() {
+                var user = new User {
+                    Username = "username",
+                    EmailConfirmationToken = "secret",
+                    UnconfirmedEmailAddress = "new@example.com"
+                };
+                var service = CreateUsersService();
 
-                var confirmed = service.ConfirmAccount("secret");
+                var confirmed = service.ConfirmEmailAddress(user, "secret");
 
                 Assert.True(confirmed);
                 Assert.True(user.Confirmed);
+                Assert.Equal("new@example.com", user.EmailAddress);
+                Assert.Null(user.UnconfirmedEmailAddress);
+                Assert.Null(user.EmailConfirmationToken);
+            }
+
+            [Fact]
+            public void ForUserWithConfirmedEmailWithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue() {
+                var user = new User {
+                    Username = "username",
+                    EmailConfirmationToken = "secret",
+                    EmailAddress = "existing@example.com",
+                    UnconfirmedEmailAddress = "new@example.com"
+                };
+                var service = CreateUsersService();
+
+                var confirmed = service.ConfirmEmailAddress(user, "secret");
+
+                Assert.True(confirmed);
+                Assert.True(user.Confirmed);
+                Assert.Equal("new@example.com", user.EmailAddress);
+                Assert.Null(user.UnconfirmedEmailAddress);
+                Assert.Null(user.EmailConfirmationToken);
+            }
+
+            [Fact]
+            public void WithNullUserThrowsArgumentNullException() {
+                var service = CreateUsersService();
+
+                Assert.Throws<ArgumentNullException>(() => service.ConfirmEmailAddress(null, "token"));
             }
 
             [Fact]
             public void WithEmptyTokenThrowsArgumentNullException() {
                 var service = CreateUsersService();
 
-                Assert.Throws<ArgumentNullException>(() => service.ConfirmAccount(""));
+                Assert.Throws<ArgumentNullException>(() => service.ConfirmEmailAddress(new User(), ""));
             }
         }
 

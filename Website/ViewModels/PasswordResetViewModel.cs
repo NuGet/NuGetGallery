@@ -7,7 +7,7 @@ namespace NuGetGallery {
         [DataType(DataType.Password)]
         [Display(Name = "New password")]
         [StringLength(64, MinimumLength = 7)]
-        [AdditionalMetadata("Hint", "Passwords must be at least 7 characters long.")]
+        [Hint("Passwords must be at least 7 characters long.")]
         public string NewPassword { get; set; }
 
         [DataType(DataType.Password)]

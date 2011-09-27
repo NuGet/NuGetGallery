@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Data.Services;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Mail;
 using System.Security.Principal;
 using System.ServiceModel.Activation;
+using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
 
@@ -136,5 +138,18 @@ namespace NuGetGallery {
 
             return source.Provider.CreateQuery<T>(methodCallExpression);
         }
+
+        public static MailAddress ToMailAddress(this User user) {
+            return new MailAddress(user.EmailAddress, user.Username);
+        }
+
+        public static bool IsError<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression) {
+            var metadata = ModelMetadata.FromLambdaExpression<TModel, TProperty>(expression, htmlHelper.ViewData);
+            var modelState = htmlHelper.ViewData.ModelState[metadata.PropertyName];
+            return modelState != null && modelState.Errors != null && modelState.Errors.Count > 0;
+        }
+
+
+
     }
 }

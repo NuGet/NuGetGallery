@@ -36,7 +36,7 @@ Links: #0071BC
     clear: left;
     padding-bottom: 6px;
 }
-#form>div>*, #form > #reportAbuseForm > div > *, #form > #contactOwnersForm > div > * {
+#form>div>* {
     margin-left: 20px;
 }
 #form div#makeRecommendedDiv, #form div#undoRecommendedDiv {
@@ -188,6 +188,9 @@ span.requiredKey {
     font-size: 1.25em; /* 15px */
     color: #39922C;
     padding: 9px 0;
+}
+#form label > input[type=checkbox] {
+    margin: 2px 6px 0 0;
 }
 #form .long {
     width: 490px !important;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Mail;
+using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
 
@@ -10,21 +11,70 @@ namespace NuGetGallery {
         readonly IUserService userService;
         readonly IPackageService packageService;
         readonly IMessageService messageService;
+        readonly IConfiguration configuration;
+        readonly IPrincipal currentUser;
+
         public UsersController(
             IFormsAuthenticationService formsAuthSvc,
             IUserService userSvc,
             IPackageService packageService,
-            IMessageService messageService) {
+            IMessageService messageService,
+            IConfiguration configuration,
+            IPrincipal currentUser) {
             this.formsAuthSvc = formsAuthSvc;
             this.userService = userSvc;
             this.packageService = packageService;
             this.messageService = messageService;
+            this.configuration = configuration;
+            this.currentUser = currentUser;
         }
 
         [Authorize]
         public virtual ActionResult Account() {
-            var user = userService.FindByUsername(HttpContext.User.Identity.Name);
+            var user = userService.FindByUsername(currentUser.Identity.Name);
             return View(user);
+        }
+
+        [Authorize]
+        public virtual ActionResult Edit() {
+            var user = userService.FindByUsername(currentUser.Identity.Name);
+            var model = new EditProfileViewModel {
+                EmailAddress = user.EmailAddress,
+                EmailAllowed = user.EmailAllowed,
+                PendingNewEmailAddress = user.UnconfirmedEmailAddress
+            };
+            return View(model);
+        }
+
+        [Authorize, HttpPost, ValidateAntiForgeryToken]
+        public virtual ActionResult Edit(EditProfileViewModel profile) {
+            if (ModelState.IsValid) {
+                var user = userService.FindByUsername(currentUser.Identity.Name);
+                if (user == null) {
+                    return HttpNotFound();
+                }
+
+                try {
+                    userService.UpdateProfile(user, profile.EmailAddress, profile.EmailAllowed);
+                }
+                catch (EntityException ex) {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                    return View(profile);
+                }
+
+                if (String.IsNullOrEmpty(user.EmailConfirmationToken)) {
+                    TempData["Message"] = "Account settings Saved!";
+                }
+                else {
+                    TempData["Message"] = "Account settings saved! We sent a confirmation email to verify your new email. When you confirm the email address, it will take effect and we will forget the old one.";
+
+                    var confirmationUrl = Url.ConfirmationUrl(MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+                    messageService.SendEmailChangeConfirmationNotice(new MailAddress(profile.EmailAddress, user.Username), confirmationUrl);
+                }
+
+                return RedirectToAction(MVC.Users.Account());
+            }
+            return View(profile);
         }
 
         public virtual ActionResult Register() {
@@ -51,20 +101,27 @@ namespace NuGetGallery {
                 return View();
             }
 
-            // Passing in scheme to force fully qualified URL
-            var confirmationUrl = Url.Action(MVC.Users.Confirm().AddRouteValue("token", user.ConfirmationToken), protocol: Request.Url.Scheme);
-
-            messageService.SendNewAccountEmail(new MailAddress(user.EmailAddress), confirmationUrl);
-            return RedirectToRoute(MVC.Users.Thanks());
+            if (configuration.ConfirmEmailAddresses) {
+                // Passing in scheme to force fully qualified URL
+                var confirmationUrl = Url.ConfirmationUrl(MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+                messageService.SendNewAccountEmail(new MailAddress(request.EmailAddress, user.Username), confirmationUrl);
+            }
+            return RedirectToAction(MVC.Users.Thanks());
         }
 
         public virtual ActionResult Thanks() {
-            return View();
+            if (configuration.ConfirmEmailAddresses) {
+                return View();
+            }
+            else {
+                ViewBag.Confirmed = true;
+                return View("Confirm");
+            }
         }
 
         [Authorize]
         public virtual ActionResult Packages() {
-            var user = userService.FindByUsername(HttpContext.User.Identity.Name);
+            var user = userService.FindByUsername(currentUser.Identity.Name);
             var packages = packageService.FindPackagesByOwner(user);
 
             var published = from p in packages
@@ -86,7 +143,7 @@ namespace NuGetGallery {
 
         [Authorize, ValidateAntiForgeryToken, HttpPost]
         public virtual ActionResult GenerateApiKey() {
-            userService.GenerateApiKey(HttpContext.User.Identity.Name);
+            userService.GenerateApiKey(currentUser.Identity.Name);
             return RedirectToAction(MVC.Users.Account());
         }
 
@@ -100,11 +157,8 @@ namespace NuGetGallery {
                 var user = userService.GeneratePasswordResetToken(model.Email, Const.DefaultPasswordResetTokenExpirationHours * 60);
                 if (user != null) {
                     var token = HttpUtility.UrlEncode(user.PasswordResetToken);
-                    var routeValues = MVC.Users.ResetPassword()
-                        .AddRouteValue("username", user.Username)
-                        .AddRouteValue("token", user.PasswordResetToken);
-                    var resetPasswordUrl = Url.Action(routeValues, protocol: Request.Url.Scheme);
-                    messageService.SendResetPasswordInstructions(new MailAddress(user.EmailAddress, user.Username), resetPasswordUrl);
+                    var resetPasswordUrl = Url.ConfirmationUrl(MVC.Users.ResetPassword(), user.Username, user.PasswordResetToken, protocol: Request.Url.Scheme);
+                    messageService.SendPasswordResetInstructions(user, resetPasswordUrl);
 
                     TempData["Email"] = user.EmailAddress;
                     return RedirectToAction(MVC.Users.PasswordSent());
@@ -138,13 +192,25 @@ namespace NuGetGallery {
             return RedirectToAction(MVC.Users.PasswordChanged());
         }
 
-        public virtual ActionResult Confirm(string token) {
-            bool? confirmed = null;
-            if (!String.IsNullOrEmpty(token)) {
-                confirmed = userService.ConfirmAccount(token);
+        public virtual ActionResult Confirm(string username, string token) {
+            if (String.IsNullOrEmpty(token)) {
+                return HttpNotFound();
             }
-            ViewBag.Confirmed = confirmed;
-            return View();
+            var user = userService.FindByUsername(username);
+            if (user == null) {
+                return HttpNotFound();
+            }
+
+            string existingEmail = user.EmailAddress;
+            var model = new EmailConfirmationModel {
+                ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
+                SuccessfulConfirmation = userService.ConfirmEmailAddress(user, token)
+            };
+
+            if (!model.ConfirmingNewAccount) {
+                messageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
+            }
+            return View(model);
         }
 
         public virtual ActionResult Profiles(string username) {
@@ -174,7 +240,7 @@ namespace NuGetGallery {
         [HttpPost, ValidateAntiForgeryToken, Authorize]
         public virtual ActionResult ChangePassword(PasswordChangeViewModel model) {
             if (ModelState.IsValid) {
-                if (!userService.ChangePassword(HttpContext.User.Identity.Name, model.OldPassword, model.NewPassword)) {
+                if (!userService.ChangePassword(currentUser.Identity.Name, model.OldPassword, model.NewPassword)) {
                     ModelState.AddModelError(
                         "OldPassword",
                         Strings.CurrentPasswordIncorrect);

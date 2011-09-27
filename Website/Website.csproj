@@ -143,6 +143,9 @@
     <Compile Include="HelpersController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Infrastructure\HintAttribute.cs" />
+    <Compile Include="ViewModels\EditProfileViewModel.cs" />
+    <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -396,14 +399,10 @@
     <Compile Include="JsonApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\20110816113000_AddIsAdminColumn.cs" />
     <Compile Include="Migrations\20110821181500_AddElmahSupport.cs" />
     <Compile Include="Migrations\20110825225500_CreateRolesTable.cs" />
     <Compile Include="Migrations\20110825230500_CreateUserRolesTable.cs" />
-    <Compile Include="Migrations\20110826215600_AddEmailAllowedColumn.cs" />
     <Compile Include="Migrations\20110827063348_AddPackageStatistics.cs" />
-    <Compile Include="Migrations\20110903132100_AccountConfirmationColumns.cs" />
-    <Compile Include="Migrations\20110923160900_AddPasswordResetColumns.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -424,7 +423,6 @@
     <Compile Include="UsersController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\20110813170000_FixPackageColumnSizes.cs" />
     <Compile Include="ViewModels\PasswordChangeViewModel.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
@@ -433,7 +431,6 @@
     <Compile Include="ViewModels\DependencyViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
-    <Compile Include="Migrations\20110811213000_AddApiKeyColumn.cs" />
     <Compile Include="App_Start\Routes.cs" />
     <Compile Include="Migrations\20110812222000_OnDeleteCascade.cs" />
     <Compile Include="Services\FileSystemService.cs" />
@@ -620,6 +617,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Confirm.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Users\Edit.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Edit.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Users\ForgotPassword.generated.cs">
       <AutoGen>True</AutoGen>
@@ -879,6 +881,10 @@
     <Content Include="Views\Users\ResetPassword.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ResetPassword.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Users\Edit.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Edit.generated.cs</LastGenOutput>
     </Content>
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />

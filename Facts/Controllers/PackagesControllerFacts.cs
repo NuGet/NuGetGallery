@@ -1,21 +1,42 @@
-﻿using System.Net.Mail;
+﻿using System;
+using System.Linq;
+using System.Net.Mail;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using Xunit;
-using System;
 
 namespace NuGetGallery.Controllers {
     public class PackagesControllerFacts {
         public class TheContactOwnersMethod {
+            [Fact]
+            public void OnlyShowsOwnersWhoAllowReceivingEmails() {
+                var package = new PackageRegistration {
+                    Id = "pkgid",
+                    Owners = new[]{
+                        new User { Username = "helpful", EmailAllowed = true},
+                        new User { Username = "grinch", EmailAllowed = false},
+                        new User { Username = "helpful2", EmailAllowed = true}
+                    }
+                };
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(p => p.FindPackageRegistrationById("pkgid")).Returns(package);
+                var controller = CreateController(packageSvc: packageSvc);
+
+                var model = (controller.ContactOwners("pkgid") as ViewResult).Model as ContactOwnersViewModel;
+
+                Assert.Equal(2, model.Owners.Count());
+                Assert.Empty(model.Owners.Where(u => u.Username == "grinch"));
+            }
+
             [Fact]
             public void CallsSendContactOwnersMessageWithUserInfo() {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(s => s.SendContactOwnersMessage(
                     It.IsAny<MailAddress>(),
                     It.IsAny<PackageRegistration>(),
-                    "I like the cut of your jib"));
+                    "I like the cut of your jib", It.IsAny<string>()));
                 var package = new PackageRegistration { Id = "factory" };
 
                 var packageSvc = new Mock<IPackageService>();
@@ -118,7 +139,7 @@ namespace NuGetGallery.Controllers {
                 PackageRegistration = new PackageRegistration { Id = "Foo" },
                 Version = "1.0"
             };
-            package.PackageRegistration.Owners.Add(new User("Frodo", "foo", "frodo@thesquire.com"));
+            package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
 
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
             packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
@@ -150,7 +171,7 @@ namespace NuGetGallery.Controllers {
                 PackageRegistration = new PackageRegistration { Id = "Foo" },
                 Version = "1.0"
             };
-            package.PackageRegistration.Owners.Add(new User("Frodo", "foo", "frodo@thesquire.com"));
+            package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
 
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
             packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
@@ -182,7 +203,7 @@ namespace NuGetGallery.Controllers {
                 Version = "1.0",
                 Unlisted = false
             };
-            package.PackageRegistration.Owners.Add(new User("Frodo", "foo", "frodo@thesquire.com"));
+            package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
 
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
             packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
@@ -213,7 +234,7 @@ namespace NuGetGallery.Controllers {
                 Version = "1.0",
                 Unlisted = false
             };
-            package.PackageRegistration.Owners.Add(new User("Frodo", "foo", "frodo@thesquire.com"));
+            package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
 
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
             packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Verifiable();
@@ -259,8 +280,7 @@ namespace NuGetGallery.Controllers {
                 );
 
             if (httpContext != null) {
-                var controllerContext = new ControllerContext(httpContext.Object, new RouteData(), controller);
-                controller.ControllerContext = controllerContext;
+                TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller);
             }
 
             return controller;

@@ -1,5 +1,7 @@
 using System;
 using System.Net.Mail;
+using System.Security.Principal;
+using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
@@ -82,6 +84,8 @@ namespace NuGetGallery {
 
             Bind<IMessageService>()
                 .To<MessageService>();
+
+            Bind<IPrincipal>().ToMethod(context => HttpContext.Current.User);
         }
     }
 }

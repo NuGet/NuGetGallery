@@ -7,6 +7,8 @@ namespace NuGetGallery {
             string password,
             string emailAddress);
 
+        string UpdateProfile(User user, string emailAddress, bool emailAllowed);
+
         User FindByApiKey(Guid apiKey);
 
         User FindByEmailAddress(string emailAddress);
@@ -19,7 +21,7 @@ namespace NuGetGallery {
 
         string GenerateApiKey(string username);
 
-        bool ConfirmAccount(string token);
+        bool ConfirmEmailAddress(User user, string token);
 
         bool ChangePassword(string username, string oldPassword, string newPassword);
 

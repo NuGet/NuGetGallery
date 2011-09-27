@@ -75,8 +75,37 @@ WriteLiteral("                \r\n\r\n");
 
 DefineSection("ContentHeader", () => {
 
-WriteLiteral("\r\n    <h2>My Account</h2>    \r\n");
+WriteLiteral("\r\n    <h2>My Account</h2>\r\n");
 
+
+            
+            #line 13 "..\..\Views\Users\Account.cshtml"
+     if (TempData.ContainsKey("Message")) {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        <div id=\"messages\">\r\n            <div class=\"zone zone-messages\">\r\n      " +
+"          <div class=\"message message-Information\">");
+
+
+            
+            #line 16 "..\..\Views\Users\Account.cshtml"
+                                                    Write(TempData["Message"]);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</div>\r\n            </div>\r\n        </div>\r\n");
+
+
+            
+            #line 19 "..\..\Views\Users\Account.cshtml"
+    }
+
+            
+            #line default
+            #line hidden
 
 });
 
@@ -84,7 +113,7 @@ WriteLiteral("\r\n<h3>Actions</h3>\r\n<section class=\"add-new\">\r\n    <h4><a 
 
 
             
-            #line 16 "..\..\Views\Users\Account.cshtml"
+            #line 23 "..\..\Views\Users\Account.cshtml"
             Write(Url.UploadPackage());
 
             
@@ -102,7 +131,7 @@ WriteLiteral(@""">Upload Package</a></h4>
 
 
             
-            #line 24 "..\..\Views\Users\Account.cshtml"
+            #line 31 "..\..\Views\Users\Account.cshtml"
             Write(Url.Action(MVC.Users.Packages()));
 
             
@@ -114,8 +143,18 @@ WriteLiteral("\">Manage My Contributions</a></h5>\r\n    <p>Edit contribution de
 
 
             
-            #line 28 "..\..\Views\Users\Account.cshtml"
-            Write(Url.Account(AccountAction.ChangePassword));
+            #line 35 "..\..\Views\Users\Account.cshtml"
+            Write(Url.Action(MVC.Users.Edit()));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\">Edit Profile</a></h5>\r\n</section>\r\n<section>\r\n    <h5><a href=\"");
+
+
+            
+            #line 38 "..\..\Views\Users\Account.cshtml"
+            Write(Url.Action(MVC.Users.ChangePassword()));
 
             
             #line default
@@ -136,7 +175,7 @@ WriteLiteral(@""">Change Password</a></h5>
 
 
             
-            #line 40 "..\..\Views\Users\Account.cshtml"
+            #line 50 "..\..\Views\Users\Account.cshtml"
                                        Write(Model.ApiKey);
 
             
@@ -148,7 +187,7 @@ WriteLiteral("</code></p>\r\n    <div style=\"border: 1px solid #ccc;padding:0 1
 
 
             
-            #line 43 "..\..\Views\Users\Account.cshtml"
+            #line 53 "..\..\Views\Users\Account.cshtml"
                      Write(Model.ApiKey);
 
             
@@ -158,7 +197,7 @@ WriteLiteral("</p>\r\n        <form Id=\"generateKeyForm\" action=\"");
 
 
             
-            #line 44 "..\..\Views\Users\Account.cshtml"
+            #line 54 "..\..\Views\Users\Account.cshtml"
                                       Write(Url.Action(MVC.Users.GenerateApiKey()));
 
             
@@ -168,7 +207,7 @@ WriteLiteral("\" method=\"post\">            \r\n            ");
 
 
             
-            #line 45 "..\..\Views\Users\Account.cshtml"
+            #line 55 "..\..\Views\Users\Account.cshtml"
        Write(Html.AntiForgeryToken());
 
             

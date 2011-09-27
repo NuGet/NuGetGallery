@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net.Mail;
+using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
-using System.Web.Routing;
 using Moq;
 using Xunit;
 
@@ -61,18 +61,26 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillSendNewUserEmail() {
+            public void WillSendNewUserEmailIfConfirmationRequired() {
                 var messageSvc = new Mock<IMessageService>();
-                messageSvc.Setup(m => m.SendNewAccountEmail(It.IsAny<MailAddress>(), It.IsAny<string>())).Verifiable();
+                string sentConfirmationUrl = null;
+                MailAddress sentToAddress = null;
+                messageSvc.Setup(m => m.SendNewAccountEmail(It.IsAny<MailAddress>(), It.IsAny<string>()))
+                    .Callback<MailAddress, string>((to, url) => {
+                        sentToAddress = to;
+                        sentConfirmationUrl = url;
+                    });
                 var userSvc = new Mock<IUserService>();
                 userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(new User() {
                         Username = "theUsername",
                         EmailAddress = "to@example.com",
-                        ConfirmationToken = "confirmation"
+                        EmailConfirmationToken = "confirmation"
                     });
-                var controller = CreateController(userSvc: userSvc, messageSvc: messageSvc);
+                var config = new Mock<IConfiguration>();
+                config.Setup(c => c.ConfirmEmailAddresses).Returns(true);
+                var controller = CreateController(config: config, userSvc: userSvc, messageSvc: messageSvc);
 
                 controller.Register(new RegisterRequest() {
                     Username = "theUsername",
@@ -82,15 +90,69 @@ namespace NuGetGallery {
 
                 // We use a catch-all route for unit tests so we can see the parameters 
                 // are passed correctly.
-                messageSvc.Verify(x => x.SendNewAccountEmail(
-                    It.Is<MailAddress>(m => m.Address == "to@example.com"), "https://example.org/?Controller=Users&Action=Confirm&token=confirmation"));
+                Assert.Equal("https://example.org/?Controller=Users&Action=Confirm&username=theUsername&token=confirmation", sentConfirmationUrl);
+                Assert.Equal("to@example.com", sentToAddress.Address);
+            }
+        }
+
+        public class TheEditMethod {
+            [Fact]
+            public void UpdatesEmailAllowedSetting() {
+                var user = new User {
+                    EmailAddress = "test@example.com",
+                    EmailAllowed = true
+                };
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername(It.IsAny<string>())).Returns(user);
+                userService.Setup(u => u.UpdateProfile(user, "test@example.com", false)).Verifiable();
+                var controller = CreateController(userSvc: userService);
+                var model = new EditProfileViewModel { EmailAddress = "test@example.com", EmailAllowed = false };
+
+                var result = controller.Edit(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                userService.Verify(u => u.UpdateProfile(user, "test@example.com", false));
+                Assert.Equal("Account settings Saved!", controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void SendsEmailChangeConfirmationNoticeWhenEmailAddressChanges() {
+                var user = new User {
+                    EmailAddress = "test@example.com",
+                    EmailAllowed = true
+                };
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername(It.IsAny<string>())).Returns(user);
+                userService.Setup(u => u.UpdateProfile(user, "new@example.com", true)).Callback(() => user.EmailConfirmationToken = "token");
+                var controller = CreateController(userSvc: userService);
+                var model = new EditProfileViewModel { EmailAddress = "new@example.com", EmailAllowed = true };
+
+                var result = controller.Edit(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("Account settings saved! We sent a confirmation email to verify your new email. When you confirm the email address, it will take effect and we will forget the old one.", controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void WithInvalidUsernameReturnsFileNotFound() {
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername(It.IsAny<string>())).Returns((User)null);
+                var controller = CreateController(userSvc: userService);
+
+                var result = controller.Edit(new EditProfileViewModel()) as HttpNotFoundResult;
+
+                Assert.NotNull(result);
             }
         }
 
         public class TheGenerateApiKeyMethod {
             [Fact]
             public void RedirectsToAccountPage() {
-                var controller = CreateController(currentUserName: "the-username");
+                var currentUser = new Mock<IPrincipal>();
+                currentUser.Setup(u => u.Identity.Name).Returns("the-username");
+                var controller = CreateController(currentUser: currentUser);
 
                 var result = controller.GenerateApiKey() as RedirectToRouteResult;
 
@@ -101,9 +163,11 @@ namespace NuGetGallery {
 
             [Fact]
             public void GeneratesAnApiKey() {
+                var currentUser = new Mock<IPrincipal>();
+                currentUser.Setup(u => u.Identity.Name).Returns("the-username");
                 var userService = new Mock<IUserService>();
                 userService.Setup(s => s.GenerateApiKey("the-username")).Verifiable();
-                var controller = CreateController(userSvc: userService, currentUserName: "the-username");
+                var controller = CreateController(userSvc: userService, currentUser: currentUser);
 
                 var result = controller.GenerateApiKey() as RedirectToRouteResult;
 
@@ -113,53 +177,82 @@ namespace NuGetGallery {
 
         public class TheConfirmMethod {
             [Fact]
-            public void ReturnsNullConfirmedWhenTokenIsEmpty() {
+            public void Returns404WhenTokenIsEmpty() {
                 var controller = CreateController();
 
-                var result = controller.Confirm("") as ViewResult;
+                var result = controller.Confirm("username", "") as HttpNotFoundResult;
 
-                Assert.Null(result.ViewBag.Confirmed);
+                Assert.NotNull(result);
             }
 
             [Fact]
-            public void ReturnsConfirmedWhenTokenIsMatchesUser() {
+            public void ReturnsConfirmedWhenTokenMatchesUser() {
+                var user = new User {
+                    UnconfirmedEmailAddress = "email@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
                 var userService = new Mock<IUserService>();
-                userService.Setup(u => u.ConfirmAccount("the-token")).Returns(true);
+                userService.Setup(u => u.FindByUsername("username")).Returns(user);
+                userService.Setup(u => u.ConfirmEmailAddress(user, "the-token")).Returns(true);
                 var controller = CreateController(userSvc: userService);
 
-                var result = controller.Confirm("the-token") as ViewResult;
+                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
 
-                Assert.True(result.ViewBag.Confirmed);
+                Assert.True(model.SuccessfulConfirmation);
+            }
+
+            [Fact]
+            public void SendsAccountChangedNoticeWhenConfirmingChangedEmail() {
+                var userService = new Mock<IUserService>();
+                var user = new User {
+                    EmailAddress = "old@example.com",
+                    UnconfirmedEmailAddress = "new@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
+                userService.Setup(u => u.FindByUsername("username")).Returns(user);
+                userService.Setup(u => u.ConfirmEmailAddress(user, "the-token")).Returns(true);
+                var messageService = new Mock<IMessageService>();
+                messageService.Setup(m => m.SendEmailChangeNoticeToPreviousEmailAddress(user, "old@example.com")).Verifiable();
+                var controller = CreateController(messageSvc: messageService, userSvc: userService);
+
+                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
+
+                Assert.True(model.SuccessfulConfirmation);
+                Assert.False(model.ConfirmingNewAccount);
+                messageService.Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(user, "old@example.com"));
             }
 
             [Fact]
             public void ReturnsFalseWhenTokenDoesNotMatchUser() {
+                var user = new User {
+                    EmailAddress = "old@example.com",
+                    UnconfirmedEmailAddress = "new@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
                 var userService = new Mock<IUserService>();
-                userService.Setup(u => u.ConfirmAccount("the-token")).Returns(false);
+                userService.Setup(u => u.FindByUsername("username")).Returns(user);
+                userService.Setup(u => u.ConfirmEmailAddress(user, "not-the-token")).Returns(false);
                 var controller = CreateController(userSvc: userService);
 
-                var result = controller.Confirm("the-token") as ViewResult;
+                var model = (controller.Confirm("username", "not-the-token") as ViewResult).Model as EmailConfirmationModel;
 
-                Assert.False(result.ViewBag.Confirmed);
+                Assert.False(model.SuccessfulConfirmation);
             }
         }
 
         public class TheForgotPasswordMethod {
             [Fact]
             public void SendsEmailWithPasswordResetUrl() {
-                var messageService = new Mock<IMessageService>();
-                string resetUrl = "https://example.org/?Controller=Users&Action=ResetPassword&username=somebody&token=confirmation";
-                messageService.Setup(s => s.SendResetPasswordInstructions(
-                    It.Is<MailAddress>(addr => addr.Address == "some@example.com" && addr.DisplayName == "somebody"),
-                    resetUrl)
-                );
-
                 var user = new User {
                     EmailAddress = "some@example.com",
                     Username = "somebody",
                     PasswordResetToken = "confirmation",
                     PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
                 };
+                var messageService = new Mock<IMessageService>();
+                string resetUrl = "https://example.org/?Controller=Users&Action=ResetPassword&username=somebody&token=confirmation";
+                messageService.Setup(s => s.SendPasswordResetInstructions(user, resetUrl)
+                );
                 var userService = new Mock<IUserService>();
                 userService.Setup(s => s.GeneratePasswordResetToken("user", 1440)).Returns(user);
                 var controller = CreateController(userSvc: userService, messageSvc: messageService);
@@ -168,10 +261,7 @@ namespace NuGetGallery {
                 var result = controller.ForgotPassword(model) as RedirectToRouteResult;
 
                 Assert.NotNull(result);
-                messageService.Verify(s => s.SendResetPasswordInstructions(
-                    It.Is<MailAddress>(addr => addr.Address == "some@example.com" && addr.DisplayName == "somebody"),
-                    resetUrl)
-                );
+                messageService.Verify(s => s.SendPasswordResetInstructions(user, resetUrl));
             }
 
             [Fact]
@@ -237,38 +327,31 @@ namespace NuGetGallery {
         }
 
         static UsersController CreateController(
+            Mock<IConfiguration> config = null,
             Mock<IFormsAuthenticationService> formsAuthSvc = null,
             Mock<IUserService> userSvc = null,
             Mock<IMessageService> messageSvc = null,
-            string currentUserName = null) {
+            Mock<IPrincipal> currentUser = null) {
             formsAuthSvc = formsAuthSvc ?? new Mock<IFormsAuthenticationService>();
             userSvc = userSvc ?? new Mock<IUserService>();
             var packageService = new Mock<IPackageService>();
             messageSvc = messageSvc ?? new Mock<IMessageService>();
+            config = config ?? new Mock<IConfiguration>();
+
+            if (currentUser == null) {
+                currentUser = new Mock<IPrincipal>();
+                currentUser.Setup(u => u.Identity.Name).Returns((string)null);
+            }
 
             var controller = new UsersController(
                 formsAuthSvc.Object,
                 userSvc.Object,
                 packageService.Object,
-                messageSvc.Object);
+                messageSvc.Object,
+                config.Object,
+                currentUser.Object);
 
-            // TODO: See this following block? This is a code smell. We
-            //       need a better way to grab the current username perhaps?
-
-            var httpContext = new Mock<HttpContextBase>();
-            if (currentUserName != null) {
-                httpContext.Setup(c => c.User.Identity.Name).Returns(currentUserName);
-            }
-            httpContext.Setup(c => c.Request.Url).Returns(new Uri("https://example.org/"));
-            httpContext.Setup(c => c.Request.ApplicationPath).Returns("/");
-            httpContext.Setup(c => c.Response.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(s => s);
-            var requestContext = new RequestContext(httpContext.Object, new RouteData());
-            var controllerContext = new ControllerContext(requestContext, controller);
-            controller.ControllerContext = controllerContext;
-            var routeCollection = new RouteCollection();
-            routeCollection.MapRoute("catch-all", "{*catchall}");
-            controller.Url = new UrlHelper(requestContext, routeCollection);
-
+            TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), controller);
             return controller;
         }
     }

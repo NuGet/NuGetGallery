@@ -89,7 +89,7 @@ WriteLiteral("        <span class=\"welcome\"><a href=\"");
 
             
             #line 8 "..\..\Views\Shared\UserDisplay.cshtml"
-                                  Write(Url.Account());
+                                  Write(Url.Action(MVC.Users.Account()));
 
             
             #line default
@@ -99,7 +99,7 @@ WriteLiteral("\">");
 
             
             #line 8 "..\..\Views\Shared\UserDisplay.cshtml"
-                                                  Write(User.Identity.Name);
+                                                                    Write(User.Identity.Name);
 
             
             #line default

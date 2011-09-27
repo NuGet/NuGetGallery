@@ -25,7 +25,7 @@ using T4MVC;
 public static class MVC {
     public static NuGetGallery.ApiController Api = new NuGetGallery.T4MVC_ApiController();
     public static NuGetGallery.AuthenticationController Authentication = new NuGetGallery.T4MVC_AuthenticationController();
-    public static NuGetGallery.Controllers.JsonApiController JsonApi = new NuGetGallery.Controllers.T4MVC_JsonApiController();
+    public static NuGetGallery.JsonApiController JsonApi = new NuGetGallery.T4MVC_JsonApiController();
     public static NuGetGallery.PackagesController Packages = new NuGetGallery.T4MVC_PackagesController();
     public static NuGetGallery.PagesController Pages = new NuGetGallery.T4MVC_PagesController();
     public static NuGetGallery.UsersController Users = new NuGetGallery.T4MVC_UsersController();

@@ -170,8 +170,15 @@ namespace NuGetGallery {
 
             var model = new ReportAbuseViewModel {
                 PackageId = id,
-                PackageVersion = package.Version
+                PackageVersion = package.Version,
             };
+
+            if (Request.IsAuthenticated) {
+                var user = userSvc.FindByUsername(HttpContext.User.Identity.Name);
+                if (user.Confirmed) {
+                    model.ConfirmedUser = true;
+                }
+            }
 
             return View(model);
         }
@@ -189,7 +196,7 @@ namespace NuGetGallery {
             MailAddress from = null;
             if (Request.IsAuthenticated) {
                 var user = userSvc.FindByUsername(HttpContext.User.Identity.Name);
-                from = new MailAddress(user.EmailAddress, user.Username);
+                from = user.ToMailAddress();
             }
             else {
                 from = new MailAddress(reportForm.Email);
@@ -211,7 +218,7 @@ namespace NuGetGallery {
 
             var model = new ContactOwnersViewModel {
                 PackageId = package.Id,
-                Owners = package.Owners
+                Owners = package.Owners.Where(u => u.EmailAllowed)
             };
 
             return View(model);
@@ -230,7 +237,7 @@ namespace NuGetGallery {
 
             var user = userSvc.FindByUsername(HttpContext.User.Identity.Name);
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
-            messageService.SendContactOwnersMessage(fromAddress, package, contactForm.Message);
+            messageService.SendContactOwnersMessage(fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Edit(), protocol: Request.Url.Scheme));
 
             string message = String.Format("Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;

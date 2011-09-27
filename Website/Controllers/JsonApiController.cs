@@ -3,7 +3,7 @@ using System.Web;
 using System.Web.Mvc;
 using MvcHaack.Ajax;
 
-namespace NuGetGallery.Controllers {
+namespace NuGetGallery {
     public partial class JsonApiController : JsonController {
         IPackageService packageSvc;
         IUserService userSvc;

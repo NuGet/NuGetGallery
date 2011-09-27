@@ -1,8 +1,6 @@
 ﻿var formFieldFocusColor = "#e4f1f7";
 
 $(function() {
-    setTimeout(function() { $(".message-Information").fadeOut(); }, 6000);
-
     var searchPlaceholder = "Search Packages";
 
     $("#searchTerm").focus(function() {

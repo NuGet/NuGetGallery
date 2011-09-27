@@ -110,17 +110,18 @@ WriteLiteral("\">\r\n                ");
             
             #line default
             #line hidden
-WriteLiteral("\r\n                <aside>\r\n                    <p>\r\n                        ");
+WriteLiteral("\r\n                <aside>\r\n                    <p>\r\n                        <stro" +
+"ng>");
 
 
             
             #line 24 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-                   Write(Html.ValidationMessage(prop.PropertyName));
+                           Write(Html.ValidationMessage(prop.PropertyName));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n");
+WriteLiteral("</strong>\r\n");
 
 
             

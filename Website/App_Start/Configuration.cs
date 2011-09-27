@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Net.Mail;
 using System.Web;
-using System.Collections.Generic;
 
 namespace NuGetGallery {
     public class Configuration : IConfiguration {
@@ -13,27 +13,27 @@ namespace NuGetGallery {
             var configValue = ConfigurationManager.AppSettings[appSettingKey];
             return configValue;
         }
-        
+
         public static T ReadConfiguration<T>(
             string key,
             Func<string, T> thunk) {
-                if (!configThunks.ContainsKey(key))
-                    configThunks.Add(key, new Lazy<object>(() => {
-                        var value = ReadAppSetting(key);
-                        return thunk(value);
-                    }));
-                
+            if (!configThunks.ContainsKey(key))
+                configThunks.Add(key, new Lazy<object>(() => {
+                    var value = ReadAppSetting(key);
+                    return thunk(value);
+                }));
+
             return (T)configThunks[key].Value;
         }
 
         public bool ConfirmEmailAddresses {
             get {
                 return ReadConfiguration<bool>(
-                    "ConfirmEmailAddresses", 
-                    (value) => bool.Parse(value ?? bool.FalseString));
+                    "ConfirmEmailAddresses",
+                    (value) => bool.Parse(value ?? bool.TrueString));
             }
         }
-        
+
         public string PackageFileDirectory {
             get {
                 return ReadConfiguration<string>(
@@ -45,8 +45,8 @@ namespace NuGetGallery {
         public MailAddress GalleryOwnerEmailAddress {
             get {
                 return ReadConfiguration<MailAddress>(
-                    "GalleryOwnerEmail", 
-                    (value) => new MailAddress(value)); 
+                    "GalleryOwnerEmail",
+                    (value) => new MailAddress(value));
             }
         }
     }

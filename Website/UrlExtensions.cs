@@ -11,14 +11,6 @@ namespace NuGetGallery {
             return url.RouteUrl(RouteName.Home);
         }
 
-        public static string Account(this UrlHelper url) {
-            return url.Action(MVC.Users.Account());
-        }
-
-        public static string Account(this UrlHelper url, AccountAction action) {
-            return url.RouteUrl(RouteName.Account, new { action = action.ToString() });
-        }
-
         public static string Publish(this UrlHelper url, Package package) {
             return url.Action(MVC.Packages.PublishPackage(package.PackageRegistration.Id, package.Version, package.Unlisted));
         }
@@ -86,11 +78,9 @@ namespace NuGetGallery {
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package) {
             return url.Action(MVC.Packages.ManagePackageOwners(package.Id, package.Version));
         }
-    }
 
-    public enum AccountAction {
-        Register,
-        ChangePassword, // NOTE: there is currently no action by this name!
-        Packages
+        public static string ConfirmationUrl(this UrlHelper url, ActionResult actionResult, string username, string token, string protocol) {
+            return url.Action(actionResult.AddRouteValue("username", username).AddRouteValue("token", token), protocol: protocol);
+        }
     }
 }

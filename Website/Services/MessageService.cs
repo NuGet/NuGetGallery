@@ -41,17 +41,17 @@ _Message sent from {5}_
             return mailMessage;
         }
 
-        public MailMessage SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message) {
+        public MailMessage SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl) {
             string subject = "[{0}] Message for owners of the package '{1}'";
-            string body = @"_User {0} ({1}) sends the following message to the owners of Package '{2}'._
+            string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}'._
 
 {3}
 
 -----------------------------------------------
-_This email is sent from an automated service - please do not reply directly to this email._
-
-<em style=""font-size: 0.8em;"">We take your privacy seriously. To opt-out of future emails from NuGet.org, send an email 
-message with subject line __{4} Opt-out__ to [{5}](mailto:{5}?subject=NuGet.org%20Opt-out).</em>";
+<em style=""font-size: 0.8em;"">
+    To stop receiving contact emails as an owner of this package, sign in to the {4} and 
+    [change your email notification settings]({5}).
+</em>";
 
             body = String.Format(body,
                 fromAddress.DisplayName,
@@ -59,7 +59,7 @@ message with subject line __{4} Opt-out__ to [{5}](mailto:{5}?subject=NuGet.org%
                 packageRegistration.Id,
                 message,
                 configuration.GalleryOwnerEmailAddress.DisplayName,
-                configuration.GalleryOwnerEmailAddress.Address);
+                emailSettingsUrl);
 
             var mailMessage = new MailMessage {
                 Subject = String.Format(subject, configuration.GalleryOwnerEmailAddress.DisplayName, packageRegistration.Id),
@@ -76,16 +76,15 @@ message with subject line __{4} Opt-out__ to [{5}](mailto:{5}?subject=NuGet.org%
 
         private static void AddOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage) {
             foreach (var owner in packageRegistration.Owners.Where(o => o.EmailAllowed)) {
-                mailMessage.To.Add(new MailAddress(owner.EmailAddress, owner.Username));
+                mailMessage.To.Add(owner.ToMailAddress());
             }
         }
-
 
         public MailMessage SendNewAccountEmail(MailAddress toAddress, string confirmationUrl) {
             string body = @"Thank you for registering with the {0}. 
 We can't wait to see what packages you'll upload.
 
-To verify that you own this e-mail address, please click the following link:
+So we can be sure to contact you, please verify your email address and click the following link:
 
 [{1}]({2})
 
@@ -107,8 +106,56 @@ The {0} Team";
             return mailMessage;
         }
 
+        public MailMessage SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl) {
+            string body = @"You recently changed your {0} email address. 
 
-        public MailMessage SendResetPasswordInstructions(MailAddress toAddress, string resetPasswordUrl) {
+To verify your new email address, please click the following link:
+
+[{1}]({2})
+
+Thanks,
+The {0} Team";
+
+            body = String.Format(body,
+                configuration.GalleryOwnerEmailAddress.DisplayName,
+                HttpUtility.UrlDecode(confirmationUrl),
+                confirmationUrl);
+
+            var mailMessage = new MailMessage {
+                Subject = String.Format("[{0}] Please verify your new email address.", configuration.GalleryOwnerEmailAddress.DisplayName),
+                Body = body,
+                From = configuration.GalleryOwnerEmailAddress,
+            };
+            mailMessage.To.Add(newEmailAddress);
+            mailSender.Send(mailMessage);
+            return mailMessage;
+        }
+
+        public MailMessage SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress) {
+            string body = @"Hi there,
+
+The email address associated to your {0} account was recently 
+changed from _{1}_ to _{2}_.
+
+Thanks,
+The {0} Team";
+
+            body = String.Format(body,
+                configuration.GalleryOwnerEmailAddress.DisplayName,
+                oldEmailAddress,
+                user.EmailAddress);
+
+            var mailMessage = new MailMessage {
+                Subject = String.Format("[{0}] Recent changes to your account.", configuration.GalleryOwnerEmailAddress.DisplayName),
+                Body = body,
+                From = configuration.GalleryOwnerEmailAddress,
+            };
+            mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
+            mailSender.Send(mailMessage);
+            return mailMessage;
+        }
+
+        public MailMessage SendPasswordResetInstructions(User user, string resetPasswordUrl) {
             string body = @"The word on the street is you lost your password. Sorry to hear it!
 If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
 
@@ -129,7 +176,7 @@ The {2} Team";
                 Body = body,
                 From = configuration.GalleryOwnerEmailAddress,
             };
-            mailMessage.To.Add(toAddress);
+            mailMessage.To.Add(user.ToMailAddress());
             mailSender.Send(mailMessage);
             return mailMessage;
         }

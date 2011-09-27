@@ -11,27 +11,44 @@
 @section ContentHeader {            
     <h2>Contact the Owners of <em>@Model.PackageId</em></h2>
 }
-
-<div class="description">
-<p>
-    By submitting this form, you agree to <strong>disclose your email address</strong> 
-    to the package owners listed below so they can reply to you.
-</p>
-</div> 
-<div id="form">
-    <form action="@Url.Current()" id="contactOwnersForm" method="post">
-        <label style="padding-left: 20px;">
+@if (Model.Owners.Any()) {
+    <div class="description">
+        <p>
+            By submitting this form, you agree to <strong>disclose your email address</strong> 
+            to the package owners listed below so they can reply to you.
+        </p>
+    </div> 
+    <form action="@Url.Current()" id="form" method="post">
+        <label>
             To: @ViewHelpers.OwnersGravatar(Model.Owners, 24, Url)
         </label>
-        <div>
+        <div @if (Html.IsError(m => m.Message)) {<text>class="invalid"</text>}>
             @Html.LabelFor(m => m.Message)
-                                
-            @Html.TextAreaFor(m => m.Message, 10, 60, null)
-            <div style="display: block;">
-                @Html.ValidationMessageFor(m => m.Message)
-            </div>
-        </div>
+            <aside>
+                <p>
+                    <strong>@Html.ValidationMessageFor(m => m.Message)</strong>
+                </p>
+            </aside>
+            @Html.TextAreaFor(m => m.Message, 10, 50, null)
+        </div>                     
+
         @Html.AntiForgeryToken()
         <input id="contactOwnersButton" type="submit" value="Send" singleclickbutton="true" />
     </form>
-</div>
+}
+else {
+    <div id="messages">
+        <div class="zone zone-messages">
+            <div class="message message-Warning">
+                <p>Sorry, the owners of this package do not allow contacting them through this form.</p>
+            </div>
+            <p class="description">Try visiting the project home page for the package in order to contact the package owner.</p>
+        </div>
+    </div>
+}
+
+@section BottomScripts {
+    <script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/Scripts/gallery.form.js")" type="text/javascript"></script>
+}
