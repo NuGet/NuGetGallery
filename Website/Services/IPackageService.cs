@@ -1,10 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NuGet;
+using System.IO;
 
 namespace NuGetGallery {
     public interface IPackageService {
         Package CreatePackage(IPackage nugetPackage, User currentUser);
+
+        void SavePackageFile(Package package, Stream stream);
 
         void DeletePackage(string id, string version);
 

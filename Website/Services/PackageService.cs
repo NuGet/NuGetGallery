@@ -5,6 +5,7 @@ using System.Linq;
 using System.Transactions;
 using MvcMiniProfiler;
 using NuGet;
+using System.IO;
 
 namespace NuGetGallery {
     public class PackageService : IPackageService {
@@ -38,11 +39,16 @@ namespace NuGetGallery {
             using (var tx = new TransactionScope())
             using (var stream = nugetPackage.GetStream()) {
                 packageRegistrationRepo.CommitChanges();
-                packageFileSvc.SavePackageFile(package, stream);
+                SavePackageFile(package,stream);
                 tx.Complete();
             }
 
             return package;
+        }
+
+        public void SavePackageFile(Package package, Stream stream)
+        {
+            packageFileSvc.SavePackageFile(package, stream);
         }
 
         public void DeletePackage(string id, string version) {
