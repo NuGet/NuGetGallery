@@ -148,8 +148,5 @@ namespace NuGetGallery {
             var modelState = htmlHelper.ViewData.ModelState[metadata.PropertyName];
             return modelState != null && modelState.Errors != null && modelState.Errors.Count > 0;
         }
-
-
-
     }
 }

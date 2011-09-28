@@ -2,6 +2,7 @@
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using NuGet;
 
 namespace NuGetGallery {
     public class VersionRouteConstraint : IRouteConstraint {
@@ -19,8 +20,8 @@ namespace NuGetGallery {
             if (versionText == string.Empty) {
                 return true;
             }
-            Version ignored;
-            return Version.TryParse(versionText, out ignored);
+            SemanticVersion ignored;
+            return SemanticVersion.TryParse(versionText, out ignored);
         }
     }
 }

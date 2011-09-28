@@ -2,6 +2,7 @@
 using System.Data.Entity;
 using System.Linq;
 using OData.Linq;
+using NuGet;
 
 namespace NuGetGallery {
     public static class PackageExtensions {
@@ -27,6 +28,7 @@ namespace NuGetGallery {
                          GalleryDetailsUrl = "http://localhost",
                          IconUrl = p.IconUrl,
                          IsLatestVersion = p.IsLatest,
+                         IsAbsoluteLatestVersion = p.IsAbsoluteLatest,
                          LastUpdated = p.LastUpdated,
                          LicenseUrl = p.LicenseUrl,
                          PackageHash = p.Hash,
@@ -42,6 +44,11 @@ namespace NuGetGallery {
                          Title = p.Title,
                          VersionDownloadCount = p.DownloadStatistics.Count,
                      });
+        }
+        
+        public static bool IsReleaseVersion(this Package package) {
+            SemanticVersion version = new SemanticVersion(package.Version);
+            return String.IsNullOrEmpty(version.SpecialVersion);
         }
     }
 }

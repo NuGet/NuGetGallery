@@ -87,13 +87,17 @@ namespace NuGetGallery {
 
             Package package = null;
             if (version == null) {
-                package = packageVersions
-                    .Where(p => p.IsLatest)
-                    .SingleOrDefault();
+                package = packageVersions.FirstOrDefault(p => p.IsLatest);
 
                 if (package == null && packageVersions.Any()) {
-                    // Should never happen.
-                    throw new InvalidOperationException("Packages are in a bad state. At least one should have IsLatest set");
+                    // If we haven't found a package, there is a possibility that no package is marked "latest".
+                    // This could happen if all versions of a package uploaded so far are pre-release versions.
+
+                    package = packageVersions.FirstOrDefault(p => p.IsAbsoluteLatest);
+                }
+
+                if (package == null) {
+                    throw new InvalidOperationException("Packages are in a bad state. At least one should have IsLatest or IsAbsoluteLatest set");
                 }
             }
             else {
@@ -130,7 +134,7 @@ namespace NuGetGallery {
                                        where d.Id == package.PackageRegistration.Id
                                        select d).Include(pk => pk.Package.PackageRegistration).ToList();
             // Now filter by version range.
-            var packageVersion = Version.Parse(package.Version);
+            var packageVersion = new SemanticVersion(package.Version);
             var dependents = from d in candidateDependents
                              where VersionUtility.ParseVersionSpec(d.VersionRange).Satisfies(packageVersion)
                              select d;
@@ -257,13 +261,35 @@ namespace NuGetGallery {
 
         void UpdateIsLatest(PackageRegistration packageRegistration) {
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
-            foreach (var pv in packageRegistration.Packages)
+            foreach (var pv in packageRegistration.Packages) {
                 pv.IsLatest = false;
+                pv.IsAbsoluteLatest = false;
+            }
 
-            var latestVersion = packageRegistration.Packages.Where(p => p.Published != null).
-                Max(p => new Version(p.Version));
+            var latestPackage = FindPackage(packageRegistration.Packages, p => p.Published != null);
+            latestPackage.IsAbsoluteLatest = true;
 
-            packageRegistration.Packages.Where(pv => pv.Version == latestVersion.ToString()).Single().IsLatest = true;
+            if (latestPackage.IsReleaseVersion()) {
+                // Only release versions are marked as IsLatest. 
+                latestPackage.IsLatest = true;
+            }
+            else {
+                // If the newest uploaded package is a prerelease package, we need to find an older package that is 
+                // not a release version and set it to IsLatest.
+                var latestReleasePackage = FindPackage(packageRegistration.Packages, p => p.Published != null && p.IsReleaseVersion());
+                if (latestReleasePackage != null) {
+                    // We could have no release packages
+                    latestReleasePackage.IsLatest = true;
+                }
+            }
+        }
+
+        private static Package FindPackage(IEnumerable<Package> packages, Func<Package, bool> predicate) {
+            var version = packages.Where(predicate).Max(p => new SemanticVersion(p.Version));
+            if (version == null) {
+                return null;
+            }
+            return packages.First(pv => pv.Version.Equals(version.ToString(), StringComparison.OrdinalIgnoreCase));
         }
 
         public void AddPackageOwner(Package package, User user) {

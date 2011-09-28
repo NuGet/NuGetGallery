@@ -25,7 +25,7 @@ namespace NuGetGallery {
         public string Hash { get; set; }
         public string IconUrl { get; set; }
         public bool IsLatest { get; set; }
-        public bool IsPrerelease { get; set; }
+        public bool IsAbsoluteLatest { get; set; }
         public DateTime LastUpdated { get; set; }
         public string LicenseUrl { get; set; }
         public DateTime? Published { get; set; }

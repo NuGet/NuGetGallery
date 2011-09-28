@@ -7,7 +7,7 @@ using NuGet;
 using Xunit;
 
 namespace NuGetGallery {
-    public class PackageServiceFacts {        
+    public class PackageServiceFacts {
         public class TheCreatePackageMethod {
             [Fact]
             public void WillCreateANewPackageRegistrationUsingTheNugetPackIdWhenOneDoesNotAlreadyExist() {
@@ -243,8 +243,12 @@ namespace NuGetGallery {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Dependencies).Returns(new[] { 
-                    new NuGet.PackageDependency("theFirstDependency".PadRight(2000, '_'), new VersionSpec(){ MinVersion = new Version(1,0), MaxVersion = new Version(2,0), IsMinInclusive = true, IsMaxInclusive = false }),
-                    new NuGet.PackageDependency("theSecondDependency".PadRight(2000, '_'), new VersionSpec(new Version(1,0))), 
+                    new NuGet.PackageDependency("theFirstDependency".PadRight(2000, '_'), new VersionSpec { 
+                        MinVersion = new SemanticVersion("1.0"), 
+                        MaxVersion = new SemanticVersion("2.0"), 
+                        IsMinInclusive = true, 
+                        IsMaxInclusive = false }),
+                    new NuGet.PackageDependency("theSecondDependency".PadRight(2000, '_'), new VersionSpec(new SemanticVersion("1.0"))), 
                 });
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
@@ -448,6 +452,51 @@ namespace NuGetGallery {
 
                 Assert.Equal("id", ex.ParamName);
             }
+
+            [Fact]
+            public void FindPackageReturnsTheLatestVersionIfAvailable() {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var package = CreatePackage("Foo", "1.0.0");
+                package.IsLatest = true;
+                var packageA = CreatePackage("Foo", "1.0.0a");
+
+                repository.Setup(repo => repo.GetAll())
+                          .Returns(new[] { package, packageA }.AsQueryable());
+                var service = CreateService(packageRepo: repository);
+
+                // Act
+                var result = service.FindPackageByIdAndVersion("Foo");
+
+                // Assert
+                Assert.Equal(package, result);
+            }
+
+            [Fact]
+            public void FindPackageReturnsTheLatestAbsoluteVersionIfNoLatestVersionIsAvailable() {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var package = CreatePackage("Foo", "1.0.0b");
+                package.IsAbsoluteLatest = true;
+                var packageA = CreatePackage("Foo", "1.0.0a");
+
+                repository.Setup(repo => repo.GetAll())
+                          .Returns(new[] { package, packageA }.AsQueryable());
+                var service = CreateService(packageRepo: repository);
+
+                // Act
+                var result = service.FindPackageByIdAndVersion("Foo");
+
+                // Assert
+                Assert.Equal(package, result);
+            }
+        }
+
+        private static Package CreatePackage(string id, string version) {
+            return new Package {
+                PackageRegistration = new PackageRegistration { Id = id },
+                Version = version
+            };
         }
 
         public class ThePublishPackageMethod {
@@ -557,6 +606,68 @@ namespace NuGetGallery {
             }
 
             [Fact]
+            public void SetUpdateUpdatesIsAbsoluteLatestForPrereleasePackage() {
+                Package package = new Package {
+                    Version = "1.0.42alpha",
+                    Published = DateTime.Now,
+                    PackageRegistration = new PackageRegistration() {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
+                package.PackageRegistration.Packages.Add(package);
+                var package_39 = new Package {
+                    Version = "1.0.39",
+                    PackageRegistration = package.PackageRegistration,
+                    Published = DateTime.Now.AddDays(-1)
+                };
+                package.PackageRegistration.Packages.Add(package_39);
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepo: packageRepo,
+                    setup: mockPackageSvc => {
+                        mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                    });
+
+                service.PublishPackage("theId", "1.0.42alpha");
+                Assert.True(package_39.IsLatest);
+                Assert.False(package_39.IsAbsoluteLatest);
+                Assert.False(package.IsLatest);
+                Assert.True(package.IsAbsoluteLatest);
+            }
+
+            [Fact]
+            public void SetUpdateDoesNotSetIsLatestForAnyIfAllPackagesArePrerelease() {
+                Package package = new Package {
+                    Version = "1.0.42alpha",
+                    Published = DateTime.Now,
+                    PackageRegistration = new PackageRegistration() {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
+                package.PackageRegistration.Packages.Add(package);
+                var package_39 = new Package {
+                    Version = "1.0.39beta",
+                    PackageRegistration = package.PackageRegistration,
+                    Published = DateTime.Now.AddDays(-1)
+                };
+                package.PackageRegistration.Packages.Add(package_39);
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepo: packageRepo,
+                    setup: mockPackageSvc => {
+                        mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                    });
+
+                service.PublishPackage("theId", "1.0.42alpha");
+                Assert.False(package_39.IsLatest);
+                Assert.False(package_39.IsAbsoluteLatest);
+                Assert.False(package.IsLatest);
+                Assert.True(package.IsAbsoluteLatest);
+            }
+
+            [Fact]
             public void WillThrowIfThePackageDoesNotExist() {
                 var service = CreateService(
                     setup: mockPackageSvc => {
@@ -568,7 +679,7 @@ namespace NuGetGallery {
                 Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
             }
         }
-        
+
         public class TheAddDownloadStatisticsMethod {
             [Fact]
             public void WillInsertNewRecordIntoTheStatisticsRepository() {
@@ -599,13 +710,18 @@ namespace NuGetGallery {
             var nugetPackage = new Mock<IPackage>();
 
             nugetPackage.Setup(x => x.Id).Returns("theId");
-            nugetPackage.Setup(x => x.Version).Returns(new Version("1.0.42.0"));
+            nugetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42.0"));
 
             nugetPackage.Setup(x => x.Authors).Returns(new[] { "theFirstAuthor", "theSecondAuthor" });
             nugetPackage.Setup(x => x.Dependencies).Returns(new[] 
             { 
-                new NuGet.PackageDependency("theFirstDependency", new VersionSpec(){ MinVersion = new Version(1,0), MaxVersion = new Version(2,0), IsMinInclusive = true, IsMaxInclusive = false }),
-                new NuGet.PackageDependency("theSecondDependency", new VersionSpec(new Version(1,0))),
+                new NuGet.PackageDependency("theFirstDependency", new VersionSpec { 
+                    MinVersion = new SemanticVersion("1.0"), 
+                    MaxVersion = new SemanticVersion("2.0"), 
+                    IsMinInclusive = true, 
+                    IsMaxInclusive = false 
+                }),
+                new NuGet.PackageDependency("theSecondDependency", new VersionSpec(new SemanticVersion("1.0"))),
                 new NuGet.PackageDependency("theThirdDependency")
             });
             nugetPackage.Setup(x => x.Description).Returns("theDescription");

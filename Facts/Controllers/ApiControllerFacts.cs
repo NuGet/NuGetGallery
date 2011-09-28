@@ -18,10 +18,10 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfAPackageWithTheIdAndVersionAlreadyExists() {
+            public void WillThrowIfAPackageWithTheIdAndSemanticVersionAlreadyExists() {
                 var nuGetPackage = new Mock<IPackage>();
                 nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(new Version("1.0.42"));
+                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
                 var userSvc = new Mock<IUserService>();
@@ -37,7 +37,7 @@ namespace NuGetGallery {
             public void WillFindTheUserThatMatchesTheApiKey() {
                 var nuGetPackage = new Mock<IPackage>();
                 nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(new Version("1.0.42"));
+                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageSvc = new Mock<IPackageService>();
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
@@ -53,7 +53,7 @@ namespace NuGetGallery {
             public void WillCreateAPackageFromTheNuGetPackage() {
                 var nuGetPackage = new Mock<IPackage>();
                 nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(new Version("1.0.42"));
+                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageSvc = new Mock<IPackageService>();
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
@@ -68,7 +68,7 @@ namespace NuGetGallery {
             public void WillCreateAPackageWithTheUserMatchingTheApiKey() {
                 var nuGetPackage = new Mock<IPackage>();
                 nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(new Version("1.0.42"));
+                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageSvc = new Mock<IPackageService>();
                 var userSvc = new Mock<IUserService>();
                 var matchingUser = new User();
@@ -94,7 +94,7 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfAPackageWithTheIdAndVersionDoesNotExist() {
+            public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist() {
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)null);
                 var userSvc = new Mock<IUserService>();
@@ -173,7 +173,7 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfAPackageWithTheIdAndVersionDoesNotExist() {
+            public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist() {
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)null);
                 var userSvc = new Mock<IUserService>();
