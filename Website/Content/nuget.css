@@ -729,6 +729,13 @@ article.privacy
     color:#A8A8A8;
 }
 
+.message-Warning .note {
+    text-align: left;
+    font-weight: normal;
+    font-size: 0.8em;
+    padding: 0 8px;
+}
+
 div.profile ul {
     margin-top: 10px;
 }
