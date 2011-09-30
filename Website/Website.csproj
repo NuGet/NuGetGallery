@@ -144,6 +144,7 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Infrastructure\HintAttribute.cs" />
+    <Compile Include="Migrations\20110930150000_UpdatePackagesTable.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">
