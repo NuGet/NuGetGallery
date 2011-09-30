@@ -133,6 +133,26 @@ WriteLiteral("    <p>\r\n        An email with instructions on how to activate y
 
             
             #line 26 "..\..\Views\Users\Thanks.cshtml"
+    
+    if (Request.IsLocal) {
+
+            
+            #line default
+            #line hidden
+WriteLiteral(@"        <div class=""zone zone-messages"">
+            <div class=""message message-Warning system"">
+                <p>
+                    Pssst! I see you're running this in a development environment. 
+                    <strong>Check the <em>\App_Data\Mail</em> folder for the email</strong>.
+                </p>
+            </div>
+        </div>
+");
+
+
+            
+            #line 36 "..\..\Views\Users\Thanks.cshtml"
+    }
 }
 else {
 
@@ -149,7 +169,7 @@ WriteLiteral("    <p>\r\n        Click on the <em>Upload package</em> link in th
 
 
             
-            #line 36 "..\..\Views\Users\Thanks.cshtml"
+            #line 47 "..\..\Views\Users\Thanks.cshtml"
 }
 
             

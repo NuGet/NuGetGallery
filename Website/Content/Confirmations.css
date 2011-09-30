@@ -35,10 +35,17 @@ Links: #0071BC
     background-color: #39922C; /* green */
     color: #fff;
 }
+
 .message-Warning {
     background:#fdf5bc; /* yellow */
     border:1px solid #ffea9b;
 }
+
+.system 
+{
+    border: solid 1px #000;
+}
+
 .critical.message {
     background:#c13a3f; /* red */
     color:#fff;

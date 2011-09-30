@@ -23,6 +23,17 @@
         An email with instructions on how to activate your account is on its way 
         to you.
     </p>
+    
+    if (Request.IsLocal) {
+        <div class="zone zone-messages">
+            <div class="message message-Warning system">
+                <p>
+                    Pssst! I see you're running this in a development environment. 
+                    <strong>Check the <em>\App_Data\Mail</em> folder for the email</strong>.
+                </p>
+            </div>
+        </div>
+    }
 }
 else {
     <p>
