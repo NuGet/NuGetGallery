@@ -21,10 +21,17 @@ namespace NuGetGallery {
             var packageToPush = ReadPackageFromRequest();
 
             var package = packageSvc.FindPackageByIdAndVersion(packageToPush.Id, packageToPush.Version.ToString());
-            if (package != null)
-                throw new EntityException(Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString());
 
-            package = packageSvc.CreatePackage(packageToPush, user);
+            if (package != null)
+            {
+                packageSvc.SavePackageFile(package, packageToPush.GetStream());
+            }
+            else {
+                 package = packageSvc.CreatePackage(packageToPush, user);
+            }
+            //  if (package != null)
+            //    throw new EntityException(Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString());
+           
             return new EmptyResult();
         }
 
