@@ -72,7 +72,7 @@ namespace NuGetGallery.Controllers {
                     Version = "2.0.1"
                 };
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1")).Returns(package);
+                packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(h => h.Request.IsAuthenticated).Returns(false);
                 var controller = CreateController(packageSvc: packageSvc,
@@ -105,7 +105,7 @@ namespace NuGetGallery.Controllers {
                     Version = "2.0.1"
                 };
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", It.IsAny<string>())).Returns(package);
+                packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", It.IsAny<string>(), true)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
                 httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
@@ -133,39 +133,7 @@ namespace NuGetGallery.Controllers {
         }
 
         [Fact]
-        public void PublishPackageDoesNotUpdateUnlistedValueIfNotSelected() {
-            // Arrange
-            var package = new Package {
-                PackageRegistration = new PackageRegistration { Id = "Foo" },
-                Version = "1.0"
-            };
-            package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
-
-            var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-            packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
-            packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
-            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0")).Returns(package).Verifiable();
-            packageService.Setup(svc => svc.PublishPackage("Foo", "1.0")).Verifiable();
-
-            var httpContext = new Mock<HttpContextBase>();
-            httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-            httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
-
-            var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
-            controller.Url = new UrlHelper(new RequestContext());
-
-            // Act
-            var result = controller.PublishPackage("Foo", "1.0", unlistedPackage: null, urlFactory: p => @"~\Bar.cshtml");
-
-            // Assert
-            // If we got this far, we know listing methods were not invoked.
-            packageService.Verify();
-            Assert.IsType<RedirectResult>(result);
-            Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
-        }
-
-        [Fact]
-        public void PublishPackageUpdatesUnlistedValueIfSelected() {
+        public void PublishPackageUpdatesListedValueIfNotSelected() {
             // Arrange
             var package = new Package {
                 PackageRegistration = new PackageRegistration { Id = "Foo" },
@@ -176,7 +144,39 @@ namespace NuGetGallery.Controllers {
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
             packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
             packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Verifiable();
-            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0")).Returns(package).Verifiable();
+            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
+            packageService.Setup(svc => svc.PublishPackage("Foo", "1.0")).Verifiable();
+
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+            httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
+
+            var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
+            controller.Url = new UrlHelper(new RequestContext());
+
+            // Act
+            var result = controller.PublishPackage("Foo", "1.0", listed: null, urlFactory: p => @"~\Bar.cshtml");
+
+            // Assert
+            // If we got this far, we know listing methods were not invoked.
+            packageService.Verify();
+            Assert.IsType<RedirectResult>(result);
+            Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+        }
+
+        [Fact]
+        public void PublishPackageDoesNotUpdateListedValueIfSelected() {
+            // Arrange
+            var package = new Package {
+                PackageRegistration = new PackageRegistration { Id = "Foo" },
+                Version = "1.0"
+            };
+            package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
+
+            var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+            packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
+            packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
+            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
             packageService.Setup(svc => svc.PublishPackage("Foo", "1.0")).Verifiable();
 
             var httpContext = new Mock<HttpContextBase>();
@@ -187,7 +187,7 @@ namespace NuGetGallery.Controllers {
             controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
             // Act
-            var result = controller.PublishPackage("Foo", "1.0", unlistedPackage: true, urlFactory: p => @"~\Bar.cshtml");
+            var result = controller.PublishPackage("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
 
             // Assert
             packageService.Verify();
@@ -201,14 +201,14 @@ namespace NuGetGallery.Controllers {
             var package = new Package {
                 PackageRegistration = new PackageRegistration { Id = "Foo" },
                 Version = "1.0",
-                Unlisted = false
+                Listed = true
             };
             package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
 
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
             packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
             packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Verifiable();
-            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0")).Returns(package).Verifiable();
+            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
 
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
@@ -218,7 +218,7 @@ namespace NuGetGallery.Controllers {
             controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
             // Act
-            var result = controller.Edit("Foo", "1.0", unlisted: true, urlFactory: p => @"~\Bar.cshtml");
+            var result = controller.Edit("Foo", "1.0", listed: false, urlFactory: p => @"~\Bar.cshtml");
 
             // Assert
             packageService.Verify();
@@ -232,14 +232,14 @@ namespace NuGetGallery.Controllers {
             var package = new Package {
                 PackageRegistration = new PackageRegistration { Id = "Foo" },
                 Version = "1.0",
-                Unlisted = false
+                Listed = true
             };
             package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
 
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
             packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Verifiable();
             packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
-            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0")).Returns(package).Verifiable();
+            packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
 
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
@@ -249,7 +249,7 @@ namespace NuGetGallery.Controllers {
             controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
             // Act
-            var result = controller.Edit("Foo", "1.0", unlisted: null, urlFactory: p => @"~\Bar.cshtml");
+            var result = controller.Edit("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
 
             // Assert
             packageService.Verify();

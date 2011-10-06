@@ -33,6 +33,7 @@ namespace NuGetGallery {
             var packageRegistration = CreateOrGetPackageRegistration(currentUser, nugetPackage);
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
+            UpdatePackageListed(package);
             packageRegistration.Packages.Add(package);
 
             using (var tx = new TransactionScope())
@@ -48,13 +49,15 @@ namespace NuGetGallery {
         public void DeletePackage(string id, string version) {
             var package = FindPackageByIdAndVersion(id, version);
 
-            if (package == null)
+            if (package == null) {
                 throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
+            }
 
             using (var tx = new TransactionScope()) {
                 var packageRegistration = package.PackageRegistration;
                 packageRepo.DeleteOnCommit(package);
                 packageFileSvc.DeletePackageFile(id, version);
+                UpdateIsLatest(packageRegistration);
                 packageRepo.CommitChanges();
                 if (packageRegistration.Packages.Count == 0) {
                     packageRegistrationRepo.DeleteOnCommit(packageRegistration);
@@ -71,7 +74,7 @@ namespace NuGetGallery {
                 .SingleOrDefault();
         }
 
-        public virtual Package FindPackageByIdAndVersion(string id, string version = null) {
+        public virtual Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true) {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentNullException("id");
 
@@ -83,19 +86,18 @@ namespace NuGetGallery {
             var packageVersions = packageRepo.GetAll()
                     .Include(p => p.Authors)
                     .Include(p => p.PackageRegistration)
-                    .Where(p => p.PackageRegistration.Id == id).ToList();
+                    .Where(p => (p.PackageRegistration.Id == id) && (allowPrerelease || !p.IsPrerelease))
+                    .ToList();
 
             Package package = null;
             if (version == null) {
-                package = packageVersions.FirstOrDefault(p => p.IsLatest);
-
-                if (package == null && packageVersions.Any()) {
-                    // If we haven't found a package, there is a possibility that no package is marked "latest".
-                    // This could happen if all versions of a package uploaded so far are pre-release versions.
-
-                    package = packageVersions.FirstOrDefault(p => p.IsAbsoluteLatest);
+                if (allowPrerelease) {
+                    package = packageVersions.FirstOrDefault(p => p.IsLatest);
                 }
-
+                else {
+                    package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
+                }
+                
                 if (package == null) {
                     throw new InvalidOperationException("Packages are in a bad state. At least one should have IsLatest or IsAbsoluteLatest set");
                 }
@@ -111,12 +113,17 @@ namespace NuGetGallery {
             return package;
         }
 
-        public IQueryable<Package> GetLatestVersionOfPublishedPackages() {
-            return packageRepo.GetAll()
+        public IQueryable<Package> GetLatestPackageVersions(bool allowPrerelease) {
+            var packages =  packageRepo.GetAll()
                 .Include(x => x.PackageRegistration)
                 .Include(x => x.Authors)
-                .Include(x => x.PackageRegistration.Owners)
-                .Where(package => package.Published != null && package.IsLatest && !package.Unlisted);
+                .Include(x => x.PackageRegistration.Owners);
+
+            if (allowPrerelease) {
+                // Since we use this for listing, when we allow pre release versions, we'll assume they meant to show both the latest release and prerelease versions of a package.
+                return packages.Where(p => p.IsLatest || p.IsLatestStable);
+            }
+            return packages.Where(x => x.IsLatestStable);
         }
 
         public IEnumerable<Package> FindPackagesByOwner(User user) {
@@ -209,6 +216,9 @@ namespace NuGetGallery {
                 PackageFileSize = packageFileStream.Length,
                 Created = now,
                 LastUpdated = now,
+                Published = DateTime.UtcNow,
+                IsPrerelease = !nugetPackage.IsReleaseVersion(),
+                Listed = true
             };
 
             if (nugetPackage.IconUrl != null)
@@ -260,36 +270,32 @@ namespace NuGetGallery {
         }
 
         void UpdateIsLatest(PackageRegistration packageRegistration) {
+            if (!packageRegistration.Packages.Any()) {
+                return;
+            }
+
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
             foreach (var pv in packageRegistration.Packages) {
                 pv.IsLatest = false;
-                pv.IsAbsoluteLatest = false;
+                pv.IsLatestStable = false;
             }
 
-            var latestPackage = FindPackage(packageRegistration.Packages, p => p.Published != null);
-            latestPackage.IsAbsoluteLatest = true;
+            var latestPackage = FindPackage(packageRegistration.Packages, null);
+            latestPackage.IsLatest = true;
 
-            if (latestPackage.IsReleaseVersion()) {
-                // Only release versions are marked as IsLatest. 
-                latestPackage.IsLatest = true;
-            }
-            else {
+            if (latestPackage.IsPrerelease) {
                 // If the newest uploaded package is a prerelease package, we need to find an older package that is 
-                // not a release version and set it to IsLatest.
-                var latestReleasePackage = FindPackage(packageRegistration.Packages, p => p.Published != null && p.IsReleaseVersion());
+                // a release version and set it to IsLatest.
+                var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease));
                 if (latestReleasePackage != null) {
                     // We could have no release packages
-                    latestReleasePackage.IsLatest = true;
+                    latestReleasePackage.IsLatestStable = true;
                 }
             }
-        }
-
-        private static Package FindPackage(IEnumerable<Package> packages, Func<Package, bool> predicate) {
-            var version = packages.Where(predicate).Max(p => new SemanticVersion(p.Version));
-            if (version == null) {
-                return null;
+            else {
+                // Only release versions are marked as IsLatestStable. 
+                latestPackage.IsLatestStable = true;
             }
-            return packages.First(pv => pv.Version.Equals(version.ToString(), StringComparison.OrdinalIgnoreCase));
         }
 
         public void AddPackageOwner(Package package, User user) {
@@ -303,13 +309,35 @@ namespace NuGetGallery {
         }
 
         public void MarkPackageListed(Package package) {
-            package.Unlisted = false;
+            foreach (var item in package.PackageRegistration.Packages) {
+                item.Listed = true;
+            }
             packageRepo.CommitChanges();
         }
 
         public void MarkPackageUnlisted(Package package) {
-            package.Unlisted = true;
+            foreach (var item in package.PackageRegistration.Packages) {
+                item.Listed = false;
+            }
             packageRepo.CommitChanges();
+        }
+
+        private static Package FindPackage(IEnumerable<Package> packages, Func<Package, bool> predicate = null) {
+            if (predicate != null) {
+                packages = packages.Where(predicate);
+            }
+            SemanticVersion version = packages.Max(p => new SemanticVersion(p.Version));
+
+            if (version == null) {
+                return null;
+            }
+            return packages.First(pv => pv.Version.Equals(version.ToString(), StringComparison.OrdinalIgnoreCase));
+        }
+
+
+        private void UpdatePackageListed(Package package) {
+            var packages = packageRepo.GetAll().Where(p => p.PackageRegistration.Id == p.PackageRegistration.Id);
+
         }
     }
 }

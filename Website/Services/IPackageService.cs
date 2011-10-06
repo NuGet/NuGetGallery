@@ -10,9 +10,9 @@ namespace NuGetGallery {
 
         PackageRegistration FindPackageRegistrationById(string id);
 
-        Package FindPackageByIdAndVersion(string id, string version = null);
+        Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true);
 
-        IQueryable<Package> GetLatestVersionOfPublishedPackages();
+        IQueryable<Package> GetLatestPackageVersions(bool allowPrerelease);
 
         void PublishPackage(string id, string version);
 

@@ -11,8 +11,9 @@ namespace NuGetGallery {
             ProjectUrl = package.ProjectUrl;
             LicenseUrl = package.LicenseUrl;
             LatestVersion = package.IsLatest;
+            LatestStableVersion = package.IsLatestStable;
             LastUpdated = package.LastUpdated;
-            Unlisted = package.Unlisted;
+            Listed = package.Listed;
             DownloadCount = package.DownloadCount;
         }
 
@@ -33,14 +34,15 @@ namespace NuGetGallery {
         public string LicenseUrl { get; set; }
         public DateTime LastUpdated { get; set; }
         public bool LatestVersion { get; set; }
+        public bool LatestStableVersion { get; set; }
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
+        public bool Listed { get; set; }
         public int TotalDownloadCount {
             get {
                 return package.PackageRegistration.DownloadCount;
             }
         }
-        public bool Unlisted { get; set; }
 
         public bool IsCurrent(IPackageVersionModel current) {
             return current.Version == Version && current.Id == Id;
