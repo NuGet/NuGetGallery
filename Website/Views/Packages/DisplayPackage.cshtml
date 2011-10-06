@@ -37,7 +37,7 @@
                                 <p>
                                     @Model.Description
                                 </p>
-                                @if (Model.Unlisted && Model.IsOwner(User)) {
+                                @if (!Model.Listed && Model.IsOwner(User)) {
                                     <div class="zone-messages">
                                         <div class="message message-Warning">
                                             This package is unlisted and hidden from package listings.

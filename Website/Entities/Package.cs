@@ -25,10 +25,10 @@ namespace NuGetGallery {
         public string Hash { get; set; }
         public string IconUrl { get; set; }
         public bool IsLatest { get; set; }
-        public bool IsAbsoluteLatest { get; set; }
+        public bool IsLatestStable { get; set; }
         public DateTime LastUpdated { get; set; }
         public string LicenseUrl { get; set; }
-        public DateTime? Published { get; set; }
+        public DateTime Published { get; set; }
         public long PackageFileSize { get; set; }
         public string ProjectUrl { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
@@ -36,7 +36,8 @@ namespace NuGetGallery {
         public string Tags { get; set; }
         public string Title { get; set; }
         public string Version { get; set; }
-        public bool Unlisted { get; set; }
+        public bool Listed { get; set; }
+        public bool IsPrerelease { get; set; }
 
         // TODO: it would be nice if we could change the feed so that we don't need to flatten authors and dependencies
         public string FlattenedAuthors { get; set; }

@@ -19,8 +19,8 @@
     </p>
     <ul>
         <li>
-            @Html.EditorFor(package => package.Unlisted) 
-            @Html.LabelFor(package => package.Unlisted, "Prevent this package from being listed in results")
+            @Html.EditorFor(package => package.Listed) 
+            @Html.LabelFor(package => package.Listed, "List this package in search results.")
         </li>
         <li class="buttons">
             @Html.AntiForgeryToken()

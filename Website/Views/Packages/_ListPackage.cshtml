@@ -6,7 +6,7 @@
         </a>
         <header>
             <h3 style="display: inline-block;">
-                <a href="@Url.Package(Model.Id)">@Model.Title</a>
+                <a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title @if(Model.UseVersion) {<text> @Model.Version</text>}</a>
             </h3>
             <div class="downloads">
                 @Model.DownloadCount Downloads
