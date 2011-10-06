@@ -8,7 +8,7 @@ using MvcMiniProfiler.Data;
 namespace NuGetGallery {
     public class EntitiesContext : DbContext {
         public EntitiesContext()
-            : base(GetConnection("NuGetGallery"), contextOwnsConnection: true) {
+            : base("NuGetGallery") {
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder) {
@@ -84,12 +84,5 @@ namespace NuGetGallery {
             modelBuilder.Entity<PackageDependency>()
                 .HasKey(pd => pd.Key);
         }
-
-        private static DbConnection GetConnection(string connectionStringName) {
-            var setting = ConfigurationManager.ConnectionStrings[connectionStringName];
-            var connection = new SqlConnection(setting.ConnectionString);
-            return ProfiledDbConnection.Get(connection);
-        }
-
     }
 }

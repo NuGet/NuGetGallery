@@ -4,8 +4,7 @@
   </PropertyGroup>
 
   <UsingTask AssemblyFile="../3rdParty\xunit\xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
-  <UsingTask AssemblyFile="$(SolutionDir)..\Website\bin\NuGetGallery.Website.dll" TaskName="NuGetGallery.CreateDatabase" />
-  <UsingTask AssemblyFile="$(SolutionDir)..\packages\MigratorDotNet.0.9.0.28138\tools\Migrator.MSBuild.dll" TaskName="Migrator.MSBuild.Migrate" />
+  <UsingTask AssemblyFile="$(SolutionDir)..\Website\bin\NuGetGallery.Website.dll" TaskName="NuGetGallery.UpdateDatabase" />
 
   <Target Name="Clean">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration)"/>
@@ -20,25 +19,13 @@
   </Target>
 
   <Target Name="RevertDatabase" DependsOnTargets="Build">
-    <CreateDatabase
-      Connectionstring="$(DbConnection)" />
-    <Migrate
-      Provider="SQLServer"
-      Connectionstring="$(DbConnection)"
-      Migrations="..\Website\bin\NuGetGallery.Website.dll"
-      To="0" />
+    <Message Text="Reverting database" />
+    <UpdateDatabase TargetMigration="0" />
   </Target>
-  
-  <Target Name="CreateDatabase" DependsOnTargets="Build">
-    <CreateDatabase
-      Connectionstring="$(DbConnection)" />
-  </Target>    
 
-  <Target Name="UpdateDatabase" DependsOnTargets="Build;CreateDatabase">
-    <Migrate
-      Provider="SQLServer"
-      Connectionstring="$(DbConnection)"
-      Migrations="..\Website\bin\NuGetGallery.Website.dll" />
+  <Target Name="UpdateDatabase" DependsOnTargets="Build">
+    <Message Text="Updating database" />
+    <UpdateDatabase />
   </Target>
   
   <Target Name="BuildViews" DependsOnTargets="Build">
