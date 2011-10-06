@@ -97,15 +97,16 @@ namespace NuGetGallery {
                 Tags = package.Tags,
                 ProjectUrl = package.ProjectUrl,
                 Authors = package.FlattenedAuthors,
+                Listed = package.Listed
             });
         }
 
         [Authorize, HttpPost, ValidateAntiForgeryToken]
-        public virtual ActionResult PublishPackage(string id, string version, bool? unlistedPackage) {
-            return PublishPackage(id, version, unlistedPackage, Url.Package);
+        public virtual ActionResult PublishPackage(string id, string version, bool? listed) {
+            return PublishPackage(id, version, listed, Url.Package);
         }
 
-        internal ActionResult PublishPackage(string id, string version, bool? unlistedPackage, Func<Package, string> urlFactory) {
+        internal ActionResult PublishPackage(string id, string version, bool? listed, Func<Package, string> urlFactory) {
             // TODO: handle requesting to verify a package that is already verified; return 404?
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
 
@@ -117,9 +118,11 @@ namespace NuGetGallery {
             }
 
             packageSvc.PublishPackage(package.PackageRegistration.Id, package.Version);
-            if (unlistedPackage.HasValue && unlistedPackage.Value) {
+            if (!(listed ?? false)) {
                 packageSvc.MarkPackageUnlisted(package);
             }
+
+            // We don't to have the package as listed since it starts out that way.
 
             // TODO: add a flash success message
             return Redirect(urlFactory(package));
@@ -140,13 +143,13 @@ namespace NuGetGallery {
                 page = 1;
             }
 
-            IQueryable<Package> packageVersions = null;
-            if (String.IsNullOrEmpty(q)) {
-                packageVersions = packageSvc.GetLatestVersionOfPublishedPackages();
+            IQueryable<Package> packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: true);
+            
+            if (!String.IsNullOrEmpty(q)) {
+                packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: true).Search(q);
             }
-            else {
-                packageVersions = packageSvc.GetLatestVersionOfPublishedPackages().Search(q);
-            }
+            // Only show listed packages. For unlisted packages, only show them if the owner is viewing it.
+            packageVersions = packageVersions.Where(p => p.Listed || p.PackageRegistration.Owners.Any(owner => owner.Username == User.Identity.Name));
 
             var viewModel = new PackageListViewModel(packageVersions,
                 q,
@@ -319,11 +322,11 @@ namespace NuGetGallery {
         }
 
         [Authorize, HttpPost, ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(string id, string version, bool? unlisted) {
-            return Edit(id, version, unlisted, Url.Package);
+        public virtual ActionResult Edit(string id, string version, bool? listed) {
+            return Edit(id, version, listed, Url.Package);
         }
 
-        internal virtual ActionResult Edit(string id, string version, bool? unlisted, Func<Package, string> urlFactory) {
+        internal virtual ActionResult Edit(string id, string version, bool? listed, Func<Package, string> urlFactory) {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null) {
                 return PackageNotFound(id, version);
@@ -332,7 +335,7 @@ namespace NuGetGallery {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
-            if (unlisted.HasValue && unlisted.Value) {
+            if (!(listed ?? false)) {
                 packageSvc.MarkPackageUnlisted(package);
             }
             else {

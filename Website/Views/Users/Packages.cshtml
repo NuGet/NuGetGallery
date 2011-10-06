@@ -1,50 +1,12 @@
 ﻿@model ManagePackagesViewModel
-@if (Model.UnpublishedPackages.Any()) {
-    <header>
-        <h2>Unpublished Packages</h2>
-        <span class="displayResults">
-            The following packages are in an <strong>unfinished state</strong>. They were uploaded, 
-            but are not published in the gallery. You can choose to delete these or publish them.
-        </span>
-    </header>
-
-    <table class="packages owner">
-        <thead class="header">
-            <tr>
-                <th>Title</th>
-                <th>Package ID</th>
-                <th>Version</th>
-                <th class="ownerActions">Actions</th>
-            </tr>
-        </thead>
-        @foreach (var package in Model.UnpublishedPackages) {
-            <tr>
-                <td>@package.Title</td>
-                <td>@package.Id</td>
-                <td>@package.Version</td>
-                <td class="ownerActions">
-                    <ul>
-                        <li>
-                            <a href="@Url.Publish(package)" title="Publish"><img src="@Links.Content.Images.greenArrow_png" alt="Publish" /></a>
-                        </li>
-                        <li>
-                            <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
-                        </li>
-                    </ul>
-                </td>
-            </tr>
-        }
-    </table>
-}
-
-@if (Model.PublishedPackages.Any()) {
+@if (Model.Packages.Any()) {
     <header class="manage-packages">
         <h2>Manage My Packages</h2>
         <p>These packages are currently published for the world to see.</p>
     </header>
-    @PrintPublishedPackages(Model.PublishedPackages.Where(p => !p.Unlisted))
+    @PrintPublishedPackages(Model.Packages.Where(p => p.Listed))
 
-    var unlistedPackages = Model.PublishedPackages.Where(p => p.Unlisted);
+    var unlistedPackages = Model.Packages.Where(p => !p.Listed);
     if (unlistedPackages.Any()) {
         <header class="manage-packages">
             <h2>Unlisted Packages</h2>

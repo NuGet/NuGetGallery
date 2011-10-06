@@ -15,48 +15,42 @@
 <div>
     @Html.Partial("_PackageDetailsTable", Model.Package)
                         
-    @if (Model.Published) {
-        <p class="description">
-            This package was downloaded @Model.Package.DownloadCount @Model.Package.DownloadCount.CardinalityLabel("time", "times")
-        </p>
+    <p class="description">
+        This package was downloaded @Model.Package.DownloadCount @Model.Package.DownloadCount.CardinalityLabel("time", "times")
+    </p>
 
-        if (!Model.DependentPackages.Any()) {
-            <p class="description">
-                No packages <em>in this gallery</em> depend on this package. However, NuGet supports a workflow 
-                in which <a href="http://docs.nuget.org/docs/workflows/using-nuget-without-committing-packages">
-                packages are not checked into source control</a>, but are instead restored from the online gallery 
-                when the solution is compiled. <strong>Deleting a package could break these folks.</strong>
-            </p>
-        }
-        else {
-            <h4 class="warning">
-                Warning! The following @Model.DependentPackages.Count().CardinalityLabel("package depends", "packages depend") 
-                on @Model.Package.Id.
-            </h4>
-            <ul class="dependents">
-                @foreach (var dependent in Model.DependentPackages) {
-                    <li><a href="@Url.Package(@dependent)">@dependent.Id</a> @dependent.Version</li>
-                }
-            </ul>
-            <p class="description">
-                Also, NuGet supports a workflow in which 
-                <a href="http://docs.nuget.org/docs/workflows/using-nuget-without-committing-packages">
-                packages are not checked into source control</a>, but are instead restored from the online gallery 
-                when the solution is compiled. <strong>Deleting a package would break these folks.</strong>
-            </p>
-        }
-        if (Model.MayDelete) {
-            <p class="description">
-                It looks like your package is relatively safe to delete, despite the risks 
-                mentioned earlier. <strong>Do you still want to delete the package?</strong>
-            </p>
-        }
+    if (!Model.DependentPackages.Any()) {
+        <p class="description">
+            No packages <em>in this gallery</em> depend on this package. However, NuGet supports a workflow 
+            in which <a href="http://docs.nuget.org/docs/workflows/using-nuget-without-committing-packages">
+            packages are not checked into source control</a>, but are instead restored from the online gallery 
+            when the solution is compiled. <strong>Deleting a package could break these folks.</strong>
+        </p>
     }
     else {
+        <h4 class="warning">
+            Warning! The following @Model.DependentPackages.Count().CardinalityLabel("package depends", "packages depend") 
+            on @Model.Package.Id.
+        </h4>
+        <ul class="dependents">
+            @foreach (var dependent in Model.DependentPackages) {
+                <li><a href="@Url.Package(@dependent)">@dependent.Id</a> @dependent.Version</li>
+            }
+        </ul>
         <p class="description">
-            This package has not yet been published. Are you sure you want to delete it?
+            Also, NuGet supports a workflow in which 
+            <a href="http://docs.nuget.org/docs/workflows/using-nuget-without-committing-packages">
+            packages are not checked into source control</a>, but are instead restored from the online gallery 
+            when the solution is compiled. <strong>Deleting a package would break these folks.</strong>
         </p>
     }
+    if (Model.MayDelete) {
+        <p class="description">
+            It looks like your package is relatively safe to delete, despite the risks 
+            mentioned earlier. <strong>Do you still want to delete the package?</strong>
+        </p>
+    }
+
     @if (Model.MayDelete) {
         <form method="post" action="@Url.Current()">
             @Html.AntiForgeryToken()
