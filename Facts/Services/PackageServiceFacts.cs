@@ -689,7 +689,22 @@ namespace NuGetGallery {
 
                 service.AddDownloadStatistics(package, "::1", "Unit Test");
 
-                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package)));
+                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package && p.UserAgent == "Unit Test")));
+                packageStatsRepo.Verify(x => x.CommitChanges());
+            }
+
+            [Fact]
+            public void WillIgnoreTheIpAddressForNow() {
+                // Until we understand privacy implications of storing IP Addresses thoroughly,
+                // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
+                    
+                var packageStatsRepo = new Mock<IEntityRepository<PackageStatistics>>();
+                var service = CreateService(packageStatsRepo: packageStatsRepo);
+                var package = new Package();
+
+                service.AddDownloadStatistics(package, "::1", "Unit Test");
+
+                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.IPAddress == "unknown")));
                 packageStatsRepo.Verify(x => x.CommitChanges());
             }
 
