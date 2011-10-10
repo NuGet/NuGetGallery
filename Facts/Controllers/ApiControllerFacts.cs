@@ -23,7 +23,7 @@ namespace NuGetGallery {
                 nuGetPackage.Setup(x => x.Id).Returns("theId");
                 nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(new Package());
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
@@ -96,7 +96,7 @@ namespace NuGetGallery {
             [Fact]
             public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist() {
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)null);
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)null);
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
@@ -113,7 +113,7 @@ namespace NuGetGallery {
                     PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
                 };
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
@@ -131,7 +131,7 @@ namespace NuGetGallery {
                     PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
                 };
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 packageSvc.Setup(svc => svc.DeletePackage(It.IsAny<string>(), It.IsAny<string>())).Throws(new InvalidOperationException("Should not have deleted the package!"));
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
@@ -148,7 +148,7 @@ namespace NuGetGallery {
                     PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
                 };
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
@@ -175,7 +175,7 @@ namespace NuGetGallery {
             [Fact]
             public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist() {
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)null);
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)null);
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
@@ -188,7 +188,7 @@ namespace NuGetGallery {
             [Fact]
             public void WillFindTheUserThatMatchesTheApiKey() {
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(new Package());
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
@@ -202,7 +202,7 @@ namespace NuGetGallery {
             [Fact]
             public void WillPublishThePackage() {
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>())).Returns(new Package());
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(new Package());
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);

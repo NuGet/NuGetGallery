@@ -125,18 +125,14 @@ namespace NuGetGallery {
             var packages = packageService.FindPackagesByOwner(user);
 
             var published = from p in packages
-                            where p.Published != null
                             group p by p.PackageRegistration.Id;
 
             var model = new ManagePackagesViewModel {
-                PublishedPackages = from pr in published
-                                    select new PackageViewModel(pr.First()) {
-                                        DownloadCount = pr.Sum(p => p.DownloadCount),
-                                        Version = null
-                                    },
-                UnpublishedPackages = from p in packages
-                                      where p.Published == null
-                                      select new PackageViewModel(p)
+                Packages = from pr in published
+                            select new PackageViewModel(pr.First()) {
+                                DownloadCount = pr.Sum(p => p.DownloadCount),
+                                Version = null
+                            },
             };
             return View(model);
         }

@@ -134,6 +134,27 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="DataServices\V1FeedPackage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\V1Feeds.svc.cs">
+      <DependentUpon>V1Feeds.svc</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\FeedContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\FeedServiceBase.cs" />
+    <Compile Include="DataServices\PackageExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\V2Feed.svc.cs">
+      <DependentUpon>V2Feed.svc</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\V2FeedPackage.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="HelpersController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -143,6 +164,7 @@
       <DependentUpon>201110060711357_Initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Settings.cs" />
+    <Compile Include="Migrations\20111002190000_PrereleasePackageChanges.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">
@@ -165,7 +187,6 @@
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
-    <Compile Include="DataServices\PackageExtensions.cs" />
     <Compile Include="DynamicData\Content\GridViewPager.ascx.cs">
       <DependentUpon>GridViewPager.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -439,7 +460,6 @@
     <Compile Include="Services\CryptographyService.cs" />
     <Compile Include="Entities\EntityException.cs" />
     <Compile Include="ExtensionMethods.cs" />
-    <Compile Include="DataServices\FeedPackage.cs" />
     <Compile Include="Services\FileSystemPackageFileService.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
     <Compile Include="App_Start\IConfiguration.cs" />
@@ -468,10 +488,6 @@
     <Compile Include="RequestModels\RegisterRequest.cs" />
     <Compile Include="RequestModels\SubmitPackageRequest.cs" />
     <Compile Include="RouteNames.cs" />
-    <Compile Include="DataServices\FeedsContext.cs" />
-    <Compile Include="DataServices\Feeds.svc.cs">
-      <DependentUpon>Feeds.svc</DependentUpon>
-    </Compile>
     <Compile Include="UrlExtensions.cs" />
     <Compile Include="App_Start\VersionRouteConstraint.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
@@ -698,6 +714,8 @@
     <Content Include="Content\Reset.css" />
     <Content Include="Content\Images\sendMessageGraphic.png" />
     <Content Include="Content\Widgets.css" />
+    <Content Include="DataServices\V1Feeds.svc" />
+    <Content Include="DataServices\V2Feed.svc" />
     <Content Include="DynamicData\Content\GridViewPager.ascx" />
     <Content Include="DynamicData\Content\Images\Back.gif" />
     <Content Include="DynamicData\Content\Images\header_back.gif" />
@@ -747,7 +765,6 @@
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="DataServices\Feeds.svc" />
     <Content Include="Scripts\knockout-latest.js" />
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Web.config">
@@ -953,7 +970,7 @@
         <WebProjectProperties>
           <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>46723</DevelopmentServerPort>
+          <DevelopmentServerPort>55880</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>
           </IISUrl>

@@ -12,7 +12,7 @@ namespace NuGetGallery {
         }
 
         public static string Publish(this UrlHelper url, Package package) {
-            return url.Action(MVC.Packages.PublishPackage(package.PackageRegistration.Id, package.Version, package.Unlisted));
+            return url.Action(MVC.Packages.PublishPackage(package.PackageRegistration.Id, package.Version, package.Listed));
         }
 
         public static string Publish(this UrlHelper url, IPackageVersionModel package) {
