@@ -163,8 +163,11 @@
     <Compile Include="Migrations\201110060711357_Initial.Designer.cs">
       <DependentUpon>201110060711357_Initial.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201110102157002_PrereleaseChanges.cs" />
+    <Compile Include="Migrations\201110102157002_PrereleaseChanges.Designer.cs">
+      <DependentUpon>201110102157002_PrereleaseChanges.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Settings.cs" />
-    <Compile Include="Migrations\20111002190000_PrereleasePackageChanges.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">

@@ -33,7 +33,6 @@ namespace NuGetGallery {
             var packageRegistration = CreateOrGetPackageRegistration(currentUser, nugetPackage);
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
-            UpdatePackageListed(package);
             packageRegistration.Packages.Add(package);
 
             using (var tx = new TransactionScope())
