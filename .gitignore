@@ -5,3 +5,5 @@ obj
 App_Data
 *.results.xml
 /packages
+_AzurePackage
+*.bak

@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition">
+  <WebRole name="Website" vmsize="Small">
+    <ConfigurationSettings>
+      <Setting name ="AzureStorageAccessKey" />
+      <Setting name ="AzureStorageAccountName" />
+      <Setting name ="AzureStorageBlobUrl" />
+      <Setting name ="PackageStoreType" />      
+      <Setting name="SmtpHost" />
+      <Setting name="SmtpPassword" />
+      <Setting name="SmtpPort" />
+      <Setting name="SmtpUsername" />
+      <Setting name="UseSmtp" />
+    </ConfigurationSettings>
+    <Sites>
+      <Site name="Web">
+        <Bindings>
+          <Binding name="Endpoint1" endpointName="Endpoint1" />
+        </Bindings>
+      </Site>
+    </Sites>
+    <Endpoints>
+      <InputEndpoint name="Endpoint1" protocol="http" port="80" />
+    </Endpoints>	
+    <Imports>
+      <Import moduleName="Diagnostics" />
+      <Import moduleName="RemoteAccess" />
+      <Import moduleName="RemoteForwarder" />
+    </Imports>
+  </WebRole>
+</ServiceDefinition>

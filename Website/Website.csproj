@@ -69,6 +69,8 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="MvcHaack.Ajax, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MvcHaack.Ajax.1.0.1\lib\net40\MvcHaack.Ajax.dll</HintPath>
@@ -134,6 +136,7 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="App_Start\PackageStoreType.cs" />
     <Compile Include="DataServices\V1FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -168,6 +171,13 @@
       <DependentUpon>201110102157002_PrereleaseChanges.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Settings.cs" />
+    <Compile Include="Services\CloudBlobClientWrapper.cs" />
+    <Compile Include="Services\CloudBlobContainerWrapper.cs" />
+    <Compile Include="Services\CloudBlobPackageFileService.cs" />
+    <Compile Include="Services\CloudBlobWrapper.cs" />
+    <Compile Include="Services\ICloudBlob.cs" />
+    <Compile Include="Services\ICloudBlobClient.cs" />
+    <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">

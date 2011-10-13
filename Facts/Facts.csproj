@@ -41,6 +41,7 @@
     <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MarkdownSharp.1.13.0.0\lib\35\MarkdownSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Moq">
       <HintPath>..\packages\Moq.4.0.10827\lib\NET40\Moq.dll</HintPath>
     </Reference>
@@ -67,6 +68,7 @@
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Infrastructure\CookieTempDataProviderFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\CloudBlobPackageFileServiceFacts.cs" />
     <Compile Include="Services\FileSystemPackageFileServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
