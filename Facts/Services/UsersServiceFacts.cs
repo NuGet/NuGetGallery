@@ -333,7 +333,7 @@ namespace NuGetGallery
                     PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
                 };
                 var crypto = new Mock<ICryptographyService>();
-                crypto.Setup(c => c.GenerateSaltedHash("new-password", Const.Sha512HashAlgorithmId)).Returns("bacon-hash-and-eggs");
+                crypto.Setup(c => c.GenerateSaltedHash("new-password", Const.Sha1HashAlgorithmId)).Returns("bacon-hash-and-eggs");
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
                 var userSvc = CreateUsersService(userRepo: userRepository, cryptoSvc: crypto);
@@ -457,8 +457,8 @@ namespace NuGetGallery
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
                 var cryptoService = new Mock<ICryptographyService>();
-                cryptoService.Setup(s => s.ValidateSaltedHash("old hash", "oldpwd", Const.Sha512HashAlgorithmId)).Returns(true);
-                cryptoService.Setup(s => s.GenerateSaltedHash("newpwd", Const.Sha512HashAlgorithmId)).Returns("hash and bacon");
+                cryptoService.Setup(s => s.ValidateSaltedHash("old hash", "oldpwd", Const.Sha1HashAlgorithmId)).Returns(true);
+                cryptoService.Setup(s => s.GenerateSaltedHash("newpwd", Const.Sha1HashAlgorithmId)).Returns("hash and bacon");
                 var service = CreateUsersService(userRepo: userRepository, cryptoSvc: cryptoService);
 
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");

@@ -913,7 +913,6 @@ namespace NuGetGallery
             if (cryptoSvc == null)
             {
                 cryptoSvc = new Mock<ICryptographyService>();
-                cryptoSvc.Setup(x => x.HashAlgorithmId).Returns(Const.Sha512HashAlgorithmId);
                 cryptoSvc.Setup(x => x.GenerateHash(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, Const.Sha512HashAlgorithmId))
                     .Returns("theHash");
             }
