@@ -10,7 +10,8 @@ param(
   $smtpPassword                       = $env:NUGET_GALLERY_SMTP_PASSWORD,
   $smtpPort                           = $env:NUGET_GALLERY_SMTP_PORT,
   $smtpUsername                       = $env:NUGET_GALLERY_SMTP_USERNAME,
-  $sqlAzureConnectionString           = $env:NUGET_GALLERY_SQL_AZURE_CONNECTION_STRING
+  $sqlAzureConnectionString           = $env:NUGET_GALLERY_SQL_AZURE_CONNECTION_STRING,
+  $sslCertificateThumbprint           = $env:NUGET_GALLERY_SSL_CERTIFICATE_THUMBPRINT
 )
 
 function require-param {
@@ -34,6 +35,7 @@ require-param -value $smtpPassword -paramName "smtpPassword"
 require-param -value $smtpPort -paramName "smtpPort"
 require-param -value $smtpUsername -paramName "smtpUsername"
 require-param -value $sqlAzureConnectionString -paramName "sqlAzureConnectionString"
+require-param -value $sslCertificateThumbprint -paramName "sslCertificateThumbprint"
   
 function set-certificatethumbprint {
   param($path, $name, $value)
@@ -97,6 +99,7 @@ set-configurationsetting -path $cscfgPath -name "SmtpPassword" -value $smtpPassw
 set-configurationsetting -path $cscfgPath -name "SmtpPort" -value $smtpPort
 set-configurationsetting -path $cscfgPath -name "SmtpUsername" -value $smtpUsername
 set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
+set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
 
 & 'C:\Program Files\Windows Azure SDK\v1.5\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
 
