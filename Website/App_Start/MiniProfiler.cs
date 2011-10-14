@@ -46,9 +46,13 @@ namespace NuGetGallery.App_Start
             {
                 var request = ((HttpApplication)sender).Request;
 
-                // TODO: only profile for admin users
-                // Temporarily commenting this out for demo purposes. if (request.IsLocal)
                 MiniProfiler.Start();
+            };
+
+            context.AuthorizeRequest += (sender, e) =>
+            {
+                if (HttpContext.Current == null || HttpContext.Current.User == null || !HttpContext.Current.User.IsInRole(Const.AdminRoleName))
+                    MiniProfiler.Stop(true);
             };
 
             context.EndRequest += (sender, e) =>
