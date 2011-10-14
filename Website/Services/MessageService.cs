@@ -4,17 +4,21 @@ using System.Net.Mail;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
 
-namespace NuGetGallery {
-    public class MessageService : IMessageService {
+namespace NuGetGallery
+{
+    public class MessageService : IMessageService
+    {
         readonly IMailSender mailSender;
         IConfiguration configuration;
 
-        public MessageService(IMailSender mailSender, IConfiguration configuration) {
+        public MessageService(IMailSender mailSender, IConfiguration configuration)
+        {
             this.mailSender = mailSender;
             this.configuration = configuration;
         }
 
-        public MailMessage ReportAbuse(MailAddress fromAddress, Package package, string message) {
+        public MailMessage ReportAbuse(MailAddress fromAddress, Package package, string message)
+        {
             string subject = "[{0}] Abuse Report for Package '{1}' Version '{2}'";
             string body = @"_User {0} ({1}) reports the package '{2}' version '{3}' as abusive. 
 {0} left the following information in the report:_
@@ -31,7 +35,8 @@ _Message sent from {5}_
                 message,
                 configuration.GalleryOwnerEmailAddress.DisplayName);
 
-            var mailMessage = new MailMessage {
+            var mailMessage = new MailMessage
+            {
                 Subject = String.Format(subject, configuration.GalleryOwnerEmailAddress.DisplayName, package.PackageRegistration.Id, package.Version),
                 Body = body,
                 From = fromAddress,
@@ -41,7 +46,8 @@ _Message sent from {5}_
             return mailMessage;
         }
 
-        public MailMessage SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl) {
+        public MailMessage SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl)
+        {
             string subject = "[{0}] Message for owners of the package '{1}'";
             string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}'._
 
@@ -61,26 +67,31 @@ _Message sent from {5}_
                 configuration.GalleryOwnerEmailAddress.DisplayName,
                 emailSettingsUrl);
 
-            var mailMessage = new MailMessage {
+            var mailMessage = new MailMessage
+            {
                 Subject = String.Format(subject, configuration.GalleryOwnerEmailAddress.DisplayName, packageRegistration.Id),
                 Body = body,
                 From = fromAddress,
             };
 
             AddOwnersToMailMessage(packageRegistration, mailMessage);
-            if (mailMessage.To.Any()) {
+            if (mailMessage.To.Any())
+            {
                 mailSender.Send(mailMessage);
             }
             return mailMessage;
         }
 
-        private static void AddOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage) {
-            foreach (var owner in packageRegistration.Owners.Where(o => o.EmailAllowed)) {
+        private static void AddOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
+        {
+            foreach (var owner in packageRegistration.Owners.Where(o => o.EmailAllowed))
+            {
                 mailMessage.To.Add(owner.ToMailAddress());
             }
         }
 
-        public MailMessage SendNewAccountEmail(MailAddress toAddress, string confirmationUrl) {
+        public MailMessage SendNewAccountEmail(MailAddress toAddress, string confirmationUrl)
+        {
             string body = @"Thank you for registering with the {0}. 
 We can't wait to see what packages you'll upload.
 
@@ -96,7 +107,8 @@ The {0} Team";
                 HttpUtility.UrlDecode(confirmationUrl),
                 confirmationUrl);
 
-            var mailMessage = new MailMessage {
+            var mailMessage = new MailMessage
+            {
                 Subject = String.Format("[{0}] Please verify your account.", configuration.GalleryOwnerEmailAddress.DisplayName),
                 Body = body,
                 From = configuration.GalleryOwnerEmailAddress,
@@ -106,7 +118,8 @@ The {0} Team";
             return mailMessage;
         }
 
-        public MailMessage SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl) {
+        public MailMessage SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)
+        {
             string body = @"You recently changed your {0} email address. 
 
 To verify your new email address, please click the following link:
@@ -121,7 +134,8 @@ The {0} Team";
                 HttpUtility.UrlDecode(confirmationUrl),
                 confirmationUrl);
 
-            var mailMessage = new MailMessage {
+            var mailMessage = new MailMessage
+            {
                 Subject = String.Format("[{0}] Please verify your new email address.", configuration.GalleryOwnerEmailAddress.DisplayName),
                 Body = body,
                 From = configuration.GalleryOwnerEmailAddress,
@@ -131,7 +145,8 @@ The {0} Team";
             return mailMessage;
         }
 
-        public MailMessage SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress) {
+        public MailMessage SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress)
+        {
             string body = @"Hi there,
 
 The email address associated to your {0} account was recently 
@@ -145,7 +160,8 @@ The {0} Team";
                 oldEmailAddress,
                 user.EmailAddress);
 
-            var mailMessage = new MailMessage {
+            var mailMessage = new MailMessage
+            {
                 Subject = String.Format("[{0}] Recent changes to your account.", configuration.GalleryOwnerEmailAddress.DisplayName),
                 Body = body,
                 From = configuration.GalleryOwnerEmailAddress,
@@ -155,7 +171,8 @@ The {0} Team";
             return mailMessage;
         }
 
-        public MailMessage SendPasswordResetInstructions(User user, string resetPasswordUrl) {
+        public MailMessage SendPasswordResetInstructions(User user, string resetPasswordUrl)
+        {
             string body = @"The word on the street is you lost your password. Sorry to hear it!
 If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
 
@@ -171,7 +188,8 @@ The {2} Team";
                 resetPasswordUrl,
                 configuration.GalleryOwnerEmailAddress.DisplayName);
 
-            var mailMessage = new MailMessage {
+            var mailMessage = new MailMessage
+            {
                 Subject = String.Format("[{0}] Please reset your password.", configuration.GalleryOwnerEmailAddress.DisplayName),
                 Body = body,
                 From = configuration.GalleryOwnerEmailAddress,

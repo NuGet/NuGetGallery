@@ -6,15 +6,20 @@ using Moq;
 using NuGet;
 using Xunit;
 
-namespace NuGetGallery {
-    public class PackageServiceFacts {
-        public class TheCreatePackageMethod {
+namespace NuGetGallery
+{
+    public class PackageServiceFacts
+    {
+        public class TheCreatePackageMethod
+        {
             [Fact]
-            public void WillCreateANewPackageRegistrationUsingTheNugetPackIdWhenOneDoesNotAlreadyExist() {
+            public void WillCreateANewPackageRegistrationUsingTheNugetPackIdWhenOneDoesNotAlreadyExist()
+            {
                 var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
                     packageRegistrationRepo: packageRegistrationRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -29,11 +34,13 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillMakeTheCurrentUserTheOwnerWhenCreatingANewPackageRegistration() {
+            public void WillMakeTheCurrentUserTheOwnerWhenCreatingANewPackageRegistration()
+            {
                 var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
                     packageRegistrationRepo: packageRegistrationRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -47,11 +54,13 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillReadThePropertiesFromTheNuGetPackageWhenCreatingANewPackage() {
+            public void WillReadThePropertiesFromTheNuGetPackageWhenCreatingANewPackage()
+            {
                 var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
                     packageRegistrationRepo: packageRegistrationRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -87,14 +96,16 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillReadPrereleaseFlagFromNuGetPackage() {
+            public void WillReadPrereleaseFlagFromNuGetPackage()
+            {
                 // Arrange
                 var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
                 packageRegistrationRepo.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 packageRegistrationRepo.Setup(r => r.CommitChanges()).Verifiable();
                 var service = CreateService(
                     packageRegistrationRepo: packageRegistrationRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
                 var nugetPackage = CreateNuGetPackage(p => p.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0a")));
@@ -129,9 +140,11 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillGenerateAHashForTheCreatedPackage() {
+            public void WillGenerateAHashForTheCreatedPackage()
+            {
                 var service = CreateService(
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -146,9 +159,11 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillNotCreateThePackageInAnUnpublishedState() {
+            public void WillNotCreateThePackageInAnUnpublishedState()
+            {
                 var service = CreateService(
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -162,9 +177,11 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillSetTheNewPackagesCreatedAndLastUpdatedTimes() {
+            public void WillSetTheNewPackagesCreatedAndLastUpdatedTimes()
+            {
                 var service = CreateService(
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -179,11 +196,13 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillSaveThePackageFileAndSetThePackageFileSize() {
+            public void WillSaveThePackageFileAndSetThePackageFileSize()
+            {
                 var packageFileSvc = new Mock<IPackageFileService>();
                 var service = CreateService(
                     packageFileSvc: packageFileSvc,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -198,11 +217,13 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillSaveTheCreatedPackageWhenANewPackageRegistrationIsCreated() {
+            void WillSaveTheCreatedPackageWhenANewPackageRegistrationIsCreated()
+            {
                 var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
                     packageRegistrationRepo: packageRegistrationRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -217,16 +238,19 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillSaveTheCreatedPackageWhenThePackageRegistrationAlreadyExisted() {
+            void WillSaveTheCreatedPackageWhenThePackageRegistrationAlreadyExisted()
+            {
                 var currentUser = new User();
-                var packageRegistration = new PackageRegistration {
+                var packageRegistration = new PackageRegistration
+                {
                     Id = "theId",
                     Owners = new HashSet<User> { currentUser },
                 };
                 var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
                     packageRegistrationRepo: packageRegistrationRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -240,16 +264,19 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfThePackageRegistrationAlreadyExistsAndTheCurrentUserIsNotAnOwner() {
+            void WillThrowIfThePackageRegistrationAlreadyExistsAndTheCurrentUserIsNotAnOwner()
+            {
                 var currentUser = new User();
-                var packageRegistration = new PackageRegistration {
+                var packageRegistration = new PackageRegistration
+                {
                     Id = "theId",
                     Owners = new HashSet<User> { },
                 };
                 var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
                     packageRegistrationRepo: packageRegistrationRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
                     });
                 var nugetPackage = CreateNuGetPackage();
@@ -260,7 +287,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageIdIsLongerThan128() {
+            void WillThrowIfTheNuGetPackageIdIsLongerThan128()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Id).Returns("theId".PadRight(129, '_'));
@@ -271,7 +299,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageAuthorsIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageAuthorsIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Authors).Returns(new[] { "theFirstAuthor".PadRight(2001, '_'), "theSecondAuthor".PadRight(2001, '_') });
@@ -282,7 +311,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageDependenciesIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageDependenciesIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Dependencies).Returns(new[] { 
@@ -300,7 +330,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageDescriptionIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageDescriptionIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Description).Returns("theDescription".PadRight(4001, '_'));
@@ -311,7 +342,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageIconUrlIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageIconUrlIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.IconUrl).Returns(new Uri("http://theIconUrl/".PadRight(4001, '-'), UriKind.Absolute));
@@ -322,7 +354,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageLicenseUrlIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageLicenseUrlIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.LicenseUrl).Returns(new Uri("http://theLicenseUrl/".PadRight(4001, '-'), UriKind.Absolute));
@@ -333,7 +366,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageProjectUrlIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageProjectUrlIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.ProjectUrl).Returns(new Uri("http://theProjectUrl/".PadRight(4001, '-'), UriKind.Absolute));
@@ -344,7 +378,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageSummaryIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageSummaryIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Summary).Returns("theSummary".PadRight(4001, '_'));
@@ -355,7 +390,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageTagsIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageTagsIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Tags).Returns("theTags".PadRight(4001, '_'));
@@ -366,7 +402,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageTitleIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageTitleIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Title).Returns("theTitle".PadRight(4001, '_'));
@@ -377,15 +414,18 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheDeletePackageMethod {
+        public class TheDeletePackageMethod
+        {
             [Fact]
-            public void WillDeleteThePackage() {
+            public void WillDeleteThePackage()
+            {
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { PackageRegistration = packageRegistration };
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(
                     packageRepo: packageRepo,
-                    setup: mockSvc => {
+                    setup: mockSvc =>
+                    {
                         mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)package);
                     });
 
@@ -396,13 +436,15 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillDeleteThePackageFile() {
+            public void WillDeleteThePackageFile()
+            {
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { PackageRegistration = packageRegistration };
                 var packageFileSvc = new Mock<IPackageFileService>();
                 var service = CreateService(
                     packageFileSvc: packageFileSvc,
-                    setup: mockSvc => {
+                    setup: mockSvc =>
+                    {
                         mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)package);
                     });
 
@@ -412,7 +454,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillDeleteThePackageRegistrationIfThereAreNoOtherPackages() {
+            public void WillDeleteThePackageRegistrationIfThereAreNoOtherPackages()
+            {
                 var packageRegistration = new PackageRegistration { };
                 var package = new Package { PackageRegistration = packageRegistration, Version = "1.0" };
                 packageRegistration.Packages.Add(package);
@@ -423,7 +466,8 @@ namespace NuGetGallery {
                 var service = CreateService(
                     packageRegistrationRepo: packageRegistrationRepo,
                     packageRepo: packageRepo,
-                    setup: mockSvc => {
+                    setup: mockSvc =>
+                    {
                         mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)package);
                     });
 
@@ -433,7 +477,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillNotDeleteThePackageRegistrationIfThereAreOtherPackages() {
+            public void WillNotDeleteThePackageRegistrationIfThereAreOtherPackages()
+            {
                 var packageRegistration = new PackageRegistration { Packages = new HashSet<Package>() };
                 var package = new Package { PackageRegistration = packageRegistration, Version = "1.0" };
                 packageRegistration.Packages.Add(package);
@@ -445,7 +490,8 @@ namespace NuGetGallery {
                 var service = CreateService(
                     packageRegistrationRepo: packageRegistrationRepo,
                     packageRepo: packageRepo,
-                    setup: mockSvc => {
+                    setup: mockSvc =>
+                    {
                         mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)package);
                     });
 
@@ -455,7 +501,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void DeletePackageUpdatesIsLatest() {
+            public void DeletePackageUpdatesIsLatest()
+            {
                 // Arrange
                 var packages = new HashSet<Package>();
                 var packageRegistration = new PackageRegistration { Packages = packages };
@@ -470,7 +517,8 @@ namespace NuGetGallery {
                 packageRepo.Setup(r => r.CommitChanges()).Verifiable();
                 var service = CreateService(
                 packageRepo: packageRepo,
-                    setup: mockSvc => {
+                    setup: mockSvc =>
+                    {
                         mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package_100);
                     });
 
@@ -486,9 +534,11 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfThePackageDoesNotExist() {
+            public void WillThrowIfThePackageDoesNotExist()
+            {
                 var service = CreateService(
-                    setup: mockSvc => {
+                    setup: mockSvc =>
+                    {
                         mockSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), false)).Returns((Package)null);
                     });
 
@@ -498,9 +548,11 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheFindPackageByIdAndVersionMethod {
+        public class TheFindPackageByIdAndVersionMethod
+        {
             [Fact]
-            public void WillGetTheLatestVersionWhenTheVersionArgumentIsNull() {
+            public void WillGetTheLatestVersionWhenTheVersionArgumentIsNull()
+            {
                 var packageRegistration = new PackageRegistration { Id = "theId" };
                 var packages = new[] {
                     new Package { Version = "1.0", PackageRegistration = packageRegistration },
@@ -516,9 +568,11 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillGetSpecifiedVersionWhenTheVersionArgumentIsNotNull() {
+            public void WillGetSpecifiedVersionWhenTheVersionArgumentIsNotNull()
+            {
                 var service = CreateService(
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Throws(new Exception("This should not be called when the version is specified."));
                     });
 
@@ -529,7 +583,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfIdIsNull() {
+            public void WillThrowIfIdIsNull()
+            {
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentNullException>(() => service.FindPackageByIdAndVersion(null, "1.0.42"));
@@ -538,7 +593,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void FindPackageReturnsTheLatestVersionIfAvailable() {
+            public void FindPackageReturnsTheLatestVersionIfAvailable()
+            {
                 // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
                 var package = CreatePackage("Foo", "1.0.0");
@@ -558,7 +614,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void FindPackageReturnsTheLatestVersionIfNoLatestStableVersionIsAvailable() {
+            public void FindPackageReturnsTheLatestVersionIfNoLatestStableVersionIsAvailable()
+            {
                 // Arrange
                 var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
                 var package = CreatePackage("Foo", "1.0.0b");
@@ -577,19 +634,25 @@ namespace NuGetGallery {
             }
         }
 
-        private static Package CreatePackage(string id, string version) {
-            return new Package {
+        private static Package CreatePackage(string id, string version)
+        {
+            return new Package
+            {
                 PackageRegistration = new PackageRegistration { Id = id },
                 Version = version
             };
         }
 
-        public class ThePublishPackageMethod {
+        public class ThePublishPackageMethod
+        {
             [Fact]
-            public void WillSetThePublishedDateOnThePackageBeingPublished() {
-                Package package = new Package {
+            public void WillSetThePublishedDateOnThePackageBeingPublished()
+            {
+                Package package = new Package
+                {
                     Version = "1.0.42",
-                    PackageRegistration = new PackageRegistration() {
+                    PackageRegistration = new PackageRegistration()
+                    {
                         Id = "theId",
                         Packages = new HashSet<Package>()
                     }
@@ -598,7 +661,8 @@ namespace NuGetGallery {
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(
                     packageRepo: packageRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                     });
 
@@ -609,10 +673,13 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillSetUpdateIsLatestStableOnThePackageWhenItIsTheLatestVersion() {
-                Package package = new Package {
+            public void WillSetUpdateIsLatestStableOnThePackageWhenItIsTheLatestVersion()
+            {
+                Package package = new Package
+                {
                     Version = "1.0.42",
-                    PackageRegistration = new PackageRegistration() {
+                    PackageRegistration = new PackageRegistration()
+                    {
                         Id = "theId",
                         Packages = new HashSet<Package>()
                     }
@@ -622,7 +689,8 @@ namespace NuGetGallery {
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(
                     packageRepo: packageRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                     });
 
@@ -632,16 +700,20 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillNotSetUpdateIsLatestStableOnThePackageWhenItIsNotTheLatestVersion() {
-                Package package = new Package {
+            public void WillNotSetUpdateIsLatestStableOnThePackageWhenItIsNotTheLatestVersion()
+            {
+                Package package = new Package
+                {
                     Version = "1.0.42",
-                    PackageRegistration = new PackageRegistration() {
+                    PackageRegistration = new PackageRegistration()
+                    {
                         Id = "theId",
                         Packages = new HashSet<Package>()
                     }
                 };
                 package.PackageRegistration.Packages.Add(package);
-                package.PackageRegistration.Packages.Add(new Package {
+                package.PackageRegistration.Packages.Add(new Package
+                {
                     Version = "2.0",
                     PackageRegistration = package.PackageRegistration,
                     Published = DateTime.UtcNow
@@ -649,7 +721,8 @@ namespace NuGetGallery {
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(
                     packageRepo: packageRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                     });
 
@@ -659,18 +732,22 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void SetUpdateUpdatesIsAbsoluteLatestForPrereleasePackage() {
-                Package package = new Package {
+            public void SetUpdateUpdatesIsAbsoluteLatestForPrereleasePackage()
+            {
+                Package package = new Package
+                {
                     Version = "1.0.42alpha",
                     Published = DateTime.Now,
-                    PackageRegistration = new PackageRegistration() {
+                    PackageRegistration = new PackageRegistration()
+                    {
                         Id = "theId",
                         Packages = new HashSet<Package>()
                     },
                     IsPrerelease = true,
                 };
                 package.PackageRegistration.Packages.Add(package);
-                var package_39 = new Package {
+                var package_39 = new Package
+                {
                     Version = "1.0.39",
                     PackageRegistration = package.PackageRegistration,
                     Published = DateTime.Now.AddDays(-1)
@@ -679,7 +756,8 @@ namespace NuGetGallery {
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(
                     packageRepo: packageRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                     });
 
@@ -691,18 +769,22 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void SetUpdateDoesNotSetIsLatestStableForAnyIfAllPackagesArePrerelease() {
-                Package package = new Package {
+            public void SetUpdateDoesNotSetIsLatestStableForAnyIfAllPackagesArePrerelease()
+            {
+                Package package = new Package
+                {
                     Version = "1.0.42alpha",
                     Published = DateTime.Now,
                     IsPrerelease = true,
-                    PackageRegistration = new PackageRegistration() {
+                    PackageRegistration = new PackageRegistration()
+                    {
                         Id = "theId",
                         Packages = new HashSet<Package>()
                     }
                 };
                 package.PackageRegistration.Packages.Add(package);
-                var package_39 = new Package {
+                var package_39 = new Package
+                {
                     Version = "1.0.39beta",
                     PackageRegistration = package.PackageRegistration,
                     Published = DateTime.Now.AddDays(-1),
@@ -712,7 +794,8 @@ namespace NuGetGallery {
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(
                     packageRepo: packageRepo,
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                     });
 
@@ -724,9 +807,11 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfThePackageDoesNotExist() {
+            public void WillThrowIfThePackageDoesNotExist()
+            {
                 var service = CreateService(
-                    setup: mockPackageSvc => {
+                    setup: mockPackageSvc =>
+                    {
                         mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)null);
                     });
 
@@ -736,9 +821,11 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheAddDownloadStatisticsMethod {
+        public class TheAddDownloadStatisticsMethod
+        {
             [Fact]
-            public void WillInsertNewRecordIntoTheStatisticsRepository() {
+            public void WillInsertNewRecordIntoTheStatisticsRepository()
+            {
                 var packageStatsRepo = new Mock<IEntityRepository<PackageStatistics>>();
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
@@ -750,10 +837,11 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillIgnoreTheIpAddressForNow() {
+            public void WillIgnoreTheIpAddressForNow()
+            {
                 // Until we understand privacy implications of storing IP Addresses thoroughly,
                 // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
-                    
+
                 var packageStatsRepo = new Mock<IEntityRepository<PackageStatistics>>();
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
@@ -765,7 +853,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillAllowNullsForUserAgentAndUserHostAddress() {
+            public void WillAllowNullsForUserAgentAndUserHostAddress()
+            {
                 var packageStatsRepo = new Mock<IEntityRepository<PackageStatistics>>();
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
@@ -777,7 +866,8 @@ namespace NuGetGallery {
             }
         }
 
-        static Mock<IPackage> CreateNuGetPackage(Action<Mock<IPackage>> setup = null) {
+        static Mock<IPackage> CreateNuGetPackage(Action<Mock<IPackage>> setup = null)
+        {
             var nugetPackage = new Mock<IPackage>();
 
             nugetPackage.Setup(x => x.Id).Returns("theId");
@@ -818,8 +908,10 @@ namespace NuGetGallery {
             Mock<IEntityRepository<Package>> packageRepo = null,
             Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null,
             Mock<IPackageFileService> packageFileSvc = null,
-            Action<Mock<PackageService>> setup = null) {
-            if (cryptoSvc == null) {
+            Action<Mock<PackageService>> setup = null)
+        {
+            if (cryptoSvc == null)
+            {
                 cryptoSvc = new Mock<ICryptographyService>();
                 cryptoSvc.Setup(x => x.HashAlgorithmId).Returns(Const.Sha512HashAlgorithmId);
                 cryptoSvc.Setup(x => x.GenerateHash(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, Const.Sha512HashAlgorithmId))

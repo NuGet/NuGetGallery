@@ -11,24 +11,7 @@
 
 namespace NuGetGallery.Views.Shared
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
-    using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/TwoColumnLayout.cshtml")]
     public class TwoColumnLayout : System.Web.Mvc.WebViewPage<dynamic>
@@ -39,28 +22,28 @@ namespace NuGetGallery.Views.Shared
         public override void Execute()
         {
 
-            
-            #line 1 "..\..\Views\Shared\TwoColumnLayout.cshtml"
-  
-    Layout = "Layout.cshtml";
+
+#line 1 "..\..\Views\Shared\TwoColumnLayout.cshtml"
+
+            Layout = "Layout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("<div id=\"layout-main\" class=\"aside-1 group\">  \r\n    <aside id=\"aside-first\" class" +
-"=\"aside-first group\">\r\n        <div class=\"zone zone-aside-first\">\r\n            " +
-"<nav id=\"leftNav\">\r\n                ");
+
+#line default
+#line hidden
+            WriteLiteral("<div id=\"layout-main\" class=\"aside-1 group\">  \r\n    <aside id=\"aside-first\" class" +
+            "=\"aside-first group\">\r\n        <div class=\"zone zone-aside-first\">\r\n            " +
+            "<nav id=\"leftNav\">\r\n                ");
 
 
-            
-            #line 8 "..\..\Views\Shared\TwoColumnLayout.cshtml"
-           Write(RenderSection("LeftNav"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"
+#line 8 "..\..\Views\Shared\TwoColumnLayout.cshtml"
+            Write(RenderSection("LeftNav"));
+
+
+#line default
+#line hidden
+            WriteLiteral(@"
             </nav>
         </div>
     </aside>
@@ -73,35 +56,35 @@ WriteLiteral(@"
                         ");
 
 
-            
-            #line 18 "..\..\Views\Shared\TwoColumnLayout.cshtml"
-                   Write(RenderSection("ContentHeader"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                    </header>\r\n                    ");
+#line 18 "..\..\Views\Shared\TwoColumnLayout.cshtml"
+            Write(RenderSection("ContentHeader"));
 
 
-            
-            #line 20 "..\..\Views\Shared\TwoColumnLayout.cshtml"
-               Write(RenderBody());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                </section>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</d" +
-"iv>\r\n\r\n");
+#line default
+#line hidden
+            WriteLiteral("\r\n                    </header>\r\n                    ");
 
 
-            
-            #line 27 "..\..\Views\Shared\TwoColumnLayout.cshtml"
-Write(RenderSection("BottomScripts", required: false));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+#line 20 "..\..\Views\Shared\TwoColumnLayout.cshtml"
+            Write(RenderBody());
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n                </section>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</d" +
+            "iv>\r\n\r\n");
+
+
+
+#line 27 "..\..\Views\Shared\TwoColumnLayout.cshtml"
+            Write(RenderSection("BottomScripts", required: false));
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
         }

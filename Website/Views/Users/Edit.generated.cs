@@ -12,23 +12,10 @@
 namespace NuGetGallery.Views.Users
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
     using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/Edit.cshtml")]
     public class Edit : System.Web.Mvc.WebViewPage<EditProfileViewModel>
@@ -40,207 +27,212 @@ namespace NuGetGallery.Views.Users
         {
 
 
-            
-            #line 2 "..\..\Views\Users\Edit.cshtml"
-  
-    ViewBag.Title = "Edit Profile";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 2 "..\..\Views\Users\Edit.cshtml"
+
+            ViewBag.Title = "Edit Profile";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 8 "..\..\Views\Users\Edit.cshtml"
-         Write(Links.Content.Images.userGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-});
 
-WriteLiteral("                \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
+#line 8 "..\..\Views\Users\Edit.cshtml"
+                Write(Links.Content.Images.userGraphic_png);
 
 
-            
-            #line 12 "..\..\Views\Users\Edit.cshtml"
-                             Write(Links.Content.Images.required_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Edit Profile</h2>    \r\n");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
 
 
-});
+            });
 
-WriteLiteral("\r\n\r\n");
-
-
-            
-            #line 16 "..\..\Views\Users\Edit.cshtml"
- using (Html.BeginForm(MVC.Users.Edit(), FormMethod.Post, new {id = "form"})) {
-    
-            
-            #line default
-            #line hidden
-            
-            #line 17 "..\..\Views\Users\Edit.cshtml"
-Write(Html.AntiForgeryToken());
-
-            
-            #line default
-            #line hidden
-            
-            #line 17 "..\..\Views\Users\Edit.cshtml"
-                            
-    
-            
-            #line default
-            #line hidden
-            
-            #line 18 "..\..\Views\Users\Edit.cshtml"
-Write(Html.ValidationSummary(true));
-
-            
-            #line default
-            #line hidden
-            
-            #line 18 "..\..\Views\Users\Edit.cshtml"
-                                 
-
-    if (!String.IsNullOrEmpty(Model.PendingNewEmailAddress)) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        <div>\r\n            <label>Pending email address change</label>\r\n         " +
-"   ");
+            WriteLiteral("                \r\n\r\n");
 
 
-            
-            #line 23 "..\..\Views\Users\Edit.cshtml"
-       Write(Html.HiddenFor(m => m.PendingNewEmailAddress));
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            <p>\r\n                You recently requested to change your email ad" +
-"dress to <strong>");
+                WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
 
 
-            
-            #line 25 "..\..\Views\Users\Edit.cshtml"
-                                                                          Write(Model.PendingNewEmailAddress);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</strong>. \r\n                This change will take effect when you confirm the ad" +
-"dress. Check your inbox (or spam folder) for an \r\n                email with a c" +
-"onfirmation link.\r\n            </p>\r\n        </div>\r\n");
+#line 12 "..\..\Views\Users\Edit.cshtml"
+                Write(Links.Content.Images.required_png);
 
 
-            
-            #line 30 "..\..\Views\Users\Edit.cshtml"
-    }
-    
-
-            
-            #line default
-            #line hidden
-
-            
-            #line 32 "..\..\Views\Users\Edit.cshtml"
-WriteLiteral("    <div ");
-
-            
-            #line default
-            #line hidden
-            
-            #line 32 "..\..\Views\Users\Edit.cshtml"
-          if (Html.IsError(m => m.EmailAddress)) {
-            
-            #line default
-            #line hidden
-WriteLiteral("class=\"invalid\"");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Edit Profile</h2>    \r\n");
 
 
-            
-            #line 32 "..\..\Views\Users\Edit.cshtml"
-                                                                              }
-            
-            #line default
-            #line hidden
-WriteLiteral(">\r\n        ");
+            });
+
+            WriteLiteral("\r\n\r\n");
 
 
-            
-            #line 33 "..\..\Views\Users\Edit.cshtml"
-   Write(Html.LabelFor(m => m.EmailAddress));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        <aside>\r\n            <p>\r\n                <strong>");
+#line 16 "..\..\Views\Users\Edit.cshtml"
+            using (Html.BeginForm(MVC.Users.Edit(), FormMethod.Post, new { id = "form" }))
+            {
 
 
-            
-            #line 36 "..\..\Views\Users\Edit.cshtml"
-                   Write(Html.ValidationMessageFor(m => m.EmailAddress));
+#line default
+#line hidden
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</strong>\r\n                If you change your email address, you will need to con" +
-"firm \r\n                your new address for it to take effect.\r\n            </p>" +
-"\r\n        </aside>\r\n        ");
+#line 17 "..\..\Views\Users\Edit.cshtml"
+                Write(Html.AntiForgeryToken());
 
 
-            
-            #line 41 "..\..\Views\Users\Edit.cshtml"
-   Write(Html.EditorFor(m => m.EmailAddress));
+#line default
+#line hidden
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    </div>\r\n");
+#line 17 "..\..\Views\Users\Edit.cshtml"
 
 
-            
-            #line 43 "..\..\Views\Users\Edit.cshtml"
+
+#line default
+#line hidden
+
+#line 18 "..\..\Views\Users\Edit.cshtml"
+                Write(Html.ValidationSummary(true));
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("    <div>\r\n        <label>\r\n            ");
+#line default
+#line hidden
+
+#line 18 "..\..\Views\Users\Edit.cshtml"
 
 
-            
-            #line 46 "..\..\Views\Users\Edit.cshtml"
-       Write(Html.EditorFor(m => m.EmailAllowed));
+                if (!String.IsNullOrEmpty(Model.PendingNewEmailAddress))
+                {
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@" Receive Email Notifications 
+
+#line default
+#line hidden
+                    WriteLiteral("        <div>\r\n            <label>Pending email address change</label>\r\n         " +
+                    "   ");
+
+
+
+#line 23 "..\..\Views\Users\Edit.cshtml"
+                    Write(Html.HiddenFor(m => m.PendingNewEmailAddress));
+
+
+#line default
+#line hidden
+                    WriteLiteral("\r\n            <p>\r\n                You recently requested to change your email ad" +
+                    "dress to <strong>");
+
+
+
+#line 25 "..\..\Views\Users\Edit.cshtml"
+                    Write(Model.PendingNewEmailAddress);
+
+
+#line default
+#line hidden
+                    WriteLiteral("</strong>. \r\n                This change will take effect when you confirm the ad" +
+                    "dress. Check your inbox (or spam folder) for an \r\n                email with a c" +
+                    "onfirmation link.\r\n            </p>\r\n        </div>\r\n");
+
+
+
+#line 30 "..\..\Views\Users\Edit.cshtml"
+                }
+
+
+
+#line default
+#line hidden
+
+
+#line 32 "..\..\Views\Users\Edit.cshtml"
+                WriteLiteral("    <div ");
+
+
+#line default
+#line hidden
+
+#line 32 "..\..\Views\Users\Edit.cshtml"
+                if (Html.IsError(m => m.EmailAddress))
+                {
+
+#line default
+#line hidden
+                    WriteLiteral("class=\"invalid\"");
+
+
+
+#line 32 "..\..\Views\Users\Edit.cshtml"
+                }
+
+#line default
+#line hidden
+                WriteLiteral(">\r\n        ");
+
+
+
+#line 33 "..\..\Views\Users\Edit.cshtml"
+                Write(Html.LabelFor(m => m.EmailAddress));
+
+
+#line default
+#line hidden
+                WriteLiteral("\r\n        <aside>\r\n            <p>\r\n                <strong>");
+
+
+
+#line 36 "..\..\Views\Users\Edit.cshtml"
+                Write(Html.ValidationMessageFor(m => m.EmailAddress));
+
+
+#line default
+#line hidden
+                WriteLiteral("</strong>\r\n                If you change your email address, you will need to con" +
+                "firm \r\n                your new address for it to take effect.\r\n            </p>" +
+                "\r\n        </aside>\r\n        ");
+
+
+
+#line 41 "..\..\Views\Users\Edit.cshtml"
+                Write(Html.EditorFor(m => m.EmailAddress));
+
+
+#line default
+#line hidden
+                WriteLiteral("\r\n    </div>\r\n");
+
+
+
+#line 43 "..\..\Views\Users\Edit.cshtml"
+
+
+
+#line default
+#line hidden
+                WriteLiteral("    <div>\r\n        <label>\r\n            ");
+
+
+
+#line 46 "..\..\Views\Users\Edit.cshtml"
+                Write(Html.EditorFor(m => m.EmailAllowed));
+
+
+#line default
+#line hidden
+                WriteLiteral(@" Receive Email Notifications 
         </label>
         <p>
             <strong>Important:</strong> This setting allows other <em>registered</em> users of the site to contact you 
@@ -251,73 +243,74 @@ WriteLiteral(@" Receive Email Notifications
 ");
 
 
-            
-            #line 54 "..\..\Views\Users\Edit.cshtml"
+
+#line 54 "..\..\Views\Users\Edit.cshtml"
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("    <div>\r\n        <button type=\"submit\" title=\"Edit Profile\">Save Changes</butto" +
-"n> <a href=\"");
+
+#line default
+#line hidden
+                WriteLiteral("    <div>\r\n        <button type=\"submit\" title=\"Edit Profile\">Save Changes</butto" +
+                "n> <a href=\"");
 
 
-            
-            #line 56 "..\..\Views\Users\Edit.cshtml"
-                                                                             Write(Url.Action(MVC.Users.Account()));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Go Back</a>\r\n    </div>\r\n");
+#line 56 "..\..\Views\Users\Edit.cshtml"
+                Write(Url.Action(MVC.Users.Account()));
 
 
-            
-            #line 58 "..\..\Views\Users\Edit.cshtml"
-}
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+#line default
+#line hidden
+                WriteLiteral("\">Go Back</a>\r\n    </div>\r\n");
 
 
-DefineSection("BottomScripts", () => {
 
-WriteLiteral("\r\n    <script src=\"");
-
-
-            
-            #line 61 "..\..\Views\Users\Edit.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.min.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+#line 58 "..\..\Views\Users\Edit.cshtml"
+            }
 
 
-            
-            #line 62 "..\..\Views\Users\Edit.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-            
-            #line 63 "..\..\Views\Users\Edit.cshtml"
-            Write(Url.Content("~/Scripts/gallery.form.js"));
+            DefineSection("BottomScripts", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+                WriteLiteral("\r\n    <script src=\"");
 
 
-});
+
+#line 61 "..\..\Views\Users\Edit.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 62 "..\..\Views\Users\Edit.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 63 "..\..\Views\Users\Edit.cshtml"
+                Write(Url.Content("~/Scripts/gallery.form.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+
+
+            });
 
 
         }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 
-namespace NuGetGallery {
-    public interface ICloudBlob {
+namespace NuGetGallery
+{
+    public interface ICloudBlob
+    {
         Uri Uri { get; }
 
         void DeleteIfExists();

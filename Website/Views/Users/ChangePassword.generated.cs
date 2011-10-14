@@ -11,24 +11,10 @@
 
 namespace NuGetGallery.Views.Users
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
     using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/ChangePassword.cshtml")]
     public class ChangePassword : System.Web.Mvc.WebViewPage<PasswordChangeViewModel>
@@ -40,146 +26,149 @@ namespace NuGetGallery.Views.Users
         {
 
 
-            
-            #line 2 "..\..\Views\Users\ChangePassword.cshtml"
-  
-    ViewBag.Title = "Change Password";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 2 "..\..\Views\Users\ChangePassword.cshtml"
+
+            ViewBag.Title = "Change Password";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 8 "..\..\Views\Users\ChangePassword.cshtml"
-         Write(Links.Content.Images.userGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-});
 
-WriteLiteral("                \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
+#line 8 "..\..\Views\Users\ChangePassword.cshtml"
+                Write(Links.Content.Images.userGraphic_png);
 
 
-            
-            #line 12 "..\..\Views\Users\ChangePassword.cshtml"
-                             Write(Links.Content.Images.required_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Change Password</h2>    \r\n");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
 
 
-});
+            });
 
-WriteLiteral("\r\n\r\n<form id=\"form\" method=\"post\" action=\"");
-
-
-            
-            #line 16 "..\..\Views\Users\ChangePassword.cshtml"
-                                 Write(Url.Current());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">\r\n    ");
+            WriteLiteral("                \r\n\r\n");
 
 
-            
-            #line 17 "..\..\Views\Users\ChangePassword.cshtml"
-Write(Html.AntiForgeryToken());
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    ");
+                WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
 
 
-            
-            #line 18 "..\..\Views\Users\ChangePassword.cshtml"
-Write(Html.ValidationSummary(true));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    ");
+#line 12 "..\..\Views\Users\ChangePassword.cshtml"
+                Write(Links.Content.Images.required_png);
 
 
-            
-            #line 19 "..\..\Views\Users\ChangePassword.cshtml"
-Write(Html.EditorForModel());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    <div>\r\n        <button type=\"submit\" title=\"Change password\">Change Passwor" +
-"d</button> <a href=\"");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Change Password</h2>    \r\n");
 
 
-            
-            #line 21 "..\..\Views\Users\ChangePassword.cshtml"
-                                                                                   Write(Url.Action(MVC.Users.Account()));
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Go Back</a>\r\n    </div>\r\n</form>\r\n\r\n");
+            WriteLiteral("\r\n\r\n<form id=\"form\" method=\"post\" action=\"");
 
 
-DefineSection("BottomScripts", () => {
 
-WriteLiteral("\r\n    <script src=\"");
-
-
-            
-            #line 26 "..\..\Views\Users\ChangePassword.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.min.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+#line 16 "..\..\Views\Users\ChangePassword.cshtml"
+            Write(Url.Current());
 
 
-            
-            #line 27 "..\..\Views\Users\ChangePassword.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+#line default
+#line hidden
+            WriteLiteral("\">\r\n    ");
 
 
-            
-            #line 28 "..\..\Views\Users\ChangePassword.cshtml"
-            Write(Url.Content("~/Scripts/gallery.form.js"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+#line 17 "..\..\Views\Users\ChangePassword.cshtml"
+            Write(Html.AntiForgeryToken());
 
 
-});
+#line default
+#line hidden
+            WriteLiteral("\r\n    ");
+
+
+
+#line 18 "..\..\Views\Users\ChangePassword.cshtml"
+            Write(Html.ValidationSummary(true));
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n    ");
+
+
+
+#line 19 "..\..\Views\Users\ChangePassword.cshtml"
+            Write(Html.EditorForModel());
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n    <div>\r\n        <button type=\"submit\" title=\"Change password\">Change Passwor" +
+            "d</button> <a href=\"");
+
+
+
+#line 21 "..\..\Views\Users\ChangePassword.cshtml"
+            Write(Url.Action(MVC.Users.Account()));
+
+
+#line default
+#line hidden
+            WriteLiteral("\">Go Back</a>\r\n    </div>\r\n</form>\r\n\r\n");
+
+
+            DefineSection("BottomScripts", () =>
+            {
+
+                WriteLiteral("\r\n    <script src=\"");
+
+
+
+#line 26 "..\..\Views\Users\ChangePassword.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 27 "..\..\Views\Users\ChangePassword.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 28 "..\..\Views\Users\ChangePassword.cshtml"
+                Write(Url.Content("~/Scripts/gallery.form.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+
+
+            });
 
 
         }

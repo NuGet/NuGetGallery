@@ -11,24 +11,8 @@
 
 namespace NuGetGallery.Views.Packages
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Packages/ManagePackageOwners.cshtml")]
     public class ManagePackageOwners : System.Web.Mvc.WebViewPage<ManagePackageOwnersViewModel>
@@ -40,16 +24,16 @@ namespace NuGetGallery.Views.Packages
         {
 
 
-            
-            #line 2 "..\..\Views\Packages\ManagePackageOwners.cshtml"
-  
-    ViewBag.Tab = "Packages";
+
+#line 2 "..\..\Views\Packages\ManagePackageOwners.cshtml"
+
+            ViewBag.Tab = "Packages";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"<div id=""layout-main"" class=""group"">
+
+#line default
+#line hidden
+            WriteLiteral(@"<div id=""layout-main"" class=""group"">
     <div id=""layout-content"" class=""group"">
         <div id=""content"" class=""group"">
             <div class=""zone zone-content"">
@@ -58,14 +42,14 @@ WriteLiteral(@"<div id=""layout-main"" class=""group"">
                         <h2>Manage Owners for Package """);
 
 
-            
-            #line 11 "..\..\Views\Packages\ManagePackageOwners.cshtml"
-                                                  Write(Model.Title);
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"""</h2>
+#line 11 "..\..\Views\Packages\ManagePackageOwners.cshtml"
+            Write(Model.Title);
+
+
+#line default
+#line hidden
+            WriteLiteral(@"""</h2>
                         <div class=""message message-Error validation-summary-errors"" data-bind=""text: message, visible: message""></div>
                     </header>
                     <div id=""form"">
@@ -83,14 +67,14 @@ WriteLiteral(@"""</h2>
                         <form action=""");
 
 
-            
-            #line 26 "..\..\Views\Packages\ManagePackageOwners.cshtml"
-                                 Write(Url.Current());
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@""" id=""form"" method=""post"">
+#line 26 "..\..\Views\Packages\ManagePackageOwners.cshtml"
+            Write(Url.Current());
+
+
+#line default
+#line hidden
+            WriteLiteral(@""" id=""form"" method=""post"">
                             <div>
                                 <label for=""newOwnerUserName"">Add New Owner</label>
                                 <p>
@@ -116,24 +100,24 @@ WriteLiteral(@""" id=""form"" method=""post"">
 <script src=""");
 
 
-            
-            #line 49 "..\..\Views\Packages\ManagePackageOwners.cshtml"
-        Write(Url.Content("~/Scripts/knockout-latest.js"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n<script src=\"");
+#line 49 "..\..\Views\Packages\ManagePackageOwners.cshtml"
+            Write(Url.Content("~/Scripts/knockout-latest.js"));
 
 
-            
-            #line 50 "..\..\Views\Packages\ManagePackageOwners.cshtml"
-        Write(Url.Content("~/json/JsonApi?json"));
+#line default
+#line hidden
+            WriteLiteral("\" type=\"text/javascript\"></script>\r\n<script src=\"");
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@""" type=""text/javascript""></script>
+
+
+#line 50 "..\..\Views\Packages\ManagePackageOwners.cshtml"
+            Write(Url.Content("~/json/JsonApi?json"));
+
+
+#line default
+#line hidden
+            WriteLiteral(@""" type=""text/javascript""></script>
 <script type=""text/javascript"">
     $(function() {
         //TODO Move this to its own script file when we set up QUnit tests
@@ -145,51 +129,51 @@ WriteLiteral(@""" type=""text/javascript""></script>
             package: { id: '");
 
 
-            
-            #line 59 "..\..\Views\Packages\ManagePackageOwners.cshtml"
-                       Write(Model.Id);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\', version: \'");
+#line 59 "..\..\Views\Packages\ManagePackageOwners.cshtml"
+            Write(Model.Id);
 
 
-            
-            #line 59 "..\..\Views\Packages\ManagePackageOwners.cshtml"
-                                             Write(Model.Version);
+#line default
+#line hidden
+            WriteLiteral("\', version: \'");
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\' },\r\n            owners: ko.observableArray([]),\r\n            newOwner: ko.obser" +
-"vable(new Owner(null)),\r\n            message: ko.observable(\'\'),\r\n            ad" +
-"dOwner: function() {\r\n                var ownerInputModel = viewModel.newOwner()" +
-".toJS();\r\n                ownerInputModel.id = viewModel.package.id;\r\n          " +
-"      \r\n                $mvc.JsonApi.AddPackageOwner(ownerInputModel)\r\n         " +
-"           .done(function(data) {\r\n                        if (data.success) {\r\n" +
-"                            viewModel.newOwner().name(data.name);\r\n             " +
-"               viewModel.owners.push(viewModel.newOwner());\r\n                   " +
-"         viewModel.newOwner(new Owner(null));\r\n                        }\r\n      " +
-"                  else {\r\n                            viewModel.message(data.mes" +
-"sage);\r\n                        }\r\n                    })\r\n                    ." +
-"fail(failHandler);\r\n            },\r\n\r\n            removeOwner: function(item) {\r" +
-"\n                var package = viewModel.package;\r\n                $mvc.JsonApi." +
-"RemovePackageOwner({ id: package.id, version: package.version, username: item.na" +
-"me() })\r\n                    .done(function(data) {\r\n                        if " +
-"(data.success) {\r\n                            viewModel.owners.remove(item);\r\n  " +
-"                      }\r\n                        else {\r\n                       " +
-"     viewModel.message(data.message);\r\n                        }\r\n              " +
-"      }).fail(failHandler);\r\n            }\r\n        };\r\n        ko.applyBindings" +
-"(viewModel);\r\n\r\n        // Load initial owners.\r\n        $mvc.JsonApi.GetPackage" +
-"Owners(viewModel.package)\r\n        .done(function(data) {\r\n            viewModel" +
-".owners($.map(data, function(item) { return new Owner(item) }));\r\n        })\r\n  " +
-"      .fail(failHandler);\r\n\r\n        function Owner(item) {\r\n            var $th" +
-"is = this;\r\n\r\n            item = item || {};\r\n\r\n            this.name = ko.obser" +
-"vable(item.name);\r\n            this.current = item.current;\r\n            this.re" +
-"move = function() {\r\n                viewModel.removeOwner(this);\r\n            }" +
-";\r\n            this.toJS = function() {\r\n                return { username: this" +
-".name() };\r\n            };\r\n        }\r\n    });\r\n</script>");
+
+
+#line 59 "..\..\Views\Packages\ManagePackageOwners.cshtml"
+            Write(Model.Version);
+
+
+#line default
+#line hidden
+            WriteLiteral("\' },\r\n            owners: ko.observableArray([]),\r\n            newOwner: ko.obser" +
+            "vable(new Owner(null)),\r\n            message: ko.observable(\'\'),\r\n            ad" +
+            "dOwner: function() {\r\n                var ownerInputModel = viewModel.newOwner()" +
+            ".toJS();\r\n                ownerInputModel.id = viewModel.package.id;\r\n          " +
+            "      \r\n                $mvc.JsonApi.AddPackageOwner(ownerInputModel)\r\n         " +
+            "           .done(function(data) {\r\n                        if (data.success) {\r\n" +
+            "                            viewModel.newOwner().name(data.name);\r\n             " +
+            "               viewModel.owners.push(viewModel.newOwner());\r\n                   " +
+            "         viewModel.newOwner(new Owner(null));\r\n                        }\r\n      " +
+            "                  else {\r\n                            viewModel.message(data.mes" +
+            "sage);\r\n                        }\r\n                    })\r\n                    ." +
+            "fail(failHandler);\r\n            },\r\n\r\n            removeOwner: function(item) {\r" +
+            "\n                var package = viewModel.package;\r\n                $mvc.JsonApi." +
+            "RemovePackageOwner({ id: package.id, version: package.version, username: item.na" +
+            "me() })\r\n                    .done(function(data) {\r\n                        if " +
+            "(data.success) {\r\n                            viewModel.owners.remove(item);\r\n  " +
+            "                      }\r\n                        else {\r\n                       " +
+            "     viewModel.message(data.message);\r\n                        }\r\n              " +
+            "      }).fail(failHandler);\r\n            }\r\n        };\r\n        ko.applyBindings" +
+            "(viewModel);\r\n\r\n        // Load initial owners.\r\n        $mvc.JsonApi.GetPackage" +
+            "Owners(viewModel.package)\r\n        .done(function(data) {\r\n            viewModel" +
+            ".owners($.map(data, function(item) { return new Owner(item) }));\r\n        })\r\n  " +
+            "      .fail(failHandler);\r\n\r\n        function Owner(item) {\r\n            var $th" +
+            "is = this;\r\n\r\n            item = item || {};\r\n\r\n            this.name = ko.obser" +
+            "vable(item.name);\r\n            this.current = item.current;\r\n            this.re" +
+            "move = function() {\r\n                viewModel.removeOwner(this);\r\n            }" +
+            ";\r\n            this.toJS = function() {\r\n                return { username: this" +
+            ".name() };\r\n            };\r\n        }\r\n    });\r\n</script>");
 
 
         }

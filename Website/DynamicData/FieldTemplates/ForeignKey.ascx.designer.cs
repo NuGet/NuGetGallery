@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class ForeignKeyField {
+    public partial class ForeignKeyField
+    {
 
         protected global::System.Web.UI.WebControls.HyperLink HyperLink1;
     }

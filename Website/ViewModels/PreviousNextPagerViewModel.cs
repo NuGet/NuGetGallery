@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace NuGetGallery {
-    public class PreviousNextPagerViewModel<T> : IPreviousNextPager {
+namespace NuGetGallery
+{
+    public class PreviousNextPagerViewModel<T> : IPreviousNextPager
+    {
 
         public PreviousNextPagerViewModel(IEnumerable<T> items,
             int pageIndex,
             int pageSize,
             int totalPages,
-            Func<int, string> url) {
+            Func<int, string> url)
+        {
             int pageNumber = pageIndex + 1;
             Items = items;
             HasPreviousPage = pageNumber > 1;

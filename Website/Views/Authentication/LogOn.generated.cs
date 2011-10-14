@@ -11,29 +11,16 @@
 
 namespace NuGetGallery.Views.Authentication
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
     using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
-    
-    #line 1 "..\..\Views\Authentication\LogOn.cshtml"
+
+
+#line 1 "..\..\Views\Authentication\LogOn.cshtml"
     using NuGetGallery;
-    
-    #line default
-    #line hidden
-    
+
+#line default
+#line hidden
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Authentication/LogOn.cshtml")]
     public class LogOn : System.Web.Mvc.WebViewPage<SignInRequest>
@@ -45,203 +32,208 @@ namespace NuGetGallery.Views.Authentication
         {
 
 
-WriteLiteral("\r\n");
+            WriteLiteral("\r\n");
 
 
-            
-            #line 4 "..\..\Views\Authentication\LogOn.cshtml"
-  
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 4 "..\..\Views\Authentication\LogOn.cshtml"
+
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 9 "..\..\Views\Authentication\LogOn.cshtml"
-         Write(Links.Content.Images.userGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" style=\"padding-left:70px\" alt=\"Blue User\" />\r\n    <p>\r\n        Don\'t have an ac" +
-"count yet? <a href=\"");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-            
-            #line 11 "..\..\Views\Authentication\LogOn.cshtml"
-                                       Write(Url.Action(MVC.Users.Register()));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Register now.</a>\r\n    </p>\r\n");
+#line 9 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Links.Content.Images.userGraphic_png);
 
 
-});
-
-WriteLiteral("    \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("            \r\n    <span class=\"right\"><img src=\"");
+#line default
+#line hidden
+                WriteLiteral("\" style=\"padding-left:70px\" alt=\"Blue User\" />\r\n    <p>\r\n        Don\'t have an ac" +
+                "count yet? <a href=\"");
 
 
-            
-            #line 16 "..\..\Views\Authentication\LogOn.cshtml"
-                             Write(Links.Content.Images.required_png);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Log On</h2>\r\n");
+#line 11 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Url.Action(MVC.Users.Register()));
 
 
-});
-
-WriteLiteral("\r\n\r\n");
-
-
-            
-            #line 20 "..\..\Views\Authentication\LogOn.cshtml"
- using (Html.BeginForm(MVC.Authentication.LogOn(), FormMethod.Post, new { id = "form" })) {
-    
-            
-            #line default
-            #line hidden
-            
-            #line 21 "..\..\Views\Authentication\LogOn.cshtml"
-Write(Html.AntiForgeryToken());
-
-            
-            #line default
-            #line hidden
-            
-            #line 21 "..\..\Views\Authentication\LogOn.cshtml"
-                            
-    
-            
-            #line default
-            #line hidden
-            
-            #line 22 "..\..\Views\Authentication\LogOn.cshtml"
-Write(Html.ValidationSummary(true));
-
-            
-            #line default
-            #line hidden
-            
-            #line 22 "..\..\Views\Authentication\LogOn.cshtml"
-                                 
-    if (ViewBag.ConfirmationRequired != null && ViewBag.ConfirmationRequired) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        <p class=\"description\">\r\n            <span class=\"validation-summary-erro" +
-"rs\">Before you can log on, \r\n            you&#8217;ll need to <a href=\"");
+#line default
+#line hidden
+                WriteLiteral("\">Register now.</a>\r\n    </p>\r\n");
 
 
-            
-            #line 26 "..\..\Views\Authentication\LogOn.cshtml"
-                                     Write(Url.Action(MVC.Users.Confirm()));
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">confirm your account</a></span>\r\n        </p>\r\n");
+            WriteLiteral("    \r\n\r\n");
 
 
-            
-            #line 28 "..\..\Views\Authentication\LogOn.cshtml"
-    }
-    
-            
-            #line default
-            #line hidden
-            
-            #line 29 "..\..\Views\Authentication\LogOn.cshtml"
-Write(Html.EditorForModel());
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-            
-            #line 29 "..\..\Views\Authentication\LogOn.cshtml"
-                          
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    <div>\r\n        <button type=\"submit\" name=\"Register\">Log On</button>\r\n       " +
-" <a href=\"");
+                WriteLiteral("            \r\n    <span class=\"right\"><img src=\"");
 
 
-            
-            #line 32 "..\..\Views\Authentication\LogOn.cshtml"
-            Write(Url.Action(MVC.Users.ForgotPassword()));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Lost your Password?</a>\r\n    </div>\r\n");
+#line 16 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Links.Content.Images.required_png);
 
 
-            
-            #line 34 "..\..\Views\Authentication\LogOn.cshtml"
-}
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Log On</h2>\r\n");
 
 
-DefineSection("BottomScripts", () => {
+            });
 
-WriteLiteral("\r\n    <script src=\"");
-
-
-            
-            #line 37 "..\..\Views\Authentication\LogOn.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.min.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+            WriteLiteral("\r\n\r\n");
 
 
-            
-            #line 38 "..\..\Views\Authentication\LogOn.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+#line 20 "..\..\Views\Authentication\LogOn.cshtml"
+            using (Html.BeginForm(MVC.Authentication.LogOn(), FormMethod.Post, new { id = "form" }))
+            {
 
 
-            
-            #line 39 "..\..\Views\Authentication\LogOn.cshtml"
-            Write(Url.Content("~/Scripts/gallery.form.js"));
+#line default
+#line hidden
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+#line 21 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Html.AntiForgeryToken());
 
 
-});
+#line default
+#line hidden
+
+#line 21 "..\..\Views\Authentication\LogOn.cshtml"
+
+
+
+#line default
+#line hidden
+
+#line 22 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Html.ValidationSummary(true));
+
+
+#line default
+#line hidden
+
+#line 22 "..\..\Views\Authentication\LogOn.cshtml"
+
+                if (ViewBag.ConfirmationRequired != null && ViewBag.ConfirmationRequired)
+                {
+
+
+#line default
+#line hidden
+                    WriteLiteral("        <p class=\"description\">\r\n            <span class=\"validation-summary-erro" +
+                    "rs\">Before you can log on, \r\n            you&#8217;ll need to <a href=\"");
+
+
+
+#line 26 "..\..\Views\Authentication\LogOn.cshtml"
+                    Write(Url.Action(MVC.Users.Confirm()));
+
+
+#line default
+#line hidden
+                    WriteLiteral("\">confirm your account</a></span>\r\n        </p>\r\n");
+
+
+
+#line 28 "..\..\Views\Authentication\LogOn.cshtml"
+                }
+
+
+#line default
+#line hidden
+
+#line 29 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Html.EditorForModel());
+
+
+#line default
+#line hidden
+
+#line 29 "..\..\Views\Authentication\LogOn.cshtml"
+
+
+
+#line default
+#line hidden
+                WriteLiteral("    <div>\r\n        <button type=\"submit\" name=\"Register\">Log On</button>\r\n       " +
+                " <a href=\"");
+
+
+
+#line 32 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Url.Action(MVC.Users.ForgotPassword()));
+
+
+#line default
+#line hidden
+                WriteLiteral("\">Lost your Password?</a>\r\n    </div>\r\n");
+
+
+
+#line 34 "..\..\Views\Authentication\LogOn.cshtml"
+            }
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
+
+
+            DefineSection("BottomScripts", () =>
+            {
+
+                WriteLiteral("\r\n    <script src=\"");
+
+
+
+#line 37 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 38 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 39 "..\..\Views\Authentication\LogOn.cshtml"
+                Write(Url.Content("~/Scripts/gallery.form.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+
+
+            });
 
 
         }

@@ -11,24 +11,9 @@
 
 namespace NuGetGallery.Views.Users
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
     using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/Account.cshtml")]
     public class Account : System.Web.Mvc.WebViewPage<User>
@@ -40,86 +25,89 @@ namespace NuGetGallery.Views.Users
         {
 
 
-            
-            #line 2 "..\..\Views\Users\Account.cshtml"
-  
-    ViewBag.Tab = "Contribute";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 2 "..\..\Views\Users\Account.cshtml"
+
+            ViewBag.Tab = "Contribute";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 8 "..\..\Views\Users\Account.cshtml"
-         Write(Links.Content.Images.contribGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-});
 
-WriteLiteral("                \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("\r\n    <h2>My Account</h2>\r\n");
+#line 8 "..\..\Views\Users\Account.cshtml"
+                Write(Links.Content.Images.contribGraphic_png);
 
 
-            
-            #line 13 "..\..\Views\Users\Account.cshtml"
-     if (TempData.ContainsKey("Message")) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        <div id=\"messages\">\r\n            <div class=\"zone zone-messages\">\r\n      " +
-"          <div class=\"message message-Information\">");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
 
 
-            
-            #line 16 "..\..\Views\Users\Account.cshtml"
-                                                    Write(TempData["Message"]);
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</div>\r\n            </div>\r\n        </div>\r\n");
+            WriteLiteral("                \r\n\r\n");
 
 
-            
-            #line 19 "..\..\Views\Users\Account.cshtml"
-    }
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-
-});
-
-WriteLiteral("\r\n<h3>Actions</h3>\r\n<section class=\"add-new\">\r\n    <h4><a href=\"");
+                WriteLiteral("\r\n    <h2>My Account</h2>\r\n");
 
 
-            
-            #line 23 "..\..\Views\Users\Account.cshtml"
+
+#line 13 "..\..\Views\Users\Account.cshtml"
+                if (TempData.ContainsKey("Message"))
+                {
+
+
+#line default
+#line hidden
+                    WriteLiteral("        <div id=\"messages\">\r\n            <div class=\"zone zone-messages\">\r\n      " +
+                    "          <div class=\"message message-Information\">");
+
+
+
+#line 16 "..\..\Views\Users\Account.cshtml"
+                    Write(TempData["Message"]);
+
+
+#line default
+#line hidden
+                    WriteLiteral("</div>\r\n            </div>\r\n        </div>\r\n");
+
+
+
+#line 19 "..\..\Views\Users\Account.cshtml"
+                }
+
+
+#line default
+#line hidden
+
+            });
+
+            WriteLiteral("\r\n<h3>Actions</h3>\r\n<section class=\"add-new\">\r\n    <h4><a href=\"");
+
+
+
+#line 23 "..\..\Views\Users\Account.cshtml"
             Write(Url.UploadPackage());
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@""">Upload Package</a></h4>
+
+#line default
+#line hidden
+            WriteLiteral(@""">Upload Package</a></h4>
     <p>
         Upload and publish your package for other NuGet users to download and enjoy. 
         You can upload multiple revisions of the same package, as long as the version 
@@ -130,36 +118,36 @@ WriteLiteral(@""">Upload Package</a></h4>
     <h5><a href=""");
 
 
-            
-            #line 31 "..\..\Views\Users\Account.cshtml"
+
+#line 31 "..\..\Views\Users\Account.cshtml"
             Write(Url.Action(MVC.Users.Packages()));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Manage My Contributions</a></h5>\r\n    <p>Edit contribution details or Remove co" +
-"ntributions that you have previously uploaded.</p>\r\n</section>\r\n<section>\r\n    <" +
-"h5><a href=\"");
+
+#line default
+#line hidden
+            WriteLiteral("\">Manage My Contributions</a></h5>\r\n    <p>Edit contribution details or Remove co" +
+            "ntributions that you have previously uploaded.</p>\r\n</section>\r\n<section>\r\n    <" +
+            "h5><a href=\"");
 
 
-            
-            #line 35 "..\..\Views\Users\Account.cshtml"
+
+#line 35 "..\..\Views\Users\Account.cshtml"
             Write(Url.Action(MVC.Users.Edit()));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Edit Profile</a></h5>\r\n</section>\r\n<section>\r\n    <h5><a href=\"");
+
+#line default
+#line hidden
+            WriteLiteral("\">Edit Profile</a></h5>\r\n</section>\r\n<section>\r\n    <h5><a href=\"");
 
 
-            
-            #line 38 "..\..\Views\Users\Account.cshtml"
+
+#line 38 "..\..\Views\Users\Account.cshtml"
             Write(Url.Action(MVC.Users.ChangePassword()));
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@""">Change Password</a></h5>
+
+#line default
+#line hidden
+            WriteLiteral(@""">Change Password</a></h5>
 </section>
 
 <section>
@@ -174,47 +162,47 @@ WriteLiteral(@""">Change Password</a></h5>
     <p><code>nuget push MyPackage.1.0.nupkg ");
 
 
-            
-            #line 50 "..\..\Views\Users\Account.cshtml"
-                                       Write(Model.ApiKey);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</code></p>\r\n    <div style=\"border: 1px solid #ccc;padding:0 15px 15px;width:350" +
-"px;margin-top:20px;\">\r\n        <h4>Your access key is: </h4>\r\n        <p id=\"acc" +
-"essKey\">");
+#line 50 "..\..\Views\Users\Account.cshtml"
+            Write(Model.ApiKey);
 
 
-            
-            #line 53 "..\..\Views\Users\Account.cshtml"
-                     Write(Model.ApiKey);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</p>\r\n        <form Id=\"generateKeyForm\" action=\"");
+#line default
+#line hidden
+            WriteLiteral("</code></p>\r\n    <div style=\"border: 1px solid #ccc;padding:0 15px 15px;width:350" +
+            "px;margin-top:20px;\">\r\n        <h4>Your access key is: </h4>\r\n        <p id=\"acc" +
+            "essKey\">");
 
 
-            
-            #line 54 "..\..\Views\Users\Account.cshtml"
-                                      Write(Url.Action(MVC.Users.GenerateApiKey()));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" method=\"post\">            \r\n            ");
+#line 53 "..\..\Views\Users\Account.cshtml"
+            Write(Model.ApiKey);
 
 
-            
-            #line 55 "..\..\Views\Users\Account.cshtml"
-       Write(Html.AntiForgeryToken());
+#line default
+#line hidden
+            WriteLiteral("</p>\r\n        <form Id=\"generateKeyForm\" action=\"");
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            <input id=\"generateKeyButton\" type=\"submit\" value=\"Generate New Key" +
-"\" singleClickButton=\"true\" />\r\n        </form>\r\n    </div>\r\n</section>");
+
+
+#line 54 "..\..\Views\Users\Account.cshtml"
+            Write(Url.Action(MVC.Users.GenerateApiKey()));
+
+
+#line default
+#line hidden
+            WriteLiteral("\" method=\"post\">            \r\n            ");
+
+
+
+#line 55 "..\..\Views\Users\Account.cshtml"
+            Write(Html.AntiForgeryToken());
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n            <input id=\"generateKeyButton\" type=\"submit\" value=\"Generate New Key" +
+            "\" singleClickButton=\"true\" />\r\n        </form>\r\n    </div>\r\n</section>");
 
 
         }

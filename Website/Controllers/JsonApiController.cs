@@ -1,25 +1,31 @@
-﻿using System.Linq;
-using System.Web;
+﻿using System.Web;
 using System.Web.Mvc;
+using System.Linq;
 using MvcHaack.Ajax;
 
-namespace NuGetGallery {
-    public partial class JsonApiController : JsonController {
+namespace NuGetGallery
+{
+    public partial class JsonApiController : JsonController
+    {
         IPackageService packageSvc;
         IUserService userSvc;
 
-        public JsonApiController(IPackageService packageSvc, IUserService userSvc) {
+        public JsonApiController(IPackageService packageSvc, IUserService userSvc)
+        {
             this.packageSvc = packageSvc;
             this.userSvc = userSvc;
         }
 
         [Authorize]
-        public virtual object GetPackageOwners(string id, string version) {
+        public virtual object GetPackageOwners(string id, string version)
+        {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null) {
+            if (package == null)
+            {
                 return new { message = "Package not found" };
             }
-            if (!package.IsOwner(HttpContext.User)) {
+            if (!package.IsOwner(HttpContext.User))
+            {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
@@ -29,16 +35,20 @@ namespace NuGetGallery {
             return owners;
         }
 
-        public object AddPackageOwner(string id, string version, string username) {
+        public object AddPackageOwner(string id, string version, string username)
+        {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null) {
+            if (package == null)
+            {
                 return new { success = false, message = "Package not found" };
             }
-            if (!package.IsOwner(HttpContext.User)) {
+            if (!package.IsOwner(HttpContext.User))
+            {
                 return new { success = false, message = "You are not the package owner." };
             }
             var user = userSvc.FindByUsername(username);
-            if (user == null) {
+            if (user == null)
+            {
                 return new { success = false, message = "Owner not found" };
             }
 
@@ -46,16 +56,20 @@ namespace NuGetGallery {
             return new { success = true, name = user.Username };
         }
 
-        public object RemovePackageOwner(string id, string version, string username) {
+        public object RemovePackageOwner(string id, string version, string username)
+        {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null) {
+            if (package == null)
+            {
                 return new { success = false, message = "Package not found" };
             }
-            if (!package.IsOwner(HttpContext.User)) {
+            if (!package.IsOwner(HttpContext.User))
+            {
                 return new { success = false, message = "You are not the package owner." };
             }
             var user = userSvc.FindByUsername(username);
-            if (user == null) {
+            if (user == null)
+            {
                 return new { success = false, message = "Owner not found" };
             }
 
@@ -63,7 +77,8 @@ namespace NuGetGallery {
             return new { success = true };
         }
 
-        public class OwnerModel {
+        public class OwnerModel
+        {
             public string name { get; set; }
             public bool current { get; set; }
         }

@@ -11,171 +11,170 @@
 
 namespace NuGetGallery
 {
-    using System;
-    
-    #line 4 "..\..\Views\Helpers\ViewHelpers.cshtml"
-    using System.Collections;
-    
-    #line default
-    #line hidden
+
+
+#line 4 "..\..\Views\Helpers\ViewHelpers.cshtml"
+
+
+#line default
+#line hidden
     using System.Collections.Generic;
-    using System.IO;
-    
-    #line 3 "..\..\Views\Helpers\ViewHelpers.cshtml"
-    using System.Linq;
-    
-    #line default
-    #line hidden
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
+
+
+#line 3 "..\..\Views\Helpers\ViewHelpers.cshtml"
+
+
+#line default
+#line hidden
     using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
     using Microsoft.Web.Helpers;
-    
-    #line 5 "..\..\Views\Helpers\ViewHelpers.cshtml"
-    using NuGetGallery;
-    
-    #line default
-    #line hidden
-    
+
+#line 5 "..\..\Views\Helpers\ViewHelpers.cshtml"
+
+
+#line default
+#line hidden
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     public static class ViewHelpers
     {
 
-public static System.Web.WebPages.HelperResult PreviousNextPager(IPreviousNextPager pager) {
-return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+        public static System.Web.WebPages.HelperResult PreviousNextPager(IPreviousNextPager pager)
+        {
+            return new System.Web.WebPages.HelperResult(__razor_helper_writer =>
+            {
 
 
 
 #line 7 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                     
-    if (pager.HasNextPage || pager.HasPreviousPage) {
+
+                if (pager.HasNextPage || pager.HasPreviousPage)
+                {
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "        <ul class=\"group pager\">        \r\n            <li class=\"page-previous\">\r" +
-"\n");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "        <ul class=\"group pager\">        \r\n            <li class=\"page-previous\">\r" +
+                    "\n");
 
 
 
 #line 11 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                 if (pager.HasPreviousPage) { 
+                    if (pager.HasPreviousPage)
+                    {
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "                    <a href=\"");
+                        WebViewPage.WriteLiteralTo(@__razor_helper_writer, "                    <a href=\"");
 
 
 
 #line 12 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, pager.PreviousPageUrl);
+                        WebViewPage.WriteTo(@__razor_helper_writer, pager.PreviousPageUrl);
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">Previous</a>\r\n");
+                        WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">Previous</a>\r\n");
 
 
 
 #line 13 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                }
-                else {
+                    }
+                    else
+                    {
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "                    <span>Previous</span>\r\n");
+                        WebViewPage.WriteLiteralTo(@__razor_helper_writer, "                    <span>Previous</span>\r\n");
 
 
 
 #line 16 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                }
+                    }
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "            </li>\r\n            <li class=\"page-next\">\r\n");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "            </li>\r\n            <li class=\"page-next\">\r\n");
 
 
 
 #line 19 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                 if (pager.HasNextPage) { 
+                    if (pager.HasNextPage)
+                    {
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "                    <a href=\"");
+                        WebViewPage.WriteLiteralTo(@__razor_helper_writer, "                    <a href=\"");
 
 
 
 #line 20 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, pager.NextPageUrl);
+                        WebViewPage.WriteTo(@__razor_helper_writer, pager.NextPageUrl);
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">Next</a>\r\n");
+                        WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">Next</a>\r\n");
 
 
 
 #line 21 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                }
-                else {
+                    }
+                    else
+                    {
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "                    <span>Next</span>\r\n");
+                        WebViewPage.WriteLiteralTo(@__razor_helper_writer, "                    <span>Next</span>\r\n");
 
 
 
 #line 24 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                    }
+
+#line default
+#line hidden
+
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "            </li>\r\n        </ul>\r\n");
+
+
+
+#line 27 "..\..\Views\Helpers\ViewHelpers.cshtml"
                 }
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "            </li>\r\n        </ul>\r\n");
+            });
+
+        }
 
 
-
-#line 27 "..\..\Views\Helpers\ViewHelpers.cshtml"
-    }
-
-#line default
-#line hidden
-
-});
-
-}
-
-
-public static System.Web.WebPages.HelperResult Option(string value, string label, string currentValue) {
-return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+        public static System.Web.WebPages.HelperResult Option(string value, string label, string currentValue)
+        {
+            return new System.Web.WebPages.HelperResult(__razor_helper_writer =>
+            {
 
 
 
 #line 30 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                                 
+
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    <option value=\"");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    <option value=\"");
 
 
 
 #line 31 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, value);
+                WebViewPage.WriteTo(@__razor_helper_writer, value);
 
 #line default
 #line hidden
@@ -183,37 +182,38 @@ WebViewPage.WriteTo(@__razor_helper_writer, value);
 
 
 #line 31 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                         WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" ");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" ");
 
 #line default
 #line hidden
 
 
 #line 31 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                            if (value == currentValue) {
+                if (value == currentValue)
+                {
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "selected=\"selected\"");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "selected=\"selected\"");
 
 
 
 #line 31 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                                                        }
+                }
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, ">");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, ">");
 
 
 
 #line 31 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                               WebViewPage.WriteTo(@__razor_helper_writer, label);
+                WebViewPage.WriteTo(@__razor_helper_writer, label);
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</option>    \r\n");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</option>    \r\n");
 
 
 
@@ -222,242 +222,254 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</option>    \r\n");
 #line default
 #line hidden
 
-});
+            });
 
-}
+        }
 
 
-public static System.Web.WebPages.HelperResult UploadSequence(int currentStep) {
-return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+        public static System.Web.WebPages.HelperResult UploadSequence(int currentStep)
+        {
+            return new System.Web.WebPages.HelperResult(__razor_helper_writer =>
+            {
 
 
 
 #line 34 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                         
-    
-#line default
-#line hidden
 
-
-#line 35 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, SequenceStep(1, "Upload", currentStep));
 
 #line default
 #line hidden
 
 
 #line 35 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                           
-    
+                WebViewPage.WriteTo(@__razor_helper_writer, SequenceStep(1, "Upload", currentStep));
+
+#line default
+#line hidden
+
+
+#line 35 "..\..\Views\Helpers\ViewHelpers.cshtml"
+
+
 #line default
 #line hidden
 
 
 #line 36 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, SequenceStep(2, "Verify Details", currentStep));
+                WebViewPage.WriteTo(@__razor_helper_writer, SequenceStep(2, "Verify Details", currentStep));
 
 #line default
 #line hidden
 
 
 #line 36 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                   
+
 
 #line default
 #line hidden
 
-});
+            });
 
-}
+        }
 
 
-public static System.Web.WebPages.HelperResult SequenceStep(int step, string caption, int currentStep) {
-return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+        public static System.Web.WebPages.HelperResult SequenceStep(int step, string caption, int currentStep)
+        {
+            return new System.Web.WebPages.HelperResult(__razor_helper_writer =>
+            {
 
 
 
 #line 39 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                                 
-    if (currentStep == step) {
+
+                if (currentStep == step)
+                {
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "        <li class=\"current\"><a href=\"#\"><span>");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "        <li class=\"current\"><a href=\"#\"><span>");
 
 
 
 #line 41 "..\..\Views\Helpers\ViewHelpers.cshtml"
-   WebViewPage.WriteTo(@__razor_helper_writer, step);
+                    WebViewPage.WriteTo(@__razor_helper_writer, step);
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, " </span>");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, " </span>");
 
 
 
 #line 41 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                WebViewPage.WriteTo(@__razor_helper_writer, caption);
+                    WebViewPage.WriteTo(@__razor_helper_writer, caption);
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</a></li>\r\n");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</a></li>\r\n");
 
 
 
 #line 42 "..\..\Views\Helpers\ViewHelpers.cshtml"
-    }
-    else {
+                }
+                else
+                {
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "        <li><span>");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "        <li><span>");
 
 
 
 #line 44 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, step);
+                    WebViewPage.WriteTo(@__razor_helper_writer, step);
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, " </span>");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, " </span>");
 
 
 
 #line 44 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, caption);
+                    WebViewPage.WriteTo(@__razor_helper_writer, caption);
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</li>\r\n");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</li>\r\n");
 
 
 
 #line 45 "..\..\Views\Helpers\ViewHelpers.cshtml"
-    }    
+                }
 
 #line default
 #line hidden
 
-});
+            });
 
-}
+        }
 
 
-public static System.Web.WebPages.HelperResult OwnersGravatar(IEnumerable<User> owners, int size, UrlHelper url, bool showName = true) {
-return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+        public static System.Web.WebPages.HelperResult OwnersGravatar(IEnumerable<User> owners, int size, UrlHelper url, bool showName = true)
+        {
+            return new System.Web.WebPages.HelperResult(__razor_helper_writer =>
+            {
 
 
 
 #line 48 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                                                                 
-    foreach (var owner in owners) {
+
+                foreach (var owner in owners)
+                {
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "        <div class=\"owner-gravatar\">");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "        <div class=\"owner-gravatar\">");
 
 
 
 #line 50 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, ViewHelpers.OwnerGravatar(owner, size, url, showName));
+                    WebViewPage.WriteTo(@__razor_helper_writer, ViewHelpers.OwnerGravatar(owner, size, url, showName));
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</div>\r\n");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</div>\r\n");
 
 
 
 #line 51 "..\..\Views\Helpers\ViewHelpers.cshtml"
-    }    
+                }
 
 #line default
 #line hidden
 
-});
+            });
 
-}
+        }
 
 
-public static System.Web.WebPages.HelperResult OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true) {
-return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+        public static System.Web.WebPages.HelperResult OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true)
+        {
+            return new System.Web.WebPages.HelperResult(__razor_helper_writer =>
+            {
 
 
 
 #line 54 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                                                  
+
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    <a href=\"");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    <a href=\"");
 
 
 
 #line 55 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, url.Action(MVC.Users.Profiles(owner.Username)));
+                WebViewPage.WriteTo(@__razor_helper_writer, url.Action(MVC.Users.Profiles(owner.Username)));
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"");
 
 
 
 #line 55 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                          WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
+                WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">\r\n        ");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\">\r\n        ");
 
 
 
 #line 56 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, GravatarImage(owner.EmailAddress, owner.Username, size));
+                WebViewPage.WriteTo(@__razor_helper_writer, GravatarImage(owner.EmailAddress, owner.Username, size));
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n");
 
 
 
 #line 57 "..\..\Views\Helpers\ViewHelpers.cshtml"
-         if (showName) {
+                if (showName)
+                {
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "            <span class=\"owner-name\">");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "            <span class=\"owner-name\">");
 
 
 
 #line 58 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
+                    WebViewPage.WriteTo(@__razor_helper_writer, owner.Username);
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</span>\r\n");
+                    WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</span>\r\n");
 
 
 
 #line 59 "..\..\Views\Helpers\ViewHelpers.cshtml"
-        }
+                }
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    </a>    \r\n");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    </a>    \r\n");
 
 
 
@@ -466,37 +478,39 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    </a>    \r\n");
 #line default
 #line hidden
 
-});
+            });
 
-}
+        }
 
 
-public static System.Web.WebPages.HelperResult GravatarImage(string email, string username, int size) {
-return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+        public static System.Web.WebPages.HelperResult GravatarImage(string email, string username, int size)
+        {
+            return new System.Web.WebPages.HelperResult(__razor_helper_writer =>
+            {
 
 
 
 #line 63 "..\..\Views\Helpers\ViewHelpers.cshtml"
-                                                                
+
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    ");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    ");
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n    ");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n    ");
 
 
 
 #line 65 "..\..\Views\Helpers\ViewHelpers.cshtml"
-WebViewPage.WriteTo(@__razor_helper_writer, Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "gravatar"}));
+                WebViewPage.WriteTo(@__razor_helper_writer, Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "gravatar" }));
 
 #line default
 #line hidden
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n    ");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n    ");
 
-WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n");
+                WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n");
 
 
 
@@ -505,9 +519,9 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n");
 #line default
 #line hidden
 
-});
+            });
 
-}
+        }
 
 
     }

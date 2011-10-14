@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace NuGetGallery {
-    public static class Extensions {
+namespace NuGetGallery
+{
+    public static class Extensions
+    {
         // Search criteria
         private static Func<string, Expression<Func<Package, bool>>> idCriteria = term =>
             p => p.PackageRegistration.Id.Contains(term);
@@ -30,14 +32,17 @@ namespace NuGetGallery {
         };
 
 
-        public static IQueryable<Package> Search(this IQueryable<Package> source, string searchTerm) {
+        public static IQueryable<Package> Search(this IQueryable<Package> source, string searchTerm)
+        {
             // Split the search terms by spaces
             var terms = searchTerm.Split();
 
             // Build a list of expressions for each term
             var expressions = new List<LambdaExpression>();
-            foreach (var criteria in searchCriteria) {
-                foreach (var term in terms) {
+            foreach (var criteria in searchCriteria)
+            {
+                foreach (var term in terms)
+                {
                     expressions.Add(criteria(term));
                 }
             }
@@ -59,15 +64,19 @@ namespace NuGetGallery {
             return source.Where(predicate);
         }
 
-        private class ParameterExpressionReplacer : ExpressionVisitor {
+        private class ParameterExpressionReplacer : ExpressionVisitor
+        {
             private readonly ParameterExpression _parameterExpr;
-            public ParameterExpressionReplacer(ParameterExpression parameterExpr) {
+            public ParameterExpressionReplacer(ParameterExpression parameterExpr)
+            {
                 _parameterExpr = parameterExpr;
             }
 
-            protected override Expression VisitParameter(ParameterExpression node) {
-                if (node.Type == _parameterExpr.Type && 
-                    node != _parameterExpr) {
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                if (node.Type == _parameterExpr.Type &&
+                    node != _parameterExpr)
+                {
                     return _parameterExpr;
                 }
                 return base.VisitParameter(node);

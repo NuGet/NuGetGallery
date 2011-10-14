@@ -11,24 +11,8 @@
 
 namespace NuGetGallery.Views.Packages
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Packages/_PackageDetailsTable.cshtml")]
     public class _PackageDetailsTable : System.Web.Mvc.WebViewPage<ListPackageItemViewModel>
@@ -39,141 +23,144 @@ namespace NuGetGallery.Views.Packages
         public override void Execute()
         {
 
-WriteLiteral("\r\n<table id=\"packageDetails\">\r\n    <tr>\r\n        <th>\r\n            <strong>Packag" +
-"e ID:</strong>\r\n        </th>\r\n        <td>\r\n            <strong>");
+            WriteLiteral("\r\n<table id=\"packageDetails\">\r\n    <tr>\r\n        <th>\r\n            <strong>Packag" +
+            "e ID:</strong>\r\n        </th>\r\n        <td>\r\n            <strong>");
 
 
-            
-            #line 9 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-               Write(Model.Id);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</strong>\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n        <th>Owners</th>\r\n        <" +
-"td>\r\n            ");
+#line 9 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+            Write(Model.Id);
 
 
-            
-            #line 15 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-       Write(ViewHelpers.OwnersGravatar(Model.Owners, 32, Url));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n        <th>Authors</th>\r\n        <td>");
+#line default
+#line hidden
+            WriteLiteral("</strong>\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n        <th>Owners</th>\r\n        <" +
+            "td>\r\n            ");
 
 
-            
-            #line 20 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-       Write(Model.Authors.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer => {
 
-            
-            #line default
-            #line hidden
-
-WriteLiteralTo(@__razor_template_writer, "<a href=\"");
+#line 15 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+            Write(ViewHelpers.OwnersGravatar(Model.Owners, 32, Url));
 
 
-            
-            #line 20 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-            WriteTo(@__razor_template_writer, Url.Search(item.Name));
-
-            
-            #line default
-            #line hidden
-WriteLiteralTo(@__razor_template_writer, "\">");
+#line default
+#line hidden
+            WriteLiteral("\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n        <th>Authors</th>\r\n        <td>");
 
 
-            
-            #line 20 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-                                    WriteTo(@__razor_template_writer, item.Name);
 
-            
-            #line default
-            #line hidden
-WriteLiteralTo(@__razor_template_writer, "</a>");
+#line 20 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+            Write(Model.Authors.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer =>
+            {
 
 
-            
-            #line 20 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-                                                                                 })));
+#line default
+#line hidden
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        </td>\r\n    </tr>\r\n");
+                WriteLiteralTo(@__razor_template_writer, "<a href=\"");
 
 
-            
-            #line 23 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-     if (Model.Tags.AnySafe()) {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("        <tr>\r\n            <th>Tags:</th>\r\n            <td>");
+#line 20 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+                WriteTo(@__razor_template_writer, Url.Search(item.Name));
 
 
-            
-            #line 26 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-           Write(Model.Tags.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer => {
-
-            
-            #line default
-            #line hidden
-
-WriteLiteralTo(@__razor_template_writer, "<a href=\"");
+#line default
+#line hidden
+                WriteLiteralTo(@__razor_template_writer, "\">");
 
 
-            
-            #line 26 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-             WriteTo(@__razor_template_writer, Url.Search(item));
 
-            
-            #line default
-            #line hidden
-WriteLiteralTo(@__razor_template_writer, "\">");
+#line 20 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+                WriteTo(@__razor_template_writer, item.Name);
 
 
-            
-            #line 26 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-                                WriteTo(@__razor_template_writer, item);
-
-            
-            #line default
-            #line hidden
-WriteLiteralTo(@__razor_template_writer, "</a>");
+#line default
+#line hidden
+                WriteLiteralTo(@__razor_template_writer, "</a>");
 
 
-            
-            #line 26 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-                                                                        })));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            </td>\r\n        </tr>\r\n");
+#line 20 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+            })));
 
 
-            
-            #line 29 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-    }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    <tr>\r\n        <th>Last updated:</th>\r\n        <td>");
+#line default
+#line hidden
+            WriteLiteral("\r\n        </td>\r\n    </tr>\r\n");
 
 
-            
-            #line 32 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
-       Write(Model.LastUpdated.ToString("F"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral(" UTC</td>\r\n    </tr>\r\n</table>");
+#line 23 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+            if (Model.Tags.AnySafe())
+            {
+
+
+#line default
+#line hidden
+                WriteLiteral("        <tr>\r\n            <th>Tags:</th>\r\n            <td>");
+
+
+
+#line 26 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+                Write(Model.Tags.Flatten(item => new System.Web.WebPages.HelperResult(__razor_template_writer =>
+                {
+
+
+#line default
+#line hidden
+
+                    WriteLiteralTo(@__razor_template_writer, "<a href=\"");
+
+
+
+#line 26 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+                    WriteTo(@__razor_template_writer, Url.Search(item));
+
+
+#line default
+#line hidden
+                    WriteLiteralTo(@__razor_template_writer, "\">");
+
+
+
+#line 26 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+                    WriteTo(@__razor_template_writer, item);
+
+
+#line default
+#line hidden
+                    WriteLiteralTo(@__razor_template_writer, "</a>");
+
+
+
+#line 26 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+                })));
+
+
+#line default
+#line hidden
+                WriteLiteral("\r\n            </td>\r\n        </tr>\r\n");
+
+
+
+#line 29 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+            }
+
+
+#line default
+#line hidden
+            WriteLiteral("    <tr>\r\n        <th>Last updated:</th>\r\n        <td>");
+
+
+
+#line 32 "..\..\Views\Packages\_PackageDetailsTable.cshtml"
+            Write(Model.LastUpdated.ToString("F"));
+
+
+#line default
+#line hidden
+            WriteLiteral(" UTC</td>\r\n    </tr>\r\n</table>");
 
 
         }

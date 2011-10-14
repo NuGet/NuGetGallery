@@ -11,29 +11,15 @@
 
 namespace NuGetGallery.Views.Packages
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
-    
-    #line 1 "..\..\Views\Packages\UploadPackage.cshtml"
+
+
+#line 1 "..\..\Views\Packages\UploadPackage.cshtml"
     using NuGetGallery;
-    
-    #line default
-    #line hidden
-    
+
+#line default
+#line hidden
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Packages/UploadPackage.cshtml")]
     public class UploadPackage : System.Web.Mvc.WebViewPage<SubmitPackageRequest>
@@ -46,89 +32,91 @@ namespace NuGetGallery.Views.Packages
 
 
 
-            
-            #line 3 "..\..\Views\Packages\UploadPackage.cshtml"
-  
-    ViewBag.Tab = "Upload";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 3 "..\..\Views\Packages\UploadPackage.cshtml"
+
+            ViewBag.Tab = "Upload";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 9 "..\..\Views\Packages\UploadPackage.cshtml"
-         Write(Links.Content.Images.contribGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Contribute\" />\r\n    <p>Submit your package for others to enjoy.</p>\r\n");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-});
 
-WriteLiteral("    \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("            \r\n    <h2>Upload Package</h2>\r\n    <ul class=\"right\" id=\"sequence\">\r\n" +
-"        ");
+#line 9 "..\..\Views\Packages\UploadPackage.cshtml"
+                Write(Links.Content.Images.contribGraphic_png);
 
 
-            
-            #line 16 "..\..\Views\Packages\UploadPackage.cshtml"
-   Write(ViewHelpers.UploadSequence(1));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    </ul>\r\n");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"Contribute\" />\r\n    <p>Submit your package for others to enjoy.</p>\r\n");
 
 
-});
+            });
 
-WriteLiteral("\r\n\r\n<div id=\"form\">\r\n    <div id=\"uploadFileForm\" class=\"selected\">\r\n        <for" +
-"m id=\"uploadFileSubmissionForm\" method=\"post\" action=\"");
-
-
-            
-            #line 22 "..\..\Views\Packages\UploadPackage.cshtml"
-                                                             Write(Url.Current());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" enctype=\"multipart/form-data\">\r\n            ");
+            WriteLiteral("    \r\n\r\n");
 
 
-            
-            #line 23 "..\..\Views\Packages\UploadPackage.cshtml"
-       Write(Html.AntiForgeryToken());
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            ");
+                WriteLiteral("            \r\n    <h2>Upload Package</h2>\r\n    <ul class=\"right\" id=\"sequence\">\r\n" +
+                "        ");
 
 
-            
-            #line 24 "..\..\Views\Packages\UploadPackage.cshtml"
-       Write(Html.ValidationSummary(true));
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"
+#line 16 "..\..\Views\Packages\UploadPackage.cshtml"
+                Write(ViewHelpers.UploadSequence(1));
+
+
+#line default
+#line hidden
+                WriteLiteral("\r\n    </ul>\r\n");
+
+
+            });
+
+            WriteLiteral("\r\n\r\n<div id=\"form\">\r\n    <div id=\"uploadFileForm\" class=\"selected\">\r\n        <for" +
+            "m id=\"uploadFileSubmissionForm\" method=\"post\" action=\"");
+
+
+
+#line 22 "..\..\Views\Packages\UploadPackage.cshtml"
+            Write(Url.Current());
+
+
+#line default
+#line hidden
+            WriteLiteral("\" enctype=\"multipart/form-data\">\r\n            ");
+
+
+
+#line 23 "..\..\Views\Packages\UploadPackage.cshtml"
+            Write(Html.AntiForgeryToken());
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n            ");
+
+
+
+#line 24 "..\..\Views\Packages\UploadPackage.cshtml"
+            Write(Html.ValidationSummary(true));
+
+
+#line default
+#line hidden
+            WriteLiteral(@"
             <aside>
                 <p>Your package file will be uploaded and hosted on the gallery server.</p>
             </aside>

@@ -1,6 +1,8 @@
 ﻿
-namespace NuGetGallery {
-    public class SubmitPackageViewModel : IPackageVersionModel {
+namespace NuGetGallery
+{
+    public class SubmitPackageViewModel : IPackageVersionModel
+    {
         public string Id { get; set; }
         public string Version { get; set; }
 

@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class Boolean_EditField {
+    public partial class Boolean_EditField
+    {
 
         protected global::System.Web.UI.WebControls.CheckBox CheckBox1;
     }

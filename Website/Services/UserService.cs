@@ -2,8 +2,10 @@
 using System.Data.Entity;
 using System.Linq;
 
-namespace NuGetGallery {
-    public class UserService : IUserService {
+namespace NuGetGallery
+{
+    public class UserService : IUserService
+    {
         readonly IConfiguration configuration;
         readonly ICryptographyService cryptoSvc;
         readonly IEntityRepository<User> userRepo;
@@ -11,7 +13,8 @@ namespace NuGetGallery {
         public UserService(
             IConfiguration configuration,
             ICryptographyService cryptoSvc,
-            IEntityRepository<User> userRepo) {
+            IEntityRepository<User> userRepo)
+        {
             this.configuration = configuration;
             this.cryptoSvc = cryptoSvc;
             this.userRepo = userRepo;
@@ -20,7 +23,8 @@ namespace NuGetGallery {
         public virtual User Create(
             string username,
             string password,
-            string emailAddress) {
+            string emailAddress)
+        {
             // TODO: validate input
             // TODO: consider encrypting email address with a public key, and having the background process that send messages have the private key to decrypt
 
@@ -36,14 +40,16 @@ namespace NuGetGallery {
 
             var newUser = new User(
                 username,
-                hashedPassword) {
+                hashedPassword)
+                {
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
                     UnconfirmedEmailAddress = emailAddress,
                     EmailConfirmationToken = cryptoSvc.GenerateToken()
                 };
 
-            if (!configuration.ConfirmEmailAddresses) {
+            if (!configuration.ConfirmEmailAddresses)
+            {
                 newUser.ConfirmEmailAddress();
             }
 
@@ -53,14 +59,18 @@ namespace NuGetGallery {
             return newUser;
         }
 
-        public string UpdateProfile(User user, string emailAddress, bool emailAllowed) {
-            if (user == null) {
+        public string UpdateProfile(User user, string emailAddress, bool emailAllowed)
+        {
+            if (user == null)
+            {
                 throw new ArgumentNullException("user");
             }
 
-            if (emailAddress != user.EmailAddress) {
+            if (emailAddress != user.EmailAddress)
+            {
                 var existingUser = FindByEmailAddress(emailAddress);
-                if (existingUser != null && existingUser.Key != user.Key) {
+                if (existingUser != null && existingUser.Key != user.Key)
+                {
                     throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
                 }
                 user.UnconfirmedEmailAddress = emailAddress;
@@ -72,13 +82,15 @@ namespace NuGetGallery {
             return user.EmailConfirmationToken;
         }
 
-        public User FindByApiKey(Guid apiKey) {
+        public User FindByApiKey(Guid apiKey)
+        {
             return userRepo.GetAll()
                 .Where(u => u.ApiKey == apiKey)
                 .SingleOrDefault();
         }
 
-        public virtual User FindByEmailAddress(string emailAddress) {
+        public virtual User FindByEmailAddress(string emailAddress)
+        {
             // TODO: validate input
 
             return userRepo.GetAll()
@@ -86,7 +98,8 @@ namespace NuGetGallery {
                 .SingleOrDefault();
         }
 
-        public virtual User FindByUsername(string username) {
+        public virtual User FindByUsername(string username)
+        {
             // TODO: validate input
 
             return userRepo.GetAll()
@@ -97,7 +110,8 @@ namespace NuGetGallery {
 
         public virtual User FindByUsernameAndPassword(
             string username,
-            string password) {
+            string password)
+        {
             // TODO: validate input
 
             var user = FindByUsername(username);
@@ -111,9 +125,11 @@ namespace NuGetGallery {
             return user;
         }
 
-        public string GenerateApiKey(string username) {
+        public string GenerateApiKey(string username)
+        {
             var user = FindByUsername(username);
-            if (user == null) {
+            if (user == null)
+            {
                 return null;
             }
 
@@ -123,9 +139,11 @@ namespace NuGetGallery {
             return newApiKey.ToString();
         }
 
-        public bool ChangePassword(string username, string oldPassword, string newPassword) {
+        public bool ChangePassword(string username, string oldPassword, string newPassword)
+        {
             var user = FindByUsernameAndPassword(username, oldPassword);
-            if (user == null) {
+            if (user == null)
+            {
                 return false;
             }
 
@@ -134,20 +152,25 @@ namespace NuGetGallery {
             return true;
         }
 
-        private void ChangePassword(User user, string newPassword) {
+        private void ChangePassword(User user, string newPassword)
+        {
             var hashedPassword = cryptoSvc.GenerateSaltedHash(newPassword);
             user.HashedPassword = hashedPassword;
         }
 
-        public bool ConfirmEmailAddress(User user, string token) {
-            if (user == null) {
+        public bool ConfirmEmailAddress(User user, string token)
+        {
+            if (user == null)
+            {
                 throw new ArgumentNullException("user");
             }
-            if (String.IsNullOrEmpty(token)) {
+            if (String.IsNullOrEmpty(token))
+            {
                 throw new ArgumentNullException("token");
             }
 
-            if (user.EmailConfirmationToken != token) {
+            if (user.EmailConfirmationToken != token)
+            {
                 return false;
             }
 
@@ -157,24 +180,30 @@ namespace NuGetGallery {
             return true;
         }
 
-        public User GeneratePasswordResetToken(string email, int tokenExpirationMinutes) {
-            if (String.IsNullOrEmpty(email)) {
+        public User GeneratePasswordResetToken(string email, int tokenExpirationMinutes)
+        {
+            if (String.IsNullOrEmpty(email))
+            {
                 throw new ArgumentNullException("email");
             }
-            if (tokenExpirationMinutes < 1) {
+            if (tokenExpirationMinutes < 1)
+            {
                 throw new ArgumentException("Token expiration should give the user at least a minute to change their password", "tokenExpirationMinutes");
             }
 
             var user = FindByEmailAddress(email);
-            if (user == null) {
+            if (user == null)
+            {
                 return null;
             }
 
-            if (!user.Confirmed) {
+            if (!user.Confirmed)
+            {
                 throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
             }
 
-            if (!String.IsNullOrEmpty(user.PasswordResetToken) && !user.PasswordResetTokenExpirationDate.IsInThePast()) {
+            if (!String.IsNullOrEmpty(user.PasswordResetToken) && !user.PasswordResetTokenExpirationDate.IsInThePast())
+            {
                 return user;
             }
 
@@ -185,8 +214,10 @@ namespace NuGetGallery {
             return user;
         }
 
-        public bool ResetPasswordWithToken(string username, string token, string newPassword) {
-            if (String.IsNullOrEmpty(newPassword)) {
+        public bool ResetPasswordWithToken(string username, string token, string newPassword)
+        {
+            if (String.IsNullOrEmpty(newPassword))
+            {
                 throw new ArgumentNullException("newPassword");
             }
 
@@ -194,8 +225,10 @@ namespace NuGetGallery {
                         where u.Username == username
                         select u).FirstOrDefault();
 
-            if (user != null && user.PasswordResetToken == token && !user.PasswordResetTokenExpirationDate.IsInThePast()) {
-                if (!user.Confirmed) {
+            if (user != null && user.PasswordResetToken == token && !user.PasswordResetTokenExpirationDate.IsInThePast())
+            {
+                if (!user.Confirmed)
+                {
                     throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
                 }
 

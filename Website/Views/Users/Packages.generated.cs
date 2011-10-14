@@ -11,41 +11,29 @@
 
 namespace NuGetGallery.Views.Users
 {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/Packages.cshtml")]
     public class Packages : System.Web.Mvc.WebViewPage<ManagePackagesViewModel>
     {
 
-public System.Web.WebPages.HelperResult PrintPublishedPackages(IEnumerable<PackageViewModel> packages) {
-return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+        public System.Web.WebPages.HelperResult PrintPublishedPackages(IEnumerable<PackageViewModel> packages)
+        {
+            return new System.Web.WebPages.HelperResult(__razor_helper_writer =>
+            {
 
 
 
 #line 29 "..\..\Views\Users\Packages.cshtml"
-                                                                        
+
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, @"    <table class=""packages owned"">
+                WriteLiteralTo(@__razor_helper_writer, @"    <table class=""packages owned"">
         <thead class=""header"">
             <tr>
                 <th>Package</th>
@@ -59,115 +47,116 @@ WriteLiteralTo(@__razor_helper_writer, @"    <table class=""packages owned"">
 
 
 #line 39 "..\..\Views\Users\Packages.cshtml"
-         foreach (var package in packages) {
+                foreach (var package in packages)
+                {
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "            <tr>\r\n                <td>\r\n                    <strong><a href=\"");
+                    WriteLiteralTo(@__razor_helper_writer, "            <tr>\r\n                <td>\r\n                    <strong><a href=\"");
 
 
 
 #line 42 "..\..\Views\Users\Packages.cshtml"
-      WriteTo(@__razor_helper_writer, Url.Package(package));
+                    WriteTo(@__razor_helper_writer, Url.Package(package));
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "\">");
+                    WriteLiteralTo(@__razor_helper_writer, "\">");
 
 
 
 #line 42 "..\..\Views\Users\Packages.cshtml"
-                             WriteTo(@__razor_helper_writer, package.Title);
+                    WriteTo(@__razor_helper_writer, package.Title);
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "</a></strong>\r\n                    <p>");
+                    WriteLiteralTo(@__razor_helper_writer, "</a></strong>\r\n                    <p>");
 
 
 
 #line 43 "..\..\Views\Users\Packages.cshtml"
-WriteTo(@__razor_helper_writer, package.Description);
+                    WriteTo(@__razor_helper_writer, package.Description);
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "</p>\r\n                </td>\r\n                <td>");
+                    WriteLiteralTo(@__razor_helper_writer, "</p>\r\n                </td>\r\n                <td>");
 
 
 
 #line 45 "..\..\Views\Users\Packages.cshtml"
-WriteTo(@__razor_helper_writer, package.Id);
+                    WriteTo(@__razor_helper_writer, package.Id);
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "</td>\r\n                <td class=\"downloads\">");
+                    WriteLiteralTo(@__razor_helper_writer, "</td>\r\n                <td class=\"downloads\">");
 
 
 
 #line 46 "..\..\Views\Users\Packages.cshtml"
-       WriteTo(@__razor_helper_writer, package.DownloadCount);
+                    WriteTo(@__razor_helper_writer, package.DownloadCount);
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "</td>\r\n                <td class=\"ownerActions\">\r\n                    <ul>\r\n     " +
-"                   <li>\r\n                            <a href=\"");
+                    WriteLiteralTo(@__razor_helper_writer, "</td>\r\n                <td class=\"ownerActions\">\r\n                    <ul>\r\n     " +
+                    "                   <li>\r\n                            <a href=\"");
 
 
 
 #line 50 "..\..\Views\Users\Packages.cshtml"
-      WriteTo(@__razor_helper_writer, Url.EditPackage(package));
+                    WriteTo(@__razor_helper_writer, Url.EditPackage(package));
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "\" title=\"Edit\" class=\"editPackageLink\"><img src=\"");
+                    WriteLiteralTo(@__razor_helper_writer, "\" title=\"Edit\" class=\"editPackageLink\"><img src=\"");
 
 
 
 #line 50 "..\..\Views\Users\Packages.cshtml"
-                                                                                WriteTo(@__razor_helper_writer, Links.Content.Images.editIcon_png);
+                    WriteTo(@__razor_helper_writer, Links.Content.Images.editIcon_png);
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "\" alt=\"Edit\" /></a>\r\n                            &nbsp;\r\n                        " +
-"    <a href=\"");
+                    WriteLiteralTo(@__razor_helper_writer, "\" alt=\"Edit\" /></a>\r\n                            &nbsp;\r\n                        " +
+                    "    <a href=\"");
 
 
 
 #line 52 "..\..\Views\Users\Packages.cshtml"
-      WriteTo(@__razor_helper_writer, Url.DeletePackage(package));
+                    WriteTo(@__razor_helper_writer, Url.DeletePackage(package));
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "\" title=\"Delete\" class=\"deletePackageLink\"><img src=\"");
+                    WriteLiteralTo(@__razor_helper_writer, "\" title=\"Delete\" class=\"deletePackageLink\"><img src=\"");
 
 
 
 #line 52 "..\..\Views\Users\Packages.cshtml"
-                                                                                      WriteTo(@__razor_helper_writer, Links.Content.Images.trash_png);
+                    WriteTo(@__razor_helper_writer, Links.Content.Images.trash_png);
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "\" alt=\"Delete\" /></a>\r\n                        </li>\r\n                    </ul>\r\n" +
-"                </td>\r\n            </tr>\r\n");
+                    WriteLiteralTo(@__razor_helper_writer, "\" alt=\"Delete\" /></a>\r\n                        </li>\r\n                    </ul>\r\n" +
+                    "                </td>\r\n            </tr>\r\n");
 
 
 
 #line 57 "..\..\Views\Users\Packages.cshtml"
-        }
+                }
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "    </table>\r\n");
+                WriteLiteralTo(@__razor_helper_writer, "    </table>\r\n");
 
 
 
@@ -176,9 +165,9 @@ WriteLiteralTo(@__razor_helper_writer, "    </table>\r\n");
 #line default
 #line hidden
 
-});
+            });
 
-}
+        }
 
 
         public Packages()
@@ -188,95 +177,98 @@ WriteLiteralTo(@__razor_helper_writer, "    </table>\r\n");
         {
 
 
-            
-            #line 2 "..\..\Views\Users\Packages.cshtml"
- if (Model.Packages.Any()) {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("    <header class=\"manage-packages\">\r\n        <h2>Manage My Packages</h2>\r\n      " +
-"  <p>These packages are currently published for the world to see.</p>\r\n    </hea" +
-"der>\r\n");
+#line 2 "..\..\Views\Users\Packages.cshtml"
+            if (Model.Packages.Any())
+            {
 
 
-            
-            #line 7 "..\..\Views\Users\Packages.cshtml"
-    
-            
-            #line default
-            #line hidden
-            
-            #line 7 "..\..\Views\Users\Packages.cshtml"
-Write(PrintPublishedPackages(Model.Packages.Where(p => p.Listed)));
-
-            
-            #line default
-            #line hidden
-            
-            #line 7 "..\..\Views\Users\Packages.cshtml"
-                                                                
-
-    var unlistedPackages = Model.Packages.Where(p => !p.Listed);
-    if (unlistedPackages.Any()) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        <header class=\"manage-packages\">\r\n            <h2>Unlisted Packages</h2>\r" +
-"\n            <p>These packages are currently published but unlisted.</p>\r\n      " +
-"  </header>\r\n");
-
-
-            
-            #line 15 "..\..\Views\Users\Packages.cshtml"
-        
-            
-            #line default
-            #line hidden
-            
-            #line 15 "..\..\Views\Users\Packages.cshtml"
-   Write(PrintPublishedPackages(unlistedPackages));
-
-            
-            #line default
-            #line hidden
-            
-            #line 15 "..\..\Views\Users\Packages.cshtml"
-                                                 
-    }
-}
-else {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("<header>\r\n    <h2>No Packages?</h2>\r\n</header>\r\n");
+#line default
+#line hidden
+                WriteLiteral("    <header class=\"manage-packages\">\r\n        <h2>Manage My Packages</h2>\r\n      " +
+                "  <p>These packages are currently published for the world to see.</p>\r\n    </hea" +
+                "der>\r\n");
 
 
 
-WriteLiteral("<p>\r\n    You don&#8217;t have any published packages. Maybe now is a good time to" +
-" \r\n    <a href=\"");
+#line 7 "..\..\Views\Users\Packages.cshtml"
 
 
-            
-            #line 24 "..\..\Views\Users\Packages.cshtml"
-        Write(Url.UploadPackage());
+#line default
+#line hidden
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" class=\"silverButtonBig\">Upload a Package</a>\r\n</p>\r\n");
+#line 7 "..\..\Views\Users\Packages.cshtml"
+                Write(PrintPublishedPackages(Model.Packages.Where(p => p.Listed)));
 
 
-            
-            #line 26 "..\..\Views\Users\Packages.cshtml"
-}
+#line default
+#line hidden
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n\r\n");
+#line 7 "..\..\Views\Users\Packages.cshtml"
+
+
+                var unlistedPackages = Model.Packages.Where(p => !p.Listed);
+                if (unlistedPackages.Any())
+                {
+
+
+#line default
+#line hidden
+                    WriteLiteral("        <header class=\"manage-packages\">\r\n            <h2>Unlisted Packages</h2>\r" +
+                    "\n            <p>These packages are currently published but unlisted.</p>\r\n      " +
+                    "  </header>\r\n");
+
+
+
+#line 15 "..\..\Views\Users\Packages.cshtml"
+
+
+#line default
+#line hidden
+
+#line 15 "..\..\Views\Users\Packages.cshtml"
+                    Write(PrintPublishedPackages(unlistedPackages));
+
+
+#line default
+#line hidden
+
+#line 15 "..\..\Views\Users\Packages.cshtml"
+
+                }
+            }
+            else
+            {
+
+
+#line default
+#line hidden
+                WriteLiteral("<header>\r\n    <h2>No Packages?</h2>\r\n</header>\r\n");
+
+
+
+                WriteLiteral("<p>\r\n    You don&#8217;t have any published packages. Maybe now is a good time to" +
+                " \r\n    <a href=\"");
+
+
+
+#line 24 "..\..\Views\Users\Packages.cshtml"
+                Write(Url.UploadPackage());
+
+
+#line default
+#line hidden
+                WriteLiteral("\" class=\"silverButtonBig\">Upload a Package</a>\r\n</p>\r\n");
+
+
+
+#line 26 "..\..\Views\Users\Packages.cshtml"
+            }
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n\r\n");
 
 
 

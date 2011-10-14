@@ -11,24 +11,10 @@
 
 namespace NuGetGallery.Views.Packages
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Packages/ContactOwners.cshtml")]
     public class ContactOwners : System.Web.Mvc.WebViewPage<ContactOwnersViewModel>
@@ -40,169 +26,174 @@ namespace NuGetGallery.Views.Packages
         {
 
 
-            
-            #line 2 "..\..\Views\Packages\ContactOwners.cshtml"
-  
-    ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
+#line 2 "..\..\Views\Packages\ContactOwners.cshtml"
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
-
-
-DefineSection("LeftNav", () => {
-
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 8 "..\..\Views\Packages\ContactOwners.cshtml"
-         Write(Links.Content.Images.sendMessageGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" style=\"padding-left: 55px\" />\r\n");
-
-
-});
-
-WriteLiteral("    \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("            \r\n    <h2>Contact the Owners of <em>");
-
-
-            
-            #line 12 "..\..\Views\Packages\ContactOwners.cshtml"
-                             Write(Model.PackageId);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</em></h2>\r\n");
-
-
-});
-
-WriteLiteral("\r\n");
-
-
-            
-            #line 14 "..\..\Views\Packages\ContactOwners.cshtml"
- if (Model.Owners.Any()) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    <div class=\"description\">\r\n        <p>\r\n            By submitting this form, " +
-"you agree to <strong>disclose your email address</strong> \r\n            to the p" +
-"ackage owners listed below so they can reply to you.\r\n        </p>\r\n    </div> \r" +
-"\n");
+            ViewBag.Tab = "Packages";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
 
-WriteLiteral("    <form action=\"");
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-            
-            #line 21 "..\..\Views\Packages\ContactOwners.cshtml"
-             Write(Url.Current());
+            DefineSection("LeftNav", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" id=\"form\" method=\"post\">\r\n        <label>\r\n            To: ");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-            
-            #line 23 "..\..\Views\Packages\ContactOwners.cshtml"
-           Write(ViewHelpers.OwnersGravatar(Model.Owners, 24, Url));
 
-            
-            #line default
-            #line hidden
-
-            
-            #line 23 "..\..\Views\Packages\ContactOwners.cshtml"
-                                                                  WriteLiteral("\r\n        </label>\r\n        <div ");
-
-            
-            #line default
-            #line hidden
-            
-            #line 25 "..\..\Views\Packages\ContactOwners.cshtml"
-              if (Html.IsError(m => m.Message)) {
-            
-            #line default
-            #line hidden
-WriteLiteral("class=\"invalid\"");
+#line 8 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Links.Content.Images.sendMessageGraphic_png);
 
 
-            
-            #line 25 "..\..\Views\Packages\ContactOwners.cshtml"
-                                                                             }
-            
-            #line default
-            #line hidden
-WriteLiteral(">\r\n            ");
+#line default
+#line hidden
+                WriteLiteral("\" style=\"padding-left: 55px\" />\r\n");
 
 
-            
-            #line 26 "..\..\Views\Packages\ContactOwners.cshtml"
-       Write(Html.LabelFor(m => m.Message));
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            <aside>\r\n                <p>\r\n                    <strong>");
+            WriteLiteral("    \r\n\r\n");
 
 
-            
-            #line 29 "..\..\Views\Packages\ContactOwners.cshtml"
-                       Write(Html.ValidationMessageFor(m => m.Message));
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</strong>\r\n                </p>\r\n            </aside>\r\n            ");
+                WriteLiteral("            \r\n    <h2>Contact the Owners of <em>");
 
 
-            
-            #line 32 "..\..\Views\Packages\ContactOwners.cshtml"
-       Write(Html.TextAreaFor(m => m.Message, 10, 50, null));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        </div>                     \r\n\r\n        ");
+#line 12 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Model.PackageId);
 
 
-            
-            #line 35 "..\..\Views\Packages\ContactOwners.cshtml"
-   Write(Html.AntiForgeryToken());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        <input id=\"contactOwnersButton\" type=\"submit\" value=\"Send\" singleclickb" +
-"utton=\"true\" />\r\n    </form>\r\n");
+#line default
+#line hidden
+                WriteLiteral("</em></h2>\r\n");
 
 
-            
-            #line 38 "..\..\Views\Packages\ContactOwners.cshtml"
-}
-else {
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"    <div id=""messages"">
+            WriteLiteral("\r\n");
+
+
+
+#line 14 "..\..\Views\Packages\ContactOwners.cshtml"
+            if (Model.Owners.Any())
+            {
+
+
+#line default
+#line hidden
+                WriteLiteral("    <div class=\"description\">\r\n        <p>\r\n            By submitting this form, " +
+                "you agree to <strong>disclose your email address</strong> \r\n            to the p" +
+                "ackage owners listed below so they can reply to you.\r\n        </p>\r\n    </div> \r" +
+                "\n");
+
+
+
+                WriteLiteral("    <form action=\"");
+
+
+
+#line 21 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Url.Current());
+
+
+#line default
+#line hidden
+                WriteLiteral("\" id=\"form\" method=\"post\">\r\n        <label>\r\n            To: ");
+
+
+
+#line 23 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(ViewHelpers.OwnersGravatar(Model.Owners, 24, Url));
+
+
+#line default
+#line hidden
+
+
+#line 23 "..\..\Views\Packages\ContactOwners.cshtml"
+                WriteLiteral("\r\n        </label>\r\n        <div ");
+
+
+#line default
+#line hidden
+
+#line 25 "..\..\Views\Packages\ContactOwners.cshtml"
+                if (Html.IsError(m => m.Message))
+                {
+
+#line default
+#line hidden
+                    WriteLiteral("class=\"invalid\"");
+
+
+
+#line 25 "..\..\Views\Packages\ContactOwners.cshtml"
+                }
+
+#line default
+#line hidden
+                WriteLiteral(">\r\n            ");
+
+
+
+#line 26 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Html.LabelFor(m => m.Message));
+
+
+#line default
+#line hidden
+                WriteLiteral("\r\n            <aside>\r\n                <p>\r\n                    <strong>");
+
+
+
+#line 29 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Html.ValidationMessageFor(m => m.Message));
+
+
+#line default
+#line hidden
+                WriteLiteral("</strong>\r\n                </p>\r\n            </aside>\r\n            ");
+
+
+
+#line 32 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Html.TextAreaFor(m => m.Message, 10, 50, null));
+
+
+#line default
+#line hidden
+                WriteLiteral("\r\n        </div>                     \r\n\r\n        ");
+
+
+
+#line 35 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Html.AntiForgeryToken());
+
+
+#line default
+#line hidden
+                WriteLiteral("\r\n        <input id=\"contactOwnersButton\" type=\"submit\" value=\"Send\" singleclickb" +
+                "utton=\"true\" />\r\n    </form>\r\n");
+
+
+
+#line 38 "..\..\Views\Packages\ContactOwners.cshtml"
+            }
+            else
+            {
+
+
+#line default
+#line hidden
+                WriteLiteral(@"    <div id=""messages"">
         <div class=""zone zone-messages"">
             <div class=""message message-Warning"">
                 <p>Sorry, the owners of this package do not allow contacting them through this form.</p>
@@ -213,52 +204,53 @@ WriteLiteral(@"    <div id=""messages"">
 ");
 
 
-            
-            #line 48 "..\..\Views\Packages\ContactOwners.cshtml"
-}
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+#line 48 "..\..\Views\Packages\ContactOwners.cshtml"
+            }
 
 
-DefineSection("BottomScripts", () => {
-
-WriteLiteral("\r\n    <script src=\"");
-
-
-            
-            #line 51 "..\..\Views\Packages\ContactOwners.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.min.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-            
-            #line 52 "..\..\Views\Packages\ContactOwners.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
+            DefineSection("BottomScripts", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+                WriteLiteral("\r\n    <script src=\"");
 
 
-            
-            #line 53 "..\..\Views\Packages\ContactOwners.cshtml"
-            Write(Url.Content("~/Scripts/gallery.form.js"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+#line 51 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.min.js"));
 
 
-});
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 52 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 53 "..\..\Views\Packages\ContactOwners.cshtml"
+                Write(Url.Content("~/Scripts/gallery.form.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+
+
+            });
 
 
         }

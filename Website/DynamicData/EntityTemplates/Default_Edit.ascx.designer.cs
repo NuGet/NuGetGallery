@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class Default_EditEntityTemplate {
+    public partial class Default_EditEntityTemplate
+    {
 
         protected global::System.Web.DynamicData.EntityTemplate EntityTemplate1;
 

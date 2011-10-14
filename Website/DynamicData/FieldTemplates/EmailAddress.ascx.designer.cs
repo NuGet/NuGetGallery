@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class EmailAddressField {
+    public partial class EmailAddressField
+    {
 
         protected global::System.Web.UI.WebControls.HyperLink HyperLink1;
     }

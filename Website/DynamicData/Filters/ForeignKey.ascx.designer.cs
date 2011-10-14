@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class ForeignKeyFilter {
+    public partial class ForeignKeyFilter
+    {
 
         protected global::System.Web.UI.WebControls.DropDownList DropDownList1;
     }

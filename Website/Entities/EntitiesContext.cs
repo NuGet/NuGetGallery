@@ -1,17 +1,17 @@
-﻿using System.Configuration;
-using System.Data.Common;
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
-using MvcMiniProfiler.Data;
 
-namespace NuGetGallery {
-    public class EntitiesContext : DbContext {
+namespace NuGetGallery
+{
+    public class EntitiesContext : DbContext
+    {
         public EntitiesContext()
-            : base("NuGetGallery") {
+            : base("NuGetGallery")
+        {
         }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder) {
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
             modelBuilder.Conventions.Remove<IncludeMetadataConvention>();
 
             modelBuilder.Entity<User>()

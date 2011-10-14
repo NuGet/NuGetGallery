@@ -11,24 +11,9 @@
 
 namespace NuGetGallery.Views.Shared.EditorTemplates
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
-    using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/EditorTemplates/Object.cshtml")]
     public class Object : System.Web.Mvc.WebViewPage<dynamic>
@@ -39,135 +24,135 @@ namespace NuGetGallery.Views.Shared.EditorTemplates
         public override void Execute()
         {
 
-            
-            #line 1 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
- if (ViewData.TemplateInfo.TemplateDepth > 1)
-{
-    
-            
-            #line default
-            #line hidden
-            
-            #line 3 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-Write(ViewData.ModelMetadata.SimpleDisplayText);
 
-            
-            #line default
-            #line hidden
-            
-            #line 3 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-                                             
-}
-else
-{
-    foreach (var prop in ViewData.ModelMetadata.Properties.Where(pm => pm.ShowForEdit && !ViewData.TemplateInfo.Visited(pm)))
-    {
-        if (prop.HideSurroundingHtml)
-        {
-            
-            
-            #line default
-            #line hidden
-            
-            #line 11 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-       Write(Html.Editor(prop.PropertyName));
-
-            
-            #line default
-            #line hidden
-            
-            #line 11 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-                                           
-        }
-        else
-        {
-            var className = string.Empty;
-            if (ViewData.ModelState[prop.PropertyName] != null && ViewData.ModelState[prop.PropertyName].Errors != null && ViewData.ModelState[prop.PropertyName].Errors.Count > 0)
+#line 1 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+            if (ViewData.TemplateInfo.TemplateDepth > 1)
             {
-                className = "invalid";
+
+
+#line default
+#line hidden
+
+#line 3 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+                Write(ViewData.ModelMetadata.SimpleDisplayText);
+
+
+#line default
+#line hidden
+
+#line 3 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+
             }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("            <div class=\"");
-
-
-            
-            #line 20 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-                   Write(className);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">\r\n                ");
+            else
+            {
+                foreach (var prop in ViewData.ModelMetadata.Properties.Where(pm => pm.ShowForEdit && !ViewData.TemplateInfo.Visited(pm)))
+                {
+                    if (prop.HideSurroundingHtml)
+                    {
 
 
-            
-            #line 21 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-           Write(Html.Label(prop.PropertyName));
+#line default
+#line hidden
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                <aside>\r\n                    <p>\r\n                        <stro" +
-"ng>");
+#line 11 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+                        Write(Html.Editor(prop.PropertyName));
 
 
-            
-            #line 24 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-                           Write(Html.ValidationMessage(prop.PropertyName));
+#line default
+#line hidden
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</strong>\r\n");
+#line 11 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
 
-
-            
-            #line 25 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-                         if (prop.AdditionalValues.ContainsKey("Hint"))
+                    }
+                    else
+                    {
+                        var className = string.Empty;
+                        if (ViewData.ModelState[prop.PropertyName] != null && ViewData.ModelState[prop.PropertyName].Errors != null && ViewData.ModelState[prop.PropertyName].Errors.Count > 0)
                         {
-                            
-            
-            #line default
-            #line hidden
-            
-            #line 27 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-                       Write(prop.AdditionalValues["Hint"]);
-
-            
-            #line default
-            #line hidden
-            
-            #line 27 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-                                                             
+                            className = "invalid";
                         }
 
-            
-            #line default
-            #line hidden
-WriteLiteral("                    </p>\r\n                </aside>\r\n                ");
+
+#line default
+#line hidden
+                        WriteLiteral("            <div class=\"");
 
 
-            
-            #line 31 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-           Write(Html.Editor(prop.PropertyName));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            </div>\r\n");
+#line 20 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+                        Write(className);
 
 
-            
-            #line 33 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
-        }
-    }
-}
-            
-            #line default
-            #line hidden
+#line default
+#line hidden
+                        WriteLiteral("\">\r\n                ");
+
+
+
+#line 21 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+                        Write(Html.Label(prop.PropertyName));
+
+
+#line default
+#line hidden
+                        WriteLiteral("\r\n                <aside>\r\n                    <p>\r\n                        <stro" +
+                        "ng>");
+
+
+
+#line 24 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+                        Write(Html.ValidationMessage(prop.PropertyName));
+
+
+#line default
+#line hidden
+                        WriteLiteral("</strong>\r\n");
+
+
+
+#line 25 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+                        if (prop.AdditionalValues.ContainsKey("Hint"))
+                        {
+
+
+#line default
+#line hidden
+
+#line 27 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+                            Write(prop.AdditionalValues["Hint"]);
+
+
+#line default
+#line hidden
+
+#line 27 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+
+                        }
+
+
+#line default
+#line hidden
+                        WriteLiteral("                    </p>\r\n                </aside>\r\n                ");
+
+
+
+#line 31 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+                        Write(Html.Editor(prop.PropertyName));
+
+
+#line default
+#line hidden
+                        WriteLiteral("\r\n            </div>\r\n");
+
+
+
+#line 33 "..\..\Views\Shared\EditorTemplates\Object.cshtml"
+                    }
+                }
+            }
+
+#line default
+#line hidden
 
         }
     }

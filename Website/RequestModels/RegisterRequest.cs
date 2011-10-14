@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 
-namespace NuGetGallery {
-    public class RegisterRequest {
+namespace NuGetGallery
+{
+    public class RegisterRequest
+    {
         [Required]
         [StringLength(64)]
         [RegularExpression(@"(?i)[a-z0-9_.-]*", ErrorMessage = "User names may only contain letters, numbers, dashes, and hyphens.")]

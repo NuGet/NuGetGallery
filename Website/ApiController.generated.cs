@@ -7,43 +7,40 @@
 #pragma warning disable 1591
 #region T4MVC
 
-using System;
-using System.Diagnostics;
 using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Web;
-using System.Web.Hosting;
+using System.Diagnostics;
 using System.Web.Mvc;
-using System.Web.Mvc.Ajax;
-using System.Web.Mvc.Html;
-using System.Web.Routing;
 using T4MVC;
-namespace NuGetGallery {
-    public partial class ApiController {
+namespace NuGetGallery
+{
+    public partial class ApiController
+    {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected ApiController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        protected RedirectToRouteResult RedirectToAction(ActionResult result) {
+        protected RedirectToRouteResult RedirectToAction(ActionResult result)
+        {
             var callInfo = result.GetT4MVCResult();
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult CreatePackage() {
+        public System.Web.Mvc.ActionResult CreatePackage()
+        {
             return new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackage);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult DeletePackage() {
+        public System.Web.Mvc.ActionResult DeletePackage()
+        {
             return new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult PublishPackage() {
+        public System.Web.Mvc.ActionResult PublishPackage()
+        {
             return new T4MVC_ActionResult(Area, Name, ActionNames.PublishPackage);
         }
 
@@ -58,7 +55,8 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public class ActionNamesClass {
+        public class ActionNamesClass
+        {
             public readonly string CreatePackage = "PushPackageApi";
             public readonly string DeletePackage = "DeletePackageApi";
             public readonly string PublishPackage = "PublishPackageApi";
@@ -69,21 +67,25 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public class ViewNames {
+        public class ViewNames
+        {
         }
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_ApiController: NuGetGallery.ApiController {
+    public class T4MVC_ApiController : NuGetGallery.ApiController
+    {
         public T4MVC_ApiController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult CreatePackage(System.Guid apiKey) {
+        public override System.Web.Mvc.ActionResult CreatePackage(System.Guid apiKey)
+        {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackage);
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult DeletePackage(System.Guid apiKey, string id, string version) {
+        public override System.Web.Mvc.ActionResult DeletePackage(System.Guid apiKey, string id, string version)
+        {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
@@ -91,7 +93,8 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult PublishPackage(System.Guid key, string id, string version) {
+        public override System.Web.Mvc.ActionResult PublishPackage(System.Guid key, string id, string version)
+        {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PublishPackage);
             callInfo.RouteValueDictionary.Add("key", key);
             callInfo.RouteValueDictionary.Add("id", id);

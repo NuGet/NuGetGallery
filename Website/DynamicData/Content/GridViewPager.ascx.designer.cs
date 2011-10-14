@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class GridViewPager {
+    public partial class GridViewPager
+    {
 
         protected global::System.Web.UI.WebControls.ImageButton ImageButtonFirst;
 

@@ -8,9 +8,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class Children_InsertField {
+    public partial class Children_InsertField
+    {
     }
 }

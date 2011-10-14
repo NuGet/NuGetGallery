@@ -7,26 +7,20 @@
 #pragma warning disable 1591
 #region T4MVC
 
-using System;
-using System.Diagnostics;
 using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Web;
-using System.Web.Hosting;
+using System.Diagnostics;
 using System.Web.Mvc;
-using System.Web.Mvc.Ajax;
-using System.Web.Mvc.Html;
-using System.Web.Routing;
 using T4MVC;
-namespace NuGetGallery {
-    public partial class JsonApiController {
+namespace NuGetGallery
+{
+    public partial class JsonApiController
+    {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected JsonApiController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        protected RedirectToRouteResult RedirectToAction(ActionResult result) {
+        protected RedirectToRouteResult RedirectToAction(ActionResult result)
+        {
             var callInfo = result.GetT4MVCResult();
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
@@ -43,7 +37,8 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public class ActionNamesClass {
+        public class ActionNamesClass
+        {
         }
 
 
@@ -51,12 +46,14 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public class ViewNames {
+        public class ViewNames
+        {
         }
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_JsonApiController: NuGetGallery.JsonApiController {
+    public class T4MVC_JsonApiController : NuGetGallery.JsonApiController
+    {
         public T4MVC_JsonApiController() : base(Dummy.Instance) { }
 
     }

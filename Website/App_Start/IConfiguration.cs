@@ -1,7 +1,9 @@
 ﻿using System.Net.Mail;
 
-namespace NuGetGallery {
-    public interface IConfiguration {
+namespace NuGetGallery
+{
+    public interface IConfiguration
+    {
         string AzureStorageAccessKey { get; }
         string AzureStorageAccountName { get; }
         string AzureStorageBlobUrl { get; }

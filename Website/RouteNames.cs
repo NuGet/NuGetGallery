@@ -1,6 +1,8 @@
 ﻿
-namespace NuGetGallery {
-    public static class RouteName {
+namespace NuGetGallery
+{
+    public static class RouteName
+    {
         public const string V1ApiFeed = "V1ApiFeed";
         public const string V2ApiFeed = "V2ApiFeed";
         public const string ApiFeed = "ApiFeed";

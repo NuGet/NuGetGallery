@@ -11,29 +11,14 @@
 
 namespace NuGetGallery.Views.Users
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
-    
-    #line 1 "..\..\Views\Users\Thanks.cshtml"
-    using NuGetGallery;
-    
-    #line default
-    #line hidden
-    
+
+
+#line 1 "..\..\Views\Users\Thanks.cshtml"
+
+
+#line default
+#line hidden
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/Thanks.cshtml")]
     public class Thanks : System.Web.Mvc.WebViewPage<dynamic>
@@ -45,101 +30,107 @@ namespace NuGetGallery.Views.Users
         {
 
 
-            
-            #line 2 "..\..\Views\Users\Thanks.cshtml"
-  
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
+#line 2 "..\..\Views\Users\Thanks.cshtml"
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
-
-
-DefineSection("LeftNav", () => {
-
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 7 "..\..\Views\Users\Thanks.cshtml"
-         Write(Links.Content.Images.newAccountGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" style=\"padding-left:50px\" alt=\"New Account Image\"/>\r\n");
-
-
-});
-
-WriteLiteral("\r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("\r\n");
-
-
-            
-            #line 11 "..\..\Views\Users\Thanks.cshtml"
-     if (!Request.IsAuthenticated) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        <h2>Thanks for registering</h2>\r\n");
-
-
-            
-            #line 13 "..\..\Views\Users\Thanks.cshtml"
-    }
-    else {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        <h2>You are all set</h2>\r\n");
-
-
-            
-            #line 16 "..\..\Views\Users\Thanks.cshtml"
-    }
-
-            
-            #line default
-            #line hidden
-
-});
-
-WriteLiteral("\r\n\r\n<div class=\"description\">\r\n");
-
-
-            
-            #line 20 "..\..\Views\Users\Thanks.cshtml"
- if (!Request.IsAuthenticated) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    <strong>But you&#8217;re not done yet!</strong>\r\n");
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
 
-WriteLiteral("    <p>\r\n        An email with instructions on how to activate your account is on" +
-" its way \r\n        to you.\r\n    </p>\r\n");
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-            
-            #line 26 "..\..\Views\Users\Thanks.cshtml"
-    
-    if (Request.IsLocal) {
+            DefineSection("LeftNav", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"        <div class=""zone zone-messages"">
+                WriteLiteral("\r\n    <img src=\"");
+
+
+
+#line 7 "..\..\Views\Users\Thanks.cshtml"
+                Write(Links.Content.Images.newAccountGraphic_png);
+
+
+#line default
+#line hidden
+                WriteLiteral("\" style=\"padding-left:50px\" alt=\"New Account Image\"/>\r\n");
+
+
+            });
+
+            WriteLiteral("\r\n\r\n");
+
+
+            DefineSection("ContentHeader", () =>
+            {
+
+                WriteLiteral("\r\n");
+
+
+
+#line 11 "..\..\Views\Users\Thanks.cshtml"
+                if (!Request.IsAuthenticated)
+                {
+
+
+#line default
+#line hidden
+                    WriteLiteral("        <h2>Thanks for registering</h2>\r\n");
+
+
+
+#line 13 "..\..\Views\Users\Thanks.cshtml"
+                }
+                else
+                {
+
+
+#line default
+#line hidden
+                    WriteLiteral("        <h2>You are all set</h2>\r\n");
+
+
+
+#line 16 "..\..\Views\Users\Thanks.cshtml"
+                }
+
+
+#line default
+#line hidden
+
+            });
+
+            WriteLiteral("\r\n\r\n<div class=\"description\">\r\n");
+
+
+
+#line 20 "..\..\Views\Users\Thanks.cshtml"
+            if (!Request.IsAuthenticated)
+            {
+
+
+#line default
+#line hidden
+                WriteLiteral("    <strong>But you&#8217;re not done yet!</strong>\r\n");
+
+
+
+                WriteLiteral("    <p>\r\n        An email with instructions on how to activate your account is on" +
+                " its way \r\n        to you.\r\n    </p>\r\n");
+
+
+
+#line 26 "..\..\Views\Users\Thanks.cshtml"
+
+                if (Request.IsLocal)
+                {
+
+
+#line default
+#line hidden
+                    WriteLiteral(@"        <div class=""zone zone-messages"">
             <div class=""message message-Warning system"">
                 <p>
                     Pssst! I see you're running this in a development environment. 
@@ -150,32 +141,33 @@ WriteLiteral(@"        <div class=""zone zone-messages"">
 ");
 
 
-            
-            #line 36 "..\..\Views\Users\Thanks.cshtml"
-    }
-}
-else {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("    <p>\r\n        It looks like you&#8217;ve already confirmed your account and ar" +
-"e \r\n        good to go.\r\n    </p>\r\n");
+#line 36 "..\..\Views\Users\Thanks.cshtml"
+                }
+            }
+            else
+            {
 
 
+#line default
+#line hidden
+                WriteLiteral("    <p>\r\n        It looks like you&#8217;ve already confirmed your account and ar" +
+                "e \r\n        good to go.\r\n    </p>\r\n");
 
-WriteLiteral("    <p>\r\n        Click on the <em>Upload package</em> link in the menu to start \r" +
-"\n        uploading packages.\r\n    </p>\r\n");
 
 
-            
-            #line 47 "..\..\Views\Users\Thanks.cshtml"
-}
+                WriteLiteral("    <p>\r\n        Click on the <em>Upload package</em> link in the menu to start \r" +
+                "\n        uploading packages.\r\n    </p>\r\n");
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</div>");
+
+
+#line 47 "..\..\Views\Users\Thanks.cshtml"
+            }
+
+
+#line default
+#line hidden
+            WriteLiteral("</div>");
 
 
         }

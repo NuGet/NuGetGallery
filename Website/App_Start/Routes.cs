@@ -3,9 +3,12 @@ using System.Web.Routing;
 using MvcHaack.Ajax;
 using RouteMagic;
 
-namespace NuGetGallery {
-    public static class Routes {
-        public static void RegisterRoutes(RouteCollection routes) {
+namespace NuGetGallery
+{
+    public static class Routes
+    {
+        public static void RegisterRoutes(RouteCollection routes)
+        {
             routes.MapRoute(
                 RouteName.Home,
                 "",

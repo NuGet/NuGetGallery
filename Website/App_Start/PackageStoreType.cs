@@ -1,7 +1,8 @@
-﻿using System;
-
-namespace NuGetGallery {
-    public enum PackageStoreType {
+﻿
+namespace NuGetGallery
+{
+    public enum PackageStoreType
+    {
         NotSpecified = 0,
         FileSystem,
         AzureStorageBlob

@@ -8,11 +8,14 @@ using System.Web.DynamicData;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
-namespace DynamicDataEFCodeFirst {
-    public partial class ManyToMany_EditField : System.Web.DynamicData.FieldTemplateUserControl {
+namespace DynamicDataEFCodeFirst
+{
+    public partial class ManyToMany_EditField : System.Web.DynamicData.FieldTemplateUserControl
+    {
         protected ObjectContext ObjectContext { get; set; }
 
-        public void Page_Load(object sender, EventArgs e) {
+        public void Page_Load(object sender, EventArgs e)
+        {
             // Register for the DataSource's updating event
             EntityDataSource ds = (EntityDataSource)this.FindDataSourceControl();
 
@@ -23,7 +26,8 @@ namespace DynamicDataEFCodeFirst {
             ds.Inserting += new EventHandler<EntityDataSourceChangingEventArgs>(DataSource_UpdatingOrInserting);
         }
 
-        void DataSource_UpdatingOrInserting(object sender, EntityDataSourceChangingEventArgs e) {
+        void DataSource_UpdatingOrInserting(object sender, EntityDataSourceChangingEventArgs e)
+        {
             MetaTable childTable = ChildrenColumn.ChildTable;
 
             // Comments assume employee/territory for illustration, but the code is generic
@@ -34,7 +38,8 @@ namespace DynamicDataEFCodeFirst {
             ObjectContext.LoadProperty(e.Entity, Column.Name);
 
             // Go through all the territories (not just those for this employee)
-            foreach (dynamic childEntity in childTable.GetQuery(e.Context)) {
+            foreach (dynamic childEntity in childTable.GetQuery(e.Context))
+            {
 
                 // Check if the employee currently has this territory
                 bool isCurrentlyInList = ListContainsEntity(childTable, entityList, childEntity);
@@ -46,32 +51,38 @@ namespace DynamicDataEFCodeFirst {
                     continue;
 
                 // If the states differs, make the appropriate add/remove change
-                if (listItem.Selected) {
+                if (listItem.Selected)
+                {
                     if (!isCurrentlyInList)
                         entityList.Add(childEntity);
                 }
-                else {
+                else
+                {
                     if (isCurrentlyInList)
                         entityList.Remove(childEntity);
                 }
             }
         }
 
-        protected void CheckBoxList1_DataBound(object sender, EventArgs e) {
+        protected void CheckBoxList1_DataBound(object sender, EventArgs e)
+        {
             MetaTable childTable = ChildrenColumn.ChildTable;
 
             // Comments assume employee/territory for illustration, but the code is generic
 
             IEnumerable<object> entityList = null;
 
-            if (Mode == DataBoundControlMode.Edit) {
+            if (Mode == DataBoundControlMode.Edit)
+            {
                 object entity;
                 ICustomTypeDescriptor rowDescriptor = Row as ICustomTypeDescriptor;
-                if (rowDescriptor != null) {
+                if (rowDescriptor != null)
+                {
                     // Get the real entity from the wrapper
                     entity = rowDescriptor.GetPropertyOwner(null);
                 }
-                else {
+                else
+                {
                     entity = Row;
                 }
 
@@ -80,14 +91,16 @@ namespace DynamicDataEFCodeFirst {
             }
 
             // Go through all the territories (not just those for this employee)
-            foreach (object childEntity in childTable.GetQuery(ObjectContext)) {
+            foreach (object childEntity in childTable.GetQuery(ObjectContext))
+            {
                 // Create a checkbox for it
                 ListItem listItem = new ListItem(
                     childTable.GetDisplayString(childEntity),
                     childTable.GetPrimaryKeyString(childEntity));
 
                 // Make it selected if the current employee has that territory
-                if (Mode == DataBoundControlMode.Edit) {
+                if (Mode == DataBoundControlMode.Edit)
+                {
                     listItem.Selected = ListContainsEntity(childTable, entityList, childEntity);
                 }
 
@@ -95,19 +108,23 @@ namespace DynamicDataEFCodeFirst {
             }
         }
 
-        private static bool ListContainsEntity(MetaTable table, IEnumerable<object> list, object entity) {
+        private static bool ListContainsEntity(MetaTable table, IEnumerable<object> list, object entity)
+        {
             return list.Any(e => AreEntitiesEqual(table, e, entity));
         }
 
-        private static bool AreEntitiesEqual(MetaTable table, object entity1, object entity2) {
+        private static bool AreEntitiesEqual(MetaTable table, object entity1, object entity2)
+        {
             var pks1 = table.GetPrimaryKeyValues(entity1);
             var pks2 = table.GetPrimaryKeyValues(entity2);
 
             return Enumerable.SequenceEqual(pks1, pks2);
         }
 
-        public override Control DataControl {
-            get {
+        public override Control DataControl
+        {
+            get
+            {
                 return CheckBoxList1;
             }
         }

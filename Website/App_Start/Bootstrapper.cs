@@ -5,9 +5,12 @@ using Elmah.Contrib.Mvc;
 using NuGetGallery.Migrations;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.Bootstrapper), "Start")]
-namespace NuGetGallery {
-    public static class Bootstrapper {
-        public static void Start() {
+namespace NuGetGallery
+{
+    public static class Bootstrapper
+    {
+        public static void Start()
+        {
             UpdateDatabase();
             Routes.RegisterRoutes(RouteTable.Routes);
 
@@ -17,7 +20,8 @@ namespace NuGetGallery {
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
         }
 
-        private static void UpdateDatabase() {
+        private static void UpdateDatabase()
+        {
             var dbMigrator = new DbMigrator(new Settings());
             dbMigrator.Update();
         }

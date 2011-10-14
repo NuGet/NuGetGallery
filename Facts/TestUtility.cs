@@ -4,11 +4,14 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 
-namespace NuGetGallery {
-    public static class TestUtility {
+namespace NuGetGallery
+{
+    public static class TestUtility
+    {
         // We only need this method because testing URL generation is a pain.
         // Alternatively, we could write our own service for generating URLs.
-        public static Mock<HttpContextBase> SetupHttpContextMockForUrlGeneration(Mock<HttpContextBase> httpContext, Controller controller) {
+        public static Mock<HttpContextBase> SetupHttpContextMockForUrlGeneration(Mock<HttpContextBase> httpContext, Controller controller)
+        {
             httpContext.Setup(c => c.Request.Url).Returns(new Uri("https://example.org/"));
             httpContext.Setup(c => c.Request.ApplicationPath).Returns("/");
             httpContext.Setup(c => c.Response.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(s => s);

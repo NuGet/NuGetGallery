@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class Decimal_EditField {
+    public partial class Decimal_EditField
+    {
 
         protected global::System.Web.UI.WebControls.TextBox TextBox1;
 

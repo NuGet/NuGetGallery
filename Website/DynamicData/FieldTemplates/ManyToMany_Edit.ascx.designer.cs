@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class ManyToMany_EditField {
+    public partial class ManyToMany_EditField
+    {
 
         protected global::System.Web.UI.WebControls.CheckBoxList CheckBoxList1;
     }

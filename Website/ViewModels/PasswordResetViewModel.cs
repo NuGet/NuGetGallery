@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
 
-namespace NuGetGallery {
-    public class PasswordResetViewModel {
+namespace NuGetGallery
+{
+    public class PasswordResetViewModel
+    {
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New password")]

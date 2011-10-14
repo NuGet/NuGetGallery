@@ -1,9 +1,12 @@
 ﻿using Xunit;
 
-namespace NuGetGallery.ViewModels {
-    public class PreviousNextPagerViewModelFacts {
+namespace NuGetGallery.ViewModels
+{
+    public class PreviousNextPagerViewModelFacts
+    {
         [Fact]
-        public void PagerAtFirstPageDoesNotHavePreviousPageButDoesHaveNext() {
+        public void PagerAtFirstPageDoesNotHavePreviousPageButDoesHaveNext()
+        {
             // Arrange
             int currentPageIndex = 0;
 
@@ -17,7 +20,8 @@ namespace NuGetGallery.ViewModels {
         }
 
         [Fact]
-        public void PagerWithPageSizeGreaterThanItemsDoesNotHavePreviousOrNext() {
+        public void PagerWithPageSizeGreaterThanItemsDoesNotHavePreviousOrNext()
+        {
             // Arrange
             int currentPageIndex = 0;
 
@@ -30,7 +34,8 @@ namespace NuGetGallery.ViewModels {
         }
 
         [Fact]
-        public void PagerWithPageSizeEqualToItemsCountDoesNotHavePreviousOrNext() {
+        public void PagerWithPageSizeEqualToItemsCountDoesNotHavePreviousOrNext()
+        {
             // Arrange
             int currentPageIndex = 0;
 
@@ -43,7 +48,8 @@ namespace NuGetGallery.ViewModels {
         }
 
         [Fact]
-        public void LastPageShowsPreviousLinkButNotNextLink() {
+        public void LastPageShowsPreviousLinkButNotNextLink()
+        {
             // Arrange
             int currentPageIndex = 1;
 

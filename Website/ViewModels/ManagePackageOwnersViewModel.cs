@@ -2,16 +2,21 @@
 using System.Linq;
 using System.Security.Principal;
 
-namespace NuGetGallery {
-    public class ManagePackageOwnersViewModel : ListPackageItemViewModel {
+namespace NuGetGallery
+{
+    public class ManagePackageOwnersViewModel : ListPackageItemViewModel
+    {
         public ManagePackageOwnersViewModel(Package package, IPrincipal currentUser)
-            : base(package) {
+            : base(package)
+        {
             CurrentOwnerUsername = currentUser.Identity.Name;
             OtherOwners = Owners.Where(o => o.Username != CurrentOwnerUsername);
             OtherOwners = new[] { new User { Username = "Phil" } };
         }
-        public bool HasOtherOwners {
-            get {
+        public bool HasOtherOwners
+        {
+            get
+            {
                 return OtherOwners.Any();
             }
         }

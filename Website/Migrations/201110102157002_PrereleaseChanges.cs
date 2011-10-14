@@ -1,8 +1,8 @@
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
     using System;
-    
+    using System.Data.Entity.Migrations;
+
     public partial class PrereleaseChanges : DbMigration
     {
         public override void Up()
@@ -13,9 +13,8 @@ namespace NuGetGallery.Migrations
             ChangeColumn("Packages", "Published", c => c.DateTime(nullable: false, defaultValue: DateTime.UtcNow));
             DropColumn("Packages", "IsAbsoluteLatest");
             DropColumn("Packages", "Unlisted");
-            // This change cannot be undone
         }
-        
+
         public override void Down()
         {
             AddColumn("Packages", "Unlisted", c => c.Boolean(nullable: false));

@@ -2,8 +2,10 @@
 using System.Linq;
 using NuGet;
 
-namespace NuGetGallery {
-    public interface IPackageService {
+namespace NuGetGallery
+{
+    public interface IPackageService
+    {
         Package CreatePackage(IPackage nugetPackage, User currentUser);
 
         void DeletePackage(string id, string version);

@@ -11,24 +11,9 @@
 
 namespace NuGetGallery.Views.Packages
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Packages/Edit.cshtml")]
     public class Edit : System.Web.Mvc.WebViewPage<DisplayPackageViewModel>
@@ -40,100 +25,102 @@ namespace NuGetGallery.Views.Packages
         {
 
 
-            
-            #line 2 "..\..\Views\Packages\Edit.cshtml"
-  
-    ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 2 "..\..\Views\Packages\Edit.cshtml"
+
+            ViewBag.Tab = "Packages";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 8 "..\..\Views\Packages\Edit.cshtml"
-         Write(Links.Content.Images.contribGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Edit\" />\r\n");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-});
 
-WriteLiteral("    \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("            \r\n    <h2>Edit Package</h2>\r\n");
+#line 8 "..\..\Views\Packages\Edit.cshtml"
+                Write(Links.Content.Images.contribGraphic_png);
 
 
-});
-
-WriteLiteral("\r\n\r\n<div>\r\n    <form method=\"post\" action=\"");
-
-
-            
-            #line 16 "..\..\Views\Packages\Edit.cshtml"
-                           Write(Url.Current());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" class=\"package-form\">\r\n    <p class=\"note\">\r\n        You may only edit certain " +
-"package properties listed below. To modify or update any other package propertie" +
-"s, <a href=\"");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"Edit\" />\r\n");
 
 
-            
-            #line 18 "..\..\Views\Packages\Edit.cshtml"
-                                                                                                                         Write(Url.UploadPackage());
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">reupload the package</a>.\r\n    </p>\r\n    <ul>\r\n        <li>\r\n            ");
+            WriteLiteral("    \r\n\r\n");
 
 
-            
-            #line 22 "..\..\Views\Packages\Edit.cshtml"
-       Write(Html.EditorFor(package => package.Listed));
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral(" \r\n            ");
+                WriteLiteral("            \r\n    <h2>Edit Package</h2>\r\n");
 
 
-            
-            #line 23 "..\..\Views\Packages\Edit.cshtml"
-       Write(Html.LabelFor(package => package.Listed, "List this package in search results."));
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        </li>\r\n        <li class=\"buttons\">\r\n            ");
+            WriteLiteral("\r\n\r\n<div>\r\n    <form method=\"post\" action=\"");
 
 
-            
-            #line 26 "..\..\Views\Packages\Edit.cshtml"
-       Write(Html.AntiForgeryToken());
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            <input type=\"submit\" value=\"Submit\" />\r\n        </li>\r\n    </ul>\r\n " +
-"   </form>\r\n</div>\r\n");
+#line 16 "..\..\Views\Packages\Edit.cshtml"
+            Write(Url.Current());
+
+
+#line default
+#line hidden
+            WriteLiteral("\" class=\"package-form\">\r\n    <p class=\"note\">\r\n        You may only edit certain " +
+            "package properties listed below. To modify or update any other package propertie" +
+            "s, <a href=\"");
+
+
+
+#line 18 "..\..\Views\Packages\Edit.cshtml"
+            Write(Url.UploadPackage());
+
+
+#line default
+#line hidden
+            WriteLiteral("\">reupload the package</a>.\r\n    </p>\r\n    <ul>\r\n        <li>\r\n            ");
+
+
+
+#line 22 "..\..\Views\Packages\Edit.cshtml"
+            Write(Html.EditorFor(package => package.Listed));
+
+
+#line default
+#line hidden
+            WriteLiteral(" \r\n            ");
+
+
+
+#line 23 "..\..\Views\Packages\Edit.cshtml"
+            Write(Html.LabelFor(package => package.Listed, "List this package in search results."));
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n        </li>\r\n        <li class=\"buttons\">\r\n            ");
+
+
+
+#line 26 "..\..\Views\Packages\Edit.cshtml"
+            Write(Html.AntiForgeryToken());
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n            <input type=\"submit\" value=\"Submit\" />\r\n        </li>\r\n    </ul>\r\n " +
+            "   </form>\r\n</div>\r\n");
 
 
         }

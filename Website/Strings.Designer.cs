@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGetGallery {
-    using System;
-    
-    
+namespace NuGetGallery
+{
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,130 +22,158 @@ namespace NuGetGallery {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Strings {
-        
+    public class Strings
+    {
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Strings() {
+        internal Strings()
+        {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
-            get {
-                if (object.ReferenceEquals(resourceMan, null)) {
+        public static global::System.Resources.ResourceManager ResourceManager
+        {
+            get
+            {
+                if (object.ReferenceEquals(resourceMan, null))
+                {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NuGetGallery.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
-            get {
+        public static global::System.Globalization.CultureInfo Culture
+        {
+            get
+            {
                 return resourceCulture;
             }
-            set {
+            set
+            {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified API key does not provide the authority to {0} packages..
         /// </summary>
-        public static string ApiKeyNotAuthorized {
-            get {
+        public static string ApiKeyNotAuthorized
+        {
+            get
+            {
                 return ResourceManager.GetString("ApiKeyNotAuthorized", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The current password you provided is incorrect..
         /// </summary>
-        public static string CurrentPasswordIncorrect {
-            get {
+        public static string CurrentPasswordIncorrect
+        {
+            get
+            {
                 return ResourceManager.GetString("CurrentPasswordIncorrect", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The email address &apos;{0}&apos; is being used..
         /// </summary>
-        public static string EmailAddressBeingUsed {
-            get {
+        public static string EmailAddressBeingUsed
+        {
+            get
+            {
                 return ResourceManager.GetString("EmailAddressBeingUsed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
-        public static string NuGetPackagePropertyTooLong {
-            get {
+        public static string NuGetPackagePropertyTooLong
+        {
+            get
+            {
                 return ResourceManager.GetString("NuGetPackagePropertyTooLong", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
         /// </summary>
-        public static string PackageExistsAndCannotBeModified {
-            get {
+        public static string PackageExistsAndCannotBeModified
+        {
+            get
+            {
                 return ResourceManager.GetString("PackageExistsAndCannotBeModified", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The package identifier &apos;{0}&apos; is not available..
         /// </summary>
-        public static string PackageIdNotAvailable {
-            get {
+        public static string PackageIdNotAvailable
+        {
+            get
+            {
                 return ResourceManager.GetString("PackageIdNotAvailable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; does not exist..
         /// </summary>
-        public static string PackageWithIdAndVersionNotFound {
-            get {
+        public static string PackageWithIdAndVersionNotFound
+        {
+            get
+            {
                 return ResourceManager.GetString("PackageWithIdAndVersionNotFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to You cannot reset your password until you confirm your account..
         /// </summary>
-        public static string UserIsNotYetConfirmed {
-            get {
+        public static string UserIsNotYetConfirmed
+        {
+            get
+            {
                 return ResourceManager.GetString("UserIsNotYetConfirmed", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The username &apos;{0}&apos; is not available..
         /// </summary>
-        public static string UsernameNotAvailable {
-            get {
+        public static string UsernameNotAvailable
+        {
+            get
+            {
                 return ResourceManager.GetString("UsernameNotAvailable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A user with the provided user name and password does not exist..
         /// </summary>
-        public static string UserNotFound {
-            get {
+        public static string UserNotFound
+        {
+            get
+            {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
             }
         }

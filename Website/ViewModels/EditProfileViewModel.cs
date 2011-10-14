@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace NuGetGallery {
-    public class EditProfileViewModel {
+namespace NuGetGallery
+{
+    public class EditProfileViewModel
+    {
         [Required]
         [StringLength(255)]
         [Display(Name = "Email")]

@@ -2,18 +2,22 @@
 using System.Web.Mvc;
 using NuGet;
 
-namespace NuGetGallery {
-    public partial class ApiController : Controller {
+namespace NuGetGallery
+{
+    public partial class ApiController : Controller
+    {
         readonly IPackageService packageSvc;
         readonly IUserService userSvc;
 
-        public ApiController(IPackageService packageSvc, IUserService userSvc) {
+        public ApiController(IPackageService packageSvc, IUserService userSvc)
+        {
             this.packageSvc = packageSvc;
             this.userSvc = userSvc;
         }
 
         [ActionName("PushPackageApi"), HttpPost]
-        public virtual ActionResult CreatePackage(Guid apiKey) {
+        public virtual ActionResult CreatePackage(Guid apiKey)
+        {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
                 throw new EntityException(Strings.ApiKeyNotAuthorized, "push");
@@ -29,7 +33,8 @@ namespace NuGetGallery {
         }
 
         [ActionName("DeletePackageApi"), HttpDelete]
-        public virtual ActionResult DeletePackage(Guid apiKey, string id, string version) {
+        public virtual ActionResult DeletePackage(Guid apiKey, string id, string version)
+        {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
                 throw new EntityException(Strings.ApiKeyNotAuthorized, "delete");
@@ -38,7 +43,8 @@ namespace NuGetGallery {
             if (package == null)
                 throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
 
-            if (!package.IsOwner(user)) {
+            if (!package.IsOwner(user))
+            {
                 throw new EntityException(Strings.ApiKeyNotAuthorized, "delete");
             }
 
@@ -47,7 +53,8 @@ namespace NuGetGallery {
         }
 
         [ActionName("PublishPackageApi"), HttpPost]
-        public virtual ActionResult PublishPackage(Guid key, string id, string version) {
+        public virtual ActionResult PublishPackage(Guid key, string id, string version)
+        {
             var user = userSvc.FindByApiKey(key);
             if (user == null)
                 throw new EntityException(Strings.ApiKeyNotAuthorized, "publish");
@@ -60,7 +67,8 @@ namespace NuGetGallery {
             return new EmptyResult();
         }
 
-        public virtual IPackage ReadPackageFromRequest() {
+        public virtual IPackage ReadPackageFromRequest()
+        {
             return new ZipPackage(Request.InputStream);
         }
     }

@@ -11,24 +11,10 @@
 
 namespace NuGetGallery.Views.Packages
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Packages/Delete.cshtml")]
     public class Delete : System.Web.Mvc.WebViewPage<DeletePackageViewModel>
@@ -40,88 +26,90 @@ namespace NuGetGallery.Views.Packages
         {
 
 
-            
-            #line 2 "..\..\Views\Packages\Delete.cshtml"
-  
-    ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 2 "..\..\Views\Packages\Delete.cshtml"
+
+            ViewBag.Tab = "Packages";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 8 "..\..\Views\Packages\Delete.cshtml"
-         Write(Links.Content.Images.contribGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Delete\" />\r\n");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-});
 
-WriteLiteral("    \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("            \r\n    <h2>Are you sure you want to delete Package ");
+#line 8 "..\..\Views\Packages\Delete.cshtml"
+                Write(Links.Content.Images.contribGraphic_png);
 
 
-            
-            #line 12 "..\..\Views\Packages\Delete.cshtml"
-                                           Write(Model.Package.Title);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("?</h2>\r\n");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"Delete\" />\r\n");
 
 
-});
+            });
 
-WriteLiteral("\r\n\r\n<div>\r\n    ");
-
-
-            
-            #line 16 "..\..\Views\Packages\Delete.cshtml"
-Write(Html.Partial("_PackageDetailsTable", Model.Package));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                        \r\n    <p class=\"description\">\r\n        This package was" +
-" downloaded ");
+            WriteLiteral("    \r\n\r\n");
 
 
-            
-            #line 19 "..\..\Views\Packages\Delete.cshtml"
-                               Write(Model.Package.DownloadCount);
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral(" ");
+                WriteLiteral("            \r\n    <h2>Are you sure you want to delete Package ");
 
 
-            
-            #line 19 "..\..\Views\Packages\Delete.cshtml"
-                                                            Write(Model.Package.DownloadCount.CardinalityLabel("time", "times"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"
+#line 12 "..\..\Views\Packages\Delete.cshtml"
+                Write(Model.Package.Title);
+
+
+#line default
+#line hidden
+                WriteLiteral("?</h2>\r\n");
+
+
+            });
+
+            WriteLiteral("\r\n\r\n<div>\r\n    ");
+
+
+
+#line 16 "..\..\Views\Packages\Delete.cshtml"
+            Write(Html.Partial("_PackageDetailsTable", Model.Package));
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n                        \r\n    <p class=\"description\">\r\n        This package was" +
+            " downloaded ");
+
+
+
+#line 19 "..\..\Views\Packages\Delete.cshtml"
+            Write(Model.Package.DownloadCount);
+
+
+#line default
+#line hidden
+            WriteLiteral(" ");
+
+
+
+#line 19 "..\..\Views\Packages\Delete.cshtml"
+            Write(Model.Package.DownloadCount.CardinalityLabel("time", "times"));
+
+
+#line default
+#line hidden
+            WriteLiteral(@"
     </p>
 
     if (!Model.DependentPackages.Any()) {
@@ -137,74 +125,75 @@ WriteLiteral(@"
             Warning! The following ");
 
 
-            
-            #line 32 "..\..\Views\Packages\Delete.cshtml"
-                              Write(Model.DependentPackages.Count().CardinalityLabel("package depends", "packages depend"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral(" \r\n            on ");
+#line 32 "..\..\Views\Packages\Delete.cshtml"
+            Write(Model.DependentPackages.Count().CardinalityLabel("package depends", "packages depend"));
 
 
-            
-            #line 33 "..\..\Views\Packages\Delete.cshtml"
-          Write(Model.Package.Id);
-
-            
-            #line default
-            #line hidden
-WriteLiteral(".\r\n        </h4>\r\n        <ul class=\"dependents\">\r\n");
+#line default
+#line hidden
+            WriteLiteral(" \r\n            on ");
 
 
-            
-            #line 36 "..\..\Views\Packages\Delete.cshtml"
-             foreach (var dependent in Model.DependentPackages) {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("                <li><a href=\"");
+#line 33 "..\..\Views\Packages\Delete.cshtml"
+            Write(Model.Package.Id);
 
 
-            
-            #line 37 "..\..\Views\Packages\Delete.cshtml"
-                        Write(Url.Package(@dependent));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">");
+#line default
+#line hidden
+            WriteLiteral(".\r\n        </h4>\r\n        <ul class=\"dependents\">\r\n");
 
 
-            
-            #line 37 "..\..\Views\Packages\Delete.cshtml"
-                                                  Write(dependent.Id);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</a> ");
+#line 36 "..\..\Views\Packages\Delete.cshtml"
+            foreach (var dependent in Model.DependentPackages)
+            {
 
 
-            
-            #line 37 "..\..\Views\Packages\Delete.cshtml"
-                                                                    Write(dependent.Version);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</li>\r\n");
+#line default
+#line hidden
+                WriteLiteral("                <li><a href=\"");
 
 
-            
-            #line 38 "..\..\Views\Packages\Delete.cshtml"
+
+#line 37 "..\..\Views\Packages\Delete.cshtml"
+                Write(Url.Package(@dependent));
+
+
+#line default
+#line hidden
+                WriteLiteral("\">");
+
+
+
+#line 37 "..\..\Views\Packages\Delete.cshtml"
+                Write(dependent.Id);
+
+
+#line default
+#line hidden
+                WriteLiteral("</a> ");
+
+
+
+#line 37 "..\..\Views\Packages\Delete.cshtml"
+                Write(dependent.Version);
+
+
+#line default
+#line hidden
+                WriteLiteral("</li>\r\n");
+
+
+
+#line 38 "..\..\Views\Packages\Delete.cshtml"
             }
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"        </ul>
+
+#line default
+#line hidden
+            WriteLiteral(@"        </ul>
         <p class=""description"">
             Also, NuGet supports a workflow in which 
             <a href=""http://docs.nuget.org/docs/workflows/using-nuget-without-committing-packages"">
@@ -222,88 +211,90 @@ WriteLiteral(@"        </ul>
 ");
 
 
-            
-            #line 54 "..\..\Views\Packages\Delete.cshtml"
-     if (Model.MayDelete) {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("        <form method=\"post\" action=\"");
+#line 54 "..\..\Views\Packages\Delete.cshtml"
+            if (Model.MayDelete)
+            {
 
 
-            
-            #line 55 "..\..\Views\Packages\Delete.cshtml"
-                               Write(Url.Current());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">\r\n            ");
+#line default
+#line hidden
+                WriteLiteral("        <form method=\"post\" action=\"");
 
 
-            
-            #line 56 "..\..\Views\Packages\Delete.cshtml"
-       Write(Html.AntiForgeryToken());
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            <input type=\"submit\" name=\"confirm\" value=\"Yes, delete the package\"" +
-" /> \r\n            <a href=\"");
+#line 55 "..\..\Views\Packages\Delete.cshtml"
+                Write(Url.Current());
 
 
-            
-            #line 58 "..\..\Views\Packages\Delete.cshtml"
+#line default
+#line hidden
+                WriteLiteral("\">\r\n            ");
+
+
+
+#line 56 "..\..\Views\Packages\Delete.cshtml"
+                Write(Html.AntiForgeryToken());
+
+
+#line default
+#line hidden
+                WriteLiteral("\r\n            <input type=\"submit\" name=\"confirm\" value=\"Yes, delete the package\"" +
+                " /> \r\n            <a href=\"");
+
+
+
+#line 58 "..\..\Views\Packages\Delete.cshtml"
                 Write(Url.Package(Model.Package));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" class=\"cancel\">No, please go back.</a>\r\n        </form>\r\n");
+
+#line default
+#line hidden
+                WriteLiteral("\" class=\"cancel\">No, please go back.</a>\r\n        </form>\r\n");
 
 
-            
-            #line 60 "..\..\Views\Packages\Delete.cshtml"
-    }
-    else {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("        <p class=\"description\">\r\n            <strong>If you absolutely need the p" +
-"ackage removed from the gallery please \r\n            <a href=\"mailto:nugetgaller" +
-"y@outercurve.org?subject=Please%20Delete%20");
+#line 60 "..\..\Views\Packages\Delete.cshtml"
+            }
+            else
+            {
 
 
-            
-            #line 64 "..\..\Views\Packages\Delete.cshtml"
-                                                                              Write(Model.Package.Id);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("%20");
+#line default
+#line hidden
+                WriteLiteral("        <p class=\"description\">\r\n            <strong>If you absolutely need the p" +
+                "ackage removed from the gallery please \r\n            <a href=\"mailto:nugetgaller" +
+                "y@outercurve.org?subject=Please%20Delete%20");
 
 
-            
-            #line 64 "..\..\Views\Packages\Delete.cshtml"
-                                                                                                    Write(Model.Package.Version);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">\r\n            contact us</a> with details.</strong>\r\n        </p>\r\n");
+#line 64 "..\..\Views\Packages\Delete.cshtml"
+                Write(Model.Package.Id);
 
 
-            
-            #line 67 "..\..\Views\Packages\Delete.cshtml"
-    }
+#line default
+#line hidden
+                WriteLiteral("%20");
 
-            
-            #line default
-            #line hidden
-WriteLiteral("</div>\r\n");
+
+
+#line 64 "..\..\Views\Packages\Delete.cshtml"
+                Write(Model.Package.Version);
+
+
+#line default
+#line hidden
+                WriteLiteral("\">\r\n            contact us</a> with details.</strong>\r\n        </p>\r\n");
+
+
+
+#line 67 "..\..\Views\Packages\Delete.cshtml"
+            }
+
+
+#line default
+#line hidden
+            WriteLiteral("</div>\r\n");
 
 
         }

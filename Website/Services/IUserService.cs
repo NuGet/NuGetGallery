@@ -1,7 +1,9 @@
 ﻿using System;
 
-namespace NuGetGallery {
-    public interface IUserService {
+namespace NuGetGallery
+{
+    public interface IUserService
+    {
         User Create(
             string username,
             string password,

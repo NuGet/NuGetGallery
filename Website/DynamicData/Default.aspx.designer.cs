@@ -7,11 +7,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
-    
-    
-    public partial class _Default {
-        
+namespace DynamicDataEFCodeFirst
+{
+
+
+    public partial class _Default
+    {
+
         /// <summary>
         /// ScriptManagerProxy1 control.
         /// </summary>
@@ -20,7 +22,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.ScriptManagerProxy ScriptManagerProxy1;
-        
+
         /// <summary>
         /// Menu1 control.
         /// </summary>

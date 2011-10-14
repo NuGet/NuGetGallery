@@ -1,6 +1,8 @@
 ﻿
-namespace NuGetGallery {
-    public class PackageDependency : IEntity {
+namespace NuGetGallery
+{
+    public class PackageDependency : IEntity
+    {
         public int Key { get; set; }
 
         public Package Package { get; set; }

@@ -11,24 +11,9 @@
 
 namespace NuGetGallery.Views.Users
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/Register.cshtml")]
     public class Register : System.Web.Mvc.WebViewPage<RegisterRequest>
@@ -40,148 +25,151 @@ namespace NuGetGallery.Views.Users
         {
 
 
-            
-            #line 2 "..\..\Views\Users\Register.cshtml"
-  
-    ViewBag.Title = "Register";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 2 "..\..\Views\Users\Register.cshtml"
+
+            ViewBag.Title = "Register";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 8 "..\..\Views\Users\Register.cshtml"
-         Write(Links.Content.Images.newAccountGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" style=\"padding-left:50px\" alt=\"New Account Image\"/>\r\n    <p>With your account, " +
-"you’ll be able to achieve all kinds of fame and glory by submitting your own pac" +
-"kages.</p>\r\n    <p>Already have an account? <a href=\"");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-            
-            #line 10 "..\..\Views\Users\Register.cshtml"
-                                    Write(Url.LogOn());
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Log On.</a></p>\r\n");
+#line 8 "..\..\Views\Users\Register.cshtml"
+                Write(Links.Content.Images.newAccountGraphic_png);
 
 
-});
-
-WriteLiteral("\r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
+#line default
+#line hidden
+                WriteLiteral("\" style=\"padding-left:50px\" alt=\"New Account Image\"/>\r\n    <p>With your account, " +
+                "you’ll be able to achieve all kinds of fame and glory by submitting your own pac" +
+                "kages.</p>\r\n    <p>Already have an account? <a href=\"");
 
 
-            
-            #line 14 "..\..\Views\Users\Register.cshtml"
-                             Write(Links.Content.Images.required_png);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Create A New Account</h2>\r\n");
+#line 10 "..\..\Views\Users\Register.cshtml"
+                Write(Url.LogOn());
 
 
-});
-
-WriteLiteral("\r\n\r\n<form id=\"form\" method=\"post\" action=\"");
-
-
-            
-            #line 18 "..\..\Views\Users\Register.cshtml"
-                                 Write(Url.Current());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">\r\n    ");
+#line default
+#line hidden
+                WriteLiteral("\">Log On.</a></p>\r\n");
 
 
-            
-            #line 19 "..\..\Views\Users\Register.cshtml"
-Write(Html.AntiForgeryToken());
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    ");
+            WriteLiteral("\r\n\r\n");
 
 
-            
-            #line 20 "..\..\Views\Users\Register.cshtml"
-Write(Html.ValidationSummary(true));
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    ");
+                WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
 
 
-            
-            #line 21 "..\..\Views\Users\Register.cshtml"
-Write(Html.EditorForModel());
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    <div>\r\n        <button type=\"submit\" title=\"Register\">Register</button>\r\n  " +
-"  </div>\r\n</form>\r\n\r\n");
+#line 14 "..\..\Views\Users\Register.cshtml"
+                Write(Links.Content.Images.required_png);
 
 
-DefineSection("BottomScripts", () => {
-
-WriteLiteral("\r\n    <script src=\"");
-
-
-            
-            #line 28 "..\..\Views\Users\Register.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.min.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Create A New Account</h2>\r\n");
 
 
-            
-            #line 29 "..\..\Views\Users\Register.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+            WriteLiteral("\r\n\r\n<form id=\"form\" method=\"post\" action=\"");
 
 
-            
-            #line 30 "..\..\Views\Users\Register.cshtml"
-            Write(Url.Content("~/Scripts/gallery.form.js"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+#line 18 "..\..\Views\Users\Register.cshtml"
+            Write(Url.Current());
 
 
-});
+#line default
+#line hidden
+            WriteLiteral("\">\r\n    ");
+
+
+
+#line 19 "..\..\Views\Users\Register.cshtml"
+            Write(Html.AntiForgeryToken());
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n    ");
+
+
+
+#line 20 "..\..\Views\Users\Register.cshtml"
+            Write(Html.ValidationSummary(true));
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n    ");
+
+
+
+#line 21 "..\..\Views\Users\Register.cshtml"
+            Write(Html.EditorForModel());
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n    <div>\r\n        <button type=\"submit\" title=\"Register\">Register</button>\r\n  " +
+            "  </div>\r\n</form>\r\n\r\n");
+
+
+            DefineSection("BottomScripts", () =>
+            {
+
+                WriteLiteral("\r\n    <script src=\"");
+
+
+
+#line 28 "..\..\Views\Users\Register.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 29 "..\..\Views\Users\Register.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 30 "..\..\Views\Users\Register.cshtml"
+                Write(Url.Content("~/Scripts/gallery.form.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+
+
+            });
 
 
         }

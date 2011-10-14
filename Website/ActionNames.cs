@@ -1,6 +1,8 @@
 ﻿
-namespace NuGetGallery {
-    public static class ActionName {
+namespace NuGetGallery
+{
+    public static class ActionName
+    {
         public const string Account = "Account";
         public const string DisplayPackage = "DisplayPackage";
         public const string DownloadPackage = "DownloadPackage";

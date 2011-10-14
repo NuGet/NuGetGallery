@@ -5,11 +5,15 @@ using System.Web.Mvc;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery {
-    public class PackageFileServiceFacts {
-        public class TheSavePackageFileMethod {
+namespace NuGetGallery
+{
+    public class PackageFileServiceFacts
+    {
+        public class TheSavePackageFileMethod
+        {
             [Fact]
-            public void WillCreateThePackagesDirectoryIfItDoesNotExist() {
+            public void WillCreateThePackagesDirectoryIfItDoesNotExist()
+            {
                 var fileSystemSvc = new Mock<IFileSystemService>();
                 fileSystemSvc.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(false);
                 fileSystemSvc.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
@@ -21,7 +25,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillSaveThePackageFileToTheConfiguredDirectory() {
+            public void WillSaveThePackageFileToTheConfiguredDirectory()
+            {
                 var fileSystemSvc = new Mock<IFileSystemService>();
                 fileSystemSvc.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
                 fileSystemSvc.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
@@ -34,7 +39,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillSaveThePackageFileBytes() {
+            public void WillSaveThePackageFileBytes()
+            {
                 var packageFileStream = CreatePackageFileStream();
                 var saveStream = new MemoryStream(new byte[8], 0, 8, true, true);
                 var fileSystemSvc = new Mock<IFileSystemService>();
@@ -49,7 +55,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfPackageIsNull() {
+            public void WillThrowIfPackageIsNull()
+            {
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentNullException>(() => service.SavePackageFile(null, null));
@@ -58,7 +65,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfPackageIsMissingPackageRegistration() {
+            public void WillThrowIfPackageIsMissingPackageRegistration()
+            {
                 var service = CreateService();
                 var package = new Package { PackageRegistration = null };
 
@@ -69,7 +77,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfPackageIsMissingPackageRegistrationId() {
+            public void WillThrowIfPackageIsMissingPackageRegistrationId()
+            {
                 var service = CreateService();
                 var packageRegistraion = new PackageRegistration { Id = null };
                 var package = new Package { PackageRegistration = packageRegistraion };
@@ -81,7 +90,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfPackageIsMissingVersion() {
+            public void WillThrowIfPackageIsMissingVersion()
+            {
                 var service = CreateService();
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, Version = null };
@@ -93,7 +103,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfPackageFileIsNull() {
+            public void WillThrowIfPackageFileIsNull()
+            {
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentNullException>(() => service.SavePackageFile(CreatePackage(), null));
@@ -102,21 +113,24 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheCreateDownloadPackageActionResultMethod {
+        public class TheCreateDownloadPackageActionResultMethod
+        {
             [Fact]
-            public void WillReturnAFilePathResultWithThePackageFilePath() {
+            public void WillReturnAFilePathResultWithThePackageFilePath()
+            {
                 var service = CreateService();
 
                 var result = service.CreateDownloadPackageResult(CreatePackage()) as FilePathResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(
-                    Path.Combine("thePackageFileDirectory", string.Format(Const.PackageFileSavePathTemplate, "theId", "1.0.42", Const.PackageFileExtension)), 
+                    Path.Combine("thePackageFileDirectory", string.Format(Const.PackageFileSavePathTemplate, "theId", "1.0.42", Const.PackageFileExtension)),
                     result.FileName);
             }
 
             [Fact]
-            public void WillSetTheResultContentType() {
+            public void WillSetTheResultContentType()
+            {
                 var service = CreateService();
 
                 var result = service.CreateDownloadPackageResult(CreatePackage()) as FilePathResult;
@@ -124,9 +138,10 @@ namespace NuGetGallery {
                 Assert.NotNull(result);
                 Assert.Equal(Const.PackageContentType, result.ContentType);
             }
-            
+
             [Fact]
-            public void WillSetTheResultDownloadFilePath() {
+            public void WillSetTheResultDownloadFilePath()
+            {
                 var service = CreateService();
 
                 var result = service.CreateDownloadPackageResult(CreatePackage()) as FilePathResult;
@@ -138,7 +153,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfPackageIsNull() {
+            public void WillThrowIfPackageIsNull()
+            {
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentNullException>(() => service.CreateDownloadPackageResult(null));
@@ -147,7 +163,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfPackageIsMissingPackageRegistration() {
+            public void WillThrowIfPackageIsMissingPackageRegistration()
+            {
                 var service = CreateService();
                 var package = new Package { PackageRegistration = null };
 
@@ -158,7 +175,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfPackageIsMissingPackageRegistrationId() {
+            public void WillThrowIfPackageIsMissingPackageRegistrationId()
+            {
                 var service = CreateService();
                 var packageRegistraion = new PackageRegistration { Id = null };
                 var package = new Package { PackageRegistration = packageRegistraion };
@@ -170,7 +188,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillThrowIfPackageIsMissingVersion() {
+            public void WillThrowIfPackageIsMissingVersion()
+            {
                 var service = CreateService();
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, Version = null };
@@ -182,21 +201,25 @@ namespace NuGetGallery {
             }
         }
 
-        static Package CreatePackage() {
+        static Package CreatePackage()
+        {
             var packageRegistration = new PackageRegistration { Id = "theId", Packages = new HashSet<Package>() };
             var package = new Package { Version = "1.0.42", PackageRegistration = packageRegistration };
             packageRegistration.Packages.Add(package);
             return package;
         }
 
-        static MemoryStream CreatePackageFileStream() {
+        static MemoryStream CreatePackageFileStream()
+        {
             return new MemoryStream(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, 0, 8, true, true);
         }
-        
+
         static FileSystemPackageFileService CreateService(
             Mock<IConfiguration> configuration = null,
-            Mock<IFileSystemService> fileSystemSvc = null) {
-            if (configuration == null) {
+            Mock<IFileSystemService> fileSystemSvc = null)
+        {
+            if (configuration == null)
+            {
                 configuration = new Mock<IConfiguration>();
                 configuration.Setup(x => x.PackageFileDirectory).Returns("thePackageFileDirectory");
             }

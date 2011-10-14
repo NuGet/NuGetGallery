@@ -12,23 +12,7 @@
 namespace NuGetGallery.Views.Users
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
-    using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/PasswordSent.cshtml")]
     public class PasswordSent : System.Web.Mvc.WebViewPage<dynamic>
@@ -39,114 +23,118 @@ namespace NuGetGallery.Views.Users
         public override void Execute()
         {
 
-            
-            #line 1 "..\..\Views\Users\PasswordSent.cshtml"
-  
-    ViewBag.Title = "Password Reset";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 1 "..\..\Views\Users\PasswordSent.cshtml"
+
+            ViewBag.Title = "Password Reset";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 7 "..\..\Views\Users\PasswordSent.cshtml"
-         Write(Links.Content.Images.userGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-});
 
-WriteLiteral("                \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
+#line 7 "..\..\Views\Users\PasswordSent.cshtml"
+                Write(Links.Content.Images.userGraphic_png);
 
 
-            
-            #line 11 "..\..\Views\Users\PasswordSent.cshtml"
-                             Write(Links.Content.Images.required_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Password Reset Instructions</h2>    \r\n");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
 
 
-});
+            });
 
-WriteLiteral("\r\n\r\n<div class=\"description\">\r\n    <p>\r\n        We&#8217;ve sent an email \r\n");
-
-
-            
-            #line 18 "..\..\Views\Users\PasswordSent.cshtml"
-         if (!String.IsNullOrEmpty(ViewBag.Email)) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("            ");
-
-WriteLiteral("to ");
+            WriteLiteral("                \r\n\r\n");
 
 
-            
-            #line 19 "..\..\Views\Users\PasswordSent.cshtml"
-            Write(ViewBag.Email);
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+                WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
 
 
-            
-            #line 20 "..\..\Views\Users\PasswordSent.cshtml"
-        } 
-        else {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("            ");
-
-WriteLiteral("to you\r\n");
+#line 11 "..\..\Views\Users\PasswordSent.cshtml"
+                Write(Links.Content.Images.required_png);
 
 
-            
-            #line 23 "..\..\Views\Users\PasswordSent.cshtml"
-        } 
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        containing a temporary url that will allow you to reset your password for" +
-" \r\n        the next ");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Password Reset Instructions</h2>    \r\n");
 
 
-            
-            #line 25 "..\..\Views\Users\PasswordSent.cshtml"
+            });
+
+            WriteLiteral("\r\n\r\n<div class=\"description\">\r\n    <p>\r\n        We&#8217;ve sent an email \r\n");
+
+
+
+#line 18 "..\..\Views\Users\PasswordSent.cshtml"
+            if (!String.IsNullOrEmpty(ViewBag.Email))
+            {
+
+
+#line default
+#line hidden
+                WriteLiteral("            ");
+
+                WriteLiteral("to ");
+
+
+
+#line 19 "..\..\Views\Users\PasswordSent.cshtml"
+                Write(ViewBag.Email);
+
+
+#line default
+#line hidden
+                WriteLiteral("\r\n");
+
+
+
+#line 20 "..\..\Views\Users\PasswordSent.cshtml"
+            }
+            else
+            {
+
+
+#line default
+#line hidden
+                WriteLiteral("            ");
+
+                WriteLiteral("to you\r\n");
+
+
+
+#line 23 "..\..\Views\Users\PasswordSent.cshtml"
+            }
+
+
+#line default
+#line hidden
+            WriteLiteral("        containing a temporary url that will allow you to reset your password for" +
+            " \r\n        the next ");
+
+
+
+#line 25 "..\..\Views\Users\PasswordSent.cshtml"
             Write(ViewBag.Expiration);
 
-            
-            #line default
-            #line hidden
-WriteLiteral(" hours. \r\n    </p>\r\n    <p>\r\n        Please check your spam folder if you don&#82" +
-"17;t receive the email within a \r\n        few minutes.\r\n    </p>\r\n</div>");
+
+#line default
+#line hidden
+            WriteLiteral(" hours. \r\n    </p>\r\n    <p>\r\n        Please check your spam folder if you don&#82" +
+            "17;t receive the email within a \r\n        few minutes.\r\n    </p>\r\n</div>");
 
 
         }

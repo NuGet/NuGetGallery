@@ -1,7 +1,7 @@
 namespace NuGetGallery.Migrations
 {
     using System.Data.Entity.Migrations;
-    
+
     public partial class Initial : DbMigration
     {
         public override void Up()
@@ -22,7 +22,7 @@ namespace NuGetGallery.Migrations
                         PasswordResetTokenExpirationDate = c.DateTime(),
                     })
                 .PrimaryKey(t => t.Key);
-            
+
             CreateTable(
                 "EmailMessages",
                 c => new
@@ -37,7 +37,7 @@ namespace NuGetGallery.Migrations
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Users", t => t.FromUserKey)
                 .ForeignKey("Users", t => t.ToUserKey);
-            
+
             CreateTable(
                 "Roles",
                 c => new
@@ -46,7 +46,7 @@ namespace NuGetGallery.Migrations
                         Name = c.String(),
                     })
                 .PrimaryKey(t => t.Key);
-            
+
             CreateTable(
                 "PackageRegistrations",
                 c => new
@@ -56,7 +56,7 @@ namespace NuGetGallery.Migrations
                         DownloadCount = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => t.Key);
-            
+
             CreateTable(
                 "Packages",
                 c => new
@@ -89,7 +89,7 @@ namespace NuGetGallery.Migrations
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("PackageRegistrations", t => t.PackageRegistrationKey);
-            
+
             CreateTable(
                 "PackageStatistics",
                 c => new
@@ -102,7 +102,7 @@ namespace NuGetGallery.Migrations
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Packages", t => t.PackageKey);
-            
+
             CreateTable(
                 "PackageAuthors",
                 c => new
@@ -113,7 +113,7 @@ namespace NuGetGallery.Migrations
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Packages", t => t.PackageKey);
-            
+
             CreateTable(
                 "PackageDependencies",
                 c => new
@@ -125,7 +125,7 @@ namespace NuGetGallery.Migrations
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Packages", t => t.PackageKey);
-            
+
             CreateTable(
                 "UserRoles",
                 c => new
@@ -136,7 +136,7 @@ namespace NuGetGallery.Migrations
                 .PrimaryKey(t => new { t.UserKey, t.RoleKey })
                 .ForeignKey("Users", t => t.UserKey)
                 .ForeignKey("Roles", t => t.RoleKey);
-            
+
             CreateTable(
                 "PackageRegistrationOwners",
                 c => new
@@ -147,9 +147,9 @@ namespace NuGetGallery.Migrations
                 .PrimaryKey(t => new { t.PackageRegistrationKey, t.UserKey })
                 .ForeignKey("PackageRegistrations", t => t.PackageRegistrationKey)
                 .ForeignKey("Users", t => t.UserKey);
-            
+
         }
-        
+
         public override void Down()
         {
             DropForeignKey("PackageRegistrationOwners", "UserKey", "Users", "Key");

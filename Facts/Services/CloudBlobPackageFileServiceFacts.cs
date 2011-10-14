@@ -5,11 +5,15 @@ using Microsoft.WindowsAzure.StorageClient;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery {
-    public class CloudBlobPackageFileServiceFacts {
-        public class TheCtor {
+namespace NuGetGallery
+{
+    public class CloudBlobPackageFileServiceFacts
+    {
+        public class TheCtor
+        {
             [Fact]
-            public void WillGetThePackagesBlobContainer() {
+            public void WillGetThePackagesBlobContainer()
+            {
                 var blobClient = new Mock<ICloudBlobClient>();
 
                 var service = CreateService(fakeBlobClient: blobClient);
@@ -18,7 +22,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillCreateThePackagesBlobContainerIfItDoesNotExist() {
+            public void WillCreateThePackagesBlobContainerIfItDoesNotExist()
+            {
                 var blobContainer = new Mock<ICloudBlobContainer>();
 
                 var service = CreateService(fakeBlobContainer: blobContainer);
@@ -27,7 +32,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillSetThePackagesBlobContainerPermissionsToPublic() {
+            public void WillSetThePackagesBlobContainerPermissionsToPublic()
+            {
                 var blobContainer = new Mock<ICloudBlobContainer>();
 
                 var service = CreateService(fakeBlobContainer: blobContainer);
@@ -36,14 +42,18 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheCreateDownloadPackageResultMethod {
+        public class TheCreateDownloadPackageResultMethod
+        {
             [Fact]
-            public void WillGetTheBlobReferenceByUri() {
+            public void WillGetTheBlobReferenceByUri()
+            {
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
                 var service = CreateService(fakeBlobContainer: fakeBlobContainer);
 
-                service.CreateDownloadPackageResult(new Package {
-                    PackageRegistration = new PackageRegistration {
+                service.CreateDownloadPackageResult(new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
                         Id = "theId"
                     },
                     Version = "theVersion"
@@ -53,13 +63,16 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillReturnARedirectResultToTheBlobUri() {
+            public void WillReturnARedirectResultToTheBlobUri()
+            {
                 var fakeBlob = new Mock<ICloudBlob>();
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlob: fakeBlob);
 
-                var result = service.CreateDownloadPackageResult(new Package {
-                    PackageRegistration = new PackageRegistration {
+                var result = service.CreateDownloadPackageResult(new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
                         Id = "theId"
                     },
                     Version = "theVersion"
@@ -70,9 +83,11 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheDeletePackageFileMethod {
+        public class TheDeletePackageFileMethod
+        {
             [Fact]
-            public void WillGetTheBlobReferenceByUri() {
+            public void WillGetTheBlobReferenceByUri()
+            {
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
                 var service = CreateService(fakeBlobContainer: fakeBlobContainer);
 
@@ -82,7 +97,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillDeleteTheBlobIfItExists() {
+            public void WillDeleteTheBlobIfItExists()
+            {
                 var fakeBlob = new Mock<ICloudBlob>();
                 var service = CreateService(fakeBlob: fakeBlob);
 
@@ -92,14 +108,18 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheSavePackageFileMethod {
+        public class TheSavePackageFileMethod
+        {
             [Fact]
-            public void WillGetTheBlobReferenceByUri() {
+            public void WillGetTheBlobReferenceByUri()
+            {
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
                 var service = CreateService(fakeBlobContainer: fakeBlobContainer);
 
-                service.SavePackageFile(new Package {
-                    PackageRegistration = new PackageRegistration {
+                service.SavePackageFile(new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
                         Id = "theId"
                     },
                     Version = "theVersion"
@@ -111,12 +131,15 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillDeleteTheBlobIfItExists() {
+            public void WillDeleteTheBlobIfItExists()
+            {
                 var fakeBlob = new Mock<ICloudBlob>();
                 var service = CreateService(fakeBlob: fakeBlob);
 
-                service.SavePackageFile(new Package {
-                    PackageRegistration = new PackageRegistration {
+                service.SavePackageFile(new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
                         Id = "theId"
                     },
                     Version = "theVersion"
@@ -126,13 +149,16 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillUploadThePackageFileToTheBlob() {
+            public void WillUploadThePackageFileToTheBlob()
+            {
                 var fakeBlob = new Mock<ICloudBlob>();
                 var service = CreateService(fakeBlob: fakeBlob);
                 var fakePackageFile = new MemoryStream();
 
-                service.SavePackageFile(new Package {
-                    PackageRegistration = new PackageRegistration {
+                service.SavePackageFile(new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
                         Id = "theId"
                     },
                     Version = "theVersion"
@@ -145,12 +171,14 @@ namespace NuGetGallery {
         static CloudBlobPackageFileService CreateService(
             Mock<ICloudBlobClient> fakeBlobClient = null,
             Mock<ICloudBlobContainer> fakeBlobContainer = null,
-            Mock<ICloudBlob> fakeBlob = null) {
+            Mock<ICloudBlob> fakeBlob = null)
+        {
             if (fakeBlobClient == null)
                 fakeBlobClient = new Mock<ICloudBlobClient>();
             if (fakeBlobContainer == null)
                 fakeBlobContainer = new Mock<ICloudBlobContainer>();
-            if (fakeBlob == null) {
+            if (fakeBlob == null)
+            {
                 fakeBlob = new Mock<ICloudBlob>();
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://aUri"));
             }

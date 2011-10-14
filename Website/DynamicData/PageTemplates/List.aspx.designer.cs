@@ -7,11 +7,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
-    
-    
-    public partial class List {
-        
+namespace DynamicDataEFCodeFirst
+{
+
+
+    public partial class List
+    {
+
         /// <summary>
         /// DynamicDataManager1 control.
         /// </summary>
@@ -20,7 +22,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.DynamicData.DynamicDataManager DynamicDataManager1;
-        
+
         /// <summary>
         /// UpdatePanel1 control.
         /// </summary>
@@ -29,7 +31,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.UpdatePanel UpdatePanel1;
-        
+
         /// <summary>
         /// ValidationSummary1 control.
         /// </summary>
@@ -38,7 +40,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.ValidationSummary ValidationSummary1;
-        
+
         /// <summary>
         /// GridViewValidator control.
         /// </summary>
@@ -47,7 +49,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.DynamicData.DynamicValidator GridViewValidator;
-        
+
         /// <summary>
         /// search control.
         /// </summary>
@@ -56,7 +58,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox search;
-        
+
         /// <summary>
         /// FilterRepeater control.
         /// </summary>
@@ -65,7 +67,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.DynamicData.QueryableFilterRepeater FilterRepeater;
-        
+
         /// <summary>
         /// GridView1 control.
         /// </summary>
@@ -74,7 +76,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.GridView GridView1;
-        
+
         /// <summary>
         /// GridDataSource control.
         /// </summary>
@@ -83,7 +85,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.EntityDataSource GridDataSource;
-        
+
         /// <summary>
         /// GridQueryExtender control.
         /// </summary>
@@ -92,7 +94,7 @@ namespace DynamicDataEFCodeFirst {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.QueryExtender GridQueryExtender;
-        
+
         /// <summary>
         /// InsertHyperLink control.
         /// </summary>

@@ -11,24 +11,9 @@
 
 namespace NuGetGallery.Views.Users
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/ForgotPassword.cshtml")]
     public class ForgotPassword : System.Web.Mvc.WebViewPage<ForgotPasswordViewModel>
@@ -40,138 +25,141 @@ namespace NuGetGallery.Views.Users
         {
 
 
-            
-            #line 2 "..\..\Views\Users\ForgotPassword.cshtml"
-  
-    ViewBag.Title = "Forgot Password";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+
+#line 2 "..\..\Views\Users\ForgotPassword.cshtml"
+
+            ViewBag.Title = "Forgot Password";
+            Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n");
 
 
-DefineSection("LeftNav", () => {
+            DefineSection("LeftNav", () =>
+            {
 
-WriteLiteral("\r\n    <img src=\"");
-
-
-            
-            #line 8 "..\..\Views\Users\ForgotPassword.cshtml"
-         Write(Links.Content.Images.userGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
+                WriteLiteral("\r\n    <img src=\"");
 
 
-});
 
-WriteLiteral("                \r\n\r\n");
-
-
-DefineSection("ContentHeader", () => {
-
-WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
+#line 8 "..\..\Views\Users\ForgotPassword.cshtml"
+                Write(Links.Content.Images.userGraphic_png);
 
 
-            
-            #line 12 "..\..\Views\Users\ForgotPassword.cshtml"
-                             Write(Links.Content.Images.required_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Forgot Password</h2>    \r\n");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"The unknown user image\" />\r\n");
 
 
-});
+            });
 
-WriteLiteral("\r\n\r\n<p>\r\n    We are sorry to hear you forgot your password. Enter your email belo" +
-"w and we will \r\n    send instructions to reset your password.\r\n</p>\r\n\r\n<form id=" +
-"\"form\" method=\"post\" action=\"");
+            WriteLiteral("                \r\n\r\n");
 
 
-            
-            #line 21 "..\..\Views\Users\ForgotPassword.cshtml"
-                                 Write(Url.Current());
+            DefineSection("ContentHeader", () =>
+            {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">\r\n    ");
+                WriteLiteral("\r\n    <span class=\"right\"><img src=\"");
 
 
-            
-            #line 22 "..\..\Views\Users\ForgotPassword.cshtml"
-Write(Html.AntiForgeryToken());
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    ");
+#line 12 "..\..\Views\Users\ForgotPassword.cshtml"
+                Write(Links.Content.Images.required_png);
 
 
-            
-            #line 23 "..\..\Views\Users\ForgotPassword.cshtml"
-Write(Html.ValidationSummary(true));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    ");
+#line default
+#line hidden
+                WriteLiteral("\" alt=\"Required\" /></span>\r\n    <h2>Forgot Password</h2>    \r\n");
 
 
-            
-            #line 24 "..\..\Views\Users\ForgotPassword.cshtml"
-Write(Html.EditorForModel());
+            });
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    <div>\r\n        <button type=\"submit\" title=\"Send Instructions\">Send Instruc" +
-"tions</button>\r\n    </div>\r\n</form>\r\n\r\n");
+            WriteLiteral("\r\n\r\n<p>\r\n    We are sorry to hear you forgot your password. Enter your email belo" +
+            "w and we will \r\n    send instructions to reset your password.\r\n</p>\r\n\r\n<form id=" +
+            "\"form\" method=\"post\" action=\"");
 
 
-DefineSection("BottomScripts", () => {
 
-WriteLiteral("\r\n    <script src=\"");
-
-
-            
-            #line 31 "..\..\Views\Users\ForgotPassword.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.min.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+#line 21 "..\..\Views\Users\ForgotPassword.cshtml"
+            Write(Url.Current());
 
 
-            
-            #line 32 "..\..\Views\Users\ForgotPassword.cshtml"
-            Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+#line default
+#line hidden
+            WriteLiteral("\">\r\n    ");
 
 
-            
-            #line 33 "..\..\Views\Users\ForgotPassword.cshtml"
-            Write(Url.Content("~/Scripts/gallery.form.js"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+#line 22 "..\..\Views\Users\ForgotPassword.cshtml"
+            Write(Html.AntiForgeryToken());
 
 
-});
+#line default
+#line hidden
+            WriteLiteral("\r\n    ");
+
+
+
+#line 23 "..\..\Views\Users\ForgotPassword.cshtml"
+            Write(Html.ValidationSummary(true));
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n    ");
+
+
+
+#line 24 "..\..\Views\Users\ForgotPassword.cshtml"
+            Write(Html.EditorForModel());
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n    <div>\r\n        <button type=\"submit\" title=\"Send Instructions\">Send Instruc" +
+            "tions</button>\r\n    </div>\r\n</form>\r\n\r\n");
+
+
+            DefineSection("BottomScripts", () =>
+            {
+
+                WriteLiteral("\r\n    <script src=\"");
+
+
+
+#line 31 "..\..\Views\Users\ForgotPassword.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 32 "..\..\Views\Users\ForgotPassword.cshtml"
+                Write(Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n    <script src=\"");
+
+
+
+#line 33 "..\..\Views\Users\ForgotPassword.cshtml"
+                Write(Url.Content("~/Scripts/gallery.form.js"));
+
+
+#line default
+#line hidden
+                WriteLiteral("\" type=\"text/javascript\"></script>\r\n");
+
+
+            });
 
 
         }

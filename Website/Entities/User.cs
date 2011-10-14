@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NuGetGallery {
-    public class User : IEntity {
+namespace NuGetGallery
+{
+    public class User : IEntity
+    {
         public User()
-            : this(null, null) {
+            : this(null, null)
+        {
         }
 
         public User(
             string username,
-            string hashedPassword) {
+            string hashedPassword)
+        {
             HashedPassword = hashedPassword;
             Messages = new HashSet<EmailMessage>();
             Username = username;
@@ -25,8 +29,10 @@ namespace NuGetGallery {
         public string Username { get; set; }
         public virtual ICollection<Role> Roles { get; set; }
         public bool EmailAllowed { get; set; }
-        public bool Confirmed {
-            get {
+        public bool Confirmed
+        {
+            get
+            {
                 return !String.IsNullOrEmpty(EmailAddress);
             }
         }
@@ -34,8 +40,10 @@ namespace NuGetGallery {
         public string PasswordResetToken { get; set; }
         public DateTime? PasswordResetTokenExpirationDate { get; set; }
 
-        public void ConfirmEmailAddress() {
-            if (String.IsNullOrEmpty(UnconfirmedEmailAddress)) {
+        public void ConfirmEmailAddress()
+        {
+            if (String.IsNullOrEmpty(UnconfirmedEmailAddress))
+            {
                 throw new InvalidOperationException("User does not have an email address to confirm");
             }
             EmailAddress = UnconfirmedEmailAddress;

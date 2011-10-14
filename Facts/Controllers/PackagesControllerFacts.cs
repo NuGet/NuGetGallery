@@ -7,12 +7,17 @@ using System.Web.Routing;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery.Controllers {
-    public class PackagesControllerFacts {
-        public class TheContactOwnersMethod {
+namespace NuGetGallery.Controllers
+{
+    public class PackagesControllerFacts
+    {
+        public class TheContactOwnersMethod
+        {
             [Fact]
-            public void OnlyShowsOwnersWhoAllowReceivingEmails() {
-                var package = new PackageRegistration {
+            public void OnlyShowsOwnersWhoAllowReceivingEmails()
+            {
+                var package = new PackageRegistration
+                {
                     Id = "pkgid",
                     Owners = new[]{
                         new User { Username = "helpful", EmailAllowed = true},
@@ -31,7 +36,8 @@ namespace NuGetGallery.Controllers {
             }
 
             [Fact]
-            public void CallsSendContactOwnersMessageWithUserInfo() {
+            public void CallsSendContactOwnersMessageWithUserInfo()
+            {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(s => s.SendContactOwnersMessage(
                     It.IsAny<MailAddress>(),
@@ -49,7 +55,8 @@ namespace NuGetGallery.Controllers {
                     messageSvc: messageService,
                     userSvc: userSvc,
                     httpContext: httpContext);
-                var model = new ContactOwnersViewModel {
+                var model = new ContactOwnersViewModel
+                {
                     Message = "I like the cut of your jib",
                 };
 
@@ -59,15 +66,18 @@ namespace NuGetGallery.Controllers {
             }
         }
 
-        public class TheReportAbuseMethod {
+        public class TheReportAbuseMethod
+        {
             [Fact]
-            public void SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated() {
+            public void SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
+            {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(s => s.ReportAbuse(
                     It.IsAny<MailAddress>(),
                     It.IsAny<Package>(),
                     "Mordor took my finger"));
-                var package = new Package {
+                var package = new Package
+                {
                     PackageRegistration = new PackageRegistration { Id = "mordor" },
                     Version = "2.0.1"
                 };
@@ -78,7 +88,8 @@ namespace NuGetGallery.Controllers {
                 var controller = CreateController(packageSvc: packageSvc,
                     messageSvc: messageService,
                     httpContext: httpContext);
-                var model = new ReportAbuseViewModel {
+                var model = new ReportAbuseViewModel
+                {
                     Email = "frodo@hobbiton.example.com",
                     Message = "Mordor took my finger."
                 };
@@ -94,13 +105,15 @@ namespace NuGetGallery.Controllers {
             }
 
             [Fact]
-            public void SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated() {
+            public void SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
+            {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(s => s.ReportAbuse(
                     It.IsAny<MailAddress>(),
                     It.IsAny<Package>(),
                     "Mordor took my finger"));
-                var package = new Package {
+                var package = new Package
+                {
                     PackageRegistration = new PackageRegistration { Id = "mordor" },
                     Version = "2.0.1"
                 };
@@ -115,7 +128,8 @@ namespace NuGetGallery.Controllers {
                     messageSvc: messageService,
                     userSvc: userSvc,
                     httpContext: httpContext);
-                var model = new ReportAbuseViewModel {
+                var model = new ReportAbuseViewModel
+                {
                     Message = "Mordor took my finger."
                 };
 
@@ -133,9 +147,11 @@ namespace NuGetGallery.Controllers {
         }
 
         [Fact]
-        public void PublishPackageUpdatesListedValueIfNotSelected() {
+        public void PublishPackageUpdatesListedValueIfNotSelected()
+        {
             // Arrange
-            var package = new Package {
+            var package = new Package
+            {
                 PackageRegistration = new PackageRegistration { Id = "Foo" },
                 Version = "1.0"
             };
@@ -165,9 +181,11 @@ namespace NuGetGallery.Controllers {
         }
 
         [Fact]
-        public void PublishPackageDoesNotUpdateListedValueIfSelected() {
+        public void PublishPackageDoesNotUpdateListedValueIfSelected()
+        {
             // Arrange
-            var package = new Package {
+            var package = new Package
+            {
                 PackageRegistration = new PackageRegistration { Id = "Foo" },
                 Version = "1.0"
             };
@@ -196,9 +214,11 @@ namespace NuGetGallery.Controllers {
         }
 
         [Fact]
-        public void EditControllerUpdatesUnlistedIfSelected() {
+        public void EditControllerUpdatesUnlistedIfSelected()
+        {
             // Arrange
-            var package = new Package {
+            var package = new Package
+            {
                 PackageRegistration = new PackageRegistration { Id = "Foo" },
                 Version = "1.0",
                 Listed = true
@@ -227,9 +247,11 @@ namespace NuGetGallery.Controllers {
         }
 
         [Fact]
-        public void EditControllerUpdatesUnlistedIfNotSelected() {
+        public void EditControllerUpdatesUnlistedIfNotSelected()
+        {
             // Arrange
-            var package = new Package {
+            var package = new Package
+            {
                 PackageRegistration = new PackageRegistration { Id = "Foo" },
                 Version = "1.0",
                 Listed = true
@@ -263,7 +285,8 @@ namespace NuGetGallery.Controllers {
             Mock<IPackageFileService> packageFileSvc = null,
             Mock<IUserService> userSvc = null,
             Mock<IMessageService> messageSvc = null,
-            Mock<HttpContextBase> httpContext = null) {
+            Mock<HttpContextBase> httpContext = null)
+        {
 
             cryptoSvc = cryptoSvc ?? new Mock<ICryptographyService>();
             packageSvc = packageSvc ?? new Mock<IPackageService>();
@@ -279,7 +302,8 @@ namespace NuGetGallery.Controllers {
                     messageSvc.Object
                 );
 
-            if (httpContext != null) {
+            if (httpContext != null)
+            {
                 TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller);
             }
 

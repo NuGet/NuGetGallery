@@ -4,8 +4,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 
-namespace NuGetGallery {
-    public class CryptographyService : ICryptographyService {
+namespace NuGetGallery
+{
+    public class CryptographyService : ICryptographyService
+    {
         readonly HashAlgorithm hashAlgorithm = new SHA512Managed();
         readonly int saltLengthInBytes = 8;
 
@@ -13,7 +15,8 @@ namespace NuGetGallery {
 
         public string GenerateHash(
             byte[] input,
-            string hashAlgorithmId = Const.Sha512HashAlgorithmId) {
+            string hashAlgorithmId = Const.Sha512HashAlgorithmId)
+        {
             ValidateHashAlgorithmId(hashAlgorithmId);
 
             var hashBytes = hashAlgorithm.ComputeHash(input);
@@ -25,7 +28,8 @@ namespace NuGetGallery {
 
         public string GenerateSaltedHash(
             string input,
-            string hashAlgorithmId = Const.Sha512HashAlgorithmId) {
+            string hashAlgorithmId = Const.Sha512HashAlgorithmId)
+        {
             ValidateHashAlgorithmId(hashAlgorithmId);
 
             var saltBytes = new byte[saltLengthInBytes];
@@ -52,7 +56,8 @@ namespace NuGetGallery {
         public bool ValidateHash(
             string hash,
             byte[] input,
-            string hashAlgorithmId = Const.Sha512HashAlgorithmId) {
+            string hashAlgorithmId = Const.Sha512HashAlgorithmId)
+        {
             ValidateHashAlgorithmId(hashAlgorithmId);
 
             return hash.Equals(GenerateHash(input));
@@ -61,7 +66,8 @@ namespace NuGetGallery {
         public bool ValidateSaltedHash(
             string hash,
             string input,
-            string hashAlgorithmId = Const.Sha512HashAlgorithmId) {
+            string hashAlgorithmId = Const.Sha512HashAlgorithmId)
+        {
             ValidateHashAlgorithmId(hashAlgorithmId);
 
             var saltPlusHashBytes = Convert.FromBase64String(hash);
@@ -84,18 +90,22 @@ namespace NuGetGallery {
             return true;
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
             hashAlgorithm.Dispose();
         }
 
-        void ValidateHashAlgorithmId(string id) {
+        void ValidateHashAlgorithmId(string id)
+        {
             if (!id.Equals(Const.Sha512HashAlgorithmId, StringComparison.InvariantCultureIgnoreCase))
                 throw new Exception(string.Format("Unexpected hash algorithm identifier '{0}'", id));
         }
 
-        public string GenerateToken() {
+        public string GenerateToken()
+        {
             byte[] data = new byte[0x10];
-            using (var crypto = new RNGCryptoServiceProvider()) {
+            using (var crypto = new RNGCryptoServiceProvider())
+            {
                 crypto.GetBytes(data);
 
                 return HttpServerUtility.UrlTokenEncode(data);

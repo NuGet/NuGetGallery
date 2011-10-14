@@ -10,9 +10,12 @@ using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using Ninject.Modules;
 
-namespace NuGetGallery {
-    public class ContainerBindings : NinjectModule {
-        public override void Load() {
+namespace NuGetGallery
+{
+    public class ContainerBindings : NinjectModule
+    {
+        public override void Load()
+        {
             IConfiguration configuration = new Configuration();
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
@@ -66,9 +69,12 @@ namespace NuGetGallery {
                 .InRequestScope();
 
             Lazy<IMailSender> mailSenderThunk = null;
-            if (configuration.UseSmtp) {
-                mailSenderThunk = new Lazy<IMailSender>(() => {
-                    var mailSenderConfiguration = new MailSenderConfiguration() {
+            if (configuration.UseSmtp)
+            {
+                mailSenderThunk = new Lazy<IMailSender>(() =>
+                {
+                    var mailSenderConfiguration = new MailSenderConfiguration()
+                    {
                         DeliveryMethod = SmtpDeliveryMethod.Network,
                         Host = configuration.SmtpHost,
                         Port = configuration.SmtpPort,
@@ -82,9 +88,12 @@ namespace NuGetGallery {
                     return new MailSender(mailSenderConfiguration);
                 });
             }
-            else {
-                mailSenderThunk = new Lazy<IMailSender>(() => {
-                    var mailSenderConfiguration = new MailSenderConfiguration() {
+            else
+            {
+                mailSenderThunk = new Lazy<IMailSender>(() =>
+                {
+                    var mailSenderConfiguration = new MailSenderConfiguration()
+                    {
                         DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
                         PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
                     };
@@ -100,7 +109,8 @@ namespace NuGetGallery {
 
             Bind<IPrincipal>().ToMethod(context => HttpContext.Current.User);
 
-            switch (configuration.PackageStoreType) {
+            switch (configuration.PackageStoreType)
+            {
                 case PackageStoreType.FileSystem:
                 case PackageStoreType.NotSpecified:
                     Bind<IFileSystemService>()

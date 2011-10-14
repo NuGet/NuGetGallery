@@ -1,9 +1,12 @@
 ﻿using System;
-namespace NuGetGallery {
-    public class PackageViewModel : IPackageVersionModel {
+namespace NuGetGallery
+{
+    public class PackageViewModel : IPackageVersionModel
+    {
         readonly Package package;
 
-        public PackageViewModel(Package package) {
+        public PackageViewModel(Package package)
+        {
             this.package = package;
             Version = package.Version;
             Description = package.Description;
@@ -17,14 +20,18 @@ namespace NuGetGallery {
             DownloadCount = package.DownloadCount;
         }
 
-        public string Id {
-            get {
+        public string Id
+        {
+            get
+            {
                 return package.PackageRegistration.Id;
             }
         }
         public string Version { get; set; }
-        public string Title {
-            get {
+        public string Title
+        {
+            get
+            {
                 return String.IsNullOrEmpty(package.Title) ? package.PackageRegistration.Id : package.Title;
             }
         }
@@ -38,13 +45,16 @@ namespace NuGetGallery {
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
-        public int TotalDownloadCount {
-            get {
+        public int TotalDownloadCount
+        {
+            get
+            {
                 return package.PackageRegistration.DownloadCount;
             }
         }
 
-        public bool IsCurrent(IPackageVersionModel current) {
+        public bool IsCurrent(IPackageVersionModel current)
+        {
             return current.Version == Version && current.Id == Id;
         }
     }

@@ -7,21 +7,14 @@
 #pragma warning disable 1591
 #region T4MVC
 
-using System;
-using System.Diagnostics;
 using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Web;
-using System.Web.Hosting;
+using System.Diagnostics;
 using System.Web.Mvc;
-using System.Web.Mvc.Ajax;
-using System.Web.Mvc.Html;
-using System.Web.Routing;
 using T4MVC;
-namespace NuGetGallery {
-    public partial class PagesController {
+namespace NuGetGallery
+{
+    public partial class PagesController
+    {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public PagesController() { }
 
@@ -29,7 +22,8 @@ namespace NuGetGallery {
         protected PagesController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        protected RedirectToRouteResult RedirectToAction(ActionResult result) {
+        protected RedirectToRouteResult RedirectToAction(ActionResult result)
+        {
             var callInfo = result.GetT4MVCResult();
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
@@ -46,7 +40,8 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public class ActionNamesClass {
+        public class ActionNamesClass
+        {
             public readonly string Home = "Home";
             public readonly string Terms = "Terms";
             public readonly string Privacy = "Privacy";
@@ -57,7 +52,8 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public class ViewNames {
+        public class ViewNames
+        {
             public readonly string Home = "~/Views/Pages/Home.cshtml";
             public readonly string Privacy = "~/Views/Pages/Privacy.cshtml";
             public readonly string Terms = "~/Views/Pages/Terms.cshtml";
@@ -65,20 +61,24 @@ namespace NuGetGallery {
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_PagesController: NuGetGallery.PagesController {
+    public class T4MVC_PagesController : NuGetGallery.PagesController
+    {
         public T4MVC_PagesController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult Home() {
+        public override System.Web.Mvc.ActionResult Home()
+        {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Home);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Terms() {
+        public override System.Web.Mvc.ActionResult Terms()
+        {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Terms);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Privacy() {
+        public override System.Web.Mvc.ActionResult Privacy()
+        {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Privacy);
             return callInfo;
         }

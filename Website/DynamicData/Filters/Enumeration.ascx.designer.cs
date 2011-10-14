@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class EnumerationFilter {
+    public partial class EnumerationFilter
+    {
 
         protected global::System.Web.UI.WebControls.DropDownList DropDownList1;
     }

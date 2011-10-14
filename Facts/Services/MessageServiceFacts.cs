@@ -4,11 +4,15 @@ using AnglicanGeek.MarkdownMailer;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery.Services {
-    public class MessageServiceFacts {
-        public class TheSendContactOwnersMessageMethod {
+namespace NuGetGallery.Services
+{
+    public class MessageServiceFacts
+    {
+        public class TheSendContactOwnersMessageMethod
+        {
             [Fact]
-            public void WillSendEmailToAllOwners() {
+            public void WillSendEmailToAllOwners()
+            {
                 var from = new MailAddress("smangit@example.com", "flossy");
                 var package = new PackageRegistration { Id = "smangit" };
                 package.Owners = new[] {
@@ -31,7 +35,8 @@ namespace NuGetGallery.Services {
             }
 
             [Fact]
-            public void WillNotSendEmailToOwnerThatOptsOut() {
+            public void WillNotSendEmailToOwnerThatOptsOut()
+            {
                 var from = new MailAddress("smangit@example.com", "flossy");
                 var package = new PackageRegistration { Id = "smangit" };
                 package.Owners = new[] {
@@ -50,7 +55,8 @@ namespace NuGetGallery.Services {
             }
 
             [Fact]
-            public void WillNotAttemptToSendIfNoOwnersAllow() {
+            public void WillNotAttemptToSendIfNoOwnersAllow()
+            {
                 var from = new MailAddress("smangit@example.com", "flossy");
                 var package = new PackageRegistration { Id = "smangit" };
                 package.Owners = new[] {
@@ -69,11 +75,14 @@ namespace NuGetGallery.Services {
             }
         }
 
-        public class TheReportAbuseMethod {
+        public class TheReportAbuseMethod
+        {
             [Fact]
-            public void WillSendEmailToGalleryOwner() {
+            public void WillSendEmailToGalleryOwner()
+            {
                 var from = new MailAddress("legit@example.com", "too");
-                var package = new Package {
+                var package = new Package
+                {
                     PackageRegistration = new PackageRegistration { Id = "smangit" },
                     Version = "1.42.0.1"
                 };
@@ -91,9 +100,11 @@ namespace NuGetGallery.Services {
             }
         }
 
-        public class TheSendNewAccountEmailMethod {
+        public class TheSendNewAccountEmailMethod
+        {
             [Fact]
-            public void WillSendEmailToNewUser() {
+            public void WillSendEmailToNewUser()
+            {
                 var to = new MailAddress("legit@example.com", "too");
                 var config = new Mock<IConfiguration>();
                 config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("NuGet Gallery <joe@example.com>"));
@@ -108,9 +119,11 @@ namespace NuGetGallery.Services {
             }
         }
 
-        public class TheSendResetPasswordInstructionsMethod {
+        public class TheSendResetPasswordInstructionsMethod
+        {
             [Fact]
-            public void WillSendInstructions() {
+            public void WillSendInstructions()
+            {
                 var user = new User { EmailAddress = "legit@example.com", Username = "too" };
                 var config = new Mock<IConfiguration>();
                 config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("NuGet Gallery <joe@example.com>"));

@@ -11,29 +11,14 @@
 
 namespace NuGetGallery.Views.Users
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
-    
-    #line 1 "..\..\Views\Users\Profiles.cshtml"
+
+
+#line 1 "..\..\Views\Users\Profiles.cshtml"
     using NuGetGallery;
-    
-    #line default
-    #line hidden
-    
+
+#line default
+#line hidden
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/Profiles.cshtml")]
     public class Profiles : System.Web.Mvc.WebViewPage<UserProfileModel>
@@ -46,50 +31,50 @@ namespace NuGetGallery.Views.Users
 
 
 
-            
-            #line 3 "..\..\Views\Users\Profiles.cshtml"
-  
-    ViewBag.Title = "Profiles";
+
+#line 3 "..\..\Views\Users\Profiles.cshtml"
+
+            ViewBag.Title = "Profiles";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n<div id=\"layout-main\" class=\"profile\">\r\n    <div id=\"layout-content\">\r\n        " +
-"<div id=\"content\">\r\n            <div class=\"zone zone-content\">\r\n               " +
-" <section>\r\n                    <header class=\"profile\">\r\n                      " +
-"  ");
+
+#line default
+#line hidden
+            WriteLiteral("\r\n<div id=\"layout-main\" class=\"profile\">\r\n    <div id=\"layout-content\">\r\n        " +
+            "<div id=\"content\">\r\n            <div class=\"zone zone-content\">\r\n               " +
+            " <section>\r\n                    <header class=\"profile\">\r\n                      " +
+            "  ");
 
 
-            
-            #line 13 "..\..\Views\Users\Profiles.cshtml"
-                   Write(ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 80));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                        <h2>");
+#line 13 "..\..\Views\Users\Profiles.cshtml"
+            Write(ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 80));
 
 
-            
-            #line 14 "..\..\Views\Users\Profiles.cshtml"
-                       Write(Model.Username);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</h2>\r\n                        <div class=\"stats\">\r\n                            <" +
-"span class=\"downloads\">\r\n                                <strong>");
+#line default
+#line hidden
+            WriteLiteral("\r\n                        <h2>");
 
 
-            
-            #line 17 "..\..\Views\Users\Profiles.cshtml"
-                                   Write(Model.TotalPackageDownloadCount);
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"</strong>
+#line 14 "..\..\Views\Users\Profiles.cshtml"
+            Write(Model.Username);
+
+
+#line default
+#line hidden
+            WriteLiteral("</h2>\r\n                        <div class=\"stats\">\r\n                            <" +
+            "span class=\"downloads\">\r\n                                <strong>");
+
+
+
+#line 17 "..\..\Views\Users\Profiles.cshtml"
+            Write(Model.TotalPackageDownloadCount);
+
+
+#line default
+#line hidden
+            WriteLiteral(@"</strong>
                                 <label>total package downloads</label>
                             </span>
                         </div>
@@ -99,81 +84,82 @@ WriteLiteral(@"</strong>
 ");
 
 
-            
-            #line 24 "..\..\Views\Users\Profiles.cshtml"
-                         foreach (var package in Model.Packages) {
 
-            
-            #line default
-            #line hidden
-WriteLiteral("                            <li>\r\n                                <div class=\"pac" +
-"kage\">\r\n                                    <div class=\"packageItem packages\">\r\n" +
-"                                        <a href=\"");
+#line 24 "..\..\Views\Users\Profiles.cshtml"
+            foreach (var package in Model.Packages)
+            {
 
 
-            
-            #line 28 "..\..\Views\Users\Profiles.cshtml"
-                                            Write(Url.Package(package));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">\r\n                                            <img src=\"");
+#line default
+#line hidden
+                WriteLiteral("                            <li>\r\n                                <div class=\"pac" +
+                "kage\">\r\n                                    <div class=\"packageItem packages\">\r\n" +
+                "                                        <a href=\"");
 
 
-            
-            #line 29 "..\..\Views\Users\Profiles.cshtml"
-                                                  Write(package.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" class=\"thumbnail\" title=\"");
+#line 28 "..\..\Views\Users\Profiles.cshtml"
+                Write(Url.Package(package));
 
 
-            
-            #line 29 "..\..\Views\Users\Profiles.cshtml"
-                                                                                                                                                   Write(package.Id);
-
-            
-            #line default
-            #line hidden
-WriteLiteral(" Package icon\" />\r\n                                        </a>\r\n                " +
-"                        <header>\r\n                                            <h" +
-"3 style=\"display: inline-block;\">\r\n                                             " +
-"   <a href=\"");
+#line default
+#line hidden
+                WriteLiteral("\">\r\n                                            <img src=\"");
 
 
-            
-            #line 33 "..\..\Views\Users\Profiles.cshtml"
-                                                    Write(Url.Package(package.Id));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">");
+#line 29 "..\..\Views\Users\Profiles.cshtml"
+                Write(package.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png);
 
 
-            
-            #line 33 "..\..\Views\Users\Profiles.cshtml"
-                                                                              Write(package.Title);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</a>\r\n                                            </h3>\r\n                        " +
-"                    <div class=\"downloads\">\r\n                                   " +
-"             ");
+#line default
+#line hidden
+                WriteLiteral("\" class=\"thumbnail\" title=\"");
 
 
-            
-            #line 36 "..\..\Views\Users\Profiles.cshtml"
-                                           Write(package.DownloadCount);
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@" Downloads
+#line 29 "..\..\Views\Users\Profiles.cshtml"
+                Write(package.Id);
+
+
+#line default
+#line hidden
+                WriteLiteral(" Package icon\" />\r\n                                        </a>\r\n                " +
+                "                        <header>\r\n                                            <h" +
+                "3 style=\"display: inline-block;\">\r\n                                             " +
+                "   <a href=\"");
+
+
+
+#line 33 "..\..\Views\Users\Profiles.cshtml"
+                Write(Url.Package(package.Id));
+
+
+#line default
+#line hidden
+                WriteLiteral("\">");
+
+
+
+#line 33 "..\..\Views\Users\Profiles.cshtml"
+                Write(package.Title);
+
+
+#line default
+#line hidden
+                WriteLiteral("</a>\r\n                                            </h3>\r\n                        " +
+                "                    <div class=\"downloads\">\r\n                                   " +
+                "             ");
+
+
+
+#line 36 "..\..\Views\Users\Profiles.cshtml"
+                Write(package.DownloadCount);
+
+
+#line default
+#line hidden
+                WriteLiteral(@" Downloads
                                             </div>
                                         </header>
                                         <div class=""detail"">
@@ -181,27 +167,27 @@ WriteLiteral(@" Downloads
                                                 ");
 
 
-            
-            #line 41 "..\..\Views\Users\Profiles.cshtml"
-                                           Write(package.Description);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                                            </p>\r\n                             " +
-"           </div>\r\n                                    </div>\r\n                 " +
-"               </div>\r\n                            </li>\r\n");
+#line 41 "..\..\Views\Users\Profiles.cshtml"
+                Write(package.Description);
 
 
-            
-            #line 47 "..\..\Views\Users\Profiles.cshtml"
-                        }
+#line default
+#line hidden
+                WriteLiteral("\r\n                                            </p>\r\n                             " +
+                "           </div>\r\n                                    </div>\r\n                 " +
+                "               </div>\r\n                            </li>\r\n");
 
-            
-            #line default
-            #line hidden
-WriteLiteral("                    </ul>\r\n                </section>\r\n            </div>\r\n      " +
-"  </div>\r\n    </div>\r\n</div>\r\n");
+
+
+#line 47 "..\..\Views\Users\Profiles.cshtml"
+            }
+
+
+#line default
+#line hidden
+            WriteLiteral("                    </ul>\r\n                </section>\r\n            </div>\r\n      " +
+            "  </div>\r\n    </div>\r\n</div>\r\n");
 
 
         }

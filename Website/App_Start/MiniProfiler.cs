@@ -11,9 +11,12 @@ using MvcMiniProfiler.MVCHelpers;
 [assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.App_Start.MiniProfilerPackage), "PreStart")]
 [assembly: WebActivator.PostApplicationStartMethod(typeof(NuGetGallery.App_Start.MiniProfilerPackage), "PostStart")]
 
-namespace NuGetGallery.App_Start {
-    public static class MiniProfilerPackage {
-        public static void PreStart() {
+namespace NuGetGallery.App_Start
+{
+    public static class MiniProfilerPackage
+    {
+        public static void PreStart()
+        {
             MiniProfiler.Settings.SqlFormatter = new MvcMiniProfiler.SqlFormatters.SqlServerFormatter();
 
             var sqlConnectionFactory = new SqlConnectionFactory(ConfigurationManager.ConnectionStrings["NuGetGallery"].ConnectionString);
@@ -24,7 +27,8 @@ namespace NuGetGallery.App_Start {
             GlobalFilters.Filters.Add(new ProfilingActionFilter());
         }
 
-        public static void PostStart() {
+        public static void PostStart()
+        {
             var viewEngines = ViewEngines.Engines.ToList();
 
             ViewEngines.Engines.Clear();
@@ -34,9 +38,12 @@ namespace NuGetGallery.App_Start {
         }
     }
 
-    public class MiniProfilerStartupModule : IHttpModule {
-        public void Init(HttpApplication context) {
-            context.BeginRequest += (sender, e) => {
+    public class MiniProfilerStartupModule : IHttpModule
+    {
+        public void Init(HttpApplication context)
+        {
+            context.BeginRequest += (sender, e) =>
+            {
                 var request = ((HttpApplication)sender).Request;
 
                 // TODO: only profile for admin users
@@ -44,12 +51,14 @@ namespace NuGetGallery.App_Start {
                 MiniProfiler.Start();
             };
 
-            context.EndRequest += (sender, e) => {
+            context.EndRequest += (sender, e) =>
+            {
                 MiniProfiler.Stop();
             };
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
         }
     }
 }

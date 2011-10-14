@@ -11,24 +11,7 @@
 
 namespace NuGetGallery.Views.Pages
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
-    using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Pages/Home.cshtml")]
     public class Home : System.Web.Mvc.WebViewPage<dynamic>
@@ -39,57 +22,57 @@ namespace NuGetGallery.Views.Pages
         public override void Execute()
         {
 
-            
-            #line 1 "..\..\Views\Pages\Home.cshtml"
-  
-    ViewBag.Tab = "Home";
+
+#line 1 "..\..\Views\Pages\Home.cshtml"
+
+            ViewBag.Tab = "Home";
 
 
-            
-            #line default
-            #line hidden
-WriteLiteral("<div id=\"layout-main\" class=\"group\">\r\n    <div id=\"layout-content\" class=\"group\">" +
-"\r\n        <div id=\"content\" class=\"group\">\r\n            <div class=\"zone zone-co" +
-"ntent\">\r\n                <article class=\"content-item page\">\r\n                  " +
-"  <div class=\"MIX-hero\">\r\n                        <div class=\"MIX-hero-text\">\r\n " +
-"                           <h2 style=\"font-size: 25px; font-weight: normal; text" +
-"-shadow: rgba(0,0,0,.1) 0px 0px 1px;\">Jump Start Your Projects with NuGet</h2>\r\n" +
-"                            <p style=\"font-size: 18px; line-height: 30px;\">NuGet" +
-" is a Visual Studio extension that makes it easy to install and update open sour" +
-"ce libraries and tools in Visual Studio.</p>\r\n                            <p sty" +
-"le=\"font-size: 16px;\"><em>So <a href=\"http://visualstudiogallery.msdn.microsoft." +
-"com/en-us/27077b70-9dad-4c64-adcf-c7cf6bc9970c/file/37502/5/NuGet.Tools.signed.v" +
-"six\">install NuGet</a> and get a jump on your next project!</em></p>\r\n          " +
-"                  <p><a class=\"install\" style=\"margin: 36px 0 0 0;\" href=\"http:/" +
-"/visualstudiogallery.msdn.microsoft.com/en-us/27077b70-9dad-4c64-adcf-c7cf6bc997" +
-"0c/file/37502/5/NuGet.Tools.signed.vsix\">Install NuGet</a></p>\r\n                " +
-"        </div>\r\n                    </div>\r\n                </article>\r\n        " +
-"    </div>\r\n        </div>\r\n    </div>\r\n    <div id=\"layout-after-main\" class=\"g" +
-"roup\">\r\n        <div class=\"zone zone-after-main\">\r\n            <article class=\"" +
-"widget-html-widget widget\">\r\n                <div class=\"MIX-secondary group\">\r\n" +
-"                    <div style=\"float: left; width: 470px; margin: 0 0 24px 0;\">" +
-"\r\n                        <h3 style=\"font-size: 18px; font-weight: normal;\">Abou" +
-"t</h3>\r\n                        <p style=\"font-size: 14px; line-height: 26px;\">W" +
-"hen you use NuGet to install a package, it copies the library files to your solu" +
-"tion and automatically updates your project (add references, change config files" +
-", etc). If you remove a package, NuGet reverses whatever changes it made so that" +
-" no clutter is left.</p>\r\n                    </div>\r\n                    <div s" +
-"tyle=\"float: right; width: 470px; margin: 0 0 24px 0;\">\r\n                       " +
-" <h3 style=\"font-size: 18px; font-weight: bold;\">NuGet 1.4 released!</h3>\r\n     " +
-"                   <p style=\"font-size: 14px; line-height: 26px;\">Take 5 minutes" +
-" and UPGRADE NOW using the Visual Studio Extension Manager. Why? Because there&r" +
-"squo;s a pile of new features and it will make your life easier!<br /> All these" +
-" details and <a href=\"http://docs.nuget.org/docs/release-notes/nuget-1.4\">more h" +
-"ere...</a></p>\r\n                    </div>\r\n                    <div class=\"MIX-" +
-"notice\">\r\n                        <h3 style=\"font-size: 18px; font-weight: norma" +
-"l;\">Important Notice</h3>\r\n                        <p style=\"font-size: 14px; li" +
-"ne-height: 26px;\">You can develop your own package and share it via the NuGet Ga" +
-"llery. Read the documentation for more details on <a title=\"Creating and submitt" +
-"ing a package\" href=\"http://docs.nuget.org/docs/creating-packages/creating-and-p" +
-"ublishing-a-package\">how to create and publish a package</a>. If you don&rsquo;t" +
-" plan on submitting a package, there&rsquo;s no need to register.</p>\r\n         " +
-"           </div>\r\n                </div>\r\n            </article>\r\n        </div" +
-">\r\n    </div>\r\n</div>\r\n");
+
+#line default
+#line hidden
+            WriteLiteral("<div id=\"layout-main\" class=\"group\">\r\n    <div id=\"layout-content\" class=\"group\">" +
+            "\r\n        <div id=\"content\" class=\"group\">\r\n            <div class=\"zone zone-co" +
+            "ntent\">\r\n                <article class=\"content-item page\">\r\n                  " +
+            "  <div class=\"MIX-hero\">\r\n                        <div class=\"MIX-hero-text\">\r\n " +
+            "                           <h2 style=\"font-size: 25px; font-weight: normal; text" +
+            "-shadow: rgba(0,0,0,.1) 0px 0px 1px;\">Jump Start Your Projects with NuGet</h2>\r\n" +
+            "                            <p style=\"font-size: 18px; line-height: 30px;\">NuGet" +
+            " is a Visual Studio extension that makes it easy to install and update open sour" +
+            "ce libraries and tools in Visual Studio.</p>\r\n                            <p sty" +
+            "le=\"font-size: 16px;\"><em>So <a href=\"http://visualstudiogallery.msdn.microsoft." +
+            "com/en-us/27077b70-9dad-4c64-adcf-c7cf6bc9970c/file/37502/5/NuGet.Tools.signed.v" +
+            "six\">install NuGet</a> and get a jump on your next project!</em></p>\r\n          " +
+            "                  <p><a class=\"install\" style=\"margin: 36px 0 0 0;\" href=\"http:/" +
+            "/visualstudiogallery.msdn.microsoft.com/en-us/27077b70-9dad-4c64-adcf-c7cf6bc997" +
+            "0c/file/37502/5/NuGet.Tools.signed.vsix\">Install NuGet</a></p>\r\n                " +
+            "        </div>\r\n                    </div>\r\n                </article>\r\n        " +
+            "    </div>\r\n        </div>\r\n    </div>\r\n    <div id=\"layout-after-main\" class=\"g" +
+            "roup\">\r\n        <div class=\"zone zone-after-main\">\r\n            <article class=\"" +
+            "widget-html-widget widget\">\r\n                <div class=\"MIX-secondary group\">\r\n" +
+            "                    <div style=\"float: left; width: 470px; margin: 0 0 24px 0;\">" +
+            "\r\n                        <h3 style=\"font-size: 18px; font-weight: normal;\">Abou" +
+            "t</h3>\r\n                        <p style=\"font-size: 14px; line-height: 26px;\">W" +
+            "hen you use NuGet to install a package, it copies the library files to your solu" +
+            "tion and automatically updates your project (add references, change config files" +
+            ", etc). If you remove a package, NuGet reverses whatever changes it made so that" +
+            " no clutter is left.</p>\r\n                    </div>\r\n                    <div s" +
+            "tyle=\"float: right; width: 470px; margin: 0 0 24px 0;\">\r\n                       " +
+            " <h3 style=\"font-size: 18px; font-weight: bold;\">NuGet 1.4 released!</h3>\r\n     " +
+            "                   <p style=\"font-size: 14px; line-height: 26px;\">Take 5 minutes" +
+            " and UPGRADE NOW using the Visual Studio Extension Manager. Why? Because there&r" +
+            "squo;s a pile of new features and it will make your life easier!<br /> All these" +
+            " details and <a href=\"http://docs.nuget.org/docs/release-notes/nuget-1.4\">more h" +
+            "ere...</a></p>\r\n                    </div>\r\n                    <div class=\"MIX-" +
+            "notice\">\r\n                        <h3 style=\"font-size: 18px; font-weight: norma" +
+            "l;\">Important Notice</h3>\r\n                        <p style=\"font-size: 14px; li" +
+            "ne-height: 26px;\">You can develop your own package and share it via the NuGet Ga" +
+            "llery. Read the documentation for more details on <a title=\"Creating and submitt" +
+            "ing a package\" href=\"http://docs.nuget.org/docs/creating-packages/creating-and-p" +
+            "ublishing-a-package\">how to create and publish a package</a>. If you don&rsquo;t" +
+            " plan on submitting a package, there&rsquo;s no need to register.</p>\r\n         " +
+            "           </div>\r\n                </div>\r\n            </article>\r\n        </div" +
+            ">\r\n    </div>\r\n</div>\r\n");
 
 
         }

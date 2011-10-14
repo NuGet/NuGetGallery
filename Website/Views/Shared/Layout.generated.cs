@@ -12,28 +12,16 @@
 namespace NuGetGallery.Views.Shared
 {
     using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
     using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
     using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
-    
-    #line 1 "..\..\Views\Shared\Layout.cshtml"
+
+
+#line 1 "..\..\Views\Shared\Layout.cshtml"
     using NuGetGallery;
-    
-    #line default
-    #line hidden
-    
+
+#line default
+#line hidden
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/Layout.cshtml")]
     public class Layout : System.Web.Mvc.WebViewPage<dynamic>
@@ -44,104 +32,104 @@ namespace NuGetGallery.Views.Shared
         public override void Execute()
         {
 
-WriteLiteral("<!DOCTYPE html> \r\n<html lang=\"en\" class=\"static \"> \r\n    <head> \r\n        <meta c" +
-"harset=\"utf-8\" />\r\n        <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" " +
-"/>\r\n        <title>NuGet Gallery</title> \r\n        <link href=\"");
+            WriteLiteral("<!DOCTYPE html> \r\n<html lang=\"en\" class=\"static \"> \r\n    <head> \r\n        <meta c" +
+            "harset=\"utf-8\" />\r\n        <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" " +
+            "/>\r\n        <title>NuGet Gallery</title> \r\n        <link href=\"");
 
 
-            
-            #line 8 "..\..\Views\Shared\Layout.cshtml"
-               Write(Url.Content("~/Content/orchard.css"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" rel=\"stylesheet\" type=\"text/css\" />\r\n        <link href=\"");
+#line 8 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Content("~/Content/orchard.css"));
 
 
-            
-            #line 9 "..\..\Views\Shared\Layout.cshtml"
-               Write(Url.Content("~/Content/nuget.css"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" rel=\"stylesheet\" type=\"text/css\" />\r\n        <!--[if IE 7]><link href=\"");
+#line default
+#line hidden
+            WriteLiteral("\" rel=\"stylesheet\" type=\"text/css\" />\r\n        <link href=\"");
 
 
-            
-            #line 10 "..\..\Views\Shared\Layout.cshtml"
-                             Write(Url.Content("~/Content/ie7.css"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" media=\"screen, projection\" rel=\"stylesheet\" type=\"text/css\" /><![endif]-->\r\n   " +
-"     <link href=\"");
+#line 9 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Content("~/Content/nuget.css"));
 
 
-            
-            #line 11 "..\..\Views\Shared\Layout.cshtml"
-               Write(Url.Content("~/Content/nuget.ico"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" rel=\"shortcut icon\" type=\"image/x-icon\" />\r\n        <script src=\"");
+#line default
+#line hidden
+            WriteLiteral("\" rel=\"stylesheet\" type=\"text/css\" />\r\n        <!--[if IE 7]><link href=\"");
 
 
-            
-            #line 12 "..\..\Views\Shared\Layout.cshtml"
-                Write(Url.Content("~/Scripts/jquery-1.6.2.min.js"));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n        <script src=\"");
+#line 10 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Content("~/Content/ie7.css"));
 
 
-            
-            #line 13 "..\..\Views\Shared\Layout.cshtml"
-                Write(Url.Content("~/Scripts/html5.js"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n        <script>(function (d) { d.className =" +
-" \"dyn\" + d.className.substring(6, d.className.length); })(document.documentEleme" +
-"nt);</script> \r\n        ");
+#line default
+#line hidden
+            WriteLiteral("\" media=\"screen, projection\" rel=\"stylesheet\" type=\"text/css\" /><![endif]-->\r\n   " +
+            "     <link href=\"");
 
 
-            
-            #line 15 "..\..\Views\Shared\Layout.cshtml"
-   Write(MvcMiniProfiler.MiniProfiler.RenderIncludes());
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    </head>\r\n    <body>\r\n        <div id=\"layout-wrapper\">\r\n            <header" +
-" id=\"layout-header\" class=\"group\">\r\n                <div class=\"zone zone-header" +
-"\">\r\n                    <h1 id=\"branding\"><a href=\"");
+#line 11 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Content("~/Content/nuget.ico"));
 
 
-            
-            #line 21 "..\..\Views\Shared\Layout.cshtml"
-                                          Write(Url.Home());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">NuGet Gallery</a></h1>\r\n                    ");
+#line default
+#line hidden
+            WriteLiteral("\" rel=\"shortcut icon\" type=\"image/x-icon\" />\r\n        <script src=\"");
 
 
-            
-            #line 22 "..\..\Views\Shared\Layout.cshtml"
-               Write(Html.Partial(MVC.Shared.Views.UserDisplay));
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"
+#line 12 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Content("~/Scripts/jquery-1.6.2.min.js"));
+
+
+#line default
+#line hidden
+            WriteLiteral("\" type=\"text/javascript\"></script>\r\n        <script src=\"");
+
+
+
+#line 13 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Content("~/Scripts/html5.js"));
+
+
+#line default
+#line hidden
+            WriteLiteral("\" type=\"text/javascript\"></script>\r\n        <script>(function (d) { d.className =" +
+            " \"dyn\" + d.className.substring(6, d.className.length); })(document.documentEleme" +
+            "nt);</script> \r\n        ");
+
+
+
+#line 15 "..\..\Views\Shared\Layout.cshtml"
+            Write(MvcMiniProfiler.MiniProfiler.RenderIncludes());
+
+
+#line default
+#line hidden
+            WriteLiteral("\r\n    </head>\r\n    <body>\r\n        <div id=\"layout-wrapper\">\r\n            <header" +
+            " id=\"layout-header\" class=\"group\">\r\n                <div class=\"zone zone-header" +
+            "\">\r\n                    <h1 id=\"branding\"><a href=\"");
+
+
+
+#line 21 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Home());
+
+
+#line default
+#line hidden
+            WriteLiteral("\">NuGet Gallery</a></h1>\r\n                    ");
+
+
+
+#line 22 "..\..\Views\Shared\Layout.cshtml"
+            Write(Html.Partial(MVC.Shared.Views.UserDisplay));
+
+
+#line default
+#line hidden
+            WriteLiteral(@"
                 </div>
             </header>
             <div id=""layout-navigation"" class=""group"">
@@ -152,135 +140,135 @@ WriteLiteral(@"
 
 
 
-WriteLiteral("\r\n                            ");
+            WriteLiteral("\r\n                            ");
 
 
 
-WriteLiteral("\r\n");
-
-
-            
-            #line 31 "..\..\Views\Shared\Layout.cshtml"
-                              
-                                var homeClass = ViewBag.Tab == "Home" ? "current" : "";
-                                var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
-                                var uploadClass = ViewBag.Tab == "Upload" ? "current" : "";
-                            
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                            <li class=\"");
-
-
-            
-            #line 36 "..\..\Views\Shared\Layout.cshtml"
-                                  Write(homeClass);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\"><a href=\"");
-
-
-            
-            #line 36 "..\..\Views\Shared\Layout.cshtml"
-                                                       Write(Url.Home());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Home</a></li>\r\n                            <li class=\"");
-
-
-            
-            #line 37 "..\..\Views\Shared\Layout.cshtml"
-                                  Write(packagesClass);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\"><a href=\"");
-
-
-            
-            #line 37 "..\..\Views\Shared\Layout.cshtml"
-                                                           Write(Url.PackageList());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Packages</a></li>\r\n                            <li><a href=\"http://docs.nuget.o" +
-"rg\">Documentation</a></li>\r\n                            <li class=\"");
-
-
-            
-            #line 39 "..\..\Views\Shared\Layout.cshtml"
-                                  Write(uploadClass);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\"><a href=\"");
-
-
-            
-            #line 39 "..\..\Views\Shared\Layout.cshtml"
-                                                         Write(Url.UploadPackage());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" class=\"upload\">Upload Package</a></li>\r\n                        </ul>\r\n\r\n      " +
-"                  <form id=\"search-form\" action=\"");
-
-
-            
-            #line 42 "..\..\Views\Shared\Layout.cshtml"
-                                                  Write(Url.PackageList());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" method=\"get\">\r\n                            <div id=\"search\">\r\n                 " +
-"               <div>\r\n                                    <input type=\"text\" nam" +
-"e=\"q\" id=\"searchTerm\" value=\"");
-
-
-            
-            #line 45 "..\..\Views\Shared\Layout.cshtml"
-                                                                                   Write(ViewBag.SearchTerm ?? "Search Packages");
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" />\r\n                                </div>\r\n                                ");
+            WriteLiteral("\r\n");
 
 
 
-WriteLiteral("\r\n                                <input type=\"hidden\" name=\"sortOrder\" value=\"");
+#line 31 "..\..\Views\Shared\Layout.cshtml"
+
+            var homeClass = ViewBag.Tab == "Home" ? "current" : "";
+            var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
+            var uploadClass = ViewBag.Tab == "Upload" ? "current" : "";
 
 
-            
-            #line 48 "..\..\Views\Shared\Layout.cshtml"
-                                                                        Write(Const.DefaultPackageListSortOrder);
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" />\r\n                                <input type=\"submit\" value=\" \"/>\r\n         " +
-"                   </div>\r\n                        </form>\r\n                    " +
-"</nav>\r\n                </div>\r\n            </div>\r\n            ");
+#line default
+#line hidden
+            WriteLiteral("                            <li class=\"");
 
 
-            
-            #line 55 "..\..\Views\Shared\Layout.cshtml"
-       Write(RenderBody());
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@"
+#line 36 "..\..\Views\Shared\Layout.cshtml"
+            Write(homeClass);
+
+
+#line default
+#line hidden
+            WriteLiteral("\"><a href=\"");
+
+
+
+#line 36 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Home());
+
+
+#line default
+#line hidden
+            WriteLiteral("\">Home</a></li>\r\n                            <li class=\"");
+
+
+
+#line 37 "..\..\Views\Shared\Layout.cshtml"
+            Write(packagesClass);
+
+
+#line default
+#line hidden
+            WriteLiteral("\"><a href=\"");
+
+
+
+#line 37 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.PackageList());
+
+
+#line default
+#line hidden
+            WriteLiteral("\">Packages</a></li>\r\n                            <li><a href=\"http://docs.nuget.o" +
+            "rg\">Documentation</a></li>\r\n                            <li class=\"");
+
+
+
+#line 39 "..\..\Views\Shared\Layout.cshtml"
+            Write(uploadClass);
+
+
+#line default
+#line hidden
+            WriteLiteral("\"><a href=\"");
+
+
+
+#line 39 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.UploadPackage());
+
+
+#line default
+#line hidden
+            WriteLiteral("\" class=\"upload\">Upload Package</a></li>\r\n                        </ul>\r\n\r\n      " +
+            "                  <form id=\"search-form\" action=\"");
+
+
+
+#line 42 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.PackageList());
+
+
+#line default
+#line hidden
+            WriteLiteral("\" method=\"get\">\r\n                            <div id=\"search\">\r\n                 " +
+            "               <div>\r\n                                    <input type=\"text\" nam" +
+            "e=\"q\" id=\"searchTerm\" value=\"");
+
+
+
+#line 45 "..\..\Views\Shared\Layout.cshtml"
+            Write(ViewBag.SearchTerm ?? "Search Packages");
+
+
+#line default
+#line hidden
+            WriteLiteral("\" />\r\n                                </div>\r\n                                ");
+
+
+
+            WriteLiteral("\r\n                                <input type=\"hidden\" name=\"sortOrder\" value=\"");
+
+
+
+#line 48 "..\..\Views\Shared\Layout.cshtml"
+            Write(Const.DefaultPackageListSortOrder);
+
+
+#line default
+#line hidden
+            WriteLiteral("\" />\r\n                                <input type=\"submit\" value=\" \"/>\r\n         " +
+            "                   </div>\r\n                        </form>\r\n                    " +
+            "</nav>\r\n                </div>\r\n            </div>\r\n            ");
+
+
+
+#line 55 "..\..\Views\Shared\Layout.cshtml"
+            Write(RenderBody());
+
+
+#line default
+#line hidden
+            WriteLiteral(@"
         </div>
         <div id=""layout-footer"" class=""group"">
             <footer id=""footer"">
@@ -291,67 +279,67 @@ WriteLiteral(@"
                             <li><a href=""");
 
 
-            
-            #line 63 "..\..\Views\Shared\Layout.cshtml"
-                                    Write(Url.Home());
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Home</a>&nbsp;&#124;&nbsp;</li>\r\n                            <li><a href=\"");
+#line 63 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Home());
 
 
-            
-            #line 64 "..\..\Views\Shared\Layout.cshtml"
-                                    Write(Url.PackageList());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Packages</a>&nbsp;&#124;&nbsp;</li>\r\n                            <li><a href=\"");
+#line default
+#line hidden
+            WriteLiteral("\">Home</a>&nbsp;&#124;&nbsp;</li>\r\n                            <li><a href=\"");
 
 
-            
-            #line 65 "..\..\Views\Shared\Layout.cshtml"
-                                    Write(Url.UploadPackage());
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Upload</a>&nbsp;&#124;&nbsp;</li>\r\n                            <li><a href=\"");
+#line 64 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.PackageList());
 
 
-            
-            #line 66 "..\..\Views\Shared\Layout.cshtml"
-                                    Write(Url.Action(MVC.Pages.Terms()));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Terms of Use</a>&nbsp;&#124;&nbsp;</li>\r\n                            <li><a hre" +
-"f=\"");
+#line default
+#line hidden
+            WriteLiteral("\">Packages</a>&nbsp;&#124;&nbsp;</li>\r\n                            <li><a href=\"");
 
 
-            
-            #line 67 "..\..\Views\Shared\Layout.cshtml"
-                                    Write(Url.Action(MVC.Pages.Privacy()));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\">Privacy</a></li>\r\n                        </ul>\r\n                    </div>\r\n  " +
-"              </div>\r\n                <div class=\"credits\">\r\n                   " +
-" <span class=\"copyright\">&#169; ");
+#line 65 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.UploadPackage());
 
 
-            
-            #line 72 "..\..\Views\Shared\Layout.cshtml"
-                                              Write(DateTime.UtcNow.Year);
+#line default
+#line hidden
+            WriteLiteral("\">Upload</a>&nbsp;&#124;&nbsp;</li>\r\n                            <li><a href=\"");
 
-            
-            #line default
-            #line hidden
-WriteLiteral(@" Outercurve Foundation.</span>
+
+
+#line 66 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Action(MVC.Pages.Terms()));
+
+
+#line default
+#line hidden
+            WriteLiteral("\">Terms of Use</a>&nbsp;&#124;&nbsp;</li>\r\n                            <li><a hre" +
+            "f=\"");
+
+
+
+#line 67 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Action(MVC.Pages.Privacy()));
+
+
+#line default
+#line hidden
+            WriteLiteral("\">Privacy</a></li>\r\n                        </ul>\r\n                    </div>\r\n  " +
+            "              </div>\r\n                <div class=\"credits\">\r\n                   " +
+            " <span class=\"copyright\">&#169; ");
+
+
+
+#line 72 "..\..\Views\Shared\Layout.cshtml"
+            Write(DateTime.UtcNow.Year);
+
+
+#line default
+#line hidden
+            WriteLiteral(@" Outercurve Foundation.</span>
                 </div>
             </footer>
         </div>
@@ -369,24 +357,24 @@ WriteLiteral(@" Outercurve Foundation.</span>
         ");
 
 
-            
-            #line 87 "..\..\Views\Shared\Layout.cshtml"
-   Write(RenderSection("BottomScripts", false));
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        <script src=\"");
+#line 87 "..\..\Views\Shared\Layout.cshtml"
+            Write(RenderSection("BottomScripts", false));
 
 
-            
-            #line 88 "..\..\Views\Shared\Layout.cshtml"
-                Write(Url.Content("~/Scripts/global.js"));
+#line default
+#line hidden
+            WriteLiteral("\r\n        <script src=\"");
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" type=\"text/javascript\"></script>\r\n    </body>\r\n</html>");
+
+
+#line 88 "..\..\Views\Shared\Layout.cshtml"
+            Write(Url.Content("~/Scripts/global.js"));
+
+
+#line default
+#line hidden
+            WriteLiteral("\" type=\"text/javascript\"></script>\r\n    </body>\r\n</html>");
 
 
         }

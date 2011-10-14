@@ -1,22 +1,26 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using OData.Linq;
-using System;
 
-namespace NuGetGallery {
+namespace NuGetGallery
+{
     // TODO: build the report abuse URL for real
     // TODO: build the gallery details URL for real
-    public static class PackageExtensions {
+    public static class PackageExtensions
+    {
         private static readonly DateTime magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions = new DateTime(1900, 1, 1, 0, 0, 0);
 
-        public static IQueryable<V1FeedPackage> ToV1FeedPackageQuery(this IQueryable<Package> packages) {
+        public static IQueryable<V1FeedPackage> ToV1FeedPackageQuery(this IQueryable<Package> packages)
+        {
             return packages
                      .WithoutNullPropagation()
                      .Include(p => p.PackageRegistration)
                      .Include(p => p.Authors)
                      .Include(p => p.Dependencies)
                      .Include(p => p.DownloadStatistics)
-                     .Select(p => new V1FeedPackage {
+                     .Select(p => new V1FeedPackage
+                     {
                          Id = p.PackageRegistration.Id,
                          Version = p.Version,
                          Authors = p.FlattenedAuthors,
@@ -45,14 +49,16 @@ namespace NuGetGallery {
                      });
         }
 
-        public static IQueryable<V2FeedPackage> ToV2FeedPackageQuery(this IQueryable<Package> packages) {
+        public static IQueryable<V2FeedPackage> ToV2FeedPackageQuery(this IQueryable<Package> packages)
+        {
             return packages
                      .WithoutNullPropagation()
                      .Include(p => p.PackageRegistration)
                      .Include(p => p.Authors)
                      .Include(p => p.Dependencies)
                      .Include(p => p.DownloadStatistics)
-                     .Select(p => new V2FeedPackage {
+                     .Select(p => new V2FeedPackage
+                     {
                          Id = p.PackageRegistration.Id,
                          Version = p.Version,
                          Authors = p.FlattenedAuthors,
@@ -81,7 +87,8 @@ namespace NuGetGallery {
                      });
         }
 
-        private static DateTime GetPublishedDate(Package package) {
+        private static DateTime GetPublishedDate(Package package)
+        {
             return package.Listed ? package.Published : magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions;
         }
     }

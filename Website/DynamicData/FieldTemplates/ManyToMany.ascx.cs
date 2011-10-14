@@ -2,18 +2,23 @@
 using System.ComponentModel;
 using System.Web.UI;
 
-namespace DynamicDataEFCodeFirst {
-    public partial class ManyToManyField : System.Web.DynamicData.FieldTemplateUserControl {
-        protected override void OnDataBinding(EventArgs e) {
+namespace DynamicDataEFCodeFirst
+{
+    public partial class ManyToManyField : System.Web.DynamicData.FieldTemplateUserControl
+    {
+        protected override void OnDataBinding(EventArgs e)
+        {
             base.OnDataBinding(e);
 
             object entity;
             ICustomTypeDescriptor rowDescriptor = Row as ICustomTypeDescriptor;
-            if (rowDescriptor != null) {
+            if (rowDescriptor != null)
+            {
                 // Get the real entity from the wrapper
                 entity = rowDescriptor.GetPropertyOwner(null);
             }
-            else {
+            else
+            {
                 entity = Row;
             }
 
@@ -25,8 +30,10 @@ namespace DynamicDataEFCodeFirst {
             Repeater1.DataBind();
         }
 
-        public override Control DataControl {
-            get {
+        public override Control DataControl
+        {
+            get
+            {
                 return Repeater1;
             }
         }

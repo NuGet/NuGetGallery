@@ -3,24 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
-namespace NuGetGallery {
-    public partial class AuthenticationController : Controller {
+namespace NuGetGallery
+{
+    public partial class AuthenticationController : Controller
+    {
         readonly IFormsAuthenticationService formsAuthSvc;
         readonly IUserService userSvc;
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthSvc,
-            IUserService userSvc) {
+            IUserService userSvc)
+        {
             this.formsAuthSvc = formsAuthSvc;
             this.userSvc = userSvc;
         }
 
-        public virtual ActionResult LogOn() {
+        public virtual ActionResult LogOn()
+        {
             return View();
         }
 
         [HttpPost]
-        public virtual ActionResult LogOn(SignInRequest request, string returnUrl) {
+        public virtual ActionResult LogOn(SignInRequest request, string returnUrl)
+        {
             // TODO: improve the styling of the validation summary
             // TODO: modify the Object.cshtml partial to make the first text box autofocus, or use additional metadata
 
@@ -32,7 +37,8 @@ namespace NuGetGallery {
                 request.UserNameOrEmail,
                 request.Password);
 
-            if (user == null) {
+            if (user == null)
+            {
                 ModelState.AddModelError(
                     String.Empty,
                     Strings.UserNotFound);
@@ -40,13 +46,15 @@ namespace NuGetGallery {
                 return View();
             }
 
-            if (!user.Confirmed) {
+            if (!user.Confirmed)
+            {
                 ViewBag.ConfirmationRequired = true;
                 return View();
             }
 
             IEnumerable<string> roles = null;
-            if (user.Roles.AnySafe()) {
+            if (user.Roles.AnySafe())
+            {
                 roles = user.Roles.Select(r => r.Name);
             }
 
@@ -58,7 +66,8 @@ namespace NuGetGallery {
             return SafeRedirect(returnUrl);
         }
 
-        public virtual ActionResult LogOff(string returnUrl) {
+        public virtual ActionResult LogOff(string returnUrl)
+        {
             // TODO: this should really be a POST
 
             formsAuthSvc.SignOut();
@@ -67,16 +76,19 @@ namespace NuGetGallery {
         }
 
         [NonAction]
-        public virtual ActionResult SafeRedirect(string returnUrl) {
+        public virtual ActionResult SafeRedirect(string returnUrl)
+        {
             if (!string.IsNullOrWhiteSpace(returnUrl)
                 && Url.IsLocalUrl(returnUrl)
                 && returnUrl.Length > 1
                 && returnUrl.StartsWith("/")
                 && !returnUrl.StartsWith("//")
-                && !returnUrl.StartsWith("/\\")) {
+                && !returnUrl.StartsWith("/\\"))
+            {
                 return Redirect(returnUrl);
             }
-            else {
+            else
+            {
                 return Redirect(Url.Home());
             }
         }

@@ -1,15 +1,20 @@
 ﻿using System;
 using NuGet;
 
-namespace NuGetGallery {
-    public class DependencyViewModel {
+namespace NuGetGallery
+{
+    public class DependencyViewModel
+    {
         public DependencyViewModel(PackageDependency dependency)
-            : this(dependency.Id, dependency.VersionRange) {
+            : this(dependency.Id, dependency.VersionRange)
+        {
         }
 
-        public DependencyViewModel(string id, string versionSpec) {
+        public DependencyViewModel(string id, string versionSpec)
+        {
             Id = id;
-            if (!String.IsNullOrEmpty(versionSpec)) {
+            if (!String.IsNullOrEmpty(versionSpec))
+            {
                 VersionSpec = VersionUtility.PrettyPrint(VersionUtility.ParseVersionSpec(versionSpec));
             }
         }

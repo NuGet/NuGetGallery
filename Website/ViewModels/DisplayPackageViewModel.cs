@@ -1,16 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace NuGetGallery {
-    public class DisplayPackageViewModel : ListPackageItemViewModel {
+namespace NuGetGallery
+{
+    public class DisplayPackageViewModel : ListPackageItemViewModel
+    {
         public DisplayPackageViewModel(Package package)
-            : this(package, false) {
+            : this(package, false)
+        {
         }
 
         public DisplayPackageViewModel(Package package, bool isVersionHistory)
-            : base(package) {
+            : base(package)
+        {
 
-            if (!isVersionHistory) {
+            if (!isVersionHistory)
+            {
                 Dependencies = package.Dependencies.Select(d => new DependencyViewModel(d));
                 PackageVersions = from p in package.PackageRegistration.Packages
                                   orderby p.Version descending

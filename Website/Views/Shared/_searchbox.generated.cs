@@ -11,24 +11,8 @@
 
 namespace NuGetGallery.Views.Shared
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using System.Web.Helpers;
-    using System.Web.Mvc;
-    using System.Web.Mvc.Ajax;
-    using System.Web.Mvc.Html;
-    using System.Web.Routing;
-    using System.Web.Security;
-    using System.Web.UI;
-    using System.Web.WebPages;
-    using Microsoft.Web.Helpers;
     using NuGetGallery;
-    
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/_searchbox.cshtml")]
     public class _searchbox : System.Web.Mvc.WebViewPage<dynamic>
@@ -38,42 +22,42 @@ namespace NuGetGallery.Views.Shared
         }
         public override void Execute()
         {
-WriteLiteral("<form id=\"search-form\" action=\"");
-
-
-            
-            #line 1 "..\..\Views\Shared\_searchbox.cshtml"
-                          Write(Url.PackageList());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" method=\"get\">\r\n    <div id=\"search\">\r\n        <div>\r\n            <input type=\"t" +
-"ext\" name=\"q\" id=\"searchTerm\" value=\"");
-
-
-            
-            #line 4 "..\..\Views\Shared\_searchbox.cshtml"
-                                                           Write(ViewBag.SearchTerm ?? "Search Packages");
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" />\r\n        </div>\r\n        ");
+            WriteLiteral("<form id=\"search-form\" action=\"");
 
 
 
-WriteLiteral("\r\n        <input type=\"hidden\" name=\"sortOrder\" value=\"");
+#line 1 "..\..\Views\Shared\_searchbox.cshtml"
+            Write(Url.PackageList());
 
 
-            
-            #line 7 "..\..\Views\Shared\_searchbox.cshtml"
-                                                Write(Const.DefaultPackageListSortOrder);
+#line default
+#line hidden
+            WriteLiteral("\" method=\"get\">\r\n    <div id=\"search\">\r\n        <div>\r\n            <input type=\"t" +
+            "ext\" name=\"q\" id=\"searchTerm\" value=\"");
 
-            
-            #line default
-            #line hidden
-WriteLiteral("\" />\r\n        <input type=\"submit\" value=\" \"/>\r\n    </div>\r\n</form>");
+
+
+#line 4 "..\..\Views\Shared\_searchbox.cshtml"
+            Write(ViewBag.SearchTerm ?? "Search Packages");
+
+
+#line default
+#line hidden
+            WriteLiteral("\" />\r\n        </div>\r\n        ");
+
+
+
+            WriteLiteral("\r\n        <input type=\"hidden\" name=\"sortOrder\" value=\"");
+
+
+
+#line 7 "..\..\Views\Shared\_searchbox.cshtml"
+            Write(Const.DefaultPackageListSortOrder);
+
+
+#line default
+#line hidden
+            WriteLiteral("\" />\r\n        <input type=\"submit\" value=\" \"/>\r\n    </div>\r\n</form>");
 
 
         }

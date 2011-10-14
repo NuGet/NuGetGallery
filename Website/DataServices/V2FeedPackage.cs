@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Data.Services.Common;
 
-namespace NuGetGallery {
+namespace NuGetGallery
+{
     [HasStream]
     [DataServiceKey("Id", "Version")]
     [EntityPropertyMapping("Id", SyndicationItemProperty.Title, SyndicationTextContentKind.Plaintext, keepInContent: false)]
     [EntityPropertyMapping("Authors", SyndicationItemProperty.AuthorName, SyndicationTextContentKind.Plaintext, keepInContent: false)]
     [EntityPropertyMapping("LastUpdated", SyndicationItemProperty.Updated, SyndicationTextContentKind.Plaintext, keepInContent: false)]
     [EntityPropertyMapping("Summary", SyndicationItemProperty.Summary, SyndicationTextContentKind.Plaintext, keepInContent: false)]
-    public class V2FeedPackage {
+    public class V2FeedPackage
+    {
         public string Id { get; set; }
         public string Version { get; set; }
 
