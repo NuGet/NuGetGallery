@@ -3,6 +3,7 @@ namespace NuGetGallery
 {
     public static class Const
     {
+        public const string AdminRoleName = "Admin";
         public const int MaxEmailSubjectLength = 255;
         public const string PackageContentType = "application/zip";
         public const string PackageFileExtension = ".nupkg";
