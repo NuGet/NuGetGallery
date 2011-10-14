@@ -3,12 +3,8 @@ using System.Data.Services;
 using System.Data.Services.Common;
 using System.Data.Services.Providers;
 using System.IO;
-using System.Linq;
 using System.ServiceModel;
-using System.ServiceModel.Web;
-using System.Web;
 using System.Web.Mvc;
-using System.Web.Routing;
 
 namespace NuGetGallery
 {
@@ -62,18 +58,10 @@ namespace NuGetGallery
             throw new NotSupportedException();
         }
 
-        public Uri GetReadStreamUri(
+        public abstract Uri GetReadStreamUri(
             object entity,
-            DataServiceOperationContext operationContext)
-        {
-            var package = (V1FeedPackage)entity;
-            var httpContext = new HttpContextWrapper(HttpContext.Current);
-            var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
+            DataServiceOperationContext operationContext);
 
-            string url = urlHelper.PackageDownload(package.Id, package.Version);
-
-            return new Uri(url, UriKind.Absolute);
-        }
 
         public string GetStreamContentType(
             object entity,
@@ -119,8 +107,5 @@ namespace NuGetGallery
 
             return null;
         }
-
-        [WebGet]
-        public abstract IQueryable<VxPackage> Search(string searchTerm, string targetFramework);
     }
 }

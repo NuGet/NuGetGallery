@@ -39,7 +39,7 @@ namespace NuGetGallery
                          PackageHashAlgorithm = p.HashAlgorithm,
                          PackageSize = p.PackageFileSize,
                          ProjectUrl = p.ProjectUrl,
-                         Published = GetPublishedDate(p),
+                         Published = p.Listed ? p.Published : magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions,
                          ReportAbuseUrl = "http://localhost",
                          RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
                          Summary = p.Summary,
@@ -79,17 +79,12 @@ namespace NuGetGallery
                          ProjectUrl = p.ProjectUrl,
                          ReportAbuseUrl = "http://localhost",
                          RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
-                         Published = GetPublishedDate(p),
+                         Published = p.Listed ? p.Published : magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions,
                          Summary = p.Summary,
                          Tags = p.Tags,
                          Title = p.Title,
                          VersionDownloadCount = p.DownloadStatistics.Count,
                      });
-        }
-
-        private static DateTime GetPublishedDate(Package package)
-        {
-            return package.Listed ? package.Published : magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions;
         }
     }
 }
