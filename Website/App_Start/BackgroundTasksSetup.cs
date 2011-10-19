@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Web;
 using NuGetGallery.Jobs;
 using WebBackgrounder;
 
@@ -8,6 +9,7 @@ namespace NuGetGallery
 {
     public static class BackgroundTasksSetup
     {
+        static readonly HttpApplication _elmahHttpApplication = new ElmahSignalScopeHttpApplication();
         static JobManager _jobManager = CreateJobManager();
 
         private static JobManager CreateJobManager()
@@ -17,7 +19,9 @@ namespace NuGetGallery
             };
 
             var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext()));
-            return new JobManager(jobs, jobCoordinator);
+            var manager = new JobManager(jobs, jobCoordinator);
+            manager.Fail(e => Elmah.ErrorSignal.Get(_elmahHttpApplication).Raise(e));
+            return manager;
         }
 
         public static void Start()
@@ -28,6 +32,16 @@ namespace NuGetGallery
         public static void Stop()
         {
             _jobManager.Dispose();
+            _elmahHttpApplication.Dispose();
+        }
+
+        /// <summary>
+        /// Elmah requires an HttpApplication for its API. It uses it to determine when 
+        /// to dispose of its signal instance. At this point, we don't have an HttpApplication 
+        /// so I'll just create a stub one and control its lifecycle here.
+        /// </summary>
+        private class ElmahSignalScopeHttpApplication : HttpApplication
+        {
         }
     }
 }
