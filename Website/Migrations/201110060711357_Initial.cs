@@ -53,7 +53,7 @@ namespace NuGetGallery.Migrations
                     {
                         Key = c.Int(nullable: false, identity: true),
                         Id = c.String(),
-                        DownloadCount = c.Int(nullable: false),
+                        DownloadCount = c.Int(nullable: false, defaultValue: 0),
                     })
                 .PrimaryKey(t => t.Key);
 
@@ -66,7 +66,7 @@ namespace NuGetGallery.Migrations
                         Copyright = c.String(),
                         Created = c.DateTime(nullable: false),
                         Description = c.String(),
-                        DownloadCount = c.Int(nullable: false),
+                        DownloadCount = c.Int(nullable: false, defaultValue: 0),
                         ExternalPackageUrl = c.String(),
                         HashAlgorithm = c.String(),
                         Hash = c.String(),
