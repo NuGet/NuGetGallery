@@ -17,11 +17,20 @@ namespace NuGetGallery.Migrations
         protected override void Seed(MigrationsContext context)
         {
             var roles = context.Set<Role>();
-            var adminRole = roles.Where(x => x.Name == Const.AdminRoleName).SingleOrDefault();
-            if (adminRole == null)
+            if (!roles.Any(x => x.Name == Const.AdminRoleName))
             {
-                adminRole = new Role() { Name = Const.AdminRoleName };
-                roles.Add(adminRole);
+                roles.Add(new Role() { Name = Const.AdminRoleName });
+                context.SaveChanges();
+            }
+
+            var gallerySettings = context.Set<GallerySetting>();
+            if (!gallerySettings.Any())
+            {
+                gallerySettings.Add(new GallerySetting
+                {
+                    SmtpHost = null,
+                    SmtpPort = null
+                });
                 context.SaveChanges();
             }
         }

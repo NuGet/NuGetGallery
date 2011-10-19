@@ -4,10 +4,11 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using MvcMiniProfiler.Data;
+using WebBackgrounder;
 
 namespace NuGetGallery
 {
-    public class EntitiesContext : DbContext
+    public class EntitiesContext : DbContext, IWorkItemsContext
     {
         public EntitiesContext()
             : base(GetConnection("NuGetGallery"), contextOwnsConnection: true)
@@ -92,6 +93,19 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageDependency>()
                 .HasKey(pd => pd.Key);
+
+            modelBuilder.Entity<GallerySetting>()
+                .HasKey(pd => pd.Key);
+
+            modelBuilder.Entity<WorkItem>()
+                .HasKey(pd => pd.Id);
+        }
+
+
+        public IDbSet<WorkItem> WorkItems
+        {
+            get;
+            set;
         }
 
         private static DbConnection GetConnection(string connectionStringName) {
