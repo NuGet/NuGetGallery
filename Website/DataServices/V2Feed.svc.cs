@@ -19,8 +19,8 @@ namespace NuGetGallery
             };
         }
 
-        
-        public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool allowPrereleasePackages)
+        [WebGet]
+        public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
             // Filter out unlisted packages when searching. We will return it when a generic "GetPackages" request comes and filter it on the client.
             // Since this is used by old clients, we'll always filter out prerelease packages.
