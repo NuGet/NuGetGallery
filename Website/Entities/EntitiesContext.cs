@@ -1,9 +1,10 @@
 ﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using WebBackgrounder;
 
 namespace NuGetGallery
 {
-    public class EntitiesContext : DbContext
+    public class EntitiesContext : DbContext, IWorkItemsContext
     {
         public EntitiesContext()
             : base("NuGetGallery")
@@ -83,6 +84,19 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageDependency>()
                 .HasKey(pd => pd.Key);
+
+            modelBuilder.Entity<GallerySetting>()
+                .HasKey(pd => pd.Key);
+
+            modelBuilder.Entity<WorkItem>()
+                .HasKey(pd => pd.Id);
+        }
+
+
+        public IDbSet<WorkItem> WorkItems
+        {
+            get;
+            set;
         }
     }
 }

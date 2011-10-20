@@ -126,9 +126,17 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.EnterpriseServices" />
-    <Reference Include="WebActivator, Version=1.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="WebActivator, Version=1.4.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WebActivator.1.4.3\lib\net40\WebActivator.dll</HintPath>
+      <HintPath>..\packages\WebActivator.1.4.4\lib\net40\WebActivator.dll</HintPath>
+    </Reference>
+    <Reference Include="WebBackgrounder, Version=0.0.1.4, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebBackgrounder.0.0.1.4\lib\net40\WebBackgrounder.dll</HintPath>
+    </Reference>
+    <Reference Include="WebBackgrounder.EntityFramework, Version=0.0.1.5, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebBackgrounder.EntityFramework.0.0.1.5\lib\net40\WebBackgrounder.EntityFramework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +144,7 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="App_Start\BackgroundTasksSetup.cs" />
     <Compile Include="App_Start\PackageStoreType.cs" />
     <Compile Include="DataServices\V1FeedPackage.cs">
       <SubType>Code</SubType>
@@ -158,10 +167,13 @@
     <Compile Include="DataServices\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="HelpersController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Infrastructure\HintAttribute.cs" />
+    <Compile Include="Infrastructure\Jobs\WorkItemCleanupJob.cs" />
+    <Compile Include="Infrastructure\Jobs\UpdateStatisticsJob.cs" />
     <Compile Include="Migrations\201110060711357_Initial.cs" />
     <Compile Include="Migrations\201110060711357_Initial.Designer.cs">
       <DependentUpon>201110060711357_Initial.cs</DependentUpon>
@@ -169,6 +181,10 @@
     <Compile Include="Migrations\201110102157002_PrereleaseChanges.cs" />
     <Compile Include="Migrations\201110102157002_PrereleaseChanges.Designer.cs">
       <DependentUpon>201110102157002_PrereleaseChanges.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201110180052097_GallerySettings.cs" />
+    <Compile Include="Migrations\201110180052097_GallerySettings.Designer.cs">
+      <DependentUpon>201110180052097_GallerySettings.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
