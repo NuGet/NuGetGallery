@@ -9,9 +9,19 @@ namespace NuGetGallery
             Directory.CreateDirectory(path);
         }
 
+        public void DeleteFile(string path)
+        {
+            File.Delete(path);
+        }
+
         public bool DirectoryExists(string path)
         {
             return Directory.Exists(path);
+        }
+
+        public bool FileExists(string path)
+        {
+            return File.Exists(path);
         }
 
         public Stream OpenWrite(string path)

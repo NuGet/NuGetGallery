@@ -301,7 +301,7 @@ namespace NuGetGallery
                                              Request.UserHostAddress,
                                              Request.UserAgent);
 
-            return packageFileSvc.CreateDownloadPackageResult(package);
+            return packageFileSvc.CreateDownloadPackageActionResult(package);
         }
 
         [Authorize]

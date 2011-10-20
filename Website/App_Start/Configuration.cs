@@ -90,6 +90,16 @@ namespace NuGetGallery
             }
         }
 
+        public string FileStorageDirectory
+        {
+            get
+            {
+                return ReadConfiguration<string>(
+                    "FileStorageDirectory",
+                    (value) => value ?? HttpContext.Current.Server.MapPath("~/App_Data/Files"));
+            }
+        }
+
         public MailAddress GalleryOwnerEmailAddress
         {
             get
@@ -97,16 +107,6 @@ namespace NuGetGallery
                 return ReadConfiguration<MailAddress>(
                     "GalleryOwnerEmail",
                     (value) => new MailAddress(value));
-            }
-        }
-
-        public string PackageFileDirectory
-        {
-            get
-            {
-                return ReadConfiguration<string>(
-                    "PackageFileDirectory",
-                    (value) => value ?? HttpContext.Current.Server.MapPath("~/App_Data/Packages"));
             }
         }
 

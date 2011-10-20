@@ -173,11 +173,14 @@
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
-    <Compile Include="Services\CloudBlobPackageFileService.cs" />
+    <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
+    <Compile Include="Services\FileSystemFileStorageService.cs" />
     <Compile Include="Services\ICloudBlob.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
+    <Compile Include="Services\IFileStorageService.cs" />
+    <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">
@@ -473,7 +476,6 @@
     <Compile Include="Services\CryptographyService.cs" />
     <Compile Include="Entities\EntityException.cs" />
     <Compile Include="ExtensionMethods.cs" />
-    <Compile Include="Services\FileSystemPackageFileService.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
     <Compile Include="App_Start\IConfiguration.cs" />
     <Compile Include="Services\ICryptographyService.cs" />

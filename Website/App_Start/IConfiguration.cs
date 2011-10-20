@@ -9,7 +9,7 @@ namespace NuGetGallery
         string AzureStorageBlobUrl { get; }
         bool ConfirmEmailAddresses { get; }
         MailAddress GalleryOwnerEmailAddress { get; }
-        string PackageFileDirectory { get; }
+        string FileStorageDirectory { get; }
         PackageStoreType PackageStoreType { get; }
         string SmtpHost { get; }
         string SmtpPassword { get; }

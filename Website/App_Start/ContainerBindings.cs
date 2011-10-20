@@ -115,10 +115,10 @@ namespace NuGetGallery
                 case PackageStoreType.NotSpecified:
                     Bind<IFileSystemService>()
                         .To<FileSystemService>()
-                        .InRequestScope();
-                    Bind<IPackageFileService>()
-                        .To<FileSystemPackageFileService>()
-                        .InRequestScope();
+                        .InSingletonScope();
+                    Bind<IFileStorageService>()
+                        .To<FileSystemFileStorageService>()
+                        .InSingletonScope();
                     break;
                 case PackageStoreType.AzureStorageBlob:
                     Bind<ICloudBlobClient>()
@@ -126,11 +126,15 @@ namespace NuGetGallery
                             new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
                             new StorageCredentialsAccountAndKey(configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
                         .InSingletonScope();
-                    Bind<IPackageFileService>()
-                        .To<CloudBlobPackageFileService>()
+                    Bind<IFileStorageService>()
+                        .To<CloudBlobFileStorageService>()
                         .InSingletonScope();
                     break;
             }
+
+            Bind<IPackageFileService>()
+                .To<PackageFileService>()
+                .InRequestScope();
         }
     }
 }
