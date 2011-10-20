@@ -15,7 +15,7 @@ namespace NuGetGallery
         private static JobManager CreateJobManager()
         {
             var jobs = new IJob[] { 
-                new UpdateStatisticsJob(TimeSpan.FromSeconds(10), new EntitiesContext())
+                new UpdateStatisticsJob(TimeSpan.FromSeconds(10), () => new EntitiesContext())
             };
 
             var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext()));

@@ -5,21 +5,26 @@ using WebBackgrounder;
 
 namespace NuGetGallery.Jobs
 {
-    public class UpdateStatisticsJob : Job, IDisposable
+    public class UpdateStatisticsJob : Job
     {
-        private DbContext _context;
+        private Func<DbContext> _contextThunk;
 
-        public UpdateStatisticsJob(TimeSpan interval, DbContext context)
+        public UpdateStatisticsJob(TimeSpan interval, Func<DbContext> contextThunk)
             : base("Update Package Download Statistics", interval)
         {
-            if (context == null)
+            if (contextThunk == null)
             {
                 throw new ArgumentNullException("context");
             }
-            _context = context;
+            _contextThunk = contextThunk;
         }
 
         public override Task Execute()
+        {
+            return new Task(UpdateStats);
+        }
+
+        private void UpdateStats()
         {
             const string sql = @"
 DECLARE @mostRecentStatisticsId int
@@ -75,13 +80,10 @@ FROM PackageRegistrations pr INNER JOIN
     GROUP BY PackageRegistrationKey
 ) as totals
 ON pr.[Key] = totals.PackageRegistrationKey";
-            return new Task(() => _context.Database.ExecuteSqlCommand(sql));
-        }
-
-        public void Dispose()
-        {
-
-            _context.Dispose();
+            using (var context = _contextThunk())
+            {
+                context.Database.ExecuteSqlCommand(sql);
+            }
         }
     }
 }
