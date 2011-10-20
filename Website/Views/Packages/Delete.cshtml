@@ -1,68 +1,81 @@
 ﻿@model DeletePackageViewModel
 @{
     ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-@section LeftNav {
-    <img src="@Links.Content.Images.contribGraphic_png" alt="Delete" />
-}    
+<h1 class="page-heading">Delete Package @Model.Package.Title?</h1>
 
-@section ContentHeader {            
-    <h2>Are you sure you want to delete Package @Model.Package.Title?</h2>
-}
-
-<div>
-    @Html.Partial("_PackageDetailsTable", Model.Package)
-                        
-    <p class="description">
-        This package was downloaded @Model.Package.DownloadCount @Model.Package.DownloadCount.CardinalityLabel("time", "times")
+@if (!Model.DependentPackages.Any()) {
+    <p>
+        No packages <em>in this gallery</em> depend on this package. However, NuGet supports a workflow 
+        in which <a href="http://docs.nuget.org/docs/workflows/using-nuget-without-committing-packages">
+        packages are not checked into source control</a>, but are instead restored from the online gallery 
+        when the solution is compiled. <strong>Deleting a package could break these folks.</strong>
     </p>
-
-    if (!Model.DependentPackages.Any()) {
-        <p class="description">
-            No packages <em>in this gallery</em> depend on this package. However, NuGet supports a workflow 
-            in which <a href="http://docs.nuget.org/docs/workflows/using-nuget-without-committing-packages">
-            packages are not checked into source control</a>, but are instead restored from the online gallery 
-            when the solution is compiled. <strong>Deleting a package could break these folks.</strong>
-        </p>
-    }
-    else {
-        <h4 class="warning">
+}
+else {
+    <div class="error message">
+        <p>
             Warning! The following @Model.DependentPackages.Count().CardinalityLabel("package depends", "packages depend") 
             on @Model.Package.Id.
-        </h4>
-        <ul class="dependents">
+        </p>
+        <ul>
             @foreach (var dependent in Model.DependentPackages) {
-                <li><a href="@Url.Package(@dependent)">@dependent.Id</a> @dependent.Version</li>
+                <li><a href="@Url.Package(@dependent)">@dependent.Id @dependent.Version</a></li>
             }
         </ul>
-        <p class="description">
+        <p>
             Also, NuGet supports a workflow in which 
             <a href="http://docs.nuget.org/docs/workflows/using-nuget-without-committing-packages">
             packages are not checked into source control</a>, but are instead restored from the online gallery 
             when the solution is compiled. <strong>Deleting a package would break these folks.</strong>
         </p>
-    }
-    if (Model.MayDelete) {
-        <p class="description">
-            It looks like your package is relatively safe to delete, despite the risks 
-            mentioned earlier. <strong>Do you still want to delete the package?</strong>
-        </p>
-    }
+    </div>
+    
+}
 
-    @if (Model.MayDelete) {
-        <form method="post" action="@Url.Current()">
+
+<h2>@Model.Package.Title @Model.Package.Version</h2>
+
+<h3>Download Count</h3>
+<p>@Model.Package.DownloadCount</p>
+
+<h3>Owners</h3>
+@ViewHelpers.OwnersGravatar(Model.Package.Owners, 32, Url)
+
+
+<h3>Authors</h3>
+<ul class="authors">
+    @foreach (var author in Model.Package.Authors) {
+    <li><a href="@Url.Search(author.Name)" title="Search for @author.Name">@author.Name</a></li>
+    }
+</ul>
+
+
+@if (@Model.Package.Tags.AnySafe()) {
+<h3>Tags</h3>
+<ul class="tags">
+    @foreach (var tag in Model.Package.Tags) {
+        <li><a href="@Url.Search(tag)" title="Search for @tag">@tag</a></li>
+    }
+</ul>
+}
+
+<h3>Confirm Delete</h3>
+@if (Model.MayDelete) {
+    using(Html.BeginForm()){
+        <fieldset class="form">
+            <legend>Delete Package</legend>
             @Html.AntiForgeryToken()
-            <input type="submit" name="confirm" value="Yes, delete the package" /> 
-            <a href="@Url.Package(Model.Package)" class="cancel">No, please go back.</a>
-        </form>
+            <input type="submit" value="Delete" title="Yes, I want to delete @Model.Package.Title @Model.Package.Version" /> 
+            <a href="@Url.Package(Model.Package)" title="No, I do not want to delete @Model.Package.Title @Model.Package.Version. Take me to safety!">Cancel</a>
+        </fieldset>
     }
-    else {
-        <p class="description">
-            <strong>If you absolutely need the package removed from the gallery please 
-            <a href="mailto:nugetgallery@outercurve.org?subject=Please%20Delete%20@(Model.Package.Id)%20@(Model.Package.Version)">
-            contact us</a> with details.</strong>
-        </p>
-    }
-</div>
+}
+else {
+    <p class="message">
+        If you absolutely need the package removed from the gallery please 
+        <a href="mailto:nugetgallery@outercurve.org?subject=Please%20Delete%20@(Model.Package.Id)%20@(Model.Package.Version)">
+        contact us</a> with details.
+    </p>
+}

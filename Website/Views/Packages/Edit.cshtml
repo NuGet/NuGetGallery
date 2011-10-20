@@ -1,31 +1,24 @@
 ﻿@model DisplayPackageViewModel
 @{
     ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-@section LeftNav {
-    <img src="@Links.Content.Images.contribGraphic_png" alt="Edit" />
-}    
 
-@section ContentHeader {            
-    <h2>Edit Package</h2>
+<h1 class="page-heading">Edit @Model.Title Package</h1>
+<p class="message">
+    You may only edit certain package properties listed below. To modify or update any other package properties, <a href="@Url.UploadPackage()">reupload the package</a>.
+</p>
+@using (Html.BeginForm()) {
+    <fieldset class="form">
+        <legend>Edit @Model.Title Package</legend>
+        @Html.AntiForgeryToken()
+        <div class="form-field">
+            @Html.EditorFor(package => package.Listed)
+            <label for="Listed" class="checkbox">
+                List this package in search results.
+            </label>
+        </div>
+        <input type="submit" value="Save" title="Save Changes" />
+        <a class="cancel" href="@Url.Action("DisplayPackage")" title="Cancel Changes and go back to package page.">Cancel</a>
+    </fieldset>
 }
-
-<div>
-    <form method="post" action="@Url.Current()" class="package-form">
-    <p class="note">
-        You may only edit certain package properties listed below. To modify or update any other package properties, <a href="@Url.UploadPackage()">reupload the package</a>.
-    </p>
-    <ul>
-        <li>
-            @Html.EditorFor(package => package.Listed) 
-            @Html.LabelFor(package => package.Listed, "List this package in search results.")
-        </li>
-        <li class="buttons">
-            @Html.AntiForgeryToken()
-            <input type="submit" value="Submit" />
-        </li>
-    </ul>
-    </form>
-</div>

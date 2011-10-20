@@ -5,30 +5,30 @@
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-@section LeftNav {
+@section SideColumn {
     <img src="@Links.Content.Images.contribGraphic_png" alt="Contribute" />
     <p>Submit your package for others to enjoy.</p>
 }    
 
-@section ContentHeader {            
-    <h2>Upload Package</h2>
-    <ul class="right" id="sequence">
-        @ViewHelpers.UploadSequence(1)
-    </ul>
-}
 
-<div id="form">
-    <div id="uploadFileForm" class="selected">
-        <form id="uploadFileSubmissionForm" method="post" action="@Url.Current()" enctype="multipart/form-data">
-            @Html.AntiForgeryToken()
-            @Html.ValidationSummary(true)
-            <aside>
-                <p>Your package file will be uploaded and hosted on the gallery server.</p>
-            </aside>
-            <input type="file" id="PackageFile" name="PackageFile" />
-            <div class="buttons">
-                <input id="uploadFileButton" type="submit" value="Upload &raquo;" singleClickButton="true" />
-            </div>
-        </form>
-    </div>
-</div>
+<h1>Upload a Package</h1>
+
+@ViewHelpers.UploadSequence(1)
+
+
+
+
+@using(Html.BeginForm("UploadPackage", "Packages", FormMethod.Post, new { enctype="multipart/form-data"})){
+    <fieldset class="form">
+        <legend>Upload a Package</legend>
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+        <p>Your package file will be uploaded and hosted on the NuGet Gallary server (NuGet.org).</p>
+        <div class="form-field">
+            <label for="PackageFile">Choose a package...</label>
+            <input type="file" name="PackageFile" />
+        </div>
+
+        <input type="submit" value="Upload" title="Upload the package." />
+    </fieldset>
+}

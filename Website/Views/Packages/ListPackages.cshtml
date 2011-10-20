@@ -2,56 +2,45 @@
 @{
     ViewBag.Tab = "Packages";
 }
-<div id="layout-before-main" class="group">
-    <section id="currentPageToolbar">
-        <div class="zone zone-before-main">
-            <form id="search-filter-form" action="@Url.Current()" method="get">
-                @* TODO: This hidden input hack can go away when we fully restructure the UI*@
-                <input type="hidden" name="q" value="@Model.SearchTerm" />
-                <div id="sort">
-                    <label>Sort</label>
-                    <select name="sortOrder" id="sortOrder">
-                        @ViewHelpers.Option("package-title", "A-Z", Model.SortOrder)
-                        @ViewHelpers.Option("package-download-count", "Popularity", Model.SortOrder)
-                        @ViewHelpers.Option("package-created", "Recent", Model.SortOrder)
-                    </select>
-                </div>
-            </form>
-        </div>
-    </section>
-</div>
 
-<div id="layout-main" class="group">
-    <div id="layout-content" class="group">
-        @if (TempData.ContainsKey("Message")) {
-            <div id="messages">
-                <div class="zone zone-messages">
-                    <div class="message message-Information">@TempData["Message"]</div>
-                </div>
-            </div>
-        }
 
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <section>
-                    <header>
-                        <h2><span>@Model.TotalCount results for </span>Packages</h2>
-                        @if (Model.Items.Count() > 0) {
-                            <span class="displayResults">Displaying results @Model.FirstResultIndex - @Model.LastResultIndex.</span>
-                        }
-                    </header>
-                    <ul>
-                        @foreach (var listPackage in Model.Items) {
-                            <li class="first">
-                                @Html.Partial(MVC.Packages.Views._ListPackage, listPackage)
-                            </li>
-                        }
-                    </ul>
-                    <div id="pagination">
-                        @ViewHelpers.PreviousNextPager(Model.Pager)
-                    </div>
-                </section>
-            </div>
+
+<hgroup class="search">
+    @if (!string.IsNullOrEmpty(Model.SearchTerm)) {
+    <h1>Search for "@Model.SearchTerm" returned @Model.TotalCount packages</h1>
+    }
+    else {
+    <h1>There are @Model.TotalCount packages</h1>
+    }
+    <h2>Displaying results @Model.FirstResultIndex - @Model.LastResultIndex.</h2>
+</hgroup>
+
+@using (Html.BeginForm()) {
+    <fieldset class="form search">
+        <legend>Sort Order</legend>
+        <input type="hidden" name="q" value="@Model.SearchTerm" />
+        <div class="form-field">
+            <label for="sortOrder">Sort By</label>
+            <select name="sortOrder">
+                @ViewHelpers.Option("package-title", "A-Z", Model.SortOrder)
+                @ViewHelpers.Option("package-download-count", "Popularity", Model.SortOrder)
+                @ViewHelpers.Option("package-created", "Recent", Model.SortOrder)
+            </select>
         </div>
-    </div>
-</div>
+    </fieldset>
+}
+
+<ol id="searchResults">
+    @foreach (var package in Model.Items) {
+    <li>
+        @Html.Partial(MVC.Packages.Views._ListPackage, package)
+    </li>
+    }
+</ol>
+
+
+@ViewHelpers.PreviousNextPager(Model.Pager)
+
+
+
+

@@ -1,59 +1,83 @@
 ﻿@model User
 @{
     ViewBag.Tab = "Contribute";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-@section LeftNav {
-    <img src="@Links.Content.Images.contribGraphic_png" alt="The unknown user image" />
-}                
-
-@section ContentHeader {
-    <h2>My Account</h2>
-    @if (TempData.ContainsKey("Message")) {
-        <div id="messages">
-            <div class="zone zone-messages">
-                <div class="message message-Information">@TempData["Message"]</div>
-            </div>
-        </div>
-    }
-}
-<h3>Actions</h3>
-<section class="add-new">
-    <h4><a href="@Url.UploadPackage()">Upload Package</a></h4>
-    <p>
-        Upload and publish your package for other NuGet users to download and enjoy. 
-        You can upload multiple revisions of the same package, as long as the version 
-        is different.
+<h1 class="page-heading">My Account</h1>
+@if (TempData.ContainsKey("Message")) {
+    <p class="message">
+        @TempData["Message"]
     </p>
-</section>
-<section>
-    <h5><a href="@Url.Action(MVC.Users.Packages())">Manage My Contributions</a></h5>
-    <p>Edit contribution details or Remove contributions that you have previously uploaded.</p>
-</section>
-<section>
-    <h5><a href="@Url.Action(MVC.Users.Edit())">Edit Profile</a></h5>
-</section>
-<section>
-    <h5><a href="@Url.Action(MVC.Users.ChangePassword())">Change Password</a></h5>
+}
+
+
+<section id="actions">
+    <h1>Actions</h1>
+    <ul>
+        <li id="uploadPackage">
+            <h2><a href="@Url.UploadPackage()">Upload Package</a></h2>
+            <p>
+                Upload and publish your package for other NuGet users to download and enjoy. 
+                You can upload multiple revisions of the same package, as long as the version 
+                is different.
+            </p>
+        </li>
+        <li id="managePackages">
+            <h2><a href="@Url.Action(MVC.Users.Packages())">Manage My Packages</a></h2>
+            <p>Edit package details or Remove packages that you have previously uploaded.</p>
+        </li>
+        <li id="editProfile">
+            <h2><a href="@Url.Action(MVC.Users.Edit())">Edit Profile</a></h2>
+            <p>Edit your public profile.</p>
+        </li>
+        <li id="changePassword">
+            <h2><a href="@Url.Action(MVC.Users.ChangePassword())">Change Password</a></h2>
+            <p>Change your password.</p>
+        </li>
+    </ul>
 </section>
 
-<section>
-<h3>Access Key</h3>
+
+
+<section id="apiKey">
+<h1>API Key</h1>
     <p>
-        Your access key provides you with a token that identifies you to the gallery. 
+        Your API key provides you with a token that identifies you to the gallery. 
         Keep this a secret. You can always regenerate your key at any time (invaldating 
         previous keys) if your token is accidentally revealed. The 
         <a href="http://nuget.codeplex.com/">NuGet</a> command-line utility allows you to 
         submit a nuget package to the gallery, and you would pass you token like this:
     </p>
-    <p><code>nuget push MyPackage.1.0.nupkg @Model.ApiKey</code></p>
-    <div style="border: 1px solid #ccc;padding:0 15px 15px;width:350px;margin-top:20px;">
-        <h4>Your access key is: </h4>
-        <p id="accessKey">@Model.ApiKey</p>
-        <form Id="generateKeyForm" action="@Url.Action(MVC.Users.GenerateApiKey())" method="post">            
-            @Html.AntiForgeryToken()
-            <input id="generateKeyButton" type="submit" value="Generate New Key" singleClickButton="true" />
-        </form>
+    
+    <div id="generateKey">
+        <h2><a id="tooglePivateData" href="#" title="Show/Hide your API Key">Your API key is: </a></h2>
+        
+        <div id="privateData">
+            <p>@Model.ApiKey</p>
+
+            <fieldset class="form">
+                <legend>Generate New API Key</legend>
+                @using(Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post)){
+                    @Html.AntiForgeryToken()
+                    <input type="submit" value="Generate New API Key" />
+                }
+            </fieldset>
+
+            <h2>Example useage:</h2>
+            <p><code>nuget.exe push MyPackage.1.0.nupkg @Model.ApiKey</code></p>
+        
+        </div>
     </div>
 </section>
+
+
+@section BottomScripts {
+    <script>
+        $(function () {
+            $("#tooglePivateData").click(function () {
+                $("#privateData").slideToggle();
+                return false;
+            });
+        });
+    </script>
+}

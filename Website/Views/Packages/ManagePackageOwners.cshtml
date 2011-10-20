@@ -2,56 +2,47 @@
 @{
     ViewBag.Tab = "Packages";
 }
-<div id="layout-main" class="group">
-    <div id="layout-content" class="group">
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <section>
-                    <header>
-                        <h2>Manage Owners for Package "@Model.Title"</h2>
-                        <div class="message message-Error validation-summary-errors" data-bind="text: message, visible: message"></div>
-                    </header>
-                    <div id="form">
-                        <div>
-                            <label>Current Owners</label>
-                            <ul id="package-owner-list" data-bind="foreach: owners">
-                                <li>
-                                    <span data-bind="text: name"></span>
-                                    <a href="#" class="delete" data-bind="visible: !current, click: remove">Remove</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div>
-                        <form action="@Url.Current()" id="form" method="post">
-                            <div>
-                                <label for="newOwnerUserName">Add New Owner</label>
-                                <p>
-                                    Enter an owner's username to add them as a package owner.
-                                </p>
-                                <aside style="width: 357px !important;">
-                                    <p>
-                                        <strong>NOTE:</strong> All package owners have full control over their packages,
-                                        including the ability to remove other users as owners.</p>
-                                </aside>
-                                <input type="text" id="newOwnerUserName" data-bind="value: newOwner().name" class="long" />
-                            </div>
-                            <div class="buttons">   
-                                <input type="submit" value="Add" data-bind="click: addOwner" />
-                            </div>
-                        </form>
-                    </div>
-                </section>
-            </div>
-    </div>
-</div>
-</div> 
-<script src="@Url.Content("~/Scripts/knockout-latest.js")" type="text/javascript"></script>
-<script src="@Url.Content("~/json/JsonApi?json")" type="text/javascript"></script>
-<script type="text/javascript">
-    $(function() {
+
+
+<h1 class="page-heading">Manage Owners for Package @Model.Title</h1>
+<div class="error message" data-bind="text: message, visible: message"></div>
+
+<h2>Current Owners</h2>
+<ul id="package-owner-list" data-bind="foreach: owners">
+    <li>
+        <span data-bind="text: name"></span>
+        <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current, click: remove">Remove</a>
+    </li>
+</ul>
+
+<h2>Add Owner</h2>
+<p>
+    Enter an owner's username to add them as a package owner.
+</p>
+ <p class="message">
+    NOTE: All package owners have full control over their packages,
+    including the ability to remove other users as owners.
+</p>
+@using (Html.BeginForm()) {
+    <fieldset class="form">
+        <legend>Add Owner</legend>
+        <div class="form-field">
+            <label for="newOwnerUserName">Username</label>
+            <input type="text" name="newOwnerUserName" data-bind="value: newOwner().name" />
+        </div>
+        <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: addOwner" />
+    </fieldset>
+}
+
+
+
+@section bottomScripts {
+<script src="@Url.Content("~/Scripts/knockout-latest.js")"></script>
+<script src="@Url.Content("~/json/JsonApi?json")"></script>
+<script>
+    $(function () {
         //TODO Move this to its own script file when we set up QUnit tests
-        var failHandler = function() {
+        var failHandler = function () {
             alert('An unexpected error occurred!');
         };
 
@@ -60,12 +51,12 @@
             owners: ko.observableArray([]),
             newOwner: ko.observable(new Owner(null)),
             message: ko.observable(''),
-            addOwner: function() {
+            addOwner: function () {
                 var ownerInputModel = viewModel.newOwner().toJS();
                 ownerInputModel.id = viewModel.package.id;
-                
+
                 $mvc.JsonApi.AddPackageOwner(ownerInputModel)
-                    .done(function(data) {
+                    .done(function (data) {
                         if (data.success) {
                             viewModel.newOwner().name(data.name);
                             viewModel.owners.push(viewModel.newOwner());
@@ -78,10 +69,10 @@
                     .fail(failHandler);
             },
 
-            removeOwner: function(item) {
+            removeOwner: function (item) {
                 var package = viewModel.package;
                 $mvc.JsonApi.RemovePackageOwner({ id: package.id, version: package.version, username: item.name() })
-                    .done(function(data) {
+                    .done(function (data) {
                         if (data.success) {
                             viewModel.owners.remove(item);
                         }
@@ -95,8 +86,8 @@
 
         // Load initial owners.
         $mvc.JsonApi.GetPackageOwners(viewModel.package)
-        .done(function(data) {
-            viewModel.owners($.map(data, function(item) { return new Owner(item) }));
+        .done(function (data) {
+            viewModel.owners($.map(data, function (item) { return new Owner(item) }));
         })
         .fail(failHandler);
 
@@ -107,12 +98,14 @@
 
             this.name = ko.observable(item.name);
             this.current = item.current;
-            this.remove = function() {
+            this.remove = function () {
                 viewModel.removeOwner(this);
             };
-            this.toJS = function() {
+            this.toJS = function () {
                 return { username: this.name() };
             };
         }
     });
 </script>
+}
+

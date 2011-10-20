@@ -5,80 +5,83 @@
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-@section LeftNav {
+@section SideColumn {
     <img src="@Links.Content.Images.contribGraphic_png" alt="Contribution image" />
     <p>Submit your package for others to enjoy.</p>
 }    
-
-@section ContentHeader {            
-    <h2>Submit Package</h2>
-    <ul class="right" id="sequence">
-        @ViewHelpers.UploadSequence(2)
-    </ul>
-}
    
-<form method="post" action="@Url.Current()" class="package-form">
-    <h3>Verify the details of your package</h3>
-    <p class="long note">
-        These package details are read from the package file and cannot be changed. 
-        If you have a newer version of your package that you’d like to submit in place 
-        of this one, <a href="@Url.UploadPackage()">click here to add a new 
-        contribution</a>. Ensure that the new version has the same Package ID, but a 
-        new Version number.
-    </p>
-    <ul>
+<h1>Verify Details &amp; Submit</h1>
+@ViewHelpers.UploadSequence(2)
+
+
+<h2>Verify Details</h2>
+<p class="long note">
+    These package details are read from the package file and cannot be changed. 
+    If you have a newer version of your package that you’d like to submit in place 
+    of this one, <a href="@Url.UploadPackage()">click here to add a new 
+    contribution</a>. Ensure that the new version has the same Package ID, but a 
+    new Version number.
+</p>
+
+<ul id="packageDetails">
+    <li>
+        <h3>Package ID</h3>
+        <p>@Model.Id</p>
+    </li>
+    <li>
+        <h3>Version</h3>
+        <p>@Model.Version</p>
+    </li>
+    @if (!String.IsNullOrEmpty(Model.Title)) {
         <li>
-            <strong>Package ID</strong>
-            <p>@Model.Id</p>
-        </li>
-        <li>
-            <strong>Version</strong>
-            <p>@Model.Version</p>
-        </li>
-        @if (!String.IsNullOrEmpty(Model.Title)) {
-        <li>
-            <strong>Title</strong>
+            <h3>Title</h3>
             <p>@Model.Title</p>
         </li>
-        }
+    }
+    <li>
+        <h3>Description</h3>
+        <p>@Model.Description</p>
+    </li>
+    <li>
+        <h3>Authors</h3>
+        <p>@Model.Authors</p>
+    </li>
+    @if (!String.IsNullOrEmpty(Model.Tags)) {
         <li>
-            <strong>Description</strong>
-            <p>@Model.Description</p>
-        </li>
-        <li>
-            <strong>Authors</strong>
-            <p>@Model.Authors</p>
-        </li>
-        @if (Model.RequiresLicenseAcceptance) {
-        <li>
-            Requires License Acceptance
-        </li>
-        }
-        @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
-        <li>
-            <strong>License URL</strong>
-            <p>@Model.LicenseUrl</p>
-        </li>
-        }
-        @if (!String.IsNullOrEmpty(Model.Tags)) {
-        <li>
-            <strong>Tags</strong>
+            <h3>Tags</h3>
             <p>@Model.Tags</p>
         </li>
-        }
-        @if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
+    }
+    @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
         <li>
-            <strong>Project URL</strong>
-            <p>@Model.ProjectUrl</p>
+            <h3>License URL</h3>
+            <p>
+                @if (Model.RequiresLicenseAcceptance) {<text>Acceptance of license required: </text>}
+                <a href="@Model.LicenseUrl" target="_blank">@Model.LicenseUrl</a>
+                
+            </p>
         </li>
-        }
+    }
+    @if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
         <li>
-            @Html.EditorFor(package => package.Listed)
-            @Html.LabelFor(package => package.Listed, "List this package in search results.")
+            <h3>Project URL</h3>
+            <p><a href="@Model.ProjectUrl" target="_blank">@Model.ProjectUrl</a></p>
         </li>
-        <li class="buttons">
-            @Html.AntiForgeryToken()
-            <input type="submit" value="Verify" />
-        </li>
-    </ul>
-</form>
+    }
+</ul>
+
+
+<h2>Submit Package</h2>
+@using (Html.BeginForm()) {
+<fieldset class="form">
+    <legend>Submit Package</legend>
+    @Html.AntiForgeryToken()
+    <div class="form-field">
+        @Html.EditorFor(package => package.Listed)
+        <label for="Listed" class="checkbox">
+            List this package in search results. 
+        </label>
+    </div>
+    <input type="submit" value="Submit" title="Verify Details &amp; Submit" />
+</fieldset>
+}

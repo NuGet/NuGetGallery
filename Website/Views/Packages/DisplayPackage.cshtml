@@ -1,162 +1,164 @@
 ﻿@model DisplayPackageViewModel
 @{
     ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
-<div id="layout-main" class="group">
-    <div id="layout-content" class="group">
-        @if (TempData.ContainsKey("Message")) {
-            <div id="messages">
-                <div class="zone zone-messages">
-                    <div class="message message-Information">@TempData["Message"]</div>
-                </div>
-            </div>
-        }
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <section class="packageItemDetail icon">
-                    <div id="thumbnails">
-                        <div class="packageLogo">
-                            <img src="@(Model.IconUrl ?? @Links.Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" />
-                        </div>
-                    </div>
-                    <div>
-                        <header>
-                            <div class="title">
-                                <h2>@Model.Title</h2>
-                                <h3>
-                                    @Model.Version
-                                    @if (Model.Prerelease) { 
-                                    <span class="prerelease">Prerelease</span>
-                                    }
-                                    else if (Model.LatestVersion) {
-                                        <span class="latest">Latest Version</span>
-                                    }
-                                </h3>
-                            </div>
-                            <div class="description">
-                                <p>
-                                    @Model.Description
-                                </p>
-                                @if (!Model.Listed && Model.IsOwner(User)) {
-                                    <div class="zone-messages">
-                                        <div class="message message-Warning">
-                                            This package is unlisted and hidden from package listings.
-                                        
-                                            <p class="note">
-                                                You can see the package because you are one of its owners. 
-                                                To display the package in search results and the package feed, 
-                                                <a class="edit" href="@Url.EditPackage(Model)">edit the package</a>.
-                                            </p>
-                                        </div>
-                                        
-                                    </div>
-                                }
-                                <p>
-                                    To install @Model.Title, run the following command in the 
-                                    <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">Package Manager Console</a>:
-                                    <div class="commandWrapper">
-                                        <div class="commandPrompt">
-                                            <p class="command">PM&gt; Install-Package @Model.Id @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}</p>
-                                        </div>
-                                    </div>
-                                </p>
-                            </div>
-                        </header>
-                                        
-                        <h4 class="details-header">Packages details</h4>
-                        @if (Model.IsOwner(User)) {
-                            <div class="package-owner-actions">
-                                <ul>
-                                    <li><a class="edit" href="@Url.EditPackage(Model)">Edit</a></li>
-                                    <li><a class="manage-owners" href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
-                                    <li><a href="@Url.DeletePackage(Model)" class="delete">Delete</a></li>
-                                </ul>
-                            </div>
-                        }
-                        <ul class="links">
-                            @if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
-                                <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
-                                    Project site</a></li>
-                            }
-                            @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
-                                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
-                            }
-                            <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">Report Abuse</a></li>
-                            <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
-                        </ul>
-
-                        @Html.Partial("_PackageDetailsTable", Model)
-
-                        <div class="stats">
-                            <span class="downloads">
-                                <strong>@Model.TotalDownloadCount</strong>
-                                <label>total downloads</label>
-                            </span>
-                            <span class="downloads">
-                                <strong>@Model.DownloadCount</strong>
-                                <label>for this version</label>
-                            </span>
-                        </div>
-
-                        <h4 class="details-header">Dependencies</h4>
-                        @if (Model.Dependencies.Any()) {
-                            <table class="packages dependencies">
-                                <thead>
-                                    <tr class="header">
-                                        <th style="width: 10%;">Id</th>
-                                        <th class="version">Version Range</th>
-                                    </tr>
-                                </thead>
-                            @foreach (var dependency in Model.Dependencies) {
-                                <tr>
-                                    <td style="width: auto;"><a href="@Url.Package(dependency.Id)">@dependency.Id</a></td>
-                                    <td>@dependency.VersionSpec</td>
-                                </tr>
-                            }
-                            </table>
-                        }
-                        else {
-                            <div class="dependencies">
-                                <em>No Dependencies</em>
-                            </div>
-                        }                            
-                        <h4 class="details-header">Version history</h4>
-                        <table class="packages" cellpadding="0" cellspacing="0">
-                            <thead>
-                                <tr class="header">
-                                    <th class="version">
-                                        Version
-                                    </th>
-                                    <th class="downloads">
-                                        Downloads
-                                    </th>
-                                    <th class="lastUpdated">
-                                        Last updated
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var packageVersion in Model.PackageVersions) {
-                                    <tr class="versionTableRow @if (packageVersion.LatestVersion) {<text>recommended </text>} @if (packageVersion.IsCurrent(Model)) {<text>current</text>} ">
-                                        <td class="version" @if (packageVersion.LatestVersion) {<text>title="Latest Version"</text>}>
-                                            @if (!packageVersion.IsCurrent(Model)) {
-                                                <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
-                                            }
-                                            else {
-                                                <span>@packageVersion.Title @packageVersion.Version</span>
-                                            }
-                                        </td>
-                                        <td class="downloads">@packageVersion.DownloadCount
-                                        </td>
-                                        <td class="lastUpdated">@packageVersion.LastUpdated.ToString("D")
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
+@section SideColumn {
+    <img class="logo" src="@(Model.IconUrl ?? @Links.Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" />
+    <div id="stats">
+        <div class="stat">
+            <p class="stat-number">@Model.TotalDownloadCount.ToString("n0")</p>
+            <p class="stat-label">
+                Downloads</p>
+        </div>
+        <div class="stat">
+            <p class="stat-number">@Model.DownloadCount.ToString("n0")</p>
+            <p class="stat-label">
+                Downloads of v @Model.Version</p>
+        </div>
+        <div class="stat">
+            <p class="stat-number">@Model.LastUpdated.ToShortDateString()</p>
+            <p class="stat-label">
+                Last update</p>
         </div>
     </div>
+    <nav>
+        <ul class="links">
+            @if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
+                <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
+                    Project site</a></li>
+            }
+            @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
+                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
+            }
+            <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">
+                Report Abuse</a></li>
+            <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
+            @if (Model.IsOwner(User)) {
+                <li><a href="@Url.EditPackage(Model)">Edit Package</a></li>
+                <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
+                <li><a href="@Url.DeletePackage(Model)" class="delete">Delete Package</a></li>
+            }
+        </ul>
+    </nav>
+}
+<div class="package-page">
+    @if (Model.Prerelease) {
+        <p class="prerelease-message">
+            Warning, this is a prerelease version of @Model.Title!
+        </p>
+    }
+    else if (!Model.LatestVersion) {
+        <p class="not-latest-message">
+            This is a not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
+                version</a> of @Model.Title.
+        </p>
+    }
+    <hgroup class="page-heading">
+        <h1>@Model.Title</h1>
+        <h2>@Model.Version</h2>
+    </hgroup>
+    <p>@Model.Description</p>
+
+    @if (!Model.Listed && Model.IsOwner(User)) {                                        
+        <p  class="message">
+            This package is unlisted and hidden from package listings.
+            You can see the package because you are one of its owners. To display the package
+            in search results and the package feed, <a href="@Url.EditPackage(Model)">edit the package</a>.
+        </p>                             
+    }
+    <p>
+        To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
+            Package Manager Console</a>
+    </p>
+    <div class="nuget-badge">
+        <p>
+            <code>PM&gt; Install-Package @Model.Id
+                @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}</code></p>
+    </div>
+    <h3>
+        Owners</h3>
+    @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)
+    <h3>
+        Authors</h3>
+    <ul class="authors">
+        @foreach (var author in Model.Authors) {
+            <li><a href="@Url.Search(author.Name)" title="Search for @author.Name">@author.Name</a></li>
+        }
+    </ul>
+    @if (@Model.Tags.AnySafe()) {
+        <h3>
+            Tags</h3>
+        <ul class="tags">
+            @foreach (var tag in Model.Tags) {
+                <li><a href="@Url.Search(tag)" title="Search for @tag">@tag</a></li>
+            }
+        </ul>
+    }
+    <h3>
+        Dependencies</h3>
+    @if (Model.Dependencies.Any()) {
+        <table class="sexy-table">
+            <thead>
+                <tr>
+                    <th class="first">
+                        Id
+                    </th>
+                    <th class="last">
+                        Version Range
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var dependency in Model.Dependencies) {
+                    <tr>
+                        <td>
+                            <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                        </td>
+                        <td>@dependency.VersionSpec
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else {
+        <p>@Model.Id @Model.Version does not have any dependencies
+        </p>
+    }
+    <h3>
+        Version History</h3>
+    <table class="sexy-table">
+        <thead>
+            <tr>
+                <th class="first">
+                    Version
+                </th>
+                <th>
+                    Downloads
+                </th>
+                <th class="last">
+                    Last updated
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var packageVersion in Model.PackageVersions) {
+                <tr class="versionTableRow @if (packageVersion.LatestVersion) {<text>recommended </text>} @if (packageVersion.IsCurrent(Model)) {<text>current</text>} ">
+                    <td class="version" @if (packageVersion.LatestVersion) {<text>title="Latest Version"</text>}>
+                        @if (!packageVersion.IsCurrent(Model)) {
+                            <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
+                        }
+                        else {
+                            <span>@packageVersion.Title @packageVersion.Version</span>
+                        }
+                    </td>
+                    <td>@packageVersion.DownloadCount
+                    </td>
+                    <td>@packageVersion.LastUpdated.ToString("D")
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>

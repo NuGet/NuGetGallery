@@ -49,125 +49,73 @@ namespace NuGetGallery.Views.Packages
             
             #line default
             #line hidden
-WriteLiteral("<div id=\"layout-before-main\" class=\"group\">\r\n    <section id=\"currentPageToolbar\"" +
-">\r\n        <div class=\"zone zone-before-main\">\r\n            <form id=\"search-fil" +
-"ter-form\" action=\"");
+WriteLiteral("\r\n\r\n\r\n<hgroup class=\"search\">\r\n");
 
 
             
-            #line 8 "..\..\Views\Packages\ListPackages.cshtml"
-                                             Write(Url.Current());
+            #line 9 "..\..\Views\Packages\ListPackages.cshtml"
+     if (!string.IsNullOrEmpty(Model.SearchTerm)) {
 
             
             #line default
             #line hidden
-WriteLiteral("\" method=\"get\">\r\n                ");
-
-
-
-WriteLiteral("\r\n                <input type=\"hidden\" name=\"q\" value=\"");
+WriteLiteral("    <h1>Search for \"");
 
 
             
             #line 10 "..\..\Views\Packages\ListPackages.cshtml"
-                                                Write(Model.SearchTerm);
+               Write(Model.SearchTerm);
 
             
             #line default
             #line hidden
-WriteLiteral("\" />\r\n                <div id=\"sort\">\r\n                    <label>Sort</label>\r\n " +
-"                   <select name=\"sortOrder\" id=\"sortOrder\">\r\n                   " +
-"     ");
+WriteLiteral("\" returned ");
+
+
+            
+            #line 10 "..\..\Views\Packages\ListPackages.cshtml"
+                                           Write(Model.TotalCount);
+
+            
+            #line default
+            #line hidden
+WriteLiteral(" packages</h1>\r\n");
+
+
+            
+            #line 11 "..\..\Views\Packages\ListPackages.cshtml"
+    }
+    else {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <h1>There are ");
+
+
+            
+            #line 13 "..\..\Views\Packages\ListPackages.cshtml"
+             Write(Model.TotalCount);
+
+            
+            #line default
+            #line hidden
+WriteLiteral(" packages</h1>\r\n");
 
 
             
             #line 14 "..\..\Views\Packages\ListPackages.cshtml"
-                   Write(ViewHelpers.Option("package-title", "A-Z", Model.SortOrder));
+    }
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                        ");
+WriteLiteral("    <h2>Displaying results ");
 
 
             
             #line 15 "..\..\Views\Packages\ListPackages.cshtml"
-                   Write(ViewHelpers.Option("package-download-count", "Popularity", Model.SortOrder));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                        ");
-
-
-            
-            #line 16 "..\..\Views\Packages\ListPackages.cshtml"
-                   Write(ViewHelpers.Option("package-created", "Recent", Model.SortOrder));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                    </select>\r\n                </div>\r\n            </form>\r\n   " +
-"     </div>\r\n    </section>\r\n</div>\r\n\r\n<div id=\"layout-main\" class=\"group\">\r\n   " +
-" <div id=\"layout-content\" class=\"group\">\r\n");
-
-
-            
-            #line 26 "..\..\Views\Packages\ListPackages.cshtml"
-         if (TempData.ContainsKey("Message")) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("            <div id=\"messages\">\r\n                <div class=\"zone zone-messages\">" +
-"\r\n                    <div class=\"message message-Information\">");
-
-
-            
-            #line 29 "..\..\Views\Packages\ListPackages.cshtml"
-                                                        Write(TempData["Message"]);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("</div>\r\n                </div>\r\n            </div>\r\n");
-
-
-            
-            #line 32 "..\..\Views\Packages\ListPackages.cshtml"
-        }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        <div id=\"content\" class=\"group\">\r\n            <div class=\"zone zone-con" +
-"tent\">\r\n                <section>\r\n                    <header>\r\n               " +
-"         <h2><span>");
-
-
-            
-            #line 38 "..\..\Views\Packages\ListPackages.cshtml"
-                             Write(Model.TotalCount);
-
-            
-            #line default
-            #line hidden
-WriteLiteral(" results for </span>Packages</h2>\r\n");
-
-
-            
-            #line 39 "..\..\Views\Packages\ListPackages.cshtml"
-                         if (Model.Items.Count() > 0) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                            <span class=\"displayResults\">Displaying results ");
-
-
-            
-            #line 40 "..\..\Views\Packages\ListPackages.cshtml"
-                                                                       Write(Model.FirstResultIndex);
+                      Write(Model.FirstResultIndex);
 
             
             #line default
@@ -176,65 +124,115 @@ WriteLiteral(" - ");
 
 
             
-            #line 40 "..\..\Views\Packages\ListPackages.cshtml"
-                                                                                                 Write(Model.LastResultIndex);
+            #line 15 "..\..\Views\Packages\ListPackages.cshtml"
+                                                Write(Model.LastResultIndex);
 
             
             #line default
             #line hidden
-WriteLiteral(".</span>\r\n");
+WriteLiteral(".</h2>\r\n</hgroup>\r\n\r\n");
 
 
             
-            #line 41 "..\..\Views\Packages\ListPackages.cshtml"
-                        }
-
-            
-            #line default
-            #line hidden
-WriteLiteral("                    </header>\r\n                    <ul>\r\n");
-
-
-            
-            #line 44 "..\..\Views\Packages\ListPackages.cshtml"
-                         foreach (var listPackage in Model.Items) {
+            #line 18 "..\..\Views\Packages\ListPackages.cshtml"
+ using (Html.BeginForm()) {
 
             
             #line default
             #line hidden
-WriteLiteral("                            <li class=\"first\">\r\n                                ");
+WriteLiteral("    <fieldset class=\"form search\">\r\n        <legend>Sort Order</legend>\r\n        " +
+"<input type=\"hidden\" name=\"q\" value=\"");
 
 
             
-            #line 46 "..\..\Views\Packages\ListPackages.cshtml"
-                           Write(Html.Partial(MVC.Packages.Views._ListPackage, listPackage));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n                            </li>\r\n");
-
-
-            
-            #line 48 "..\..\Views\Packages\ListPackages.cshtml"
-                        }
+            #line 21 "..\..\Views\Packages\ListPackages.cshtml"
+                                        Write(Model.SearchTerm);
 
             
             #line default
             #line hidden
-WriteLiteral("                    </ul>\r\n                    <div id=\"pagination\">\r\n           " +
-"             ");
+WriteLiteral("\" />\r\n        <div class=\"form-field\">\r\n            <label for=\"sortOrder\">Sort B" +
+"y</label>\r\n            <select name=\"sortOrder\">\r\n                ");
 
 
             
-            #line 51 "..\..\Views\Packages\ListPackages.cshtml"
-                   Write(ViewHelpers.PreviousNextPager(Model.Pager));
+            #line 25 "..\..\Views\Packages\ListPackages.cshtml"
+           Write(ViewHelpers.Option("package-title", "A-Z", Model.SortOrder));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n                    </div>\r\n                </section>\r\n            </div>\r\n   " +
-"     </div>\r\n    </div>\r\n</div>\r\n");
+WriteLiteral("\r\n                ");
+
+
+            
+            #line 26 "..\..\Views\Packages\ListPackages.cshtml"
+           Write(ViewHelpers.Option("package-download-count", "Popularity", Model.SortOrder));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n                ");
+
+
+            
+            #line 27 "..\..\Views\Packages\ListPackages.cshtml"
+           Write(ViewHelpers.Option("package-created", "Recent", Model.SortOrder));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n            </select>\r\n        </div>\r\n    </fieldset>\r\n");
+
+
+            
+            #line 31 "..\..\Views\Packages\ListPackages.cshtml"
+}
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n<ol id=\"searchResults\">\r\n");
+
+
+            
+            #line 34 "..\..\Views\Packages\ListPackages.cshtml"
+     foreach (var package in Model.Items) {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("    <li>\r\n        ");
+
+
+            
+            #line 36 "..\..\Views\Packages\ListPackages.cshtml"
+   Write(Html.Partial(MVC.Packages.Views._ListPackage, package));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n    </li>\r\n");
+
+
+            
+            #line 38 "..\..\Views\Packages\ListPackages.cshtml"
+    }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</ol>\r\n\r\n\r\n");
+
+
+            
+            #line 42 "..\..\Views\Packages\ListPackages.cshtml"
+Write(ViewHelpers.PreviousNextPager(Model.Pager));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n\r\n\r\n\r\n\r\n");
 
 
         }

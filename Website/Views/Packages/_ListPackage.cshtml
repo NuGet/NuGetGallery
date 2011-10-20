@@ -1,29 +1,45 @@
 ﻿@model ListPackageItemViewModel
-<div class="content-item package">
-    <div class="packageItem packages @if (Model.IsOwner(User)) {<text>mine</text>}">
-        <a href="@Url.Package(Model)">
-            <img src="@(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" class="thumbnail" title="@Model.Id Package icon" />
+<section class="package @if(Model.IsOwner(User)) {<text>my-package</text>}">
+    <div class="side">
+        <a href="@Url.Package(Model)" title="View more about @Model.Title">
+            <img src="@(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" alt="@Model.Id icon" />
         </a>
-        <header>
-            <h3 style="display: inline-block;">
-                <a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title @if(Model.UseVersion) {<text> @Model.Version</text>}</a>
-            </h3>
-            <div class="downloads">
-                @Model.DownloadCount Downloads
-            </div>
-        </header>
-        <div class="detail">
-            <p class="description">
-                @Model.Description
-                <a href="@Url.Package(Model)">More information</a>
-            </p>
-            <ul class="packageMeta">
-                @if (Model.Tags.AnySafe()) {
-                    <li>Tags: @Model.Tags.Flatten(@<a href="@Url.Search(item)">@item</a>)</li>
-                }
-                <li>Owners: @ViewHelpers.OwnersGravatar(Model.Owners, 24, Url, showName: false)</li>
-                <li>Authors: @Model.Authors.Flatten(@<a href="@Url.Search(item.Name)">@item.Name</a>)</li>
-            </ul>
-        </div>
     </div>
-</div>
+    <div class="main">
+        <header>
+            <h1><a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title @if (Model.UseVersion) {<text> @Model.Version</text>}</a></h1>
+            <h2>By:</h2>
+            <ul class="owners">
+                @foreach (var owner in Model.Owners) {
+                <li><a href="@Url.Search(owner.Username)" title="Search for @owner.Username">@owner.Username</a></li>   
+                }
+            </ul>
+        </header>
+
+        <p>
+            @if (String.IsNullOrEmpty(Model.Description) || Model.Description.Length < 350) {
+                @Model.Description
+            }
+            else {
+                @Model.Description.Substring(0, 350)<text>... </text><a href="@Url.Package(Model)">More information</a>
+            }
+        </p>
+
+        <footer>
+            <p class="downloads">
+                @Model.TotalDownloadCount.ToString("n0") downloads
+            </p>
+            
+            @if (@Model.Tags.AnySafe()) {
+            <div class="tags">
+                <h2>Tags</h2>
+                <ul class="tags">
+                    @foreach (var tag in Model.Tags) {
+                        <li><a href="@Url.Search(tag)" title="Search for @tag">@tag</a></li>
+                    }
+                </ul>
+            </div>
+            }
+        </footer>
+    </div>
+</section>

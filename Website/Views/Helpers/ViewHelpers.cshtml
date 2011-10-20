@@ -6,21 +6,21 @@
 
 @helper PreviousNextPager(IPreviousNextPager pager) {
     if (pager.HasNextPage || pager.HasPreviousPage) {
-        <ul class="group pager">        
-            <li class="page-previous">
+        <ul class="pager">
+            <li class="previous">
                 @if (pager.HasPreviousPage) { 
-                    <a href="@pager.PreviousPageUrl">Previous</a>
+                    <a href="@pager.PreviousPageUrl" title="Go to the previous page.">Previous</a>
                 }
                 else {
-                    <span>Previous</span>
+                    <text>Previous</text>
                 }
             </li>
-            <li class="page-next">
+            <li class="next">
                 @if (pager.HasNextPage) { 
-                    <a href="@pager.NextPageUrl">Next</a>
+                    <a href="@pager.NextPageUrl" title="Go to the next page.">Next</a>
                 }
                 else {
-                    <span>Next</span>
+                    <text>Next</text>
                 }
             </li>
         </ul>
@@ -32,36 +32,47 @@
 }
 
 @helper UploadSequence(int currentStep) {
-    @SequenceStep(1, "Upload", currentStep)
-    @SequenceStep(2, "Verify Details", currentStep)
+    <ol class="sequence">
+        @SequenceStep(1, "Upload", currentStep)
+        @SequenceStep(2, "Verify Details", currentStep)
+        @SequenceStep(3, "Enjoy", currentStep)
+    </ol>
+    <div class="clear-fix"><!--Sad Panda--></div>
 }
 
 @helper SequenceStep(int step, string caption, int currentStep) {
-    if (currentStep == step) {
-        <li class="current"><a href="#"><span>@step </span>@caption</a></li>
+    if (currentStep > step) {
+        <li class="past">@caption</li>
+    }
+    else if (currentStep == step) {
+        <li class="current">@caption</li>
     }
     else {
-        <li><span>@step </span>@caption</li>
+        <li>@caption</li>
     }    
 }
 
 @helper OwnersGravatar(IEnumerable<User> owners, int size, UrlHelper url, bool showName = true) {
-    foreach (var owner in owners) {
-        <div class="owner-gravatar">@ViewHelpers.OwnerGravatar(owner, size, url, showName)</div>
-    }    
+    <ul class="owners">
+    @foreach (var owner in owners) {
+        <li>
+            @ViewHelpers.OwnerGravatar(owner, size, url, showName)
+        </li>
+    }  
+    </ul>  
 }
 
 @helper OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true) {
-    <a href="@url.Action(MVC.Users.Profiles(owner.Username))" title="@owner.Username">
+    <a class="owner" href="@url.Action(MVC.Users.Profiles(owner.Username))" title="@owner.Username">
         @GravatarImage(owner.EmailAddress, owner.Username, size)
         @if (showName) {
-            <span class="owner-name">@owner.Username</span>
+            <text>@owner.Username</text>
         }
-    </a>    
+    </a>
 }
 
 @helper GravatarImage(string email, string username, int size) {
     <text>
-    @Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "gravatar"})
+    @Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "owner-image" })
     </text>
 }

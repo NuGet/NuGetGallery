@@ -616,11 +616,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>UserDisplay.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Shared\_searchbox.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_searchbox.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Users\Account.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -683,14 +678,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\Buttons.css" />
-    <Content Include="Content\Confirmations.css" />
-    <Content Include="Content\Footer.css" />
-    <Content Include="Content\Forms.css" />
-    <Content Include="Content\Header.css" />
-    <Content Include="Content\Home.css" />
-    <Content Include="Content\ie-mac.css" />
-    <Content Include="Content\ie7.css" />
+    <Content Include="Content\Images\changePassword.png" />
+    <Content Include="Content\Images\editProfile.png" />
+    <Content Include="Content\Images\managePackages.png" />
+    <Content Include="Content\Images\uploadPackage.png" />
+    <Content Include="Content\Images\YourPackage.png" />
+    <Content Include="Content\Site.css" />
     <Content Include="Content\Images\contribGraphic.png" />
     <Content Include="Content\Images\download.png" />
     <Content Include="Content\Images\editIcon.png" />
@@ -718,17 +711,8 @@
     <Content Include="Content\Images\userIcon.png" />
     <Content Include="Content\Images\userIconWhite.png" />
     <Content Include="Content\Images\xmark.png" />
-    <Content Include="Content\jquery.lightbox-0.5.css" />
-    <Content Include="Content\MainNav.css" />
-    <Content Include="Content\nuget.css" />
     <Content Include="Content\nuget.ico" />
-    <Content Include="Content\orchard.css" />
-    <Content Include="Content\Packages.css" />
-    <Content Include="Content\PageToolbar.css" />
-    <Content Include="Content\Pagination.css" />
-    <Content Include="Content\Reset.css" />
     <Content Include="Content\Images\sendMessageGraphic.png" />
-    <Content Include="Content\Widgets.css" />
     <Content Include="DataServices\V1Feeds.svc" />
     <Content Include="DataServices\V2Feed.svc" />
     <Content Include="DynamicData\Content\GridViewPager.ascx" />
@@ -811,10 +795,6 @@
     <Content Include="Views\Users\Profiles.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Profiles.generated.cs</LastGenOutput>
-    </Content>
-    <Content Include="Views\Shared\_searchbox.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_searchbox.generated.cs</LastGenOutput>
     </Content>
     <Content Include="Views\Authentication\LogOn.cshtml">
       <Generator>RazorGenerator</Generator>

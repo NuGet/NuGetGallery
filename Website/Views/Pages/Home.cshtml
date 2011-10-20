@@ -1,41 +1,29 @@
 ﻿@{
     ViewBag.Tab = "Home";
 }
-<div id="layout-main" class="group">
-    <div id="layout-content" class="group">
-        <div id="content" class="group">
-            <div class="zone zone-content">
-                <article class="content-item page">
-                    <div class="MIX-hero">
-                        <div class="MIX-hero-text">
-                            <h2 style="font-size: 25px; font-weight: normal; text-shadow: rgba(0,0,0,.1) 0px 0px 1px;">Jump Start Your Projects with NuGet</h2>
-                            <p style="font-size: 18px; line-height: 30px;">NuGet is a Visual Studio extension that makes it easy to install and update open source libraries and tools in Visual Studio.</p>
-                            <p style="font-size: 16px;"><em>So <a href="http://visualstudiogallery.msdn.microsoft.com/en-us/27077b70-9dad-4c64-adcf-c7cf6bc9970c/file/37502/5/NuGet.Tools.signed.vsix">install NuGet</a> and get a jump on your next project!</em></p>
-                            <p><a class="install" style="margin: 36px 0 0 0;" href="http://visualstudiogallery.msdn.microsoft.com/en-us/27077b70-9dad-4c64-adcf-c7cf6bc9970c/file/37502/5/NuGet.Tools.signed.vsix">Install NuGet</a></p>
-                        </div>
-                    </div>
-                </article>
-            </div>
-        </div>
+<section class="featured">
+    <div>
+        <h1>Jump Start Your Projects with NuGet</h1>
+        <p >NuGet is a Visual Studio extension that makes it easy to install and update open source libraries and tools in Visual Studio.</p>
+        <p class="sub"><em>So <a href="http://visualstudiogallery.msdn.microsoft.com/en-us/27077b70-9dad-4c64-adcf-c7cf6bc9970c/file/37502/5/NuGet.Tools.signed.vsix">install NuGet</a> and get a jump on your next project!</em></p>
+        <a class="install" href="http://visualstudiogallery.msdn.microsoft.com/en-us/27077b70-9dad-4c64-adcf-c7cf6bc9970c/fil/37502/5/NuGet.Tools.signed.vsix">Install NuGet</a>
     </div>
-    <div id="layout-after-main" class="group">
-        <div class="zone zone-after-main">
-            <article class="widget-html-widget widget">
-                <div class="MIX-secondary group">
-                    <div style="float: left; width: 470px; margin: 0 0 24px 0;">
-                        <h3 style="font-size: 18px; font-weight: normal;">About</h3>
-                        <p style="font-size: 14px; line-height: 26px;">When you use NuGet to install a package, it copies the library files to your solution and automatically updates your project (add references, change config files, etc). If you remove a package, NuGet reverses whatever changes it made so that no clutter is left.</p>
-                    </div>
-                    <div style="float: right; width: 470px; margin: 0 0 24px 0;">
-                        <h3 style="font-size: 18px; font-weight: bold;">NuGet 1.4 released!</h3>
-                        <p style="font-size: 14px; line-height: 26px;">Take 5 minutes and UPGRADE NOW using the Visual Studio Extension Manager. Why? Because there&rsquo;s a pile of new features and it will make your life easier!<br /> All these details and <a href="http://docs.nuget.org/docs/release-notes/nuget-1.4">more here...</a></p>
-                    </div>
-                    <div class="MIX-notice">
-                        <h3 style="font-size: 18px; font-weight: normal;">Important Notice</h3>
-                        <p style="font-size: 14px; line-height: 26px;">You can develop your own package and share it via the NuGet Gallery. Read the documentation for more details on <a title="Creating and submitting a package" href="http://docs.nuget.org/docs/creating-packages/creating-and-publishing-a-package">how to create and publish a package</a>. If you don&rsquo;t plan on submitting a package, there&rsquo;s no need to register.</p>
-                    </div>
-                </div>
-            </article>
-        </div>
-    </div>
-</div>
+    <img src="@Url.Content("~/content/images/hero.png")" alt="NuGet GUI Window" />
+</section> 
+
+<section class="release">
+    <h2>NuGet 1.5 Released</h2>
+    <p>Take 5 minutes and UPGRADE NOW using the Visual Studio Extension Manager. Why? Because there's a pile of new features and it will 
+    make your life easier! All these details and <a href="http://docs.nuget.org/docs/release-notes/nuget-1.4">more here...</a></p>
+</section>
+
+<section class="info">
+    <h3>About</h3>
+    <p>When you use NuGet to install a package, it copies the library files to your solution and automatically updates your project 
+    (add references, change config files, etc). If you remove a package, NuGet reverses whatever changes it made so that no clutter is left.</p>
+
+    <h3>Important Notice</h3>
+    <p>ou can develop your own package and share it via the NuGet Gallery. Read the documentation for more details on 
+    <a title="Creating and submitting a package" href="http://docs.nuget.org/docs/creating-packages/creating-and-publishing-a-package">how to 
+    create and publish a package</a>. If you don&rsquo;t plan on submitting a package, there&rsquo;s no need to register.</p>
+</section>
