@@ -104,6 +104,11 @@ nav, section { display: block; }
     font-weight: 600;
 }
 
+.warning {
+    background-color: #fff7c4;
+    color: #ff9600;
+}
+
 .prerelease-message,
 .not-latest-message {
     border-radius: 0 0 5px 5px;
@@ -118,9 +123,9 @@ nav, section { display: block; }
 }
 
 .prerelease-message {
-    background-color: #fbe3e4;
-    border-color: #c13a3f;
-    color: #c13a3f;
+    background-color: #fff7c4;
+    border-color: #ff9600;
+    color: #ff9600;
 }
 
 .not-latest-message {
@@ -732,6 +737,10 @@ header.main {
         
         .sexy-table tbody tr:hover {
             background-color: #f4f5f6;
+        }
+        
+        .sexy-table tbody tr.recommended {
+            font-weight: 800;
         }
         
         

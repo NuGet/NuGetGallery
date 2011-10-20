@@ -45,7 +45,7 @@
 <div class="package-page">
     @if (Model.Prerelease) {
         <p class="prerelease-message">
-            Warning, this is a prerelease version of @Model.Title!
+            This is a prerelease version of @Model.Title.
         </p>
     }
     else if (!Model.LatestVersion) {
@@ -74,7 +74,8 @@
     <div class="nuget-badge">
         <p>
             <code>PM&gt; Install-Package @Model.Id
-                @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}</code></p>
+                @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}
+                @if (Model.Prerelease) {<text> -pre </text>}</code></p>
     </div>
     <h3>
         Owners</h3>
@@ -144,7 +145,7 @@
         </thead>
         <tbody>
             @foreach (var packageVersion in Model.PackageVersions) {
-                <tr class="versionTableRow @if (packageVersion.LatestVersion) {<text>recommended </text>} @if (packageVersion.IsCurrent(Model)) {<text>current</text>} ">
+                <tr class="versionTableRow @if (packageVersion.LatestVersion) {<text>recommended </text>}">
                     <td class="version" @if (packageVersion.LatestVersion) {<text>title="Latest Version"</text>}>
                         @if (!packageVersion.IsCurrent(Model)) {
                             <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
