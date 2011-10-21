@@ -571,11 +571,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>_ListPackage.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Packages\_PackageDetailsTable.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_PackageDetailsTable.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Pages\Home.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -921,10 +916,6 @@
     </Content>
     <Content Include="Views\Packages\Edit.cshtml">
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
-      <Generator>RazorGenerator</Generator>
-    </Content>
-    <Content Include="Views\Packages\_PackageDetailsTable.cshtml">
-      <LastGenOutput>_PackageDetailsTable.generated.cs</LastGenOutput>
       <Generator>RazorGenerator</Generator>
     </Content>
     <Content Include="Views\Pages\Terms.cshtml">
