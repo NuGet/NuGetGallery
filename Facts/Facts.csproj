@@ -62,8 +62,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WebBackgrounder, Version=0.0.1.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebBackgrounder.0.0.1.4\lib\net40\WebBackgrounder.dll</HintPath>
+    <Reference Include="WebBackgrounder, Version=0.0.1.5, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebBackgrounder.0.0.1.5\lib\net40\WebBackgrounder.dll</HintPath>
     </Reference>
     <Reference Include="xunit">
       <HintPath>..\packages\xunit.1.8.0.1549\lib\xunit.dll</HintPath>
