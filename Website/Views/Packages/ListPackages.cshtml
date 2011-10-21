@@ -21,7 +21,7 @@
         <input type="hidden" name="q" value="@Model.SearchTerm" />
         <div class="form-field">
             <label for="sortOrder">Sort By</label>
-            <select name="sortOrder">
+            <select name="sortOrder" id="sortOrder">
                 @ViewHelpers.Option("package-title", "A-Z", Model.SortOrder)
                 @ViewHelpers.Option("package-download-count", "Popularity", Model.SortOrder)
                 @ViewHelpers.Option("package-created", "Recent", Model.SortOrder)
@@ -41,6 +41,13 @@
 
 @ViewHelpers.PreviousNextPager(Model.Pager)
 
-
-
+@section BottomScripts {
+    <script>
+        $(function () {
+            $("#sortOrder").change(function () {
+                $(this).closest("form").submit();
+            });
+        });
+    </script>
+}
 
