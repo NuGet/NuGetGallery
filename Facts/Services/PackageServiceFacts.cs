@@ -89,6 +89,7 @@ namespace NuGetGallery
                 Assert.Equal("theSummary", package.Summary);
                 Assert.Equal("theTags", package.Tags);
                 Assert.Equal("theTitle", package.Title);
+                Assert.Equal("theCopyright", package.Copyright);
                 Assert.False(package.IsPrerelease);
 
                 Assert.Equal("theFirstAuthor,theSecondAuthor", package.FlattenedAuthors);
@@ -308,6 +309,17 @@ namespace NuGetGallery
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Authors", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillThrowIfTheNuGetPackageCopyrightIsLongerThan4000() {
+                var service = CreateService();
+                var nugetPackage = CreateNuGetPackage();
+                nugetPackage.Setup(x => x.Copyright).Returns("theCopyright".PadRight(4001, '_'));
+
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
+
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000"), ex.Message);
             }
 
             [Fact]
@@ -893,6 +905,7 @@ namespace NuGetGallery
             nugetPackage.Setup(x => x.Summary).Returns("theSummary");
             nugetPackage.Setup(x => x.Tags).Returns("theTags");
             nugetPackage.Setup(x => x.Title).Returns("theTitle");
+            nugetPackage.Setup(x => x.Copyright).Returns("theCopyright");
 
             nugetPackage.Setup(x => x.GetStream()).Returns(new MemoryStream(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }));
 

@@ -77,27 +77,32 @@
                 @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}
                 @if (Model.Prerelease) {<text> -pre </text>}</code></p>
     </div>
-    <h3>
-        Owners</h3>
+    <h3>Release Notes</h3>
+    <p>
+        
+    </p>
+
+    <h3>Owners</h3>
     @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)
-    <h3>
-        Authors</h3>
+    <h3>Authors</h3>
     <ul class="authors">
         @foreach (var author in Model.Authors) {
             <li><a href="@Url.Search(author.Name)" title="Search for @author.Name">@author.Name</a></li>
         }
     </ul>
+    @if (!String.IsNullOrEmpty(Model.Copyright)) {
+        <h3>Copyright</h3>
+        <p>@Model.Copyright</p>
+    }
     @if (@Model.Tags.AnySafe()) {
-        <h3>
-            Tags</h3>
+        <h3>Tags</h3>
         <ul class="tags">
             @foreach (var tag in Model.Tags) {
                 <li><a href="@Url.Search(tag)" title="Search for @tag">@tag</a></li>
             }
         </ul>
     }
-    <h3>
-        Dependencies</h3>
+    <h3>Dependencies</h3>
     @if (Model.Dependencies.Any()) {
         <table class="sexy-table">
             <thead>
@@ -127,8 +132,7 @@
         <p>@Model.Id @Model.Version does not have any dependencies
         </p>
     }
-    <h3>
-        Version History</h3>
+    <h3>Version History</h3>
     <table class="sexy-table">
         <thead>
             <tr>

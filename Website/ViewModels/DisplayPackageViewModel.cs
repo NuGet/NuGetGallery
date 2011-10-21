@@ -13,7 +13,7 @@ namespace NuGetGallery
         public DisplayPackageViewModel(Package package, bool isVersionHistory)
             : base(package)
         {
-
+            Copyright = package.Copyright;
             if (!isVersionHistory)
             {
                 Dependencies = package.Dependencies.Select(d => new DependencyViewModel(d));
@@ -27,5 +27,6 @@ namespace NuGetGallery
 
         public IEnumerable<DependencyViewModel> Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
+        public string Copyright { get; set; }
     }
 }

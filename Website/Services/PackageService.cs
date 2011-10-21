@@ -248,6 +248,7 @@ namespace NuGetGallery
                 Created = now,
                 LastUpdated = now,
                 Published = DateTime.UtcNow,
+                Copyright = nugetPackage.Copyright,
                 IsPrerelease = !nugetPackage.IsReleaseVersion(),
                 Listed = true
             };
@@ -283,6 +284,8 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "128");
             if (nugetPackage.Authors != null && string.Join(",", nugetPackage.Authors.ToArray()).Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
+            if (nugetPackage.Copyright != null && nugetPackage.Copyright.Length > 4000)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000");
             if (nugetPackage.Dependencies != null && nugetPackage.Dependencies.Flatten().Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", "4000");
             if (nugetPackage.Description != null && nugetPackage.Description.Length > 4000)
