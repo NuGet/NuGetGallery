@@ -1,53 +1,56 @@
 ﻿@using NuGetGallery;
 @model UserProfileModel
 @{
-    ViewBag.Title = "Profiles";
+    ViewBag.Title = @Model.Username;
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-<div id="layout-main" class="profile">
-    <div id="layout-content">
-        <div id="content">
-            <div class="zone zone-content">
-                <section>
-                    <header class="profile">
-                        @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 80)
-                        <h2>@Model.Username</h2>
-                        <div class="stats">
-                            <span class="downloads">
-                                <strong>@Model.TotalPackageDownloadCount</strong>
-                                <label>total package downloads</label>
-                            </span>
-                        </div>
-                    </header>
-                    <header><h2>Packages</h2></header>
-                    <ul>
-                        @foreach (var package in Model.Packages) {
-                            <li>
-                                <div class="package">
-                                    <div class="packageItem packages">
-                                        <a href="@Url.Package(package)">
-                                            <img src="@(package.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" class="thumbnail" title="@package.Id Package icon" />
-                                        </a>
-                                        <header>
-                                            <h3 style="display: inline-block;">
-                                                <a href="@Url.Package(package.Id)">@package.Title</a>
-                                            </h3>
-                                            <div class="downloads">
-                                                @package.DownloadCount Downloads
-                                            </div>
-                                        </header>
-                                        <div class="detail">
-                                            <p class="description">
-                                                @package.Description
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        }
-                    </ul>
-                </section>
-            </div>
+
+@section SideColumn {
+    @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 128)
+     <div id="stats">
+        <div class="stat">
+            <p class="stat-number">@Model.Packages.Count.ToString("n0")</p>
+            <p class="stat-label">Packages</p>
+        </div>
+        <div class="stat">
+            <p class="stat-number">@Model.TotalPackageDownloadCount.ToString("n0")</p>
+            <p class="stat-label">Downloads of @Model.Username's packages</p>
         </div>
     </div>
-</div>
+}
+
+<h1>@Model.Username's Profile</h1>
+
+<h2>Packages</h2>
+<ul id="searchResults">
+    @foreach (var package in Model.Packages) {
+    <li>
+        <section class="package">
+            <div class="side">
+                <a href="@Url.Package(package)" title="View more about @package.Title">
+                    <img src="@(package.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" alt="@package.Id icon" />
+                </a>
+            </div>
+            <div class="main">
+                <h1><a href="@Url.Package(package)">@package.Title @package.Version</a></h1>
+                
+                <p>
+                    @if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 350) {
+                        @package.Description
+                    }
+                    else {
+                        @package.Description.Substring(0, 350)<text>... </text><a href="@Url.Package(package)">More information</a>
+                    }
+                </p>
+
+                <footer>
+                    <p class="downloads">
+                        @package.TotalDownloadCount.ToString("n0") downloads
+                    </p>
+                </footer>
+            </div>
+        </section>
+    </li>
+    }
+</ul>
