@@ -63,6 +63,15 @@ function set-connectionstring {
   $setting.providerName = "System.Data.SqlClient"
   $resolvedPath = resolve-path($path) 
   $settings.save($resolvedPath)
+}
+
+function set-releasemode {
+  param($path)
+  $xml = [xml](get-content $path)
+  $compilation = $xml.configuration."system.web".compilation
+  $compilation.debug = "false"
+  $resolvedPath = resolve-path($path) 
+  $xml.save($resolvedPath)
 } 
 
 $scriptPath = split-path $MyInvocation.MyCommand.Path
@@ -100,6 +109,7 @@ set-configurationsetting -path $cscfgPath -name "SmtpPort" -value $smtpPort
 set-configurationsetting -path $cscfgPath -name "SmtpUsername" -value $smtpUsername
 set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
 set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
+set-releasemode $webConfigPath
 
 & 'C:\Program Files\Windows Azure SDK\v1.5\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
 
