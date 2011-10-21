@@ -50,10 +50,10 @@
     </p>
     
     <div id="generateKey">
-        <h2><a id="tooglePivateData" href="#" title="Show/Hide your API Key">Your API key is: </a></h2>
+        <h2>Your API key is:</h2>
         
-        <div id="privateData">
-            <p>@Model.ApiKey</p>
+        <div>
+            <p id="key">@Model.ApiKey</p>
 
             <fieldset class="form">
                 <legend>Generate New API Key</legend>
@@ -67,15 +67,18 @@
             <p><code>nuget.exe push MyPackage.1.0.nupkg @Model.ApiKey</code></p>
         
         </div>
+
+        <div id="overlayWrapper" title="Click to show API Key">
+            Your key is hidden for privacy, click to show.
+        </div>
     </div>
 </section>
-
 
 @section BottomScripts {
     <script>
         $(function () {
-            $("#tooglePivateData").click(function () {
-                $("#privateData").slideToggle();
+            $("#overlayWrapper").click(function () {
+                $("#overlayWrapper").fadeOut();
                 return false;
             });
         });

@@ -418,14 +418,34 @@ header.main {
         font: 1.2em 'andale mono', 'lucida console', monospace; 
         line-height: 1.5em;
     }
+    
+    #generateKey {
+        position: relative;
+    }
 
-    #generateKey h2 {
-        font-size: 1.7em;
-    }
+        #generateKey h2 {
+            font-size: 1.7em;
+        }
         
-    #privateData {
-        display: none;
-    }
+        #generateKey #key {
+            font-size: 1.7em;
+            margin-bottom: 0;
+        }
+        
+        #overlayWrapper {
+            background-color: #eff7fa;
+            border: solid 1px;
+            color: #52a4ca;
+            cursor: pointer;
+            font-size: 2em;
+            height: 220px;
+            left: 0;
+            line-height: 220px;
+            position: absolute;
+            text-align: center;
+            top: 0;
+            width: 100%;
+        }
         
     #generateKey .form input[type="submit"] {
         width: auto;
