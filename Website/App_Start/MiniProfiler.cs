@@ -51,7 +51,21 @@ namespace NuGetGallery.App_Start
 
             context.AuthorizeRequest += (sender, e) =>
             {
-                if (HttpContext.Current == null || HttpContext.Current.User == null || !HttpContext.Current.User.IsInRole(Const.AdminRoleName))
+                var stopProfiling = false;
+                var httpContext = HttpContext.Current;
+
+                if (httpContext == null)
+                    stopProfiling = true;
+                else
+                {
+                    var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
+                    var requestIsLocal = httpContext.Request != null && httpContext.Request.IsLocal;
+
+                    if (!userCanProfile && !requestIsLocal)
+                        stopProfiling = true;
+                }
+
+                if (stopProfiling)
                     MiniProfiler.Stop(true);
             };
 

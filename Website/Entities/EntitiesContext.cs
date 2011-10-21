@@ -1,12 +1,21 @@
-﻿using System.Data.Entity;
+﻿using System.Configuration;
+using System.Data.Common;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
+using MvcMiniProfiler.Data;
 
 namespace NuGetGallery
 {
     public class EntitiesContext : DbContext
     {
         public EntitiesContext()
-            : base("NuGetGallery")
+            : base(GetConnection("NuGetGallery"), contextOwnsConnection: true)
+        {
+        }
+
+        public EntitiesContext(string connectionStringName)
+            : base(connectionStringName)
         {
         }
 
@@ -83,6 +92,12 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageDependency>()
                 .HasKey(pd => pd.Key);
+        }
+
+        private static DbConnection GetConnection(string connectionStringName) {
+            var setting = ConfigurationManager.ConnectionStrings[connectionStringName];
+            var connection = new SqlConnection(setting.ConnectionString);
+            return ProfiledDbConnection.Get(connection);
         }
     }
 }
