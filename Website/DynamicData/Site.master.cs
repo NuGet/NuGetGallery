@@ -15,11 +15,12 @@ namespace DynamicDataEFCodeFirst
                 Response.End();
             }
 
-            if (!Page.User.IsInRole(Const.AdminRoleName))
+            if (!Request.IsLocal && !Page.User.IsInRole(Const.AdminRoleName))
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 Response.End();
             }
+
             base.OnInit(e);
         }
     }
