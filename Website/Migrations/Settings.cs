@@ -16,6 +16,13 @@ namespace NuGetGallery.Migrations
 
         protected override void Seed(MigrationsContext context)
         {
+            SeedDatabase(context);
+        }
+
+        /// This method is a workaround to the fact that the Seed method 
+        /// never seems to get called. So we'll try calling this manually later.
+        public static void SeedDatabase(EntitiesContext context)
+        {
             var roles = context.Set<Role>();
             if (!roles.Any(x => x.Name == Const.AdminRoleName))
             {
