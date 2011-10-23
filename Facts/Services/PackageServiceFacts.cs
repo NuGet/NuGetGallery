@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Moq;
 using NuGet;
 using Xunit;
@@ -312,7 +312,8 @@ namespace NuGetGallery
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageCopyrightIsLongerThan4000() {
+            void WillThrowIfTheNuGetPackageCopyrightIsLongerThan4000()
+            {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Copyright).Returns("theCopyright".PadRight(4001, '_'));
@@ -878,9 +879,11 @@ namespace NuGetGallery
             }
         }
 
-        public class TheRequestPackageOwnerMethod {
+        public class TheRequestPackageOwnerMethod
+        {
             [Fact]
-            public void CreatesPackageOwnerRequest() {
+            public void CreatesPackageOwnerRequest()
+            {
                 var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
                 var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
                 var package = new PackageRegistration { Key = 1 };
@@ -895,7 +898,8 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void ReturnsExistingMatchingPackageOwnerRequest() {
+            public void ReturnsExistingMatchingPackageOwnerRequest()
+            {
                 var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
                 packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(new[]{
                     new PackageOwnerRequest { 
@@ -914,13 +918,17 @@ namespace NuGetGallery
             }
         }
 
-        public class TheRemovePackageOwnerMethod {
+        public class TheRemovePackageOwnerMethod
+        {
             [Fact]
-            public void RemovesPackageOwner() {
+            public void RemovesPackageOwner()
+            {
                 var service = CreateService();
                 var owner = new User { };
-                var package = new Package {
-                    PackageRegistration = new PackageRegistration {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
                         Owners = new List<User> { owner }
                     }
                 };
@@ -931,8 +939,10 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void RemovesPendingPackageOwner() {
-                var packageOwnerRequest = new PackageOwnerRequest {
+            public void RemovesPendingPackageOwner()
+            {
+                var packageOwnerRequest = new PackageOwnerRequest
+                {
                     PackageRegistrationKey = 1,
                     RequestingOwnerKey = 99,
                     NewOwnerKey = 200
@@ -944,8 +954,10 @@ namespace NuGetGallery
                 var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
                 var pendingOwner = new User { Key = 200 };
                 var owner = new User { };
-                var package = new Package {
-                    PackageRegistration = new PackageRegistration {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
                         Key = 1,
                         Owners = new List<User> { owner }
                     }
@@ -1006,11 +1018,10 @@ namespace NuGetGallery
         {
             if (cryptoSvc == null)
             {
-				cryptoSvc = new Mock<ICryptographyService>();
-                cryptoSvc.Setup(x => x.HashAlgorithmId).Returns(Const.Sha512HashAlgorithmId);
+                cryptoSvc = new Mock<ICryptographyService>();
                 cryptoSvc.Setup(x => x.GenerateHash(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, Const.Sha512HashAlgorithmId))
                     .Returns("theHash");
-			}
+            }
 
             packageRegistrationRepo = packageRegistrationRepo ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepo = packageRepo ?? new Mock<IEntityRepository<Package>>();
