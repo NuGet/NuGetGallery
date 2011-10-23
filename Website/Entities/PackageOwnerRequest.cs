@@ -1,7 +1,9 @@
 ﻿using System;
 
-namespace NuGetGallery {
-    public class PackageOwnerRequest : IEntity {
+namespace NuGetGallery
+{
+    public class PackageOwnerRequest : IEntity
+    {
         public int Key { get; set; }
         public int PackageRegistrationKey { get; set; }
         public int NewOwnerKey { get; set; }

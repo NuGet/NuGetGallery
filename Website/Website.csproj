@@ -188,6 +188,10 @@
     <Compile Include="Migrations\201110180052097_GallerySettings.Designer.cs">
       <DependentUpon>201110180052097_GallerySettings.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.cs" />
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.Designer.cs">
+      <DependentUpon>201110230649210_PackageOwnerRequests.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
@@ -451,7 +455,6 @@
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
-    <Compile Include="Migrations\20110919211100_CreatePackageOwnerRequestTable.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
