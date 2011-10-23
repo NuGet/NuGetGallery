@@ -77,6 +77,11 @@
                 @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}
                 @if (Model.Prerelease) {<text> -pre </text>}</code></p>
     </div>
+
+    <p>
+        <a href="@Url.Action(@MVC.Packages.Download())" title="Download link">Where is the <strong>Download link?</strong></a>
+    </p>
+
     <h3>Release Notes</h3>
     <p>
         

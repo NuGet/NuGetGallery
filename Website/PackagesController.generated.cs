@@ -7,88 +7,83 @@
 #pragma warning disable 1591
 #region T4MVC
 
-using System.CodeDom.Compiler;
+using System;
 using System.Diagnostics;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Web;
+using System.Web.Hosting;
 using System.Web.Mvc;
+using System.Web.Mvc.Ajax;
+using System.Web.Mvc.Html;
+using System.Web.Routing;
 using T4MVC;
-namespace NuGetGallery
-{
-    public partial class PackagesController
-    {
+namespace NuGetGallery {
+    public partial class PackagesController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected PackagesController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        protected RedirectToRouteResult RedirectToAction(ActionResult result)
-        {
+        protected RedirectToRouteResult RedirectToAction(ActionResult result) {
             var callInfo = result.GetT4MVCResult();
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult ShowPublishPackageForm()
-        {
+        public System.Web.Mvc.ActionResult ShowPublishPackageForm() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ShowPublishPackageForm);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult PublishPackage()
-        {
+        public System.Web.Mvc.ActionResult PublishPackage() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.PublishPackage);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult DisplayPackage()
-        {
+        public System.Web.Mvc.ActionResult DisplayPackage() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.DisplayPackage);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult ListPackages()
-        {
+        public System.Web.Mvc.ActionResult ListPackages() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ListPackages);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult ReportAbuse()
-        {
+        public System.Web.Mvc.ActionResult ReportAbuse() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ReportAbuse);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult ContactOwners()
-        {
+        public System.Web.Mvc.ActionResult ContactOwners() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ContactOwners);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult DownloadPackage()
-        {
+        public System.Web.Mvc.ActionResult DownloadPackage() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.DownloadPackage);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult ManagePackageOwners()
-        {
+        public System.Web.Mvc.ActionResult ManagePackageOwners() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ManagePackageOwners);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult Delete()
-        {
+        public System.Web.Mvc.ActionResult Delete() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Delete);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult DeletePackage()
-        {
+        public System.Web.Mvc.ActionResult DeletePackage() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult Edit()
-        {
+        public System.Web.Mvc.ActionResult Edit() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
         }
 
@@ -103,8 +98,7 @@ namespace NuGetGallery
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public class ActionNamesClass
-        {
+        public class ActionNamesClass {
             public readonly string UploadPackage = "UploadPackage";
             public readonly string ShowPublishPackageForm = "PublishPackage";
             public readonly string PublishPackage = "PublishPackage";
@@ -112,6 +106,7 @@ namespace NuGetGallery
             public readonly string ListPackages = "ListPackages";
             public readonly string ReportAbuse = "ReportAbuse";
             public readonly string ContactOwners = "ContactOwners";
+            public readonly string Download = "Download";
             public readonly string DownloadPackage = "DownloadPackage";
             public readonly string ManagePackageOwners = "ManagePackageOwners";
             public readonly string Delete = "Delete";
@@ -124,13 +119,12 @@ namespace NuGetGallery
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public class ViewNames
-        {
+        public class ViewNames {
             public readonly string _ListPackage = "~/Views/Packages/_ListPackage.cshtml";
-            public readonly string _PackageDetailsTable = "~/Views/Packages/_PackageDetailsTable.cshtml";
             public readonly string ContactOwners = "~/Views/Packages/ContactOwners.cshtml";
             public readonly string Delete = "~/Views/Packages/Delete.cshtml";
             public readonly string DisplayPackage = "~/Views/Packages/DisplayPackage.cshtml";
+            public readonly string Download = "~/Views/Packages/Download.cshtml";
             public readonly string Edit = "~/Views/Packages/Edit.cshtml";
             public readonly string ListPackages = "~/Views/Packages/ListPackages.cshtml";
             public readonly string ManagePackageOwners = "~/Views/Packages/ManagePackageOwners.cshtml";
@@ -141,50 +135,43 @@ namespace NuGetGallery
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_PackagesController : NuGetGallery.PackagesController
-    {
+    public class T4MVC_PackagesController: NuGetGallery.PackagesController {
         public T4MVC_PackagesController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult UploadPackage()
-        {
+        public override System.Web.Mvc.ActionResult UploadPackage() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UploadPackage);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult UploadPackage(System.Web.HttpPostedFileBase packageFile)
-        {
+        public override System.Web.Mvc.ActionResult UploadPackage(System.Web.HttpPostedFileBase packageFile) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UploadPackage);
             callInfo.RouteValueDictionary.Add("packageFile", packageFile);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ShowPublishPackageForm(string id, string version)
-        {
+        public override System.Web.Mvc.ActionResult ShowPublishPackageForm(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ShowPublishPackageForm);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult PublishPackage(string id, string version, bool? unlistedPackage)
-        {
+        public override System.Web.Mvc.ActionResult PublishPackage(string id, string version, bool? listed) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PublishPackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
-            callInfo.RouteValueDictionary.Add("unlistedPackage", unlistedPackage);
+            callInfo.RouteValueDictionary.Add("listed", listed);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult DisplayPackage(string id, string version)
-        {
+        public override System.Web.Mvc.ActionResult DisplayPackage(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DisplayPackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ListPackages(string q, string sortOrder, int page)
-        {
+        public override System.Web.Mvc.ActionResult ListPackages(string q, string sortOrder, int page) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ListPackages);
             callInfo.RouteValueDictionary.Add("q", q);
             callInfo.RouteValueDictionary.Add("sortOrder", sortOrder);
@@ -192,16 +179,14 @@ namespace NuGetGallery
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ReportAbuse(string id, string version)
-        {
+        public override System.Web.Mvc.ActionResult ReportAbuse(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ReportAbuse);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ReportAbuse(string id, string version, NuGetGallery.ReportAbuseViewModel reportForm)
-        {
+        public override System.Web.Mvc.ActionResult ReportAbuse(string id, string version, NuGetGallery.ReportAbuseViewModel reportForm) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ReportAbuse);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
@@ -209,67 +194,64 @@ namespace NuGetGallery
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ContactOwners(string id)
-        {
+        public override System.Web.Mvc.ActionResult ContactOwners(string id) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ContactOwners);
             callInfo.RouteValueDictionary.Add("id", id);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ContactOwners(string id, NuGetGallery.ContactOwnersViewModel contactForm)
-        {
+        public override System.Web.Mvc.ActionResult ContactOwners(string id, NuGetGallery.ContactOwnersViewModel contactForm) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ContactOwners);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("contactForm", contactForm);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult DownloadPackage(string id, string version)
-        {
+        public override System.Web.Mvc.ActionResult Download() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Download);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult DownloadPackage(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DownloadPackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ManagePackageOwners(string id, string version)
-        {
+        public override System.Web.Mvc.ActionResult ManagePackageOwners(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ManagePackageOwners);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Delete(string id, string version)
-        {
+        public override System.Web.Mvc.ActionResult Delete(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Delete);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult DeletePackage(string id, string version)
-        {
+        public override System.Web.Mvc.ActionResult DeletePackage(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Edit(string id, string version)
-        {
+        public override System.Web.Mvc.ActionResult Edit(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Edit(string id, string version, bool? unlisted)
-        {
+        public override System.Web.Mvc.ActionResult Edit(string id, string version, bool? listed) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
-            callInfo.RouteValueDictionary.Add("unlisted", unlisted);
+            callInfo.RouteValueDictionary.Add("listed", listed);
             return callInfo;
         }
 

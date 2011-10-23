@@ -288,6 +288,13 @@ namespace NuGetGallery
             return RedirectToAction(MVC.Packages.DisplayPackage(id, null));
         }
 
+        // This is the page that explains why there's no download link.
+        public virtual ActionResult Download()
+        {
+            return View();
+        }
+
+        // This is the action that NuGet clients call to download a package directly.
         public virtual ActionResult DownloadPackage(string id, string version)
         {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
