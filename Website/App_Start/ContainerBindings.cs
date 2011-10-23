@@ -133,7 +133,7 @@ namespace NuGetGallery
             }
 
             Bind<IPackageFileService>()
-                .To<PackageFileService>()
+                .To<PackageFileService>();
 
             Bind<IEntityRepository<PackageOwnerRequest>>()
                 .To<EntityRepository<PackageOwnerRequest>>()
