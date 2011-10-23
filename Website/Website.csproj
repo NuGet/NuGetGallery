@@ -71,9 +71,9 @@
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
-    <Reference Include="MvcHaack.Ajax, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MvcHaack.Ajax, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MvcHaack.Ajax.1.0.1\lib\net40\MvcHaack.Ajax.dll</HintPath>
+      <HintPath>..\packages\MvcHaack.Ajax.1.1\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
     <Reference Include="MvcMiniProfiler">
       <HintPath>..\packages\MiniProfiler.1.7\lib\MvcMiniProfiler.dll</HintPath>
@@ -134,9 +134,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebBackgrounder.0.0.1.5\lib\net40\WebBackgrounder.dll</HintPath>
     </Reference>
-    <Reference Include="WebBackgrounder.EntityFramework, Version=0.0.1.5, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="WebBackgrounder.EntityFramework, Version=0.0.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WebBackgrounder.EntityFramework.0.0.1.5\lib\net40\WebBackgrounder.EntityFramework.dll</HintPath>
+      <HintPath>..\packages\WebBackgrounder.EntityFramework.0.0.1.6\lib\net40\WebBackgrounder.EntityFramework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -174,6 +174,9 @@
     <Compile Include="Infrastructure\HintAttribute.cs" />
     <Compile Include="Infrastructure\Jobs\WorkItemCleanupJob.cs" />
     <Compile Include="Infrastructure\Jobs\UpdateStatisticsJob.cs" />
+    <Compile Include="JsonApiController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\201110060711357_Initial.cs" />
     <Compile Include="Migrations\201110060711357_Initial.Designer.cs">
       <DependentUpon>201110060711357_Initial.cs</DependentUpon>
@@ -448,9 +451,6 @@
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
-    <Compile Include="JsonApiController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
