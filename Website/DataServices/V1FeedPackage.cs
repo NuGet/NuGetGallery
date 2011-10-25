@@ -38,7 +38,27 @@ namespace NuGetGallery
         public string Title { get; set; }
         public int VersionDownloadCount { get; set; }
 
-        // TODO: remove these from the feed in the future, is possible, if they aren't used
+        // Deprecated properties
+        public int RatingsCount 
+        {
+            get { return 0; }
+        }
+
+        public int VersionRatingsCount
+        {
+            get { return 0; }
+        }
+
+        public double Rating
+        {
+            get { return 0.0; }
+        }
+
+        public double VersionRating
+        {
+            get { return 0.0; }
+        }
+
         public string Categories { get { return string.Empty; } }
         public string Language { get { return ""; } }
         public string PackageType { get { return "Package"; } }
