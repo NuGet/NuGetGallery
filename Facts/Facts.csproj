@@ -55,6 +55,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.Services" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Mvc, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml.Linq" />
@@ -86,6 +87,7 @@
     <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
     <Compile Include="Services\UsersServiceFacts.cs" />
+    <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="TestUtility.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
   </ItemGroup>

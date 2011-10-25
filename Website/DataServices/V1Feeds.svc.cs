@@ -10,6 +10,17 @@ namespace NuGetGallery
 {
     public class V1Feed : FeedServiceBase<V1FeedPackage>
     {
+        public V1Feed()
+        {
+
+        }
+
+        public V1Feed(IEntityRepository<Package> repo)
+            : base(repo)
+        {
+
+        }
+
         protected override FeedContext<V1FeedPackage> CreateDataSource()
         {
             return new FeedContext<V1FeedPackage>

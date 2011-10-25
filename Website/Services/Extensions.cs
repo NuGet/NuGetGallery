@@ -35,7 +35,7 @@ namespace NuGetGallery
         public static IQueryable<Package> Search(this IQueryable<Package> source, string searchTerm)
         {
             // Split the search terms by spaces
-            var terms = searchTerm.Split();
+            var terms = (searchTerm ?? String.Empty).Split();
 
             // Build a list of expressions for each term
             var expressions = new List<LambdaExpression>();

@@ -17,9 +17,15 @@ namespace NuGetGallery
         private readonly IEntityRepository<Package> packageRepo;
 
         public FeedServiceBase()
+            : this(DependencyResolver.Current.GetService<IEntityRepository<Package>>())
+        {
+            
+        }
+
+        protected FeedServiceBase(IEntityRepository<Package> packageRepo)
         {
             // TODO: See if there is a way to do proper DI with data services
-            packageRepo = DependencyResolver.Current.GetService<IEntityRepository<Package>>();
+            this.packageRepo = packageRepo;
         }
 
         protected IEntityRepository<Package> PackageRepo
