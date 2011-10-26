@@ -18,6 +18,7 @@ namespace NuGetGallery
             LastUpdated = package.LastUpdated;
             Listed = package.Listed;
             DownloadCount = package.DownloadCount;
+            Prerelease = package.IsPrerelease;
         }
 
         public string Id
