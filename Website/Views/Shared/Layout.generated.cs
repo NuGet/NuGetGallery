@@ -34,7 +34,6 @@ namespace NuGetGallery.Views.Shared
     #line default
     #line hidden
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/Layout.cshtml")]
     public class Layout : System.Web.Mvc.WebViewPage<dynamic>
     {
@@ -70,7 +69,7 @@ WriteLiteral("\" rel=\"shortcut icon\" type=\"image/x-icon\" />\r\n        <scri
 
             
             #line 9 "..\..\Views\Shared\Layout.cshtml"
-                Write(Url.Content("~/Scripts/modernizr-2.0.6.js"));
+                Write(Url.Content("~/Scripts/modernizr-2.0.6-development-only.js"));
 
             
             #line default
