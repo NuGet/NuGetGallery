@@ -78,11 +78,6 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult DeletePackage() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult Edit() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
         }
@@ -110,7 +105,6 @@ namespace NuGetGallery {
             public readonly string DownloadPackage = "DownloadPackage";
             public readonly string ManagePackageOwners = "ManagePackageOwners";
             public readonly string Delete = "Delete";
-            public readonly string DeletePackage = "Delete";
             public readonly string Edit = "Edit";
         }
 
@@ -233,10 +227,11 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult DeletePackage(string id, string version) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
+        public override System.Web.Mvc.ActionResult Delete(string id, string version, bool? listed) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Delete);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
+            callInfo.RouteValueDictionary.Add("listed", listed);
             return callInfo;
         }
 
@@ -244,14 +239,6 @@ namespace NuGetGallery {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Edit(string id, string version, bool? listed) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
-            callInfo.RouteValueDictionary.Add("listed", listed);
             return callInfo;
         }
 

@@ -50,31 +50,6 @@ namespace NuGetGallery
             return package;
         }
 
-        public void DeletePackage(string id, string version)
-        {
-            var package = FindPackageByIdAndVersion(id, version);
-
-            if (package == null)
-            {
-                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
-            }
-
-            using (var tx = new TransactionScope())
-            {
-                var packageRegistration = package.PackageRegistration;
-                packageRepo.DeleteOnCommit(package);
-                packageFileSvc.DeletePackageFile(id, version);
-                UpdateIsLatest(packageRegistration);
-                packageRepo.CommitChanges();
-                if (packageRegistration.Packages.Count == 0)
-                {
-                    packageRegistrationRepo.DeleteOnCommit(packageRegistration);
-                    packageRegistrationRepo.CommitChanges();
-                }
-                tx.Complete();
-            }
-        }
-
         public virtual PackageRegistration FindPackageRegistrationById(string id)
         {
             return packageRegistrationRepo.GetAll()
@@ -354,19 +329,13 @@ namespace NuGetGallery
 
         public void MarkPackageListed(Package package)
         {
-            foreach (var item in package.PackageRegistration.Packages)
-            {
-                item.Listed = true;
-            }
+            package.Listed = true;
             packageRepo.CommitChanges();
         }
 
         public void MarkPackageUnlisted(Package package)
         {
-            foreach (var item in package.PackageRegistration.Packages)
-            {
-                item.Listed = false;
-            }
+            package.Listed = false;
             packageRepo.CommitChanges();
         }
 

@@ -425,6 +425,9 @@ WriteLiteral(" -Pre ");
 
 WriteLiteral(" ");
 
+            
+            #line 48 "..\..\Views\Packages\DisplayPackage.cshtml"
+                                       Write(Model.Title);
 
             
             #line 80 "..\..\Views\Packages\DisplayPackage.cshtml"
@@ -507,6 +510,13 @@ WriteLiteral("\r\n    <h3>Authors</h3>\r\n    <ul class=\"authors\">\r\n");
             #line hidden
 WriteLiteral("            <li><a href=\"");
 
+            
+            #line default
+            #line hidden
+WriteLiteral(", run the following command in the <a href=\"http://docs.nuget.org/docs/start-here" +
+"/using-the-package-manager-console\">\r\n            Package Manager Console</a>\r\n " +
+"   </p>\r\n    <div class=\"nuget-badge\">\r\n        <p>\r\n            <code>PM&gt; In" +
+"stall-Package ");
 
             
             #line 101 "..\..\Views\Packages\DisplayPackage.cshtml"
@@ -517,6 +527,10 @@ WriteLiteral("            <li><a href=\"");
             #line hidden
 WriteLiteral("\" title=\"Search for ");
 
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n");
 
             
             #line 101 "..\..\Views\Packages\DisplayPackage.cshtml"
@@ -557,10 +571,22 @@ WriteLiteral("    </ul>\r\n");
             #line hidden
 WriteLiteral("        <h3>Copyright</h3>\r\n");
 
+            
+            #line 82 "..\..\Views\Packages\DisplayPackage.cshtml"
+            Write(Url.Action(@MVC.Packages.Download()));
 
+            
+            #line default
+            #line hidden
+WriteLiteral("\" title=\"Download link\">Where is the <strong>Download link?</strong></a>\r\n    </p" +
+">\r\n\r\n    <h3>Release Notes</h3>\r\n    <p>\r\n        \r\n    </p>\r\n\r\n    <h3>Owners</" +
+"h3>\r\n    ");
 
 WriteLiteral("        <p>");
 
+            
+            #line 91 "..\..\Views\Packages\DisplayPackage.cshtml"
+Write(ViewHelpers.OwnersGravatar(Model.Owners, 32, Url));
 
             
             #line 106 "..\..\Views\Packages\DisplayPackage.cshtml"
@@ -571,6 +597,9 @@ WriteLiteral("        <p>");
             #line hidden
 WriteLiteral("</p>\r\n");
 
+            
+            #line 94 "..\..\Views\Packages\DisplayPackage.cshtml"
+         foreach (var author in Model.Authors) {
 
             
             #line 107 "..\..\Views\Packages\DisplayPackage.cshtml"

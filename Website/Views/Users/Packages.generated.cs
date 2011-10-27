@@ -34,13 +34,13 @@ namespace NuGetGallery.Views.Users
     public class Packages : System.Web.Mvc.WebViewPage<ManagePackagesViewModel>
     {
 
-public System.Web.WebPages.HelperResult PrintPublishedPackages(IEnumerable<PackageViewModel> packages) {
+public System.Web.WebPages.HelperResult PrintPublishedPackages(IEnumerable<PackageViewModel> packages, bool unlisted) {
 return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
 
 
 
-#line 38 "..\..\Views\Users\Packages.cshtml"
-                                                                        
+#line 37 "..\..\Views\Users\Packages.cshtml"
+                                                                                       
     var totlalDownloads = 0;
 
 #line default
@@ -62,19 +62,61 @@ WriteLiteralTo(@__razor_helper_writer, @"    <table class=""sexy-table"">
 
 
 
-#line 52 "..\..\Views\Users\Packages.cshtml"
+#line 51 "..\..\Views\Users\Packages.cshtml"
          foreach (var package in packages) {
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "            <tr>\r\n                <td class=\"actions\">\r\n                    <a hr" +
-"ef=\"");
+WriteLiteralTo(@__razor_helper_writer, "            <tr>\r\n                <td class=\"actions\">\r\n");
 
 
 
-#line 55 "..\..\Views\Users\Packages.cshtml"
-WriteTo(@__razor_helper_writer, Url.EditPackage(package));
+#line 54 "..\..\Views\Users\Packages.cshtml"
+                     if (unlisted)
+                    {
+
+#line default
+#line hidden
+
+WriteLiteralTo(@__razor_helper_writer, "                        <a href=\"");
+
+
+
+#line 56 "..\..\Views\Users\Packages.cshtml"
+  WriteTo(@__razor_helper_writer, Url.DeletePackage(package));
+
+#line default
+#line hidden
+
+WriteLiteralTo(@__razor_helper_writer, "\" title=\"List Package\" class=\"editPackageLink\"><img src=\"");
+
+
+
+#line 56 "..\..\Views\Users\Packages.cshtml"
+                                                                                      WriteTo(@__razor_helper_writer, Links.Content.Images.editIcon_png);
+
+#line default
+#line hidden
+
+WriteLiteralTo(@__razor_helper_writer, "\" alt=\"List Package\" /></a>\r\n");
+
+
+
+#line 57 "..\..\Views\Users\Packages.cshtml"
+                    }
+                    else
+                    { 
+
+#line default
+#line hidden
+
+WriteLiteralTo(@__razor_helper_writer, "                        <a href=\"");
+
+
+
+#line 60 "..\..\Views\Users\Packages.cshtml"
+  WriteTo(@__razor_helper_writer, Url.EditPackage(package));
 
 #line default
 #line hidden
@@ -83,18 +125,22 @@ WriteLiteralTo(@__razor_helper_writer, "\" title=\"Edit\" class=\"editPackageLin
 
 
 
-#line 55 "..\..\Views\Users\Packages.cshtml"
-                                                                        WriteTo(@__razor_helper_writer, Links.Content.Images.editIcon_png);
+#line 60 "..\..\Views\Users\Packages.cshtml"
+                                                                            WriteTo(@__razor_helper_writer, Links.Content.Images.editIcon_png);
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "\" alt=\"Edit\" /></a>\r\n                    <a href=\"");
+WriteLiteralTo(@__razor_helper_writer, "\" alt=\"Edit\" /></a>\r\n");
 
 
 
-#line 56 "..\..\Views\Users\Packages.cshtml"
-WriteTo(@__razor_helper_writer, Url.DeletePackage(package));
+WriteLiteralTo(@__razor_helper_writer, "                        <a href=\"");
+
+
+
+#line 61 "..\..\Views\Users\Packages.cshtml"
+  WriteTo(@__razor_helper_writer, Url.DeletePackage(package));
 
 #line default
 #line hidden
@@ -103,18 +149,27 @@ WriteLiteralTo(@__razor_helper_writer, "\" title=\"Delete\" class=\"deletePackag
 
 
 
-#line 56 "..\..\Views\Users\Packages.cshtml"
-                                                                              WriteTo(@__razor_helper_writer, Links.Content.Images.trash_png);
+#line 61 "..\..\Views\Users\Packages.cshtml"
+                                                                                  WriteTo(@__razor_helper_writer, Links.Content.Images.trash_png);
 
 #line default
 #line hidden
 
-WriteLiteralTo(@__razor_helper_writer, "\" alt=\"Delete\" /></a>\r\n                </td>\r\n                <td>\r\n             " +
-"       <a href=\"");
+WriteLiteralTo(@__razor_helper_writer, "\" alt=\"Delete\" /></a>\r\n");
 
 
 
-#line 59 "..\..\Views\Users\Packages.cshtml"
+#line 62 "..\..\Views\Users\Packages.cshtml"
+                    }
+
+#line default
+#line hidden
+
+WriteLiteralTo(@__razor_helper_writer, "                </td>\r\n                <td>\r\n                    <a href=\"");
+
+
+
+#line 65 "..\..\Views\Users\Packages.cshtml"
 WriteTo(@__razor_helper_writer, Url.Package(package));
 
 #line default
@@ -124,7 +179,7 @@ WriteLiteralTo(@__razor_helper_writer, "\"  title=\"View package page.\">");
 
 
 
-#line 59 "..\..\Views\Users\Packages.cshtml"
+#line 65 "..\..\Views\Users\Packages.cshtml"
                                                  WriteTo(@__razor_helper_writer, package.Title);
 
 #line default
@@ -134,7 +189,7 @@ WriteLiteralTo(@__razor_helper_writer, "</a>\r\n                </td>\r\n       
 
 
 
-#line 61 "..\..\Views\Users\Packages.cshtml"
+#line 67 "..\..\Views\Users\Packages.cshtml"
 WriteTo(@__razor_helper_writer, package.Id);
 
 #line default
@@ -144,37 +199,39 @@ WriteLiteralTo(@__razor_helper_writer, "</td>\r\n                <td>\r\n");
 
 
 
-#line 63 "..\..\Views\Users\Packages.cshtml"
-                     if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 65) {
+#line 69 "..\..\Views\Users\Packages.cshtml"
+                     if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 65)
+                    {
                             
 #line default
 #line hidden
 
 
-#line 64 "..\..\Views\Users\Packages.cshtml"
+#line 71 "..\..\Views\Users\Packages.cshtml"
 WriteTo(@__razor_helper_writer, package.Description);
 
 #line default
 #line hidden
 
 
-#line 64 "..\..\Views\Users\Packages.cshtml"
+#line 71 "..\..\Views\Users\Packages.cshtml"
                                                 
                     }
-                    else {
+                    else
+                    {
                             
 #line default
 #line hidden
 
 
-#line 67 "..\..\Views\Users\Packages.cshtml"
+#line 75 "..\..\Views\Users\Packages.cshtml"
 WriteTo(@__razor_helper_writer, package.Description.Substring(0, 65));
 
 #line default
 #line hidden
 
 
-#line 67 "..\..\Views\Users\Packages.cshtml"
+#line 75 "..\..\Views\Users\Packages.cshtml"
                                                                  
 
 #line default
@@ -184,7 +241,7 @@ WriteLiteralTo(@__razor_helper_writer, "                            <a href=\"")
 
 
 
-#line 68 "..\..\Views\Users\Packages.cshtml"
+#line 76 "..\..\Views\Users\Packages.cshtml"
       WriteTo(@__razor_helper_writer, Url.Package(package));
 
 #line default
@@ -194,7 +251,7 @@ WriteLiteralTo(@__razor_helper_writer, "\" title=\"View package page.\">...</a>\
 
 
 
-#line 69 "..\..\Views\Users\Packages.cshtml"
+#line 77 "..\..\Views\Users\Packages.cshtml"
                     }
 
 #line default
@@ -204,7 +261,7 @@ WriteLiteralTo(@__razor_helper_writer, "                </td>\r\n               
 
 
 
-#line 72 "..\..\Views\Users\Packages.cshtml"
+#line 80 "..\..\Views\Users\Packages.cshtml"
 WriteTo(@__razor_helper_writer, package.DownloadCount);
 
 #line default
@@ -214,7 +271,7 @@ WriteLiteralTo(@__razor_helper_writer, "</td>\r\n            </tr>\r\n");
 
 
 
-#line 74 "..\..\Views\Users\Packages.cshtml"
+#line 82 "..\..\Views\Users\Packages.cshtml"
                     totlalDownloads += package.DownloadCount;
         }
 
@@ -226,7 +283,7 @@ WriteLiteralTo(@__razor_helper_writer, "        </tbody>\r\n        <tfoot>\r\n 
 
 
 
-#line 80 "..\..\Views\Users\Packages.cshtml"
+#line 88 "..\..\Views\Users\Packages.cshtml"
          WriteTo(@__razor_helper_writer, packages.Count());
 
 #line default
@@ -237,7 +294,7 @@ WriteLiteralTo(@__razor_helper_writer, " packages.\r\n                </td>\r\n 
 
 
 
-#line 83 "..\..\Views\Users\Packages.cshtml"
+#line 91 "..\..\Views\Users\Packages.cshtml"
 WriteTo(@__razor_helper_writer, totlalDownloads);
 
 #line default
@@ -247,7 +304,7 @@ WriteLiteralTo(@__razor_helper_writer, "\r\n                </td>\r\n           
 
 
 
-#line 88 "..\..\Views\Users\Packages.cshtml"
+#line 96 "..\..\Views\Users\Packages.cshtml"
 
 #line default
 #line hidden
@@ -289,7 +346,7 @@ WriteLiteral("    <section id=\"published\">\r\n        <h1>Packages</h1>\r\n   
 
             
             #line 14 "..\..\Views\Users\Packages.cshtml"
-   Write(PrintPublishedPackages(Model.Packages.Where(p => p.Listed)));
+   Write(PrintPublishedPackages(Model.Packages.Where(p => p.Listed), unlisted: false));
 
             
             #line default
@@ -312,7 +369,7 @@ WriteLiteral("    <section id=\"unlisted\">\r\n        <h1>Unlisted Packages</h1
 
             
             #line 23 "..\..\Views\Users\Packages.cshtml"
-   Write(PrintPublishedPackages(unlistedPackages));
+   Write(PrintPublishedPackages(unlistedPackages, unlisted: true));
 
             
             #line default
@@ -351,7 +408,7 @@ WriteLiteral("\" class=\"silverButtonBig\">upload a package</a>\r\n        </p>\
             
             #line default
             #line hidden
-WriteLiteral("\r\n\r\n");
+WriteLiteral("\r\n");
 
 
 

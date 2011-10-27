@@ -8,8 +8,6 @@ namespace NuGetGallery
     {
         Package CreatePackage(IPackage nugetPackage, User currentUser);
 
-        void DeletePackage(string id, string version);
-
         PackageRegistration FindPackageRegistrationById(string id);
 
         Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true);
