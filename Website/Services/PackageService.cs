@@ -152,6 +152,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
 
             package.Published = DateTime.UtcNow;
+            package.Listed = true;
 
             UpdateIsLatest(package.PackageRegistration);
 
@@ -282,7 +283,7 @@ namespace NuGetGallery
 
         void UpdateIsLatest(PackageRegistration packageRegistration)
         {
-            if (!packageRegistration.Packages.Any())
+            if (!packageRegistration.Packages.Any(p => p.Listed))
             {
                 return;
             }
@@ -294,14 +295,14 @@ namespace NuGetGallery
                 pv.IsLatestStable = false;
             }
 
-            var latestPackage = FindPackage(packageRegistration.Packages, null);
+            var latestPackage = FindPackage(packageRegistration.Packages, p => p.Listed);
             latestPackage.IsLatest = true;
 
             if (latestPackage.IsPrerelease)
             {
                 // If the newest uploaded package is a prerelease package, we need to find an older package that is 
                 // a release version and set it to IsLatest.
-                var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease));
+                var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && p.Listed));
                 if (latestReleasePackage != null)
                 {
                     // We could have no release packages
@@ -327,15 +328,48 @@ namespace NuGetGallery
             packageRepo.CommitChanges();
         }
 
+        // TODO: Should probably be run in a transaction
         public void MarkPackageListed(Package package)
         {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+
+            if (package.Listed)
+            {
+                return;
+            }
+
+            if (!package.Listed && (package.IsLatestStable || package.IsLatest))
+            {
+                throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");
+            }
+
             package.Listed = true;
+
+            UpdateIsLatest(package.PackageRegistration);
+
             packageRepo.CommitChanges();
         }
 
+        // TODO: Should probably be run in a transaction
         public void MarkPackageUnlisted(Package package)
         {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+            if (!package.Listed)
+            {
+                return;
+            }
+
             package.Listed = false;
+            if (package.IsLatest || package.IsLatestStable)
+            {
+                UpdateIsLatest(package.PackageRegistration);
+            }
             packageRepo.CommitChanges();
         }
 
