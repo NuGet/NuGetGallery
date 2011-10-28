@@ -157,7 +157,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillDeleteThePackageIfApiKeyBelongsToAnOwner()
+            public void WillUnlistThePackageIfApiKeyBelongsToAnOwner()
             {
                 var owner = new User { Key = 1 };
                 var package = new Package
@@ -173,7 +173,7 @@ namespace NuGetGallery
 
                 controller.DeletePackage(apiKey, "theId", "1.0.42");
 
-                packageSvc.Verify(x => x.DeletePackage("theId", "1.0.42"));
+                packageSvc.Verify(x => x.MarkPackageUnlisted(package));
             }
         }
 
