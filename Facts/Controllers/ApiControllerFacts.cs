@@ -138,7 +138,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillNotDeleteThePackageIfApiKeyDoesNotBelongToAnOwner()
+            public void WillNotUnlistOrDeleteThePackageIfApiKeyDoesNotBelongToAnOwner()
             {
                 var owner = new User { Key = 1 };
                 var package = new Package
@@ -147,6 +147,7 @@ namespace NuGetGallery
                 };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                packageSvc.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(new InvalidOperationException("Should not have unlisted the package!"));
                 packageSvc.Setup(svc => svc.DeletePackage(It.IsAny<string>(), It.IsAny<string>())).Throws(new InvalidOperationException("Should not have deleted the package!"));
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
@@ -166,6 +167,7 @@ namespace NuGetGallery
                 };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                packageSvc.Setup(svc => svc.DeletePackage(It.IsAny<string>(), It.IsAny<string>())).Throws(new InvalidOperationException("Should not have deleted the package!"));
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
