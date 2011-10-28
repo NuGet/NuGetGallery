@@ -475,7 +475,6 @@
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
-    <Compile Include="ViewModels\DeletePackageViewModel.cs" />
     <Compile Include="ViewModels\DependencyViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
@@ -541,11 +540,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ContactOwners.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\Delete.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Delete.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Packages\DisplayPackage.generated.cs">
       <AutoGen>True</AutoGen>
@@ -927,10 +921,6 @@
       <LastGenOutput>T4MVC.cs</LastGenOutput>
     </None>
     <None Include="T4MVC.tt.settings.t4" />
-    <Content Include="Views\Packages\Delete.cshtml">
-      <LastGenOutput>Delete.generated.cs</LastGenOutput>
-      <Generator>RazorGenerator</Generator>
-    </Content>
     <Content Include="Views\Packages\Edit.cshtml">
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
       <Generator>RazorGenerator</Generator>
