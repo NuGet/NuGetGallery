@@ -24,9 +24,9 @@ namespace NuGetGallery
 
         PackageOwnerRequest RequestPackageOwner(PackageRegistration package, User currentOwner, User newOwner);
 
-        void AddPackageOwner(Package package, User user);
+        void AddPackageOwner(PackageRegistration package, User user);
 
-        void RemovePackageOwner(Package package, User user);
+        void RemovePackageOwner(PackageRegistration package, User user);
 
         void AddDownloadStatistics(Package package, string userHostAddress, string userAgent);
 
