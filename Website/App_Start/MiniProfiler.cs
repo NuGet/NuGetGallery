@@ -1,3 +1,4 @@
+using System;
 using System.Configuration;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
@@ -60,9 +61,9 @@ namespace NuGetGallery.App_Start
                 {
                     var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
                     var requestIsLocal = httpContext.Request != null && httpContext.Request.IsLocal;
+                    var isStaging = httpContext.Request != null && httpContext.Request.Url.Host.Equals("staging.nuget.org", StringComparison.OrdinalIgnoreCase);
 
-                    if (!userCanProfile && !requestIsLocal)
-                        stopProfiling = true;
+                    stopProfiling = !userCanProfile && !requestIsLocal && !isStaging;
                 }
 
                 if (stopProfiling)

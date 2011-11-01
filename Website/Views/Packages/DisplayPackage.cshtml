@@ -48,7 +48,7 @@
             This is a prerelease version of @Model.Title.
         </p>
     }
-    else if (!Model.LatestVersion) {
+    else if (!Model.LatestStableVersion && !Model.LatestVersion) {
         <p class="not-latest-message">
             This is a not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
                 version</a> of @Model.Title.
@@ -74,7 +74,13 @@
     <div class="nuget-badge">
         <p>
             <code>PM&gt; Install-Package @Model.Id
-                @if (!Model.LatestVersion) {<text> -Version @Model.Version</text>}
+                @if (!Model.LatestStableVersion)
+                {
+                    if (Model.LatestVersion)
+                    { <text> -Pre </text> }
+                    else
+                    { <text> -Version @Model.Version</text> }
+                }
                 @if (Model.Prerelease) {<text> -pre </text>}</code></p>
     </div>
 

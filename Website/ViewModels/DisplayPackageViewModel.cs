@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -17,12 +18,12 @@ namespace NuGetGallery
             if (!isVersionHistory)
             {
                 Dependencies = package.Dependencies.Select(d => new DependencyViewModel(d));
-                PackageVersions = from p in package.PackageRegistration.Packages
-                                  orderby p.Version descending
+                PackageVersions = from p in package.PackageRegistration.Packages.ToList()
+                                  orderby new SemanticVersion(p.Version) descending
                                   select new DisplayPackageViewModel(p, isVersionHistory: true);
             }
 
-            DownloadCount = package.DownloadStatistics.Count;
+            DownloadCount = package.DownloadCount;
         }
 
         public IEnumerable<DependencyViewModel> Dependencies { get; set; }

@@ -140,8 +140,8 @@ namespace NuGetGallery
 
             if (allowPrerelease)
             {
-                // Since we use this for listing, when we allow pre release versions, we'll assume they meant to show both the latest release and prerelease versions of a package.
-                return packages.Where(p => p.IsLatest || p.IsLatestStable);
+                // Since we use this for listing, only show prerelease versions of a package if it does not have stable version 
+                return packages.Where(p => p.IsLatestStable || (p.IsLatest && !packages.Any(p2 => p2.IsLatestStable)));
             }
             return packages.Where(x => x.IsLatestStable);
         }
