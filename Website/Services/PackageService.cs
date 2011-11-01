@@ -23,7 +23,8 @@ namespace NuGetGallery
             IEntityRepository<Package> packageRepo,
             IEntityRepository<PackageStatistics> packageStatsRepo,
             IPackageFileService packageFileSvc,
-            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository) {
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository)
+        {
             this.cryptoSvc = cryptoSvc;
             this.packageRegistrationRepo = packageRegistrationRepo;
             this.packageRepo = packageRepo;
@@ -342,22 +343,23 @@ namespace NuGetGallery
             }
         }
 
-        public void AddPackageOwner(Package package, User user)
+        public void AddPackageOwner(PackageRegistration package, User user)
         {
-            package.PackageRegistration.Owners.Add(user);
+            package.Owners.Add(user);
             packageRepo.CommitChanges();
         }
 
-        public void RemovePackageOwner(Package package, User user)
+        public void RemovePackageOwner(PackageRegistration package, User user)
         {
-            var pendingOwner = FindExistingPackageOwnerRequest(package.PackageRegistration, user);
-            if (pendingOwner != null) {
+            var pendingOwner = FindExistingPackageOwnerRequest(package, user);
+            if (pendingOwner != null)
+            {
                 packageOwnerRequestRepository.DeleteOnCommit(pendingOwner);
                 packageOwnerRequestRepository.CommitChanges();
                 return;
             }
 
-            package.PackageRegistration.Owners.Remove(user);
+            package.Owners.Remove(user);
             packageRepo.CommitChanges();
         }
 
@@ -394,13 +396,16 @@ namespace NuGetGallery
             return packages.First(pv => pv.Version.Equals(version.ToString(), StringComparison.OrdinalIgnoreCase));
         }
 
-        public PackageOwnerRequest RequestPackageOwner(PackageRegistration package, User currentOwner, User newOwner) {
+        public PackageOwnerRequest RequestPackageOwner(PackageRegistration package, User currentOwner, User newOwner)
+        {
             var existingRequest = FindExistingPackageOwnerRequest(package, newOwner);
-            if (existingRequest != null) {
+            if (existingRequest != null)
+            {
                 return existingRequest;
             }
 
-            var newRequest = new PackageOwnerRequest {
+            var newRequest = new PackageOwnerRequest
+            {
                 PackageRegistrationKey = package.Key,
                 RequestingOwnerKey = currentOwner.Key,
                 NewOwnerKey = newOwner.Key,
@@ -413,7 +418,8 @@ namespace NuGetGallery
             return newRequest;
         }
 
-        private PackageOwnerRequest FindExistingPackageOwnerRequest(PackageRegistration package, User pendingOwner) {
+        private PackageOwnerRequest FindExistingPackageOwnerRequest(PackageRegistration package, User pendingOwner)
+        {
             return (from request in packageOwnerRequestRepository.GetAll()
                     where request.PackageRegistrationKey == package.Key && request.NewOwnerKey == pendingOwner.Key
                     select request).FirstOrDefault();

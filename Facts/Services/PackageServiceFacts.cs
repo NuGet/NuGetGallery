@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Moq;
 using NuGet;
 using Xunit;
@@ -925,17 +925,11 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var owner = new User { };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Owners = new List<User> { owner }
-                    }
-                };
+                var package = new PackageRegistration { Owners = new List<User> { owner } };
 
                 service.RemovePackageOwner(package, owner);
 
-                Assert.DoesNotContain(owner, package.PackageRegistration.Owners);
+                Assert.DoesNotContain(owner, package.Owners);
             }
 
             [Fact]
@@ -954,18 +948,11 @@ namespace NuGetGallery
                 var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
                 var pendingOwner = new User { Key = 200 };
                 var owner = new User { };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Key = 1,
-                        Owners = new List<User> { owner }
-                    }
-                };
+                var package = new PackageRegistration { Key = 1, Owners = new List<User> { owner } };
 
                 service.RemovePackageOwner(package, pendingOwner);
 
-                Assert.Contains(owner, package.PackageRegistration.Owners);
+                Assert.Contains(owner, package.Owners);
                 packageOwnerRequestRepository.VerifyAll();
             }
         }

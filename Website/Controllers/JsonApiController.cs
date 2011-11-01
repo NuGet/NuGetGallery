@@ -1,6 +1,6 @@
-﻿using System.Web;
+﻿using System.Linq;
+using System.Web;
 using System.Web.Mvc;
-using System.Linq;
 using MvcHaack.Ajax;
 
 namespace NuGetGallery
@@ -10,12 +10,14 @@ namespace NuGetGallery
         IPackageService packageSvc;
         IUserService userSvc;
         IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository;
+        IMessageService messageSvc;
 
-        public JsonApiController(IPackageService packageSvc, IUserService userSvc, IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository)
+        public JsonApiController(IPackageService packageSvc, IUserService userSvc, IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository, IMessageService messageService)
         {
             this.packageSvc = packageSvc;
             this.userSvc = userSvc;
             this.packageOwnerRequestRepository = packageOwnerRequestRepository;
+            this.messageSvc = messageService;
         }
 
         [Authorize]
@@ -32,7 +34,8 @@ namespace NuGetGallery
             }
 
             var owners = from u in package.PackageRegistration.Owners
-                         select new OwnerModel {
+                         select new OwnerModel
+                         {
                              name = u.Username,
                              current = u.Username == HttpContext.User.Identity.Name,
                              pending = false
@@ -45,9 +48,9 @@ namespace NuGetGallery
             return owners.Union(pending);
         }
 
-        public object AddPackageOwner(string id, string version, string username)
+        public object AddPackageOwner(string id, string username)
         {
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            var package = packageSvc.FindPackageRegistrationById(id);
             if (package == null)
             {
                 return new { success = false, message = "Package not found" };
@@ -64,13 +67,13 @@ namespace NuGetGallery
 
             var currentUser = userSvc.FindByUsername(HttpContext.User.Identity.Name);
 
-            packageSvc.RequestPackageOwner(package.PackageRegistration, currentUser, user);
+            packageSvc.RequestPackageOwner(package, currentUser, user);
             return new { success = true, name = user.Username, pending = true };
         }
 
-        public object RemovePackageOwner(string id, string version, string username)
+        public object RemovePackageOwner(string id, string username)
         {
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            var package = packageSvc.FindPackageRegistrationById(id);
             if (package == null)
             {
                 return new { success = false, message = "Package not found" };
