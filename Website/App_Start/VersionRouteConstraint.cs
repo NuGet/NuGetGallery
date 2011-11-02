@@ -15,13 +15,13 @@ namespace NuGetGallery
                 return true;
             }
 
-            if (versionValue == UrlParameter.Optional)
+            if (versionValue == null || versionValue == UrlParameter.Optional)
             {
                 return true;
             }
 
             string versionText = versionValue.ToString();
-            if (versionText == string.Empty)
+            if (versionText.Length == 0)
             {
                 return true;
             }

@@ -10,5 +10,6 @@ namespace NuGetGallery
         MailMessage SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl);
         MailMessage SendPasswordResetInstructions(User user, string resetPasswordUrl);
         MailMessage SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress);
+        MailMessage SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl);
     }
 }

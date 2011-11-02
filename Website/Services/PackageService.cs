@@ -347,6 +347,13 @@ namespace NuGetGallery
         {
             package.Owners.Add(user);
             packageRepo.CommitChanges();
+
+            var request = FindExistingPackageOwnerRequest(package, user);
+            if (request != null)
+            {
+                packageOwnerRequestRepository.DeleteOnCommit(request);
+                packageOwnerRequestRepository.CommitChanges();
+            }
         }
 
         public void RemovePackageOwner(PackageRegistration package, User user)
@@ -416,6 +423,38 @@ namespace NuGetGallery
             packageOwnerRequestRepository.InsertOnCommit(newRequest);
             packageOwnerRequestRepository.CommitChanges();
             return newRequest;
+        }
+
+        public bool ConfirmPackageOwner(PackageRegistration package, User pendingOwner, string token)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+
+            if (pendingOwner == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new ArgumentNullException("token");
+            }
+
+            if (package.IsOwner(pendingOwner))
+            {
+                return true;
+            }
+
+            var request = FindExistingPackageOwnerRequest(package, pendingOwner);
+            if (request != null && request.ConfirmationCode == token)
+            {
+                AddPackageOwner(package, pendingOwner);
+                return true;
+            }
+
+            return false;
         }
 
         private PackageOwnerRequest FindExistingPackageOwnerRequest(PackageRegistration package, User pendingOwner)

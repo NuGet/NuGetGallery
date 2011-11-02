@@ -66,8 +66,11 @@ namespace NuGetGallery
             }
 
             var currentUser = userSvc.FindByUsername(HttpContext.User.Identity.Name);
+            var ownerRequest = packageSvc.RequestPackageOwner(package, currentUser, user);
 
-            packageSvc.RequestPackageOwner(package, currentUser, user);
+            var confirmationUrl = Url.ConfirmationUrl(MVC.Packages.ConfirmOwner().AddRouteValue("id", package.Id), user.Username, ownerRequest.ConfirmationCode, Request.Url.Scheme);
+            messageSvc.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl);
+
             return new { success = true, name = user.Username, pending = true };
         }
 

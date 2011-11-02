@@ -29,7 +29,7 @@ namespace NuGetGallery
                 Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
             }
         }
-        
+
         public MailMessage ReportAbuse(MailAddress fromAddress, Package package, string message)
         {
             string subject = "[{0}] Abuse Report for Package '{1}' Version '{2}'";
@@ -225,6 +225,35 @@ The {2} Team";
                 })
             {
                 mailMessage.To.Add(user.ToMailAddress());
+                SendMessage(mailMessage);
+                return mailMessage;
+            }
+        }
+
+
+        public MailMessage SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
+        {
+            string body = @"{0} would like to add you as an owner of the package '{1}'. 
+If you do not want to be listed as an owner of this package, simply delete this email.
+
+To accept this request and become a listed owner of the package, click the following URL:
+
+[{2}]({2})
+
+Thank,
+The {3} Team";
+
+            body = String.Format(body, fromUser.Username, package.Id, confirmationUrl, configuration.GalleryOwnerEmailAddress.DisplayName);
+
+            using (
+                var mailMessage = new MailMessage
+                {
+                    Subject = String.Format("[{0}] Someone wants to add you as an owner of their package.", configuration.GalleryOwnerEmailAddress.DisplayName),
+                    Body = body,
+                    From = fromUser.ToMailAddress(),
+                })
+            {
+                mailMessage.To.Add(toUser.ToMailAddress());
                 SendMessage(mailMessage);
                 return mailMessage;
             }

@@ -388,6 +388,40 @@ namespace NuGetGallery
             return Edit(id, version, listed, Url.Package);
         }
 
+        [Authorize]
+        public virtual ActionResult ConfirmOwner(string id, string username, string token)
+        {
+            if (String.IsNullOrEmpty(token))
+            {
+                return HttpNotFound();
+            }
+
+            var package = packageSvc.FindPackageRegistrationById(id);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var user = userSvc.FindByUsername(username);
+            if (user == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!String.Equals(user.Username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return new HttpStatusCodeResult(403);
+            }
+
+            var model = new PackageOwnerConfirmationModel
+            {
+                Success = packageSvc.ConfirmPackageOwner(package, user, token),
+                PackageId = id
+            };
+
+            return View(model);
+        }
+
         internal virtual ActionResult Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)
         {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);

@@ -205,6 +205,7 @@
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
+    <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -901,6 +902,7 @@
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
     </Content>
     <Content Include="Views\Packages\Download.cshtml" />
+    <Content Include="Views\Packages\ConfirmOwner.cshtml" />
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
