@@ -245,7 +245,7 @@ To accept this request and become a listed owner of the package, click the follo
 
 [{2}]({2})
 
-Thank,
+Thanks,
 The {3} Team";
 
             body = String.Format(body, fromUser.Username, package.Id, confirmationUrl, configuration.GalleryOwnerEmailAddress.DisplayName);
@@ -253,7 +253,7 @@ The {3} Team";
             using (
                 var mailMessage = new MailMessage
                 {
-                    Subject = String.Format("[{0}] Someone wants to add you as an owner of their package.", configuration.GalleryOwnerEmailAddress.DisplayName),
+                    Subject = String.Format("[{0}] The user '{1}' wants to add you as an owner of their package, '{2}'.", configuration.GalleryOwnerEmailAddress.DisplayName, fromUser.Username, package.Id),
                     Body = body,
                     From = fromUser.ToMailAddress(),
                 })
