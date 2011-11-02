@@ -879,7 +879,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheRequestPackageOwnerMethod
+        public class TheCreatePackageOwnerRequestMethod
         {
             [Fact]
             public void CreatesPackageOwnerRequest()
