@@ -95,13 +95,13 @@ namespace NuGetGallery
                 .HasKey(pd => pd.Key);
 
             modelBuilder.Entity<GallerySetting>()
-                .HasKey(pd => pd.Key);
+                .HasKey(gs => gs.Key);
 
             modelBuilder.Entity<WorkItem>()
-                .HasKey(pd => pd.Id);
-                
-			modelBuilder.Entity<PackageOwnerRequest>()
-                .HasKey(pd => pd.Key);
+                .HasKey(wi => wi.Id);
+
+            modelBuilder.Entity<PackageOwnerRequest>()
+                .HasKey(por => por.Key);
         }
 
         public IDbSet<WorkItem> WorkItems
@@ -110,7 +110,8 @@ namespace NuGetGallery
             set;
         }
 
-        private static DbConnection GetConnection(string connectionStringName) {
+        private static DbConnection GetConnection(string connectionStringName)
+        {
             var setting = ConfigurationManager.ConnectionStrings[connectionStringName];
             var connection = new SqlConnection(setting.ConnectionString);
             return ProfiledDbConnection.Get(connection);

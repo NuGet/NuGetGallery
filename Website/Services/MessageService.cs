@@ -233,6 +233,11 @@ The {2} Team";
 
         public MailMessage SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
         {
+            if (!toUser.EmailAllowed)
+            {
+                return null;
+            }
+
             string body = @"{0} would like to add you as an owner of the package '{1}'. 
 If you do not want to be listed as an owner of this package, simply delete this email.
 
