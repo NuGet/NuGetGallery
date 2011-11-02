@@ -176,24 +176,25 @@ WriteLiteral("\' },\r\n            owners: ko.observableArray([]),\r\n          
 "         $mvc.JsonApi.AddPackageOwner(ownerInputModel)\r\n                    .don" +
 "e(function (data) {\r\n                        if (data.success) {\r\n              " +
 "              viewModel.newOwner().name(data.name);\r\n                           " +
-" viewModel.owners.push(viewModel.newOwner());\r\n                            viewM" +
-"odel.newOwner(new Owner(null));\r\n                        }\r\n                    " +
-"    else {\r\n                            viewModel.message(data.message);\r\n      " +
-"                  }\r\n                    })\r\n                    .fail(failHandl" +
-"er);\r\n            },\r\n\r\n            removeOwner: function (item) {\r\n            " +
-"    var package = viewModel.package;\r\n                $mvc.JsonApi.RemovePackage" +
-"Owner({ id: package.id, username: item.name() })\r\n                    .done(func" +
-"tion (data) {\r\n                        if (data.success) {\r\n                    " +
-"        viewModel.owners.remove(item);\r\n                        }\r\n             " +
-"           else {\r\n                            viewModel.message(data.message);\r" +
-"\n                        }\r\n                    }).fail(failHandler);\r\n         " +
-"   }\r\n        };\r\n        ko.applyBindings(viewModel);\r\n\r\n        // Load initia" +
-"l owners.\r\n        $mvc.JsonApi.GetPackageOwners(viewModel.package)\r\n        .do" +
-"ne(function (data) {\r\n            viewModel.owners($.map(data, function (item) {" +
-" return new Owner(item) }));\r\n        })\r\n        .fail(failHandler);\r\n\r\n       " +
-" function Owner(item) {\r\n            var $this = this;\r\n\r\n            item = ite" +
-"m || {};\r\n\r\n            this.name = ko.observable(item.name);\r\n            this." +
-"pending = item.pending;\r\n            this.current = item.current;\r\n            t" +
+" viewModel.newOwner().pending(true);\r\n                            viewModel.owne" +
+"rs.push(viewModel.newOwner());\r\n                            viewModel.newOwner(n" +
+"ew Owner(null));\r\n                        }\r\n                        else {\r\n   " +
+"                         viewModel.message(data.message);\r\n                     " +
+"   }\r\n                    })\r\n                    .fail(failHandler);\r\n         " +
+"   },\r\n\r\n            removeOwner: function (item) {\r\n                var package" +
+" = viewModel.package;\r\n                $mvc.JsonApi.RemovePackageOwner({ id: pac" +
+"kage.id, username: item.name() })\r\n                    .done(function (data) {\r\n" +
+"                        if (data.success) {\r\n                            viewMod" +
+"el.owners.remove(item);\r\n                        }\r\n                        else" +
+" {\r\n                            viewModel.message(data.message);\r\n              " +
+"          }\r\n                    }).fail(failHandler);\r\n            }\r\n        }" +
+";\r\n        ko.applyBindings(viewModel);\r\n\r\n        // Load initial owners.\r\n    " +
+"    $mvc.JsonApi.GetPackageOwners(viewModel.package)\r\n        .done(function (da" +
+"ta) {\r\n            viewModel.owners($.map(data, function (item) { return new Own" +
+"er(item) }));\r\n        })\r\n        .fail(failHandler);\r\n\r\n        function Owner" +
+"(item) {\r\n            var $this = this;\r\n\r\n            item = item || {};\r\n\r\n   " +
+"         this.name = ko.observable(item.name);\r\n            this.pending = ko.ob" +
+"servable(item.pending);\r\n            this.current = item.current;\r\n            t" +
 "his.remove = function () {\r\n                viewModel.removeOwner(this);\r\n      " +
 "      };\r\n            this.toJS = function () {\r\n                return { userna" +
 "me: this.name() };\r\n            };\r\n        }\r\n    });\r\n</script>\r\n");

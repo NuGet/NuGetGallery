@@ -60,6 +60,7 @@
                     .done(function (data) {
                         if (data.success) {
                             viewModel.newOwner().name(data.name);
+                            viewModel.newOwner().pending(true);
                             viewModel.owners.push(viewModel.newOwner());
                             viewModel.newOwner(new Owner(null));
                         }
@@ -98,7 +99,7 @@
             item = item || {};
 
             this.name = ko.observable(item.name);
-            this.pending = item.pending;
+            this.pending = ko.observable(item.pending);
             this.current = item.current;
             this.remove = function () {
                 viewModel.removeOwner(this);
