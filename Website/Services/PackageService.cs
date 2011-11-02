@@ -245,6 +245,7 @@ namespace NuGetGallery
             {
                 Version = nugetPackage.Version.ToString(),
                 Description = nugetPackage.Description,
+                ReleaseNotes = nugetPackage.ReleaseNotes,
                 RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
                 HashAlgorithm = Const.Sha512HashAlgorithmId,
                 Hash = cryptoSvc.GenerateHash(packageFileStream.ReadAllBytes()),
