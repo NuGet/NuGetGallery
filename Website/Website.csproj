@@ -196,6 +196,10 @@
     <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.Designer.cs">
       <DependentUpon>201111022024584_PackageDependencyVersionSpec.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.cs" />
+    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.Designer.cs">
+      <DependentUpon>201111022051010_PackageReleaseNotes.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
@@ -546,6 +550,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>LogOn.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Packages\ConfirmOwner.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ConfirmOwner.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Packages\ContactOwners.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -560,6 +569,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>DisplayPackage.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Packages\Download.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Download.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Packages\Edit.generated.cs">
       <AutoGen>True</AutoGen>
@@ -905,8 +919,14 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
     </Content>
-    <Content Include="Views\Packages\Download.cshtml" />
-    <Content Include="Views\Packages\ConfirmOwner.cshtml" />
+    <Content Include="Views\Packages\Download.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Download.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Packages\ConfirmOwner.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ConfirmOwner.generated.cs</LastGenOutput>
+    </Content>
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />

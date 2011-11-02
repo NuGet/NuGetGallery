@@ -82,6 +82,7 @@ namespace NuGetGallery
                 Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);
                 Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionSpec);
                 Assert.Equal("theDescription", package.Description);
+                Assert.Equal("theReleaseNotes", package.ReleaseNotes);
                 Assert.Equal("http://theiconurl/", package.IconUrl);
                 Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
                 Assert.Equal("http://theprojecturl/", package.ProjectUrl);
@@ -1112,6 +1113,7 @@ namespace NuGetGallery
                 new NuGet.PackageDependency("theThirdDependency")
             });
             nugetPackage.Setup(x => x.Description).Returns("theDescription");
+            nugetPackage.Setup(x => x.ReleaseNotes).Returns("theReleaseNotes");
             nugetPackage.Setup(x => x.IconUrl).Returns(new Uri("http://theiconurl/"));
             nugetPackage.Setup(x => x.LicenseUrl).Returns(new Uri("http://thelicenseurl/"));
             nugetPackage.Setup(x => x.ProjectUrl).Returns(new Uri("http://theprojecturl/"));
