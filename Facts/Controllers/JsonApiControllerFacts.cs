@@ -63,7 +63,7 @@ namespace NuGetGallery.Controllers
                 userService.Setup(u => u.FindByUsername(newOwner.Username)).Returns(newOwner);
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(svc => svc.FindPackageRegistrationById("foo")).Returns(package);
-                packageService.Setup(svc => svc.RequestPackageOwner(package, currentOwner, It.IsAny<User>())).Returns(packageOwnerRequest);
+                packageService.Setup(svc => svc.CreatePackageOwnerRequest(package, currentOwner, It.IsAny<User>())).Returns(packageOwnerRequest);
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(m => m.SendPackageOwnerRequest(
                     currentOwner,

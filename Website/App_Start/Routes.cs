@@ -33,7 +33,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
-                "packages/{id}/{username}/confirm/{token}",
+                "packages/{id}/owners/{username}/confirm/{token}",
                 new { controller = MVC.Packages.Name, action = "ConfirmOwner" });
 
             // We need the following two routes (rather than just one) due to Routing's 

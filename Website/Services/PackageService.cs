@@ -403,7 +403,7 @@ namespace NuGetGallery
             return packages.First(pv => pv.Version.Equals(version.ToString(), StringComparison.OrdinalIgnoreCase));
         }
 
-        public PackageOwnerRequest RequestPackageOwner(PackageRegistration package, User currentOwner, User newOwner)
+        public PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner)
         {
             var existingRequest = FindExistingPackageOwnerRequest(package, newOwner);
             if (existingRequest != null)

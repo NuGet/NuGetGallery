@@ -22,7 +22,7 @@ namespace NuGetGallery
 
         IEnumerable<Package> FindDependentPackages(Package package);
 
-        PackageOwnerRequest RequestPackageOwner(PackageRegistration package, User currentOwner, User newOwner);
+        PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner);
 
         bool ConfirmPackageOwner(PackageRegistration package, User user, string token);
 

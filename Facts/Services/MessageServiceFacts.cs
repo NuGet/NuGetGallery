@@ -157,7 +157,7 @@ namespace NuGetGallery.Services
 
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
                 Assert.Equal("existing-owner@example.com", message.From.Address);
-                Assert.Equal("[NuGet Gallery] Someone wants to add you as an owner of their package.", message.Subject);
+                Assert.Equal("[NuGet Gallery] The user 'Existing' wants to add you as an owner of their package, 'CoolStuff'.", message.Subject);
                 Assert.Contains(confirmationUrl, message.Body);
             }
 

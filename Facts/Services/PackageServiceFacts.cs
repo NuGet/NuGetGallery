@@ -890,7 +890,7 @@ namespace NuGetGallery
                 var owner = new User { Key = 100 };
                 var newOwner = new User { Key = 200 };
 
-                service.RequestPackageOwner(package, owner, newOwner);
+                service.CreatePackageOwnerRequest(package, owner, newOwner);
 
                 packageOwnerRequestRepository.Verify(r => r.InsertOnCommit(
                     It.Is<PackageOwnerRequest>(req => req.PackageRegistrationKey == 1 && req.RequestingOwnerKey == 100 && req.NewOwnerKey == 200))
@@ -912,7 +912,7 @@ namespace NuGetGallery
                 var owner = new User { Key = 100 };
                 var newOwner = new User { Key = 200 };
 
-                var request = service.RequestPackageOwner(package, owner, newOwner);
+                var request = service.CreatePackageOwnerRequest(package, owner, newOwner);
 
                 Assert.Equal(99, request.RequestingOwnerKey);
             }

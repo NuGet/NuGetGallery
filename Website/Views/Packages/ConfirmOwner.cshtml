@@ -1,6 +1,6 @@
 ﻿@model PackageOwnerConfirmationModel
 @{
-    ViewBag.Title = "ConfirmOwner";
+    ViewBag.Title = "Confirm Ownership";
 }
 
 <h1 class="page-heading">Confirm Ownership</h1>
@@ -13,11 +13,11 @@
 }
 else {
     <p class="message error">
-        Could not confirm package ownerships for '@Model.PackageId'.
+        Could not confirm package ownership for '@Model.PackageId'.
     </p>
     <p>
         Make sure you clicked on the confirmation URL in the email we sent. 
-        It&#8217;s also possible that the existing owner rescinded the 
+        It&#8217;s also possible that the existing owner revoked the 
         request to add you as an owner.
     </p>
 }

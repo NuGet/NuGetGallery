@@ -66,7 +66,7 @@ namespace NuGetGallery
             }
 
             var currentUser = userSvc.FindByUsername(HttpContext.User.Identity.Name);
-            var ownerRequest = packageSvc.RequestPackageOwner(package, currentUser, user);
+            var ownerRequest = packageSvc.CreatePackageOwnerRequest(package, currentUser, user);
 
             var confirmationUrl = Url.ConfirmationUrl(MVC.Packages.ConfirmOwner().AddRouteValue("id", package.Id), user.Username, ownerRequest.ConfirmationCode, Request.Url.Scheme);
             messageSvc.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl);
