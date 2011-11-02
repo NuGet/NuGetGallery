@@ -140,7 +140,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionNames.cs" />
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -552,6 +551,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>DisplayPackage.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Packages\Download.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Download.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Packages\Edit.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -896,7 +900,14 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
     </Content>
-    <Content Include="Views\Packages\Download.cshtml" />
+    <Content Include="Views\Packages\Download.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Download.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Packages\Delete.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Delete.generated.cs</LastGenOutput>
+    </Content>
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
@@ -927,10 +938,6 @@
       <LastGenOutput>T4MVC.cs</LastGenOutput>
     </None>
     <None Include="T4MVC.tt.settings.t4" />
-    <Content Include="Views\Packages\Delete.cshtml">
-      <LastGenOutput>Delete.generated.cs</LastGenOutput>
-      <Generator>RazorGenerator</Generator>
-    </Content>
     <Content Include="Views\Packages\Edit.cshtml">
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
       <Generator>RazorGenerator</Generator>

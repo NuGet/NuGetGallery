@@ -332,63 +332,16 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Delete(string id, string version)
         {
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
-
-            var dependents = packageSvc.FindDependentPackages(package);
-            var model = new DeletePackageViewModel(package, dependents);
-
-            return View(model);
-        }
-
-        [ActionName("Delete"), Authorize, HttpPost, ValidateAntiForgeryToken]
-        public virtual ActionResult DeletePackage(string id, string version)
-        {
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
-
-            var dependents = packageSvc.FindDependentPackages(package);
-            var model = new DeletePackageViewModel(package, dependents);
-
-            if (!model.MayDelete)
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
-
-            packageSvc.DeletePackage(id, version);
-
-            TempData["Message"] = "The package was deleted";
-
-            return Redirect(Url.PackageList());
-        }
-
-        [Authorize]
-        public virtual ActionResult Edit(string id, string version)
-        {
             return GetPackageOwnerActionFormResult(id, version);
         }
 
         [Authorize, HttpPost, ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(string id, string version, bool? listed)
+        public virtual ActionResult Delete(string id, string version, bool? listed)
         {
-            return Edit(id, version, listed, Url.Package);
+            return Delete(id, version, listed, Url.Package);
         }
 
-        internal virtual ActionResult Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)
+        internal virtual ActionResult Delete(string id, string version, bool? listed, Func<Package, string> urlFactory)
         {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -402,13 +355,36 @@ namespace NuGetGallery
 
             if (!(listed ?? false))
             {
-                packageSvc.MarkPackageUnlisted(package);
+                if (String.IsNullOrEmpty(version))
+                {
+                    foreach (var packageVersion in package.PackageRegistration.Packages)
+                    {
+                        packageSvc.MarkPackageUnlisted(packageVersion);
+                    }
+                }
+                else
+                {
+                    packageSvc.MarkPackageUnlisted(package);
+                }
             }
             else
             {
+                if (string.IsNullOrEmpty(version))
+                {
+                    foreach (var packageVersion in package.PackageRegistration.Packages)
+                    {
+                        packageSvc.MarkPackageListed(packageVersion);
+                    }
+                }
                 packageSvc.MarkPackageListed(package);
             }
             return Redirect(urlFactory(package));
+        }
+
+        [Authorize]
+        public virtual ActionResult Edit(string id, string version)
+        {
+            return GetPackageOwnerActionFormResult(id, version);
         }
 
         private ActionResult GetPackageOwnerActionFormResult(string id, string version)

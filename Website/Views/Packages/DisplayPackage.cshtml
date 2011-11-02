@@ -61,10 +61,10 @@
     <p>@Model.Description</p>
 
     @if (!Model.Listed && Model.IsOwner(User)) {                                        
-        <p  class="message">
+        <p  class="message warning">
             This package is unlisted and hidden from package listings.
-            You can see the package because you are one of its owners. To display the package
-            in search results and the package feed, <a href="@Url.EditPackage(Model)">edit the package</a>.
+            You can see the package because you are one of its owners. To list the package again, 
+            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
         </p>                             
     }
     <p>

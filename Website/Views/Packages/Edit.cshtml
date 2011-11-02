@@ -1,23 +1,16 @@
-﻿@model DisplayPackageViewModel
-@{
+﻿@{
     ViewBag.Tab = "Packages";
 }
 
 <h1 class="page-heading">Edit @Model.Title Package</h1>
 <p class="message">
-    You may only edit certain package properties listed below. To modify or update any other package properties, <a href="@Url.UploadPackage()">reupload the package</a>.
+    To edit the metadata for a package, please <a href="@Url.UploadPackage()">upload an updated version of the package</a>.
 </p>
-@using (Html.BeginForm()) {
-    <fieldset class="form">
-        <legend>Edit @Model.Title Package</legend>
-        @Html.AntiForgeryToken()
-        <div class="form-field">
-            @Html.EditorFor(package => package.Listed)
-            <label for="Listed" class="checkbox">
-                List this package in search results.
-            </label>
-        </div>
-        <input type="submit" value="Save" title="Save Changes" />
-        <a class="cancel" href="@Url.Action("DisplayPackage")" title="Cancel Changes and go back to package page.">Cancel</a>
-    </fieldset>
-}
+<p>
+    NuGet currently does not allow updating package metadata on the website. This helps ensure 
+    that the package itself (and the source used to build the package) remains the one true 
+    source of package metadata.
+</p>
+<p>
+    This does require that you increment the package version.
+</p>
