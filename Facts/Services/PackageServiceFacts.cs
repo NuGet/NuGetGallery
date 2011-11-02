@@ -78,9 +78,9 @@ namespace NuGetGallery
                 Assert.Equal("theFirstAuthor", package.Authors.ElementAt(0).Name);
                 Assert.Equal("theSecondAuthor", package.Authors.ElementAt(1).Name);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
-                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionRange);
+                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionSpec);
                 Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);
-                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionRange);
+                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionSpec);
                 Assert.Equal("theDescription", package.Description);
                 Assert.Equal("http://theiconurl/", package.IconUrl);
                 Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
@@ -122,9 +122,9 @@ namespace NuGetGallery
                 Assert.Equal("theFirstAuthor", package.Authors.ElementAt(0).Name);
                 Assert.Equal("theSecondAuthor", package.Authors.ElementAt(1).Name);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
-                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionRange);
+                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionSpec);
                 Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);
-                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionRange);
+                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionSpec);
                 Assert.Equal("theDescription", package.Description);
                 Assert.Equal("http://theiconurl/", package.IconUrl);
                 Assert.Equal("http://thelicenseurl/", package.LicenseUrl);

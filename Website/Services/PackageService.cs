@@ -166,7 +166,7 @@ namespace NuGetGallery
             // Now filter by version range.
             var packageVersion = new SemanticVersion(package.Version);
             var dependents = from d in candidateDependents
-                             where VersionUtility.ParseVersionSpec(d.VersionRange).Satisfies(packageVersion)
+                             where VersionUtility.ParseVersionSpec(d.VersionSpec).Satisfies(packageVersion)
                              select d;
 
             return dependents.Select(d => d.Package);
@@ -274,7 +274,7 @@ namespace NuGetGallery
                 package.Authors.Add(new PackageAuthor { Name = author });
 
             foreach (var dependency in nugetPackage.Dependencies)
-                package.Dependencies.Add(new PackageDependency { Id = dependency.Id, VersionRange = dependency.VersionSpec.ToStringSafe() });
+                package.Dependencies.Add(new PackageDependency { Id = dependency.Id, VersionSpec = dependency.VersionSpec.ToStringSafe() });
 
             package.FlattenedAuthors = package.Authors.Flatten();
             package.FlattenedDependencies = package.Dependencies.Flatten();

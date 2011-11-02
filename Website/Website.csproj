@@ -192,6 +192,10 @@
     <Compile Include="Migrations\201110230649210_PackageOwnerRequests.Designer.cs">
       <DependentUpon>201110230649210_PackageOwnerRequests.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.cs" />
+    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.Designer.cs">
+      <DependentUpon>201111022024584_PackageDependencyVersionSpec.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
