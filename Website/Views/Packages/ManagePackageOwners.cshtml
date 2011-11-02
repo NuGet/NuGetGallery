@@ -10,7 +10,8 @@
 <h2>Current Owners</h2>
 <ul id="package-owner-list" data-bind="foreach: owners">
     <li>
-        <span data-bind="text: name"></span>
+        <span data-bind="text: name"></span> <em data-bind="visible: current">(that&#8217;s you!)</em> 
+        <em data-bind="visible: pending">(pending approval)</em> 
         <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current, click: remove">Remove</a>
     </li>
 </ul>
@@ -47,7 +48,7 @@
         };
 
         var viewModel = {
-            package: { id: '@Model.Id', version: '@Model.Version' },
+            package: { id: '@Model.Id' },
             owners: ko.observableArray([]),
             newOwner: ko.observable(new Owner(null)),
             message: ko.observable(''),
@@ -71,7 +72,7 @@
 
             removeOwner: function (item) {
                 var package = viewModel.package;
-                $mvc.JsonApi.RemovePackageOwner({ id: package.id, version: package.version, username: item.name() })
+                $mvc.JsonApi.RemovePackageOwner({ id: package.id, username: item.name() })
                     .done(function (data) {
                         if (data.success) {
                             viewModel.owners.remove(item);
@@ -97,6 +98,7 @@
             item = item || {};
 
             this.name = ko.observable(item.name);
+            this.pending = item.pending;
             this.current = item.current;
             this.remove = function () {
                 viewModel.removeOwner(this);

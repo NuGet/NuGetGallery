@@ -86,6 +86,11 @@ namespace NuGetGallery {
         public System.Web.Mvc.ActionResult Edit() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
         }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ConfirmOwner() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmOwner);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public PackagesController Actions { get { return MVC.Packages; } }
@@ -112,6 +117,7 @@ namespace NuGetGallery {
             public readonly string Delete = "Delete";
             public readonly string DeletePackage = "Delete";
             public readonly string Edit = "Edit";
+            public readonly string ConfirmOwner = "ConfirmOwner";
         }
 
 
@@ -252,6 +258,14 @@ namespace NuGetGallery {
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             callInfo.RouteValueDictionary.Add("listed", listed);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ConfirmOwner(string id, string username, string token) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmOwner);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("username", username);
+            callInfo.RouteValueDictionary.Add("token", token);
             return callInfo;
         }
 

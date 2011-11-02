@@ -116,7 +116,6 @@
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
@@ -189,6 +188,10 @@
     <Compile Include="Migrations\201110180052097_GallerySettings.Designer.cs">
       <DependentUpon>201110180052097_GallerySettings.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.cs" />
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.Designer.cs">
+      <DependentUpon>201110230649210_PackageOwnerRequests.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
@@ -202,6 +205,7 @@
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
+    <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -447,6 +451,7 @@
     <Compile Include="DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
+    <Compile Include="Entities\PackageOwnerRequest.cs" />
     <Compile Include="Entities\PackageStatistics.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
@@ -897,6 +902,7 @@
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
     </Content>
     <Content Include="Views\Packages\Download.cshtml" />
+    <Content Include="Views\Packages\ConfirmOwner.cshtml" />
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />

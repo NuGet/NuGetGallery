@@ -15,19 +15,22 @@ namespace NuGetGallery
         readonly IEntityRepository<Package> packageRepo;
         readonly IEntityRepository<PackageStatistics> packageStatsRepo;
         readonly IPackageFileService packageFileSvc;
+        readonly IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository;
 
         public PackageService(
             ICryptographyService cryptoSvc,
             IEntityRepository<PackageRegistration> packageRegistrationRepo,
             IEntityRepository<Package> packageRepo,
             IEntityRepository<PackageStatistics> packageStatsRepo,
-            IPackageFileService packageFileSvc)
+            IPackageFileService packageFileSvc,
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository)
         {
             this.cryptoSvc = cryptoSvc;
             this.packageRegistrationRepo = packageRegistrationRepo;
             this.packageRepo = packageRepo;
             this.packageStatsRepo = packageStatsRepo;
             this.packageFileSvc = packageFileSvc;
+            this.packageOwnerRequestRepository = packageOwnerRequestRepository;
         }
 
         public Package CreatePackage(IPackage nugetPackage, User currentUser)
@@ -340,15 +343,30 @@ namespace NuGetGallery
             }
         }
 
-        public void AddPackageOwner(Package package, User user)
+        public void AddPackageOwner(PackageRegistration package, User user)
         {
-            package.PackageRegistration.Owners.Add(user);
+            package.Owners.Add(user);
             packageRepo.CommitChanges();
+
+            var request = FindExistingPackageOwnerRequest(package, user);
+            if (request != null)
+            {
+                packageOwnerRequestRepository.DeleteOnCommit(request);
+                packageOwnerRequestRepository.CommitChanges();
+            }
         }
 
-        public void RemovePackageOwner(Package package, User user)
+        public void RemovePackageOwner(PackageRegistration package, User user)
         {
-            package.PackageRegistration.Owners.Remove(user);
+            var pendingOwner = FindExistingPackageOwnerRequest(package, user);
+            if (pendingOwner != null)
+            {
+                packageOwnerRequestRepository.DeleteOnCommit(pendingOwner);
+                packageOwnerRequestRepository.CommitChanges();
+                return;
+            }
+
+            package.Owners.Remove(user);
             packageRepo.CommitChanges();
         }
 
@@ -383,6 +401,67 @@ namespace NuGetGallery
                 return null;
             }
             return packages.First(pv => pv.Version.Equals(version.ToString(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        public PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner)
+        {
+            var existingRequest = FindExistingPackageOwnerRequest(package, newOwner);
+            if (existingRequest != null)
+            {
+                return existingRequest;
+            }
+
+            var newRequest = new PackageOwnerRequest
+            {
+                PackageRegistrationKey = package.Key,
+                RequestingOwnerKey = currentOwner.Key,
+                NewOwnerKey = newOwner.Key,
+                ConfirmationCode = cryptoSvc.GenerateToken(),
+                RequestDate = DateTime.UtcNow
+            };
+
+            packageOwnerRequestRepository.InsertOnCommit(newRequest);
+            packageOwnerRequestRepository.CommitChanges();
+            return newRequest;
+        }
+
+        public bool ConfirmPackageOwner(PackageRegistration package, User pendingOwner, string token)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+
+            if (pendingOwner == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new ArgumentNullException("token");
+            }
+
+            if (package.IsOwner(pendingOwner))
+            {
+                return true;
+            }
+
+            var request = FindExistingPackageOwnerRequest(package, pendingOwner);
+            if (request != null && request.ConfirmationCode == token)
+            {
+                AddPackageOwner(package, pendingOwner);
+                return true;
+            }
+
+            return false;
+        }
+
+        private PackageOwnerRequest FindExistingPackageOwnerRequest(PackageRegistration package, User pendingOwner)
+        {
+            return (from request in packageOwnerRequestRepository.GetAll()
+                    where request.PackageRegistrationKey == package.Key && request.NewOwnerKey == pendingOwner.Key
+                    select request).FirstOrDefault();
         }
     }
 }

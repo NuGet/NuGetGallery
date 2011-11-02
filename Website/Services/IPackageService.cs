@@ -22,9 +22,13 @@ namespace NuGetGallery
 
         IEnumerable<Package> FindDependentPackages(Package package);
 
-        void AddPackageOwner(Package package, User user);
+        PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner);
 
-        void RemovePackageOwner(Package package, User user);
+        bool ConfirmPackageOwner(PackageRegistration package, User user, string token);
+
+        void AddPackageOwner(PackageRegistration package, User user);
+
+        void RemovePackageOwner(PackageRegistration package, User user);
 
         void AddDownloadStatistics(Package package, string userHostAddress, string userAgent);
 
