@@ -42,22 +42,6 @@ namespace NuGetGallery
                 fileName);
         }
 
-        public void DeletePackageFile(
-            string id, 
-            string version)
-        {
-            if (string.IsNullOrWhiteSpace(id))
-                throw new ArgumentNullException("id");
-            if (string.IsNullOrWhiteSpace(version))
-                throw new ArgumentNullException("version");
-
-            var fileName = BuildFileName(id, version);
-
-            fileStorageSvc.DeleteFile(
-                Const.PackagesFolderName, 
-                fileName);
-        }
-
         public void SavePackageFile(
             Package package,
             Stream packageFile)
