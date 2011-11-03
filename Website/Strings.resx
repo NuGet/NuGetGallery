@@ -147,4 +147,7 @@
   <data name="UserIsNotYetConfirmed" xml:space="preserve">
     <value>You cannot reset your password until you confirm your account.</value>
   </data>
+  <data name="SSLRequired" xml:space="preserve">
+    <value>The requested resource can only be accessed via SSL.</value>
+  </data>
 </root>

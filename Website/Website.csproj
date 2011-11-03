@@ -211,6 +211,7 @@
     <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
+    <Compile Include="RequireRemoteHttpsAttribute.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
@@ -228,7 +229,6 @@
     </Compile>
     <Compile Include="BuildTasks\UpdateDatabase.cs" />
     <Compile Include="Controllers\ApiController.cs" />
-    <Compile Include="Controllers\ForgotPasswordViewModel.cs" />
     <Compile Include="Controllers\JsonApiController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
