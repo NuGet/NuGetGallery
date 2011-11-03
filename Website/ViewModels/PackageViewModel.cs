@@ -10,6 +10,7 @@ namespace NuGetGallery
             this.package = package;
             Version = package.Version;
             Description = package.Description;
+            ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
             ProjectUrl = package.ProjectUrl;
             LicenseUrl = package.LicenseUrl;
@@ -37,6 +38,7 @@ namespace NuGetGallery
             }
         }
         public string Description { get; set; }
+        public string ReleaseNotes { get; set; }
         public string IconUrl { get; set; }
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }

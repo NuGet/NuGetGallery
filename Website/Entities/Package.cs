@@ -22,6 +22,7 @@ namespace NuGetGallery
         public DateTime Created { get; set; }
         public virtual ICollection<PackageDependency> Dependencies { get; set; }
         public string Description { get; set; }
+        public string ReleaseNotes { get; set; }
         public int DownloadCount { get; set; }
         public string ExternalPackageUrl { get; set; }
         public string HashAlgorithm { get; set; }

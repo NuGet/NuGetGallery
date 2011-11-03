@@ -14,7 +14,7 @@
     <AssemblyName>NuGetGallery.Website</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
-    <UseIISExpress>false</UseIISExpress>
+    <UseIISExpress>true</UseIISExpress>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -116,7 +116,6 @@
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
@@ -189,6 +188,18 @@
     <Compile Include="Migrations\201110180052097_GallerySettings.Designer.cs">
       <DependentUpon>201110180052097_GallerySettings.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.cs" />
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.Designer.cs">
+      <DependentUpon>201110230649210_PackageOwnerRequests.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.cs" />
+    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.Designer.cs">
+      <DependentUpon>201111022024584_PackageDependencyVersionSpec.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.cs" />
+    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.Designer.cs">
+      <DependentUpon>201111022051010_PackageReleaseNotes.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
@@ -202,6 +213,7 @@
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
+    <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -447,6 +459,7 @@
     <Compile Include="DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
+    <Compile Include="Entities\PackageOwnerRequest.cs" />
     <Compile Include="Entities\PackageStatistics.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
@@ -537,6 +550,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>LogOn.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Packages\ConfirmOwner.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ConfirmOwner.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Packages\ContactOwners.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -551,6 +569,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>DisplayPackage.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Packages\Download.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Download.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Packages\Edit.generated.cs">
       <AutoGen>True</AutoGen>
@@ -896,7 +919,20 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
     </Content>
-    <Content Include="Views\Packages\Download.cshtml" />
+    <Content Include="Views\Packages\Download.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Download.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Packages\ConfirmOwner.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ConfirmOwner.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Errors\404.cshtml" />
+    <Content Include="Errors\ErrorLayout.cshtml" />
+    <Content Include="Errors\_PageStart.cshtml">
+      <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
@@ -971,12 +1007,11 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>False</UseIIS>
+          <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>55880</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>
-          </IISUrl>
+          <IISUrl>http://localhost:55880/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
