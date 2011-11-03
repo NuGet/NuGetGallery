@@ -10,10 +10,6 @@
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration)"/>
   </Target>
   
-  <Target Name="Scorch">
-    <Exec Command="git clean -xdf" />
-  </Target>
-
   <Target Name="Build" DependsOnTargets="Clean">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
   </Target>
@@ -36,7 +32,7 @@
     <MSBuild Projects="..\Website\Website.csproj" Targets="MvcBuildViews" Properties="MvcBuildViews=true" />
   </Target>
 
-  <Target Name="CIBuild" DependsOnTargets="Scorch;RunFacts" />
+  <Target Name="CIBuild" DependsOnTargets="RunFacts" />
 
   <Target Name="FullBuild" DependsOnTargets="RunFacts;UpdateDatabase;BuildViews" />
 
