@@ -92,7 +92,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("id");
 
             // Optimization: Everytime we look at a package we almost always want to see 
-            // all the other packages with the same via the PackageRegistration property. 
+            // all the other packages with the same ID via the PackageRegistration property. 
             // This resulted in a gnarly query. 
             // Instead, we can always query for all packages with the ID and then fix up 
             // the Packages property for the one we plan to return.
@@ -114,9 +114,11 @@ namespace NuGetGallery
                     package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
                 }
 
+                // If we couldn't find a package marked as latest, then
+                // return the most recent one.
                 if (package == null)
                 {
-                    throw new InvalidOperationException("Packages are in a bad state. At least one should have IsLatest or IsAbsoluteLatest set");
+                    package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
                 }
             }
             else
@@ -180,6 +182,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
 
             package.Published = DateTime.UtcNow;
+            package.Listed = true;
 
             UpdateIsLatest(package.PackageRegistration);
 
@@ -311,11 +314,6 @@ namespace NuGetGallery
 
         void UpdateIsLatest(PackageRegistration packageRegistration)
         {
-            if (!packageRegistration.Packages.Any())
-            {
-                return;
-            }
-
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
             foreach (var pv in packageRegistration.Packages)
             {
@@ -323,24 +321,29 @@ namespace NuGetGallery
                 pv.IsLatestStable = false;
             }
 
-            var latestPackage = FindPackage(packageRegistration.Packages, null);
-            latestPackage.IsLatest = true;
+            // If the last listed package was just unlisted, then we won't find another one
+            var latestPackage = FindPackage(packageRegistration.Packages, p => p.Listed);
 
-            if (latestPackage.IsPrerelease)
+            if (latestPackage != null)
             {
-                // If the newest uploaded package is a prerelease package, we need to find an older package that is 
-                // a release version and set it to IsLatest.
-                var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease));
-                if (latestReleasePackage != null)
+                latestPackage.IsLatest = true;
+
+                if (latestPackage.IsPrerelease)
                 {
-                    // We could have no release packages
-                    latestReleasePackage.IsLatestStable = true;
+                    // If the newest uploaded package is a prerelease package, we need to find an older package that is 
+                    // a release version and set it to IsLatest.
+                    var latestReleasePackage = FindPackage(packageRegistration.Packages.Where(p => !p.IsPrerelease && p.Listed));
+                    if (latestReleasePackage != null)
+                    {
+                        // We could have no release packages
+                        latestReleasePackage.IsLatestStable = true;
+                    }
                 }
-            }
-            else
-            {
-                // Only release versions are marked as IsLatestStable. 
-                latestPackage.IsLatestStable = true;
+                else
+                {
+                    // Only release versions are marked as IsLatestStable. 
+                    latestPackage.IsLatestStable = true;
+                }
             }
         }
 
@@ -371,20 +374,47 @@ namespace NuGetGallery
             packageRepo.CommitChanges();
         }
 
+        // TODO: Should probably be run in a transaction
         public void MarkPackageListed(Package package)
         {
-            foreach (var item in package.PackageRegistration.Packages)
+            if (package == null)
             {
-                item.Listed = true;
+                throw new ArgumentNullException("package");
             }
+
+            if (package.Listed)
+            {
+                return;
+            }
+
+            if (!package.Listed && (package.IsLatestStable || package.IsLatest))
+            {
+                throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");
+            }
+
+            package.Listed = true;
+
+            UpdateIsLatest(package.PackageRegistration);
+
             packageRepo.CommitChanges();
         }
 
+        // TODO: Should probably be run in a transaction
         public void MarkPackageUnlisted(Package package)
         {
-            foreach (var item in package.PackageRegistration.Packages)
+            if (package == null)
             {
-                item.Listed = false;
+                throw new ArgumentNullException("package");
+            }
+            if (!package.Listed)
+            {
+                return;
+            }
+
+            package.Listed = false;
+            if (package.IsLatest || package.IsLatestStable)
+            {
+                UpdateIsLatest(package.PackageRegistration);
             }
             packageRepo.CommitChanges();
         }
