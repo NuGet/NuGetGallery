@@ -355,29 +355,13 @@ namespace NuGetGallery
 
             if (!(listed ?? false))
             {
-                if (String.IsNullOrEmpty(version))
-                {
-                    foreach (var packageVersion in package.PackageRegistration.Packages)
-                    {
-                        packageSvc.MarkPackageUnlisted(packageVersion);
-                    }
-                }
-                else
-                {
-                    packageSvc.MarkPackageUnlisted(package);
-                }
+                packageSvc.MarkPackageUnlisted(package);
             }
             else
             {
-                if (string.IsNullOrEmpty(version))
-                {
-                    foreach (var packageVersion in package.PackageRegistration.Packages)
-                    {
-                        packageSvc.MarkPackageListed(packageVersion);
-                    }
-                }
                 packageSvc.MarkPackageListed(package);
             }
+
             return Redirect(urlFactory(package));
         }
 
