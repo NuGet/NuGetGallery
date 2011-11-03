@@ -9,7 +9,7 @@
         <PackageOutputDir Condition="$(PackageOutputDir) == ''">$(TargetDir.Trim('\\'))</PackageOutputDir>
 
         <!-- Package sources used to restore packages. By default will used the registered sources under %APPDATA%\NuGet\NuGet.Config -->
-        <PackageSources>"https://go.microsoft.com/fwlink/?LinkID=206669;http://www.myget.org/F/7933199622e640c79c160c0fda79775f/"</PackageSources>
+        <PackageSources>"https://go.microsoft.com/fwlink/?LinkID=206669;http://www.myget.org/F/2c042c750fe047a1b5ed74bbd75bcd89/"</PackageSources>
 
         <!-- Enable the restore command to run before builds -->
         <RestorePackages Condition="$(RestorePackages) == ''">false</RestorePackages>

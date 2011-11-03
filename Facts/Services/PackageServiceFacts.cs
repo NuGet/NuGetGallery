@@ -110,7 +110,7 @@ namespace NuGetGallery
                     {
                         mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
-                var nugetPackage = CreateNuGetPackage(p => p.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0a")));
+                var nugetPackage = CreateNuGetPackage(p => p.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
                 var currentUser = new User();
 
                 // Act
@@ -119,7 +119,7 @@ namespace NuGetGallery
                     currentUser);
 
                 // Assert
-                Assert.Equal("2.14.0a", package.Version);
+                Assert.Equal("2.14.0-a", package.Version);
                 Assert.Equal("theFirstAuthor", package.Authors.ElementAt(0).Name);
                 Assert.Equal("theSecondAuthor", package.Authors.ElementAt(1).Name);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
@@ -522,7 +522,7 @@ namespace NuGetGallery
                 var packageRegistration = new PackageRegistration { Packages = packages };
                 var package_100 = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
                 packages.Add(package_100);
-                var package_10a = new Package { PackageRegistration = packageRegistration, Version = "1.0.0a", IsPrerelease = true };
+                var package_10a = new Package { PackageRegistration = packageRegistration, Version = "1.0.0-a", IsPrerelease = true };
                 packages.Add(package_10a);
                 var package_09 = new Package { PackageRegistration = packageRegistration, Version = "0.9.0" };
                 packages.Add(package_09);
@@ -750,7 +750,7 @@ namespace NuGetGallery
             {
                 Package package = new Package
                 {
-                    Version = "1.0.42alpha",
+                    Version = "1.0.42-alpha",
                     Published = DateTime.Now,
                     PackageRegistration = new PackageRegistration()
                     {
@@ -775,7 +775,7 @@ namespace NuGetGallery
                         mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                     });
 
-                service.PublishPackage("theId", "1.0.42alpha");
+                service.PublishPackage("theId", "1.0.42-alpha");
                 Assert.True(package_39.IsLatestStable);
                 Assert.False(package_39.IsLatest);
                 Assert.False(package.IsLatestStable);
@@ -787,7 +787,7 @@ namespace NuGetGallery
             {
                 Package package = new Package
                 {
-                    Version = "1.0.42alpha",
+                    Version = "1.0.42-alpha",
                     Published = DateTime.Now,
                     IsPrerelease = true,
                     PackageRegistration = new PackageRegistration()
@@ -799,7 +799,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Packages.Add(package);
                 var package_39 = new Package
                 {
-                    Version = "1.0.39beta",
+                    Version = "1.0.39-beta",
                     PackageRegistration = package.PackageRegistration,
                     Published = DateTime.Now.AddDays(-1),
                     IsPrerelease = true
@@ -813,7 +813,7 @@ namespace NuGetGallery
                         mockPackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                     });
 
-                service.PublishPackage("theId", "1.0.42alpha");
+                service.PublishPackage("theId", "1.0.42-alpha");
                 Assert.False(package_39.IsLatestStable);
                 Assert.False(package_39.IsLatest);
                 Assert.False(package.IsLatestStable);

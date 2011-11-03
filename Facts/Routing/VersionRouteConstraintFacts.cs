@@ -11,7 +11,7 @@ namespace NuGetGallery.Routing
             [Fact]
             public void ReturnsTrueIfVersionIsSemantic()
             {
-                var routeValues = new RouteValueDictionary { { "version", "1.0.0beta" } };
+                var routeValues = new RouteValueDictionary { { "version", "1.0.0-beta" } };
                 var constraint = new VersionRouteConstraint();
 
                 var result = constraint.Match(null, null, "version", routeValues, RouteDirection.IncomingRequest);
