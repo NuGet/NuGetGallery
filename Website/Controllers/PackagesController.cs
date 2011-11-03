@@ -337,7 +337,7 @@ namespace NuGetGallery
             {
                 return PackageNotFound(id, version);
             }
-            if (!package.IsOwner(HttpContext.User))
+            if (!HttpContext.User.IsInRole(Const.AdminRoleName))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -356,7 +356,7 @@ namespace NuGetGallery
             {
                 return PackageNotFound(id, version);
             }
-            if (!package.IsOwner(HttpContext.User))
+            if (!HttpContext.User.IsInRole(Const.AdminRoleName))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }

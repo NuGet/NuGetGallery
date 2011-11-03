@@ -37,7 +37,7 @@
             @if (Model.IsOwner(User)) {
                 <li><a href="@Url.EditPackage(Model)">Edit Package</a></li>
                 <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
-                <li><a href="@Url.DeletePackage(Model)" class="delete">Delete Package</a></li>
+                @* <li><a href="@Url.DeletePackage(Model)" class="delete">Delete Package</a></li> *@
             }
         </ul>
     </nav>
