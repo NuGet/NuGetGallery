@@ -29,5 +29,14 @@ namespace NuGetGallery
         public IEnumerable<DependencyViewModel> Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
+
+        public bool IsNotLatestVersionListed
+        {
+            get
+            {
+                return !this.LatestStableVersion && !this.LatestVersion &&
+                    (this.PackageVersions.Any(p => p.LatestVersion) || !this.IsCurrent(this));
+            }
+        }
     }
 }

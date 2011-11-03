@@ -49,7 +49,7 @@
             This is a prerelease version of @Model.Title.
         </p>
     }
-    else if (!Model.LatestStableVersion && !Model.LatestVersion && (Model.PackageVersions.Any(p => p.LatestVersion) || !Model.IsCurrent(Model)))
+    else if (Model.IsNotLatestVersionListed)
     {
         <p class="not-latest-message">
             This is not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
