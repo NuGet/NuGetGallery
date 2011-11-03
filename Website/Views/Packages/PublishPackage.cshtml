@@ -1,18 +1,13 @@
 ﻿@using NuGetGallery;
 @model SubmitPackageViewModel
 @{
-    ViewBag.Tab = "Upload";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    ViewBag.Tab = "Upload Your Package";
 }
 
-@section SideColumn {
-    <img src="@Links.Content.Images.contribGraphic_png" alt="Contribution image" />
-    <p>Submit your package for others to enjoy.</p>
-}    
    
-<h1>Verify Details &amp; Submit</h1>
-@ViewHelpers.UploadSequence(2)
+<h1 class="page-heading">Verify Details &amp; Submit</h1>
 
+@ViewHelpers.UploadSequence(2)
 
 <h2>Verify Details</h2>
 <p class="long note">

@@ -49,52 +49,30 @@ namespace NuGetGallery.Views.Packages
             
             #line 3 "..\..\Views\Packages\PublishPackage.cshtml"
   
-    ViewBag.Tab = "Upload";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    ViewBag.Tab = "Upload Your Package";
 
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n");
-
-
-DefineSection("SideColumn", () => {
-
-WriteLiteral("\r\n    <img src=\"");
+WriteLiteral("\r\n   \r\n<h1 class=\"page-heading\">Verify Details &amp; Submit</h1>\r\n\r\n");
 
 
             
-            #line 9 "..\..\Views\Packages\PublishPackage.cshtml"
-         Write(Links.Content.Images.contribGraphic_png);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" alt=\"Contribution image\" />\r\n    <p>Submit your package for others to enjoy.</p" +
-">\r\n");
-
-
-});
-
-WriteLiteral("    \r\n   \r\n<h1>Verify Details &amp; Submit</h1>\r\n");
-
-
-            
-            #line 14 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 10 "..\..\Views\Packages\PublishPackage.cshtml"
 Write(ViewHelpers.UploadSequence(2));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n\r\n\r\n<h2>Verify Details</h2>\r\n<p class=\"long note\">\r\n    These package details a" +
-"re read from the package file and cannot be changed. \r\n    If you have a newer v" +
-"ersion of your package that you’d like to submit in place \r\n    of this one, <a " +
-"href=\"");
+WriteLiteral("\r\n\r\n<h2>Verify Details</h2>\r\n<p class=\"long note\">\r\n    These package details are" +
+" read from the package file and cannot be changed. \r\n    If you have a newer ver" +
+"sion of your package that you’d like to submit in place \r\n    of this one, <a hr" +
+"ef=\"");
 
 
             
-            #line 21 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 16 "..\..\Views\Packages\PublishPackage.cshtml"
                      Write(Url.UploadPackage());
 
             
@@ -106,7 +84,7 @@ WriteLiteral("\">click here to add a new \r\n    contribution</a>. Ensure that t
 
 
             
-            #line 29 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 24 "..\..\Views\Packages\PublishPackage.cshtml"
       Write(Model.Id);
 
             
@@ -116,7 +94,7 @@ WriteLiteral("</p>\r\n    </li>\r\n    <li>\r\n        <h3>Version</h3>\r\n     
 
 
             
-            #line 33 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 28 "..\..\Views\Packages\PublishPackage.cshtml"
       Write(Model.Version);
 
             
@@ -126,7 +104,7 @@ WriteLiteral("</p>\r\n    </li>\r\n");
 
 
             
-            #line 35 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 30 "..\..\Views\Packages\PublishPackage.cshtml"
      if (!String.IsNullOrEmpty(Model.Title)) {
 
             
@@ -136,7 +114,7 @@ WriteLiteral("        <li>\r\n            <h3>Title</h3>\r\n            <p>");
 
 
             
-            #line 38 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 33 "..\..\Views\Packages\PublishPackage.cshtml"
           Write(Model.Title);
 
             
@@ -146,7 +124,7 @@ WriteLiteral("</p>\r\n        </li>\r\n");
 
 
             
-            #line 40 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 35 "..\..\Views\Packages\PublishPackage.cshtml"
     }
 
             
@@ -156,7 +134,7 @@ WriteLiteral("    <li>\r\n        <h3>Description</h3>\r\n        <p>");
 
 
             
-            #line 43 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 38 "..\..\Views\Packages\PublishPackage.cshtml"
       Write(Model.Description);
 
             
@@ -166,7 +144,7 @@ WriteLiteral("</p>\r\n    </li>\r\n    <li>\r\n        <h3>Authors</h3>\r\n     
 
 
             
-            #line 47 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 42 "..\..\Views\Packages\PublishPackage.cshtml"
       Write(Model.Authors);
 
             
@@ -176,7 +154,7 @@ WriteLiteral("</p>\r\n    </li>\r\n");
 
 
             
-            #line 49 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 44 "..\..\Views\Packages\PublishPackage.cshtml"
      if (!String.IsNullOrEmpty(Model.Tags)) {
 
             
@@ -186,7 +164,7 @@ WriteLiteral("        <li>\r\n            <h3>Tags</h3>\r\n            <p>");
 
 
             
-            #line 52 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 47 "..\..\Views\Packages\PublishPackage.cshtml"
           Write(Model.Tags);
 
             
@@ -196,7 +174,7 @@ WriteLiteral("</p>\r\n        </li>\r\n");
 
 
             
-            #line 54 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 49 "..\..\Views\Packages\PublishPackage.cshtml"
     }
 
             
@@ -204,7 +182,7 @@ WriteLiteral("</p>\r\n        </li>\r\n");
             #line hidden
 
             
-            #line 55 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 50 "..\..\Views\Packages\PublishPackage.cshtml"
      if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
 
             
@@ -214,7 +192,7 @@ WriteLiteral("        <li>\r\n            <h3>License URL</h3>\r\n            <p
 
 
             
-            #line 59 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 54 "..\..\Views\Packages\PublishPackage.cshtml"
                  if (Model.RequiresLicenseAcceptance) {
             
             #line default
@@ -223,7 +201,7 @@ WriteLiteral("Acceptance of license required: ");
 
 
             
-            #line 59 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 54 "..\..\Views\Packages\PublishPackage.cshtml"
                                                                                                     }
 
             
@@ -233,7 +211,7 @@ WriteLiteral("                <a href=\"");
 
 
             
-            #line 60 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 55 "..\..\Views\Packages\PublishPackage.cshtml"
                     Write(Model.LicenseUrl);
 
             
@@ -243,7 +221,7 @@ WriteLiteral("\" target=\"_blank\">");
 
 
             
-            #line 60 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 55 "..\..\Views\Packages\PublishPackage.cshtml"
                                                        Write(Model.LicenseUrl);
 
             
@@ -253,7 +231,7 @@ WriteLiteral("</a>\r\n                \r\n            </p>\r\n        </li>\r\n"
 
 
             
-            #line 64 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 59 "..\..\Views\Packages\PublishPackage.cshtml"
     }
 
             
@@ -261,7 +239,7 @@ WriteLiteral("</a>\r\n                \r\n            </p>\r\n        </li>\r\n"
             #line hidden
 
             
-            #line 65 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 60 "..\..\Views\Packages\PublishPackage.cshtml"
      if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
 
             
@@ -271,7 +249,7 @@ WriteLiteral("        <li>\r\n            <h3>Project URL</h3>\r\n            <p
 
 
             
-            #line 68 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 63 "..\..\Views\Packages\PublishPackage.cshtml"
                    Write(Model.ProjectUrl);
 
             
@@ -281,7 +259,7 @@ WriteLiteral("\" target=\"_blank\">");
 
 
             
-            #line 68 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 63 "..\..\Views\Packages\PublishPackage.cshtml"
                                                       Write(Model.ProjectUrl);
 
             
@@ -291,7 +269,7 @@ WriteLiteral("</a></p>\r\n        </li>\r\n");
 
 
             
-            #line 70 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 65 "..\..\Views\Packages\PublishPackage.cshtml"
     }
 
             
@@ -301,7 +279,7 @@ WriteLiteral("</ul>\r\n\r\n\r\n<h2>Submit Package</h2>\r\n");
 
 
             
-            #line 75 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 70 "..\..\Views\Packages\PublishPackage.cshtml"
  using (Html.BeginForm()) {
 
             
@@ -311,7 +289,7 @@ WriteLiteral("<fieldset class=\"form\">\r\n    <legend>Submit Package</legend>\r
 
 
             
-            #line 78 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 73 "..\..\Views\Packages\PublishPackage.cshtml"
 Write(Html.AntiForgeryToken());
 
             
@@ -321,7 +299,7 @@ WriteLiteral("\r\n    <div class=\"form-field\">\r\n        ");
 
 
             
-            #line 80 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 75 "..\..\Views\Packages\PublishPackage.cshtml"
    Write(Html.EditorFor(package => package.Listed));
 
             
@@ -333,7 +311,7 @@ WriteLiteral("\r\n        <label for=\"Listed\" class=\"checkbox\">\r\n         
 
 
             
-            #line 87 "..\..\Views\Packages\PublishPackage.cshtml"
+            #line 82 "..\..\Views\Packages\PublishPackage.cshtml"
 }
             
             #line default
