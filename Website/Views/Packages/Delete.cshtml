@@ -3,7 +3,7 @@
     ViewBag.Tab = "Packages";
 }
 
-<h1 class="page-heading"><em>@Model.Title</em> Listing</h1>
+<h1 class="page-heading"><em>@Model.Title @Model.Version</em> Listing</h1>
 <p class="message">
     Permanently deleting packages is not supported, but you can control how they are listed.
 </p>
@@ -20,7 +20,7 @@
         <div class="form-field">
             @Html.EditorFor(package => package.Listed)
             <label for="Listed" class="checkbox">
-                List this package in search results.
+                List @Model.Title @Model.Version in search results.
             </label>
         </div>
 

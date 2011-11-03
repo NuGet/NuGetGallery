@@ -512,6 +512,25 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(package, result);
             }
+
+            [Fact]
+            public void FindPackageReturnsTheLatestVersionIfNoLatestVersionIsAvailable()
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var package = CreatePackage("Foo", "1.0.0b");
+                var packageA = CreatePackage("Foo", "1.0.0a");
+
+                repository.Setup(repo => repo.GetAll())
+                          .Returns(new[] { package, packageA }.AsQueryable());
+                var service = CreateService(packageRepo: repository);
+
+                // Act
+                var result = service.FindPackageByIdAndVersion("Foo", null);
+
+                // Assert
+                Assert.Equal(package, result);
+            }
         }
 
         public class TheMarkPackageListedMethod
@@ -583,6 +602,21 @@ namespace NuGetGallery
                 Assert.False(packageRegistration.Packages.ElementAt(0).IsLatestStable);
                 Assert.True(packages.ElementAt(1).IsLatest);
                 Assert.True(packages.ElementAt(1).IsLatestStable);
+            }
+
+            [Fact]
+            public void OnOnlyListedPackageSetsNoPackageToLatestVersion()
+            {
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { Version = "1.0.1", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                packageRegistration.Packages = new List<Package>(new[] { package });
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(packageRepo: packageRepo);
+
+                service.MarkPackageUnlisted(package);
+
+                Assert.False(package.IsLatest, "IsLatest");
+                Assert.False(package.IsLatestStable, "IsLatestStable");
             }
         }
 

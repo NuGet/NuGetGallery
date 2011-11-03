@@ -59,6 +59,16 @@ WriteLiteral("\r\n<h1 class=\"page-heading\"><em>");
             
             #line default
             #line hidden
+WriteLiteral(" ");
+
+
+            
+            #line 6 "..\..\Views\Packages\Delete.cshtml"
+                                     Write(Model.Version);
+
+            
+            #line default
+            #line hidden
 WriteLiteral(@"</em> Listing</h1>
 <p class=""message"">
     Permanently deleting packages is not supported, but you can control how they are listed.
@@ -109,9 +119,27 @@ WriteLiteral("\r\n        <div class=\"form-field\">\r\n            ");
             
             #line default
             #line hidden
-WriteLiteral(@"
-            <label for=""Listed"" class=""checkbox"">
-                List this package in search results.
+WriteLiteral("\r\n            <label for=\"Listed\" class=\"checkbox\">\r\n                List ");
+
+
+            
+            #line 23 "..\..\Views\Packages\Delete.cshtml"
+                Write(Model.Title);
+
+            
+            #line default
+            #line hidden
+WriteLiteral(" ");
+
+
+            
+            #line 23 "..\..\Views\Packages\Delete.cshtml"
+                             Write(Model.Version);
+
+            
+            #line default
+            #line hidden
+WriteLiteral(@" in search results.
             </label>
         </div>
 

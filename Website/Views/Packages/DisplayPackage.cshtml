@@ -43,15 +43,17 @@
     </nav>
 }
 <div class="package-page">
-    @if (Model.Prerelease) {
+    @if (Model.Prerelease)
+    {
         <p class="prerelease-message">
             This is a prerelease version of @Model.Title.
         </p>
     }
-    else if (!Model.LatestStableVersion && !Model.LatestVersion) {
+    else if (!Model.LatestStableVersion && !Model.LatestVersion && (Model.PackageVersions.Any(p => p.LatestVersion) || !Model.IsCurrent(Model)))
+    {
         <p class="not-latest-message">
-            This is a not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
-                version</a> of @Model.Title.
+            This is not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
+                version</a> of @Model.Title currently listed.
         </p>
     }
     <hgroup class="page-heading">
@@ -60,7 +62,8 @@
     </hgroup>
     <p>@Model.Description</p>
 
-    @if (!Model.Listed && Model.IsOwner(User)) {                                        
+    @if (!Model.Listed && Model.IsOwner(User))
+    {                                        
         <p  class="message warning">
             This package is unlisted and hidden from package listings.
             You can see the package because you are one of its owners. To list the package again, 
@@ -81,16 +84,19 @@
                     else
                     { <text> -Version @Model.Version</text> }
                 }
-                @if (Model.Prerelease) {<text> -pre </text>}</code></p>
+                @if (Model.Prerelease)
+                {<text> -pre </text>}</code></p>
     </div>
 
     <p>
         <a href="@Url.Action(@MVC.Packages.Download())" title="Download link">Where is the <strong>Download link?</strong></a>
     </p>
 
-    @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes)) {
+    @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
+    {
         <h3>Release Notes</h3>
-        foreach (var note in Model.ReleaseNotes.Split('\n')) {
+        foreach (var note in Model.ReleaseNotes.Split('\n'))
+        {
             <p>@note</p>
         }
     }
@@ -99,24 +105,29 @@
     @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)
     <h3>Authors</h3>
     <ul class="authors">
-        @foreach (var author in Model.Authors) {
+        @foreach (var author in Model.Authors)
+        {
             <li><a href="@Url.Search(author.Name)" title="Search for @author.Name">@author.Name</a></li>
         }
     </ul>
-    @if (!String.IsNullOrEmpty(Model.Copyright)) {
+    @if (!String.IsNullOrEmpty(Model.Copyright))
+    {
         <h3>Copyright</h3>
         <p>@Model.Copyright</p>
     }
-    @if (@Model.Tags.AnySafe()) {
+    @if (@Model.Tags.AnySafe())
+    {
         <h3>Tags</h3>
         <ul class="tags">
-            @foreach (var tag in Model.Tags) {
+            @foreach (var tag in Model.Tags)
+            {
                 <li><a href="@Url.Search(tag)" title="Search for @tag">@tag</a></li>
             }
         </ul>
     }
     <h3>Dependencies</h3>
-    @if (Model.Dependencies.Any()) {
+    @if (Model.Dependencies.Any())
+    {
         <table class="sexy-table">
             <thead>
                 <tr>
@@ -129,7 +140,8 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var dependency in Model.Dependencies) {
+                @foreach (var dependency in Model.Dependencies)
+                {
                     <tr>
                         <td>
                             <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
@@ -141,7 +153,8 @@
             </tbody>
         </table>
     }
-    else {
+    else
+    {
         <p>@Model.Id @Model.Version does not have any dependencies
         </p>
     }
@@ -155,19 +168,30 @@
                 <th>
                     Downloads
                 </th>
-                <th class="last">
+                <th class="@(Model.IsOwner(User) ? "" : "last")">
                     Last updated
                 </th>
+                @if (Model.IsOwner(User))
+                {
+                <th class="last">
+                    Listed
+                </th>
+                }
             </tr>
         </thead>
         <tbody>
-            @foreach (var packageVersion in Model.PackageVersions) {
-                <tr class="versionTableRow @if (packageVersion.LatestVersion) {<text>recommended </text>}">
-                    <td class="version" @if (packageVersion.LatestVersion) {<text>title="Latest Version"</text>}>
-                        @if (!packageVersion.IsCurrent(Model)) {
+            @foreach (var packageVersion in Model.PackageVersions)
+            {
+                <tr class="versionTableRow @if (packageVersion.LatestVersion)
+                                           {<text>recommended </text>}">
+                    <td class="version" @if (packageVersion.LatestVersion)
+                                        {<text>title="Latest Version"</text>}>
+                        @if (!packageVersion.IsCurrent(Model))
+                        {
                             <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
                         }
-                        else {
+                        else
+                        {
                             <span>@packageVersion.Title @packageVersion.Version</span>
                         }
                     </td>
@@ -175,6 +199,11 @@
                     </td>
                     <td>@packageVersion.LastUpdated.ToString("D")
                     </td>
+                    @if (Model.IsOwner(User))
+                    {
+                    <td><a href="@Url.DeletePackage(packageVersion)" title="change package listing setting">@(packageVersion.Listed ? "yes" : "no")</a>
+                    </td>
+                    }
                 </tr>
             }
         </tbody>
