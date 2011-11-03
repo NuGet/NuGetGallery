@@ -18,12 +18,13 @@ namespace NuGetGallery
             this.userSvc = userSvc;
         }
 
+        [RequireHttpsNoLocal]
         public virtual ActionResult LogOn()
         {
             return View();
         }
 
-        [HttpPost]
+        [HttpPost, RequireHttpsNoLocal]
         public virtual ActionResult LogOn(SignInRequest request, string returnUrl)
         {
             // TODO: improve the styling of the validation summary
