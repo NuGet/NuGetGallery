@@ -957,7 +957,9 @@ header.main {
             font-weight: 600;
         }
             
-    
+.error-content {
+    margin-top: 80px;
+}
     
     
 /* Footer */
@@ -972,8 +974,8 @@ header.main {
     padding-top: 0px;
     padding-bottom: 0px;
     position: relative;
-	margin-top: -161px;
-	height: 160px;
+    margin-top: -161px;
+    height: 160px;
 }
 
     footer#footer  {

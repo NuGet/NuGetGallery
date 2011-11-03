@@ -78,8 +78,18 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult DeletePackage() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult Edit() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ConfirmOwner() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmOwner);
         }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -105,7 +115,9 @@ namespace NuGetGallery {
             public readonly string DownloadPackage = "DownloadPackage";
             public readonly string ManagePackageOwners = "ManagePackageOwners";
             public readonly string Delete = "Delete";
+            public readonly string DeletePackage = "Delete";
             public readonly string Edit = "Edit";
+            public readonly string ConfirmOwner = "ConfirmOwner";
         }
 
 
@@ -227,11 +239,10 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Delete(string id, string version, bool? listed) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Delete);
+        public override System.Web.Mvc.ActionResult DeletePackage(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
-            callInfo.RouteValueDictionary.Add("listed", listed);
             return callInfo;
         }
 
@@ -239,6 +250,22 @@ namespace NuGetGallery {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Edit(string id, string version, bool? listed) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            callInfo.RouteValueDictionary.Add("listed", listed);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ConfirmOwner(string id, string username, string token) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmOwner);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("username", username);
+            callInfo.RouteValueDictionary.Add("token", token);
             return callInfo;
         }
 

@@ -49,42 +49,12 @@ namespace NuGetGallery.Views.Users
             
             #line default
             #line hidden
-WriteLiteral("\r\n<h1 class=\"page-heading\">My Account</h1>\r\n");
+WriteLiteral("\r\n<h1 class=\"page-heading\">My Account</h1>\r\n\r\n<section id=\"actions\">\r\n    <h1>Act" +
+"ions</h1>\r\n    <ul>\r\n        <li id=\"uploadPackage\">\r\n            <h2><a href=\"");
 
 
             
-            #line 7 "..\..\Views\Users\Account.cshtml"
- if (TempData.ContainsKey("Message")) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("    <p class=\"message\">\r\n        ");
-
-
-            
-            #line 9 "..\..\Views\Users\Account.cshtml"
-   Write(TempData["Message"]);
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n    </p>\r\n");
-
-
-            
-            #line 11 "..\..\Views\Users\Account.cshtml"
-}
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n\r\n<section id=\"actions\">\r\n    <h1>Actions</h1>\r\n    <ul>\r\n        <li id=\"uploa" +
-"dPackage\">\r\n            <h2><a href=\"");
-
-
-            
-            #line 18 "..\..\Views\Users\Account.cshtml"
+            #line 12 "..\..\Views\Users\Account.cshtml"
                     Write(Url.UploadPackage());
 
             
@@ -102,7 +72,7 @@ WriteLiteral(@""">Upload Package</a></h2>
 
 
             
-            #line 26 "..\..\Views\Users\Account.cshtml"
+            #line 20 "..\..\Views\Users\Account.cshtml"
                     Write(Url.Action(MVC.Users.Packages()));
 
             
@@ -114,7 +84,7 @@ WriteLiteral("\">Manage My Packages</a></h2>\r\n            <p>Edit package deta
 
 
             
-            #line 30 "..\..\Views\Users\Account.cshtml"
+            #line 24 "..\..\Views\Users\Account.cshtml"
                     Write(Url.Action(MVC.Users.Edit()));
 
             
@@ -125,7 +95,7 @@ WriteLiteral("\">Edit Profile</a></h2>\r\n            <p>Edit your public profil
 
 
             
-            #line 34 "..\..\Views\Users\Account.cshtml"
+            #line 28 "..\..\Views\Users\Account.cshtml"
                     Write(Url.Action(MVC.Users.ChangePassword()));
 
             
@@ -157,7 +127,7 @@ WriteLiteral(@""">Change Password</a></h2>
 
 
             
-            #line 56 "..\..\Views\Users\Account.cshtml"
+            #line 50 "..\..\Views\Users\Account.cshtml"
                    Write(Model.ApiKey);
 
             
@@ -168,21 +138,21 @@ WriteLiteral("</p>\r\n\r\n            <fieldset class=\"form\">\r\n             
 
 
             
-            #line 60 "..\..\Views\Users\Account.cshtml"
+            #line 54 "..\..\Views\Users\Account.cshtml"
                  using(Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post)){
                     
             
             #line default
             #line hidden
             
-            #line 61 "..\..\Views\Users\Account.cshtml"
+            #line 55 "..\..\Views\Users\Account.cshtml"
                Write(Html.AntiForgeryToken());
 
             
             #line default
             #line hidden
             
-            #line 61 "..\..\Views\Users\Account.cshtml"
+            #line 55 "..\..\Views\Users\Account.cshtml"
                                             
 
             
@@ -192,18 +162,18 @@ WriteLiteral("                    <input type=\"submit\" value=\"Generate New AP
 
 
             
-            #line 63 "..\..\Views\Users\Account.cshtml"
+            #line 57 "..\..\Views\Users\Account.cshtml"
                 }
 
             
             #line default
             #line hidden
-WriteLiteral("            </fieldset>\r\n\r\n            <h2>Example useage:</h2>\r\n            <p><" +
-"code>nuget.exe push MyPackage.1.0.nupkg ");
+WriteLiteral("            </fieldset>\r\n\r\n            <h2>Example usage:</h2>\r\n            <p><c" +
+"ode>nuget.exe push MyPackage.1.0.nupkg ");
 
 
             
-            #line 67 "..\..\Views\Users\Account.cshtml"
+            #line 61 "..\..\Views\Users\Account.cshtml"
                                                    Write(Model.ApiKey);
 
             

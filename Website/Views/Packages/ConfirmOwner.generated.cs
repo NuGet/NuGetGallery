@@ -9,7 +9,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGetGallery.Views.Users
+namespace NuGetGallery.Views.Packages
 {
     using System;
     using System.Collections.Generic;
@@ -30,115 +30,104 @@ namespace NuGetGallery.Views.Users
     using NuGetGallery;
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
-    [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Users/Confirm.cshtml")]
-    public class Confirm : System.Web.Mvc.WebViewPage<EmailConfirmationModel>
+    [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Packages/ConfirmOwner.cshtml")]
+    public class ConfirmOwner : System.Web.Mvc.WebViewPage<PackageOwnerConfirmationModel>
     {
-        public Confirm()
+        public ConfirmOwner()
         {
         }
         public override void Execute()
         {
 
-WriteLiteral("\r\n<h1 class=\"page-heading\">Confirm Registration</h1>\r\n\r\n");
-
 
             
-            #line 5 "..\..\Views\Users\Confirm.cshtml"
- if (Model.SuccessfulConfirmation) {
+            #line 2 "..\..\Views\Packages\ConfirmOwner.cshtml"
+  
+    ViewBag.Title = "Confirm Ownership";
 
-            
-            #line default
-            #line hidden
-WriteLiteral("    <p>\r\n");
-
-
-            
-            #line 7 "..\..\Views\Users\Confirm.cshtml"
-         if (Model.ConfirmingNewAccount) {
 
             
             #line default
             #line hidden
-WriteLiteral("            ");
-
-WriteLiteral(" Account registration completed!\r\n");
+WriteLiteral("\r\n<h1 class=\"page-heading\">Confirm Ownership</h1>\r\n\r\n");
 
 
             
-            #line 9 "..\..\Views\Users\Confirm.cshtml"
-        }
-        else {
+            #line 8 "..\..\Views\Packages\ConfirmOwner.cshtml"
+ if (Model.Success) {
 
             
             #line default
             #line hidden
-WriteLiteral("            ");
-
-WriteLiteral(" Email address change confirmed!\r\n");
+WriteLiteral("    <p>\r\n        You are now an owner of the \r\n        \'<strong><a href=\"");
 
 
             
-            #line 12 "..\..\Views\Users\Confirm.cshtml"
-        }
+            #line 11 "..\..\Views\Packages\ConfirmOwner.cshtml"
+                     Write(Url.Package(@Model.PackageId));
 
             
             #line default
             #line hidden
-WriteLiteral("    </p>\r\n");
+WriteLiteral("\" title=\"The ");
 
 
             
-            #line 14 "..\..\Views\Users\Confirm.cshtml"
-    if (Model.ConfirmingNewAccount) {
-
-            
-            #line default
-            #line hidden
-WriteLiteral("        <p>\r\n            Click on the Log On link to logon to the site.\r\n        " +
-"</p>\r\n");
-
-
-
-WriteLiteral("        <p>\r\n            You may now upload packages and make your mark in \r\n    " +
-"        the community.\r\n        </p>\r\n");
-
-
-            
-            #line 22 "..\..\Views\Users\Confirm.cshtml"
-    }
-    else {
+            #line 11 "..\..\Views\Packages\ConfirmOwner.cshtml"
+                                                                Write(Model.PackageId);
 
             
             #line default
             #line hidden
-WriteLiteral("        <p>\r\n            Your email address is now updated.\r\n        </p>\r\n");
+WriteLiteral(" package\">");
 
 
             
-            #line 27 "..\..\Views\Users\Confirm.cshtml"
-    }
+            #line 11 "..\..\Views\Packages\ConfirmOwner.cshtml"
+                                                                                          Write(Model.PackageId);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</a></strong>\' package.\r\n    </p>\r\n");
+
+
+            
+            #line 13 "..\..\Views\Packages\ConfirmOwner.cshtml"
 }
-
- else {
+else {
 
             
             #line default
             #line hidden
-WriteLiteral("    <p class=\"message error\">\r\n        Could not confirm your email address.\r\n   " +
-" </p>\r\n");
+WriteLiteral("    <p class=\"message error\">\r\n        Could not confirm package ownership for \'");
+
+
+            
+            #line 16 "..\..\Views\Packages\ConfirmOwner.cshtml"
+                                            Write(Model.PackageId);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\'.\r\n    </p>\r\n");
 
 
 
 WriteLiteral("    <p>\r\n        Make sure you clicked on the confirmation URL in the email we se" +
-"nt.\r\n    </p>\r\n");
+"nt. \r\n        It&#8217;s also possible that the existing owner revoked the \r\n   " +
+"     request to add you as an owner.\r\n    </p>\r\n");
 
 
             
-            #line 37 "..\..\Views\Users\Confirm.cshtml"
+            #line 23 "..\..\Views\Packages\ConfirmOwner.cshtml"
 }
+
             
             #line default
             #line hidden
+WriteLiteral("\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n");
+
 
         }
     }

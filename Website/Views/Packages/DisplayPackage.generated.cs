@@ -484,12 +484,52 @@ WriteLiteral("</code></p>\r\n    </div>\r\n\r\n    <p>\r\n        <a href=\"");
             #line default
             #line hidden
 WriteLiteral("\" title=\"Download link\">Where is the <strong>Download link?</strong></a>\r\n    </p" +
-">\r\n\r\n    <h3>Release Notes</h3>\r\n    <p>\r\n        \r\n    </p>\r\n\r\n    <h3>Owners</" +
-"h3>\r\n    ");
+">\r\n\r\n");
 
 
             
-            #line 97 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 91 "..\..\Views\Packages\DisplayPackage.cshtml"
+     if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes)) {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("        <h3>Release Notes</h3>\r\n");
+
+
+            
+            #line 93 "..\..\Views\Packages\DisplayPackage.cshtml"
+        foreach (var note in Model.ReleaseNotes.Split('\n')) {
+
+            
+            #line default
+            #line hidden
+WriteLiteral("            <p>");
+
+
+            
+            #line 94 "..\..\Views\Packages\DisplayPackage.cshtml"
+          Write(note);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</p>\r\n");
+
+
+            
+            #line 95 "..\..\Views\Packages\DisplayPackage.cshtml"
+        }
+    }
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\r\n    <h3>Owners</h3>\r\n    ");
+
+
+            
+            #line 99 "..\..\Views\Packages\DisplayPackage.cshtml"
 Write(ViewHelpers.OwnersGravatar(Model.Owners, 32, Url));
 
             
@@ -499,7 +539,7 @@ WriteLiteral("\r\n    <h3>Authors</h3>\r\n    <ul class=\"authors\">\r\n");
 
 
             
-            #line 100 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 102 "..\..\Views\Packages\DisplayPackage.cshtml"
          foreach (var author in Model.Authors) {
 
             
@@ -509,7 +549,7 @@ WriteLiteral("            <li><a href=\"");
 
 
             
-            #line 101 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 103 "..\..\Views\Packages\DisplayPackage.cshtml"
                     Write(Url.Search(author.Name));
 
             
@@ -519,7 +559,7 @@ WriteLiteral("\" title=\"Search for ");
 
 
             
-            #line 101 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 103 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                                 Write(author.Name);
 
             
@@ -529,7 +569,7 @@ WriteLiteral("\">");
 
 
             
-            #line 101 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 103 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                                               Write(author.Name);
 
             
@@ -539,7 +579,7 @@ WriteLiteral("</a></li>\r\n");
 
 
             
-            #line 102 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 104 "..\..\Views\Packages\DisplayPackage.cshtml"
         }
 
             
@@ -549,7 +589,7 @@ WriteLiteral("    </ul>\r\n");
 
 
             
-            #line 104 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 106 "..\..\Views\Packages\DisplayPackage.cshtml"
      if (!String.IsNullOrEmpty(Model.Copyright)) {
 
             
@@ -563,7 +603,7 @@ WriteLiteral("        <p>");
 
 
             
-            #line 106 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 108 "..\..\Views\Packages\DisplayPackage.cshtml"
       Write(Model.Copyright);
 
             
@@ -573,7 +613,7 @@ WriteLiteral("</p>\r\n");
 
 
             
-            #line 107 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 109 "..\..\Views\Packages\DisplayPackage.cshtml"
     }
 
             
@@ -581,7 +621,7 @@ WriteLiteral("</p>\r\n");
             #line hidden
 
             
-            #line 108 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 110 "..\..\Views\Packages\DisplayPackage.cshtml"
      if (@Model.Tags.AnySafe()) {
 
             
@@ -595,7 +635,7 @@ WriteLiteral("        <ul class=\"tags\">\r\n");
 
 
             
-            #line 111 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 113 "..\..\Views\Packages\DisplayPackage.cshtml"
              foreach (var tag in Model.Tags) {
 
             
@@ -605,7 +645,7 @@ WriteLiteral("                <li><a href=\"");
 
 
             
-            #line 112 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 114 "..\..\Views\Packages\DisplayPackage.cshtml"
                         Write(Url.Search(tag));
 
             
@@ -615,7 +655,7 @@ WriteLiteral("\" title=\"Search for ");
 
 
             
-            #line 112 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 114 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                             Write(tag);
 
             
@@ -625,7 +665,7 @@ WriteLiteral("\">");
 
 
             
-            #line 112 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 114 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                                   Write(tag);
 
             
@@ -635,7 +675,7 @@ WriteLiteral("</a></li>\r\n");
 
 
             
-            #line 113 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 115 "..\..\Views\Packages\DisplayPackage.cshtml"
             }
 
             
@@ -645,7 +685,7 @@ WriteLiteral("        </ul>\r\n");
 
 
             
-            #line 115 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 117 "..\..\Views\Packages\DisplayPackage.cshtml"
     }
 
             
@@ -655,7 +695,7 @@ WriteLiteral("    <h3>Dependencies</h3>\r\n");
 
 
             
-            #line 117 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 119 "..\..\Views\Packages\DisplayPackage.cshtml"
      if (Model.Dependencies.Any()) {
 
             
@@ -677,7 +717,7 @@ WriteLiteral(@"        <table class=""sexy-table"">
 
 
             
-            #line 130 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 132 "..\..\Views\Packages\DisplayPackage.cshtml"
                  foreach (var dependency in Model.Dependencies) {
 
             
@@ -688,7 +728,7 @@ WriteLiteral("                    <tr>\r\n                        <td>\r\n      
 
 
             
-            #line 133 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 135 "..\..\Views\Packages\DisplayPackage.cshtml"
                                 Write(Url.Package(dependency.Id));
 
             
@@ -698,7 +738,7 @@ WriteLiteral("\">");
 
 
             
-            #line 133 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 135 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                              Write(dependency.Id);
 
             
@@ -708,7 +748,7 @@ WriteLiteral("</a>\r\n                        </td>\r\n                        <
 
 
             
-            #line 135 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 137 "..\..\Views\Packages\DisplayPackage.cshtml"
                        Write(dependency.VersionSpec);
 
             
@@ -718,7 +758,7 @@ WriteLiteral("\r\n                        </td>\r\n                    </tr>\r\n
 
 
             
-            #line 138 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 140 "..\..\Views\Packages\DisplayPackage.cshtml"
                 }
 
             
@@ -728,7 +768,7 @@ WriteLiteral("            </tbody>\r\n        </table>\r\n");
 
 
             
-            #line 141 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 143 "..\..\Views\Packages\DisplayPackage.cshtml"
     }
     else {
 
@@ -739,7 +779,7 @@ WriteLiteral("        <p>");
 
 
             
-            #line 143 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 145 "..\..\Views\Packages\DisplayPackage.cshtml"
       Write(Model.Id);
 
             
@@ -749,7 +789,7 @@ WriteLiteral(" ");
 
 
             
-            #line 143 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 145 "..\..\Views\Packages\DisplayPackage.cshtml"
                 Write(Model.Version);
 
             
@@ -759,7 +799,7 @@ WriteLiteral(" does not have any dependencies\r\n        </p>\r\n");
 
 
             
-            #line 145 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 147 "..\..\Views\Packages\DisplayPackage.cshtml"
     }
 
             
@@ -785,7 +825,7 @@ WriteLiteral(@"    <h3>Version History</h3>
 
 
             
-            #line 162 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 164 "..\..\Views\Packages\DisplayPackage.cshtml"
              foreach (var packageVersion in Model.PackageVersions) {
 
             
@@ -793,14 +833,14 @@ WriteLiteral(@"    <h3>Version History</h3>
             #line hidden
 
             
-            #line 163 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 165 "..\..\Views\Packages\DisplayPackage.cshtml"
 WriteLiteral("                <tr class=\"versionTableRow ");
 
             
             #line default
             #line hidden
             
-            #line 163 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 165 "..\..\Views\Packages\DisplayPackage.cshtml"
                                             if (packageVersion.LatestVersion) {
             
             #line default
@@ -809,21 +849,21 @@ WriteLiteral("recommended ");
 
 
             
-            #line 163 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 165 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                                                                         }
             
             #line default
             #line hidden
 
             
-            #line 163 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 165 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                                                                          WriteLiteral("\">\r\n                    <td class=\"version\" ");
 
             
             #line default
             #line hidden
             
-            #line 164 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 166 "..\..\Views\Packages\DisplayPackage.cshtml"
                                          if (packageVersion.LatestVersion) {
             
             #line default
@@ -832,7 +872,7 @@ WriteLiteral("title=\"Latest Version\"");
 
 
             
-            #line 164 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 166 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                                                                                }
             
             #line default
@@ -841,7 +881,7 @@ WriteLiteral(">\r\n");
 
 
             
-            #line 165 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 167 "..\..\Views\Packages\DisplayPackage.cshtml"
                          if (!packageVersion.IsCurrent(Model)) {
 
             
@@ -851,7 +891,7 @@ WriteLiteral("                            <a href=\"");
 
 
             
-            #line 166 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 168 "..\..\Views\Packages\DisplayPackage.cshtml"
                                 Write(Url.Package(packageVersion));
 
             
@@ -861,7 +901,7 @@ WriteLiteral("\">");
 
 
             
-            #line 166 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 168 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                               Write(packageVersion.Title);
 
             
@@ -871,7 +911,7 @@ WriteLiteral(" ");
 
 
             
-            #line 166 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 168 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                                                     Write(packageVersion.Version);
 
             
@@ -881,7 +921,7 @@ WriteLiteral("</a>\r\n");
 
 
             
-            #line 167 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 169 "..\..\Views\Packages\DisplayPackage.cshtml"
                         }
                         else {
 
@@ -892,7 +932,7 @@ WriteLiteral("                            <span>");
 
 
             
-            #line 169 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 171 "..\..\Views\Packages\DisplayPackage.cshtml"
                              Write(packageVersion.Title);
 
             
@@ -902,7 +942,7 @@ WriteLiteral(" ");
 
 
             
-            #line 169 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 171 "..\..\Views\Packages\DisplayPackage.cshtml"
                                                    Write(packageVersion.Version);
 
             
@@ -912,7 +952,7 @@ WriteLiteral("</span>\r\n");
 
 
             
-            #line 170 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 172 "..\..\Views\Packages\DisplayPackage.cshtml"
                         }
 
             
@@ -922,7 +962,7 @@ WriteLiteral("                    </td>\r\n                    <td>");
 
 
             
-            #line 172 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 174 "..\..\Views\Packages\DisplayPackage.cshtml"
                    Write(packageVersion.DownloadCount);
 
             
@@ -932,7 +972,7 @@ WriteLiteral("\r\n                    </td>\r\n                    <td>");
 
 
             
-            #line 174 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 176 "..\..\Views\Packages\DisplayPackage.cshtml"
                    Write(packageVersion.LastUpdated.ToString("D"));
 
             
@@ -942,7 +982,7 @@ WriteLiteral("\r\n                    </td>\r\n                </tr>\r\n");
 
 
             
-            #line 177 "..\..\Views\Packages\DisplayPackage.cshtml"
+            #line 179 "..\..\Views\Packages\DisplayPackage.cshtml"
             }
 
             

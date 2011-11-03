@@ -31,6 +31,11 @@ namespace NuGetGallery
                 "upload/package",
                 MVC.Packages.UploadPackage());
 
+            routes.MapRoute(
+                RouteName.PackageOwnerConfirmation,
+                "packages/{id}/owners/{username}/confirm/{token}",
+                new { controller = MVC.Packages.Name, action = "ConfirmOwner" });
+
             // We need the following two routes (rather than just one) due to Routing's 
             // Consecutive Optional Parameter bug. :(
             var packageDisplayRoute = routes.MapRoute(

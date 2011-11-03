@@ -34,6 +34,7 @@ namespace NuGetGallery.Views.Shared
     #line default
     #line hidden
     
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Shared/Layout.cshtml")]
     public class Layout : System.Web.Mvc.WebViewPage<dynamic>
     {
@@ -43,12 +44,13 @@ namespace NuGetGallery.Views.Shared
         public override void Execute()
         {
 
-WriteLiteral("<!DOCTYPE html> \r\n<html lang=\"en\" class=\"static \"> \r\n    <head> \r\n        <meta c" +
-"harset=\"utf-8\" />\r\n        <title>NuGet Gallery</title> \r\n        <link href=\"");
+WriteLiteral("<!DOCTYPE html> \r\n<html lang=\"en\" class=\"static \"> \r\n    <head>\r\n        <meta ch" +
+"arset=\"utf-8\" />\r\n        <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" /" +
+">\r\n        <title>NuGet Gallery</title> \r\n        <link href=\"");
 
 
             
-            #line 7 "..\..\Views\Shared\Layout.cshtml"
+            #line 8 "..\..\Views\Shared\Layout.cshtml"
                Write(Url.Content("~/Content/site.css"));
 
             
@@ -58,7 +60,7 @@ WriteLiteral("\" rel=\"stylesheet\" />\r\n        <link href=\"");
 
 
             
-            #line 8 "..\..\Views\Shared\Layout.cshtml"
+            #line 9 "..\..\Views\Shared\Layout.cshtml"
                Write(Url.Content("~/Content/nuget.ico"));
 
             
@@ -68,7 +70,7 @@ WriteLiteral("\" rel=\"shortcut icon\" type=\"image/x-icon\" />\r\n        <scri
 
 
             
-            #line 9 "..\..\Views\Shared\Layout.cshtml"
+            #line 10 "..\..\Views\Shared\Layout.cshtml"
                 Write(Url.Content("~/Scripts/modernizr-2.0.6-development-only.js"));
 
             
@@ -78,7 +80,7 @@ WriteLiteral("\"></script>\r\n        ");
 
 
             
-            #line 10 "..\..\Views\Shared\Layout.cshtml"
+            #line 11 "..\..\Views\Shared\Layout.cshtml"
    Write(MvcMiniProfiler.MiniProfiler.RenderIncludes());
 
             
@@ -89,7 +91,7 @@ WriteLiteral("\r\n    </head>\r\n    <body>\r\n        <div id=\"content-wraper\
 
 
             
-            #line 15 "..\..\Views\Shared\Layout.cshtml"
+            #line 16 "..\..\Views\Shared\Layout.cshtml"
                                    Write(Url.Home());
 
             
@@ -99,7 +101,7 @@ WriteLiteral("\">NuGet Gallery</a></div>\r\n                ");
 
 
             
-            #line 16 "..\..\Views\Shared\Layout.cshtml"
+            #line 17 "..\..\Views\Shared\Layout.cshtml"
            Write(Html.Partial(MVC.Shared.Views.UserDisplay));
 
             
@@ -110,7 +112,7 @@ WriteLiteral("\r\n            </header>\r\n            <nav class=\"main\">\r\n 
 
 
             
-            #line 20 "..\..\Views\Shared\Layout.cshtml"
+            #line 21 "..\..\Views\Shared\Layout.cshtml"
                       
                         var homeClass = ViewBag.Tab == "Home" ? "current" : "";
                         var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
@@ -124,7 +126,7 @@ WriteLiteral("                    <li class=\"");
 
 
             
-            #line 25 "..\..\Views\Shared\Layout.cshtml"
+            #line 26 "..\..\Views\Shared\Layout.cshtml"
                           Write(homeClass);
 
             
@@ -134,7 +136,7 @@ WriteLiteral("\"><a href=\"");
 
 
             
-            #line 25 "..\..\Views\Shared\Layout.cshtml"
+            #line 26 "..\..\Views\Shared\Layout.cshtml"
                                                Write(Url.Home());
 
             
@@ -144,7 +146,7 @@ WriteLiteral("\">Home</a></li>\r\n                    <li class=\"");
 
 
             
-            #line 26 "..\..\Views\Shared\Layout.cshtml"
+            #line 27 "..\..\Views\Shared\Layout.cshtml"
                           Write(packagesClass);
 
             
@@ -154,7 +156,7 @@ WriteLiteral("\"><a href=\"");
 
 
             
-            #line 26 "..\..\Views\Shared\Layout.cshtml"
+            #line 27 "..\..\Views\Shared\Layout.cshtml"
                                                    Write(Url.PackageList());
 
             
@@ -165,7 +167,7 @@ WriteLiteral("\">Packages</a></li>\r\n                    <li><a href=\"http://d
 
 
             
-            #line 28 "..\..\Views\Shared\Layout.cshtml"
+            #line 29 "..\..\Views\Shared\Layout.cshtml"
                           Write(uploadClass);
 
             
@@ -175,7 +177,7 @@ WriteLiteral("\"><a href=\"");
 
 
             
-            #line 28 "..\..\Views\Shared\Layout.cshtml"
+            #line 29 "..\..\Views\Shared\Layout.cshtml"
                                                  Write(Url.UploadPackage());
 
             
@@ -186,7 +188,7 @@ WriteLiteral("\" class=\"upload\">Upload Package</a></li>\r\n                </u
 
 
             
-            #line 31 "..\..\Views\Shared\Layout.cshtml"
+            #line 32 "..\..\Views\Shared\Layout.cshtml"
                              Write(Url.PackageList());
 
             
@@ -197,7 +199,7 @@ WriteLiteral("\" method=\"get\">\r\n                        <input name=\"q\" id
 
 
             
-            #line 32 "..\..\Views\Shared\Layout.cshtml"
+            #line 33 "..\..\Views\Shared\Layout.cshtml"
                                                                                              Write(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm);
 
             
@@ -207,7 +209,7 @@ WriteLiteral("\" />\r\n                        <input type=\"hidden\" name=\"sor
 
 
             
-            #line 33 "..\..\Views\Shared\Layout.cshtml"
+            #line 34 "..\..\Views\Shared\Layout.cshtml"
                                                                 Write(Const.DefaultPackageListSortOrder);
 
             
@@ -219,7 +221,7 @@ WriteLiteral("\" />\r\n                        <input id=\"searchBoxSubmit\" typ
 
 
             
-            #line 39 "..\..\Views\Shared\Layout.cshtml"
+            #line 40 "..\..\Views\Shared\Layout.cshtml"
              if (TempData.ContainsKey("Message")) {
 
             
@@ -229,7 +231,7 @@ WriteLiteral("                <p class=\"message\">");
 
 
             
-            #line 40 "..\..\Views\Shared\Layout.cshtml"
+            #line 41 "..\..\Views\Shared\Layout.cshtml"
                               Write(TempData["Message"]);
 
             
@@ -239,7 +241,7 @@ WriteLiteral("</p>\r\n");
 
 
             
-            #line 41 "..\..\Views\Shared\Layout.cshtml"
+            #line 42 "..\..\Views\Shared\Layout.cshtml"
             }
 
             
@@ -249,7 +251,7 @@ WriteLiteral("            ");
 
 
             
-            #line 42 "..\..\Views\Shared\Layout.cshtml"
+            #line 43 "..\..\Views\Shared\Layout.cshtml"
        Write(RenderBody());
 
             
@@ -284,7 +286,7 @@ WriteLiteral(@"
 
 
             
-            #line 67 "..\..\Views\Shared\Layout.cshtml"
+            #line 68 "..\..\Views\Shared\Layout.cshtml"
                           Write(DateTime.UtcNow.Year);
 
             
@@ -295,7 +297,7 @@ WriteLiteral(" Outercurve Foundation.\r\n                    </p>\r\n           
 
 
             
-            #line 72 "..\..\Views\Shared\Layout.cshtml"
+            #line 73 "..\..\Views\Shared\Layout.cshtml"
                 Write(Url.Content("~/Scripts/jquery-1.6.2.min.js"));
 
             
@@ -305,7 +307,7 @@ WriteLiteral("\"></script>\r\n        ");
 
 
             
-            #line 73 "..\..\Views\Shared\Layout.cshtml"
+            #line 74 "..\..\Views\Shared\Layout.cshtml"
    Write(RenderSection("BottomScripts", required: false));
 
             

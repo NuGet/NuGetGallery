@@ -6,7 +6,7 @@ namespace NuGetGallery
     public class DependencyViewModel
     {
         public DependencyViewModel(PackageDependency dependency)
-            : this(dependency.Id, dependency.VersionRange)
+            : this(dependency.Id, dependency.VersionSpec)
         {
         }
 

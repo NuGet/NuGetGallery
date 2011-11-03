@@ -88,10 +88,12 @@
         <a href="@Url.Action(@MVC.Packages.Download())" title="Download link">Where is the <strong>Download link?</strong></a>
     </p>
 
-    <h3>Release Notes</h3>
-    <p>
-        
-    </p>
+    @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes)) {
+        <h3>Release Notes</h3>
+        foreach (var note in Model.ReleaseNotes.Split('\n')) {
+            <p>@note</p>
+        }
+    }
 
     <h3>Owners</h3>
     @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)

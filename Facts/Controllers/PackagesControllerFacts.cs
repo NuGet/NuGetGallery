@@ -149,7 +149,7 @@ namespace NuGetGallery.Controllers
         public class ThePublishPackageMethod
         {
             [Fact]
-            public void PublishPackageUpdatesListedValueIfNotSelected()
+            public void UpdatesListedValueIfNotSelected()
             {
                 // Arrange
                 var package = new Package
@@ -183,7 +183,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void PublishPackageDoesNotUpdateListedValueIfSelected()
+            public void DoesNotUpdateListedValueIfSelected()
             {
                 // Arrange
                 var package = new Package
@@ -216,11 +216,10 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public class TheDeleteMethod
+        public class TheEditMethod
         {
-
             [Fact]
-            public void DeleteControllerUpdatesUnlistedIfSelected()
+            public void UpdatesUnlistedIfSelected()
             {
                 // Arrange
                 var package = new Package
@@ -244,7 +243,7 @@ namespace NuGetGallery.Controllers
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = controller.Delete("Foo", "1.0", listed: false, urlFactory: p => @"~\Bar.cshtml");
+                var result = controller.Edit("Foo", "1.0", listed: false, urlFactory: p => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();
@@ -253,7 +252,7 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void DeleteControllerUpdatesUnlistedIfNotSelected()
+            public void UpdatesUnlistedIfNotSelected()
             {
                 // Arrange
                 var package = new Package
@@ -277,12 +276,93 @@ namespace NuGetGallery.Controllers
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = controller.Delete("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
+                var result = controller.Edit("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+            }
+        }
+
+        public class TheConfirmOwnerMethod
+        {
+            [Fact]
+            public void WithEmptyTokenReturnsHttpNotFound()
+            {
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(new PackageRegistration());
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername("username")).Returns(new User { Username = "username" });
+                var controller = CreateController(packageSvc: packageService, userSvc: userService);
+
+                var result = controller.ConfirmOwner("foo", "username", "");
+
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public void WithNonExistentPackageIdReturnsHttpNotFound()
+            {
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername("username")).Returns(new User { Username = "username" });
+                var controller = CreateController(userSvc: userService);
+
+                var result = controller.ConfirmOwner("foo", "username", "token");
+
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public void WithNonExistentUserReturnsHttpNotFound()
+            {
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(new PackageRegistration());
+                var controller = CreateController(packageSvc: packageService);
+
+                var result = controller.ConfirmOwner("foo", "username", "token");
+
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public void RequiresUserBeLoggedInToConfirm()
+            {
+                var package = new PackageRegistration { Id = "foo" };
+                var user = new User { Username = "username" };
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
+                packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(true);
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername("username")).Returns(user);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.User.Identity.Name).Returns("not-username");
+                var controller = CreateController(packageSvc: packageService, userSvc: userService, httpContext: httpContext);
+
+                var result = controller.ConfirmOwner("foo", "username", "token") as HttpStatusCodeResult;
+
+                Assert.NotNull(result);
+            }
+
+            [Fact]
+            public void WithValidTokenConfirmsUser()
+            {
+                var package = new PackageRegistration { Id = "foo" };
+                var user = new User { Username = "username" };
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
+                packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(true);
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername("username")).Returns(user);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.User.Identity.Name).Returns("username");
+                var controller = CreateController(packageSvc: packageService, userSvc: userService, httpContext: httpContext);
+
+
+                var model = (controller.ConfirmOwner("foo", "username", "token") as ViewResult).Model as PackageOwnerConfirmationModel;
+
+                Assert.True(model.Success);
+                Assert.Equal("foo", model.PackageId);
             }
         }
 

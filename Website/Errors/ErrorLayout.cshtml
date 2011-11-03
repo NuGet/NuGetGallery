@@ -1,0 +1,50 @@
+﻿@using NuGetGallery;
+<!DOCTYPE html> 
+<html lang="en" class="static "> 
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>@Page.Title | NuGet Gallery</title> 
+        <link href="@Href("~/Content/site.css")" rel="stylesheet" />
+        <link href="@Href("~/Content/nuget.ico")" rel="shortcut icon" type="image/x-icon" />
+        <script src="@Href("~/Scripts/modernizr-2.0.6-development-only.js")"></script>
+        @MvcMiniProfiler.MiniProfiler.RenderIncludes()
+    </head>
+    <body>
+        <div id="content-wraper">
+            <header class="main">
+                <div id="logo"><a href="@Href("~/")">NuGet Gallery</a></div>
+            </header>
+            <div class="error-content">
+                @RenderBody()
+            </div>
+        </div>
+        <div id="layout-footer" class="group">
+            <footer id="footer">
+                <ul class="recommended">
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/overview">Overview</a>
+                        <p>NuGet is a Visual Studio 2010 extension that makes it easy to add, remove, and update libraries and...</p>
+                    </li>
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/installing-nuget">Install</a>
+                        <p>NuGet can be installed and updated using the Visual Studio Extension Manager. To check if your copy...</p>
+                    </li>
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/videos">Videos</a>
+                        <p>Watch screencasts and presentations about anything and everything NuGet.</p>
+                    </li>
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/nuget-faq">FAQ</a>
+                        <p>Read the Frequently Asked Questions about NuGet and see if your question made the list.</p>
+                    </li>
+                </ul>
+                <div class="license">
+                    <p>
+                        &copy; @DateTime.UtcNow.Year Outercurve Foundation.
+                    </p>
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

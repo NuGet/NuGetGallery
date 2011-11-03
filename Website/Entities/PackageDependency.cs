@@ -9,6 +9,6 @@ namespace NuGetGallery
         public int PackageKey { get; set; }
 
         public string Id { get; set; }
-        public string VersionRange { get; set; }
+        public string VersionSpec { get; set; }
     }
 }

@@ -42,7 +42,7 @@ namespace NuGetGallery
 
         public static string Flatten(this ICollection<PackageDependency> dependencies)
         {
-            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionRange.ToStringSafe())));
+            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionSpec.ToStringSafe())));
         }
 
         public static string Flatten(this IEnumerable<NuGet.PackageDependency> dependencies)

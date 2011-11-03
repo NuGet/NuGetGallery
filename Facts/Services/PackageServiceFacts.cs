@@ -78,10 +78,11 @@ namespace NuGetGallery
                 Assert.Equal("theFirstAuthor", package.Authors.ElementAt(0).Name);
                 Assert.Equal("theSecondAuthor", package.Authors.ElementAt(1).Name);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
-                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionRange);
+                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionSpec);
                 Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);
-                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionRange);
+                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionSpec);
                 Assert.Equal("theDescription", package.Description);
+                Assert.Equal("theReleaseNotes", package.ReleaseNotes);
                 Assert.Equal("http://theiconurl/", package.IconUrl);
                 Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
                 Assert.Equal("http://theprojecturl/", package.ProjectUrl);
@@ -122,9 +123,9 @@ namespace NuGetGallery
                 Assert.Equal("theFirstAuthor", package.Authors.ElementAt(0).Name);
                 Assert.Equal("theSecondAuthor", package.Authors.ElementAt(1).Name);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
-                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionRange);
+                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionSpec);
                 Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);
-                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionRange);
+                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionSpec);
                 Assert.Equal("theDescription", package.Description);
                 Assert.Equal("http://theiconurl/", package.IconUrl);
                 Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
@@ -820,6 +821,219 @@ namespace NuGetGallery
             }
         }
 
+        public class TheCreatePackageOwnerRequestMethod
+        {
+            [Fact]
+            public void CreatesPackageOwnerRequest()
+            {
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var package = new PackageRegistration { Key = 1 };
+                var owner = new User { Key = 100 };
+                var newOwner = new User { Key = 200 };
+
+                service.CreatePackageOwnerRequest(package, owner, newOwner);
+
+                packageOwnerRequestRepository.Verify(r => r.InsertOnCommit(
+                    It.Is<PackageOwnerRequest>(req => req.PackageRegistrationKey == 1 && req.RequestingOwnerKey == 100 && req.NewOwnerKey == 200))
+                );
+            }
+
+            [Fact]
+            public void ReturnsExistingMatchingPackageOwnerRequest()
+            {
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(new[]{
+                    new PackageOwnerRequest { 
+                        PackageRegistrationKey = 1, 
+                        RequestingOwnerKey = 99,
+                        NewOwnerKey = 200}
+                }.AsQueryable());
+                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var package = new PackageRegistration { Key = 1 };
+                var owner = new User { Key = 100 };
+                var newOwner = new User { Key = 200 };
+
+                var request = service.CreatePackageOwnerRequest(package, owner, newOwner);
+
+                Assert.Equal(99, request.RequestingOwnerKey);
+            }
+        }
+
+        public class TheRemovePackageOwnerMethod
+        {
+            [Fact]
+            public void RemovesPackageOwner()
+            {
+                var service = CreateService();
+                var owner = new User { };
+                var package = new PackageRegistration { Owners = new List<User> { owner } };
+
+                service.RemovePackageOwner(package, owner);
+
+                Assert.DoesNotContain(owner, package.Owners);
+            }
+
+            [Fact]
+            public void RemovesPendingPackageOwner()
+            {
+                var packageOwnerRequest = new PackageOwnerRequest
+                {
+                    PackageRegistrationKey = 1,
+                    RequestingOwnerKey = 99,
+                    NewOwnerKey = 200
+                };
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(new[] { packageOwnerRequest }.AsQueryable());
+                packageOwnerRequestRepository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
+                packageOwnerRequestRepository.Setup(r => r.CommitChanges()).Verifiable();
+                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var pendingOwner = new User { Key = 200 };
+                var owner = new User { };
+                var package = new PackageRegistration { Key = 1, Owners = new List<User> { owner } };
+
+                service.RemovePackageOwner(package, pendingOwner);
+
+                Assert.Contains(owner, package.Owners);
+                packageOwnerRequestRepository.VerifyAll();
+            }
+        }
+
+        public class TheConfirmPackageOwnerMethod
+        {
+            [Fact]
+            public void WithValidUserAndMatchingTokenReturnsTrue()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                packageRepo.Setup(r => r.CommitChanges()).Verifiable();
+                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                repository.Setup(r => r.GetAll()).Returns(new[] 
+                { 
+                    new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token"},
+                    new PackageOwnerRequest { PackageRegistrationKey = 2, NewOwnerKey = 100, ConfirmationCode = "secret-token"} 
+
+                }.AsQueryable());
+                var service = CreateService(packageRepo: packageRepo, packageOwnerRequestRepo: repository);
+
+                var result = service.ConfirmPackageOwner(package, pendingOwner, "secret-token");
+
+                Assert.True(result);
+                Assert.Contains(pendingOwner, package.Owners);
+                packageRepo.VerifyAll();
+            }
+
+            [Fact]
+            public void WhenUserIsAlreadyOwnerReturnsTrue()
+            {
+                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
+                var package = new PackageRegistration { Key = 2, Id = "pkg42", Owners = new[] { pendingOwner } };
+                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                repository.Setup(r => r.GetAll()).Returns(new[] 
+                { 
+                    new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token"},
+
+                }.AsQueryable());
+                var service = CreateService(packageOwnerRequestRepo: repository);
+
+                var result = service.ConfirmPackageOwner(package, pendingOwner, "secret-token");
+
+                Assert.True(result);
+            }
+
+            [Fact]
+            public void WithNoMatchingPackgageOwnerRequestReturnsFalse()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
+                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                repository.Setup(r => r.GetAll()).Returns(new[] 
+                { 
+                    new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token"},
+
+                }.AsQueryable());
+                var service = CreateService(packageOwnerRequestRepo: repository);
+
+                var result = service.ConfirmPackageOwner(package, pendingOwner, "secret-token");
+
+                Assert.False(result);
+            }
+
+            [Fact]
+            public void WithValidUserAndNonMatchingTokenReturnsFalse()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                packageRepo.Setup(r => r.CommitChanges()).Throws(new InvalidOperationException());
+                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                repository.Setup(r => r.GetAll()).Returns(new[] 
+                { 
+                    new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token"},
+                    new PackageOwnerRequest { PackageRegistrationKey = 2, NewOwnerKey = 100, ConfirmationCode = "wrong-token"} 
+
+                }.AsQueryable());
+                var service = CreateService(packageRepo: packageRepo, packageOwnerRequestRepo: repository);
+
+                var result = service.ConfirmPackageOwner(package, pendingOwner, "secret-token");
+
+                Assert.False(result);
+                Assert.DoesNotContain(pendingOwner, package.Owners);
+            }
+
+            [Fact]
+            public void ThrowsArgumentNullExceptionsForBadArguments()
+            {
+                var service = CreateService();
+
+                Assert.Throws<ArgumentNullException>(() => service.ConfirmPackageOwner(null, new User(), "token"));
+                Assert.Throws<ArgumentNullException>(() => service.ConfirmPackageOwner(new PackageRegistration(), null, "token"));
+                Assert.Throws<ArgumentNullException>(() => service.ConfirmPackageOwner(new PackageRegistration(), null, null));
+                Assert.Throws<ArgumentNullException>(() => service.ConfirmPackageOwner(new PackageRegistration(), null, ""));
+            }
+        }
+
+        public class TheAddPackageOwnerMethod
+        {
+            [Fact]
+            public void AddsUserToPackageOwnerCollection()
+            {
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
+                var packageRepo = new Mock<IEntityRepository<Package>>();
+                packageRepo.Setup(r => r.CommitChanges()).Verifiable();
+                var service = CreateService(packageRepo: packageRepo);
+
+                service.AddPackageOwner(package, pendingOwner);
+
+                Assert.Contains(pendingOwner, package.Owners);
+                packageRepo.VerifyAll();
+            }
+
+            [Fact]
+            public void RemovesRelatedPendingOwnerRequest()
+            {
+                var packageOwnerRequest = new PackageOwnerRequest { PackageRegistrationKey = 2, NewOwnerKey = 100, ConfirmationCode = "secret-token" };
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
+                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                repository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
+                repository.Setup(r => r.CommitChanges()).Verifiable();
+                repository.Setup(r => r.GetAll()).Returns(new[] 
+                { 
+                    new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token"},
+                    packageOwnerRequest
+
+                }.AsQueryable());
+                var service = CreateService(packageOwnerRequestRepo: repository);
+
+                service.AddPackageOwner(package, pendingOwner);
+
+                repository.VerifyAll();
+            }
+        }
+
         static Mock<IPackage> CreateNuGetPackage(Action<Mock<IPackage>> setup = null)
         {
             var nugetPackage = new Mock<IPackage>();
@@ -840,6 +1054,7 @@ namespace NuGetGallery
                 new NuGet.PackageDependency("theThirdDependency")
             });
             nugetPackage.Setup(x => x.Description).Returns("theDescription");
+            nugetPackage.Setup(x => x.ReleaseNotes).Returns("theReleaseNotes");
             nugetPackage.Setup(x => x.IconUrl).Returns(new Uri("http://theiconurl/"));
             nugetPackage.Setup(x => x.LicenseUrl).Returns(new Uri("http://thelicenseurl/"));
             nugetPackage.Setup(x => x.ProjectUrl).Returns(new Uri("http://theprojecturl/"));
@@ -863,6 +1078,7 @@ namespace NuGetGallery
             Mock<IEntityRepository<Package>> packageRepo = null,
             Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null,
             Mock<IPackageFileService> packageFileSvc = null,
+            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Action<Mock<PackageService>> setup = null)
         {
             if (cryptoSvc == null)
@@ -876,13 +1092,15 @@ namespace NuGetGallery
             packageRepo = packageRepo ?? new Mock<IEntityRepository<Package>>();
             packageFileSvc = packageFileSvc ?? new Mock<IPackageFileService>();
             packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
+            packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
 
             var packageSvc = new Mock<PackageService>(
                 cryptoSvc.Object,
                 packageRegistrationRepo.Object,
                 packageRepo.Object,
                 packageStatsRepo.Object,
-                packageFileSvc.Object);
+                packageFileSvc.Object,
+                packageOwnerRequestRepo.Object);
 
             packageSvc.CallBase = true;
 

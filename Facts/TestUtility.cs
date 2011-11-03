@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -22,6 +23,16 @@ namespace NuGetGallery
             routeCollection.MapRoute("catch-all", "{*catchall}");
             controller.Url = new UrlHelper(requestContext, routeCollection);
             return httpContext;
+        }
+
+        public static T GetAnonymousPropertyValue<T>(Object source, string propertyName)
+        {
+            var property = source.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public);
+            if (property == null)
+            {
+                return default(T);
+            }
+            return (T)property.GetValue(source, null);
         }
     }
 }

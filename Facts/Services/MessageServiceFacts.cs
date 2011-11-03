@@ -138,5 +138,46 @@ namespace NuGetGallery.Services
                 Assert.Contains("http://example.com/pwd-reset-token-url", message.Body);
             }
         }
+
+        public class TheSendPackageOwnerRequestMethod
+        {
+            [Fact]
+            public void SendsPackageOwnerRequestConfirmationUrl()
+            {
+                var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
+                var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var config = new Mock<IConfiguration>();
+                config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("NuGet Gallery <joe@example.com>"));
+                var mailSender = new Mock<IMailSender>();
+                var messageService = new MessageService(mailSender.Object, config.Object);
+                var package = new PackageRegistration { Id = "CoolStuff" };
+                var confirmationUrl = "http://example.com/confirmation-token-url";
+
+                var message = messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
+
+                Assert.Equal("new-owner@example.com", message.To[0].Address);
+                Assert.Equal("existing-owner@example.com", message.From.Address);
+                Assert.Equal("[NuGet Gallery] The user 'Existing' wants to add you as an owner of their package, 'CoolStuff'.", message.Subject);
+                Assert.Contains(confirmationUrl, message.Body);
+            }
+
+            [Fact]
+            public void DoesNotSendRequestIfUserDoesNotAllowEmails()
+            {
+                var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = false };
+                var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var config = new Mock<IConfiguration>();
+                config.Setup(c => c.GalleryOwnerEmailAddress).Returns(new MailAddress("NuGet Gallery <joe@example.com>"));
+                var mailSender = new Mock<IMailSender>();
+                mailSender.Setup(s => s.Send(It.IsAny<MailMessage>())).Throws(new InvalidOperationException("Should not be called"));
+                var messageService = new MessageService(mailSender.Object, config.Object);
+                var package = new PackageRegistration { Id = "CoolStuff" };
+                var confirmationUrl = "http://example.com/confirmation-token-url";
+
+                var message = messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
+
+                Assert.Null(message);
+            }
+        }
     }
 }
