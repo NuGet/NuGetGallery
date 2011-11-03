@@ -15,7 +15,7 @@ namespace NuGetGallery
             this.userSvc = userSvc;
         }
 
-        [ActionName("PushPackageApi"), HttpPost]
+        [ActionName("PushPackageApi"), HttpPost, RequireHttpsNoLocal]
         public virtual ActionResult CreatePackage(Guid apiKey)
         {
             var user = userSvc.FindByApiKey(apiKey);
@@ -32,7 +32,7 @@ namespace NuGetGallery
             return new EmptyResult();
         }
 
-        [ActionName("DeletePackageApi"), HttpDelete]
+        [ActionName("DeletePackageApi"), HttpDelete, RequireHttpsNoLocal]
         public virtual ActionResult DeletePackage(Guid apiKey, string id, string version)
         {
             var user = userSvc.FindByApiKey(apiKey);
@@ -52,7 +52,7 @@ namespace NuGetGallery
             return new EmptyResult();
         }
 
-        [ActionName("PublishPackageApi"), HttpPost]
+        [ActionName("PublishPackageApi"), HttpPost, RequireHttpsNoLocal]
         public virtual ActionResult PublishPackage(Guid key, string id, string version)
         {
             var user = userSvc.FindByApiKey(key);
