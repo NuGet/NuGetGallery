@@ -238,7 +238,9 @@ The {2} Team";
                 return null;
             }
 
-            string body = @"{0} would like to add you as an owner of the package '{1}'. 
+            string subject = "[{0}] The user '{1}' wants to add you as an owner of the package '{2}'.";
+
+            string body = @"The user '{0}' wants to add you as an owner of the package '{1}'. 
 If you do not want to be listed as an owner of this package, simply delete this email.
 
 To accept this request and become a listed owner of the package, click the following URL:
@@ -253,7 +255,7 @@ The {3} Team";
             using (
                 var mailMessage = new MailMessage
                 {
-                    Subject = String.Format("[{0}] The user '{1}' wants to add you as an owner of their package, '{2}'.", configuration.GalleryOwnerEmailAddress.DisplayName, fromUser.Username, package.Id),
+                    Subject = String.Format(subject, configuration.GalleryOwnerEmailAddress.DisplayName, fromUser.Username, package.Id),
                     Body = body,
                     From = fromUser.ToMailAddress(),
                 })

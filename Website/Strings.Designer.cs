@@ -106,7 +106,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package identifier &apos;{0}&apos; is not available..
+        ///   Looks up a localized string similar to The package ID &apos;{0}&apos; is not available..
         /// </summary>
         public static string PackageIdNotAvailable {
             get {

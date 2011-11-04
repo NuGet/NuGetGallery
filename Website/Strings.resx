@@ -127,7 +127,7 @@
     <value>A user with the provided user name and password does not exist.</value>
   </data>
   <data name="PackageIdNotAvailable" xml:space="preserve">
-    <value>The package identifier '{0}' is not available.</value>
+    <value>The package ID '{0}' is not available.</value>
   </data>
   <data name="PackageWithIdAndVersionNotFound" xml:space="preserve">
     <value>A package with id '{0}' and version '{1}' does not exist.</value>
