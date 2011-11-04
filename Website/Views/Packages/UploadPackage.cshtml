@@ -1,29 +1,19 @@
 ﻿@using NuGetGallery
 @model SubmitPackageRequest
 @{
-    ViewBag.Tab = "Upload";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    ViewBag.Tab = "Upload Your Package";
 }
 
-@section SideColumn {
-    <img src="@Links.Content.Images.contribGraphic_png" alt="Contribute" />
-    <p>Submit your package for others to enjoy.</p>
-}    
-
-
-<h1>Upload a Package</h1>
+<h1 class="page-heading">Upload Your Package</h1>
 
 @ViewHelpers.UploadSequence(1)
-
-
-
 
 @using(Html.BeginForm("UploadPackage", "Packages", FormMethod.Post, new { enctype="multipart/form-data"})){
     <fieldset class="form">
         <legend>Upload a Package</legend>
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true)
-        <p>Your package file will be uploaded and hosted on the NuGet Gallery server (NuGet.org).</p>
+        <p class="message">Your package file will be uploaded and hosted on the NuGet Gallery server (NuGet.org).</p>
         <div class="form-field">
             <label for="PackageFile">Choose a package...</label>
             <input type="file" name="PackageFile" />
