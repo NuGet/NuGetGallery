@@ -31,7 +31,7 @@ namespace NuGetGallery.Views.Packages
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("RazorGenerator", "1.2.0.0")]
     [System.Web.WebPages.PageVirtualPathAttribute("~/Views/Packages/Edit.cshtml")]
-    public class Edit : System.Web.Mvc.WebViewPage<DisplayPackageViewModel>
+    public class Edit : System.Web.Mvc.WebViewPage<dynamic>
     {
         public Edit()
         {
@@ -39,9 +39,8 @@ namespace NuGetGallery.Views.Packages
         public override void Execute()
         {
 
-
             
-            #line 2 "..\..\Views\Packages\Edit.cshtml"
+            #line 1 "..\..\Views\Packages\Edit.cshtml"
   
     ViewBag.Tab = "Packages";
 
@@ -49,90 +48,39 @@ namespace NuGetGallery.Views.Packages
             
             #line default
             #line hidden
-WriteLiteral("\r\n\r\n<h1 class=\"page-heading\">Edit ");
+WriteLiteral("\r\n<h1 class=\"page-heading\">Edit ");
 
 
             
-            #line 7 "..\..\Views\Packages\Edit.cshtml"
+            #line 5 "..\..\Views\Packages\Edit.cshtml"
                          Write(Model.Title);
 
             
             #line default
             #line hidden
-WriteLiteral(" Package</h1>\r\n<p class=\"message\">\r\n    You may only edit certain package propert" +
-"ies listed below. To modify or update any other package properties, <a href=\"");
+WriteLiteral(" Package</h1>\r\n<p class=\"message\">\r\n    To edit the metadata for a package, pleas" +
+"e <a href=\"");
 
 
             
-            #line 9 "..\..\Views\Packages\Edit.cshtml"
-                                                                                                                     Write(Url.UploadPackage());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">reupload the package</a>.\r\n</p>\r\n");
-
-
-            
-            #line 11 "..\..\Views\Packages\Edit.cshtml"
- using (Html.BeginForm()) {
+            #line 7 "..\..\Views\Packages\Edit.cshtml"
+                                                   Write(Url.UploadPackage());
 
             
             #line default
             #line hidden
-WriteLiteral("    <fieldset class=\"form\">\r\n        <legend>Edit ");
+WriteLiteral(@""">upload an updated version of the package</a>.
+</p>
+<p>
+    NuGet currently does not allow updating package metadata on the website. This helps ensure 
+    that the package itself (and the source used to build the package) remains the one true 
+    source of package metadata.
+</p>
+<p>
+    This does require that you increment the package version.
+</p>
+");
 
-
-            
-            #line 13 "..\..\Views\Packages\Edit.cshtml"
-                Write(Model.Title);
-
-            
-            #line default
-            #line hidden
-WriteLiteral(" Package</legend>\r\n        ");
-
-
-            
-            #line 14 "..\..\Views\Packages\Edit.cshtml"
-   Write(Html.AntiForgeryToken());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n        <div class=\"form-field\">\r\n            ");
-
-
-            
-            #line 16 "..\..\Views\Packages\Edit.cshtml"
-       Write(Html.EditorFor(package => package.Listed));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\r\n            <label for=\"Listed\" class=\"checkbox\">\r\n                List this pa" +
-"ckage in search results.\r\n            </label>\r\n        </div>\r\n        <input t" +
-"ype=\"submit\" value=\"Save\" title=\"Save Changes\" />\r\n        <a class=\"cancel\" hre" +
-"f=\"");
-
-
-            
-            #line 22 "..\..\Views\Packages\Edit.cshtml"
-                           Write(Url.Action("DisplayPackage"));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\" title=\"Cancel Changes and go back to package page.\">Cancel</a>\r\n    </fieldset>" +
-"\r\n");
-
-
-            
-            #line 24 "..\..\Views\Packages\Edit.cshtml"
-}
-            
-            #line default
-            #line hidden
 
         }
     }

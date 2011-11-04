@@ -332,24 +332,16 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Delete(string id, string version)
         {
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
-
-            var dependents = packageSvc.FindDependentPackages(package);
-            var model = new DeletePackageViewModel(package, dependents);
-
-            return View(model);
+            return GetPackageOwnerActionFormResult(id, version);
         }
 
-        [ActionName("Delete"), Authorize, HttpPost, ValidateAntiForgeryToken]
-        public virtual ActionResult DeletePackage(string id, string version)
+        [Authorize, HttpPost, ValidateAntiForgeryToken]
+        public virtual ActionResult Delete(string id, string version, bool? listed)
+        {
+            return Delete(id, version, listed, Url.Package);
+        }
+
+        internal virtual ActionResult Delete(string id, string version, bool? listed, Func<Package, string> urlFactory)
         {
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -361,19 +353,16 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
-            var dependents = packageSvc.FindDependentPackages(package);
-            var model = new DeletePackageViewModel(package, dependents);
-
-            if (!model.MayDelete)
+            if (!(listed ?? false))
             {
-                return new HttpStatusCodeResult(401, "Unauthorized");
+                packageSvc.MarkPackageUnlisted(package);
+            }
+            else
+            {
+                packageSvc.MarkPackageListed(package);
             }
 
-            packageSvc.DeletePackage(id, version);
-
-            TempData["Message"] = "The package was deleted";
-
-            return Redirect(Url.PackageList());
+            return Redirect(urlFactory(package));
         }
 
         [Authorize]

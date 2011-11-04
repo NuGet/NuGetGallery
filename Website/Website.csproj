@@ -139,7 +139,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionNames.cs" />
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -201,6 +200,9 @@
       <DependentUpon>201111022051010_PackageReleaseNotes.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Settings.cs" />
+    <Compile Include="PackagesController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
@@ -464,9 +466,6 @@
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
-    <Compile Include="PackagesController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
     <Compile Include="PagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -488,7 +487,6 @@
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
-    <Compile Include="ViewModels\DeletePackageViewModel.cs" />
     <Compile Include="ViewModels\DependencyViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
