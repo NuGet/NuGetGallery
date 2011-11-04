@@ -314,6 +314,11 @@ namespace NuGetGallery
 
         void UpdateIsLatest(PackageRegistration packageRegistration)
         {
+            if (!packageRegistration.Packages.Any())
+            {
+                return;
+            }
+
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
             foreach (var pv in packageRegistration.Packages)
             {

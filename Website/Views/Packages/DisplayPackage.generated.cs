@@ -288,7 +288,7 @@ WriteLiteral(".\r\n        </p>\r\n");
             
             #line 51 "..\..\Views\Packages\DisplayPackage.cshtml"
     }
-    else if (Model.IsNotLatestVersionListed)
+    else if (Model.IsLatestVersionAvailable)
     {
 
             

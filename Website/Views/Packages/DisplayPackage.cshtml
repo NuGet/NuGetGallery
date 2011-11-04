@@ -49,11 +49,11 @@
             This is a prerelease version of @Model.Title.
         </p>
     }
-    else if (Model.IsNotLatestVersionListed)
+    else if (!Model.IsLatestVersionAvailable)
     {
         <p class="not-latest-message">
             This is not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
-                version</a> of @Model.Title currently listed.
+                version</a> of @Model.Title available.
         </p>
     }
     <hgroup class="page-heading">
