@@ -716,7 +716,6 @@
     <Content Include="Content\Images\uploadPackage.png" />
     <Content Include="Content\Images\YourPackage.png" />
     <Content Include="Content\Site.css" />
-    <Content Include="Content\Images\contribGraphic.png" />
     <Content Include="Content\Images\download.png" />
     <Content Include="Content\Images\editIcon.png" />
     <Content Include="Content\Images\greenArrow.png" />
