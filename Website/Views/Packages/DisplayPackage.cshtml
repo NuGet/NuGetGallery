@@ -34,6 +34,7 @@
             <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">
                 Report Abuse</a></li>
             <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
+            <li><a href="@Url.Action(@MVC.Packages.Download())" title="How do I download?">How do I download</a></li>
             @if (Model.IsOwner(User)) {
                 <li><a href="@Url.EditPackage(Model)">Edit Package</a></li>
                 <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
@@ -87,10 +88,6 @@
                 @if (Model.Prerelease)
                 {<text> -pre </text>}</code></p>
     </div>
-
-    <p>
-        <a href="@Url.Action(@MVC.Packages.Download())" title="Download link">Where is the <strong>Download link?</strong></a>
-    </p>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {
