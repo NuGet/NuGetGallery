@@ -48,7 +48,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.ApiKeyNotAuthorized, "delete");
             }
 
-            packageSvc.DeletePackage(id, version);
+            packageSvc.MarkPackageUnlisted(package);
             return new EmptyResult();
         }
 

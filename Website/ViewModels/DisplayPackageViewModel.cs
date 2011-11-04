@@ -29,5 +29,19 @@ namespace NuGetGallery
         public IEnumerable<DependencyViewModel> Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
+
+        public bool IsLatestVersionAvailable
+        {
+            get
+            {
+                // A package can be identified as the latest available a few different ways
+                // First, if it's marked as the latest stable version
+                return this.LatestStableVersion
+                    // Or if it's marked as the latest version (pre-release)
+                    || this.LatestVersion
+                    // Or if it's the current version and no version is marked as the latest (because they're all unlisted)
+                    || (this.IsCurrent(this) && !this.PackageVersions.Any(p => p.LatestVersion));
+            }
+        }
     }
 }

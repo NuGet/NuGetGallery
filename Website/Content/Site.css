@@ -803,6 +803,12 @@ header.main {
     }
     
     /* Forms */  
+    #unlist-form {
+        margin: 20px;
+        padding: 10px;
+        border: solid 1px #ccc;
+    }
+    
     fieldset.form {
         border: none;
         clear: both;
