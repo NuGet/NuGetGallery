@@ -83,8 +83,8 @@ nav, section { display: block; }
 
 
 #content-wraper {
-    width: 1000px;
-    min-width: 1000px;
+    width: 960px;
+    min-width: 960px;
     margin: 0 auto;
     min-height: 100%;
 }
@@ -308,13 +308,13 @@ header.main {
         -moz-border-radius: 3px;
         -webkit-border-radius: 3px;
         margin: 10px auto;
-        padding: 20px 20px 0 20px;
+        padding: 20px 10px 0 10px;
     }
     
         .featured div {
             float: left;
-            margin-right: 20px;
-            width: 415px;
+            margin-right: 5px;
+            width: 410px;
         }
         
             .featured div h1 {
