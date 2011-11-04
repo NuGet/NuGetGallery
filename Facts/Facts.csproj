@@ -83,6 +83,7 @@
     <Compile Include="Controllers\JsonApiControllerFacts.cs" />
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Infrastructure\CookieTempDataProviderFacts.cs" />
     <Compile Include="Infrastructure\Jobs\UpdateStatisticsJobFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

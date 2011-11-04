@@ -9,6 +9,7 @@ namespace NuGetGallery
         {
             Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
+            Listed = true;
         }
 
         public int Key { get; set; }

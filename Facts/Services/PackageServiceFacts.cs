@@ -515,7 +515,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void DeletePackageUpdatesIsLatest()
+            public void WillUpdateIsLatest()
             {
                 // Arrange
                 var packages = new HashSet<Package>();
@@ -709,7 +709,7 @@ namespace NuGetGallery
             public void SetsListedToFalse()
             {
                 var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration };
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepo: packageRepo);
 
@@ -723,8 +723,8 @@ namespace NuGetGallery
             {
                 var packageRegistration = new PackageRegistration { Id = "theId" };
                 var packages = new[] { 
-                    new Package { Version = "1.0.1", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true },
-                    new Package { Version = "1.0.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = false, IsLatestStable = false }
+                    new Package { Version = "1.0.1", PackageRegistration = packageRegistration, IsLatest = true, IsLatestStable = true },
+                    new Package { Version = "1.0.0", PackageRegistration = packageRegistration, IsLatest = false, IsLatestStable = false }
                 }.ToList();
                 packageRegistration.Packages = packages;
                 var packageRepo = new Mock<IEntityRepository<Package>>();
@@ -742,7 +742,7 @@ namespace NuGetGallery
             public void OnOnlyListedPackageSetsNoPackageToLatestVersion()
             {
                 var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package = new Package { Version = "1.0.1", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                var package = new Package { Version = "1.0.1", PackageRegistration = packageRegistration, IsLatest = true, IsLatestStable = true };
                 packageRegistration.Packages = new List<Package>(new[] { package });
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepo: packageRepo);
@@ -836,8 +836,7 @@ namespace NuGetGallery
                 {
                     Version = "2.0",
                     PackageRegistration = package.PackageRegistration,
-                    Published = DateTime.UtcNow,
-                    Listed = true
+                    Published = DateTime.UtcNow
                 });
                 var packageRepo = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(
@@ -872,8 +871,7 @@ namespace NuGetGallery
                 {
                     Version = "1.0.39",
                     PackageRegistration = package.PackageRegistration,
-                    Published = DateTime.Now.AddDays(-1),
-                    Listed = true
+                    Published = DateTime.Now.AddDays(-1)
                 };
                 package.PackageRegistration.Packages.Add(package_39);
                 var packageRepo = new Mock<IEntityRepository<Package>>();
