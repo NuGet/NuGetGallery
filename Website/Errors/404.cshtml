@@ -6,10 +6,9 @@
         errorPath = Request.RawUrl;
     }
     
-    errorPath = Path.GetFileNameWithoutExtension(errorPath).Replace("-", " ");
+    errorPath = Path.GetFileNameWithoutExtension(errorPath);
 }
 
-<div class="error-show-code"></div>
 <div class="error-page">
     <h1>404 : Page Not Found</h1>
     <p>You might be here because:</p>
@@ -21,7 +20,7 @@
     </ul>
 
     <h2 class="search">Try Searching</h2>
-    <form action="" onsubmit="return submitQuery()">
+    <form action="@Href("~/packages")" onsubmit="return submitQuery()">
         <input name="q" id="searchBoxInput" value="@errorPath" placeholder="Search Gallery" />
         <input id="searchBoxSubmit" type="submit" value=" " />
     </form>

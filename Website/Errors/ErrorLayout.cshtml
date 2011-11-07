@@ -4,19 +4,27 @@
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>@Page.Title | NuGet Gallery</title> 
+        <title>NuGet Gallery</title> 
         <link href="@Href("~/Content/site.css")" rel="stylesheet" />
         <link href="@Href("~/Content/nuget.ico")" rel="shortcut icon" type="image/x-icon" />
         <script src="@Href("~/Scripts/modernizr-2.0.6-development-only.js")"></script>
-        @MvcMiniProfiler.MiniProfiler.RenderIncludes()
     </head>
     <body>
         <div id="content-wraper">
             <header class="main">
                 <div id="logo"><a href="@Href("~/")">NuGet Gallery</a></div>
             </header>
-            <div class="error-content">
-                @RenderBody()
+            <nav class="main">
+                <ul id="menu">
+                    <li><a href="@Href("~/")">Home</a></li>
+                    <li><a href="@Href("~/Packages")">Packages</a></li>
+                    <li><a href="http://docs.nuget.org">Documentation</a></li>
+                    <li><a href="@Href("~/Upload/Package")" class="upload">Upload Package</a></li>
+                </ul>
+            </nav>
+            <div id="body">
+            <div class="error-show-code"></div>
+            @RenderBody()
             </div>
         </div>
         <div id="layout-footer" class="group">
@@ -46,5 +54,7 @@
                 </div>
             </footer>
         </div>
+        <script src="@Href("~/Scripts/jquery-1.6.2.min.js")"></script>
+        @RenderSection("BottomScripts", required: false)
     </body>
 </html>

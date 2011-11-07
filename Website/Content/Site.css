@@ -956,11 +956,22 @@ header.main {
             font-size: 1.25em;
             font-weight: 600;
         }
-            
+
+/* Errors */            
 .error-content {
     margin-top: 80px;
 }
-    
+
+.error-show-code {
+    background-image: url("../Content/Images/errorPage.png");
+    background-repeat: no-repeat;
+    height: 125px;
+    left: 0;
+    position:fixed;
+    top: 0;
+    text-indent: -9999px;
+    width: 220px;
+}   
     
 /* Footer */
 .clear-fix {
