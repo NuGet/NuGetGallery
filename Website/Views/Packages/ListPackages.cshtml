@@ -12,7 +12,10 @@
     else {
     <h1>There are @Model.TotalCount packages</h1>
     }
+    @if (@Model.LastResultIndex > 0)
+    {
     <h2>Displaying results @Model.FirstResultIndex - @Model.LastResultIndex.</h2>
+    }
 </hgroup>
 
 @using (Html.BeginForm()) {
