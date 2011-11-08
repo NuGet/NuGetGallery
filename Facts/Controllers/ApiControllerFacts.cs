@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Moq;
 using NuGet;
 using Xunit;
@@ -194,15 +195,22 @@ namespace NuGetGallery
             [Fact]
             public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist()
             {
-                var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)null);
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                var packageRepo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                packageRepo.Setup(r => r.GetAll()).Returns(new[] { new Package { PackageRegistration = new PackageRegistration { Id = "not-the-id" }, Version = "1.1" } }.AsQueryable())
+                                                  .Verifiable(); 
+                var packageService = new PackageService(new Mock<ICryptographyService>(MockBehavior.Strict).Object, packageRegistrationRepo.Object, packageRepo.Object, 
+                    new Mock<IEntityRepository<PackageStatistics>>(MockBehavior.Strict).Object, 
+                    new Mock<IPackageFileService>(MockBehavior.Strict).Object, 
+                    new Mock<IEntityRepository<PackageOwnerRequest>>(MockBehavior.Strict).Object);
+
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
-                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
-
-                var ex = Assert.Throws<EntityException>(() => controller.PublishPackage(Guid.NewGuid(), "theId", "1.0.42"));
+                var controller = new Mock<ApiController>(packageService, userSvc.Object) { CallBase = true };
+                var ex = Assert.Throws<EntityException>(() => controller.Object.PublishPackage(Guid.NewGuid(), "theId", "1.0.42"));
 
                 Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+                packageRepo.Verify();
             }
 
             [Fact]
