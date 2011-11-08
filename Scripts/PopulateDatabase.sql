@@ -1,3 +1,6 @@
+USE NuGetGallery
+GO
+
 BEGIN TRAN
 
 DECLARE		@PkgReg TABLE([Key] int unique)
@@ -69,10 +72,10 @@ BEGIN
   SET IDENTITY_INSERT PackageAuthors OFF
   
   SET IDENTITY_INSERT PackageDependencies ON
-  INSERT INTO PackageDependencies ([Key], PackageKey, Id, VersionSpec) VALUES (@key1, @key1, 'Id'+@n1, 'Version'+@n2)
-  INSERT INTO PackageDependencies ([Key], PackageKey, Id, VersionSpec) VALUES (@key2, @key1, 'Id'+@n2, 'Version'+@n2)
-  INSERT INTO PackageDependencies ([Key], PackageKey, Id, VersionSpec) VALUES (@key3, @key2, 'Id'+@n1, 'Version'+@n2)
-  INSERT INTO PackageDependencies ([Key], PackageKey, Id, VersionSpec) VALUES (@key4, @key2, 'Id'+@n2, 'Version'+@n2)
+  INSERT INTO PackageDependencies ([Key], PackageKey, Id, VersionSpec) VALUES (@key1, @key1, 'Id'+@n1, '1.0')
+  INSERT INTO PackageDependencies ([Key], PackageKey, Id, VersionSpec) VALUES (@key2, @key1, 'Id'+@n2, '2.0')
+  INSERT INTO PackageDependencies ([Key], PackageKey, Id, VersionSpec) VALUES (@key3, @key2, 'Id'+@n1, '3.0')
+  INSERT INTO PackageDependencies ([Key], PackageKey, Id, VersionSpec) VALUES (@key4, @key2, 'Id'+@n2, '4.0')
   SET IDENTITY_INSERT PackageDependencies OFF
   
   SET @count = (@count + 1)
