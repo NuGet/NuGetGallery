@@ -2,7 +2,7 @@
 <section class="package @if(Model.IsOwner(User)) {<text>my-package</text>}">
     <div class="side">
         <a href="@Url.Package(Model)" title="View more about @Model.Title">
-            <img src="@(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" alt="@Model.Id icon" />
+            <img src="@(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" alt="@Model.Id icon" onerror="this.src='@Links.Content.Images.packageDefaultIcon_50x50_png';" />
         </a>
     </div>
     <div class="main">

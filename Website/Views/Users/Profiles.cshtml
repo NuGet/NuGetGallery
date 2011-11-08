@@ -29,7 +29,7 @@
         <section class="package">
             <div class="side">
                 <a href="@Url.Package(package)" title="View more about @package.Title">
-                    <img src="@(package.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" alt="@package.Id icon" />
+                    <img src="@(package.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" alt="@package.Id icon" onerror="this.src='@Links.Content.Images.packageDefaultIcon_50x50_png';" />
                 </a>
             </div>
             <div class="main">
