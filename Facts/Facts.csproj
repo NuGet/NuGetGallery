@@ -96,7 +96,7 @@
     <Compile Include="Services\UsersServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="TestUtility.cs" />
-    <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
+    <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
   </ItemGroup>
   <ItemGroup>
