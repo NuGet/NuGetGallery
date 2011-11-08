@@ -57,8 +57,8 @@ BEGIN
   INSERT INTO PackageRegistrationOwners (UserKey, PackageRegistrationKey) VALUES (@key2, @count)
   
   SET IDENTITY_INSERT Packages ON
-  INSERT INTO Packages ([Key], PackageRegistrationKey, Version, Description, DownloadCount, Hash, HashAlgorithm, PackageFileSize, RequiresLicenseAcceptance, FlattenedAuthors, Published, Created, LastUpdated, IsLatest, Listed) VALUES (@key1, @count, '1.0', '1.0 Desc'+@n1, 0, '1.0 Hash'+@n1, '1.0 HashAlgoritm'+@n1, 8, 0, '1.0 FlattenedAuthors'+@n1, getdate(), getdate(), getdate(), 0, 1)
-  INSERT INTO Packages ([Key], PackageRegistrationKey, Version, Description, DownloadCount, Hash, HashAlgorithm, PackageFileSize, RequiresLicenseAcceptance, FlattenedAuthors, Published, Created, LastUpdated, IsLatest, Listed) VALUES (@key2, @count, '2.0', '2.0 Desc'+@n2, 0, '2.0 Hash'+@n2, '2.0 HashAlgoritm'+@n2, 8, 0, '2.0 FlattenedAuthors'+@n2, getdate(), getdate(), getdate(), 1, 1)
+  INSERT INTO Packages ([Key], PackageRegistrationKey, Version, Description, DownloadCount, Hash, HashAlgorithm, PackageFileSize, RequiresLicenseAcceptance, FlattenedAuthors, Published, Created, LastUpdated, IsLatest, IsLatestStable, Listed) VALUES (@key1, @count, '1.0', '1.0 Desc'+@n1, 0, '1.0 Hash'+@n1, '1.0 HashAlgoritm'+@n1, 8, 0, '1.0 FlattenedAuthors'+@n1, getdate(), getdate(), getdate(), 0, 0, 1)
+  INSERT INTO Packages ([Key], PackageRegistrationKey, Version, Description, DownloadCount, Hash, HashAlgorithm, PackageFileSize, RequiresLicenseAcceptance, FlattenedAuthors, Published, Created, LastUpdated, IsLatest, IsLatestStable, Listed) VALUES (@key2, @count, '2.0', '2.0 Desc'+@n2, 0, '2.0 Hash'+@n2, '2.0 HashAlgoritm'+@n2, 8, 0, '2.0 FlattenedAuthors'+@n2, getdate(), getdate(), getdate(), 1, 1, 1)
   SET IDENTITY_INSERT Packages OFF
   
   SET IDENTITY_INSERT PackageAuthors ON
