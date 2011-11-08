@@ -162,12 +162,11 @@ WriteLiteral("\"><a href=\"");
             
             #line default
             #line hidden
-WriteLiteral("\">Packages</a></li>\r\n                    <li><a href=\"http://docs.nuget.org\">Docu" +
-"mentation</a></li>\r\n                    <li class=\"");
+WriteLiteral("\">Packages</a></li>\r\n                    <li class=\"");
 
 
             
-            #line 29 "..\..\Views\Shared\Layout.cshtml"
+            #line 28 "..\..\Views\Shared\Layout.cshtml"
                           Write(uploadClass);
 
             
@@ -177,13 +176,14 @@ WriteLiteral("\"><a href=\"");
 
 
             
-            #line 29 "..\..\Views\Shared\Layout.cshtml"
+            #line 28 "..\..\Views\Shared\Layout.cshtml"
                                                  Write(Url.UploadPackage());
 
             
             #line default
             #line hidden
-WriteLiteral("\" class=\"upload\">Upload Package</a></li>\r\n                </ul>\r\n                " +
+WriteLiteral("\" class=\"upload\">Upload Package</a></li>\r\n                    <li><a href=\"http:/" +
+"/docs.nuget.org\">Documentation</a></li>\r\n                </ul>\r\n                " +
 "<div id=\"searchBox\">\r\n                    <form action=\"");
 
 
@@ -205,18 +205,18 @@ WriteLiteral("\" method=\"get\">\r\n                        <input name=\"q\" id
             
             #line default
             #line hidden
-WriteLiteral("\" />\r\n                        <input type=\"hidden\" name=\"sortOrder\" value=\"");
+WriteLiteral("\" />\r\n                        <input id=\"searchBoxSubmit\" type=\"submit\" value=\" \"" +
+" />\r\n                        <input type=\"hidden\" name=\"sortOrder\" value=\"");
 
 
             
-            #line 34 "..\..\Views\Shared\Layout.cshtml"
+            #line 35 "..\..\Views\Shared\Layout.cshtml"
                                                                 Write(Const.DefaultPackageListSortOrder);
 
             
             #line default
             #line hidden
-WriteLiteral("\" />\r\n                        <input id=\"searchBoxSubmit\" type=\"submit\" value=\" \"" +
-" />\r\n                    </form>\r\n                </div>\r\n            </nav>\r\n  " +
+WriteLiteral("\" />\r\n                    </form>\r\n                </div>\r\n            </nav>\r\n  " +
 "          <div id=\"body\">\r\n");
 
 
