@@ -34,6 +34,11 @@ namespace NuGetGallery
 
         public static IQueryable<Package> Search(this IQueryable<Package> source, string searchTerm)
         {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return source;
+            }
+
             // Split the search terms by spaces
             var terms = (searchTerm ?? String.Empty).Split();
 

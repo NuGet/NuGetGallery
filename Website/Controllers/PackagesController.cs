@@ -173,8 +173,16 @@ namespace NuGetGallery
             {
                 packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: true).Search(q);
             }
-            // Only show listed packages. For unlisted packages, only show them if the owner is viewing it.
-            packageVersions = packageVersions.Where(p => p.Listed || p.PackageRegistration.Owners.Any(owner => owner.Username == User.Identity.Name));
+
+            if (User.Identity.IsAuthenticated)
+            {
+                // Only show listed packages. For unlisted packages, only show them if the owner is viewing it.
+                packageVersions = packageVersions.Where(p => p.Listed || p.PackageRegistration.Owners.Any(owner => owner.Username == User.Identity.Name));
+            }
+            else
+            {
+                packageVersions = packageVersions.Where(p => p.Listed);
+            }
 
             var viewModel = new PackageListViewModel(packageVersions,
                 q,
