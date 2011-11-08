@@ -207,6 +207,10 @@
     <Compile Include="Migrations\201111080816426_DisplayPackageIndexes.Designer.cs">
       <DependentUpon>201111080816426_DisplayPackageIndexes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201111081908453_MyPackagesIndexes.cs" />
+    <Compile Include="Migrations\201111081908453_MyPackagesIndexes.Designer.cs">
+      <DependentUpon>201111081908453_MyPackagesIndexes.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
