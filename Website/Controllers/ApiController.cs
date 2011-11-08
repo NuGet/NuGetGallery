@@ -59,10 +59,6 @@ namespace NuGetGallery
             if (user == null)
                 throw new EntityException(Strings.ApiKeyNotAuthorized, "publish");
 
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
-
             packageSvc.PublishPackage(id, version);
             return new EmptyResult();
         }

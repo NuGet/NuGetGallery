@@ -89,18 +89,24 @@ namespace NuGetGallery
         public virtual Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true)
         {
             if (string.IsNullOrWhiteSpace(id))
+            {
                 throw new ArgumentNullException("id");
+            }
 
             // Optimization: Everytime we look at a package we almost always want to see 
             // all the other packages with the same ID via the PackageRegistration property. 
             // This resulted in a gnarly query. 
             // Instead, we can always query for all packages with the ID and then fix up 
             // the Packages property for the one we plan to return.
-            var packageVersions = packageRepo.GetAll()
-                    .Include(p => p.Authors)
-                    .Include(p => p.PackageRegistration)
-                    .Where(p => (p.PackageRegistration.Id == id) && (allowPrerelease || !p.IsPrerelease))
-                    .ToList();
+            IEnumerable<Package> packagesQuery = packageRepo.GetAll()
+                                                            .Include(p => p.Authors)
+                                                            .Include(p => p.PackageRegistration)
+                                                            .Where(p => (p.PackageRegistration.Id == id));
+            if (!allowPrerelease) 
+            {
+                packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
+            }
+            var packageVersions = packagesQuery.ToList();
 
             Package package = null;
             if (version == null)
@@ -320,6 +326,7 @@ namespace NuGetGallery
             }
 
             // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
+            // NOTE: EF is suprisingly smart about doing this. It doesn't issue queries for the vast majority of packages that did not have either flags changed.
             foreach (var pv in packageRegistration.Packages)
             {
                 pv.IsLatest = false;
