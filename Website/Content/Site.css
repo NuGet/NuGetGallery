@@ -203,11 +203,11 @@ header.main {
             #searchBoxInput {
                 border: solid 1px #ccc;
                 color: #333;
-                height: 28px;
+                font-size: 16px;
                 margin-right: -5px;
-                padding: 0 5px;
+                padding: 5px;
                 width: 150px;
-    
+                
                 /*CSS3 properties*/
                 border-radius: 4px 0 0 4px;
                 -moz-border-radius: 4px 0 0 4px;
@@ -848,9 +848,9 @@ header.main {
                 border: solid 1px #ccc;
                 color: #7f8c7d;
                 font-size: 1.25em;
-                height: 1.6em;
-                padding-left: 10px;
+                padding: 5px 0 5px 10px;
                 width: 300px;
+                vertical-align: middle;
             }
             
             .form-field textarea {
