@@ -36,7 +36,7 @@ namespace NuGetGallery.Migrations.Migrations
                 [IsLatestStable],
                 [Listed],
                 [IsPrerelease],
-                [ReleaseNotes]) WITH (STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY]");
+                [ReleaseNotes])");
         }
         
         public override void Down()
