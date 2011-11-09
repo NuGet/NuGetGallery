@@ -798,6 +798,7 @@
     <Content Include="DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="DynamicData\PageTemplates\List.aspx" />
     <Content Include="DynamicData\Site.css" />
+    <Content Include="Errors\Error.html" />
     <Content Include="Scripts\gallery.form.js" />
     <Content Include="Scripts\global.js" />
     <Content Include="Scripts\html5.js" />
@@ -943,7 +944,6 @@
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Errors\Error.cshtml" />
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
