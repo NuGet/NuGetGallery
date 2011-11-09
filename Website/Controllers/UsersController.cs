@@ -4,6 +4,7 @@ using System.Net.Mail;
 using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
+using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -257,7 +258,9 @@ namespace NuGetGallery
             }
 
             var packages = (from p in packageService.FindPackagesByOwner(user)
-                            select new PackageViewModel(p)).ToList();
+                           group p by p.PackageRegistration.Id)
+                           .Select(c => new PackageViewModel(c.First()))
+                           .ToList();
 
             var model = new UserProfileModel
             {
