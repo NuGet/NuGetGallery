@@ -12,6 +12,7 @@ namespace NuGetGallery
         [Hint("Passwords must be at least 7 characters long.")]
         public string NewPassword { get; set; }
 
+        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Confirm new password")]
         [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
