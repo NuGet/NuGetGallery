@@ -11,7 +11,6 @@ namespace NuGetGallery
         {
             CurrentOwnerUsername = currentUser.Identity.Name;
             OtherOwners = Owners.Where(o => o.Username != CurrentOwnerUsername);
-            OtherOwners = new[] { new User { Username = "Phil" } };
         }
         public bool HasOtherOwners
         {
