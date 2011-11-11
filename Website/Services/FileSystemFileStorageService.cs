@@ -68,6 +68,22 @@ namespace NuGetGallery
                 fileSystemSvc.DeleteFile(path);
         }
 
+        public Stream GetFile(
+            string folderName, 
+            string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(folderName))
+                throw new ArgumentNullException("folderName");
+            if (string.IsNullOrWhiteSpace(fileName))
+                throw new ArgumentNullException("fileName");
+
+            var path = BuildPath(configuration.FileStorageDirectory, folderName, fileName);
+            if (fileSystemSvc.FileExists(path))
+                return fileSystemSvc.OpenRead(path);
+            else
+                return null;
+        }
+
         public void SaveFile(
             string folderName,
             string fileName, 

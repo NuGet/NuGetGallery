@@ -8,6 +8,7 @@ namespace NuGetGallery
         Uri Uri { get; }
 
         void DeleteIfExists();
+        void DownloadToStream(Stream target);
         void UploadFromStream(Stream packageFile);
     }
 }

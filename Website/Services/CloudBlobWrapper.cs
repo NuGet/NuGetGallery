@@ -23,6 +23,18 @@ namespace NuGetGallery
             blob.DeleteIfExists();
         }
 
+        public void DownloadToStream(Stream target)
+        {
+            try
+            {
+                blob.DownloadToStream(target);
+            }
+            catch (StorageClientException ex)
+            {
+                throw new TestableStorageClientException(ex);
+            }
+        }
+
         public void UploadFromStream(Stream source)
         {
             blob.UploadFromStream(source);

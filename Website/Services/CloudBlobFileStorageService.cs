@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.StorageClient;
@@ -15,6 +16,7 @@ namespace NuGetGallery
             this.client = client;
 
             PrepareContainer(Const.PackagesFolderName, true);
+            PrepareContainer(Const.UploadsFolderName, false);
         }
 
         public ActionResult CreateDownloadFileActionResult(
@@ -38,6 +40,35 @@ namespace NuGetGallery
         ICloudBlobContainer GetContainer(string folderName)
         {
             return containers[folderName];
+        }
+
+        public Stream GetFile(
+            string folderName, 
+            string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(folderName))
+                throw new ArgumentNullException("folderName");
+            if (string.IsNullOrWhiteSpace(fileName))
+                throw new ArgumentNullException("fileName");
+            
+            var container = GetContainer(folderName);
+            var blob = container.GetBlobReference(fileName);
+            var stream = new MemoryStream();
+            try
+            {
+                blob.DownloadToStream(stream);
+            }
+            catch (TestableStorageClientException ex)
+            {
+                if (ex.ErrorCode == StorageErrorCode.ResourceNotFound)
+                {
+                    stream.Dispose();
+                    return null;
+                }
+                else
+                    throw;
+            }
+            return stream;
         }
 
         void PrepareContainer(
