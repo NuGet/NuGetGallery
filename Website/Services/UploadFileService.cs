@@ -27,9 +27,14 @@ namespace NuGetGallery
             fileStorageService.DeleteFile(Const.UploadsFolderName, uploadFileName);
         }
 
-        public NuGet.ZipPackage GetUploadFile(User user)
+        public Stream GetUploadFile(int userKey)
         {
-            throw new Exception();
+            if (userKey < 1)
+                throw new ArgumentException("A user key is required.", "userKey");
+
+            var uploadFileName = BuildFileName(userKey);
+
+            return fileStorageService.GetFile(Const.UploadsFolderName, uploadFileName);
         }
 
         public void SaveUploadFile(

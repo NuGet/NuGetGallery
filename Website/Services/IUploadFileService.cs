@@ -7,7 +7,7 @@ namespace NuGetGallery
     {
         void DeleteUploadFile(int userKey);
         
-        ZipPackage GetUploadFile(User user);
+        Stream GetUploadFile(int userKey);
         
         void SaveUploadFile(
             int userKey,
