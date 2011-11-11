@@ -47,6 +47,59 @@ namespace NuGetGallery
                 fakeFileStorageService.Verify(x => x.DeleteFile(It.IsAny<string>(), expectedFileName));
             }
         }
+
+        public class TheGetUploadFileMethod
+        {
+            [Fact]
+            public void WillThrowIfTheUserKeyIsMissing()
+            {
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentException>(() =>
+                {
+                    service.GetUploadFile(0);
+                });
+
+                Assert.Equal("userKey", ex.ParamName);
+            }
+
+            [Fact]
+            public void WillGetTheUploadFileFromTheUploadsFolder()
+            {
+                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var service = CreateService(fakeFileStorageService: fakeFileStorageService);
+
+                service.GetUploadFile(1);
+
+                fakeFileStorageService.Verify(x => x.GetFile(Const.UploadsFolderName, It.IsAny<string>()));
+            }
+
+            [Fact]
+            public void WillUseTheUserKeyInTheFileName()
+            {
+                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var service = CreateService(fakeFileStorageService: fakeFileStorageService);
+                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.PackageFileExtension);
+
+                service.GetUploadFile(1);
+
+                fakeFileStorageService.Verify(x => x.GetFile(It.IsAny<string>(), expectedFileName));
+            }
+
+            [Fact]
+            public void WillReturnTheUploadFileStream()
+            {
+                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.PackageFileExtension);
+                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeFileStream = new MemoryStream();
+                fakeFileStorageService.Setup(x => x.GetFile(Const.UploadsFolderName, expectedFileName)).Returns(fakeFileStream);
+                var service = CreateService(fakeFileStorageService: fakeFileStorageService);
+
+                var fileStream = service.GetUploadFile(1);
+
+                Assert.Same(fakeFileStream, fileStream);
+            }
+        }
         
         public class TheSaveUploadFileMethod
         {
