@@ -9,6 +9,13 @@ namespace NuGetGallery
 {
     public class PackageUploadFileService : IPackageUploadFileService
     {
+        readonly IFileStorageService fileStorageService;
+        
+        public PackageUploadFileService(IFileStorageService fileStorageService)
+        {
+            this.fileStorageService = fileStorageService;
+        }
+        
         public void DeleteUploadedFile(User user)
         {
             throw new Exception();
@@ -33,7 +40,7 @@ namespace NuGetGallery
                 throw new ArgumentException("A package version is required.", "packageVersion");
             if (packageFileStream == null)
                 throw new ArgumentNullException("packageFileStream");
-            
+
             throw new Exception();
         }
     }
