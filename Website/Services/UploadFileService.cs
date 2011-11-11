@@ -11,13 +11,18 @@ namespace NuGetGallery
         {
             this.fileStorageService = fileStorageService;
         }
-        
+
+        static string BuildFileName(int userKey)
+        {
+            return string.Format(Const.UploadFileNameTemplate, userKey, Const.PackageFileExtension);
+        }
+
         public void DeleteUploadFile(int userKey)
         {
             if (userKey < 1)
                 throw new ArgumentException("A user key is required.", "userKey");
 
-            var uploadFileName = string.Format(Const.UploadFileNameTemplate, userKey, Const.PackageFileExtension);
+            var uploadFileName = BuildFileName(userKey);
 
             fileStorageService.DeleteFile(Const.UploadsFolderName, uploadFileName);
         }
@@ -36,9 +41,9 @@ namespace NuGetGallery
             if (uploadFileStream == null)
                 throw new ArgumentNullException("packageFileStream");
 
-            var packageUploadFileName = string.Format(Const.UploadFileNameTemplate, userKey, Const.PackageFileExtension);
+            var uploadFileName = BuildFileName(userKey);
 
-            fileStorageService.SaveFile(Const.UploadsFolderName, packageUploadFileName, uploadFileStream);
+            fileStorageService.SaveFile(Const.UploadsFolderName, uploadFileName, uploadFileStream);
         }
     }
 }
