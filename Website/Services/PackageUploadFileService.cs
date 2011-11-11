@@ -24,16 +24,10 @@ namespace NuGetGallery
 
         public void SaveUploadedFile(
             int userKey,
-            string packageId,
-            string packageVersion,
             Stream packageFileStream)
         {
             if (userKey < 1)
                 throw new ArgumentException("A user key is required.", "userKey");
-            if (string.IsNullOrWhiteSpace(packageId))
-                throw new ArgumentException("A package identifier is required.", "packageId");
-            if (string.IsNullOrWhiteSpace(packageVersion))
-                throw new ArgumentException("A package version is required.", "packageVersion");
             if (packageFileStream == null)
                 throw new ArgumentNullException("packageFileStream");
 

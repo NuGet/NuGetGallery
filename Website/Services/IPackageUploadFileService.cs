@@ -11,8 +11,6 @@ namespace NuGetGallery
         
         void SaveUploadedFile(
             int userKey,
-            string packageId,
-            string packageVersion,
             Stream packageFileStream);
     }
 }
