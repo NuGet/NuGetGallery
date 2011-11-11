@@ -1,5 +1,5 @@
-﻿using NuGet;
-using System.IO;
+﻿using System.IO;
+using NuGet;
 
 namespace NuGetGallery
 {
