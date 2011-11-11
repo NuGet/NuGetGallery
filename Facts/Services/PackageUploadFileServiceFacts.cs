@@ -72,6 +72,42 @@ namespace NuGetGallery
 
                 Assert.Equal("packageFileStream", ex.ParamName);
             }
+
+            [Fact]
+            public void WillSaveTheUploadToTheUploadsFolder()
+            {
+                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var service = CreateService(fakeFileStorageService: fakeFileStorageService);
+
+                service.SaveUploadedFile(1, "thePackageId", "thePackageVersion", new MemoryStream());
+
+                fakeFileStorageService.Verify(x => x.SaveFile(Const.PackageUploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>()));
+            }
+
+            [Fact]
+            public void WillUseTheUserKeyInTheFileName()
+            {
+                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var service = CreateService(fakeFileStorageService: fakeFileStorageService);
+                var expectedFileName = string.Format(Const.PackageUploadFileNameTemplate, 1, Const.PackageFileExtension);
+
+                service.SaveUploadedFile(1, "thePackageId", "thePackageVersion", new MemoryStream());
+
+                fakeFileStorageService.Verify(x => x.SaveFile(It.IsAny<string>(), expectedFileName, It.IsAny<Stream>()));
+            }
+
+            [Fact]
+            public void WillSaveTheUploadFileStream()
+            {
+                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeUploadFileStream = new MemoryStream();
+                var service = CreateService(fakeFileStorageService: fakeFileStorageService);
+                var expectedFileName = string.Format(Const.PackageUploadFileNameTemplate, 1, Const.PackageFileExtension);
+
+                service.SaveUploadedFile(1, "thePackageId", "thePackageVersion", fakeUploadFileStream);
+
+                fakeFileStorageService.Verify(x => x.SaveFile(It.IsAny<string>(), It.IsAny<string>(), fakeUploadFileStream));
+            }
         }
 
         static PackageUploadFileService CreateService(Mock<IFileStorageService> fakeFileStorageService = null)

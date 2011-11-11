@@ -15,5 +15,7 @@ namespace NuGetGallery
         public const int DefaultPackageListPageSize = 20;
         public const string DefaultPackageListSortOrder = "package-download-count";
         public const int DefaultPasswordResetTokenExpirationHours = 24;
+        public const string PackageUploadsFolderName = "uploads";
+        public const string PackageUploadFileNameTemplate = "{0}{1}";
     }
 }
