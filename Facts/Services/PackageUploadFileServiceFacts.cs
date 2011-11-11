@@ -18,46 +18,10 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() =>
                 {
-                    service.SaveUploadedFile(0, "thePackageId", "thePackageVersion", new MemoryStream());
+                    service.SaveUploadedFile(0, new MemoryStream());
                 });
 
                 Assert.Equal("userKey", ex.ParamName);
-            }
-
-            [Theory]
-            [InlineData(new object[]{ (string)null })]
-            [InlineData(new object[] { "" })]
-            [InlineData(new object[] { " " })]
-            public void WillThrowIfThePackageIdIsNullOrEmptyOrWhitespace(string packageId)
-            {
-                var fakePackage = new Mock<IPackageMetadata>();
-                fakePackage.Setup(x => x.Id).Returns(packageId);
-                var service = CreateService();
-
-                var ex = Assert.Throws<ArgumentException>(() =>
-                {
-                    service.SaveUploadedFile(1, packageId, "thePackageVersion", new MemoryStream());
-                });
-
-                Assert.Equal("packageId", ex.ParamName);
-            }
-
-            [Theory]
-            [InlineData(new object[] { (string)null })]
-            [InlineData(new object[] { "" })]
-            [InlineData(new object[] { " " })]
-            public void WillThrowIfThePackageVersionIsNull(string packageVersion)
-            {
-                var fakePackage = new Mock<IPackageMetadata>();
-                fakePackage.Setup(x => x.Id).Returns("theId");
-                var service = CreateService();
-
-                var ex = Assert.Throws<ArgumentException>(() =>
-                {
-                    service.SaveUploadedFile(1, "thePackageId", packageVersion, new MemoryStream());
-                });
-
-                Assert.Equal("packageVersion", ex.ParamName);
             }
 
             [Fact]
@@ -67,7 +31,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentNullException>(() =>
                 {
-                    service.SaveUploadedFile(1, "thePackageId", "thePackageVersion", null);
+                    service.SaveUploadedFile(1, null);
                 });
 
                 Assert.Equal("packageFileStream", ex.ParamName);
@@ -79,7 +43,7 @@ namespace NuGetGallery
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
-                service.SaveUploadedFile(1, "thePackageId", "thePackageVersion", new MemoryStream());
+                service.SaveUploadedFile(1, new MemoryStream());
 
                 fakeFileStorageService.Verify(x => x.SaveFile(Const.PackageUploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>()));
             }
@@ -91,7 +55,7 @@ namespace NuGetGallery
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
                 var expectedFileName = string.Format(Const.PackageUploadFileNameTemplate, 1, Const.PackageFileExtension);
 
-                service.SaveUploadedFile(1, "thePackageId", "thePackageVersion", new MemoryStream());
+                service.SaveUploadedFile(1, new MemoryStream());
 
                 fakeFileStorageService.Verify(x => x.SaveFile(It.IsAny<string>(), expectedFileName, It.IsAny<Stream>()));
             }
@@ -104,7 +68,7 @@ namespace NuGetGallery
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
                 var expectedFileName = string.Format(Const.PackageUploadFileNameTemplate, 1, Const.PackageFileExtension);
 
-                service.SaveUploadedFile(1, "thePackageId", "thePackageVersion", fakeUploadFileStream);
+                service.SaveUploadedFile(1, fakeUploadFileStream);
 
                 fakeFileStorageService.Verify(x => x.SaveFile(It.IsAny<string>(), It.IsAny<string>(), fakeUploadFileStream));
             }
