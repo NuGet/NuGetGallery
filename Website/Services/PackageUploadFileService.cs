@@ -41,7 +41,9 @@ namespace NuGetGallery
             if (packageFileStream == null)
                 throw new ArgumentNullException("packageFileStream");
 
-            throw new Exception();
+            var packageUploadFileName = string.Format(Const.PackageUploadFileNameTemplate, userKey, Const.PackageFileExtension);
+
+            fileStorageService.SaveFile(Const.PackageUploadsFolderName, packageUploadFileName, packageFileStream);
         }
     }
 }
