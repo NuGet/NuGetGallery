@@ -31,6 +31,8 @@ namespace NuGetGallery
                 throw new ArgumentException("A package identifier is required.", "packageId");
             if (string.IsNullOrWhiteSpace(packageVersion))
                 throw new ArgumentException("A package version is required.", "packageVersion");
+            if (packageFileStream == null)
+                throw new ArgumentNullException("packageFileStream");
             
             throw new Exception();
         }

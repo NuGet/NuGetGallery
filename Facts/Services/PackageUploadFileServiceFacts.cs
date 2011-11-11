@@ -59,6 +59,19 @@ namespace NuGetGallery
 
                 Assert.Equal("packageVersion", ex.ParamName);
             }
+
+            [Fact]
+            public void WillThrowIfThePackageFileStreamIsNull()
+            {
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentNullException>(() =>
+                {
+                    service.SaveUploadedFile(1, "thePackageId", "thePackageVersion", null);
+                });
+
+                Assert.Equal("packageFileStream", ex.ParamName);
+            }
         }
 
         static PackageUploadFileService CreateService()
