@@ -74,9 +74,12 @@ namespace NuGetGallery
             }
         }
 
-        static PackageUploadFileService CreateService()
+        static PackageUploadFileService CreateService(Mock<IFileStorageService> fakeFileStorageService = null)
         {
-            return new PackageUploadFileService();
+            if (fakeFileStorageService == null)
+                fakeFileStorageService = new Mock<IFileStorageService>();
+            
+            return new PackageUploadFileService(fakeFileStorageService.Object);
         }
     }
 }
