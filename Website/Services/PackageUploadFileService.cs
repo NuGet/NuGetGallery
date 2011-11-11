@@ -18,10 +18,18 @@ namespace NuGetGallery
             throw new Exception();
         }
 
-        public void SaveUploadedFile(User user, IPackageMetadata package)
+        public void SaveUploadedFile(
+            User user, 
+            IPackageMetadata package)
         {
             if (user == null)
                 throw new ArgumentNullException("user");
+            if (package == null)
+                throw new ArgumentNullException("package");
+            if (string.IsNullOrWhiteSpace(package.Id))
+                throw new ArgumentException("A package identifier is required.", "package");
+            if (package.Version == null)
+                throw new ArgumentException("A package version is required.", "package");
             
             throw new Exception();
         }

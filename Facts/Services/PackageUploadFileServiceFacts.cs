@@ -5,6 +5,7 @@ using System.Text;
 using Xunit;
 using Moq;
 using NuGet;
+using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -24,6 +25,52 @@ namespace NuGetGallery
                 });
 
                 Assert.Equal("user", ex.ParamName);
+            }
+
+            [Fact]
+            public void WillThrowIfThePackageIsNull()
+            {
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentNullException>(() =>
+                {
+                    service.SaveUploadedFile(new User(), null);
+                });
+
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Theory]
+            [InlineData(new object[]{ (string)null })]
+            [InlineData(new object[] { "" })]
+            [InlineData(new object[] { " " })]
+            public void WillThrowIfThePackageIdIsNullOrEmptyOrWhitespace(string id)
+            {
+                var fakePackage = new Mock<IPackageMetadata>();
+                fakePackage.Setup(x => x.Id).Returns(id);
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentException>(() =>
+                {
+                    service.SaveUploadedFile(new User(), fakePackage.Object);
+                });
+
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public void WillThrowIfThePackageVersionIsNull()
+            {
+                var fakePackage = new Mock<IPackageMetadata>();
+                fakePackage.Setup(x => x.Id).Returns("theId");
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentException>(() =>
+                {
+                    service.SaveUploadedFile(new User(), fakePackage.Object);
+                });
+
+                Assert.Equal("package", ex.ParamName);
             }
         }
 
