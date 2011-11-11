@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Moq;
 using NuGet;
 using Xunit;
@@ -11,52 +12,41 @@ namespace NuGetGallery
         public class TheSaveUploadedFileMethod
         {
             [Fact]
-            public void WillThrowIfTheUserIsNull()
-            {
-                var fakePackage = new Mock<IPackageMetadata>();
-                var service = CreateService();
-
-                var ex = Assert.Throws<ArgumentNullException>(() =>
-                {
-                    service.SaveUploadedFile(null, fakePackage.Object);
-                });
-
-                Assert.Equal("user", ex.ParamName);
-            }
-
-            [Fact]
-            public void WillThrowIfThePackageIsNull()
+            public void WillThrowIfTheUserKeyIsMissing()
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() =>
+                var ex = Assert.Throws<ArgumentException>(() =>
                 {
-                    service.SaveUploadedFile(new User(), null);
+                    service.SaveUploadedFile(0, "thePackageId", "thePackageVersion", new MemoryStream());
                 });
 
-                Assert.Equal("package", ex.ParamName);
+                Assert.Equal("userKey", ex.ParamName);
             }
 
             [Theory]
             [InlineData(new object[]{ (string)null })]
             [InlineData(new object[] { "" })]
             [InlineData(new object[] { " " })]
-            public void WillThrowIfThePackageIdIsNullOrEmptyOrWhitespace(string id)
+            public void WillThrowIfThePackageIdIsNullOrEmptyOrWhitespace(string packageId)
             {
                 var fakePackage = new Mock<IPackageMetadata>();
-                fakePackage.Setup(x => x.Id).Returns(id);
+                fakePackage.Setup(x => x.Id).Returns(packageId);
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentException>(() =>
                 {
-                    service.SaveUploadedFile(new User(), fakePackage.Object);
+                    service.SaveUploadedFile(1, packageId, "thePackageVersion", new MemoryStream());
                 });
 
-                Assert.Equal("package", ex.ParamName);
+                Assert.Equal("packageId", ex.ParamName);
             }
 
-            [Fact]
-            public void WillThrowIfThePackageVersionIsNull()
+            [Theory]
+            [InlineData(new object[] { (string)null })]
+            [InlineData(new object[] { "" })]
+            [InlineData(new object[] { " " })]
+            public void WillThrowIfThePackageVersionIsNull(string packageVersion)
             {
                 var fakePackage = new Mock<IPackageMetadata>();
                 fakePackage.Setup(x => x.Id).Returns("theId");
@@ -64,10 +54,10 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() =>
                 {
-                    service.SaveUploadedFile(new User(), fakePackage.Object);
+                    service.SaveUploadedFile(1, "thePackageId", packageVersion, new MemoryStream());
                 });
 
-                Assert.Equal("package", ex.ParamName);
+                Assert.Equal("packageVersion", ex.ParamName);
             }
         }
 
