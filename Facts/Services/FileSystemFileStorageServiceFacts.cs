@@ -148,6 +148,103 @@ namespace NuGetGallery
             }
         }
 
+        public class TheGetFileMethod
+        {
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void WillThrowIfFolderNameIsNull(string folderName)
+            {
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentNullException>(() => service.GetFile(
+                    folderName,
+                    "theFileName"));
+
+                Assert.Equal("folderName", ex.ParamName);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void WillThrowIfFileNameIsNull(string fileName)
+            {
+                var service = CreateService();
+
+                var ex = Assert.Throws<ArgumentNullException>(() => service.GetFile(
+                    Const.PackagesFolderName,
+                    fileName));
+
+                Assert.Equal("fileName", ex.ParamName);
+            }
+
+            [Fact]
+            public void WillCheckWhetherTheFileExists()
+            {
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+                var service = CreateService(fileSystemSvc: fakeFileSystemService);
+                var expectedPath = Path.Combine(
+                    fakeConfiguredFileStorageDirectory,
+                    "theFolderName",
+                    "theFileName");
+
+                service.GetFile("theFolderName", "theFileName");
+
+                fakeFileSystemService.Verify(x => x.FileExists(expectedPath));
+            }
+
+            [Fact]
+            public void WillReadTheRequestedFileWhenItExists()
+            {
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+                var service = CreateService(fileSystemSvc: fakeFileSystemService);
+                var expectedPath = Path.Combine(
+                    fakeConfiguredFileStorageDirectory,
+                    "theFolderName",
+                    "theFileName");
+
+                service.GetFile("theFolderName", "theFileName");
+
+                fakeFileSystemService.Verify(x => x.OpenRead(expectedPath));
+            }
+
+            [Fact]
+            public void WillReturnTheRequestFileStreamWhenItExists()
+            {
+                var expectedPath = Path.Combine(
+                    fakeConfiguredFileStorageDirectory,
+                    "theFolderName",
+                    "theFileName");
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+                var fakeFileStream = new MemoryStream();
+                fakeFileSystemService.Setup(x => x.OpenRead(expectedPath)).Returns(fakeFileStream);
+                var service = CreateService(fileSystemSvc: fakeFileSystemService);
+
+                var fileStream = service.GetFile("theFolderName", "theFileName");
+
+                Assert.Same(fakeFileStream, fileStream);
+            }
+
+            [Fact]
+            public void WillReturnNullWhenRequestedFileDoesNotExist()
+            {
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
+                var service = CreateService(fileSystemSvc: fakeFileSystemService);
+                var expectedPath = Path.Combine(
+                    fakeConfiguredFileStorageDirectory,
+                    "theFolderName",
+                    "theFileName");
+
+                var fileStream = service.GetFile("theFolderName", "theFileName");
+
+                Assert.Null(fileStream);
+            }
+        }
+
         public class TheSaveFileMethod
         {
             [Theory]

@@ -133,6 +133,82 @@ namespace NuGetGallery
             }
         }
 
+        public class TheGetFileMethod
+        {
+            //WillThrowIfFileNameIsNull
+            //WillThrowIfFolderNameIsNull
+            [Theory]
+            [FolderNamesData]
+            public void WillDownloadTheFile(string folderName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ICloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                    .Returns<string>(container =>
+                    {
+                        if (container == folderName)
+                            return fakeBlobContainer.Object;
+                        else
+                            return new Mock<ICloudBlobContainer>().Object;
+                    });
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                service.GetFile(folderName, "theFileName");
+
+                fakeBlob.Verify(x => x.DownloadToStream(It.IsAny<Stream>()));
+            }
+
+            [Theory]
+            [FolderNamesData]
+            public void WillReturnTheStreamWhenTheFileExists(string folderName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ICloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                    .Returns<string>(container =>
+                    {
+                        if (container == folderName)
+                            return fakeBlobContainer.Object;
+                        else
+                            return new Mock<ICloudBlobContainer>().Object;
+                    });
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Callback<Stream>(x => { x.WriteByte(42); });
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                var stream = service.GetFile(folderName, "theFileName");
+
+                Assert.Equal(42, ((MemoryStream)stream).ToArray()[0]);
+            }
+
+            [Theory]
+            [FolderNamesData]
+            public void WillReturnNullIfFileDoesNotExist(string folderName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ICloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                    .Returns<string>(container =>
+                    {
+                        if (container == folderName)
+                            return fakeBlobContainer.Object;
+                        else
+                            return new Mock<ICloudBlobContainer>().Object;
+                    });
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Throws(new TestableStorageClientException { ErrorCode = StorageErrorCode.ResourceNotFound });
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                var stream = service.GetFile(folderName, "theFileName");
+
+                Assert.Null(stream);
+            }
+        }
+
         public class TheSavePackageFileMethod
         {
             [Theory]
@@ -206,7 +282,8 @@ namespace NuGetGallery
             {
                 var folderNames = new List<object[]> 
                 {
-                    new object[] { Const.PackagesFolderName, true }
+                    new object[] { Const.PackagesFolderName, true },
+                    new object[] { Const.UploadsFolderName, false }
                 };
 
                 if (!IncludePermissions)

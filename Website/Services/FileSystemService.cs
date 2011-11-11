@@ -24,6 +24,11 @@ namespace NuGetGallery
             return File.Exists(path);
         }
 
+        public Stream OpenRead(string path)
+        {
+            return File.OpenRead(path);
+        }
+
         public Stream OpenWrite(string path)
         {
             return File.OpenWrite(path);
