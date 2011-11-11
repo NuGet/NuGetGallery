@@ -26,7 +26,7 @@
         <ul class="links">
             @if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
                 <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
-                    Project site</a></li>
+                    Project Site</a></li>
             }
             @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
@@ -86,7 +86,7 @@
                     { <text> -Version @Model.Version</text> }
                 }
                 @if (Model.Prerelease)
-                {<text> -pre </text>}</code></p>
+                {<text> -Pre </text>}</code></p>
     </div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
