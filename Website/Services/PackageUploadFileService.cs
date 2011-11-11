@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using NuGet;
+using System.IO;
 
 namespace NuGetGallery
 {
@@ -19,17 +20,17 @@ namespace NuGetGallery
         }
 
         public void SaveUploadedFile(
-            User user, 
-            IPackageMetadata package)
+            int userKey,
+            string packageId,
+            string packageVersion,
+            Stream packageFileStream)
         {
-            if (user == null)
-                throw new ArgumentNullException("user");
-            if (package == null)
-                throw new ArgumentNullException("package");
-            if (string.IsNullOrWhiteSpace(package.Id))
-                throw new ArgumentException("A package identifier is required.", "package");
-            if (package.Version == null)
-                throw new ArgumentException("A package version is required.", "package");
+            if (userKey < 1)
+                throw new ArgumentException("A user key is required.", "userKey");
+            if (string.IsNullOrWhiteSpace(packageId))
+                throw new ArgumentException("A package identifier is required.", "packageId");
+            if (string.IsNullOrWhiteSpace(packageVersion))
+                throw new ArgumentException("A package version is required.", "packageVersion");
             
             throw new Exception();
         }
