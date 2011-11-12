@@ -5,6 +5,7 @@ using System.Net.Mail;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+using System.Security.Principal;
 
 namespace NuGetGallery
 {
@@ -17,6 +18,7 @@ namespace NuGetGallery
         readonly ICryptographyService cryptoSvc;
         readonly IPackageService packageSvc;
         readonly IPackageFileService packageFileSvc;
+        readonly IUploadFileService uploadFileSvc;
         readonly IUserService userSvc;
         readonly IMessageService messageService;
 
@@ -24,12 +26,14 @@ namespace NuGetGallery
             ICryptographyService cryptoSvc,
             IPackageService packageSvc,
             IPackageFileService packageFileRepo,
+            IUploadFileService uploadFileSvc,
             IUserService userSvc,
             IMessageService messageService)
         {
             this.cryptoSvc = cryptoSvc;
             this.packageSvc = packageSvc;
             this.packageFileSvc = packageFileRepo;
+            this.uploadFileSvc = uploadFileSvc;
             this.userSvc = userSvc;
             this.messageService = messageService;
         }
@@ -37,53 +41,53 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult UploadPackage()
         {
+            var currentUser = userSvc.FindByUsername(GetIdentity().Name);
+            
+            var existingUploadFile = uploadFileSvc.GetUploadFile(currentUser.Key);
+            if (existingUploadFile != null)
+                return RedirectToRoute(RouteName.VerifyPackage);
+            
             return View();
         }
 
         [Authorize, HttpPost, ValidateAntiForgeryToken]
         public virtual ActionResult UploadPackage(HttpPostedFileBase packageFile)
         {
-            // TODO: validate package id and version don't already exist
-
             if (packageFile == null)
             {
-                ModelState.AddModelError(string.Empty, "A package file is required.");
+                ModelState.AddModelError(string.Empty, Strings.PackageFileIsRequired);
                 return View();
             }
 
-            // TODO: what other security checks do we need to perform for uploaded packages?
             var extension = Path.GetExtension(packageFile.FileName).ToLowerInvariant();
             if (extension != Const.PackageFileExtension)
             {
-                ModelState.AddModelError(string.Empty, "The package file must be a .nupkg file.");
+                ModelState.AddModelError(string.Empty, Strings.PackageFileMustBeNuGetPackage);
                 return View();
             }
 
-            var currentUser = userSvc.FindByUsername(User.Identity.Name);
-            if (currentUser == null)
-            {
-                throw new InvalidOperationException("Current user is null. This should never happen!");
-            }
+            var currentUser = userSvc.FindByUsername(GetIdentity().Name);
 
-            ZipPackage uploadedPackage;
             using (var uploadStream = packageFile.InputStream)
             {
-                uploadedPackage = new ZipPackage(packageFile.InputStream);
+                try
+                {
+                    ReadPackage(uploadStream);
+                }
+                catch
+                {
+                    ModelState.AddModelError(string.Empty, Strings.FailedToReadPackageFile);
+                    return View();
+                }
+                uploadFileSvc.SaveUploadFile(currentUser.Key, uploadStream);
             }
 
-            Package packageVersion;
-            try
-            {
-                packageVersion = packageSvc.CreatePackage(uploadedPackage, currentUser);
-            }
-            catch (EntityException ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return View();
-            }
+            return RedirectToRoute(RouteName.VerifyPackage);
+        }
 
-            string packagePublishUrl = Url.Publish(packageVersion);
-            return Redirect(packagePublishUrl);
+        public virtual IPackage ReadPackage(Stream stream)
+        {
+            return new ZipPackage(stream);
         }
 
         [ActionName("PublishPackage"), Authorize]
@@ -467,6 +471,18 @@ namespace NuGetGallery
         private ActionResult PackageNotFound(string id, string version)
         {
             return HttpNotFound();
+        }
+
+        [Authorize]
+        public virtual ActionResult VerifyPackage()
+        {
+            return View();
+        }
+
+        // this method exists to make unit testing easier; action injection would make this even easier!
+        public virtual IIdentity GetIdentity()
+        {
+            return User.Identity;
         }
     }
 }

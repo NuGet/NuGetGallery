@@ -138,6 +138,9 @@ namespace NuGetGallery
             Bind<IEntityRepository<PackageOwnerRequest>>()
                 .To<EntityRepository<PackageOwnerRequest>>()
                 .InRequestScope();
+
+            Bind<IUploadFileService>()
+                .To<UploadFileService>();
         }
     }
 }

@@ -104,5 +104,10 @@ namespace NuGetGallery
         {
             return url.Action(actionResult.AddRouteValue("username", username).AddRouteValue("token", token), protocol: protocol);
         }
+
+        public static string VerifyPackage(this UrlHelper url)
+        {
+            return url.Action(MVC.Packages.VerifyPackage());
+        }
     }
 }

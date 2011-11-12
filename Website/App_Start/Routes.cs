@@ -26,10 +26,15 @@ namespace NuGetGallery
                 "packages",
                 MVC.Packages.ListPackages());
 
-            routes.MapRoute(
+            var uploadPackageRoute = routes.MapRoute(
                 RouteName.UploadPackage,
-                "upload/package",
+                "packages/upload",
                 MVC.Packages.UploadPackage());
+
+            routes.MapRoute(
+                RouteName.VerifyPackage,
+                "packages/verify-upload",
+                MVC.Packages.VerifyPackage());
 
             routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
@@ -154,6 +159,13 @@ namespace NuGetGallery
                     "List/Packages/{id}/{version}",
                     MVC.Packages.DisplayPackage().AddRouteValue("version", UrlParameter.Optional)),
                 permanent: true).To(packageDisplayRoute);
+
+            routes.Redirect(
+                r => r.MapRoute(
+                    RouteName.NewSubmission,
+                    "Contribute/NewSubmission",
+                    MVC.Packages.UploadPackage()),
+                permanent: true).To(uploadPackageRoute);
         }
     }
 }

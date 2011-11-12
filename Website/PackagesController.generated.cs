@@ -112,6 +112,7 @@ namespace NuGetGallery {
             public readonly string Delete = "Delete";
             public readonly string Edit = "Edit";
             public readonly string ConfirmOwner = "ConfirmOwner";
+            public readonly string VerifyPackage = "VerifyPackage";
         }
 
 
@@ -132,6 +133,7 @@ namespace NuGetGallery {
             public readonly string PublishPackage = "~/Views/Packages/PublishPackage.cshtml";
             public readonly string ReportAbuse = "~/Views/Packages/ReportAbuse.cshtml";
             public readonly string UploadPackage = "~/Views/Packages/UploadPackage.cshtml";
+            public readonly string VerifyPackage = "~/Views/Packages/VerifyPackage.cshtml";
         }
     }
 
@@ -262,6 +264,11 @@ namespace NuGetGallery {
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("username", username);
             callInfo.RouteValueDictionary.Add("token", token);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult VerifyPackage() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.VerifyPackage);
             return callInfo;
         }
 
