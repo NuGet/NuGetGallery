@@ -150,4 +150,13 @@
   <data name="SSLRequired" xml:space="preserve">
     <value>The requested resource can only be accessed via SSL.</value>
   </data>
+  <data name="FailedToReadPackageFile" xml:space="preserve">
+    <value>Failed to read the package file.</value>
+  </data>
+  <data name="PackageFileIsRequired" xml:space="preserve">
+    <value>A package file is required.</value>
+  </data>
+  <data name="PackageFileMustBeNuGetPackage" xml:space="preserve">
+    <value>The package file must be a .nupkg file.</value>
+  </data>
 </root>

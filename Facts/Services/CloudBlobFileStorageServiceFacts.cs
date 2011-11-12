@@ -135,8 +135,44 @@ namespace NuGetGallery
 
         public class TheGetFileMethod
         {
-            //WillThrowIfFileNameIsNull
-            //WillThrowIfFolderNameIsNull
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData(" ")]
+            public void WillThrowIfFileNameIsNull(string fileName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                var ex = Assert.Throws<ArgumentNullException>(() =>
+                {
+                    service.GetFile("theFolderName", fileName);
+                });
+
+                Assert.Equal("fileName", ex.ParamName);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData(" ")]
+            public void WillThrowIfFolderNameIsNull(string folderName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                var ex = Assert.Throws<ArgumentNullException>(() =>
+                {
+                    service.GetFile(folderName, "theFileName");
+                });
+
+                Assert.Equal("folderName", ex.ParamName);
+            }
+            
             [Theory]
             [FolderNamesData]
             public void WillDownloadTheFile(string folderName)

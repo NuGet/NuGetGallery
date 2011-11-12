@@ -88,6 +88,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to read the package file..
+        /// </summary>
+        public static string FailedToReadPackageFile {
+            get {
+                return ResourceManager.GetString("FailedToReadPackageFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
         public static string NuGetPackagePropertyTooLong {
@@ -102,6 +111,24 @@ namespace NuGetGallery {
         public static string PackageExistsAndCannotBeModified {
             get {
                 return ResourceManager.GetString("PackageExistsAndCannotBeModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A package file is required..
+        /// </summary>
+        public static string PackageFileIsRequired {
+            get {
+                return ResourceManager.GetString("PackageFileIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package file must be a .nupkg file..
+        /// </summary>
+        public static string PackageFileMustBeNuGetPackage {
+            get {
+                return ResourceManager.GetString("PackageFileMustBeNuGetPackage", resourceCulture);
             }
         }
         
