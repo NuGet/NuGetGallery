@@ -60,11 +60,9 @@ namespace NuGetGallery
             }
             catch (TestableStorageClientException ex)
             {
+                stream.Dispose();
                 if (ex.ErrorCode == StorageErrorCode.ResourceNotFound)
-                {
-                    stream.Dispose();
                     return null;
-                }
                 else
                     throw;
             }

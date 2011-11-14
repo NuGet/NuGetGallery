@@ -691,6 +691,7 @@ namespace NuGetGallery
                 fakeUploadFileStream.Dispose();
             }
 
+            [Fact]
             public void WillPassThePackageLicenseUrlToTheView()
             {
                 var fakeUserSvc = new Mock<IUserService>();
@@ -714,7 +715,8 @@ namespace NuGetGallery
                 fakeUploadFileStream.Dispose();
             }
 
-            public void WillPassThePackageTagsoTheView()
+            [Fact]
+            public void WillPassThePackageTagsToTheView()
             {
                 var fakeUserSvc = new Mock<IUserService>();
                 fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
@@ -737,6 +739,7 @@ namespace NuGetGallery
                 fakeUploadFileStream.Dispose();
             }
 
+            [Fact]
             public void WillPassThePackageProjectUrlToTheView()
             {
                 var fakeUserSvc = new Mock<IUserService>();
@@ -760,6 +763,7 @@ namespace NuGetGallery
                 fakeUploadFileStream.Dispose();
             }
 
+            [Fact]
             public void WillPassThePackagAuthorsToTheView()
             {
                 var fakeUserSvc = new Mock<IUserService>();
@@ -783,6 +787,7 @@ namespace NuGetGallery
                 fakeUploadFileStream.Dispose();
             }
 
+            [Fact]
             public void WillPassThePackageListedBitToTheView()
             {
                 var fakeUserSvc = new Mock<IUserService>();
@@ -992,6 +997,7 @@ namespace NuGetGallery
                 fakeFileStream.Dispose();
             }
 
+            [Fact]
             public void WillRedirectToPackagePage()
             {
                 var fakeCurrentUser = new User { Key = 42 };
