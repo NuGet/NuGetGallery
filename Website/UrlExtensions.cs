@@ -15,15 +15,15 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.Home);
         }
 
-        public static string Publish(this UrlHelper url, Package package)
-        {
-            return url.Action(MVC.Packages.PublishPackage(package.PackageRegistration.Id, package.Version, package.Listed));
-        }
+        //public static string Publish(this UrlHelper url, Package package)
+        //{
+        //    return url.Action(MVC.Packages.PublishPackage(package.PackageRegistration.Id, package.Version, package.Listed));
+        //}
 
-        public static string Publish(this UrlHelper url, IPackageVersionModel package)
-        {
-            return url.Action(MVC.Packages.PublishPackage(package.Id, package.Version, null));
-        }
+        //public static string Publish(this UrlHelper url, IPackageVersionModel package)
+        //{
+        //    return url.Action(MVC.Packages.PublishPackage(package.Id, package.Version, null));
+        //}
 
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm)
         {

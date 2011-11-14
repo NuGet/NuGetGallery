@@ -14,7 +14,7 @@ namespace NuGetGallery
 
         static string BuildFileName(int userKey)
         {
-            return string.Format(Const.UploadFileNameTemplate, userKey, Const.PackageFileExtension);
+            return string.Format(Const.UploadFileNameTemplate, userKey, Const.NuGetPackageFileExtension);
         }
 
         public void DeleteUploadFile(int userKey)

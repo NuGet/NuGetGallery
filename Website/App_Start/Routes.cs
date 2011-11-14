@@ -131,13 +131,6 @@ namespace NuGetGallery
                     new { action = "ContactOwners|ManagePackageOwners" }),
                 permanent: true).To(packageActionRoute);
 
-            routes.Redirect(
-                r => r.MapRoute(
-                    "PublishPackage",
-                    "Package/New/{id}/{version}",
-                    MVC.Packages.PublishPackage()),
-                permanent: true).To(packageVersionActionRoute);
-
             // TODO: this route looks broken as there is no EditPackage action
             //routes.Redirect(
             //    r => r.MapRoute(

@@ -90,9 +90,9 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to Failed to read the package file..
         /// </summary>
-        public static string FailedToReadPackageFile {
+        public static string FailedToReadUploadFile {
             get {
-                return ResourceManager.GetString("FailedToReadPackageFile", resourceCulture);
+                return ResourceManager.GetString("FailedToReadUploadFile", resourceCulture);
             }
         }
         
@@ -111,24 +111,6 @@ namespace NuGetGallery {
         public static string PackageExistsAndCannotBeModified {
             get {
                 return ResourceManager.GetString("PackageExistsAndCannotBeModified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A package file is required..
-        /// </summary>
-        public static string PackageFileIsRequired {
-            get {
-                return ResourceManager.GetString("PackageFileIsRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The package file must be a .nupkg file..
-        /// </summary>
-        public static string PackageFileMustBeNuGetPackage {
-            get {
-                return ResourceManager.GetString("PackageFileMustBeNuGetPackage", resourceCulture);
             }
         }
         
@@ -156,6 +138,33 @@ namespace NuGetGallery {
         public static string SSLRequired {
             get {
                 return ResourceManager.GetString("SSLRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You successfully uploaded {0} {1}..
+        /// </summary>
+        public static string SuccessfullyUploadedPackage {
+            get {
+                return ResourceManager.GetString("SuccessfullyUploadedPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A package file is required..
+        /// </summary>
+        public static string UploadFileIsRequired {
+            get {
+                return ResourceManager.GetString("UploadFileIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file must be a .nupkg file..
+        /// </summary>
+        public static string UploadFileMustBeNuGetPackage {
+            get {
+                return ResourceManager.GetString("UploadFileMustBeNuGetPackage", resourceCulture);
             }
         }
         

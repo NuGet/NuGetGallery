@@ -35,9 +35,17 @@ namespace NuGetGallery
             return String.Empty;
         }
 
+        public static string Flatten(this IEnumerable<string> list)
+        {
+            if (list == null)
+                return string.Empty;
+
+            return string.Join(", ", list.ToArray());
+        }
+        
         public static string Flatten(this ICollection<PackageAuthor> authors)
         {
-            return string.Join(",", authors.Select(a => a.Name).ToArray());
+            return authors.Select(a => a.Name).Flatten();
         }
 
         public static string Flatten(this ICollection<PackageDependency> dependencies)
@@ -76,6 +84,15 @@ namespace NuGetGallery
                 return false;
             }
             return items.Any();
+        }
+
+        public static bool AnySafe<T>(this IEnumerable<T> items, Func<T, bool> predicate)
+        {
+            if (items == null)
+            {
+                return false;
+            }
+            return items.Any(predicate);
         }
 
         public static bool IsOwner(this Package package, IPrincipal user)

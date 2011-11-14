@@ -9,7 +9,7 @@ namespace NuGetGallery
         public const int DefaultPasswordResetTokenExpirationHours = 24;
         public const int MaxEmailSubjectLength = 255;
         public const string PackageContentType = "application/zip";
-        public const string PackageFileExtension = ".nupkg";
+        public const string NuGetPackageFileExtension = ".nupkg";
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
         public const string PackagesFolderName = "packages";

@@ -93,7 +93,7 @@ namespace NuGetGallery
                 Assert.Equal("theCopyright", package.Copyright);
                 Assert.False(package.IsPrerelease);
 
-                Assert.Equal("theFirstAuthor,theSecondAuthor", package.FlattenedAuthors);
+                Assert.Equal("theFirstAuthor, theSecondAuthor", package.FlattenedAuthors);
                 Assert.Equal("theFirstDependency:[1.0, 2.0)|theSecondDependency:[1.0]|theThirdDependency:", package.FlattenedDependencies);
             }
 
@@ -136,7 +136,7 @@ namespace NuGetGallery
                 Assert.Equal("theTitle", package.Title);
                 Assert.True(package.IsPrerelease);
 
-                Assert.Equal("theFirstAuthor,theSecondAuthor", package.FlattenedAuthors);
+                Assert.Equal("theFirstAuthor, theSecondAuthor", package.FlattenedAuthors);
                 Assert.Equal("theFirstDependency:[1.0, 2.0)|theSecondDependency:[1.0]|theThirdDependency:", package.FlattenedDependencies);
                 packageRegistrationRepo.Verify();
             }

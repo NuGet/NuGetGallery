@@ -555,7 +555,7 @@
     <Compile Include="ViewModels\PasswordResetRequestViewModel.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
-    <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
+    <Compile Include="ViewModels\VerifyPackageViewModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
     <Compile Include="Views\Authentication\LogOn.generated.cs">
       <AutoGen>True</AutoGen>
@@ -602,10 +602,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ManagePackageOwners.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Packages\PublishPackage.generated.cs">
+    <Compile Include="Views\Packages\VerifyPackage.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>PublishPackage.cshtml</DependentUpon>
+      <DependentUpon>VerifyPackage.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Packages\ReportAbuse.generated.cs">
       <AutoGen>True</AutoGen>
@@ -859,9 +859,9 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ListPackages.generated.cs</LastGenOutput>
     </Content>
-    <Content Include="Views\Packages\PublishPackage.cshtml">
+    <Content Include="Views\Packages\VerifyPackage.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>PublishPackage.generated.cs</LastGenOutput>
+      <LastGenOutput>VerifyPackage.cs</LastGenOutput>
     </Content>
     <Content Include="Views\Packages\ReportAbuse.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -946,7 +946,6 @@
       <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Views\Packages\VerifyPackage.cshtml" />
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
