@@ -344,10 +344,10 @@ namespace Links {
             public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
             public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
             public static readonly string changePassword_png = Url("changePassword.png");
-            public static readonly string contribGraphic_png = Url("contribGraphic.png");
             public static readonly string download_png = Url("download.png");
             public static readonly string editIcon_png = Url("editIcon.png");
             public static readonly string editProfile_png = Url("editProfile.png");
+            public static readonly string errorPage_png = Url("errorPage.png");
             public static readonly string greenArrow_png = Url("greenArrow.png");
             public static readonly string headerbackground_png = Url("headerbackground.png");
             public static readonly string hero_png = Url("hero.png");

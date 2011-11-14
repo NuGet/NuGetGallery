@@ -21,7 +21,7 @@ namespace NuGetGallery
             string id, 
             string version)
         {
-            return string.Format(Const.PackageFileSavePathTemplate, id, version, Const.PackageFileExtension);
+            return string.Format(Const.PackageFileSavePathTemplate, id, version, Const.NuGetPackageFileExtension);
         }
 
         public ActionResult CreateDownloadPackageActionResult(Package package)

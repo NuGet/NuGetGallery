@@ -40,7 +40,7 @@ namespace NuGetGallery
             {
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.PackageFileExtension);
+                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.NuGetPackageFileExtension);
 
                 service.DeleteUploadFile(1);
 
@@ -79,7 +79,7 @@ namespace NuGetGallery
             {
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.PackageFileExtension);
+                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.NuGetPackageFileExtension);
 
                 service.GetUploadFile(1);
 
@@ -89,7 +89,7 @@ namespace NuGetGallery
             [Fact]
             public void WillReturnTheUploadFileStream()
             {
-                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.PackageFileExtension);
+                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.NuGetPackageFileExtension);
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var fakeFileStream = new MemoryStream();
                 fakeFileStorageService.Setup(x => x.GetFile(Const.UploadsFolderName, expectedFileName)).Returns(fakeFileStream);
@@ -145,7 +145,7 @@ namespace NuGetGallery
             {
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.PackageFileExtension);
+                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.NuGetPackageFileExtension);
 
                 service.SaveUploadFile(1, new MemoryStream());
 
@@ -158,7 +158,7 @@ namespace NuGetGallery
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var fakeUploadFileStream = new MemoryStream();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.PackageFileExtension);
+                var expectedFileName = string.Format(Const.UploadFileNameTemplate, 1, Const.NuGetPackageFileExtension);
 
                 service.SaveUploadFile(1, fakeUploadFileStream);
 

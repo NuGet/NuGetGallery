@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet;
 using System.Security.Principal;
+using System.Transactions;
 
 namespace NuGetGallery
 {
@@ -51,105 +52,61 @@ namespace NuGetGallery
         }
 
         [Authorize, HttpPost, ValidateAntiForgeryToken]
-        public virtual ActionResult UploadPackage(HttpPostedFileBase packageFile)
+        public virtual ActionResult UploadPackage(HttpPostedFileBase uploadFile)
         {
-            if (packageFile == null)
-            {
-                ModelState.AddModelError(string.Empty, Strings.PackageFileIsRequired);
-                return View();
-            }
-
-            var extension = Path.GetExtension(packageFile.FileName).ToLowerInvariant();
-            if (extension != Const.PackageFileExtension)
-            {
-                ModelState.AddModelError(string.Empty, Strings.PackageFileMustBeNuGetPackage);
-                return View();
-            }
-
             var currentUser = userSvc.FindByUsername(GetIdentity().Name);
 
-            using (var uploadStream = packageFile.InputStream)
+            var existingUploadFile = uploadFileSvc.GetUploadFile(currentUser.Key);
+            if (existingUploadFile != null)
+                return new HttpStatusCodeResult(409, "Cannot upload file because an upload is already in progress.");
+
+            if (uploadFile == null)
             {
-                try
+                ModelState.AddModelError(string.Empty, Strings.UploadFileIsRequired);
+                return View();
+            }
+
+            var uploadFileExtension = Path.GetExtension(uploadFile.FileName).ToLowerInvariant();
+            if (uploadFileExtension != Const.NuGetPackageFileExtension)
+            {
+                ModelState.AddModelError(string.Empty, Strings.UploadFileMustBeNuGetPackage);
+                return View();
+            }
+
+            IPackage nuGetPackage;
+            try
+            {
+                using (var uploadStream = uploadFile.InputStream)
                 {
-                    ReadPackage(uploadStream);
+                    nuGetPackage = ReadNuGetPackage(uploadStream);
                 }
-                catch
-                {
-                    ModelState.AddModelError(string.Empty, Strings.FailedToReadPackageFile);
-                    return View();
-                }
-                uploadFileSvc.SaveUploadFile(currentUser.Key, uploadStream);
+            }
+            catch
+            {
+                ModelState.AddModelError(string.Empty, Strings.FailedToReadUploadFile);
+                return View();
+            }
+
+            var packageRegistration = packageSvc.FindPackageRegistrationById(nuGetPackage.Id);
+            if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
+            {
+                ModelState.AddModelError(string.Empty, string.Format(Strings.PackageIdNotAvailable, packageRegistration.Id));
+                return View();
+            }
+
+            var package = packageSvc.FindPackageByIdAndVersion(nuGetPackage.Id, nuGetPackage.Version.ToStringSafe());
+            if (package != null)
+            {
+                ModelState.AddModelError(string.Empty, string.Format(Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
+                return View();
+            }
+
+            using (var fileStream = nuGetPackage.GetStream())
+            {
+                uploadFileSvc.SaveUploadFile(currentUser.Key, fileStream);
             }
 
             return RedirectToRoute(RouteName.VerifyPackage);
-        }
-
-        public virtual IPackage ReadPackage(Stream stream)
-        {
-            return new ZipPackage(stream);
-        }
-
-        [ActionName("PublishPackage"), Authorize]
-        public virtual ActionResult ShowPublishPackageForm(string id, string version)
-        {
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
-
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
-
-            return View(new SubmitPackageViewModel
-            {
-                Id = package.PackageRegistration.Id,
-                Version = package.Version,
-                Title = package.Title,
-                Summary = package.Summary,
-                Description = package.Description,
-                RequiresLicenseAcceptance = package.RequiresLicenseAcceptance,
-                LicenseUrl = package.LicenseUrl,
-                Tags = package.Tags,
-                ProjectUrl = package.ProjectUrl,
-                Authors = package.FlattenedAuthors,
-                Listed = package.Listed
-            });
-        }
-
-        [Authorize, HttpPost, ValidateAntiForgeryToken]
-        public virtual ActionResult PublishPackage(string id, string version, bool? listed)
-        {
-            return PublishPackage(id, version, listed, Url.Package);
-        }
-
-        internal ActionResult PublishPackage(string id, string version, bool? listed, Func<Package, string> urlFactory)
-        {
-            // TODO: handle requesting to verify a package that is already verified; return 404?
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
-
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
-
-            packageSvc.PublishPackage(package.PackageRegistration.Id, package.Version);
-            if (!(listed ?? false))
-            {
-                packageSvc.MarkPackageUnlisted(package);
-            }
-
-            // We don't to have the package as listed since it starts out that way.
-
-            // TODO: add a flash success message
-            return Redirect(urlFactory(package));
         }
 
         public virtual ActionResult DisplayPackage(string id, string version)
@@ -476,13 +433,72 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult VerifyPackage()
         {
-            return View();
+            var currentUser = userSvc.FindByUsername(GetIdentity().Name);
+
+            IPackage package;
+            using (var uploadFile = uploadFileSvc.GetUploadFile(currentUser.Key))
+            {   
+                if (uploadFile == null)
+                    return RedirectToRoute(RouteName.UploadPackage);
+
+                package = ReadNuGetPackage(uploadFile);
+            }
+            
+            return View(new VerifyPackageViewModel
+            {
+                Id = package.Id,
+                Version = package.Version.ToStringSafe(),
+                Title = package.Title,
+                Summary = package.Summary,
+                Description = package.Description,
+                RequiresLicenseAcceptance = package.RequireLicenseAcceptance,
+                LicenseUrl = package.LicenseUrl.ToStringSafe(),
+                Tags = package.Tags,
+                ProjectUrl = package.ProjectUrl.ToStringSafe(),
+                Authors = package.Authors.Flatten(),
+                Listed = package.Listed
+            });
         }
 
-        // this method exists to make unit testing easier; action injection would make this even easier!
+        [Authorize, HttpPost, ValidateAntiForgeryToken]
+        public virtual ActionResult VerifyPackage(bool? listed)
+        {
+            var currentUser = userSvc.FindByUsername(GetIdentity().Name);
+
+            IPackage nugetPackage;
+            using (var uploadFile = uploadFileSvc.GetUploadFile(currentUser.Key))
+            {
+                if (uploadFile == null)
+                    return HttpNotFound();
+                
+                nugetPackage = ReadNuGetPackage(uploadFile);
+            }
+
+            Package package;
+            using (var tx = new TransactionScope())
+            {
+                package = packageSvc.CreatePackage(nugetPackage, currentUser);
+                packageSvc.PublishPackage(package.PackageRegistration.Id, package.Version);
+                if (listed.HasValue && listed.Value == false)
+                    packageSvc.MarkPackageUnlisted(package);
+                uploadFileSvc.DeleteUploadFile(currentUser.Key);
+                tx.Complete();
+            }
+
+            TempData["Message"] = string.Format(Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
+            return RedirectToRoute(RouteName.DisplayPackage, new { package.PackageRegistration.Id, package.Version });
+        }
+
+        // this methods exist to make unit testing easier
         public virtual IIdentity GetIdentity()
         {
             return User.Identity;
+        }
+
+        // this methods exist to make unit testing easier
+        public virtual IPackage ReadNuGetPackage(Stream stream)
+        {
+            return new ZipPackage(stream);
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Web.Routing;
 using Moq;
 using NuGet;
 using Xunit;
+using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -146,76 +147,6 @@ namespace NuGetGallery
                     package,
                     "Mordor took my finger."
                 ));
-            }
-        }
-
-        public class ThePublishPackageMethod
-        {
-            [Fact]
-            public void UpdatesListedValueIfNotSelected()
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Foo" },
-                    Version = "1.0"
-                };
-                package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
-
-                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Verifiable();
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
-                packageService.Setup(svc => svc.PublishPackage("Foo", "1.0")).Verifiable();
-
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
-
-                var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
-                controller.Url = new UrlHelper(new RequestContext());
-
-                // Act
-                var result = controller.PublishPackage("Foo", "1.0", listed: null, urlFactory: p => @"~\Bar.cshtml");
-
-                // Assert
-                // If we got this far, we know listing methods were not invoked.
-                packageService.Verify();
-                Assert.IsType<RedirectResult>(result);
-                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
-            }
-
-            [Fact]
-            public void DoesNotUpdateListedValueIfSelected()
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Foo" },
-                    Version = "1.0"
-                };
-                package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
-
-                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
-                packageService.Setup(svc => svc.PublishPackage("Foo", "1.0")).Verifiable();
-
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
-
-                var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
-                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
-
-                // Act
-                var result = controller.PublishPackage("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
-
-                // Assert
-                packageService.Verify();
-                Assert.IsType<RedirectResult>(result);
-                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }
         }
 
@@ -416,15 +347,43 @@ namespace NuGetGallery
         public class TheUploadFileActionForPostRequests
         {
             [Fact]
+            public void WillReturn409WhenThereIsAlreadyAnUploadInProgress()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeFileStream = new MemoryStream();
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
+
+                var result = controller.UploadPackage(null) as HttpStatusCodeResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(409, result.StatusCode);
+                fakeFileStream.Dispose();
+            }
+            
+            [Fact]
             public void WillShowViewWithErrorsIfPackageFileIsNull()
             {
-                var controller = CreateController();
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var controller = CreateController(
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
 
                 var result = controller.UploadPackage(null) as ViewResult;
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.PackageFileIsRequired, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UploadFileIsRequired, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -432,13 +391,19 @@ namespace NuGetGallery
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.notNuPkg");
-                var controller = CreateController();
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var controller = CreateController(
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
 
                 var result = controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.PackageFileMustBeNuGetPackage, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UploadFileMustBeNuGetPackage, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -460,7 +425,54 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.FailedToReadPackageFile, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.FailedToReadUploadFile, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
+            public void WillShowTheViewWithErrorsWhenThePackageIdIsAlreadyBeingUsed()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakePackageRegistration = new PackageRegistration { Id = "theId", Owners = new [] { new User { Key = 1 /* not the current user */ } } };
+                var fakePackageSvc = new Mock<IPackageService>();
+                fakePackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakePackageRegistration);
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
+
+                var result = controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal(string.Format(Strings.PackageIdNotAvailable, "theId"), controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
+            public void WillShowTheViewWithErrorsWhenThePackageAlreadyExists()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakePackageSvc = new Mock<IPackageService>();
+                fakePackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
+
+                var result = controller.UploadPackage(fakeUploadedFile.Object) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal(string.Format(Strings.PackageExistsAndCannotBeModified, "theId", "theVersion"), controller.ModelState[string.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -474,15 +486,19 @@ namespace NuGetGallery
                 fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
                 var fakeIdentity = new Mock<IIdentity>();
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.GetStream()).Returns(fakeFileStream);
                 var fakeUploadFileSvc = new Mock<IUploadFileService>();
                 var controller = CreateController(
                     uploadFileSvc: fakeUploadFileSvc,
                     userSvc: fakeUserSvc,
-                    fakeIdentity: fakeIdentity);
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
 
                 controller.UploadPackage(fakeUploadedFile.Object);
 
                 fakeUploadFileSvc.Verify(x => x.SaveUploadFile(42, fakeFileStream));
+                fakeFileStream.Dispose();
             }
 
             [Fact]
@@ -509,6 +525,501 @@ namespace NuGetGallery
             }
         }
 
+        public class TheVerifyPackageActionForGetRequests
+        {
+            [Fact]
+            public void WillRedirectToUploadPackagePageWhenThereIsNoUploadInProgress()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns((Stream)null);
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
+
+                var result = controller.VerifyPackage() as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(RouteName.UploadPackage, result.RouteName);
+            }
+
+            [Fact]
+            public void WillPassThePackageIdToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.Id).Returns("theId");
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.Equal("theId", model.Id);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public void WillPassThePackageVersionToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.Equal("1.0.42", model.Version);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public void WillPassThePackageTitleToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.Title).Returns("theTitle");
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.Equal("theTitle", model.Title);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public void WillPassThePackageSummaryToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.Summary).Returns("theSummary");
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.Equal("theSummary", model.Summary);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public void WillPassThePackageDescriptionToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.Description).Returns("theDescription");
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.Equal("theDescription", model.Description);
+                fakeUploadFileStream.Dispose();
+            }
+
+            [Fact]
+            public void WillPassThePackageLicenseAcceptanceRequirementToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.RequireLicenseAcceptance).Returns(true);
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.True(model.RequiresLicenseAcceptance);
+                fakeUploadFileStream.Dispose();
+            }
+
+            public void WillPassThePackageLicenseUrlToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.LicenseUrl).Returns(new Uri("http://theLicenseUri"));
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.Equal("http://thelicenseuri/", model.LicenseUrl);
+                fakeUploadFileStream.Dispose();
+            }
+
+            public void WillPassThePackageTagsoTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.Tags).Returns("theTags");
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.Equal("theTags", model.Tags);
+                fakeUploadFileStream.Dispose();
+            }
+
+            public void WillPassThePackageProjectUrlToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.ProjectUrl).Returns(new Uri("http://theProjectUri"));
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.Equal("http://theprojecturi/", model.ProjectUrl);
+                fakeUploadFileStream.Dispose();
+            }
+
+            public void WillPassThePackagAuthorsToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.Authors).Returns(new [] { "firstAuthor", "secondAuthor" });
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.Equal("firstAuthor, secondAuthor", model.Authors);
+                fakeUploadFileStream.Dispose();
+            }
+
+            public void WillPassThePackageListedBitToTheView()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeUploadFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                fakeNuGetPackage.Setup(x => x.Listed).Returns(true);
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var model = ((ViewResult)controller.VerifyPackage()).Model as VerifyPackageViewModel;
+
+                Assert.True(model.Listed);
+                fakeUploadFileStream.Dispose();
+            }
+        }
+
+        public class TheVerifyPackageActionForPostRequests
+        {
+            [Fact]
+            public void WillReturn404WhenThereIsNoUploadInProgress()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns((Stream)null);
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
+
+                var result = controller.VerifyPackage(null) as HttpNotFoundResult;
+
+                Assert.NotNull(result);
+            }
+
+            [Fact]
+            public void WillCreateThePackage()
+            {
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
+                var fakePackageSvc = new Mock<IPackageService>();
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                var fakeNuGetPackage = new Mock<IPackage>();
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                controller.VerifyPackage(null);
+
+                fakePackageSvc.Verify(x => x.CreatePackage(fakeNuGetPackage.Object, fakeCurrentUser));
+                fakeFileStream.Dispose();
+            }
+
+            [Fact]
+            public void WillPublishThePackage()
+            {
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
+                var fakePackageSvc = new Mock<IPackageService>();
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                var fakeNuGetPackage = new Mock<IPackage>();
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                controller.VerifyPackage(null);
+
+                fakePackageSvc.Verify(x => x.PublishPackage("theId", "theVersion"));
+                fakeFileStream.Dispose();
+            }
+
+            [Fact]
+            public void WillMarkThePackageUnlistedWhenListedArgumentIsFalse()
+            {
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
+                var fakePackageSvc = new Mock<IPackageService>();
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                var fakeNuGetPackage = new Mock<IPackage>();
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                controller.VerifyPackage(false);
+
+                fakePackageSvc.Verify(x => x.MarkPackageUnlisted(It.Is<Package>(p => p.PackageRegistration.Id == "theId" && p.Version == "theVersion")));
+                fakeFileStream.Dispose();
+            }
+
+            [Theory]
+            [InlineData(new object[] { null })]
+            [InlineData(new object[] { true })]
+            public void WillNotMarkThePackageUnlistedWhenListedArgumentIsNullorTrue(bool? listed)
+            {
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
+                var fakePackageSvc = new Mock<IPackageService>();
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                var fakeNuGetPackage = new Mock<IPackage>();
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                controller.VerifyPackage(listed);
+
+                fakePackageSvc.Verify(x => x.MarkPackageUnlisted(It.IsAny<Package>()), Times.Never());
+                fakeFileStream.Dispose();
+            }
+
+            [Fact]
+            public void WillDeleteTheUploadFile()
+            {
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
+                var fakePackageSvc = new Mock<IPackageService>();
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                var fakeNuGetPackage = new Mock<IPackage>();
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                controller.VerifyPackage(false);
+
+                fakeUploadFileSvc.Verify(x => x.DeleteUploadFile(42));
+                fakeFileStream.Dispose();
+            }
+
+            [Fact]
+            public void WillSetAFlashMessage()
+            {
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
+                var fakePackageSvc = new Mock<IPackageService>();
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                var fakeNuGetPackage = new Mock<IPackage>();
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                controller.VerifyPackage(false);
+
+                Assert.Equal(string.Format(Strings.SuccessfullyUploadedPackage, "theId", "theVersion"), controller.TempData["Message"]);
+                fakeFileStream.Dispose();
+            }
+
+            public void WillRedirectToPackagePage()
+            {
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
+                var fakePackageSvc = new Mock<IPackageService>();
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                var fakeNuGetPackage = new Mock<IPackage>();
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage);
+
+                var result = controller.VerifyPackage(false) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(RouteName.DisplayPackage, result.RouteName);
+                fakeFileStream.Dispose();
+            }
+        }
+
         static PackagesController CreateController(
             Mock<ICryptographyService> cryptoSvc = null,
             Mock<IPackageService> packageSvc = null,
@@ -518,6 +1029,7 @@ namespace NuGetGallery
             Mock<IMessageService> messageSvc = null,
             Mock<HttpContextBase> httpContext = null,
             Mock<IIdentity> fakeIdentity = null,
+            Mock<IPackage> fakeNuGetPackage = null,
             Exception readPackageException = null)
         {
 
@@ -548,9 +1060,11 @@ namespace NuGetGallery
             }
 
             if (readPackageException != null)
-                controller.Setup(x => x.ReadPackage(It.IsAny<Stream>())).Throws(readPackageException);
+                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Throws(readPackageException);
+            else if (fakeNuGetPackage != null)
+                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Returns(fakeNuGetPackage.Object);
             else
-                controller.Setup(x => x.ReadPackage(It.IsAny<Stream>())).Returns(new Mock<IPackage>().Object);
+                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Returns(new Mock<IPackage>().Object);
 
             return controller.Object;
         }
