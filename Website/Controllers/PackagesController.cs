@@ -43,10 +43,12 @@ namespace NuGetGallery
         public virtual ActionResult UploadPackage()
         {
             var currentUser = userSvc.FindByUsername(GetIdentity().Name);
-            
-            var existingUploadFile = uploadFileSvc.GetUploadFile(currentUser.Key);
-            if (existingUploadFile != null)
-                return RedirectToRoute(RouteName.VerifyPackage);
+
+            using (var existingUploadFile = uploadFileSvc.GetUploadFile(currentUser.Key))
+            {
+                if (existingUploadFile != null)
+                    return RedirectToRoute(RouteName.VerifyPackage);
+            }
             
             return View();
         }
@@ -56,9 +58,11 @@ namespace NuGetGallery
         {
             var currentUser = userSvc.FindByUsername(GetIdentity().Name);
 
-            var existingUploadFile = uploadFileSvc.GetUploadFile(currentUser.Key);
-            if (existingUploadFile != null)
-                return new HttpStatusCodeResult(409, "Cannot upload file because an upload is already in progress.");
+            using (var existingUploadFile = uploadFileSvc.GetUploadFile(currentUser.Key))
+            {
+                if (existingUploadFile != null)
+                    return new HttpStatusCodeResult(409, "Cannot upload file because an upload is already in progress.");
+            }
 
             if (uploadFile == null)
             {
