@@ -78,13 +78,8 @@
     <div class="nuget-badge">
         <p>
             <code>PM&gt; Install-Package @Model.Id
-                @if (!Model.LatestStableVersion)
-                {
-                    if (Model.LatestVersion)
-                    { <text> -Pre </text> }
-                    else
-                    { <text> -Version @Model.Version</text> }
-                }
+                @if (!Model.LatestVersion || !Model.Listed)
+                { <text> -Version @Model.Version</text> }
                 @if (Model.Prerelease)
                 {<text> -Pre </text>}</code></p>
     </div>
