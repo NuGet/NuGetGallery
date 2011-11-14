@@ -15,8 +15,8 @@ namespace NuGetGallery
         {
             this.client = client;
 
-            PrepareContainer(Const.PackagesFolderName, true);
-            PrepareContainer(Const.UploadsFolderName, false);
+            PrepareContainer(Const.PackagesFolderName, isPublic: true);
+            PrepareContainer(Const.UploadsFolderName, isPublic: false);
         }
 
         public ActionResult CreateDownloadFileActionResult(
