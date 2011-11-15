@@ -120,40 +120,6 @@ namespace NuGetGallery
             }
         }
 
-        public string SmtpHost
-        {
-            get
-            {
-                return ReadConfiguration("SmtpHost");
-            }
-        }
-
-        public string SmtpPassword
-        {
-            get
-            {
-                return ReadConfiguration("SmtpPassword");
-            }
-        }
-
-        public int SmtpPort
-        {
-            get
-            {
-                return ReadConfiguration<int>(
-                    "SmtpPort",
-                    (value) => int.Parse(value));
-            }
-        }
-
-        public string SmtpUsername
-        {
-            get
-            {
-                return ReadConfiguration("SmtpUsername");
-            }
-        }
-
         public bool UseSmtp
         {
             get

@@ -13,10 +13,6 @@
       <Setting name="AzureStorageAccountName" value="" />
       <Setting name="AzureStorageBlobUrl" value="" />
       <Setting name="PackageStoreType" value="AzureStorageBlob" />
-      <Setting name="SmtpHost" value="" />
-      <Setting name="SmtpPassword" value="" />
-      <Setting name="SmtpPort" value="" />
-      <Setting name="SmtpUsername" value="" />
       <Setting name="UseSmtp" value="true" />
     </ConfigurationSettings>
     <Certificates>

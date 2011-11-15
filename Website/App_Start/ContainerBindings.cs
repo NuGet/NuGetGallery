@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -19,6 +20,13 @@ namespace NuGetGallery
             IConfiguration configuration = new Configuration();
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
+
+            GallerySetting settings;
+            using (var entitiesContext = new EntitiesContext())
+            {
+                var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
+                settings = settingsRepo.GetAll().FirstOrDefault();
+            }
 
             Bind<EntitiesContext>()
                 .ToMethod(context => new EntitiesContext())
@@ -76,13 +84,13 @@ namespace NuGetGallery
                     var mailSenderConfiguration = new MailSenderConfiguration()
                     {
                         DeliveryMethod = SmtpDeliveryMethod.Network,
-                        Host = configuration.SmtpHost,
-                        Port = configuration.SmtpPort,
+                        Host = settings.SmtpHost,
+                        Port = settings.SmtpPort,
                         EnableSsl = true,
                         UseDefaultCredentials = false,
                         Credentials = new NetworkCredential(
-                            configuration.SmtpUsername,
-                            configuration.SmtpPassword)
+                            settings.SmtpUsername,
+                            settings.SmtpPassword)
                     };
 
                     return new MailSender(mailSenderConfiguration);

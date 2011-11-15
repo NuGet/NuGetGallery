@@ -210,6 +210,10 @@
     <Compile Include="Migrations\201111081908453_MyPackagesIndexes.Designer.cs">
       <DependentUpon>201111081908453_MyPackagesIndexes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201111150729167_AddSmtpPassword.cs" />
+    <Compile Include="Migrations\201111150729167_AddSmtpPassword.Designer.cs">
+      <DependentUpon>201111150729167_AddSmtpPassword.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>

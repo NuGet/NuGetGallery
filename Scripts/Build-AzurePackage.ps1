@@ -6,10 +6,6 @@ param(
   $remoteDesktopCertificateThumbprint = $env:NUGET_GALLERY_REMOTE_DESKTOP_CERTIFICATE_THUMBPRINT,
   $remoteDesktopEnctyptedPassword     = $env:NUGET_GALLERY_REMOTE_DESKTOP_ENCRYPTED_PASSWORD,
   $remoteDesktopUsername              = $env:NUGET_GALLERY_REMOTE_DESKTOP_USERNAME,
-  $smtpHost                           = $env:NUGET_GALLERY_SMTP_HOST,
-  $smtpPassword                       = $env:NUGET_GALLERY_SMTP_PASSWORD,
-  $smtpPort                           = $env:NUGET_GALLERY_SMTP_PORT,
-  $smtpUsername                       = $env:NUGET_GALLERY_SMTP_USERNAME,
   $sqlAzureConnectionString           = $env:NUGET_GALLERY_SQL_AZURE_CONNECTION_STRING,
   $sslCertificateThumbprint           = $env:NUGET_GALLERY_SSL_CERTIFICATE_THUMBPRINT
 )
@@ -30,10 +26,6 @@ require-param -value $remoteDesktopAccountExpiration -paramName "remoteDesktopAc
 require-param -value $remoteDesktopCertificateThumbprint -paramName "remoteDesktopCertificateThumbprint"
 require-param -value $remoteDesktopEnctyptedPassword -paramName "remoteDesktopEnctyptedPassword"
 require-param -value $remoteDesktopUsername -paramName "remoteDesktopUsername"
-require-param -value $smtpHost -paramName "smtpHost"
-require-param -value $smtpPassword -paramName "smtpPassword"
-require-param -value $smtpPort -paramName "smtpPort"
-require-param -value $smtpUsername -paramName "smtpUsername"
 require-param -value $sqlAzureConnectionString -paramName "sqlAzureConnectionString"
 require-param -value $sslCertificateThumbprint -paramName "sslCertificateThumbprint"
   
@@ -103,10 +95,6 @@ set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.
 set-certificatethumbprint -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" -value $remoteDesktopCertificateThumbprint
 set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" -value $remoteDesktopEnctyptedPassword
 set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" -value $remoteDesktopUsername
-set-configurationsetting -path $cscfgPath -name "SmtpHost" -value $smtpHost
-set-configurationsetting -path $cscfgPath -name "SmtpPassword" -value $smtpPassword
-set-configurationsetting -path $cscfgPath -name "SmtpPort" -value $smtpPort
-set-configurationsetting -path $cscfgPath -name "SmtpUsername" -value $smtpUsername
 set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
 set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
 set-releasemode $webConfigPath

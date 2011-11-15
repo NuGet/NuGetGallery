@@ -11,10 +11,6 @@ namespace NuGetGallery
         MailAddress GalleryOwnerEmailAddress { get; }
         string FileStorageDirectory { get; }
         PackageStoreType PackageStoreType { get; }
-        string SmtpHost { get; }
-        string SmtpPassword { get; }
-        int SmtpPort { get; }
-        string SmtpUsername { get; }
         bool UseSmtp { get; }
     }
 }
