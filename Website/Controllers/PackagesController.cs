@@ -18,7 +18,6 @@ namespace NuGetGallery
 
         readonly ICryptographyService cryptoSvc;
         readonly IPackageService packageSvc;
-        readonly IPackageFileService packageFileSvc;
         readonly IUploadFileService uploadFileSvc;
         readonly IUserService userSvc;
         readonly IMessageService messageService;
@@ -26,14 +25,12 @@ namespace NuGetGallery
         public PackagesController(
             ICryptographyService cryptoSvc,
             IPackageService packageSvc,
-            IPackageFileService packageFileRepo,
             IUploadFileService uploadFileSvc,
             IUserService userSvc,
             IMessageService messageService)
         {
             this.cryptoSvc = cryptoSvc;
             this.packageSvc = packageSvc;
-            this.packageFileSvc = packageFileRepo;
             this.uploadFileSvc = uploadFileSvc;
             this.userSvc = userSvc;
             this.messageService = messageService;
@@ -265,23 +262,6 @@ namespace NuGetGallery
         public virtual ActionResult Download()
         {
             return View();
-        }
-
-        // This is the action that NuGet clients call to download a package directly.
-        public virtual ActionResult DownloadPackage(string id, string version)
-        {
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
-
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-
-            packageSvc.AddDownloadStatistics(package,
-                                             Request.UserHostAddress,
-                                             Request.UserAgent);
-
-            return packageFileSvc.CreateDownloadPackageActionResult(package);
         }
 
         [Authorize]

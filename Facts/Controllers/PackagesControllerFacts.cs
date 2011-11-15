@@ -1029,7 +1029,6 @@ namespace NuGetGallery
         static PackagesController CreateController(
             Mock<ICryptographyService> cryptoSvc = null,
             Mock<IPackageService> packageSvc = null,
-            Mock<IPackageFileService> packageFileSvc = null,
             Mock<IUploadFileService> uploadFileSvc = null,
             Mock<IUserService> userSvc = null,
             Mock<IMessageService> messageSvc = null,
@@ -1041,7 +1040,6 @@ namespace NuGetGallery
 
             cryptoSvc = cryptoSvc ?? new Mock<ICryptographyService>();
             packageSvc = packageSvc ?? new Mock<IPackageService>();
-            packageFileSvc = packageFileSvc ?? new Mock<IPackageFileService>();
             uploadFileSvc = uploadFileSvc ?? new Mock<IUploadFileService>();
             userSvc = userSvc ?? new Mock<IUserService>();
             messageSvc = messageSvc ?? new Mock<IMessageService>();
@@ -1049,7 +1047,6 @@ namespace NuGetGallery
             var controller = new Mock<PackagesController>(
                 cryptoSvc.Object,
                     packageSvc.Object,
-                    packageFileSvc.Object,
                     uploadFileSvc.Object,
                     userSvc.Object,
                     messageSvc.Object);

@@ -53,11 +53,6 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult DownloadPackage() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.DownloadPackage);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult ManagePackageOwners() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ManagePackageOwners);
         }
@@ -95,7 +90,6 @@ namespace NuGetGallery {
             public readonly string ReportAbuse = "ReportAbuse";
             public readonly string ContactOwners = "ContactOwners";
             public readonly string Download = "Download";
-            public readonly string DownloadPackage = "DownloadPackage";
             public readonly string ManagePackageOwners = "ManagePackageOwners";
             public readonly string Delete = "Delete";
             public readonly string Edit = "Edit";
@@ -184,13 +178,6 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult Download() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Download);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult DownloadPackage(string id, string version) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DownloadPackage);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 

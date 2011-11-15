@@ -22,7 +22,7 @@ namespace NuGetGallery
         {
             var serviceRoute = new ServiceRoute(routeUrl, new DataServiceHostFactory(), serviceType);
             serviceRoute.Defaults = new RouteValueDictionary { { "serviceType", "odata" } };
-            serviceRoute.Constraints = new RouteValueDictionary { { "serviceType", "odata" } };
+            serviceRoute.Constraints = new RouteValueDictionary { { "serviceType", "odata" }, { "httpMethod", new HttpMethodConstraint("GET") } };
             routes.Add(routeName, serviceRoute);
         }
 

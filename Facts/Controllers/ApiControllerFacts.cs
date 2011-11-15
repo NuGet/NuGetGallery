@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Web;
+using System.Web.Mvc;
 using Moq;
 using NuGet;
 using Xunit;
+using System.Web.Routing;
 
 namespace NuGetGallery
 {
@@ -11,19 +14,23 @@ namespace NuGetGallery
         public class TheCreatePackageAction
         {
             [Fact]
-            public void WillThrowIfTheApiKeyDoesNotExist()
+            public void WillReturnAn401IfTheApiKeyDoesNotExist()
             {
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
                 var controller = CreateController(userSvc: userSvc);
 
-                var ex = Assert.Throws<EntityException>(() => controller.CreatePackage(Guid.NewGuid()));
+                // Act
+                var result = controller.CreatePackage(Guid.NewGuid());
 
-                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "push"), ex.Message);
+                // Assert
+                Assert.IsType<HttpUnauthorizedResult>(result);
+                var statusCodeResult = (HttpUnauthorizedResult)result;
+                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "push"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
-            public void WillThrowIfAPackageWithTheIdAndSemanticVersionAlreadyExists()
+            public void WillReturnConflictIfAPackageWithTheIdAndSemanticVersionAlreadyExists()
             {
                 var nuGetPackage = new Mock<IPackage>();
                 nuGetPackage.Setup(x => x.Id).Returns("theId");
@@ -34,9 +41,14 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
 
-                var ex = Assert.Throws<EntityException>(() => controller.CreatePackage(Guid.NewGuid()));
+                // Act
+                var result = controller.CreatePackage(Guid.NewGuid());
 
-                Assert.Equal(string.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.42"), ex.Message);
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var statusCodeResult = (HttpStatusCodeResult)result;
+                Assert.Equal(409, statusCodeResult.StatusCode);
+                Assert.Equal(string.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.42"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -99,9 +111,11 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
                 var controller = CreateController(userSvc: userSvc);
 
-                var ex = Assert.Throws<EntityException>(() => controller.DeletePackage(Guid.NewGuid(), "theId", "1.0.42"));
+                var result = controller.DeletePackage(Guid.NewGuid(), "theId", "1.0.42");
 
-                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), ex.Message);
+                Assert.IsType<HttpUnauthorizedResult>(result);
+                var statusCodeResult = (HttpUnauthorizedResult)result;
+                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -113,9 +127,11 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
 
-                var ex = Assert.Throws<EntityException>(() => controller.DeletePackage(Guid.NewGuid(), "theId", "1.0.42"));
+                var result = controller.DeletePackage(Guid.NewGuid(), "theId", "1.0.42");
 
-                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+                Assert.IsType<HttpNotFoundResult>(result);
+                var statusCodeResult = (HttpNotFoundResult)result;
+                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -154,7 +170,11 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
                 var apiKey = Guid.NewGuid();
 
-                Assert.Throws<EntityException>(() => controller.DeletePackage(apiKey, "theId", "1.0.42"));
+                var result = controller.DeletePackage(apiKey, "theId", "1.0.42");
+
+                Assert.IsType<HttpUnauthorizedResult>(result);
+                var statusCodeResult = (HttpUnauthorizedResult)result;
+                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -206,7 +226,7 @@ namespace NuGetGallery
 
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
-                var controller = new Mock<ApiController>(packageService, userSvc.Object) { CallBase = true };
+                var controller = new Mock<ApiController>(packageService, new Mock<IPackageFileService>().Object, userSvc.Object) { CallBase = true };
                 var ex = Assert.Throws<EntityException>(() => controller.Object.PublishPackage(Guid.NewGuid(), "theId", "1.0.42"));
 
                 Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
@@ -244,14 +264,72 @@ namespace NuGetGallery
             }
         }
 
+        [Fact]
+        public void GetPackageReturns404IfPackageIsNotFound()
+        {
+            // Arrange
+            var guid = Guid.NewGuid();
+            var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
+            packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.1", true)).Returns((Package)null).Verifiable();
+            var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+            userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
+            var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+            
+            // Act
+            var result = controller.GetPackage("Baz", "1.0.1");
+
+            // Assert
+            Assert.IsType<HttpNotFoundResult>(result);
+            var httpNotFoundResult = (HttpNotFoundResult)result;
+            Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "Baz", "1.0.1"), httpNotFoundResult.StatusDescription);
+            packageSvc.Verify();
+        }
+
+        [Fact]
+        public void GetPackageReturnsPackageIfItExists()
+        {
+            // Arrange
+            var guid = Guid.NewGuid();
+            var package = new Package();
+            var actionResult = new EmptyResult();
+            var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
+            packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.1", true)).Returns(package);
+            packageSvc.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux")).Verifiable();
+
+            var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
+            packageFileSvc.Setup(s => s.CreateDownloadPackageActionResult(package)).Returns(actionResult).Verifiable();
+            var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+            userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
+
+            var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
+            httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
+            httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
+            var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+            httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
+            
+            var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, fileService: packageFileSvc);
+            var controllerContext = new ControllerContext(new RequestContext(httpContext.Object, new RouteData()), controller);
+            controller.ControllerContext = controllerContext;
+
+            // Act
+            var result = controller.GetPackage("Baz", "1.0.1");
+
+            // Assert
+            Assert.Same(actionResult, result);
+            packageFileSvc.Verify();
+            packageSvc.Verify();
+        }
+
         static ApiController CreateController(
             Mock<IPackageService> packageSvc = null,
+            Mock<IPackageFileService> fileService = null,
             Mock<IUserService> userSvc = null,
             IPackage packageFromInputStream = null)
         {
             packageSvc = packageSvc ?? new Mock<IPackageService>();
             userSvc = userSvc ?? new Mock<IUserService>();
-            var controller = new Mock<ApiController>(packageSvc.Object, userSvc.Object);
+            fileService = fileService ?? new Mock<IPackageFileService>(MockBehavior.Strict);
+            var controller = new Mock<ApiController>(packageSvc.Object, fileService.Object, userSvc.Object);
             controller.CallBase = true;
             if (packageFromInputStream != null)
                 controller.Setup(x => x.ReadPackageFromRequest()).Returns(packageFromInputStream);
