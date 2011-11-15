@@ -236,12 +236,36 @@ namespace NuGetGallery
                             return new Mock<ICloudBlobContainer>().Object;
                     });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Throws(new TestableStorageClientException { ErrorCode = StorageErrorCode.ResourceNotFound });
+                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Throws(new TestableStorageClientException { ErrorCode = StorageErrorCode.BlobNotFound });
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 var stream = service.GetFile(folderName, "theFileName");
 
                 Assert.Null(stream);
+            }
+
+            [Theory]
+            [FolderNamesData]
+            public void WillSetTheStreamPositionToZero(string folderName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ICloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                    .Returns<string>(container =>
+                    {
+                        if (container == folderName)
+                            return fakeBlobContainer.Object;
+                        else
+                            return new Mock<ICloudBlobContainer>().Object;
+                    });
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Callback<Stream>(x => { x.WriteByte(42); });
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                var stream = service.GetFile(folderName, "theFileName");
+
+                Assert.Equal(0, stream.Position);
             }
         }
 
