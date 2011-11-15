@@ -82,9 +82,23 @@ namespace NuGetGallery
                 MVC.Users.Account());
 
             routes.MapRoute(
-                RouteName.PushPackageApi,
+                RouteName.DownloadPackage,
+                "api/v2/package/{id}/{version}",
+                MVC.Api.GetPackage(),
+                defaults: null,
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                "legacy-" + RouteName.PushPackageApi,
                 "PackageFiles/{apiKey}/nupkg",
                 MVC.Api.CreatePackage());
+
+            routes.MapRoute(
+                RouteName.PushPackageApi,
+                "api/v2/package",
+                MVC.Api.CreatePackage(),
+                defaults: null,
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 RouteName.PublishPackageApi,
@@ -92,23 +106,30 @@ namespace NuGetGallery
                 MVC.Api.PublishPackage());
 
             routes.MapRoute(
-                RouteName.DeletePackageApi,
+                "legacy-" + RouteName.DeletePackageApi,
                 "Packages/{apiKey}/{id}/{version}",
                 MVC.Api.DeletePackage());
 
+            routes.MapRoute(
+                RouteName.DeletePackageApi,
+                "api/v2/package/{id}/{version}",
+                MVC.Api.DeletePackage(),
+                defaults: null,
+                constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
+
             routes.MapServiceRoute(
                 RouteName.V1ApiFeed,
-                "api/feeds/v1",
+                "api/v1",
+                typeof(V1Feed));
+
+            routes.MapServiceRoute(
+                "legacy-" + RouteName.V1ApiFeed,
+                "v1/FeedService.svc",
                 typeof(V1Feed));
 
             routes.MapServiceRoute(
                 RouteName.V2ApiFeed,
-                "api/feeds/v2",
-                typeof(V2Feed));
-
-            routes.MapServiceRoute(
-                RouteName.ApiFeed,
-                "api/feeds",
+                "api/v2/",
                 typeof(V2Feed));
 
             // Redirected Legacy Routes

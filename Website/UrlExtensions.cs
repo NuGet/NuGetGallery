@@ -52,7 +52,7 @@ namespace NuGetGallery
 
         public static string PackageDownload(this UrlHelper url, string id, string version)
         {
-            return url.Action(MVC.Packages.DownloadPackage(id, version), protocol: "http");
+            return url.Action(MVC.Api.GetPackage(id, version), protocol: "http");
         }
 
         public static string LogOn(this UrlHelper url)
