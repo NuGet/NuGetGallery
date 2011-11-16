@@ -18,6 +18,8 @@ namespace NuGetGallery
 
             // TODO: move profile bootstrapping and container bootstrapping to here
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
+
+            ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
         private static void UpdateDatabase()

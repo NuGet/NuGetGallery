@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Globalization;
+using System.IO;
+using System.Net;
 using System.Web.Mvc;
 using NuGet;
 
@@ -6,13 +9,30 @@ namespace NuGetGallery
 {
     public partial class ApiController : Controller
     {
-        readonly IPackageService packageSvc;
-        readonly IUserService userSvc;
+        private readonly IPackageService packageSvc;
+        private readonly IUserService userSvc;
+        private readonly IPackageFileService packageFileSvc;
 
-        public ApiController(IPackageService packageSvc, IUserService userSvc)
+        public ApiController(IPackageService packageSvc, IPackageFileService packageFileSvc, IUserService userSvc)
         {
             this.packageSvc = packageSvc;
+            this.packageFileSvc = packageFileSvc;
             this.userSvc = userSvc;
+        }
+
+        [ActionName("GetPackageApi"), HttpGet]
+        public virtual ActionResult GetPackage(string id, string version)
+        {
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+
+            if (package == null)
+                return new HttpNotFoundResult(string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+    
+            packageSvc.AddDownloadStatistics(package,
+                                             Request.UserHostAddress,
+                                             Request.UserAgent);
+
+            return packageFileSvc.CreateDownloadPackageActionResult(package);
         }
 
         [ActionName("PushPackageApi"), HttpPost, RequireRemoteHttps]
@@ -20,13 +40,13 @@ namespace NuGetGallery
         {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
-                throw new EntityException(Strings.ApiKeyNotAuthorized, "push");
+                return new HttpUnauthorizedResult(string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
 
             var packageToPush = ReadPackageFromRequest();
 
             var package = packageSvc.FindPackageByIdAndVersion(packageToPush.Id, packageToPush.Version.ToString());
             if (package != null)
-                throw new EntityException(Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString());
+                return new HttpStatusCodeResult((int)HttpStatusCode.Conflict, string.Format(Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString()));
 
             package = packageSvc.CreatePackage(packageToPush, user);
             return new EmptyResult();
@@ -37,16 +57,14 @@ namespace NuGetGallery
         {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
-                throw new EntityException(Strings.ApiKeyNotAuthorized, "delete");
+                return new HttpUnauthorizedResult(string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
 
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
-                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
+                return new HttpNotFoundResult(string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
 
             if (!package.IsOwner(user))
-            {
-                throw new EntityException(Strings.ApiKeyNotAuthorized, "delete");
-            }
+                return new HttpUnauthorizedResult(string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
 
             packageSvc.MarkPackageUnlisted(package);
             return new EmptyResult();
@@ -65,7 +83,16 @@ namespace NuGetGallery
 
         public virtual IPackage ReadPackageFromRequest()
         {
-            return new ZipPackage(Request.InputStream);
+            Stream stream;
+            if (Request.Files.Count > 0)
+            {
+                // If we're using the newer API, the package stream is sent as a file.
+                stream = Request.Files[0].InputStream;
+            }
+            else
+                stream = Request.InputStream;
+
+            return new ZipPackage(stream);
         }
     }
 }

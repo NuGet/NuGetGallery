@@ -33,6 +33,11 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult GetPackage() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.GetPackage);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult CreatePackage() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackage);
         }
@@ -59,6 +64,7 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+            public readonly string GetPackage = "GetPackageApi";
             public readonly string CreatePackage = "PushPackageApi";
             public readonly string DeletePackage = "DeletePackageApi";
             public readonly string PublishPackage = "PublishPackageApi";
@@ -76,6 +82,13 @@ namespace NuGetGallery {
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_ApiController: NuGetGallery.ApiController {
         public T4MVC_ApiController() : base(Dummy.Instance) { }
+
+        public override System.Web.Mvc.ActionResult GetPackage(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GetPackage);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
 
         public override System.Web.Mvc.ActionResult CreatePackage(System.Guid apiKey) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackage);
