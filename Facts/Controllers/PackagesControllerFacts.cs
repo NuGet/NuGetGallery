@@ -306,7 +306,6 @@ namespace NuGetGallery
             public void TrimsSearchTerm()
             {
                 var fakeIdentity = new Mock<IIdentity>();
-                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(fakeIdentity: fakeIdentity, httpContext: httpContext);
 
