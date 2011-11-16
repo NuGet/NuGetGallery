@@ -300,6 +300,22 @@ namespace NuGetGallery
             }
         }
 
+        public class TheListPackagesMethod
+        {
+            [Fact]
+            public void TrimsSearchTerm()
+            {
+                var fakeIdentity = new Mock<IIdentity>();
+                var httpContext = new Mock<HttpContextBase>();
+                var controller = CreateController(fakeIdentity: fakeIdentity, httpContext: httpContext);
+
+                var result = controller.ListPackages(" test ") as ViewResult;
+
+                var model = result.Model as PackageListViewModel;
+                Assert.Equal("test", model.SearchTerm);
+            }
+        }
+
         public class TheUploadFileActionForGetRequests
         {
             [Fact]
@@ -367,7 +383,7 @@ namespace NuGetGallery
                 Assert.Equal(409, result.StatusCode);
                 fakeFileStream.Dispose();
             }
-            
+
             [Fact]
             public void WillShowViewWithErrorsIfPackageFileIsNull()
             {
@@ -437,7 +453,7 @@ namespace NuGetGallery
                 fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
                 var fakeIdentity = new Mock<IIdentity>();
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
-                var fakePackageRegistration = new PackageRegistration { Id = "theId", Owners = new [] { new User { Key = 1 /* not the current user */ } } };
+                var fakePackageRegistration = new PackageRegistration { Id = "theId", Owners = new[] { new User { Key = 1 /* not the current user */ } } };
                 var fakePackageSvc = new Mock<IPackageService>();
                 fakePackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakePackageRegistration);
                 var controller = CreateController(
@@ -774,7 +790,7 @@ namespace NuGetGallery
                 var fakeUploadFileStream = new MemoryStream();
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeUploadFileStream);
                 var fakeNuGetPackage = new Mock<IPackage>();
-                fakeNuGetPackage.Setup(x => x.Authors).Returns(new [] { "firstAuthor", "secondAuthor" });
+                fakeNuGetPackage.Setup(x => x.Authors).Returns(new[] { "firstAuthor", "secondAuthor" });
                 var controller = CreateController(
                     uploadFileSvc: fakeUploadFileSvc,
                     userSvc: fakeUserSvc,

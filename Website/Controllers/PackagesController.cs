@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
+using System.Security.Principal;
+using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
-using System.Security.Principal;
-using System.Transactions;
 
 namespace NuGetGallery
 {
@@ -46,7 +46,7 @@ namespace NuGetGallery
                 if (existingUploadFile != null)
                     return RedirectToRoute(RouteName.VerifyPackage);
             }
-            
+
             return View();
         }
 
@@ -131,12 +131,14 @@ namespace NuGetGallery
 
             IQueryable<Package> packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: true);
 
+            q = (q ?? "").Trim();
+
             if (!String.IsNullOrEmpty(q))
             {
                 packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: true).Search(q);
             }
 
-            if (User.Identity.IsAuthenticated)
+            if (GetIdentity().IsAuthenticated)
             {
                 // Only show listed packages. For unlisted packages, only show them if the owner is viewing it.
                 packageVersions = packageVersions.Where(p => p.Listed || p.PackageRegistration.Owners.Any(owner => owner.Username == User.Identity.Name));
@@ -421,13 +423,13 @@ namespace NuGetGallery
 
             IPackage package;
             using (var uploadFile = uploadFileSvc.GetUploadFile(currentUser.Key))
-            {   
+            {
                 if (uploadFile == null)
                     return RedirectToRoute(RouteName.UploadPackage);
 
                 package = ReadNuGetPackage(uploadFile);
             }
-            
+
             return View(new VerifyPackageViewModel
             {
                 Id = package.Id,
@@ -454,7 +456,7 @@ namespace NuGetGallery
             {
                 if (uploadFile == null)
                     return HttpNotFound();
-                
+
                 nugetPackage = ReadNuGetPackage(uploadFile);
             }
 
