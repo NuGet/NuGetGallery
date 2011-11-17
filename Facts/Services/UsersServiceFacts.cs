@@ -468,6 +468,90 @@ namespace NuGetGallery
             }
         }
 
+        public class TheUpdateProfileMethod
+        {
+            [Fact]
+            public void SetsEmailConfirmationWhenEmailAddressChanged()
+            {
+                var user = new User { EmailAddress = "old@example.com" };
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.GenerateToken()).Returns("token");
+                var service = CreateUsersService(cryptoSvc: crypto);
+
+                service.UpdateProfile(user, "new@example.com", emailAllowed: true);
+
+                Assert.Equal("token", user.EmailConfirmationToken);
+            }
+
+            [Fact]
+            public void SetsUnconfirmedEmailWhenEmailIsChanged()
+            {
+                var user = new User { EmailAddress = "old@example.org", EmailAllowed = true };
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.GenerateToken()).Returns("token");
+                var service = CreateUsersService(cryptoSvc: crypto, userRepo: userRepository);
+
+                service.UpdateProfile(user, "new@example.org", true);
+
+                Assert.Equal("token", user.EmailConfirmationToken);
+                Assert.Equal("old@example.org", user.EmailAddress);
+                Assert.Equal("new@example.org", user.UnconfirmedEmailAddress);
+                userRepository.Verify(r => r.CommitChanges());
+            }
+
+            [Fact]
+            public void DoesNotSetConfirmationTokenWhenEmailAddressNotChanged()
+            {
+                var user = new User { EmailAddress = "old@example.com" };
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.GenerateToken()).Returns("token");
+                var service = CreateUsersService(cryptoSvc: crypto);
+
+                service.UpdateProfile(user, "old@example.com", emailAllowed: true);
+
+                Assert.Null(user.EmailConfirmationToken);
+            }
+
+            [Fact]
+            public void DoesNotChangeConfirmationTokenButUserHasPendingEmailChange()
+            {
+                var user = new User { EmailAddress = "old@example.com", EmailConfirmationToken = "pending-token" };
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.GenerateToken()).Returns("token");
+                var service = CreateUsersService(cryptoSvc: crypto);
+
+                service.UpdateProfile(user, "old@example.com", emailAllowed: true);
+
+                Assert.Equal("pending-token", user.EmailConfirmationToken);
+            }
+
+            [Fact]
+            public void SavesEmailAllowedSetting()
+            {
+                var user = new User { EmailAddress = "old@example.org", EmailAllowed = true };
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.GenerateToken()).Returns("token");
+                var service = CreateUsersService(cryptoSvc: crypto, userRepo: userRepository);
+
+                service.UpdateProfile(user, "old@example.org", false);
+
+                Assert.Equal(false, user.EmailAllowed);
+                userRepository.Verify(r => r.CommitChanges());
+            }
+
+            [Fact]
+            public void ThrowsArgumentExceptionForNullUser()
+            {
+                var service = CreateUsersService();
+
+                Assert.Throws<ArgumentNullException>(() => service.UpdateProfile(null, "test@example.com", emailAllowed: true));
+            }
+        }
+
         static UserService CreateUsersService(
             Mock<IConfiguration> configuration = null,
             Mock<ICryptographyService> cryptoSvc = null,

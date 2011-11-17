@@ -59,7 +59,7 @@ namespace NuGetGallery
             return newUser;
         }
 
-        public string UpdateProfile(User user, string emailAddress, bool emailAllowed)
+        public void UpdateProfile(User user, string emailAddress, bool emailAllowed)
         {
             if (user == null)
             {
@@ -79,7 +79,6 @@ namespace NuGetGallery
 
             user.EmailAllowed = emailAllowed;
             userRepo.CommitChanges();
-            return user.EmailConfirmationToken;
         }
 
         public User FindByApiKey(Guid apiKey)

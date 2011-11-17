@@ -9,7 +9,7 @@ namespace NuGetGallery
             string password,
             string emailAddress);
 
-        string UpdateProfile(User user, string emailAddress, bool emailAllowed);
+        void UpdateProfile(User user, string emailAddress, bool emailAllowed);
 
         User FindByApiKey(Guid apiKey);
 
