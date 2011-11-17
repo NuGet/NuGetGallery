@@ -63,6 +63,7 @@ namespace NuGetGallery
                     return HttpNotFound();
                 }
 
+                string existingConfirmationToken = user.EmailConfirmationToken;
                 try
                 {
                     userService.UpdateProfile(user, profile.EmailAddress, profile.EmailAllowed);
@@ -73,9 +74,9 @@ namespace NuGetGallery
                     return View(profile);
                 }
 
-                if (String.IsNullOrEmpty(user.EmailConfirmationToken))
+                if (existingConfirmationToken == user.EmailConfirmationToken)
                 {
-                    TempData["Message"] = "Account settings Saved!";
+                    TempData["Message"] = "Account settings saved!";
                 }
                 else
                 {

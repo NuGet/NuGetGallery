@@ -128,11 +128,11 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 userService.Verify(u => u.UpdateProfile(user, "test@example.com", false));
-                Assert.Equal("Account settings Saved!", controller.TempData["Message"]);
+                Assert.Equal("Account settings saved!", controller.TempData["Message"]);
             }
 
             [Fact]
-            public void SendsEmailChangeConfirmationNoticeWhenEmailAddressChanges()
+            public void SendsEmailChangeConfirmationNoticeWhenEmailConfirmationTokenChanges()
             {
                 var user = new User
                 {
@@ -150,6 +150,30 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.Equal("Account settings saved! We sent a confirmation email to verify your new email. When you confirm the email address, it will take effect and we will forget the old one.", controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void DoesNotSendEmailChangeConfirmationNoticeWhenTokenDoesNotChange()
+            {
+                var user = new User
+                {
+                    EmailAddress = "old@example.com",
+                    EmailAllowed = true,
+                    EmailConfirmationToken = "token"
+                };
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername(It.IsAny<string>())).Returns(user);
+                userService.Setup(u => u.UpdateProfile(user, It.IsAny<string>(), true));
+                var messageService = new Mock<IMessageService>();
+                messageService.Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>())).Throws(new InvalidOperationException());
+                var controller = CreateController(userSvc: userService, messageSvc: messageService);
+                var model = new EditProfileViewModel { EmailAddress = "old@example.com", EmailAllowed = true };
+
+                var result = controller.Edit(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("Account settings saved!", controller.TempData["Message"]);
             }
 
             [Fact]
