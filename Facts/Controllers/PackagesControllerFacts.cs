@@ -1042,6 +1042,49 @@ namespace NuGetGallery
             }
         }
 
+        public class TheCancelVerifyPackageAction
+        {
+            [Fact]
+            public void DeletesTheInProgressPackageUpload()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                fakeUploadFileSvc.Setup(x => x.DeleteUploadFile(42));
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
+
+                var result = controller.CancelUpload() as RedirectToRouteResult;
+
+                fakeUploadFileSvc.Verify(x => x.DeleteUploadFile(42));
+            }
+
+            [Fact]
+            public void RedirectsToUploadPageAfterDelete()
+            {
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                fakeUploadFileSvc.Setup(x => x.DeleteUploadFile(42));
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
+
+                var result = controller.CancelUpload() as RedirectToRouteResult;
+
+                Assert.False(result.Permanent);
+                Assert.Equal("UploadPackage", result.RouteValues["Action"]);
+                Assert.Equal("Packages", result.RouteValues["Controller"]);
+            }
+        }
+
         static PackagesController CreateController(
             Mock<ICryptographyService> cryptoSvc = null,
             Mock<IPackageService> packageSvc = null,
