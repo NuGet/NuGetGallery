@@ -270,7 +270,7 @@ namespace NuGetGallery
             // Arrange
             var guid = Guid.NewGuid();
             var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
-            packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.1", true)).Returns((Package)null).Verifiable();
+            packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.1", false)).Returns((Package)null).Verifiable();
             var userSvc = new Mock<IUserService>(MockBehavior.Strict);
             userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
             var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
@@ -293,7 +293,7 @@ namespace NuGetGallery
             var package = new Package();
             var actionResult = new EmptyResult();
             var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
-            packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.1", true)).Returns(package);
+            packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.1", false)).Returns(package);
             packageSvc.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux")).Verifiable();
 
             var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
@@ -313,6 +313,41 @@ namespace NuGetGallery
 
             // Act
             var result = controller.GetPackage("Baz", "1.0.1");
+
+            // Assert
+            Assert.Same(actionResult, result);
+            packageFileSvc.Verify();
+            packageSvc.Verify();
+        }
+
+        [Fact]
+        public void GetPackageReturnsLatestPackageIfNoVersionIsProvided()
+        {
+            // Arrange
+            var guid = Guid.NewGuid();
+            var package = new Package();
+            var actionResult = new EmptyResult();
+            var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
+            packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "", false)).Returns(package);
+            packageSvc.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux")).Verifiable();
+
+            var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
+            packageFileSvc.Setup(s => s.CreateDownloadPackageActionResult(package)).Returns(actionResult).Verifiable();
+            var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+            userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
+
+            var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
+            httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
+            httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
+            var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+            httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
+
+            var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, fileService: packageFileSvc);
+            var controllerContext = new ControllerContext(new RequestContext(httpContext.Object, new RouteData()), controller);
+            controller.ControllerContext = controllerContext;
+
+            // Act
+            var result = controller.GetPackage("Baz", "");
 
             // Assert
             Assert.Same(actionResult, result);
