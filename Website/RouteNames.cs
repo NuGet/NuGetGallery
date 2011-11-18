@@ -26,5 +26,6 @@ namespace NuGetGallery
         public const string PasswordReset = "PasswordReset";
         public const string NewSubmission = "NewSubmission";
         public const string VerifyPackage = "VerifyPackage";
+        public const string CancelUpload = "CancelVerifyPackage";
     }
 }
