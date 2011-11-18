@@ -37,6 +37,11 @@ namespace NuGetGallery
                 MVC.Packages.VerifyPackage());
 
             routes.MapRoute(
+                RouteName.CancelUpload,
+                "packages/cancel-upload",
+                MVC.Packages.CancelUpload());
+
+            routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
                 "packages/{id}/owners/{username}/confirm/{token}",
                 new { controller = MVC.Packages.Name, action = "ConfirmOwner" });

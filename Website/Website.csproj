@@ -608,11 +608,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ManagePackageOwners.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Packages\VerifyPackage.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>VerifyPackage.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Packages\ReportAbuse.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -622,6 +617,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>UploadPackage.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Packages\VerifyPackage.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>VerifyPackage.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Packages\_ListPackage.generated.cs">
       <AutoGen>True</AutoGen>
@@ -807,9 +807,6 @@
     <Content Include="DynamicData\PageTemplates\List.aspx" />
     <Content Include="DynamicData\Site.css" />
     <Content Include="Errors\Error.html" />
-    <Content Include="Scripts\gallery.form.js" />
-    <Content Include="Scripts\global.js" />
-    <Content Include="Scripts\html5.js" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
     <Content Include="Scripts\jquery-1.6.2.min.js" />
@@ -867,7 +864,7 @@
     </Content>
     <Content Include="Views\Packages\VerifyPackage.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>VerifyPackage.cs</LastGenOutput>
+      <LastGenOutput>VerifyPackage.generated.cs</LastGenOutput>
     </Content>
     <Content Include="Views\Packages\ReportAbuse.cshtml">
       <Generator>RazorGenerator</Generator>

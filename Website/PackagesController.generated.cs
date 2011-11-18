@@ -95,6 +95,7 @@ namespace NuGetGallery {
             public readonly string Edit = "Edit";
             public readonly string ConfirmOwner = "ConfirmOwner";
             public readonly string VerifyPackage = "VerifyPackage";
+            public readonly string CancelUpload = "CancelUpload";
         }
 
 
@@ -127,9 +128,9 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult UploadPackage(System.Web.HttpPostedFileBase packageFile) {
+        public override System.Web.Mvc.ActionResult UploadPackage(System.Web.HttpPostedFileBase uploadFile) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UploadPackage);
-            callInfo.RouteValueDictionary.Add("packageFile", packageFile);
+            callInfo.RouteValueDictionary.Add("uploadFile", uploadFile);
             return callInfo;
         }
 
@@ -234,6 +235,11 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult VerifyPackage(bool? listed) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.VerifyPackage);
             callInfo.RouteValueDictionary.Add("listed", listed);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult CancelUpload() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CancelUpload);
             return callInfo;
         }
 
