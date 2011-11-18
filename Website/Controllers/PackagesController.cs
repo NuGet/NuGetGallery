@@ -475,6 +475,15 @@ namespace NuGetGallery
             return RedirectToRoute(RouteName.DisplayPackage, new { package.PackageRegistration.Id, package.Version });
         }
 
+        [Authorize, HttpPost, ValidateAntiForgeryToken]
+        public virtual ActionResult CancelUpload()
+        {
+            var currentUser = userSvc.FindByUsername(GetIdentity().Name);
+            uploadFileSvc.DeleteUploadFile(currentUser.Key);
+
+            return RedirectToAction(MVC.Packages.UploadPackage());
+        }
+
         // this methods exist to make unit testing easier
         public virtual IIdentity GetIdentity()
         {

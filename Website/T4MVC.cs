@@ -310,12 +310,6 @@ namespace Links {
         private const string URLPATH = "~/Scripts";
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-        public static readonly string gallery_form_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/gallery.form.min.js") ? Url("gallery.form.min.js") : Url("gallery.form.js");
-                      
-        public static readonly string global_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/global.min.js") ? Url("global.min.js") : Url("global.js");
-                      
-        public static readonly string html5_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/html5.min.js") ? Url("html5.min.js") : Url("html5.js");
-                      
         public static readonly string jquery_1_6_2_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2-vsdoc.min.js") ? Url("jquery-1.6.2-vsdoc.min.js") : Url("jquery-1.6.2-vsdoc.js");
                       
         public static readonly string jquery_1_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2.min.js") ? Url("jquery-1.6.2.min.js") : Url("jquery-1.6.2.js");
