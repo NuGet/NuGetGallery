@@ -24,8 +24,8 @@ namespace NuGetGallery
                 var result = controller.CreatePackage(Guid.NewGuid());
 
                 // Assert
-                Assert.IsType<HttpUnauthorizedResult>(result);
-                var statusCodeResult = (HttpUnauthorizedResult)result;
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var statusCodeResult = (HttpStatusCodeResult)result;
                 Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "push"), statusCodeResult.StatusDescription);
             }
 
@@ -113,8 +113,8 @@ namespace NuGetGallery
 
                 var result = controller.DeletePackage(Guid.NewGuid(), "theId", "1.0.42");
 
-                Assert.IsType<HttpUnauthorizedResult>(result);
-                var statusCodeResult = (HttpUnauthorizedResult)result;
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var statusCodeResult = (HttpStatusCodeResult)result;
                 Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
             }
 
@@ -172,8 +172,8 @@ namespace NuGetGallery
 
                 var result = controller.DeletePackage(apiKey, "theId", "1.0.42");
 
-                Assert.IsType<HttpUnauthorizedResult>(result);
-                var statusCodeResult = (HttpUnauthorizedResult)result;
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var statusCodeResult = (HttpStatusCodeResult)result;
                 Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
             }
 
@@ -207,9 +207,13 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
                 var controller = CreateController(userSvc: userSvc);
 
-                var ex = Assert.Throws<EntityException>(() => controller.PublishPackage(Guid.NewGuid(), "theId", "1.0.42"));
 
-                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "publish"), ex.Message);
+                var result = controller.PublishPackage(Guid.NewGuid(), "theId", "1.0.42");
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpNotFoundResult = (HttpStatusCodeResult)result;
+                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "publish"), httpNotFoundResult.StatusDescription);
             }
 
             [Fact]

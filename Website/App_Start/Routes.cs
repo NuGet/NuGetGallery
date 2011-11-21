@@ -103,7 +103,7 @@ namespace NuGetGallery
                 "api/v2/package",
                 MVC.Api.CreatePackage(),
                 defaults: null,
-                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
+                constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
                 RouteName.PublishPackageApi,

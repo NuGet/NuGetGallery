@@ -36,12 +36,12 @@ namespace NuGetGallery
             return packageFileSvc.CreateDownloadPackageActionResult(package);
         }
 
-        [ActionName("PushPackageApi"), HttpPost, RequireRemoteHttps]
+        [ActionName("PushPackageApi"), HttpPut, RequireRemoteHttps]
         public virtual ActionResult CreatePackage(Guid apiKey)
         {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
-                return new HttpUnauthorizedResult(string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                return new HttpStatusCodeResult((int)HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
 
             var packageToPush = ReadPackageFromRequest();
 
@@ -50,7 +50,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult((int)HttpStatusCode.Conflict, string.Format(Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString()));
 
             package = packageSvc.CreatePackage(packageToPush, user);
-            return new EmptyResult();
+            return new HttpStatusCodeResult(201);
         }
 
         [ActionName("DeletePackageApi"), HttpDelete, RequireRemoteHttps]
@@ -58,14 +58,14 @@ namespace NuGetGallery
         {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
-                return new HttpUnauthorizedResult(string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+                return new HttpStatusCodeResult((int)HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
 
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
                 return new HttpNotFoundResult(string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
 
             if (!package.IsOwner(user))
-                return new HttpUnauthorizedResult(string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+                return new HttpStatusCodeResult((int)HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
 
             packageSvc.MarkPackageUnlisted(package);
             return new EmptyResult();
@@ -76,7 +76,7 @@ namespace NuGetGallery
         {
             var user = userSvc.FindByApiKey(key);
             if (user == null)
-                throw new EntityException(Strings.ApiKeyNotAuthorized, "publish");
+                return new HttpStatusCodeResult((int)HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
 
             packageSvc.PublishPackage(id, version);
             return new EmptyResult();
