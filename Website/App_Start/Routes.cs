@@ -90,7 +90,7 @@ namespace NuGetGallery
                 RouteName.DownloadPackage,
                 "api/v2/package/{id}/{version}",
                 MVC.Api.GetPackage(),
-                defaults: null,
+                defaults: new { version = "" },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(

@@ -23,7 +23,8 @@ namespace NuGetGallery
         [ActionName("GetPackageApi"), HttpGet]
         public virtual ActionResult GetPackage(string id, string version)
         {
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            // if the version is null, the user is asking for the latest version. Presumably they don't want pre release versions.
+            var package = packageSvc.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
 
             if (package == null)
                 return new HttpNotFoundResult(string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));

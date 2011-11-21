@@ -102,8 +102,9 @@ namespace NuGetGallery
                                                             .Include(p => p.Authors)
                                                             .Include(p => p.PackageRegistration)
                                                             .Where(p => (p.PackageRegistration.Id == id));
-            if (!allowPrerelease) 
+            if (string.IsNullOrEmpty(version) && !allowPrerelease) 
             {
+                // If there's a specific version given, don't bother filtering by prerelease. You could be asking for a prerelease package.
                 packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
             }
             var packageVersions = packagesQuery.ToList();
