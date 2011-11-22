@@ -827,6 +827,7 @@ header.main {
         
         .form-field {
             margin-bottom: 10px;
+            position: relative;
         }
         
             .form-field label {
@@ -885,10 +886,11 @@ header.main {
             .field-hint-message,
             .field-validation-error {
                 font-size: 1em;
+                left: 330px;
                 line-height: 1.2em;
-                margin: -31px 0 0 330px;
                 padding: 5px;
                 position: absolute;
+                top: 30px;
                 width: 400px;
                 z-index: 550;
             }
