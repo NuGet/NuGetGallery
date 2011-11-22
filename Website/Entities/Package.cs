@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
+    [DisplayColumn("Title")]
     public class Package : IEntity
     {
         public Package()
