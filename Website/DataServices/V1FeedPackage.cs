@@ -33,6 +33,7 @@ namespace NuGetGallery
         public DateTime? Published { get; set; }
         public string ReportAbuseUrl { get; set; }
         public bool RequireLicenseAcceptance { get; set; }
+        public string ReleaseNotes { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
         public string Title { get; set; }
