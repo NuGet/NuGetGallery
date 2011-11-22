@@ -2,6 +2,7 @@
 using System.Web;
 using NuGetGallery.Jobs;
 using WebBackgrounder;
+using Elmah;
 
 [assembly: WebActivator.PostApplicationStartMethod(typeof(NuGetGallery.BackgroundTasksSetup), "Start")]
 [assembly: WebActivator.ApplicationShutdownMethodAttribute(typeof(NuGetGallery.BackgroundTasksSetup), "Stop")]
@@ -21,7 +22,7 @@ namespace NuGetGallery
 
             var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext()));
             var manager = new JobManager(jobs, jobCoordinator);
-            manager.Fail(e => Elmah.ErrorSignal.Get(_elmahHttpApplication).Raise(e));
+            manager.Fail(e => Elmah.ErrorLog.GetDefault(null).Log(new Error(e)));
             return manager;
         }
 

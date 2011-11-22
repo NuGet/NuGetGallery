@@ -128,9 +128,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebActivator.1.4.4\lib\net40\WebActivator.dll</HintPath>
     </Reference>
-    <Reference Include="WebBackgrounder, Version=0.0.1.5, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="WebBackgrounder, Version=0.0.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WebBackgrounder.0.0.1.5\lib\net40\WebBackgrounder.dll</HintPath>
+      <HintPath>..\packages\WebBackgrounder.0.0.1.6\lib\net40\WebBackgrounder.dll</HintPath>
     </Reference>
     <Reference Include="WebBackgrounder.EntityFramework, Version=0.0.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
