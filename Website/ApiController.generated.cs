@@ -38,8 +38,13 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult CreatePackage() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackage);
+        public System.Web.Mvc.ActionResult CreatePackagePut() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePut);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult CreatePackagePost() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePost);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -65,7 +70,8 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string GetPackage = "GetPackageApi";
-            public readonly string CreatePackage = "PushPackageApi";
+            public readonly string CreatePackagePut = "PushPackageApi";
+            public readonly string CreatePackagePost = "PushPackageApi";
             public readonly string DeletePackage = "DeletePackageApi";
             public readonly string PublishPackage = "PublishPackageApi";
         }
@@ -90,8 +96,14 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult CreatePackage(System.Guid apiKey) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackage);
+        public override System.Web.Mvc.ActionResult CreatePackagePut(System.Guid apiKey) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePut);
+            callInfo.RouteValueDictionary.Add("apiKey", apiKey);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult CreatePackagePost(System.Guid apiKey) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePost);
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             return callInfo;
         }
