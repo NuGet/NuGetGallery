@@ -485,13 +485,13 @@ namespace NuGetGallery
         }
 
         // this methods exist to make unit testing easier
-        public virtual IIdentity GetIdentity()
+        protected internal virtual IIdentity GetIdentity()
         {
             return User.Identity;
         }
 
         // this methods exist to make unit testing easier
-        public virtual IPackage ReadNuGetPackage(Stream stream)
+        protected internal virtual IPackage ReadNuGetPackage(Stream stream)
         {
             return new ZipPackage(stream);
         }

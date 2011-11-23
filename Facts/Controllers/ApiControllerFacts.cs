@@ -21,7 +21,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc);
 
                 // Act
-                var result = controller.CreatePackage(Guid.NewGuid());
+                var result = controller.CreatePackagePut(Guid.NewGuid());
 
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
@@ -42,7 +42,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
 
                 // Act
-                var result = controller.CreatePackage(Guid.NewGuid());
+                var result = controller.CreatePackagePut(Guid.NewGuid());
 
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
@@ -63,7 +63,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
                 var apiKey = Guid.NewGuid();
 
-                controller.CreatePackage(apiKey);
+                controller.CreatePackagePut(apiKey);
 
                 userSvc.Verify(x => x.FindByApiKey(apiKey));
             }
@@ -79,7 +79,7 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
 
-                controller.CreatePackage(Guid.NewGuid());
+                controller.CreatePackagePut(Guid.NewGuid());
 
                 packageSvc.Verify(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>()));
             }
@@ -96,7 +96,7 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
 
-                controller.CreatePackage(Guid.NewGuid());
+                controller.CreatePackagePut(Guid.NewGuid());
 
                 packageSvc.Verify(x => x.CreatePackage(It.IsAny<IPackage>(), matchingUser));
             }
@@ -201,70 +201,16 @@ namespace NuGetGallery
         public class ThePublishPackageAction
         {
             [Fact]
-            public void WillThrowIfTheApiKeyDoesNotExist()
+            public void PublishPackageNoOps()
             {
-                var userSvc = new Mock<IUserService>();
-                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
-                var controller = CreateController(userSvc: userSvc);
-
-
-                var result = controller.PublishPackage(Guid.NewGuid(), "theId", "1.0.42");
-
-                // Assert
-                Assert.IsType<HttpStatusCodeResult>(result);
-                var httpNotFoundResult = (HttpStatusCodeResult)result;
-                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "publish"), httpNotFoundResult.StatusDescription);
-            }
-
-            [Fact]
-            public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist()
-            {
-                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
-                var packageRepo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                packageRepo.Setup(r => r.GetAll()).Returns(new[] { new Package { PackageRegistration = new PackageRegistration { Id = "not-the-id" }, Version = "1.1" } }.AsQueryable())
-                                                  .Verifiable(); 
-                var packageService = new PackageService(new Mock<ICryptographyService>(MockBehavior.Strict).Object, packageRegistrationRepo.Object, packageRepo.Object, 
-                    new Mock<IEntityRepository<PackageStatistics>>(MockBehavior.Strict).Object, 
-                    new Mock<IPackageFileService>(MockBehavior.Strict).Object, 
-                    new Mock<IEntityRepository<PackageOwnerRequest>>(MockBehavior.Strict).Object);
-
-                var userSvc = new Mock<IUserService>();
-                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
-                var controller = new Mock<ApiController>(packageService, new Mock<IPackageFileService>().Object, userSvc.Object) { CallBase = true };
-                var ex = Assert.Throws<EntityException>(() => controller.Object.PublishPackage(Guid.NewGuid(), "theId", "1.0.42"));
-
-                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
-                packageRepo.Verify();
-            }
-
-            [Fact]
-            public void WillFindTheUserThatMatchesTheApiKey()
-            {
-                var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(new Package());
-                var userSvc = new Mock<IUserService>();
-                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
+                var userSvc = new Mock<IUserService>(MockBehavior.Strict);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
                 var apiKey = Guid.NewGuid();
 
-                controller.PublishPackage(apiKey, "theId", "1.0.42");
+                var result = controller.PublishPackage(apiKey, "theId", "1.0.42");
 
-                userSvc.Verify(x => x.FindByApiKey(apiKey));
-            }
-
-            [Fact]
-            public void WillPublishThePackage()
-            {
-                var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(new Package());
-                var userSvc = new Mock<IUserService>();
-                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
-                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
-                var apiKey = Guid.NewGuid();
-
-                controller.PublishPackage(apiKey, "theId", "1.0.42");
-
-                packageSvc.Verify(x => x.PublishPackage("theId", "1.0.42"));
+                Assert.IsType<EmptyResult>(result);
             }
         }
 
