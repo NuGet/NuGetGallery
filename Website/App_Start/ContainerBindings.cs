@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
+using Ninject;
 using Ninject.Modules;
 
 namespace NuGetGallery
@@ -21,12 +22,16 @@ namespace NuGetGallery
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
 
-            GallerySetting settings;
-            using (var entitiesContext = new EntitiesContext())
+            Lazy<GallerySetting> gallerySetting = new Lazy<GallerySetting>(() =>
             {
-                var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
-                settings = settingsRepo.GetAll().FirstOrDefault();
-            }
+                using (var entitiesContext = new EntitiesContext())
+                {
+                    var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
+                    return settingsRepo.GetAll().FirstOrDefault();
+                }
+            });
+
+            Bind<GallerySetting>().ToMethod(c => gallerySetting.Value);
 
             Bind<EntitiesContext>()
                 .ToMethod(context => new EntitiesContext())
@@ -76,10 +81,10 @@ namespace NuGetGallery
                 .To<NuGetControllerFactory>()
                 .InRequestScope();
 
-            Lazy<IMailSender> mailSenderThunk = null;
-            if (configuration.UseSmtp)
+            Lazy<IMailSender> mailSenderThunk = new Lazy<IMailSender>(() =>
             {
-                mailSenderThunk = new Lazy<IMailSender>(() =>
+                var settings = Kernel.Get<GallerySetting>();
+                if (settings.UseSmtp)
                 {
                     var mailSenderConfiguration = new MailSenderConfiguration()
                     {
@@ -94,11 +99,8 @@ namespace NuGetGallery
                     };
 
                     return new MailSender(mailSenderConfiguration);
-                });
-            }
-            else
-            {
-                mailSenderThunk = new Lazy<IMailSender>(() =>
+                }
+                else
                 {
                     var mailSenderConfiguration = new MailSenderConfiguration()
                     {
@@ -107,8 +109,9 @@ namespace NuGetGallery
                     };
 
                     return new MailSender(mailSenderConfiguration);
-                });
-            }
+                }
+            });
+
             Bind<IMailSender>()
                 .ToMethod(context => mailSenderThunk.Value);
 

@@ -6,16 +6,16 @@ namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        readonly IConfiguration configuration;
+        readonly GallerySetting settings;
         readonly ICryptographyService cryptoSvc;
         readonly IEntityRepository<User> userRepo;
 
         public UserService(
-            IConfiguration configuration,
+            GallerySetting settings,
             ICryptographyService cryptoSvc,
             IEntityRepository<User> userRepo)
         {
-            this.configuration = configuration;
+            this.settings = settings;
             this.cryptoSvc = cryptoSvc;
             this.userRepo = userRepo;
         }
@@ -48,7 +48,7 @@ namespace NuGetGallery
                     EmailConfirmationToken = cryptoSvc.GenerateToken()
                 };
 
-            if (!configuration.ConfirmEmailAddresses)
+            if (!settings.ConfirmEmailAddresses)
             {
                 newUser.ConfirmEmailAddress();
             }

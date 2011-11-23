@@ -89,9 +89,8 @@ namespace NuGetGallery
                         EmailAddress = "to@example.com",
                         EmailConfirmationToken = "confirmation"
                     });
-                var config = new Mock<IConfiguration>();
-                config.Setup(c => c.ConfirmEmailAddresses).Returns(true);
-                var controller = CreateController(config: config, userSvc: userSvc, messageSvc: messageSvc);
+                var settings = new GallerySetting { ConfirmEmailAddresses = true };
+                var controller = CreateController(settings: settings, userSvc: userSvc, messageSvc: messageSvc);
 
                 controller.Register(new RegisterRequest()
                 {
@@ -389,8 +388,37 @@ namespace NuGetGallery
             }
         }
 
+        public class TheThanksMethod
+        {
+            [Fact]
+            public void ShowsDefaultThanksViewWhenConfirmingEmailAddressIsRequired()
+            {
+                var settings = new GallerySetting { ConfirmEmailAddresses = true };
+                var controller = CreateController(settings: settings);
+
+                var result = controller.Thanks() as ViewResult;
+
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.Model);
+            }
+
+            [Fact]
+            public void ShowsConfirmViewWithModelWhenConfirmingEmailAddressIsNotRequired()
+            {
+                var settings = new GallerySetting { ConfirmEmailAddresses = false };
+                var controller = CreateController(settings: settings);
+
+                var result = controller.Thanks() as ViewResult;
+
+                Assert.Equal("Confirm", result.ViewName);
+                var model = result.Model as EmailConfirmationModel;
+                Assert.True(model.ConfirmingNewAccount);
+                Assert.True(model.SuccessfulConfirmation);
+            }
+        }
+
         static UsersController CreateController(
-            Mock<IConfiguration> config = null,
+            GallerySetting settings = null,
             Mock<IFormsAuthenticationService> formsAuthSvc = null,
             Mock<IUserService> userSvc = null,
             Mock<IMessageService> messageSvc = null,
@@ -400,7 +428,7 @@ namespace NuGetGallery
             userSvc = userSvc ?? new Mock<IUserService>();
             var packageService = new Mock<IPackageService>();
             messageSvc = messageSvc ?? new Mock<IMessageService>();
-            config = config ?? new Mock<IConfiguration>();
+            settings = settings ?? new GallerySetting();
 
             if (currentUser == null)
             {
@@ -413,7 +441,7 @@ namespace NuGetGallery
                 userSvc.Object,
                 packageService.Object,
                 messageSvc.Object,
-                config.Object,
+                settings,
                 currentUser.Object);
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), controller);
