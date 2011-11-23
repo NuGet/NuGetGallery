@@ -65,26 +65,23 @@ Write(ViewHelpers.UploadSequence(2));
             
             #line default
             #line hidden
-WriteLiteral("\r\n\r\n<h2>Verify Details</h2>\r\n<p class=\"long note\">\r\n    These package details are" +
-" read from the package file and cannot be changed. \r\n    If you have a newer ver" +
-"sion of your package that you’d like to submit in place \r\n    of this one, <a hr" +
-"ef=\"");
+WriteLiteral(@"
+
+<h2>Verify Details</h2>
+<p class=""long note"">
+    These package details are read from the package file and cannot be changed. 
+    If anything below is incorrect, click Cancel and upload 
+    a correct package.
+</p>
+
+<ul id=""packageDetails"">
+    <li>
+        <h3>Package ID</h3>
+        <p>");
 
 
             
-            #line 16 "..\..\Views\Packages\VerifyPackage.cshtml"
-                     Write(Url.UploadPackage());
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\">click here to add a new \r\n    contribution</a>. Ensure that the new version has" +
-" the same Package ID, but a \r\n    new Version number.\r\n</p>\r\n\r\n<ul id=\"packageDe" +
-"tails\">\r\n    <li>\r\n        <h3>Package ID</h3>\r\n        <p>");
-
-
-            
-            #line 24 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 22 "..\..\Views\Packages\VerifyPackage.cshtml"
       Write(Model.Id);
 
             
@@ -94,7 +91,7 @@ WriteLiteral("</p>\r\n    </li>\r\n    <li>\r\n        <h3>Version</h3>\r\n     
 
 
             
-            #line 28 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 26 "..\..\Views\Packages\VerifyPackage.cshtml"
       Write(Model.Version);
 
             
@@ -104,7 +101,7 @@ WriteLiteral("</p>\r\n    </li>\r\n");
 
 
             
-            #line 30 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 28 "..\..\Views\Packages\VerifyPackage.cshtml"
      if (!String.IsNullOrEmpty(Model.Title)) {
 
             
@@ -114,7 +111,7 @@ WriteLiteral("        <li>\r\n            <h3>Title</h3>\r\n            <p>");
 
 
             
-            #line 33 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 31 "..\..\Views\Packages\VerifyPackage.cshtml"
           Write(Model.Title);
 
             
@@ -124,7 +121,7 @@ WriteLiteral("</p>\r\n        </li>\r\n");
 
 
             
-            #line 35 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 33 "..\..\Views\Packages\VerifyPackage.cshtml"
     }
 
             
@@ -134,7 +131,7 @@ WriteLiteral("    <li>\r\n        <h3>Description</h3>\r\n        <p>");
 
 
             
-            #line 38 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 36 "..\..\Views\Packages\VerifyPackage.cshtml"
       Write(Model.Description);
 
             
@@ -144,7 +141,7 @@ WriteLiteral("</p>\r\n    </li>\r\n    <li>\r\n        <h3>Authors</h3>\r\n     
 
 
             
-            #line 42 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 40 "..\..\Views\Packages\VerifyPackage.cshtml"
       Write(Model.Authors);
 
             
@@ -154,7 +151,7 @@ WriteLiteral("</p>\r\n    </li>\r\n");
 
 
             
-            #line 44 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 42 "..\..\Views\Packages\VerifyPackage.cshtml"
      if (!String.IsNullOrEmpty(Model.Tags)) {
 
             
@@ -164,7 +161,7 @@ WriteLiteral("        <li>\r\n            <h3>Tags</h3>\r\n            <p>");
 
 
             
-            #line 47 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 45 "..\..\Views\Packages\VerifyPackage.cshtml"
           Write(Model.Tags);
 
             
@@ -174,7 +171,7 @@ WriteLiteral("</p>\r\n        </li>\r\n");
 
 
             
-            #line 49 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 47 "..\..\Views\Packages\VerifyPackage.cshtml"
     }
 
             
@@ -182,7 +179,7 @@ WriteLiteral("</p>\r\n        </li>\r\n");
             #line hidden
 
             
-            #line 50 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 48 "..\..\Views\Packages\VerifyPackage.cshtml"
      if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
 
             
@@ -192,7 +189,7 @@ WriteLiteral("        <li>\r\n            <h3>License URL</h3>\r\n            <p
 
 
             
-            #line 54 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 52 "..\..\Views\Packages\VerifyPackage.cshtml"
                  if (Model.RequiresLicenseAcceptance) {
             
             #line default
@@ -201,7 +198,7 @@ WriteLiteral("Acceptance of license required: ");
 
 
             
-            #line 54 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 52 "..\..\Views\Packages\VerifyPackage.cshtml"
                                                                                                     }
 
             
@@ -211,7 +208,7 @@ WriteLiteral("                <a href=\"");
 
 
             
-            #line 55 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 53 "..\..\Views\Packages\VerifyPackage.cshtml"
                     Write(Model.LicenseUrl);
 
             
@@ -221,7 +218,7 @@ WriteLiteral("\" target=\"_blank\">");
 
 
             
-            #line 55 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 53 "..\..\Views\Packages\VerifyPackage.cshtml"
                                                        Write(Model.LicenseUrl);
 
             
@@ -231,7 +228,7 @@ WriteLiteral("</a>\r\n                \r\n            </p>\r\n        </li>\r\n"
 
 
             
-            #line 59 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 57 "..\..\Views\Packages\VerifyPackage.cshtml"
     }
 
             
@@ -239,7 +236,7 @@ WriteLiteral("</a>\r\n                \r\n            </p>\r\n        </li>\r\n"
             #line hidden
 
             
-            #line 60 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 58 "..\..\Views\Packages\VerifyPackage.cshtml"
      if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
 
             
@@ -249,7 +246,7 @@ WriteLiteral("        <li>\r\n            <h3>Project URL</h3>\r\n            <p
 
 
             
-            #line 63 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 61 "..\..\Views\Packages\VerifyPackage.cshtml"
                    Write(Model.ProjectUrl);
 
             
@@ -259,7 +256,7 @@ WriteLiteral("\" target=\"_blank\">");
 
 
             
-            #line 63 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 61 "..\..\Views\Packages\VerifyPackage.cshtml"
                                                       Write(Model.ProjectUrl);
 
             
@@ -269,7 +266,7 @@ WriteLiteral("</a></p>\r\n        </li>\r\n");
 
 
             
-            #line 65 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 63 "..\..\Views\Packages\VerifyPackage.cshtml"
     }
 
             
@@ -279,7 +276,7 @@ WriteLiteral("</ul>\r\n\r\n\r\n<h2>Submit Package</h2>\r\n");
 
 
             
-            #line 70 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 68 "..\..\Views\Packages\VerifyPackage.cshtml"
  using (Html.BeginForm()) {
 
             
@@ -289,7 +286,7 @@ WriteLiteral("<fieldset class=\"form\">\r\n    <legend>Submit Package</legend>\r
 
 
             
-            #line 73 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 71 "..\..\Views\Packages\VerifyPackage.cshtml"
 Write(Html.AntiForgeryToken());
 
             
@@ -299,7 +296,7 @@ WriteLiteral("\r\n    <div class=\"form-field\">\r\n        ");
 
 
             
-            #line 75 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 73 "..\..\Views\Packages\VerifyPackage.cshtml"
    Write(Html.EditorFor(package => package.Listed));
 
             
@@ -311,7 +308,7 @@ WriteLiteral("\r\n        <label for=\"Listed\" class=\"checkbox\">\r\n         
 
 
             
-            #line 81 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 79 "..\..\Views\Packages\VerifyPackage.cshtml"
                        Write(Url.Action(MVC.Packages.CancelUpload()));
 
             
@@ -321,7 +318,7 @@ WriteLiteral("\" title=\"Cancel the upload in progress.\">Cancel</a>\r\n</fields
 
 
             
-            #line 83 "..\..\Views\Packages\VerifyPackage.cshtml"
+            #line 81 "..\..\Views\Packages\VerifyPackage.cshtml"
 }
 
             
