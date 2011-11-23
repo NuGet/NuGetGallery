@@ -21,7 +21,7 @@ namespace NuGetGallery
             string id, 
             string version)
         {
-            return string.Format(Const.PackageFileSavePathTemplate, id, version, Const.NuGetPackageFileExtension);
+            return String.Format(Const.PackageFileSavePathTemplate, id, version, Const.NuGetPackageFileExtension);
         }
 
         public ActionResult CreateDownloadPackageActionResult(Package package)
@@ -29,8 +29,8 @@ namespace NuGetGallery
             if (package == null)
                 throw new ArgumentNullException("package");
             if (package.PackageRegistration == null 
-                || string.IsNullOrWhiteSpace(package.PackageRegistration.Id) 
-                || string.IsNullOrWhiteSpace(package.Version))
+                || String.IsNullOrWhiteSpace(package.PackageRegistration.Id) 
+                || String.IsNullOrWhiteSpace(package.Version))
                 throw new ArgumentException("The package is missing required data.", "package");
             
             var fileName = BuildFileName(
@@ -46,9 +46,9 @@ namespace NuGetGallery
             string id, 
             string version)
         {
-            if (string.IsNullOrWhiteSpace(id))
+            if (String.IsNullOrWhiteSpace(id))
                 throw new ArgumentNullException("id");
-            if (string.IsNullOrWhiteSpace(version))
+            if (String.IsNullOrWhiteSpace(version))
                 throw new ArgumentNullException("version");
 
             var fileName = BuildFileName(id, version);
@@ -67,8 +67,8 @@ namespace NuGetGallery
             if (packageFile == null)
                 throw new ArgumentNullException("packageFile");
             if (package.PackageRegistration == null 
-                || string.IsNullOrWhiteSpace(package.PackageRegistration.Id) 
-                || string.IsNullOrWhiteSpace(package.Version))
+                || String.IsNullOrWhiteSpace(package.PackageRegistration.Id) 
+                || String.IsNullOrWhiteSpace(package.Version))
                 throw new ArgumentException("The package is missing required data.", "package");
 
             var fileName = BuildFileName(

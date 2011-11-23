@@ -12,7 +12,7 @@ namespace NuGetGallery
         public EntityException(
             string message,
             params object[] args)
-            : base(string.Format(message, args))
+            : base(String.Format(message, args))
         {
         }
     }

@@ -60,7 +60,7 @@ namespace NuGetGallery
             get { return 0.0; }
         }
 
-        public string Categories { get { return string.Empty; } }
+        public string Categories { get { return String.Empty; } }
         public string Language { get { return ""; } }
         public string PackageType { get { return "Package"; } }
         public decimal Price { get { return 0; } }

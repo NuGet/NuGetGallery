@@ -399,7 +399,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.UploadFileIsRequired, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UploadFileIsRequired, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -419,7 +419,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.UploadFileMustBeNuGetPackage, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UploadFileMustBeNuGetPackage, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -441,7 +441,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.FailedToReadUploadFile, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.FailedToReadUploadFile, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -465,7 +465,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(string.Format(Strings.PackageIdNotAvailable, "theId"), controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -488,7 +488,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(string.Format(Strings.PackageExistsAndCannotBeModified, "theId", "theVersion"), controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "theVersion"), controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -1009,7 +1009,7 @@ namespace NuGetGallery
 
                 controller.VerifyPackage(false);
 
-                Assert.Equal(string.Format(Strings.SuccessfullyUploadedPackage, "theId", "theVersion"), controller.TempData["Message"]);
+                Assert.Equal(String.Format(Strings.SuccessfullyUploadedPackage, "theId", "theVersion"), controller.TempData["Message"]);
                 fakeFileStream.Dispose();
             }
 

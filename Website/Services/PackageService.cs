@@ -88,7 +88,7 @@ namespace NuGetGallery
 
         public virtual Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true)
         {
-            if (string.IsNullOrWhiteSpace(id))
+            if (String.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentNullException("id");
             }
@@ -102,7 +102,7 @@ namespace NuGetGallery
                                                             .Include(p => p.Authors)
                                                             .Include(p => p.PackageRegistration)
                                                             .Where(p => (p.PackageRegistration.Id == id));
-            if (string.IsNullOrEmpty(version) && !allowPrerelease) 
+            if (String.IsNullOrEmpty(version) && !allowPrerelease) 
             {
                 // If there's a specific version given, don't bother filtering by prerelease. You could be asking for a prerelease package.
                 packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
@@ -297,7 +297,7 @@ namespace NuGetGallery
         {
             if (nugetPackage.Id.Length > 128)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "128");
-            if (nugetPackage.Authors != null && string.Join(",", nugetPackage.Authors.ToArray()).Length > 4000)
+            if (nugetPackage.Authors != null && String.Join(",", nugetPackage.Authors.ToArray()).Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
             if (nugetPackage.Copyright != null && nugetPackage.Copyright.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000");
@@ -481,7 +481,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("user");
             }
 
-            if (string.IsNullOrEmpty(token))
+            if (String.IsNullOrEmpty(token))
             {
                 throw new ArgumentNullException("token");
             }

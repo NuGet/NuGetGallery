@@ -15,7 +15,7 @@ namespace NuGetGallery.Controllers
             public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
             {
                 var controller = CreateController();
-                controller.ModelState.AddModelError(string.Empty, "aFakeError");
+                controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
                 var result = controller.LogOn(null, null) as ViewResult;
 
@@ -99,7 +99,7 @@ namespace NuGetGallery.Controllers
                 Assert.NotNull(result);
                 Assert.Empty(result.ViewName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.UserNotFound, controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UserNotFound, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]

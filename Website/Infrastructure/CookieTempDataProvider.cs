@@ -25,7 +25,7 @@ namespace NuGetGallery
         {
             var cookie = httpContext.Request.Cookies[TempDataCookieKey];
             var dictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-            if ((cookie == null) || string.IsNullOrEmpty(cookie.Value))
+            if ((cookie == null) || String.IsNullOrEmpty(cookie.Value))
             {
                 return dictionary;
             }
@@ -34,11 +34,11 @@ namespace NuGetGallery
                 dictionary[key] = cookie[key];
             }
             cookie.Expires = DateTime.MinValue;
-            cookie.Value = string.Empty;
+            cookie.Value = String.Empty;
             if (CookieHasTempData)
             {
                 cookie.Expires = DateTime.MinValue;
-                cookie.Value = string.Empty;
+                cookie.Value = String.Empty;
             }
             return dictionary;
         }

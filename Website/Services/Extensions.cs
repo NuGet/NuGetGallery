@@ -34,7 +34,7 @@ namespace NuGetGallery
 
         public static IQueryable<Package> Search(this IQueryable<Package> source, string searchTerm)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm))
+            if (String.IsNullOrWhiteSpace(searchTerm))
             {
                 return source;
             }

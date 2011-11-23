@@ -70,7 +70,7 @@ namespace NuGetGallery
                 }
                 catch (EntityException ex)
                 {
-                    ModelState.AddModelError(string.Empty, ex.Message);
+                    ModelState.AddModelError(String.Empty, ex.Message);
                     return View(profile);
                 }
 
@@ -115,7 +115,7 @@ namespace NuGetGallery
             }
             catch (EntityException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(String.Empty, ex.Message);
                 return View();
             }
 

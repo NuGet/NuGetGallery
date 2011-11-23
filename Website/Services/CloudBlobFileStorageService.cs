@@ -46,9 +46,9 @@ namespace NuGetGallery
             string folderName, 
             string fileName)
         {
-            if (string.IsNullOrWhiteSpace(folderName))
+            if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
-            if (string.IsNullOrWhiteSpace(fileName))
+            if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
             
             var container = GetContainer(folderName);

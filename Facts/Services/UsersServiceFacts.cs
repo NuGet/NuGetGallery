@@ -24,7 +24,7 @@ namespace NuGetGallery
                         "theUsername",
                         "thePassword",
                         "theEmailAddress"));
-                Assert.Equal(string.Format(Strings.UsernameNotAvailable, "theUsername"), ex.Message);
+                Assert.Equal(String.Format(Strings.UsernameNotAvailable, "theUsername"), ex.Message);
             }
 
             [Fact]
@@ -42,7 +42,7 @@ namespace NuGetGallery
                         "theUsername",
                         "thePassword",
                         "theEmailAddress"));
-                Assert.Equal(string.Format(Strings.EmailAddressBeingUsed, "theEmailAddress"), ex.Message);
+                Assert.Equal(String.Format(Strings.EmailAddressBeingUsed, "theEmailAddress"), ex.Message);
             }
 
             [Fact]

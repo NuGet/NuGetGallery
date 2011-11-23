@@ -29,9 +29,9 @@ namespace NuGetGallery
             string folderName, 
             string fileName)
         {
-            if (string.IsNullOrWhiteSpace(folderName))
+            if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
-            if (string.IsNullOrWhiteSpace(fileName))
+            if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
             
             var path = BuildPath(configuration.FileStorageDirectory, folderName, fileName);
@@ -50,7 +50,7 @@ namespace NuGetGallery
                 case Const.PackagesFolderName:
                     return Const.PackageContentType;
                 default:
-                    throw new InvalidOperationException(string.Format("The folder name {0} is not supported.", folderName));
+                    throw new InvalidOperationException(String.Format("The folder name {0} is not supported.", folderName));
             }
         }
 
@@ -58,9 +58,9 @@ namespace NuGetGallery
             string folderName, 
             string fileName)
         {
-            if (string.IsNullOrWhiteSpace(folderName))
+            if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
-            if (string.IsNullOrWhiteSpace(fileName))
+            if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
             
             var path = BuildPath(configuration.FileStorageDirectory, folderName, fileName);
@@ -72,9 +72,9 @@ namespace NuGetGallery
             string folderName, 
             string fileName)
         {
-            if (string.IsNullOrWhiteSpace(folderName))
+            if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
-            if (string.IsNullOrWhiteSpace(fileName))
+            if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
 
             var path = BuildPath(configuration.FileStorageDirectory, folderName, fileName);
@@ -89,9 +89,9 @@ namespace NuGetGallery
             string fileName, 
             Stream fileStream)
         {
-            if (string.IsNullOrWhiteSpace(folderName))
+            if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
-            if (string.IsNullOrWhiteSpace(fileName))
+            if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
             if (fileStream == null)
                 throw new ArgumentNullException("fileStream");

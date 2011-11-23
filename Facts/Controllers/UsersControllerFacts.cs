@@ -16,7 +16,7 @@ namespace NuGetGallery
             public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
             {
                 var controller = CreateController();
-                controller.ModelState.AddModelError(string.Empty, "aFakeError");
+                controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
                 var result = controller.Register(null) as ViewResult;
 
@@ -65,7 +65,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Empty(result.ViewName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal("aMessage", controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal("aMessage", controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]

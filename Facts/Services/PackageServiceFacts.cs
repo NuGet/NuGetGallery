@@ -285,7 +285,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, currentUser));
 
-                Assert.Equal(string.Format(Strings.PackageIdNotAvailable, "theId"), ex.Message);
+                Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), ex.Message);
             }
 
             [Fact]
@@ -297,7 +297,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Id", "128"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", "128"), ex.Message);
             }
 
             [Fact]
@@ -309,7 +309,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Authors", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Authors", "4000"), ex.Message);
             }
 
             [Fact]
@@ -321,7 +321,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000"), ex.Message);
             }
 
             [Fact]
@@ -340,7 +340,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Dependencies", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependencies", "4000"), ex.Message);
             }
 
             [Fact]
@@ -352,7 +352,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Description", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Description", "4000"), ex.Message);
             }
 
             [Fact]
@@ -364,7 +364,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000"), ex.Message);
             }
 
             [Fact]
@@ -376,7 +376,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000"), ex.Message);
             }
 
             [Fact]
@@ -388,7 +388,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000"), ex.Message);
             }
 
             [Fact]
@@ -400,7 +400,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Summary", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Summary", "4000"), ex.Message);
             }
 
             [Fact]
@@ -412,7 +412,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Tags", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Tags", "4000"), ex.Message);
             }
 
             [Fact]
@@ -424,7 +424,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "Title", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Title", "4000"), ex.Message);
             }
         }
 
@@ -558,7 +558,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.DeletePackage("theId", "1.0.42"));
 
-                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+                Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
             }
         }
 
@@ -938,7 +938,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<EntityException>(() => service.PublishPackage("theId", "1.0.42"));
 
-                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+                Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
             }
         }
 

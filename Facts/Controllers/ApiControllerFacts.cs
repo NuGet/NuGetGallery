@@ -26,7 +26,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var statusCodeResult = (HttpStatusCodeResult)result;
-                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "push"), statusCodeResult.StatusDescription);
+                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "push"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -48,7 +48,7 @@ namespace NuGetGallery
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var statusCodeResult = (HttpStatusCodeResult)result;
                 Assert.Equal(409, statusCodeResult.StatusCode);
-                Assert.Equal(string.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.42"), statusCodeResult.StatusDescription);
+                Assert.Equal(String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.42"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -115,7 +115,7 @@ namespace NuGetGallery
 
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var statusCodeResult = (HttpStatusCodeResult)result;
-                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
+                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -131,7 +131,7 @@ namespace NuGetGallery
 
                 Assert.IsType<HttpNotFoundResult>(result);
                 var statusCodeResult = (HttpNotFoundResult)result;
-                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), statusCodeResult.StatusDescription);
+                Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -174,7 +174,7 @@ namespace NuGetGallery
 
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var statusCodeResult = (HttpStatusCodeResult)result;
-                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
+                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -213,7 +213,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var httpNotFoundResult = (HttpStatusCodeResult)result;
-                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "publish"), httpNotFoundResult.StatusDescription);
+                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "publish"), httpNotFoundResult.StatusDescription);
             }
 
             [Fact]
@@ -233,7 +233,7 @@ namespace NuGetGallery
                 var controller = new Mock<ApiController>(packageService, new Mock<IPackageFileService>().Object, userSvc.Object) { CallBase = true };
                 var ex = Assert.Throws<EntityException>(() => controller.Object.PublishPackage(Guid.NewGuid(), "theId", "1.0.42"));
 
-                Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+                Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
                 packageRepo.Verify();
             }
 
@@ -285,7 +285,7 @@ namespace NuGetGallery
             // Assert
             Assert.IsType<HttpNotFoundResult>(result);
             var httpNotFoundResult = (HttpNotFoundResult)result;
-            Assert.Equal(string.Format(Strings.PackageWithIdAndVersionNotFound, "Baz", "1.0.1"), httpNotFoundResult.StatusDescription);
+            Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "Baz", "1.0.1"), httpNotFoundResult.StatusDescription);
             packageSvc.Verify();
         }
 

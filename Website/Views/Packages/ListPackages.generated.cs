@@ -54,7 +54,7 @@ WriteLiteral("\r\n\r\n\r\n<hgroup class=\"search\">\r\n");
 
             
             #line 9 "..\..\Views\Packages\ListPackages.cshtml"
-     if (!string.IsNullOrEmpty(Model.SearchTerm)) {
+     if (!String.IsNullOrEmpty(Model.SearchTerm)) {
 
             
             #line default
