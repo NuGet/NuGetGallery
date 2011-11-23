@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Net.Mail;
 using System.Web;
 using Microsoft.WindowsAzure.ServiceRuntime;
 
@@ -80,16 +79,6 @@ namespace NuGetGallery
             }
         }
 
-        public bool ConfirmEmailAddresses
-        {
-            get
-            {
-                return ReadConfiguration<bool>(
-                    "ConfirmEmailAddresses",
-                    (value) => bool.Parse(value ?? bool.TrueString));
-            }
-        }
-
         public string FileStorageDirectory
         {
             get
@@ -100,16 +89,6 @@ namespace NuGetGallery
             }
         }
 
-        public MailAddress GalleryOwnerEmailAddress
-        {
-            get
-            {
-                return ReadConfiguration<MailAddress>(
-                    "GalleryOwnerEmail",
-                    (value) => new MailAddress(value));
-            }
-        }
-
         public PackageStoreType PackageStoreType
         {
             get
@@ -117,16 +96,6 @@ namespace NuGetGallery
                 return ReadConfiguration<PackageStoreType>(
                     "PackageStoreType",
                     (value) => (PackageStoreType)Enum.Parse(typeof(PackageStoreType), value ?? PackageStoreType.NotSpecified.ToString()));
-            }
-        }
-
-        public bool UseSmtp
-        {
-            get
-            {
-                return ReadConfiguration<bool>(
-                    "UseSmtp",
-                    (value) => bool.Parse(value ?? bool.FalseString));
             }
         }
     }

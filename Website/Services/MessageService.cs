@@ -9,12 +9,12 @@ namespace NuGetGallery
     public class MessageService : IMessageService
     {
         readonly IMailSender mailSender;
-        IConfiguration configuration;
+        GallerySetting settings;
 
-        public MessageService(IMailSender mailSender, IConfiguration configuration)
+        public MessageService(IMailSender mailSender, GallerySetting settings)
         {
             this.mailSender = mailSender;
-            this.configuration = configuration;
+            this.settings = settings;
         }
 
         private void SendMessage(MailMessage mailMessage)
@@ -46,17 +46,17 @@ _Message sent from {5}_
                 package.PackageRegistration.Id,
                 package.Version,
                 message,
-                configuration.GalleryOwnerEmailAddress.DisplayName);
+                settings.GalleryOwnerName);
 
             using (
                 var mailMessage = new MailMessage
                 {
-                    Subject = String.Format(subject, configuration.GalleryOwnerEmailAddress.DisplayName, package.PackageRegistration.Id, package.Version),
+                    Subject = String.Format(subject, settings.GalleryOwnerName, package.PackageRegistration.Id, package.Version),
                     Body = body,
                     From = fromAddress,
                 })
             {
-                mailMessage.To.Add(configuration.GalleryOwnerEmailAddress);
+                mailMessage.To.Add(settings.GalleryOwnerEmail);
                 SendMessage(mailMessage);
                 return mailMessage;
             }
@@ -80,13 +80,13 @@ _Message sent from {5}_
                 fromAddress.Address,
                 packageRegistration.Id,
                 message,
-                configuration.GalleryOwnerEmailAddress.DisplayName,
+                settings.GalleryOwnerName,
                 emailSettingsUrl);
 
             using (
                 var mailMessage = new MailMessage
                 {
-                    Subject = String.Format(subject, configuration.GalleryOwnerEmailAddress.DisplayName, packageRegistration.Id),
+                    Subject = String.Format(subject, settings.GalleryOwnerName, packageRegistration.Id),
                     Body = body,
                     From = fromAddress,
                 })
@@ -122,16 +122,16 @@ Thanks,
 The {0} Team";
 
             body = String.Format(body,
-                configuration.GalleryOwnerEmailAddress.DisplayName,
+                settings.GalleryOwnerName,
                 HttpUtility.UrlDecode(confirmationUrl),
                 confirmationUrl);
 
             using (
                 var mailMessage = new MailMessage
                 {
-                    Subject = String.Format("[{0}] Please verify your account.", configuration.GalleryOwnerEmailAddress.DisplayName),
+                    Subject = String.Format("[{0}] Please verify your account.", settings.GalleryOwnerName),
                     Body = body,
-                    From = configuration.GalleryOwnerEmailAddress,
+                    From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName),
                 })
             {
                 mailMessage.To.Add(toAddress);
@@ -152,16 +152,16 @@ Thanks,
 The {0} Team";
 
             body = String.Format(body,
-                configuration.GalleryOwnerEmailAddress.DisplayName,
+                settings.GalleryOwnerName,
                 HttpUtility.UrlDecode(confirmationUrl),
                 confirmationUrl);
 
             using (
                 var mailMessage = new MailMessage
                 {
-                    Subject = String.Format("[{0}] Please verify your new email address.", configuration.GalleryOwnerEmailAddress.DisplayName),
+                    Subject = String.Format("[{0}] Please verify your new email address.", settings.GalleryOwnerName),
                     Body = body,
-                    From = configuration.GalleryOwnerEmailAddress,
+                    From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName),
                 })
             {
                 mailMessage.To.Add(newEmailAddress);
@@ -181,16 +181,16 @@ Thanks,
 The {0} Team";
 
             body = String.Format(body,
-                configuration.GalleryOwnerEmailAddress.DisplayName,
+                settings.GalleryOwnerName,
                 oldEmailAddress,
                 user.EmailAddress);
 
             using (
                 var mailMessage = new MailMessage
                 {
-                    Subject = String.Format("[{0}] Recent changes to your account.", configuration.GalleryOwnerEmailAddress.DisplayName),
+                    Subject = String.Format("[{0}] Recent changes to your account.", settings.GalleryOwnerName),
                     Body = body,
-                    From = configuration.GalleryOwnerEmailAddress,
+                    From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName),
                 })
             {
                 mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
@@ -214,14 +214,14 @@ The {2} Team";
             body = String.Format(body,
                 Const.DefaultPasswordResetTokenExpirationHours,
                 resetPasswordUrl,
-                configuration.GalleryOwnerEmailAddress.DisplayName);
+                settings.GalleryOwnerName);
 
             using (
                 var mailMessage = new MailMessage
                 {
-                    Subject = String.Format("[{0}] Please reset your password.", configuration.GalleryOwnerEmailAddress.DisplayName),
+                    Subject = String.Format("[{0}] Please reset your password.", settings.GalleryOwnerName),
                     Body = body,
-                    From = configuration.GalleryOwnerEmailAddress,
+                    From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName),
                 })
             {
                 mailMessage.To.Add(user.ToMailAddress());
@@ -250,12 +250,12 @@ To accept this request and become a listed owner of the package, click the follo
 Thanks,
 The {3} Team";
 
-            body = String.Format(body, fromUser.Username, package.Id, confirmationUrl, configuration.GalleryOwnerEmailAddress.DisplayName);
+            body = String.Format(body, fromUser.Username, package.Id, confirmationUrl, settings.GalleryOwnerName);
 
             using (
                 var mailMessage = new MailMessage
                 {
-                    Subject = String.Format(subject, configuration.GalleryOwnerEmailAddress.DisplayName, fromUser.Username, package.Id),
+                    Subject = String.Format(subject, settings.GalleryOwnerName, fromUser.Username, package.Id),
                     Body = body,
                     From = fromUser.ToMailAddress(),
                 })

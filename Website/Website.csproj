@@ -216,6 +216,10 @@
     <Compile Include="Migrations\201111150729167_AddSmtpPassword.Designer.cs">
       <DependentUpon>201111150729167_AddSmtpPassword.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201111222338036_GalleryOwnerEmailSettings.cs" />
+    <Compile Include="Migrations\201111222338036_GalleryOwnerEmailSettings.Designer.cs">
+      <DependentUpon>201111222338036_GalleryOwnerEmailSettings.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Settings.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>

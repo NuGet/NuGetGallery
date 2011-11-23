@@ -4,7 +4,6 @@ using System.Net.Mail;
 using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
-using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -14,7 +13,7 @@ namespace NuGetGallery
         readonly IUserService userService;
         readonly IPackageService packageService;
         readonly IMessageService messageService;
-        readonly IConfiguration configuration;
+        readonly GallerySetting settings;
         readonly IPrincipal currentUser;
 
         public UsersController(
@@ -22,14 +21,14 @@ namespace NuGetGallery
             IUserService userSvc,
             IPackageService packageService,
             IMessageService messageService,
-            IConfiguration configuration,
+            GallerySetting settings,
             IPrincipal currentUser)
         {
             this.formsAuthSvc = formsAuthSvc;
             this.userService = userSvc;
             this.packageService = packageService;
             this.messageService = messageService;
-            this.configuration = configuration;
+            this.settings = settings;
             this.currentUser = currentUser;
         }
 
@@ -120,7 +119,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            if (configuration.ConfirmEmailAddresses)
+            if (settings.ConfirmEmailAddresses)
             {
                 // Passing in scheme to force fully qualified URL
                 var confirmationUrl = Url.ConfirmationUrl(MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
@@ -131,14 +130,14 @@ namespace NuGetGallery
 
         public virtual ActionResult Thanks()
         {
-            if (configuration.ConfirmEmailAddresses)
+            if (settings.ConfirmEmailAddresses)
             {
                 return View();
             }
             else
             {
-                ViewBag.Confirmed = true;
-                return View("Confirm");
+                var model = new EmailConfirmationModel { SuccessfulConfirmation = true, ConfirmingNewAccount = true };
+                return View("Confirm", model);
             }
         }
 
@@ -258,7 +257,7 @@ namespace NuGetGallery
             }
 
             var packages = (from p in packageService.FindPackagesByOwner(user)
-                           group p by p.PackageRegistration.Id)
+                            group p by p.PackageRegistration.Id)
                            .Select(c => new PackageViewModel(c.First()))
                            .ToList();
 

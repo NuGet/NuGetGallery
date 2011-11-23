@@ -1,3 +1,4 @@
+using System;
 using System.Data.Entity.Migrations;
 using System.Data.Entity.Migrations.Providers;
 using System.Data.SqlClient;
@@ -7,6 +8,9 @@ namespace NuGetGallery.Migrations
 {
     public class Settings : DbMigrationContext<MigrationsContext>
     {
+        const string GalleryOwnerEmail = "nugetgallery@outercurve.org";
+        const string GalleryOwnerName = "NuGet Gallery";
+
         public Settings()
         {
             AutomaticMigrationsEnabled = false;
@@ -36,8 +40,24 @@ namespace NuGetGallery.Migrations
                 gallerySettings.Add(new GallerySetting
                 {
                     SmtpHost = null,
-                    SmtpPort = null
+                    SmtpPort = null,
+                    GalleryOwnerEmail = GalleryOwnerEmail,
+                    GalleryOwnerName = GalleryOwnerName,
+                    ConfirmEmailAddresses = true
                 });
+                context.SaveChanges();
+            }
+            else
+            {
+                var gallerySetting = gallerySettings.First();
+                if (String.IsNullOrEmpty(gallerySetting.GalleryOwnerEmail))
+                {
+                    gallerySetting.GalleryOwnerEmail = GalleryOwnerEmail;
+                }
+                if (String.IsNullOrEmpty(gallerySetting.GalleryOwnerName))
+                {
+                    gallerySetting.GalleryOwnerName = GalleryOwnerName;
+                }
                 context.SaveChanges();
             }
         }

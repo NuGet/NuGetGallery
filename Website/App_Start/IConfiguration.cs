@@ -1,5 +1,4 @@
-﻿using System.Net.Mail;
-
+﻿
 namespace NuGetGallery
 {
     public interface IConfiguration
@@ -7,10 +6,7 @@ namespace NuGetGallery
         string AzureStorageAccessKey { get; }
         string AzureStorageAccountName { get; }
         string AzureStorageBlobUrl { get; }
-        bool ConfirmEmailAddresses { get; }
-        MailAddress GalleryOwnerEmailAddress { get; }
         string FileStorageDirectory { get; }
         PackageStoreType PackageStoreType { get; }
-        bool UseSmtp { get; }
     }
 }
