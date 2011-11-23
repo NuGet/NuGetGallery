@@ -91,7 +91,7 @@ namespace System.Web.Mvc {
         }
 
         public static string ActionAbsolute(this UrlHelper urlHelper, ActionResult result) {
-            return string.Format("{0}{1}",urlHelper.RequestContext.HttpContext.Request.Url.GetLeftPart(UriPartial.Authority),
+            return String.Format("{0}{1}",urlHelper.RequestContext.HttpContext.Request.Url.GetLeftPart(UriPartial.Authority),
                 urlHelper.RouteUrl(result.GetRouteValueDictionary()));
         }
 
@@ -260,7 +260,7 @@ namespace System.Web.Mvc {
 
         static DateTime CenturyBegin=new DateTime(2001,1,1);
         public static string TimestampString(string virtualPath) {
-            if (!HostingEnvironment.IsHosted) return string.Empty;
+            if (!HostingEnvironment.IsHosted) return String.Empty;
             string filePath = HostingEnvironment.MapPath(virtualPath);
             return Convert.ToString((System.IO.File.GetLastWriteTimeUtc(filePath).Ticks-CenturyBegin.Ticks)/1000000000,16);            
         }

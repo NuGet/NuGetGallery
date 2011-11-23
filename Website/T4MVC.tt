@@ -68,7 +68,7 @@ public static class <#=HelpersPrefix #> {
 <#if (IncludeAreasToken) { #>
 public static class Areas {
 <#} #>
-<#foreach (var area in Areas.Where(a => !string.IsNullOrEmpty(a.Name))) { #>
+<#foreach (var area in Areas.Where(a => !String.IsNullOrEmpty(a.Name))) { #>
     static readonly <#=area.Name #>Class s_<#=area.Name #> = new <#=area.Name #>Class();
     public static <#=area.Name #>Class <#=EscapeID(area.Namespace) #> { get { return s_<#=area.Name #>; } }
 <#} #>
@@ -81,7 +81,7 @@ public static class Areas {
 }
 
 namespace <#=T4MVCNamespace #> {
-<#foreach (var area in Areas.Where(a => !string.IsNullOrEmpty(a.Name))) { #>
+<#foreach (var area in Areas.Where(a => !String.IsNullOrEmpty(a.Name))) { #>
     [<#= GeneratedCode #>, DebuggerNonUserCode]
     public class <#=area.Name #>Class {
         public readonly string Name = "<#=ProcessAreaOrControllerName(area.Name) #>";
@@ -149,7 +149,7 @@ namespace System.Web.Mvc {
         }
 
         public static string ActionAbsolute(this UrlHelper urlHelper, ActionResult result) {
-            return string.Format("{0}{1}",urlHelper.RequestContext.HttpContext.Request.Url.GetLeftPart(UriPartial.Authority),
+            return String.Format("{0}{1}",urlHelper.RequestContext.HttpContext.Request.Url.GetLeftPart(UriPartial.Authority),
                 urlHelper.RouteUrl(result.GetRouteValueDictionary()));
         }
 
@@ -320,7 +320,7 @@ namespace System.Web.Mvc {
 
         static DateTime CenturyBegin=new DateTime(2001,1,1);
         public static string TimestampString(string virtualPath) {
-            if (!HostingEnvironment.IsHosted) return string.Empty;
+            if (!HostingEnvironment.IsHosted) return String.Empty;
             string filePath = HostingEnvironment.MapPath(virtualPath);
             return Convert.ToString((System.IO.File.GetLastWriteTimeUtc(filePath).Ticks-CenturyBegin.Ticks)/1000000000,16);            
         }
@@ -494,7 +494,7 @@ namespace System.Web.Mvc {
         foreach(var partialView in GetPartials()) {
             string partialName = partialView.Key;
             string partialPath = partialView.Value;
-            string partialRenderMethod = string.Format(ExplicitHtmlHelpersForPartialsFormat, partialName);
+            string partialRenderMethod = String.Format(ExplicitHtmlHelpersForPartialsFormat, partialName);
     #> 
         ///<summary>
         ///Render the <b><#= partialName #></b> partial.
@@ -1082,7 +1082,7 @@ static bool IsController(CodeClass2 type) {
 static string GetVirtualPath(ProjectItem item) {
     string fileFullPath = item.get_FileNames(0);
     if (!fileFullPath.StartsWith(AppRoot, StringComparison.OrdinalIgnoreCase))
-        throw new Exception(string.Format("File {0} is not under app root {1}. Please report issue.", fileFullPath, AppRoot));
+        throw new Exception(String.Format("File {0} is not under app root {1}. Please report issue.", fileFullPath, AppRoot));
 
     // Make a virtual path from the physical path
     return "~/" + fileFullPath.Substring(AppRoot.Length).Replace('\\', '/');
@@ -1214,7 +1214,7 @@ class ControllerInfo {
 
     public string ViewPath {
         get {
-            if (string.IsNullOrEmpty(Area.Name))
+            if (String.IsNullOrEmpty(Area.Name))
                 return String.Format("~/{0}/{1}/", ViewsRootFolder, Name);
             else
                 return String.Format("~/{0}/{1}/{2}/", AreasFolder, ViewsRootFolder, Name);

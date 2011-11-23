@@ -63,14 +63,14 @@ namespace NuGetGallery
 
             if (uploadFile == null)
             {
-                ModelState.AddModelError(string.Empty, Strings.UploadFileIsRequired);
+                ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
                 return View();
             }
 
             var uploadFileExtension = Path.GetExtension(uploadFile.FileName).ToLowerInvariant();
             if (uploadFileExtension != Const.NuGetPackageFileExtension)
             {
-                ModelState.AddModelError(string.Empty, Strings.UploadFileMustBeNuGetPackage);
+                ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
                 return View();
             }
 
@@ -84,21 +84,21 @@ namespace NuGetGallery
             }
             catch
             {
-                ModelState.AddModelError(string.Empty, Strings.FailedToReadUploadFile);
+                ModelState.AddModelError(String.Empty, Strings.FailedToReadUploadFile);
                 return View();
             }
 
             var packageRegistration = packageSvc.FindPackageRegistrationById(nuGetPackage.Id);
             if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
             {
-                ModelState.AddModelError(string.Empty, string.Format(Strings.PackageIdNotAvailable, packageRegistration.Id));
+                ModelState.AddModelError(String.Empty, String.Format(Strings.PackageIdNotAvailable, packageRegistration.Id));
                 return View();
             }
 
             var package = packageSvc.FindPackageByIdAndVersion(nuGetPackage.Id, nuGetPackage.Version.ToStringSafe());
             if (package != null)
             {
-                ModelState.AddModelError(string.Empty, string.Format(Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
+                ModelState.AddModelError(String.Empty, String.Format(Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
                 return View();
             }
 
@@ -471,7 +471,7 @@ namespace NuGetGallery
                 tx.Complete();
             }
 
-            TempData["Message"] = string.Format(Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
+            TempData["Message"] = String.Format(Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
             return RedirectToRoute(RouteName.DisplayPackage, new { package.PackageRegistration.Id, package.Version });
         }
 

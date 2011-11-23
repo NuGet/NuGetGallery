@@ -79,7 +79,7 @@ namespace NuGetGallery
         [NonAction]
         public virtual ActionResult SafeRedirect(string returnUrl)
         {
-            if (!string.IsNullOrWhiteSpace(returnUrl)
+            if (!String.IsNullOrWhiteSpace(returnUrl)
                 && Url.IsLocalUrl(returnUrl)
                 && returnUrl.Length > 1
                 && returnUrl.StartsWith("/")

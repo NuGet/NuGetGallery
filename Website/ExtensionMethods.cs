@@ -38,9 +38,9 @@ namespace NuGetGallery
         public static string Flatten(this IEnumerable<string> list)
         {
             if (list == null)
-                return string.Empty;
+                return String.Empty;
 
-            return string.Join(", ", list.ToArray());
+            return String.Join(", ", list.ToArray());
         }
         
         public static string Flatten(this ICollection<PackageAuthor> authors)
@@ -60,7 +60,7 @@ namespace NuGetGallery
 
         static string FlattenDependencies(IEnumerable<Tuple<string, string>> dependencies)
         {
-            return string.Join("|", dependencies.Select(d => string.Format("{0}:{1}", d.Item1, d.Item2)).ToArray());
+            return String.Join("|", dependencies.Select(d => String.Format("{0}:{1}", d.Item1, d.Item2)).ToArray());
         }
 
         public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template)
@@ -73,7 +73,7 @@ namespace NuGetGallery
 
             return new HelperResult(writer =>
             {
-                writer.Write(string.Join(", ", formattedItems.ToArray()));
+                writer.Write(String.Join(", ", formattedItems.ToArray()));
             });
         }
 
