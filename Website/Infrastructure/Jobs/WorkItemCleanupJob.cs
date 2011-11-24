@@ -9,8 +9,8 @@ namespace NuGetGallery.Jobs
     {
         private Func<DbContext> _contextThunk;
 
-        public WorkItemCleanupJob(TimeSpan interval, Func<DbContext> contextThunk)
-            : base("WorkItem Cleanup", interval)
+        public WorkItemCleanupJob(TimeSpan interval, Func<DbContext> contextThunk, TimeSpan timeout)
+            : base("WorkItem Cleanup", interval, timeout)
         {
             if (contextThunk == null)
             {

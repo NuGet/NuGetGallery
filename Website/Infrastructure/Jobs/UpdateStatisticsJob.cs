@@ -9,8 +9,8 @@ namespace NuGetGallery.Jobs
     {
         private Func<DbContext> _contextThunk;
 
-        public UpdateStatisticsJob(TimeSpan interval, Func<DbContext> contextThunk)
-            : base("Update Package Download Statistics", interval)
+        public UpdateStatisticsJob(TimeSpan interval, Func<DbContext> contextThunk, TimeSpan timeout)
+            : base("Update Package Download Statistics", interval, timeout)
         {
             if (contextThunk == null)
             {

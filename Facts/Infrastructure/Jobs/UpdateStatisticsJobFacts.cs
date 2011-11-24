@@ -15,7 +15,7 @@ namespace NuGetGallery.Infrastructure.Jobs
             public void ReturnsATask()
             {
                 var context = new Mock<DbContext>();
-                var job = new UpdateStatisticsJob(TimeSpan.FromSeconds(10), () => context.Object);
+                var job = new UpdateStatisticsJob(TimeSpan.FromSeconds(10), () => context.Object, TimeSpan.MaxValue);
 
                 var task = job.Execute();
                 Assert.NotNull(task);
@@ -30,7 +30,7 @@ namespace NuGetGallery.Infrastructure.Jobs
                 {
                     Interlocked.Increment(ref createTimes);
                     throw new InvalidOperationException(); // Prevent the actual calling of the query.
-                });
+                }, TimeSpan.MaxValue);
 
                 RunJob(job);
                 RunJob(job);
