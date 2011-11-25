@@ -43,12 +43,16 @@ namespace NuGetGallery
             packageRegistration.Packages.Add(package);
 
             using (var tx = new TransactionScope())
-            using (var stream = nugetPackage.GetStream())
             {
-                packageRegistrationRepo.CommitChanges();
-                packageFileSvc.SavePackageFile(package, stream);
-                tx.Complete();
+                using (var stream = nugetPackage.GetStream())
+                {
+                    UpdateIsLatest(packageRegistration);
+                    packageRegistrationRepo.CommitChanges();
+                    packageFileSvc.SavePackageFile(package, stream);
+                    tx.Complete();
+                }
             }
+            
 
             return package;
         }
@@ -319,7 +323,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "4000");
         }
 
-        void UpdateIsLatest(PackageRegistration packageRegistration)
+        private void UpdateIsLatest(PackageRegistration packageRegistration)
         {
             if (!packageRegistration.Packages.Any())
             {

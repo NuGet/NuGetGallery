@@ -86,51 +86,64 @@ namespace NuGetGallery
                 "account/{action}",
                 MVC.Users.Account());
 
+            // V1 Routes
+            // If the push url is /api/v1 then NuGet.Core would ping the path to resolve redirection. 
+            routes.MapDelegate(
+                "v1" + RouteName.ApiPingAction,
+                "api/v1",
+                request => new EmptyResult());
+
+            routes.MapServiceRoute(
+                RouteName.V1ApiFeed,
+                "api/v1/FeedService.svc",
+                typeof(V1Feed));
+
             routes.MapRoute(
-                RouteName.DownloadPackage,
+                "v1" + RouteName.PushPackageApi,
+                "api/v1/PackageFiles/{apiKey}/nupkg",
+                MVC.Api.CreatePackagePost());
+
+            routes.MapRoute(
+                "v1" + RouteName.DeletePackageApi,
+                "api/v1/Packages/{apiKey}/{id}/{version}",
+                MVC.Api.DeletePackage());
+
+            routes.MapRoute(
+                "v1" + RouteName.PublishPackageApi,
+                "api/v1/PublishedPackages/Publish",
+                MVC.Api.PublishPackage());
+
+            routes.MapServiceRoute(
+                "v1" + RouteName.V1ApiFeed,
+                "api/v1",
+                typeof(V1Feed));
+
+            // V2 routes
+            routes.MapDelegate(
+                "v2" + RouteName.ApiPingAction,
+                "api/v2",
+                request => new EmptyResult());
+
+            routes.MapRoute(
+                "v2" + RouteName.DownloadPackage,
                 "api/v2/package/{id}/{version}",
                 MVC.Api.GetPackage(),
                 defaults: new { version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
-                "legacy-" + RouteName.PushPackageApi,
-                "PackageFiles/{apiKey}/nupkg",
-                MVC.Api.CreatePackage());
-
-            routes.MapRoute(
-                RouteName.PushPackageApi,
+                "v2" + RouteName.PushPackageApi,
                 "api/v2/package",
-                MVC.Api.CreatePackage(),
+                MVC.Api.CreatePackagePut(),
                 defaults: null,
                 constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
-                RouteName.PublishPackageApi,
-                "PublishedPackages/Publish",
-                MVC.Api.PublishPackage());
-
-            routes.MapRoute(
-                "legacy-" + RouteName.DeletePackageApi,
-                "Packages/{apiKey}/{id}/{version}",
-                MVC.Api.DeletePackage());
-
-            routes.MapRoute(
-                RouteName.DeletePackageApi,
+                "v2" + RouteName.DeletePackageApi,
                 "api/v2/package/{id}/{version}",
                 MVC.Api.DeletePackage(),
                 defaults: null,
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
-
-            routes.MapServiceRoute(
-                RouteName.V1ApiFeed,
-                "api/v1",
-                typeof(V1Feed));
-
-            routes.MapServiceRoute(
-                "legacy-" + RouteName.V1ApiFeed,
-                "v1/FeedService.svc",
-                typeof(V1Feed));
 
             routes.MapServiceRoute(
                 RouteName.V2ApiFeed,
