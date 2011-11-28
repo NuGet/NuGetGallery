@@ -8,3 +8,4 @@ App_Data
 _AzurePackage
 *.bak
 NuGetGallery.sln.docstates
+_ReSharper.NuGetGallery
