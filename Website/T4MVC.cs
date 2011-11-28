@@ -372,7 +372,6 @@ namespace Links {
             public static readonly string YourPackage_png = Url("YourPackage.png");
         }
     
-        public static readonly string nuget_ico = Url("nuget.ico");
         public static readonly string Site_css = Url("Site.css");
     }
 

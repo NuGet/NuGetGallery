@@ -768,7 +768,6 @@
     <Content Include="Content\Images\userIcon.png" />
     <Content Include="Content\Images\userIconWhite.png" />
     <Content Include="Content\Images\xmark.png" />
-    <Content Include="Content\nuget.ico" />
     <Content Include="Content\Images\sendMessageGraphic.png" />
     <Content Include="DataServices\V1Feeds.svc" />
     <Content Include="DataServices\V2Feed.svc" />
@@ -812,6 +811,7 @@
     <Content Include="DynamicData\PageTemplates\List.aspx" />
     <Content Include="DynamicData\Site.css" />
     <Content Include="Errors\Error.html" />
+    <Content Include="favicon.ico" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
     <Content Include="Scripts\jquery-1.6.2.min.js" />

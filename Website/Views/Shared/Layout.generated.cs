@@ -61,7 +61,7 @@ WriteLiteral("\" rel=\"stylesheet\" />\r\n        <link href=\"");
 
             
             #line 9 "..\..\Views\Shared\Layout.cshtml"
-               Write(Url.Content("~/Content/nuget.ico"));
+               Write(Url.Content("~/favicon.ico"));
 
             
             #line default
