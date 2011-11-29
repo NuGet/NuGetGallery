@@ -15,8 +15,8 @@ namespace NuGetGallery
 
         }
 
-        public V1Feed(IEntityRepository<Package> repo)
-            : base(repo)
+        public V1Feed(IEntityRepository<Package> repo, IConfiguration configuration)
+            : base(repo, configuration)
         {
 
         }
@@ -27,7 +27,7 @@ namespace NuGetGallery
             {
                 Packages = PackageRepo.GetAll()
                                       .Where(p => !p.IsPrerelease)
-                                      .ToV1FeedPackageQuery()
+                                      .ToV1FeedPackageQuery(Configuration.SiteRoot)
             };
         }
 
@@ -52,7 +52,7 @@ namespace NuGetGallery
             return PackageRepo.GetAll()
                               .Where(p => !p.IsPrerelease && p.Listed)
                               .Search(searchTerm)
-                              .ToV1FeedPackageQuery();
+                              .ToV1FeedPackageQuery(Configuration.SiteRoot);
         }
     }
 }

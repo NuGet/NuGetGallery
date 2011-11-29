@@ -8,8 +8,8 @@ namespace NuGetGallery.Migrations
 {
     public class Settings : DbMigrationContext<MigrationsContext>
     {
-        const string GalleryOwnerEmail = "nugetgallery@outercurve.org";
-        const string GalleryOwnerName = "NuGet Gallery";
+        private const string GalleryOwnerEmail = "nugetgallery@outercurve.org";
+        private const string GalleryOwnerName = "NuGet Gallery";
 
         public Settings()
         {

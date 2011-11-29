@@ -15,17 +15,20 @@ namespace NuGetGallery
     public abstract class FeedServiceBase<VxPackage> : DataService<FeedContext<VxPackage>>, IDataServiceStreamProvider, IServiceProvider
     {
         private readonly IEntityRepository<Package> packageRepo;
+        private readonly IConfiguration configuration;
 
         public FeedServiceBase()
-            : this(DependencyResolver.Current.GetService<IEntityRepository<Package>>())
+            : this(DependencyResolver.Current.GetService<IEntityRepository<Package>>(),
+                   DependencyResolver.Current.GetService<IConfiguration>())
         {
             
         }
 
-        protected FeedServiceBase(IEntityRepository<Package> packageRepo)
+        protected FeedServiceBase(IEntityRepository<Package> packageRepo, IConfiguration configuration)
         {
             // TODO: See if there is a way to do proper DI with data services
             this.packageRepo = packageRepo;
+            this.configuration = configuration;
         }
 
         protected IEntityRepository<Package> PackageRepo
@@ -33,6 +36,14 @@ namespace NuGetGallery
             get
             {
                 return packageRepo;
+            }
+        }
+
+        protected IConfiguration Configuration
+        {
+            get
+            {
+                return configuration;
             }
         }
 
