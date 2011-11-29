@@ -8,7 +8,8 @@ namespace NuGetGallery
 {
     public class Configuration : IConfiguration
     {
-        static readonly Dictionary<string, Lazy<object>> configThunks = new Dictionary<string, Lazy<object>>();
+        private static readonly Dictionary<string, Lazy<object>> configThunks = new Dictionary<string, Lazy<object>>();
+        private readonly Lazy<string> siteRoot = new Lazy<string>(() => HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + '/'); 
 
         public static string ReadAppSetting(string key)
         {
@@ -53,6 +54,14 @@ namespace NuGetGallery
                 }));
 
             return (T)configThunks[key].Value;
+        }
+
+        public string SiteRoot
+        {
+            get
+            {
+                return siteRoot.Value;
+            }
         }
 
         public string AzureStorageAccessKey

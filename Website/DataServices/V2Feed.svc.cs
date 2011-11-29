@@ -15,8 +15,8 @@ namespace NuGetGallery
 
         }
 
-        public V2Feed(IEntityRepository<Package> repo)
-            : base(repo)
+        public V2Feed(IEntityRepository<Package> repo, IConfiguration configuration)
+            : base(repo, configuration)
         {
 
         }
@@ -26,7 +26,7 @@ namespace NuGetGallery
             return new FeedContext<V2FeedPackage>
             {
                 Packages = PackageRepo.GetAll()
-                                      .ToV2FeedPackageQuery()
+                                      .ToV2FeedPackageQuery(Configuration.SiteRoot)
             };
         }
 
@@ -34,15 +34,13 @@ namespace NuGetGallery
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
             // Filter out unlisted packages when searching. We will return it when a generic "GetPackages" request comes and filter it on the client.
-            // Since this is used by old clients, we'll always filter out prerelease packages.
-            var packages = PackageRepo.GetAll()
-                                      .Where(p => p.Listed);
+            var packages = PackageRepo.GetAll().Where(p => p.Listed);
             if (!includePrerelease)
             {
                 packages = packages.Where(p => !p.IsPrerelease);
             }
             return packages.Search(searchTerm)
-                           .ToV2FeedPackageQuery();
+                           .ToV2FeedPackageQuery(Configuration.SiteRoot);
         }
 
         public override Uri GetReadStreamUri(

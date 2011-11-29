@@ -17,7 +17,9 @@ namespace NuGetGallery.Services
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.1a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
-            var v1Service = new V1Feed(repo.Object);
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.SetupGet(c => c.SiteRoot).Returns("https://localhost:8081/");
+            var v1Service = new V1Feed(repo.Object, configuration.Object);
 
             // Act
             var result = v1Service.Search(null, null);
@@ -26,6 +28,7 @@ namespace NuGetGallery.Services
             Assert.Equal(1, result.Count());
             Assert.Equal("Foo", result.First().Id);
             Assert.Equal("1.0.0", result.First().Version);
+            Assert.Equal("https://localhost:8081/packages/Foo/1.0.0", result.First().GalleryDetailsUrl);
         }
 
         [Fact]
@@ -39,15 +42,20 @@ namespace NuGetGallery.Services
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.1a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
                 new Package { PackageRegistration = new PackageRegistration { Id ="baz" }, Version = "2.0", Listed = false, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
-            var v1Service = new V1Feed(repo.Object);
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.SetupGet(c => c.SiteRoot).Returns("http://test.nuget.org/");
+            var v1Service = new V1Feed(repo.Object, configuration.Object);
 
             // Act
             var result = v1Service.Search(null, null);
 
             // Assert
             Assert.Equal(1, result.Count());
-            Assert.Equal("Foo", result.First().Id);
-            Assert.Equal("1.0.0", result.First().Version);
+            var package = result.First();
+            Assert.Equal("Foo", package.Id);
+            Assert.Equal("1.0.0", package.Version);
+            Assert.Equal("http://test.nuget.org/packages/Foo/1.0.0", package.GalleryDetailsUrl);
+            Assert.Equal("http://test.nuget.org/package/ReportAbuse/Foo/1.0.0", package.ReportAbuseUrl);
         }
 
         [Fact]
@@ -60,15 +68,20 @@ namespace NuGetGallery.Services
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.1a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
-            var v2Service = new V2Feed(repo.Object);
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.SetupGet(c => c.SiteRoot).Returns("https://staged.nuget.org/");
+            var v2Service = new V2Feed(repo.Object, configuration.Object);
 
             // Act
             var result = v2Service.Search(null, null, includePrerelease: false);
 
             // Assert
             Assert.Equal(1, result.Count());
-            Assert.Equal("Foo", result.First().Id);
-            Assert.Equal("1.0.0", result.First().Version);
+            var package = result.First();
+            Assert.Equal("Foo", package.Id);
+            Assert.Equal("1.0.0", package.Version);
+            Assert.Equal("https://staged.nuget.org/packages/Foo/1.0.0", package.GalleryDetailsUrl);
+            Assert.Equal("https://staged.nuget.org/package/ReportAbuse/Foo/1.0.0", package.ReportAbuseUrl);
         }
     }
 }
