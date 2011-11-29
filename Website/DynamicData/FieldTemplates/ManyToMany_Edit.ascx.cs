@@ -32,10 +32,10 @@ namespace DynamicDataEFCodeFirst
 
             // Comments assume employee/territory for illustration, but the code is generic
 
+            ObjectContext.LoadProperty(e.Entity, Column.Name);
+
             // Get the collection of territories for this employee
             dynamic entityList = Column.EntityTypeProperty.GetValue(e.Entity, null);
-
-            ObjectContext.LoadProperty(e.Entity, Column.Name);
 
             // Go through all the territories (not just those for this employee)
             foreach (dynamic childEntity in childTable.GetQuery(e.Context))
