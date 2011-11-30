@@ -42,6 +42,18 @@ namespace NuGetGallery
             return containers[folderName];
         }
 
+        static string GetContentType(string folderName)
+        {
+            switch (folderName)
+            {
+                case Const.PackagesFolderName:
+                case Const.UploadsFolderName:
+                    return Const.PackageContentType;
+                default:
+                    throw new InvalidOperationException(String.Format("The folder name {0} is not supported.", folderName));
+            }
+        }
+
         public Stream GetFile(
             string folderName, 
             string fileName)
@@ -95,6 +107,8 @@ namespace NuGetGallery
             var blob = container.GetBlobReference(fileName);
             blob.DeleteIfExists();
             blob.UploadFromStream(fileStream);
+            blob.Properties.ContentType = GetContentType(folderName);
+            blob.SetProperties();
         }
     }
 }
