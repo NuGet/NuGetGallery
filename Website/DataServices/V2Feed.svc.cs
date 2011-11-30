@@ -18,8 +18,8 @@ namespace NuGetGallery
 
         }
 
-        public V2Feed(IEntityRepository<Package> repo, IConfiguration configuration)
-            : base(repo, configuration)
+        public V2Feed(IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchSvc)
+            : base(repo, configuration, searchSvc)
         {
 
         }
@@ -58,7 +58,6 @@ namespace NuGetGallery
            object entity,
            DataServiceOperationContext operationContext)
         {
-
             var package = (V2FeedPackage)entity;
             var httpContext = new HttpContextWrapper(HttpContext.Current);
             var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));

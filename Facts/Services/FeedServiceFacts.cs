@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using Xunit;
@@ -19,7 +20,9 @@ namespace NuGetGallery.Services
             }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.SetupGet(c => c.SiteRoot).Returns("https://localhost:8081/");
-            var v1Service = new V1Feed(repo.Object, configuration.Object);
+            var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+            searchService.Setup(s => s.SearchWithRelevance(It.IsAny<IQueryable<Package>>(), It.IsAny<String>())).Returns<IQueryable<Package>, string>((_, __) => _); 
+            var v1Service = new V1Feed(repo.Object, configuration.Object, searchService.Object);
 
             // Act
             var result = v1Service.Search(null, null);
@@ -42,9 +45,11 @@ namespace NuGetGallery.Services
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.1a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
                 new Package { PackageRegistration = new PackageRegistration { Id ="baz" }, Version = "2.0", Listed = false, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
+            var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+            searchService.Setup(s => s.SearchWithRelevance(It.IsAny<IQueryable<Package>>(), It.IsAny<String>())).Returns<IQueryable<Package>, string>((_, __) => _);
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.SetupGet(c => c.SiteRoot).Returns("http://test.nuget.org/");
-            var v1Service = new V1Feed(repo.Object, configuration.Object);
+            var v1Service = new V1Feed(repo.Object, configuration.Object, searchService.Object);
 
             // Act
             var result = v1Service.Search(null, null);
@@ -68,9 +73,11 @@ namespace NuGetGallery.Services
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.1a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
+            var searchService = new Mock<ISearchService>(MockBehavior.Strict);
+            searchService.Setup(s => s.SearchWithRelevance(It.IsAny<IQueryable<Package>>(), It.IsAny<String>())).Returns<IQueryable<Package>, string>((_, __) => _);
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.SetupGet(c => c.SiteRoot).Returns("https://staged.nuget.org/");
-            var v2Service = new V2Feed(repo.Object, configuration.Object);
+            var v2Service = new V2Feed(repo.Object, configuration.Object, searchService.Object);
 
             // Act
             var result = v2Service.Search(null, null, includePrerelease: false);

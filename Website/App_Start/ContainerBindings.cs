@@ -33,6 +33,10 @@ namespace NuGetGallery
 
             Bind<GallerySetting>().ToMethod(c => gallerySetting.Value);
 
+            Bind<ISearchService>()
+                .To<LuceneSearchService>()
+                .InRequestScope();
+
             Bind<EntitiesContext>()
                 .ToMethod(context => new EntitiesContext())
                 .InRequestScope();
@@ -79,6 +83,10 @@ namespace NuGetGallery
 
             Bind<IControllerFactory>()
                 .To<NuGetControllerFactory>()
+                .InRequestScope();
+
+            Bind<IIndexingService>()
+                .To<LuceneIndexingService>()
                 .InRequestScope();
 
             Lazy<IMailSender> mailSenderThunk = new Lazy<IMailSender>(() =>

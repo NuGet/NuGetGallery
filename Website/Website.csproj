@@ -60,6 +60,9 @@
     <Reference Include="EntityFramework.Migrations">
       <HintPath>..\packages\EntityFramework.Migrations.0.7.0.0\lib\net40\EntityFramework.Migrations.dll</HintPath>
     </Reference>
+    <Reference Include="Lucene.Net">
+      <HintPath>..\packages\Lucene.Net.2.9.2.2\lib\net40\Lucene.Net.dll</HintPath>
+    </Reference>
     <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MarkdownSharp.1.13.0.0\lib\35\MarkdownSharp.dll</HintPath>
     </Reference>
@@ -181,8 +184,13 @@
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResult.cs" />
+    <Compile Include="Infrastructure\Lucene\LuceneFileSystem.cs" />
+    <Compile Include="Infrastructure\Lucene\LuceneCommon.cs" />
+    <Compile Include="Infrastructure\Lucene\LuceneIndexingJob.cs" />
+    <Compile Include="Infrastructure\Lucene\LuceneIndexingService.cs" />
     <Compile Include="Infrastructure\Jobs\WorkItemCleanupJob.cs" />
     <Compile Include="Infrastructure\Jobs\UpdateStatisticsJob.cs" />
+    <Compile Include="Infrastructure\Lucene\PackageIndexEntity.cs" />
     <Compile Include="JsonApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -247,9 +255,12 @@
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
+    <Compile Include="Services\IIndexingService.cs" />
+    <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
+    <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
@@ -720,6 +731,7 @@
     <Content Include="_app_offline.htm" />
     <Content Include="Views\Users\ResendConfirmation.cshtml">
     </Content>
+    <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />

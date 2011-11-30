@@ -25,6 +25,7 @@
         <div class="form-field">
             <label for="sortOrder">Sort By</label>
             <select name="sortOrder" id="sortOrder">
+                @ViewHelpers.Option("", "Relevance", Model.SortOrder)
                 @ViewHelpers.Option("package-title", "A-Z", Model.SortOrder)
                 @ViewHelpers.Option("package-download-count", "Popularity", Model.SortOrder)
                 @ViewHelpers.Option("package-created", "Recent", Model.SortOrder)

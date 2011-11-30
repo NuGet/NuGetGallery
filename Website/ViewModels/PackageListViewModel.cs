@@ -10,6 +10,7 @@ namespace NuGetGallery
         public PackageListViewModel(IQueryable<Package> packages,
             string searchTerm,
             string sortOrder,
+            int totalCount,
             int pageIndex,
             int pageSize,
             UrlHelper url)
@@ -18,15 +19,14 @@ namespace NuGetGallery
             IEnumerable<ListPackageItemViewModel> items;
             using (MiniProfiler.Current.Step("Querying and mapping packages to list"))
             {
-                items = packages.SortBy(GetSortExpression(sortOrder))
-                                .Skip(pageIndex * pageSize)
+                items = packages.Skip(pageIndex * pageSize)
                                 .Take(pageSize)
                                 .ToList()
                                 .Select(pv => new ListPackageItemViewModel(pv));
             }
             PageIndex = pageIndex;
             PageSize = pageSize;
-            TotalCount = packages.Count();
+            TotalCount = totalCount;
             SortOrder = sortOrder;
             SearchTerm = searchTerm;
             int pageCount = (TotalCount + PageSize - 1) / PageSize;
@@ -60,17 +60,5 @@ namespace NuGetGallery
         public int PageIndex { get; private set; }
 
         public int PageSize { get; private set; }
-
-        private static string GetSortExpression(string sortOrder)
-        {
-            switch (sortOrder)
-            {
-                case "package-title":
-                    return "PackageRegistration.Id";
-                case "package-created":
-                    return "Published desc";
-            }
-            return "PackageRegistration.DownloadCount desc";
-        }
     }
 }

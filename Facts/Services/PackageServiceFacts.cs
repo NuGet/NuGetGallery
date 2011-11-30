@@ -1245,6 +1245,7 @@ namespace NuGetGallery
             Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null,
             Mock<IPackageFileService> packageFileSvc = null,
             Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
+            Mock<IIndexingService> indexingSvc = null,
             Action<Mock<PackageService>> setup = null)
         {
             if (cryptoSvc == null)
@@ -1259,6 +1260,7 @@ namespace NuGetGallery
             packageFileSvc = packageFileSvc ?? new Mock<IPackageFileService>();
             packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
+            indexingSvc = indexingSvc ?? new Mock<IIndexingService>();
 
             var packageSvc = new Mock<PackageService>(
                 cryptoSvc.Object,
@@ -1266,7 +1268,8 @@ namespace NuGetGallery
                 packageRepo.Object,
                 packageStatsRepo.Object,
                 packageFileSvc.Object,
-                packageOwnerRequestRepo.Object);
+                packageOwnerRequestRepo.Object,
+                indexingSvc.Object);
 
             packageSvc.CallBase = true;
 

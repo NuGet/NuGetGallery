@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Services;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Mail;
@@ -9,7 +10,6 @@ using System.ServiceModel.Activation;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
-using System.Globalization;
 
 namespace NuGetGallery
 {

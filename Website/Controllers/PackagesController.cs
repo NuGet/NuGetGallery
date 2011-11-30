@@ -21,17 +21,20 @@ namespace NuGetGallery
         private readonly IUploadFileService uploadFileSvc;
         private readonly IUserService userSvc;
         private readonly IMessageService messageService;
+        private readonly ISearchService searchSvc;
 
         public PackagesController(
             IPackageService packageSvc,
             IUploadFileService uploadFileSvc,
             IUserService userSvc,
-            IMessageService messageService)
+            IMessageService messageService,
+            ISearchService searchSvc)
         {
             this.packageSvc = packageSvc;
             this.uploadFileSvc = uploadFileSvc;
             this.userSvc = userSvc;
             this.messageService = messageService;
+            this.searchSvc = searchSvc;
         }
 
         [Authorize]
@@ -119,7 +122,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual ActionResult ListPackages(string q, string sortOrder = Constants.DefaultPackageListSortOrder, int page = 1)
+        public virtual ActionResult ListPackages(string q, string sortOrder = "", int page = 1)
         {
             if (page < 1)
             {
@@ -129,11 +132,6 @@ namespace NuGetGallery
             IQueryable<Package> packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: true);
 
             q = (q ?? "").Trim();
-
-            if (!String.IsNullOrEmpty(q))
-            {
-                packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: true).Search(q);
-            }
 
             if (GetIdentity().IsAuthenticated)
             {
@@ -145,9 +143,30 @@ namespace NuGetGallery
                 packageVersions = packageVersions.Where(p => p.Listed);
             }
 
+            int totalHits;
+            if (!String.IsNullOrEmpty(q))
+            {
+                if (String.IsNullOrEmpty(sortOrder))
+                {
+                    packageVersions = searchSvc.SearchWithRelevance(packageVersions, q, take: page * Constants.DefaultPackageListPageSize, totalHits: out totalHits);
+                }
+                else
+                {
+                    packageVersions = searchSvc.Search(packageVersions, q)
+                                                   .SortBy(GetSortExpression(sortOrder));
+                    totalHits = packageVersions.Count();
+                }
+            }
+            else
+            {
+                packageVersions = packageVersions.SortBy(GetSortExpression(sortOrder));
+                totalHits = packageVersions.Count();
+            }
+
             var viewModel = new PackageListViewModel(packageVersions,
                 q,
                 sortOrder,
+                totalHits,
                 page - 1,
                 Constants.DefaultPackageListPageSize,
                 Url);
@@ -155,6 +174,18 @@ namespace NuGetGallery
             ViewBag.SearchTerm = q;
 
             return View(viewModel);
+        }
+
+        private static string GetSortExpression(string sortOrder)
+        {
+            switch (sortOrder)
+            {
+                case "package-title":
+                    return "PackageRegistration.Id";
+                case "package-created":
+                    return "Published desc";
+            }
+            return "PackageRegistration.DownloadCount desc";
         }
 
         // NOTE: Intentionally NOT requiring authentication

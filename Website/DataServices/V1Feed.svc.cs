@@ -1,6 +1,6 @@
 using System;
-using System.Data.Services;
 using System.Data.Entity;
+using System.Data.Services;
 using System.Linq;
 using System.ServiceModel.Web;
 using System.Web;
@@ -17,8 +17,8 @@ namespace NuGetGallery
 
         }
 
-        public V1Feed(IEntityRepository<Package> repo, IConfiguration configuration)
-            : base(repo, configuration)
+        public V1Feed(IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchSvc)
+            : base(repo, configuration, searchSvc)
         {
 
         }
@@ -37,7 +37,6 @@ namespace NuGetGallery
            object entity,
            DataServiceOperationContext operationContext)
         {
-
             var package = (V1FeedPackage)entity;
             var httpContext = new HttpContextWrapper(HttpContext.Current);
             var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
@@ -59,10 +58,14 @@ namespace NuGetGallery
         public IQueryable<V1FeedPackage> Search(string searchTerm, string targetFramework)
         {
             // Only allow listed stable releases to be returned when searching the v1 feed.
-            return PackageRepo.GetAll()
-                              .Where(p => !p.IsPrerelease && p.Listed)
-                              .Search(searchTerm)
-                              .ToV1FeedPackageQuery(Configuration.SiteRoot);
+            var packages = PackageRepo.GetAll().Where(p => !p.IsPrerelease && p.Listed);
+
+            if (String.IsNullOrEmpty(searchTerm))
+            {
+                return packages.ToV1FeedPackageQuery(Configuration.SiteRoot);
+            }
+            return SearchService.Search(packages, searchTerm)
+                                .ToV1FeedPackageQuery(Configuration.SiteRoot);
         }
     }
 }

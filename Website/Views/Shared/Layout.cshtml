@@ -33,7 +33,6 @@
                     <form action="@Url.PackageList()" method="get">
                         <input name="q" id="searchBoxInput" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
                         <input id="searchBoxSubmit" type="submit" value=" " />
-                        <input type="hidden" name="sortOrder" value="@Constants.DefaultPackageListSortOrder" />
                     </form>
                 </div>
             </nav>

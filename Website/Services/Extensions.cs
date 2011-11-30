@@ -31,7 +31,6 @@ namespace NuGetGallery
                 tagCriteria 
         };
 
-
         public static IQueryable<Package> Search(this IQueryable<Package> source, string searchTerm)
         {
             if (String.IsNullOrWhiteSpace(searchTerm))

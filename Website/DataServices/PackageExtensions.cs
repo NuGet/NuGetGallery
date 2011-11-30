@@ -15,8 +15,6 @@ namespace NuGetGallery
             return packages
                      .WithoutNullPropagation()
                      .Include(p => p.PackageRegistration)
-                     .Include(p => p.Authors)
-                     .Include(p => p.Dependencies)
                      .Select(p => new V1FeedPackage
                      {
                          Id = p.PackageRegistration.Id,
@@ -55,8 +53,6 @@ namespace NuGetGallery
             return packages
                      .WithoutNullPropagation()
                      .Include(p => p.PackageRegistration)
-                     .Include(p => p.Authors)
-                     .Include(p => p.Dependencies)
                      .Select(p => new V2FeedPackage
                      {
                          Id = p.PackageRegistration.Id,
