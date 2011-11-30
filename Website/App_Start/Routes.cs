@@ -99,6 +99,13 @@ namespace NuGetGallery
                 typeof(V1Feed));
 
             routes.MapRoute(
+                "v1" + RouteName.DownloadPackage,
+                "api/v1/package/{id}/{version}",
+                MVC.Api.GetPackage(),
+                defaults: new { version = UrlParameter.Optional },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 "v1" + RouteName.PushPackageApi,
                 "api/v1/PackageFiles/{apiKey}/nupkg",
                 MVC.Api.CreatePackagePost());

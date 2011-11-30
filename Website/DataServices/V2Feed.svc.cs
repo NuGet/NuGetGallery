@@ -10,6 +10,8 @@ namespace NuGetGallery
 {
     public class V2Feed : FeedServiceBase<V2FeedPackage>
     {
+        private const int FeedVersion = 2;
+
         public V2Feed()
         {
 
@@ -52,7 +54,7 @@ namespace NuGetGallery
             var httpContext = new HttpContextWrapper(HttpContext.Current);
             var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
 
-            string url = urlHelper.PackageDownload(package.Id, package.Version);
+            string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version);
 
             return new Uri(url, UriKind.Absolute);
         }
