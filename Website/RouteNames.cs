@@ -17,7 +17,6 @@
         public const string ManagePackageOwners = "ManagePackageOwners";
         public const string PackageVersionAction = "PackageVersionAction";
         public const string PackageOwnerConfirmation = "PackageOwnerConfirmation";
-        public const string ApiPingAction = "ApiPing";
         public const string PackageAction = "PackageAction";
         public const string PushPackageApi = "PushPackageApi";
         public const string PublishPackageApi = "PublishPackageApi";

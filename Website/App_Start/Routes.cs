@@ -88,11 +88,6 @@ namespace NuGetGallery
 
             // V1 Routes
             // If the push url is /api/v1 then NuGet.Core would ping the path to resolve redirection. 
-            routes.MapDelegate(
-                "v1" + RouteName.ApiPingAction,
-                "api/v1",
-                request => new EmptyResult());
-
             routes.MapServiceRoute(
                 RouteName.V1ApiFeed,
                 "api/v1/FeedService.svc",
@@ -126,11 +121,6 @@ namespace NuGetGallery
                 typeof(V1Feed));
 
             // V2 routes
-            routes.MapDelegate(
-                "v2" + RouteName.ApiPingAction,
-                "api/v2",
-                request => new EmptyResult());
-
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
                 "api/v2/package/{id}/{version}",
