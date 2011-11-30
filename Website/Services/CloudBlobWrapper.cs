@@ -13,6 +13,11 @@ namespace NuGetGallery
             this.blob = blob;
         }
 
+        public BlobProperties Properties 
+        {
+            get { return blob.Properties; }
+        }
+
         public Uri Uri
         {
             get { return blob.Uri; }
@@ -33,6 +38,11 @@ namespace NuGetGallery
             {
                 throw new TestableStorageClientException(ex);
             }
+        }
+
+        public void SetProperties()
+        {
+            blob.SetProperties();
         }
 
         public void UploadFromStream(Stream source)

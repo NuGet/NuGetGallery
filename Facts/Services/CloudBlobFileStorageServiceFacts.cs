@@ -269,7 +269,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheSavePackageFileMethod
+        public class TheSaveFileMethod
         {
             [Theory]
             [FolderNamesData]
@@ -287,6 +287,7 @@ namespace NuGetGallery
                            return new Mock<ICloudBlobContainer>().Object;
                    });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -303,6 +304,7 @@ namespace NuGetGallery
                 var fakeBlob = new Mock<ICloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -319,6 +321,7 @@ namespace NuGetGallery
                 var fakeBlob = new Mock<ICloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
                 var fakePackageFile = new MemoryStream();
@@ -326,6 +329,32 @@ namespace NuGetGallery
                 service.SaveFile(Const.PackagesFolderName, "theFileName", fakePackageFile);
 
                 fakeBlob.Verify(x => x.UploadFromStream(fakePackageFile));
+            }
+
+            [Theory]
+            [FolderNamesData]
+            public void WillSetTheBlobContentType(string folderName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ICloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                   .Returns<string>(container =>
+                   {
+                       if (container == folderName)
+                           return fakeBlobContainer.Object;
+                       else
+                           return new Mock<ICloudBlobContainer>().Object;
+                   });
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+
+                service.SaveFile(folderName, "theFileName", new MemoryStream());
+
+                Assert.Equal(Const.PackageContentType, fakeBlob.Object.Properties.ContentType);
+                fakeBlob.Verify(x => x.SetProperties());
             }
         }
 
