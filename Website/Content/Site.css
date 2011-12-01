@@ -1008,6 +1008,19 @@ header.main {
         margin: 0;
     }
     
+    footer#footer p#releaseTag {
+        margin: 10px 0 0 0;
+    }
+    
+        footer#footer p#releaseTag a {
+            color: #3e483c;
+        }
+        
+        footer#footer p#releaseTag a:hover {
+            color: #0071bc;
+            text-decoration: underline;
+        }
+    
     footer#footer ul.recommended {
         width: 760px;
         list-style: none;

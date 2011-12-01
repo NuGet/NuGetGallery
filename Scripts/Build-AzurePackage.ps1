@@ -57,6 +57,15 @@ function set-connectionstring {
   $settings.save($resolvedPath)
 }
 
+function set-releasetag {
+    param($path, $name, $value)
+    $settings = [xml](get-content $path)
+    $setting = $settings.configuration.appSettings.selectsinglenode("add[@key='" + $name + "']")
+    $setting.value = $value.toString()
+    $resolvedPath = resolve-path($path) 
+    $settings.save($resolvedPath)
+}
+
 function set-releasemode {
   param($path)
   $xml = [xml](get-content $path)
@@ -98,6 +107,12 @@ set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.
 set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
 set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
 set-releasemode $webConfigPath
+
+#Release Tag stuff
+Write-Host "Setting the release tags"
+set-releasetag -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+set-releasetag -path $webConfigPath -name "Gallery:ReleaseSha" -value (git rev-parse HEAD)
+set-releasetag -path $webConfigPath -name "Gallery:ReleaseBranch" -value (git name-rev --name-only HEAD)
 
 & 'C:\Program Files\Windows Azure SDK\v1.5\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
 

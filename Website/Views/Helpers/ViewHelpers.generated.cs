@@ -551,6 +551,96 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\r\n");
 }
 
 
+public static System.Web.WebPages.HelperResult ReleaseTag(){
+return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
+
+
+
+#line 80 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                     
+    string name = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseName"];
+    string sha = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseSha"];
+    string branch = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseBranch"];
+    string time = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseTime"];
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    <p id=\"releaseTag\">\r\n        ");
+
+
+
+#line 86 "..\..\Views\Helpers\ViewHelpers.cshtml"
+WebViewPage.WriteTo(@__razor_helper_writer, name);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, " - \r\n        Deployed from <a href=\"https://github.com/NuGet/NuGetGallery/commit/" +
+"");
+
+
+
+#line 87 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                                 WebViewPage.WriteTo(@__razor_helper_writer, sha);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"View the commit.\">");
+
+
+
+#line 87 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                                                                WebViewPage.WriteTo(@__razor_helper_writer, sha.Substring(0,10));
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</a>\r\n        on <a href=\"https://github.com/NuGet/NuGetGallery/branches/");
+
+
+
+#line 88 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                        WebViewPage.WriteTo(@__razor_helper_writer, branch);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"View the branch.\">");
+
+
+
+#line 88 "..\..\Views\Helpers\ViewHelpers.cshtml"
+                                                          WebViewPage.WriteTo(@__razor_helper_writer, branch);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</a> \r\n        at ");
+
+
+
+#line 89 "..\..\Views\Helpers\ViewHelpers.cshtml"
+WebViewPage.WriteTo(@__razor_helper_writer, time);
+
+#line default
+#line hidden
+
+WebViewPage.WriteLiteralTo(@__razor_helper_writer, ".\r\n    </p>\r\n");
+
+
+
+#line 91 "..\..\Views\Helpers\ViewHelpers.cshtml"
+
+#line default
+#line hidden
+
+});
+
+}
+
+
     }
 }
 #pragma warning restore 1591

@@ -76,3 +76,16 @@
     @Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "owner-image" })
     </text>
 }
+
+@helper ReleaseTag(){
+    string name = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseName"];
+    string sha = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseSha"];
+    string branch = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseBranch"];
+    string time = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseTime"];
+    <p id="releaseTag">
+        @name - 
+        Deployed from <a href="https://github.com/NuGet/NuGetGallery/commit/@sha" title="View the commit.">@sha.Substring(0,10)</a>
+        on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a> 
+        at @time.
+    </p>
+}

@@ -44,9 +44,9 @@ namespace NuGetGallery.Views.Shared
         public override void Execute()
         {
 
-WriteLiteral("<!DOCTYPE html> \r\n<html lang=\"en\" class=\"static \"> \r\n    <head>\r\n        <meta ch" +
-"arset=\"utf-8\" />\r\n        <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" /" +
-">\r\n        <title>NuGet Gallery</title> \r\n        <link href=\"");
+WriteLiteral("<!DOCTYPE html> \n<html lang=\"en\" class=\"static \"> \n    <head>\n        <meta chars" +
+"et=\"utf-8\" />\n        <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n  " +
+"      <title>NuGet Gallery</title> \n        <link href=\"");
 
 
             
@@ -56,7 +56,7 @@ WriteLiteral("<!DOCTYPE html> \r\n<html lang=\"en\" class=\"static \"> \r\n    <
             
             #line default
             #line hidden
-WriteLiteral("\" rel=\"stylesheet\" />\r\n        <link href=\"");
+WriteLiteral("\" rel=\"stylesheet\" />\n        <link href=\"");
 
 
             
@@ -66,7 +66,7 @@ WriteLiteral("\" rel=\"stylesheet\" />\r\n        <link href=\"");
             
             #line default
             #line hidden
-WriteLiteral("\" rel=\"shortcut icon\" type=\"image/x-icon\" />\r\n        <script src=\"");
+WriteLiteral("\" rel=\"shortcut icon\" type=\"image/x-icon\" />\n        <script src=\"");
 
 
             
@@ -76,7 +76,7 @@ WriteLiteral("\" rel=\"shortcut icon\" type=\"image/x-icon\" />\r\n        <scri
             
             #line default
             #line hidden
-WriteLiteral("\"></script>\r\n        ");
+WriteLiteral("\"></script>\n        ");
 
 
             
@@ -86,8 +86,8 @@ WriteLiteral("\"></script>\r\n        ");
             
             #line default
             #line hidden
-WriteLiteral("\r\n    </head>\r\n    <body>\r\n        <div id=\"content-wraper\">\r\n            <header" +
-" class=\"main\">\r\n                <div id=\"logo\"><a href=\"");
+WriteLiteral("\n    </head>\n    <body>\n        <div id=\"content-wraper\">\n            <header cla" +
+"ss=\"main\">\n                <div id=\"logo\"><a href=\"");
 
 
             
@@ -97,7 +97,7 @@ WriteLiteral("\r\n    </head>\r\n    <body>\r\n        <div id=\"content-wraper\
             
             #line default
             #line hidden
-WriteLiteral("\">NuGet Gallery</a></div>\r\n                ");
+WriteLiteral("\">NuGet Gallery</a></div>\n                ");
 
 
             
@@ -107,8 +107,8 @@ WriteLiteral("\">NuGet Gallery</a></div>\r\n                ");
             
             #line default
             #line hidden
-WriteLiteral("\r\n            </header>\r\n            <nav class=\"main\">\r\n                <ul id=\"" +
-"menu\">\r\n");
+WriteLiteral("\n            </header>\n            <nav class=\"main\">\n                <ul id=\"men" +
+"u\">\n");
 
 
             
@@ -142,7 +142,7 @@ WriteLiteral("\"><a href=\"");
             
             #line default
             #line hidden
-WriteLiteral("\">Home</a></li>\r\n                    <li class=\"");
+WriteLiteral("\">Home</a></li>\n                    <li class=\"");
 
 
             
@@ -162,7 +162,7 @@ WriteLiteral("\"><a href=\"");
             
             #line default
             #line hidden
-WriteLiteral("\">Packages</a></li>\r\n                    <li class=\"");
+WriteLiteral("\">Packages</a></li>\n                    <li class=\"");
 
 
             
@@ -182,9 +182,9 @@ WriteLiteral("\"><a href=\"");
             
             #line default
             #line hidden
-WriteLiteral("\" class=\"upload\">Upload Package</a></li>\r\n                    <li><a href=\"http:/" +
-"/docs.nuget.org\">Documentation</a></li>\r\n                </ul>\r\n                " +
-"<div id=\"searchBox\">\r\n                    <form action=\"");
+WriteLiteral("\" class=\"upload\">Upload Package</a></li>\n                    <li><a href=\"http://" +
+"docs.nuget.org\">Documentation</a></li>\n                </ul>\n                <di" +
+"v id=\"searchBox\">\n                    <form action=\"");
 
 
             
@@ -194,8 +194,8 @@ WriteLiteral("\" class=\"upload\">Upload Package</a></li>\r\n                   
             
             #line default
             #line hidden
-WriteLiteral("\" method=\"get\">\r\n                        <input name=\"q\" id=\"searchBoxInput\" plac" +
-"eholder=\"Search Packages\" value=\"");
+WriteLiteral("\" method=\"get\">\n                        <input name=\"q\" id=\"searchBoxInput\" place" +
+"holder=\"Search Packages\" value=\"");
 
 
             
@@ -205,8 +205,8 @@ WriteLiteral("\" method=\"get\">\r\n                        <input name=\"q\" id
             
             #line default
             #line hidden
-WriteLiteral("\" />\r\n                        <input id=\"searchBoxSubmit\" type=\"submit\" value=\" \"" +
-" />\r\n                        <input type=\"hidden\" name=\"sortOrder\" value=\"");
+WriteLiteral("\" />\n                        <input id=\"searchBoxSubmit\" type=\"submit\" value=\" \" " +
+"/>\n                        <input type=\"hidden\" name=\"sortOrder\" value=\"");
 
 
             
@@ -216,8 +216,8 @@ WriteLiteral("\" />\r\n                        <input id=\"searchBoxSubmit\" typ
             
             #line default
             #line hidden
-WriteLiteral("\" />\r\n                    </form>\r\n                </div>\r\n            </nav>\r\n  " +
-"          <div id=\"body\">\r\n");
+WriteLiteral("\" />\n                    </form>\n                </div>\n            </nav>\n      " +
+"      <div id=\"body\">\n");
 
 
             
@@ -237,7 +237,7 @@ WriteLiteral("                <p class=\"message\">");
             
             #line default
             #line hidden
-WriteLiteral("</p>\r\n");
+WriteLiteral("</p>\n");
 
 
             
@@ -292,28 +292,48 @@ WriteLiteral(@"
             
             #line default
             #line hidden
-WriteLiteral(" Outercurve Foundation.\r\n                    </p>\r\n                </div>\r\n      " +
-"      </footer>\r\n        </div>\r\n        <script src=\"");
+WriteLiteral(" Outercurve Foundation.\n                    </p>\n\n                    ");
+
+
+            
+            #line 71 "..\..\Views\Shared\Layout.cshtml"
+               Write(String.Format("{0:dd/mm/yyyy HH:mm:ss }", DateTime.Now));
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\n\n                    ");
 
 
             
             #line 73 "..\..\Views\Shared\Layout.cshtml"
+               Write(ViewHelpers.ReleaseTag());
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\n                </div>\n            </footer>\n        </div>\n        <script src=" +
+"\"");
+
+
+            
+            #line 77 "..\..\Views\Shared\Layout.cshtml"
                 Write(Url.Content("~/Scripts/jquery-1.6.2.min.js"));
 
             
             #line default
             #line hidden
-WriteLiteral("\"></script>\r\n        ");
+WriteLiteral("\"></script>\n        ");
 
 
             
-            #line 74 "..\..\Views\Shared\Layout.cshtml"
+            #line 78 "..\..\Views\Shared\Layout.cshtml"
    Write(RenderSection("BottomScripts", required: false));
 
             
             #line default
             #line hidden
-WriteLiteral("\r\n    </body>\r\n</html>");
+WriteLiteral("\n    </body>\n</html>");
 
 
         }
