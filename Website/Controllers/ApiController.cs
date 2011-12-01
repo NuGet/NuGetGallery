@@ -34,7 +34,10 @@ namespace NuGetGallery
                                              Request.UserHostAddress,
                                              Request.UserAgent);
 
-            return packageFileSvc.CreateDownloadPackageActionResult(package);
+            if (!string.IsNullOrWhiteSpace(package.ExternalPackageUrl))
+                return Redirect(package.ExternalPackageUrl);
+            else
+                return packageFileSvc.CreateDownloadPackageActionResult(package);
         }
 
         [ActionName("PushPackageApi"), HttpPut, RequireRemoteHttps]
