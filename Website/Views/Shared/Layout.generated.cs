@@ -292,21 +292,11 @@ WriteLiteral(@"
             
             #line default
             #line hidden
-WriteLiteral(" Outercurve Foundation.\n                    </p>\n\n                    ");
+WriteLiteral(" Outercurve Foundation.\n                    </p>\n                    ");
 
 
             
-            #line 71 "..\..\Views\Shared\Layout.cshtml"
-               Write(String.Format("{0:dd/mm/yyyy HH:mm:ss }", DateTime.Now));
-
-            
-            #line default
-            #line hidden
-WriteLiteral("\n\n                    ");
-
-
-            
-            #line 73 "..\..\Views\Shared\Layout.cshtml"
+            #line 70 "..\..\Views\Shared\Layout.cshtml"
                Write(ViewHelpers.ReleaseTag());
 
             
@@ -317,7 +307,7 @@ WriteLiteral("\n                </div>\n            </footer>\n        </div>\n 
 
 
             
-            #line 77 "..\..\Views\Shared\Layout.cshtml"
+            #line 74 "..\..\Views\Shared\Layout.cshtml"
                 Write(Url.Content("~/Scripts/jquery-1.6.2.min.js"));
 
             
@@ -327,7 +317,7 @@ WriteLiteral("\"></script>\n        ");
 
 
             
-            #line 78 "..\..\Views\Shared\Layout.cshtml"
+            #line 75 "..\..\Views\Shared\Layout.cshtml"
    Write(RenderSection("BottomScripts", required: false));
 
             
