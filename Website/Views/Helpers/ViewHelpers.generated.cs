@@ -562,6 +562,7 @@ return new System.Web.WebPages.HelperResult(__razor_helper_writer => {
     string sha = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseSha"];
     string branch = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseBranch"];
     string time = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseTime"];
+    if(!String.IsNullOrEmpty(name) && !String.IsNullOrEmpty(sha) && !String.IsNullOrEmpty(branch) && !String.IsNullOrEmpty(time)){
 
 #line default
 #line hidden
@@ -570,7 +571,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "    <p id=\"releaseTag\">\r\
 
 
 
-#line 86 "..\..\Views\Helpers\ViewHelpers.cshtml"
+#line 87 "..\..\Views\Helpers\ViewHelpers.cshtml"
 WebViewPage.WriteTo(@__razor_helper_writer, name);
 
 #line default
@@ -581,7 +582,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, " - \r\n        Deployed from
 
 
 
-#line 87 "..\..\Views\Helpers\ViewHelpers.cshtml"
+#line 88 "..\..\Views\Helpers\ViewHelpers.cshtml"
                                  WebViewPage.WriteTo(@__razor_helper_writer, sha);
 
 #line default
@@ -591,7 +592,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"View the commit.\
 
 
 
-#line 87 "..\..\Views\Helpers\ViewHelpers.cshtml"
+#line 88 "..\..\Views\Helpers\ViewHelpers.cshtml"
                                                                 WebViewPage.WriteTo(@__razor_helper_writer, sha.Substring(0,10));
 
 #line default
@@ -601,7 +602,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</a>\r\n        on <a href=\
 
 
 
-#line 88 "..\..\Views\Helpers\ViewHelpers.cshtml"
+#line 89 "..\..\Views\Helpers\ViewHelpers.cshtml"
                         WebViewPage.WriteTo(@__razor_helper_writer, branch);
 
 #line default
@@ -611,7 +612,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "\" title=\"View the branch.\
 
 
 
-#line 88 "..\..\Views\Helpers\ViewHelpers.cshtml"
+#line 89 "..\..\Views\Helpers\ViewHelpers.cshtml"
                                                           WebViewPage.WriteTo(@__razor_helper_writer, branch);
 
 #line default
@@ -621,7 +622,7 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, "</a> \r\n        at ");
 
 
 
-#line 89 "..\..\Views\Helpers\ViewHelpers.cshtml"
+#line 90 "..\..\Views\Helpers\ViewHelpers.cshtml"
 WebViewPage.WriteTo(@__razor_helper_writer, time);
 
 #line default
@@ -631,7 +632,8 @@ WebViewPage.WriteLiteralTo(@__razor_helper_writer, ".\r\n    </p>\r\n");
 
 
 
-#line 91 "..\..\Views\Helpers\ViewHelpers.cshtml"
+#line 92 "..\..\Views\Helpers\ViewHelpers.cshtml"
+    }
 
 #line default
 #line hidden
