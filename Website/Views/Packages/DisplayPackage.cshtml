@@ -174,29 +174,32 @@
         <tbody>
             @foreach (var packageVersion in Model.PackageVersions)
             {
-                <tr class="versionTableRow @if (packageVersion.LatestVersion)
-                                           {<text>recommended </text>}">
-                    <td class="version" @if (packageVersion.LatestVersion)
-                                        {<text>title="Latest Version"</text>}>
-                        @if (!packageVersion.IsCurrent(Model))
+                if (packageVersion.Listed || Model.IsOwner(User))
+                {
+                    <tr class="versionTableRow @if (packageVersion.LatestVersion)
+                                               {<text>recommended </text>}">
+                        <td class="version" @if (packageVersion.LatestVersion)
+                                            {<text>title="Latest Version"</text>}>
+                            @if (!packageVersion.IsCurrent(Model))
+                            {
+                                <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
+                            }
+                            else
+                            {
+                                <span>@packageVersion.Title @packageVersion.Version</span>
+                            }
+                        </td>
+                        <td>@packageVersion.DownloadCount
+                        </td>
+                        <td>@packageVersion.LastUpdated.ToString("D")
+                        </td>
+                        @if (Model.IsOwner(User))
                         {
-                            <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
+                        <td>@(packageVersion.Listed ? "yes" : "no")
+                        </td>
                         }
-                        else
-                        {
-                            <span>@packageVersion.Title @packageVersion.Version</span>
-                        }
-                    </td>
-                    <td>@packageVersion.DownloadCount
-                    </td>
-                    <td>@packageVersion.LastUpdated.ToString("D")
-                    </td>
-                    @if (Model.IsOwner(User))
-                    {
-                    <td>@(packageVersion.Listed ? "yes" : "no")
-                    </td>
-                    }
-                </tr>
+                    </tr>
+                }
             }
         </tbody>
     </table>

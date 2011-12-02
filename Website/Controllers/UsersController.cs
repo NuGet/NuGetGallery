@@ -257,6 +257,7 @@ namespace NuGetGallery
             }
 
             var packages = (from p in packageService.FindPackagesByOwner(user)
+                            where p.Listed
                             group p by p.PackageRegistration.Id)
                            .Select(c => new PackageViewModel(c.First()))
                            .ToList();
