@@ -3,7 +3,6 @@ using System.Web.Mvc;
 using Moq;
 using Xunit;
 using Xunit.Extensions;
-using System.Web;
 
 namespace NuGetGallery
 {
@@ -75,7 +74,7 @@ namespace NuGetGallery
         [InlineData(new object[] { "PUT" })]
         [InlineData(new object[] { "head" })]
         [InlineData(new object[] { "trace" })]
-        public void RequireHttpsAttributeThrowsIfNonGetRequest(string method)
+        public void RequireHttpsAttributeReturns403IfNonGetRequest(string method)
         {
             // Arrange
             Mock<AuthorizationContext> mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
@@ -88,12 +87,13 @@ namespace NuGetGallery
             var attribute = new RequireRemoteHttpsAttribute();
 
             // Act 
-            Exception exception = Record.Exception(() => attribute.OnAuthorization(context));
+            attribute.OnAuthorization(context);
 
             // Assert
-            Assert.IsType<HttpException>(exception);
-            Assert.Equal(403, ((HttpException)exception).GetHttpCode());
-            Assert.Equal("The requested resource can only be accessed via SSL.", exception.Message);
+            Assert.IsType<HttpStatusCodeWithBodyResult>(context.Result);
+            var result = (HttpStatusCodeWithBodyResult)context.Result;
+            Assert.Equal(403, result.StatusCode);
+            Assert.Equal("The requested resource can only be accessed via SSL.", result.StatusDescription);
         }
     }
 }

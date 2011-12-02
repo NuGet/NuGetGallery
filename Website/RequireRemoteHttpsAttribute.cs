@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Web;
+using System.Net;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -28,7 +28,7 @@ namespace NuGetGallery
             // body correctly.
             if (!String.Equals(filterContext.HttpContext.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
             {
-                throw new HttpException(403, Strings.SSLRequired);
+                filterContext.Result = new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.SSLRequired);
             }
             else
             {
