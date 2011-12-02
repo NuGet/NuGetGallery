@@ -235,7 +235,29 @@ header.main {
                 border-radius: 0 4px 4px 0;
                 -moz-border-radius: 0 4px 4px 0;
                 -webkit-border-radius: 0 4px 4px 0;
-            }            
+            }
+            
+        /* On Page Search */
+        #pageSearchBox {
+            background-color: #fff;
+            border: 1px solid #333;
+            margin-top: 7px;
+            height: 32px;
+            padding-left: 5px;
+            padding-right: 4px;
+            vertical-align: top;
+            width: 300px;
+            
+            /*CSS3 properties*/
+            border-radius: 4px;
+            -moz-border-radius: 4px;
+            -webkit-border-radius: 4px;
+        }
+
+            #pageSearchBox #searchBoxInput {
+                width: 265px;
+            }
+    
     
     /* Logo */
     #logo {

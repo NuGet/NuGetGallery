@@ -20,10 +20,12 @@
     </ul>
 
     <h2 class="search">Try Searching</h2>
+    <div id="pageSearchBox">
     <form action="@Href("~/packages")" onsubmit="return submitQuery()">
         <input name="q" id="searchBoxInput" value="@errorPath" placeholder="Search Gallery" />
         <input id="searchBoxSubmit" type="submit" value=" " />
     </form>
+    </div>
 
     <h2>Still Nothing?</h2>
     <ul>
