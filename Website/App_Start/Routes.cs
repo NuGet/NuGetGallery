@@ -66,6 +66,17 @@ namespace NuGetGallery
                 "packages/{id}/{action}",
                 new { controller = MVC.Packages.Name });
 
+            var resendRoute = routes.MapRoute(
+               "ResendConfirmation",
+               "account/ResendConfirmation",
+               MVC.Users.ResendConfirmation());
+
+            //Redirecting Old Route
+            routes.Redirect(
+               r => r.MapRoute(
+                   "OldConfirmation",
+                   "Users/Account/ChallengeEmail")).To(resendRoute);
+
             routes.MapRoute(
                 RouteName.Authentication,
                 "users/account/{action}",
@@ -166,6 +177,7 @@ namespace NuGetGallery
                     // it's mapping the legacy routes to the new better routes.
                     new { action = "ContactOwners|ManagePackageOwners" }),
                 permanent: true).To(packageActionRoute);
+            
 
             // TODO: this route looks broken as there is no EditPackage action
             //routes.Redirect(
