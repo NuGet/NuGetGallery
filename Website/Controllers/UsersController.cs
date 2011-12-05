@@ -196,6 +196,28 @@ namespace NuGetGallery
             return View(model);
         }
 
+        public virtual ActionResult ResendConfirmation()
+        {
+            return View();
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public virtual ActionResult ResendConfirmation(ResendConfirmationEmailViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = userService.FindByUnconfimedEmailAddress(model.Email);
+                if (user != null && !user.Confirmed)
+                {
+                    var confirmationUrl = Url.ConfirmationUrl(MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+                    messageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+                    return RedirectToAction(MVC.Users.Thanks());
+                }
+                ModelState.AddModelError("Email", "There was an issue resending your confirmation token.");
+            }
+            return View(model);
+        }
+
         public virtual ActionResult PasswordSent()
         {
             ViewBag.Email = TempData["Email"];
