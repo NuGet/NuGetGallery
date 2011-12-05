@@ -20,8 +20,14 @@ using System.Web.Mvc.Ajax;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
+
+
+
 namespace NuGetGallery {
+
     public partial class AuthenticationController {
+
+
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected AuthenticationController(Dummy d) { }
 
@@ -31,11 +37,13 @@ namespace NuGetGallery {
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
 
+
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult LogOff() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
         }
+
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public AuthenticationController Actions { get { return MVC.Authentication; } }
@@ -49,9 +57,15 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+
+
             public readonly string LogOn = "LogOn";
+
+
             public readonly string LogOff = "LogOff";
+
         }
+
 
 
         static readonly ViewNames s_views = new ViewNames();
@@ -59,34 +73,54 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-            public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
+public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
+
         }
     }
+
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_AuthenticationController: NuGetGallery.AuthenticationController {
         public T4MVC_AuthenticationController() : base(Dummy.Instance) { }
 
+
         public override System.Web.Mvc.ActionResult LogOn() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOn);
+
             return callInfo;
         }
+
 
         public override System.Web.Mvc.ActionResult LogOn(NuGetGallery.SignInRequest request, string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOn);
+
+
             callInfo.RouteValueDictionary.Add("request", request);
+
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+
+
             return callInfo;
         }
+
 
         public override System.Web.Mvc.ActionResult LogOff(string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
+
+
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+
+
             return callInfo;
         }
 
+
     }
+
+
 }
+
+
 
 #endregion T4MVC
 #pragma warning restore 1591

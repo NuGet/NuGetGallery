@@ -242,6 +242,7 @@
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
+    <Compile Include="ViewModels\ResendConfirmationEmailViewModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -688,6 +689,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Confirm.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Users\ResendConfirmation.generated.cs">
+      <DependentUpon>ResendConfirmation.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Views\Users\Edit.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -956,6 +962,10 @@
     </Content>
     <Content Include="api\Web.config" />
     <Content Include="_app_offline.htm" />
+    <Content Include="Views\Users\ResendConfirmation.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ResendConfirmation.generated.cs</LastGenOutput>
+    </Content>
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />

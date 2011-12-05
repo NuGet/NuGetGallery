@@ -20,8 +20,14 @@ using System.Web.Mvc.Ajax;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
+
+
+
 namespace NuGetGallery {
+
     public partial class JsonApiController {
+
+
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected JsonApiController(Dummy d) { }
 
@@ -30,6 +36,7 @@ namespace NuGetGallery {
             var callInfo = result.GetT4MVCResult();
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
+
 
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -44,7 +51,9 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+
         }
+
 
 
         static readonly ViewNames s_views = new ViewNames();
@@ -52,15 +61,22 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+
         }
     }
+
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_JsonApiController: NuGetGallery.JsonApiController {
         public T4MVC_JsonApiController() : base(Dummy.Instance) { }
 
+
     }
+
+
 }
+
+
 
 #endregion T4MVC
 #pragma warning restore 1591

@@ -97,6 +97,15 @@ namespace NuGetGallery
                 .SingleOrDefault();
         }
 
+        public virtual User FindByUnconfimedEmailAddress(string unconfirmedEmailAddress)
+        {
+            // TODO: validate input
+
+            return userRepo.GetAll()
+                .Where(u => u.UnconfirmedEmailAddress == unconfirmedEmailAddress)
+                .SingleOrDefault();
+        }
+
         public virtual User FindByUsername(string username)
         {
             // TODO: validate input

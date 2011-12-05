@@ -15,6 +15,8 @@ namespace NuGetGallery
 
         User FindByEmailAddress(string emailAddress);
 
+        User FindByUnconfimedEmailAddress(string unconfirmedEmailAddress);
+
         User FindByUsername(string username);
 
         User FindByUsernameAndPassword(
