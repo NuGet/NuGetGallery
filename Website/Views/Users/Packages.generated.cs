@@ -398,7 +398,7 @@ WriteLiteral("    <section id=\"published\">\r\n        <h1>No Packages!</h1>\r\
             
             #line default
             #line hidden
-WriteLiteral("\" class=\"silverButtonBig\">upload a package</a>\r\n        </p>\r\n    </section>\r\n");
+WriteLiteral("\" class=\"silverButtonBig\">upload a package</a>.\r\n        </p>\r\n    </section>\r\n");
 
 
             
