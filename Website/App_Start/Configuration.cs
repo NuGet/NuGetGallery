@@ -110,8 +110,14 @@ namespace NuGetGallery
 
         private static string GetSiteRoot()
         {
-            var configValue = ReadConfiguration("SiteRoot");
-            return String.IsNullOrEmpty(configValue) ? (HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + '/') : configValue;
+            // TODO: Make this less horrid. 
+            var request = HttpContext.Current.Request;
+            if (request.IsLocal)
+            {
+                return request.Url.GetLeftPart(UriPartial.Authority) + '/';
+            }
+
+            return ConfigurationManager.AppSettings["Configuration:SiteRoot"]; 
         }
     }
 }

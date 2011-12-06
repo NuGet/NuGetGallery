@@ -14,7 +14,6 @@
       <Setting name="AzureStorageBlobUrl" value="" />
       <Setting name="PackageStoreType" value="AzureStorageBlob" />
       <Setting name="UseSmtp" value="true" />
-      <Setting name="SiteRoot" value="http://nuget.org" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />

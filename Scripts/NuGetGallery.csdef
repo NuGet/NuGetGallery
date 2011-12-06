@@ -7,7 +7,6 @@
       <Setting name ="AzureStorageBlobUrl" />
       <Setting name ="PackageStoreType" />      
       <Setting name="UseSmtp" />
-      <Setting name="SiteRoot" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
