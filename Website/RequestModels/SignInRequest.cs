@@ -6,8 +6,8 @@ namespace NuGetGallery
     {
         [Required]
         [Display(Name = "Username")]
-        [Hint("Enter either your username or email address.")]
-        public string UserNameOrEmail { get; set; }
+        [Hint("Enter your username.")]
+        public string UserName { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
