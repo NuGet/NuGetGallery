@@ -71,10 +71,10 @@ namespace NuGetGallery
                "account/ResendConfirmation",
                MVC.Users.ResendConfirmation());
 
-            //Redirecting Old Route
+            //Redirecting v1 Confirmation Route
             routes.Redirect(
                r => r.MapRoute(
-                   "OldConfirmation",
+                   "v1Confirmation",
                    "Users/Account/ChallengeEmail")).To(resendRoute);
 
             routes.MapRoute(

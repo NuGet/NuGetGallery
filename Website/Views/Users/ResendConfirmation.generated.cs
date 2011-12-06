@@ -55,8 +55,8 @@ WriteLiteral(@"
 <p>
      We are sorry to hear you did not get our confirmation email. Enter your email below 
      and we will resend the confirmation email. Alternatively you might have been 
-     redirected to this page because the confirmation link you clicked was old and need 
-     to be updated. Enter the email address and a new one will be send, sorry for the 
+     redirected to this page because the confirmation link you clicked was old and needs 
+     to be updated. Enter your email address and a new one will be sent, sorry for the 
      inconvenience. 
 </p>
 
