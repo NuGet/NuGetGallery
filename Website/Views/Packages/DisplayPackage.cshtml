@@ -195,7 +195,7 @@
                         </td>
                         @if (Model.IsOwner(User))
                         {
-                        <td>@(packageVersion.Listed ? "yes" : "no")
+                        <td><a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
                         </td>
                         }
                     </tr>
