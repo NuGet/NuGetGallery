@@ -5,10 +5,10 @@ namespace NuGetGallery
 {
     [HasStream]
     [DataServiceKey("Id", "Version")]
-    [EntityPropertyMapping("Id", SyndicationItemProperty.Title, SyndicationTextContentKind.Plaintext, keepInContent: false)]
-    [EntityPropertyMapping("Authors", SyndicationItemProperty.AuthorName, SyndicationTextContentKind.Plaintext, keepInContent: false)]
-    [EntityPropertyMapping("LastUpdated", SyndicationItemProperty.Updated, SyndicationTextContentKind.Plaintext, keepInContent: false)]
-    [EntityPropertyMapping("Summary", SyndicationItemProperty.Summary, SyndicationTextContentKind.Plaintext, keepInContent: false)]
+    [EntityPropertyMapping("Title", SyndicationItemProperty.Title, SyndicationTextContentKind.Plaintext, keepInContent: true)]
+    [EntityPropertyMapping("Authors", SyndicationItemProperty.AuthorName, SyndicationTextContentKind.Plaintext, keepInContent: true)]
+    [EntityPropertyMapping("LastUpdated", SyndicationItemProperty.Updated, SyndicationTextContentKind.Plaintext, keepInContent: true)]
+    [EntityPropertyMapping("Summary", SyndicationItemProperty.Summary, SyndicationTextContentKind.Plaintext, keepInContent: true)]
     public class V1FeedPackage
     {
         public string Id { get; set; }
@@ -20,7 +20,7 @@ namespace NuGetGallery
         public string Dependencies { get; set; }
         public string Description { get; set; }
         public int DownloadCount { get; set; }
-        public string ExternalPackageUri { get; set; }
+        public string ExternalPackageUrl { get; set; }
         public string GalleryDetailsUrl { get; set; }
         public string IconUrl { get; set; }
         public bool IsLatestVersion { get; set; }
@@ -65,5 +65,6 @@ namespace NuGetGallery
         public string Language { get { return ""; } }
         public string PackageType { get { return "Package"; } }
         public decimal Price { get { return 0; } }
+        public bool Prerelease { get { return false; } }
     }
 }

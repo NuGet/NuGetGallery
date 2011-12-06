@@ -9,7 +9,7 @@ namespace NuGetGallery
     public class Configuration : IConfiguration
     {
         private static readonly Dictionary<string, Lazy<object>> configThunks = new Dictionary<string, Lazy<object>>();
-        private readonly Lazy<string> siteRoot = new Lazy<string>(() => HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + '/'); 
+        private readonly Lazy<string> siteRoot = new Lazy<string>(GetSiteRoot); 
 
         public static string ReadAppSetting(string key)
         {
@@ -106,6 +106,12 @@ namespace NuGetGallery
                     "PackageStoreType",
                     (value) => (PackageStoreType)Enum.Parse(typeof(PackageStoreType), value ?? PackageStoreType.NotSpecified.ToString()));
             }
+        }
+
+        private static string GetSiteRoot()
+        {
+            var configValue = ReadConfiguration("SiteRoot");
+            return String.IsNullOrEmpty(configValue) ? (HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority) + '/') : configValue;
         }
     }
 }
