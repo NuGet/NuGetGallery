@@ -40,13 +40,13 @@ namespace NuGetGallery
                 return packageFileSvc.CreateDownloadPackageActionResult(package);
         }
 
-        [ActionName("PushPackageApi"), HttpPut, RequireRemoteHttps]
+        [ActionName("PushPackageApi"), HttpPut]
         public virtual ActionResult CreatePackagePut(Guid apiKey)
         {
             return CreatePackageInternal(apiKey);
         }
 
-        [ActionName("PushPackageApi"), HttpPost, RequireRemoteHttps]
+        [ActionName("PushPackageApi"), HttpPost]
         public virtual ActionResult CreatePackagePost(Guid apiKey)
         {
             return CreatePackageInternal(apiKey);
@@ -68,7 +68,7 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(201);
         }
 
-        [ActionName("DeletePackageApi"), HttpDelete, RequireRemoteHttps]
+        [ActionName("DeletePackageApi"), HttpDelete]
         public virtual ActionResult DeletePackage(Guid apiKey, string id, string version)
         {
             var user = userSvc.FindByApiKey(apiKey);
@@ -86,7 +86,7 @@ namespace NuGetGallery
             return new EmptyResult();
         }
 
-        [ActionName("PublishPackageApi"), HttpPost, RequireRemoteHttps]
+        [ActionName("PublishPackageApi"), HttpPost]
         public virtual ActionResult PublishPackage(Guid key, string id, string version)
         {
             return new EmptyResult();

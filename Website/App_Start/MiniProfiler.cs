@@ -59,11 +59,13 @@ namespace NuGetGallery.App_Start
                     stopProfiling = true;
                 else
                 {
-                    var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
+                    // Temporarily removing until we figure out the hammering of request we saw.
+                    //var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
                     var requestIsLocal = httpContext.Request != null && httpContext.Request.IsLocal;
-                    var isStaging = httpContext.Request != null && httpContext.Request.Url.Host.Equals("staging.nuget.org", StringComparison.OrdinalIgnoreCase);
+                    var isStaging = httpContext.Request != null && httpContext.Request.Url.Host.Equals("preview.nuget.org", StringComparison.OrdinalIgnoreCase);
 
-                    stopProfiling = !userCanProfile && !requestIsLocal && !isStaging;
+                    //stopProfiling = !userCanProfile && !requestIsLocal && !isStaging;
+                    stopProfiling = !requestIsLocal && !isStaging;
                 }
 
                 if (stopProfiling)

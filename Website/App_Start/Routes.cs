@@ -104,6 +104,11 @@ namespace NuGetGallery
                 "api/v1/FeedService.svc",
                 typeof(V1Feed));
 
+            routes.MapServiceRoute(
+                "LegacyFeedService",
+                "v1/FeedService.svc",
+                typeof(V1Feed));
+
             routes.MapRoute(
                 "v1" + RouteName.DownloadPackage,
                 "api/v1/package/{id}/{version}",
@@ -113,17 +118,17 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 "v1" + RouteName.PushPackageApi,
-                "api/v1/PackageFiles/{apiKey}/nupkg",
+                "v1/PackageFiles/{apiKey}/nupkg",
                 MVC.Api.CreatePackagePost());
 
             routes.MapRoute(
                 "v1" + RouteName.DeletePackageApi,
-                "api/v1/Packages/{apiKey}/{id}/{version}",
+                "v1/Packages/{apiKey}/{id}/{version}",
                 MVC.Api.DeletePackage());
 
             routes.MapRoute(
                 "v1" + RouteName.PublishPackageApi,
-                "api/v1/PublishedPackages/Publish",
+                "v1/PublishedPackages/Publish",
                 MVC.Api.PublishPackage());
 
             routes.MapServiceRoute(
