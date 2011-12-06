@@ -134,7 +134,7 @@ WriteLiteral("    <li>\r\n        <section class=\"package\">\r\n            <di
 
             
             #line 31 "..\..\Views\Users\Profiles.cshtml"
-                    Write(Url.Package(package));
+                    Write(Url.Package(package.Id));
 
             
             #line default
@@ -144,7 +144,7 @@ WriteLiteral("\" title=\"View more about ");
 
             
             #line 31 "..\..\Views\Users\Profiles.cshtml"
-                                                                  Write(package.Title);
+                                                                     Write(package.Title);
 
             
             #line default
@@ -185,7 +185,7 @@ WriteLiteral("\';\" />\r\n                </a>\r\n            </div>\r\n        
 
             
             #line 36 "..\..\Views\Users\Profiles.cshtml"
-                        Write(Url.Package(package));
+                        Write(Url.Package(package.Id));
 
             
             #line default
@@ -195,7 +195,7 @@ WriteLiteral("\">");
 
             
             #line 36 "..\..\Views\Users\Profiles.cshtml"
-                                               Write(package.Title);
+                                                  Write(package.Title);
 
             
             #line default
