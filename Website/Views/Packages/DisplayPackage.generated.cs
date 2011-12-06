@@ -1026,17 +1026,27 @@ WriteLiteral("\n                        </td>\n");
             
             #line default
             #line hidden
-WriteLiteral("                        <td>");
+WriteLiteral("                        <td><a href=\"");
 
 
             
             #line 198 "..\..\Views\Packages\DisplayPackage.cshtml"
-                        Write(packageVersion.Listed ? "yes" : "no");
+                                Write(Url.DeletePackage(packageVersion));
 
             
             #line default
             #line hidden
-WriteLiteral("\n                        </td>\r\n");
+WriteLiteral("\" class=\"delete\">");
+
+
+            
+            #line 198 "..\..\Views\Packages\DisplayPackage.cshtml"
+                                                                                    Write(packageVersion.Listed ? "yes" : "no");
+
+            
+            #line default
+            #line hidden
+WriteLiteral("</a>\n                        </td>\r\n");
 
 
             
