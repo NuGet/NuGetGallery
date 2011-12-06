@@ -40,7 +40,7 @@ namespace NuGetGallery
         public int VersionDownloadCount { get; set; }
 
         // Deprecated properties
-        public int RatingsCount 
+        public int RatingsCount
         {
             get { return 0; }
         }
@@ -52,7 +52,8 @@ namespace NuGetGallery
 
         public double Rating
         {
-            get { return 0.0; }
+            get;
+            set;
         }
 
         public double VersionRating

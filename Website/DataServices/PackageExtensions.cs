@@ -2,7 +2,6 @@
 using System.Data.Entity;
 using System.Linq;
 using OData.Linq;
-using System.Web;
 
 namespace NuGetGallery
 {
@@ -48,6 +47,7 @@ namespace NuGetGallery
                          Tags = p.Tags,
                          Title = p.Title,
                          VersionDownloadCount = p.DownloadCount,
+                         Rating = 0
                      });
         }
 
