@@ -169,8 +169,18 @@ WriteLiteral("\" alt=\"");
             
             #line default
             #line hidden
-WriteLiteral(" icon\" />\r\n                </a>\r\n            </div>\r\n            <div class=\"main" +
-"\">\r\n                <h1><a href=\"");
+WriteLiteral(" icon\" onerror=\"this.src=\'");
+
+
+            
+            #line 32 "..\..\Views\Users\Profiles.cshtml"
+                                                                                                                                            Write(Links.Content.Images.packageDefaultIcon_50x50_png);
+
+            
+            #line default
+            #line hidden
+WriteLiteral("\';\" />\r\n                </a>\r\n            </div>\r\n            <div class=\"main\">\r" +
+"\n                <h1><a href=\"");
 
 
             
@@ -186,16 +196,6 @@ WriteLiteral("\">");
             
             #line 36 "..\..\Views\Users\Profiles.cshtml"
                                                Write(package.Title);
-
-            
-            #line default
-            #line hidden
-WriteLiteral(" ");
-
-
-            
-            #line 36 "..\..\Views\Users\Profiles.cshtml"
-                                                              Write(package.Version);
 
             
             #line default
