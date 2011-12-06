@@ -30,7 +30,7 @@ namespace NuGetGallery
                          Dependencies = p.FlattenedDependencies,
                          Description = p.Description,
                          DownloadCount = p.PackageRegistration.DownloadCount,
-                         ExternalPackageUri = p.ExternalPackageUrl,
+                         ExternalPackageUrl = p.ExternalPackageUrl,
                          GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.Version,
                          IconUrl = p.IconUrl,
                          IsLatestVersion = p.IsLatestStable,
@@ -46,7 +46,7 @@ namespace NuGetGallery
                          RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
                          Summary = p.Summary,
                          Tags = p.Tags,
-                         Title = p.Title,
+                         Title = p.Title ?? p.PackageRegistration.Id, // Need to do this since the older feed always showed a title.
                          VersionDownloadCount = p.DownloadCount,
                      });
         }
@@ -75,6 +75,7 @@ namespace NuGetGallery
                          IsAbsoluteLatestVersion = p.IsLatest,
                          LastUpdated = p.LastUpdated,
                          LicenseUrl = p.LicenseUrl,
+                         Language = null,
                          PackageHash = p.Hash,
                          PackageHashAlgorithm = p.HashAlgorithm,
                          PackageSize = p.PackageFileSize,
@@ -86,7 +87,7 @@ namespace NuGetGallery
                          Summary = p.Summary,
                          Tags = p.Tags,
                          Title = p.Title,
-                         VersionDownloadCount = p.DownloadCount,
+                         VersionDownloadCount = p.DownloadCount
                      });
         }
 

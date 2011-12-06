@@ -26,6 +26,7 @@ namespace NuGetGallery
         public bool IsAbsoluteLatestVersion { get; set; }
         public DateTime LastUpdated { get; set; }
         public DateTime Published { get; set; }
+        public string Language { get; set; }
         public string LicenseUrl { get; set; }
         public string PackageHash { get; set; }
         public string PackageHashAlgorithm { get; set; }
