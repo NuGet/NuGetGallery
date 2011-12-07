@@ -109,7 +109,7 @@ namespace NuGetGallery
                 "v1/FeedService.svc",
                 typeof(V1Feed));
 
-            routes.MapRoute(
+            var downloadRoute = routes.MapRoute(
                 "v1" + RouteName.DownloadPackage,
                 "api/v1/package/{id}/{version}",
                 MVC.Api.GetPackage(),
@@ -212,6 +212,13 @@ namespace NuGetGallery
                     "Contribute/NewSubmission",
                     MVC.Packages.UploadPackage()),
                 permanent: true).To(uploadPackageRoute);
+
+            routes.Redirect(
+               r => r.MapRoute(
+                   "LegacyDownloadRoute",
+                   "v1/Package/Download/{id}/{version}",
+                   MVC.Api.GetPackage().AddRouteValue("version", UrlParameter.Optional)),
+               permanent: true).To(downloadRoute);
         }
     }
 }
