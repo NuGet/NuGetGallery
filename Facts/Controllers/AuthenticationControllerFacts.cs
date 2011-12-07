@@ -35,7 +35,7 @@ namespace NuGetGallery.Controllers
                     userSvc: userSvc);
 
                 controller.LogOn(
-                    new SignInRequest() { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    new SignInRequest() { UserName = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
 
                 formsAuthSvc.Verify(x => x.SetAuthCookie(
@@ -57,7 +57,7 @@ namespace NuGetGallery.Controllers
                     userSvc: userSvc);
 
                 controller.LogOn(
-                    new SignInRequest() { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    new SignInRequest() { UserName = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
             }
 
@@ -77,7 +77,7 @@ namespace NuGetGallery.Controllers
                     userSvc: userSvc);
 
                 controller.LogOn(
-                    new SignInRequest() { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    new SignInRequest() { UserName = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
 
                 formsAuthSvc.Verify(x => x.SetAuthCookie(

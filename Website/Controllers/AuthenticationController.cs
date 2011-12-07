@@ -33,9 +33,8 @@ namespace NuGetGallery
             if (!ModelState.IsValid)
                 return View();
 
-            // TODO: allow users to sign in with email address in addition to user name
             var user = userSvc.FindByUsernameAndPassword(
-                request.UserNameOrEmail,
+                request.UserName,
                 request.Password);
 
             if (user == null)
