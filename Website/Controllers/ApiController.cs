@@ -40,6 +40,23 @@ namespace NuGetGallery
                 return packageFileSvc.CreateDownloadPackageActionResult(package);
         }
 
+        [ActionName("VerifyPackageKeyApi"), HttpGet]
+        public virtual ActionResult VerifyPackageKey(Guid apiKey, string id, string version)
+        {
+            var user = userSvc.FindByApiKey(apiKey);
+            if (user == null)
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+
+            if (!package.IsOwner(user))
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+
+            return new EmptyResult();
+        }
+
         [ActionName("PushPackageApi"), HttpPut]
         public virtual ActionResult CreatePackagePut(Guid apiKey)
         {
