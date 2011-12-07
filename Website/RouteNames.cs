@@ -1,6 +1,6 @@
 ﻿namespace NuGetGallery
 {
-    public static class RouteName
+    internal static class RouteName
     {
         public const string V1ApiFeed = "V1ApiFeed";
         public const string V2ApiFeed = "V2ApiFeed";
@@ -25,6 +25,7 @@
         public const string PasswordReset = "PasswordReset";
         public const string NewSubmission = "NewSubmission";
         public const string VerifyPackage = "VerifyPackage";
+        public const string VerifyPackageKey = "VerifyPackageKey";
         public const string CancelUpload = "CancelUpload";
     }
 }

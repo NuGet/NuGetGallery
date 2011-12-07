@@ -97,6 +97,7 @@ namespace NuGetGallery
                 "account/{action}",
                 MVC.Users.Account());
 
+            // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
             // If the push url is /api/v1 then NuGet.Core would ping the path to resolve redirection. 
             routes.MapServiceRoute(
@@ -109,6 +110,11 @@ namespace NuGetGallery
                 "v1/FeedService.svc",
                 typeof(V1Feed));
 
+            routes.MapRoute(
+                "v1" + RouteName.VerifyPackageKey,
+                "api/v1/package/verifykey/{id}/{version}",
+                MVC.Api.VerifyPackageKey()); 
+            
             var downloadRoute = routes.MapRoute(
                 "v1" + RouteName.DownloadPackage,
                 "api/v1/package/{id}/{version}",
@@ -137,6 +143,11 @@ namespace NuGetGallery
                 typeof(V1Feed));
 
             // V2 routes
+            routes.MapRoute(
+                "v2" + RouteName.VerifyPackageKey,
+                "api/v2/package/verifykey/{id}/{version}",
+                MVC.Api.VerifyPackageKey()); 
+            
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
                 "api/v2/package/{id}/{version}",
@@ -182,7 +193,7 @@ namespace NuGetGallery
                     // it's mapping the legacy routes to the new better routes.
                     new { action = "ContactOwners|ManagePackageOwners" }),
                 permanent: true).To(packageActionRoute);
-            
+
 
             // TODO: this route looks broken as there is no EditPackage action
             //routes.Redirect(

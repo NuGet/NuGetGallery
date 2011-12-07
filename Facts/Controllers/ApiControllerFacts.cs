@@ -216,6 +216,84 @@ namespace NuGetGallery
             }
         }
 
+        public class TheVerifyPackageKeyAction
+        {
+            [Fact]
+            public void VerifyPackageKeyReturns403IfUserDoesNotExist()
+            {
+                // Arrange
+                var guid = Guid.NewGuid();
+                var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+                userSvc.Setup(s => s.FindByApiKey(guid)).Returns<User>(null);
+                var controller = CreateController(userSvc: userSvc);
+
+                // Act
+                var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
+
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var httpStatus = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(403, httpStatus.StatusCode);
+            }
+
+            [Fact]
+            public void VerifyPackageKeyReturns404IfPackageDoesNotExist()
+            {
+                // Arrange
+                var guid = Guid.NewGuid();
+                var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+                userSvc.Setup(s => s.FindByApiKey(guid)).Returns(new User());
+                var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
+                packageSvc.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns<Package>(null);
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+
+                // Act
+                var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
+
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var httpStatus = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(404, httpStatus.StatusCode);
+            }
+
+            [Fact]
+            public void VerifyPackageKeyReturns403IfUserIsNotAnOwner()
+            {
+                // Arrange
+                var guid = Guid.NewGuid();
+                var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+                userSvc.Setup(s => s.FindByApiKey(guid)).Returns(new User());
+                var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
+                packageSvc.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns(new Package { PackageRegistration = new PackageRegistration() });
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+
+                // Act
+                var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
+
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var httpStatus = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(403, httpStatus.StatusCode);
+            }
+
+            [Fact]
+            public void VerifyPackageKeyReturns200IfUserIsAnOwner()
+            {
+                // Arrange
+                var guid = Guid.NewGuid();
+                var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+                var user = new User();
+                var package = new Package { PackageRegistration = new PackageRegistration() };
+                package.PackageRegistration.Owners.Add(user);
+                userSvc.Setup(s => s.FindByApiKey(guid)).Returns(user);
+                var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
+                packageSvc.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns(package);
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+
+                // Act
+                var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
+
+                Assert.IsType<EmptyResult>(result);
+            }
+        }
+
         public class TheGetPackageAction
         {
             [Fact]
