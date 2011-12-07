@@ -5,8 +5,6 @@ using OData.Linq;
 
 namespace NuGetGallery
 {
-    // TODO: build the report abuse URL for real
-    // TODO: build the gallery details URL for real
     public static class PackageExtensions
     {
         private static readonly DateTime magicDateThatActuallyMeansUnpublishedBecauseOfLegacyDecisions = new DateTime(1900, 1, 1, 0, 0, 0);
@@ -44,7 +42,7 @@ namespace NuGetGallery
                          ReportAbuseUrl = siteRoot + "package/ReportAbuse/" + p.PackageRegistration.Id + "/" + p.Version,
                          RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
                          Summary = p.Summary,
-                         Tags = p.Tags,
+                         Tags = p.Tags == null ? null : " " + p.Tags.Trim() + " ", // In the current feed, tags are padded with a single leading and trailing space 
                          Title = p.Title ?? p.PackageRegistration.Id, // Need to do this since the older feed always showed a title.
                          VersionDownloadCount = p.DownloadCount,
                          Rating = 0
