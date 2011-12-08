@@ -7,7 +7,9 @@ param(
   $remoteDesktopEnctyptedPassword     = $env:NUGET_GALLERY_REMOTE_DESKTOP_ENCRYPTED_PASSWORD,
   $remoteDesktopUsername              = $env:NUGET_GALLERY_REMOTE_DESKTOP_USERNAME,
   $sqlAzureConnectionString           = $env:NUGET_GALLERY_SQL_AZURE_CONNECTION_STRING,
-  $sslCertificateThumbprint           = $env:NUGET_GALLERY_SSL_CERTIFICATE_THUMBPRINT
+  $sslCertificateThumbprint           = $env:NUGET_GALLERY_SSL_CERTIFICATE_THUMBPRINT,
+  $validationKey                      = $env:NUGET_GALLERY_VALIDATION_KEY,
+  $decryptionKey                      = $env:NUGET_GALLERY_DECRYPTION_KEY
 )
 
 function require-param {
@@ -73,7 +75,22 @@ function set-releasemode {
   $compilation.debug = "false"
   $resolvedPath = resolve-path($path) 
   $xml.save($resolvedPath)
-} 
+}
+
+function set-machinekey {
+    param($path)
+    if($validationKey -AND $decryptionKey){
+        $xml = [xml](get-content $path)
+        $machinekey = $xml.CreateElement("machineKey")
+        $machinekey.setattribute("validation", "HMACSHA256")
+        $machinekey.setattribute("validationKey", $validationKey)
+        $machinekey.setattribute("decryption", "AES")
+        $machinekey.setattribute("decryptionKey", $decryptionKey)       
+        $xml.configuration."system.web".AppendChild($machineKey)
+        $resolvedPath = resolve-path($path) 
+        $xml.save($resolvedPath)
+    }
+}
 
 $scriptPath = split-path $MyInvocation.MyCommand.Path
 $rootPath = resolve-path(join-path $scriptPath "..")
@@ -107,6 +124,7 @@ set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.
 set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
 set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
 set-releasemode $webConfigPath
+set-machinekey $webConfigPath
 
 #Release Tag stuff
 Write-Host "Setting the release tags"
