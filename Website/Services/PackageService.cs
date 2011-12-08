@@ -135,7 +135,7 @@ namespace NuGetGallery
             else
             {
                 package = packageVersions
-                    .Where(p => p.PackageRegistration.Id == id && p.Version == version)
+                    .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.InvariantCultureIgnoreCase) && p.Version.Equals(version, StringComparison.InvariantCultureIgnoreCase))
                     .SingleOrDefault();
             }
             if (package != null)
