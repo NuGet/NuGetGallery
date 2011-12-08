@@ -123,6 +123,11 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                "v1" + RouteName.VerifyPackageKey,
+                "api/v1/verifypackagekey/{id}/{version}",
+                MVC.Api.GetPackage());
+
+            routes.MapRoute(
                 "v1" + RouteName.PushPackageApi,
                 "v1/PackageFiles/{apiKey}/nupkg",
                 MVC.Api.CreatePackagePost());
@@ -154,6 +159,11 @@ namespace NuGetGallery
                 MVC.Api.GetPackage(),
                 defaults: new { version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                "v2" + RouteName.VerifyPackageKey,
+                "api/v2/verifypackagekey/{id}/{version}",
+                MVC.Api.GetPackage());
 
             routes.MapRoute(
                 "v2" + RouteName.PushPackageApi,
