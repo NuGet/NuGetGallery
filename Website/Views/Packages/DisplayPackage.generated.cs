@@ -223,7 +223,7 @@ WriteLiteral("                <li><a href=\"");
 
             
             #line 39 "..\..\Views\Packages\DisplayPackage.cshtml"
-                        Write(Url.PackageDownload(2,Model.Id,Model.Version));
+                        Write(Url.PackageDownload(2,Model.Id, Model.Version));
 
             
             #line default

@@ -36,7 +36,7 @@
             <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
             @if (User.Identity.IsAuthenticated)
             {
-                <li><a href="@Url.PackageDownload(2,Model.Id,Model.Version)">Download</a></li>
+                <li><a href="@Url.PackageDownload(2,Model.Id, Model.Version)">Download</a></li>
             } else {
                 <li><a href="@Url.Action(@MVC.Packages.Download())" title="How do I download?">How to Download</a></li>
             }
