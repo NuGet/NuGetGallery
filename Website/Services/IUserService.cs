@@ -19,8 +19,8 @@ namespace NuGetGallery
 
         User FindByUsername(string username);
 
-        User FindByUsernameAndPassword(
-            string username,
+        User FindByUsernameOrEmailAddressAndPassword(
+            string usernameOrEmailAddress,
             string password);
 
         string GenerateApiKey(string username);
