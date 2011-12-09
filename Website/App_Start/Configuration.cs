@@ -10,6 +10,7 @@ namespace NuGetGallery
     {
         private static readonly Dictionary<string, Lazy<object>> configThunks = new Dictionary<string, Lazy<object>>();
         private readonly Lazy<string> siteRoot = new Lazy<string>(GetSiteRoot); 
+        static readonly Lazy<bool> runningInAzure = new Lazy<bool>(RunningInAzure);
 
         public static string ReadAppSetting(string key)
         {
@@ -19,11 +20,7 @@ namespace NuGetGallery
 
         public static string ReadAzureSetting(string key)
         {
-            if (!RoleEnvironment.IsAvailable)
-                return null;
-
-            var value = RoleEnvironment.GetConfigurationSettingValue(key);
-            return value;
+            return RoleEnvironment.GetConfigurationSettingValue(key);
         }
 
         public static string ReadConfiguration(string key)
@@ -42,18 +39,28 @@ namespace NuGetGallery
                 {
                     string value = null;
 
-                    try
-                    {
+                    if (runningInAzure.Value)
                         value = ReadAzureSetting(key);
-                    }
-                    catch (RoleEnvironmentException) { }
-
+                    
                     if (value == null)
                         value = ReadAppSetting(key);
+                    
                     return valueThunk(value);
                 }));
 
             return (T)configThunks[key].Value;
+        }
+
+        static bool RunningInAzure()
+        {
+            try
+            {
+                return RoleEnvironment.IsAvailable;
+            }
+            catch (RoleEnvironmentException) { }
+            catch (TypeInitializationException) { }
+
+            return false;
         }
 
         public string SiteRoot
