@@ -116,13 +116,14 @@ namespace NuGetGallery
                 .SingleOrDefault();
         }
 
-        public virtual User FindByUsernameAndPassword(
-            string username,
+        public virtual User FindByUsernameOrEmailAddressAndPassword(
+            string usernameOrEmail,
             string password)
         {
             // TODO: validate input
 
-            var user = FindByUsername(username);
+            var user = FindByUsername(usernameOrEmail)
+                       ?? FindByEmailAddress(usernameOrEmail);
 
             if (user == null)
                 return null;
@@ -149,7 +150,7 @@ namespace NuGetGallery
 
         public bool ChangePassword(string username, string oldPassword, string newPassword)
         {
-            var user = FindByUsernameAndPassword(username, oldPassword);
+            var user = FindByUsernameOrEmailAddressAndPassword(username, oldPassword);
             if (user == null)
             {
                 return false;

@@ -33,8 +33,8 @@ namespace NuGetGallery
             if (!ModelState.IsValid)
                 return View();
 
-            var user = userSvc.FindByUsernameAndPassword(
-                request.UserName,
+            var user = userSvc.FindByUsernameOrEmailAddressAndPassword(
+                request.UserNameOrEmail,
                 request.Password);
 
             if (user == null)

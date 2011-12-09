@@ -5,9 +5,9 @@ namespace NuGetGallery
     public class SignInRequest
     {
         [Required]
-        [Display(Name = "Username")]
-        [Hint("Enter your username.")]
-        public string UserName { get; set; }
+        [Display(Name = "Username or Email")]
+        [Hint("Enter your username or email address.")]
+        public string UserNameOrEmail { get; set; }
 
         [Required]
         [DataType(DataType.Password)]
