@@ -117,9 +117,22 @@ namespace NuGetGallery
                 .SingleOrDefault();
         }
 
-        public virtual User FindByUsernameOrEmailAddressAndPassword(
-            string usernameOrEmail,
-            string password)
+        public virtual User FindByUsernameAndPassword(string username, string password)
+        {
+            // TODO: validate input
+
+            var user = FindByUsername(username);
+
+            if (user == null)
+                return null;
+
+            if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password))
+                return null;
+
+            return user;
+        }
+
+        public virtual User FindByUsernameOrEmailAddressAndPassword(string usernameOrEmail, string password)
         {
             // TODO: validate input
 
@@ -161,7 +174,7 @@ namespace NuGetGallery
         {
             // Review: If the old password is hashed using something other than PBKDF2, we end up making an extra db call that changes the old hash password.
             // This operation is rare enough that I'm not inclined to change it.
-            var user = FindByUsernameOrEmailAddressAndPassword(usernameOrEmail, oldPassword);
+            var user = FindByUsernameAndPassword(username, oldPassword);
             if (user == null)
             {
                 return false;

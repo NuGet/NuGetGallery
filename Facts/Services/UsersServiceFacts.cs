@@ -595,7 +595,43 @@ namespace NuGetGallery
             }
         }
 
-        public class TheFindByUsernameOrEmailAndPasswordMethod
+        public class TheFindByUsernameAndPasswordMethod
+        {
+            [Fact]
+            public void FindsUsersByUserName()
+            {
+                var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com" };
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+
+                var service = CreateUsersService(cryptoSvc: crypto, userRepo: userRepository);
+
+                var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword");
+                Assert.NotNull(foundByUserName);
+                Assert.Same(user, foundByUserName);
+            }
+
+            [Fact]
+            public void WillNotFindsUsersByEmailAddress()
+            {
+                var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com" };
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+
+                var crypto = new Mock<ICryptographyService>();
+                crypto.Setup(c => c.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+
+                var service = CreateUsersService(cryptoSvc: crypto, userRepo: userRepository);
+
+                var foundByEmailAddress = service.FindByUsernameAndPassword("test@example.com", "thePassword");
+                Assert.Null(foundByEmailAddress);
+            }
+        }
+
+        public class TheFindByUsernameOrEmailAddressAndPasswordMethod
         {
             [Fact]
             public void FindsUsersByUserName()
