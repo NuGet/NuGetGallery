@@ -1,0 +1,95 @@
+﻿ @* Generator: MvcHelper *@
+
+@using System.Linq;
+@using System.Collections;
+@using System.Web.Mvc;
+@using Microsoft.Web.Helpers;
+@using NuGetGallery;
+
+@helper PreviousNextPager(IPreviousNextPager pager) {
+    if (pager.HasNextPage || pager.HasPreviousPage) {
+        <ul class="pager">
+            <li class="previous">
+                @if (pager.HasPreviousPage) { 
+                    <a href="@pager.PreviousPageUrl" title="Go to the previous page.">Previous</a>
+                }
+                else {
+                    <text>Previous</text>
+                }
+            </li>
+            <li class="next">
+                @if (pager.HasNextPage) { 
+                    <a href="@pager.NextPageUrl" title="Go to the next page.">Next</a>
+                }
+                else {
+                    <text>Next</text>
+                }
+            </li>
+        </ul>
+    }
+}
+
+@helper Option(string value, string label, string currentValue) {
+    <option value="@value" @if (value == currentValue) {<text>selected="selected"</text>}>@label</option>    
+}
+
+@helper UploadSequence(int currentStep) {
+    <ol class="sequence">
+        @SequenceStep(1, "Upload", currentStep)
+        @SequenceStep(2, "Verify Details", currentStep)
+        @SequenceStep(3, "Enjoy", currentStep)
+    </ol>
+    <div class="clear-fix"><!--Sad Panda--></div>
+}
+
+@helper SequenceStep(int step, string caption, int currentStep) {
+    if (currentStep > step) {
+        <li class="past">@caption</li>
+    }
+    else if (currentStep == step) {
+        <li class="current">@caption</li>
+    }
+    else {
+        <li>@caption</li>
+    }    
+}
+
+@helper OwnersGravatar(IEnumerable<User> owners, int size, UrlHelper url, bool showName = true) {
+    <ul class="owners">
+    @foreach (var owner in owners) {
+        <li>
+            @ViewHelpers.OwnerGravatar(owner, size, url, showName)
+        </li>
+    }  
+    </ul>  
+}
+
+@helper OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true) {
+    <a class="owner" href="@url.Action(MVC.Users.Profiles(owner.Username))" title="@owner.Username">
+        @GravatarImage(owner.EmailAddress, owner.Username, size)
+        @if (showName) {
+            <text>@owner.Username</text>
+        }
+    </a>
+}
+
+@helper GravatarImage(string email, string username, int size) {
+    <text>
+    @Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "owner-image" })
+    </text>
+}
+
+@helper ReleaseTag(){
+    string name = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseName"];
+    string sha = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseSha"];
+    string branch = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseBranch"];
+    string time = System.Configuration.ConfigurationManager.AppSettings["Gallery:ReleaseTime"];
+    if(!String.IsNullOrEmpty(name) && !String.IsNullOrEmpty(sha) && !String.IsNullOrEmpty(branch) && !String.IsNullOrEmpty(time)){
+    <p id="releaseTag">
+        @name - 
+        Deployed from <a href="https://github.com/NuGet/NuGetGallery/commit/@sha" title="View the commit.">@sha.Substring(0,10)</a>
+        on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a> 
+        at @time.
+    </p>
+    }
+}

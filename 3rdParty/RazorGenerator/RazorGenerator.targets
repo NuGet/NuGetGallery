@@ -1,0 +1,23 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <RazorGeneratorMsBuildPath Condition=" '$(RazorGeneratorMsBuildPath)' == '' ">$(MSBuildThisFileDirectory)\RazorGenerator.MsBuild.dll</RazorGeneratorMsBuildPath>
+
+        <CompileDependsOn>
+            PrecompileRazorFiles;
+            $(CompileDependsOn);
+        </CompileDependsOn>
+    </PropertyGroup>
+
+    <UsingTask AssemblyFile="$(RazorGeneratorMsBuildPath)" TaskName="RazorCodeGen" />
+    <Target Name="PrecompileRazorFiles" Returns="@(FilesGenerated)">
+        <ItemGroup>
+            <RazorSrcFiles Include="**\*.cshtml" />
+        </ItemGroup>
+        <RazorCodeGen ProjectRoot="$(MsBuildProjectDirectory)" FilesToPrecompile="@(RazorSrcFiles)" RootNamespace="$(RootNamespace)">
+            <Output TaskParameter="GeneratedFiles" ItemName="FilesGenerated" />
+        </RazorCodeGen>
+        <ItemGroup>
+            <Compile Include="@(FilesGenerated)" />
+        </ItemGroup>
+    </Target>
+</Project>
