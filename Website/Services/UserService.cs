@@ -117,13 +117,13 @@ namespace NuGetGallery
         }
 
         public virtual User FindByUsernameOrEmailAddressAndPassword(
-            string usernameOrEmailAddress,
+            string usernameOrEmail,
             string password)
         {
             // TODO: validate input
 
-            var user = FindByUsername(usernameOrEmailAddress)
-                       ?? FindByEmailAddress(usernameOrEmailAddress);
+            var user = FindByUsername(usernameOrEmail)
+                       ?? FindByEmailAddress(usernameOrEmail);
 
             if (user == null)
                 return null;
