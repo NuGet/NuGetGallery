@@ -4,10 +4,7 @@ namespace NuGetGallery
 {
     public interface IUserService
     {
-        User Create(
-            string username,
-            string password,
-            string emailAddress);
+        User Create(string username, string password, string emailAddress);
 
         void UpdateProfile(User user, string emailAddress, bool emailAllowed);
 
@@ -19,9 +16,9 @@ namespace NuGetGallery
 
         User FindByUsername(string username);
 
-        User FindByUsernameOrEmailAddressAndPassword(
-            string usernameOrEmail,
-            string password);
+        User FindByUsernameAndPassword(string username, string password);
+
+        User FindByUsernameOrEmailAddressAndPassword(string usernameOrEmail, string password);
 
         string GenerateApiKey(string username);
 
