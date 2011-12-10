@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Globalization;
 
 namespace NuGetGallery
 {
+    [Serializable]
     public class EntityException : Exception
     {
         public EntityException(string message)
@@ -12,7 +14,7 @@ namespace NuGetGallery
         public EntityException(
             string message,
             params object[] args)
-            : base(String.Format(message, args))
+            : base(String.Format(CultureInfo.CurrentCulture, message, args))
         {
         }
     }

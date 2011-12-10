@@ -17,6 +17,8 @@
     <UseIISExpress>true</UseIISExpress>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <CodeAnalysisRuleSet>CodeAnalysis.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,6 +37,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis Condition=" '$(CodeAnalysis)' == 'true' ">true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AnglicanGeek.MarkdownMailer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -528,7 +531,7 @@
     <Compile Include="Services\PackageService.cs" />
     <Compile Include="Entities\PackageDependency.cs" />
     <Compile Include="App_Start\Configuration.cs" />
-    <Compile Include="Const.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="App_Start\Container.cs" />
     <Compile Include="App_Start\ContainerBindings.cs" />
     <Compile Include="Services\CryptographyService.cs" />

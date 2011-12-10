@@ -34,7 +34,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentNullException>(() => service.CreateDownloadFileActionResult(
-                    Const.PackagesFolderName, 
+                    Constants.PackagesFolderName, 
                     fileName));
 
                 Assert.Equal("fileName", ex.ParamName);
@@ -45,11 +45,11 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = service.CreateDownloadFileActionResult(Const.PackagesFolderName, "theFileName") as FilePathResult;
+                var result = service.CreateDownloadFileActionResult(Constants.PackagesFolderName, "theFileName") as FilePathResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(
-                    Path.Combine(fakeConfiguredFileStorageDirectory, Const.PackagesFolderName, "theFileName"),
+                    Path.Combine(fakeConfiguredFileStorageDirectory, Constants.PackagesFolderName, "theFileName"),
                     result.FileName);
             }
 
@@ -60,7 +60,7 @@ namespace NuGetGallery
                 fakeFileSystemSvc.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
                 var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
 
-                var result = service.CreateDownloadFileActionResult(Const.PackagesFolderName, "theFileName") as HttpNotFoundResult;
+                var result = service.CreateDownloadFileActionResult(Constants.PackagesFolderName, "theFileName") as HttpNotFoundResult;
 
                 Assert.NotNull(result);
             }
@@ -70,10 +70,10 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = service.CreateDownloadFileActionResult(Const.PackagesFolderName, "theFileName") as FilePathResult;
+                var result = service.CreateDownloadFileActionResult(Constants.PackagesFolderName, "theFileName") as FilePathResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(Const.PackageContentType, result.ContentType);
+                Assert.Equal(Constants.PackageContentType, result.ContentType);
             }
 
             [Fact]
@@ -81,7 +81,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = service.CreateDownloadFileActionResult(Const.PackagesFolderName, "theFileName") as FilePathResult;
+                var result = service.CreateDownloadFileActionResult(Constants.PackagesFolderName, "theFileName") as FilePathResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(
@@ -114,7 +114,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentNullException>(() => service.DeleteFile(
-                    Const.PackagesFolderName,
+                    Constants.PackagesFolderName,
                     fileName));
 
                 Assert.Equal("fileName", ex.ParamName);
@@ -127,10 +127,10 @@ namespace NuGetGallery
                 fakeFileSystemSvc.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
                 var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
 
-                service.DeleteFile(Const.PackagesFolderName, "theFileName");
+                service.DeleteFile(Constants.PackagesFolderName, "theFileName");
 
                 fakeFileSystemSvc.Verify(x => x.DeleteFile(
-                    Path.Combine(fakeConfiguredFileStorageDirectory, Const.PackagesFolderName, "theFileName")));
+                    Path.Combine(fakeConfiguredFileStorageDirectory, Constants.PackagesFolderName, "theFileName")));
             }
 
             [Fact]
@@ -142,7 +142,7 @@ namespace NuGetGallery
                 fakeFileSystemSvc.Setup(x => x.DeleteFile(It.IsAny<string>())).Callback(() => deleteWasInvoked = true);
                 var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
 
-                service.DeleteFile(Const.PackagesFolderName, "theFileName");
+                service.DeleteFile(Constants.PackagesFolderName, "theFileName");
 
                 Assert.False(deleteWasInvoked);
             }
@@ -172,7 +172,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentNullException>(() => service.GetFile(
-                    Const.PackagesFolderName,
+                    Constants.PackagesFolderName,
                     fileName));
 
                 Assert.Equal("fileName", ex.ParamName);
@@ -278,7 +278,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentNullException>(() => service.SaveFile("theFolderName", "theFileName", null));
 
-                Assert.Equal("fileStream", ex.ParamName);
+                Assert.Equal("packageFile", ex.ParamName);
             }
 
             [Fact]

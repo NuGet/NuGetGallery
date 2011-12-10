@@ -28,7 +28,11 @@ namespace NuGetGallery
             dbMigrator.Update();
             // The Seed method of Settings is never called, so 
             // we call it here again as a workaround.
-            Settings.SeedDatabase(new EntitiesContext());
+
+            using (var context = new EntitiesContext())
+            {
+                Settings.SeedDatabase(context);
+            }
         }
     }
 }

@@ -81,9 +81,9 @@ namespace NuGetGallery
             if (!String.IsNullOrWhiteSpace(returnUrl)
                 && Url.IsLocalUrl(returnUrl)
                 && returnUrl.Length > 1
-                && returnUrl.StartsWith("/")
-                && !returnUrl.StartsWith("//")
-                && !returnUrl.StartsWith("/\\"))
+                && returnUrl.StartsWith("/", StringComparison.OrdinalIgnoreCase)
+                && !returnUrl.StartsWith("//", StringComparison.OrdinalIgnoreCase)
+                && !returnUrl.StartsWith("/\\", StringComparison.OrdinalIgnoreCase))
             {
                 return Redirect(returnUrl);
             }

@@ -12,7 +12,7 @@ namespace NuGetGallery
 
     // TODO: Disable for live service
     [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
-    public abstract class FeedServiceBase<VxPackage> : DataService<FeedContext<VxPackage>>, IDataServiceStreamProvider, IServiceProvider
+    public abstract class FeedServiceBase<TPackage> : DataService<FeedContext<TPackage>>, IDataServiceStreamProvider, IServiceProvider
     {
         private readonly IEntityRepository<Package> packageRepo;
         private readonly IConfiguration configuration;
@@ -48,7 +48,7 @@ namespace NuGetGallery
         }
 
         // This method is called only once to initialize service-wide policies.
-        public static void InitializeService(DataServiceConfiguration config)
+        private static void InitializeService(DataServiceConfiguration config)
         {
             config.SetServiceOperationAccessRule("Search", ServiceOperationRights.AllRead);
             config.SetEntitySetAccessRule("Packages", EntitySetRights.AllRead);
@@ -57,7 +57,7 @@ namespace NuGetGallery
             config.UseVerboseErrors = true;
         }
 
-        protected abstract override FeedContext<VxPackage> CreateDataSource();
+        protected abstract override FeedContext<TPackage> CreateDataSource();
 
         public void DeleteStream(
             object entity,

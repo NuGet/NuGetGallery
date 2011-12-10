@@ -14,7 +14,7 @@ namespace NuGetGallery.Jobs
         {
             if (contextThunk == null)
             {
-                throw new ArgumentNullException("context");
+                throw new ArgumentNullException("contextThunk");
             }
             _contextThunk = contextThunk;
         }

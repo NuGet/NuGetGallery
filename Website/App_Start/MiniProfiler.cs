@@ -45,8 +45,6 @@ namespace NuGetGallery.App_Start
         {
             context.BeginRequest += (sender, e) =>
             {
-                var request = ((HttpApplication)sender).Request;
-
                 MiniProfiler.Start();
             };
 

@@ -437,7 +437,6 @@ namespace NuGetGallery
             }
 
             var controller = new UsersController(
-                formsAuthSvc.Object,
                 userSvc.Object,
                 packageService.Object,
                 messageSvc.Object,
