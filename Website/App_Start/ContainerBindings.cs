@@ -91,12 +91,16 @@ namespace NuGetGallery
                         DeliveryMethod = SmtpDeliveryMethod.Network,
                         Host = settings.SmtpHost,
                         Port = settings.SmtpPort,
-                        EnableSsl = true,
-                        UseDefaultCredentials = false,
-                        Credentials = new NetworkCredential(
-                            settings.SmtpUsername,
-                            settings.SmtpPassword)
+                        EnableSsl = true
                     };
+
+                    if (!String.IsNullOrWhiteSpace(settings.SmtpUsername))
+                    {
+                        mailSenderConfiguration.UseDefaultCredentials = false;
+                        mailSenderConfiguration.Credentials = new NetworkCredential(
+                            settings.SmtpUsername,
+                            settings.SmtpPassword);
+                    }
 
                     return new MailSender(mailSenderConfiguration);
                 }

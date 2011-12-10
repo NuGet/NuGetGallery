@@ -133,7 +133,7 @@ set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value (git rev-parse HEAD)
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value (git name-rev --name-only HEAD)
 
-& 'C:\Program Files\Windows Azure SDK\v1.5\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
+& 'C:\Program Files\Windows Azure SDK\v1.6\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
 
 cp $cscfgPath $cspkgFolder
 
