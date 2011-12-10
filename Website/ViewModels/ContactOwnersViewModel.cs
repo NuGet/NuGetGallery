@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace NuGetGallery {
-    public class ContactOwnersViewModel {
+namespace NuGetGallery
+{
+    public class ContactOwnersViewModel
+    {
         public string PackageId { get; set; }
         public IEnumerable<User> Owners { get; set; }
         [Required(ErrorMessage = "Please enter a message.")]

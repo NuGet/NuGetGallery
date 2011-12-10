@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 
-namespace NuGetGallery {
+namespace NuGetGallery
+{
     public interface IEntityRepository<T>
-        where T : class, IEntity, new() {
+        where T : class, IEntity, new()
+    {
         void CommitChanges();
         void DeleteOnCommit(T entity);
         T Get(int key);

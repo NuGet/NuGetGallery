@@ -91,7 +91,7 @@ namespace System.Web.Mvc {
         }
 
         public static string ActionAbsolute(this UrlHelper urlHelper, ActionResult result) {
-            return string.Format("{0}{1}",urlHelper.RequestContext.HttpContext.Request.Url.GetLeftPart(UriPartial.Authority),
+            return String.Format("{0}{1}",urlHelper.RequestContext.HttpContext.Request.Url.GetLeftPart(UriPartial.Authority),
                 urlHelper.RouteUrl(result.GetRouteValueDictionary()));
         }
 
@@ -260,7 +260,7 @@ namespace System.Web.Mvc {
 
         static DateTime CenturyBegin=new DateTime(2001,1,1);
         public static string TimestampString(string virtualPath) {
-            if (!HostingEnvironment.IsHosted) return string.Empty;
+            if (!HostingEnvironment.IsHosted) return String.Empty;
             string filePath = HostingEnvironment.MapPath(virtualPath);
             return Convert.ToString((System.IO.File.GetLastWriteTimeUtc(filePath).Ticks-CenturyBegin.Ticks)/1000000000,16);            
         }
@@ -310,12 +310,6 @@ namespace Links {
         private const string URLPATH = "~/Scripts";
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-        public static readonly string gallery_form_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/gallery.form.min.js") ? Url("gallery.form.min.js") : Url("gallery.form.js");
-                      
-        public static readonly string global_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/global.min.js") ? Url("global.min.js") : Url("global.js");
-                      
-        public static readonly string html5_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/html5.min.js") ? Url("html5.min.js") : Url("html5.js");
-                      
         public static readonly string jquery_1_6_2_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2-vsdoc.min.js") ? Url("jquery-1.6.2-vsdoc.min.js") : Url("jquery-1.6.2-vsdoc.js");
                       
         public static readonly string jquery_1_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2.min.js") ? Url("jquery-1.6.2.min.js") : Url("jquery-1.6.2.js");
@@ -338,28 +332,23 @@ namespace Links {
         private const string URLPATH = "~/Content";
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-        public static readonly string Buttons_css = Url("Buttons.css");
-        public static readonly string Confirmations_css = Url("Confirmations.css");
-        public static readonly string Footer_css = Url("Footer.css");
-        public static readonly string Forms_css = Url("Forms.css");
-        public static readonly string Header_css = Url("Header.css");
-        public static readonly string Home_css = Url("Home.css");
-        public static readonly string ie_mac_css = Url("ie-mac.css");
-        public static readonly string ie7_css = Url("ie7.css");
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public static class Images {
             private const string URLPATH = "~/Content/Images";
             public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
             public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-            public static readonly string contribGraphic_png = Url("contribGraphic.png");
+            public static readonly string changePassword_png = Url("changePassword.png");
             public static readonly string download_png = Url("download.png");
             public static readonly string editIcon_png = Url("editIcon.png");
+            public static readonly string editProfile_png = Url("editProfile.png");
+            public static readonly string errorPage_png = Url("errorPage.png");
             public static readonly string greenArrow_png = Url("greenArrow.png");
             public static readonly string headerbackground_png = Url("headerbackground.png");
             public static readonly string hero_png = Url("hero.png");
             public static readonly string herowithlogo_png = Url("herowithlogo.png");
             public static readonly string inputBackground_png = Url("inputBackground.png");
             public static readonly string invalidBG_png = Url("invalidBG.png");
+            public static readonly string managePackages_png = Url("managePackages.png");
             public static readonly string mine_png = Url("mine.png");
             public static readonly string navbackground_png = Url("navbackground.png");
             public static readonly string newAccountGraphic_png = Url("newAccountGraphic.png");
@@ -375,22 +364,15 @@ namespace Links {
             public static readonly string searchButton_png = Url("searchButton.png");
             public static readonly string sendMessageGraphic_png = Url("sendMessageGraphic.png");
             public static readonly string trash_png = Url("trash.png");
+            public static readonly string uploadPackage_png = Url("uploadPackage.png");
             public static readonly string userGraphic_png = Url("userGraphic.png");
             public static readonly string userIcon_png = Url("userIcon.png");
             public static readonly string userIconWhite_png = Url("userIconWhite.png");
             public static readonly string xmark_png = Url("xmark.png");
+            public static readonly string YourPackage_png = Url("YourPackage.png");
         }
     
-        public static readonly string jquery_lightbox_0_5_css = Url("jquery.lightbox-0.5.css");
-        public static readonly string MainNav_css = Url("MainNav.css");
-        public static readonly string nuget_css = Url("nuget.css");
-        public static readonly string nuget_ico = Url("nuget.ico");
-        public static readonly string orchard_css = Url("orchard.css");
-        public static readonly string Packages_css = Url("Packages.css");
-        public static readonly string PageToolbar_css = Url("PageToolbar.css");
-        public static readonly string Pagination_css = Url("Pagination.css");
-        public static readonly string Reset_css = Url("Reset.css");
-        public static readonly string Widgets_css = Url("Widgets.css");
+        public static readonly string Site_css = Url("Site.css");
     }
 
 }

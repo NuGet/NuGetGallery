@@ -6,24 +6,31 @@ using System.Web.Security;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.AuthenticationModule), "Start")]
-namespace NuGetGallery {
-    public class AuthenticationModule : IHttpModule {
-        public static void Start() {
+namespace NuGetGallery
+{
+    public class AuthenticationModule : IHttpModule
+    {
+        public static void Start()
+        {
             DynamicModuleUtility.RegisterModule(typeof(AuthenticationModule));
         }
 
-        public void Init(HttpApplication context) {
+        public void Init(HttpApplication context)
+        {
             context.AuthenticateRequest += OnAuthenticateRequest;
         }
 
-        void OnAuthenticateRequest(object sender, EventArgs e) {
+        void OnAuthenticateRequest(object sender, EventArgs e)
+        {
             var context = HttpContext.Current;
             var request = HttpContext.Current.Request;
-            if (request.IsAuthenticated) {
+            if (request.IsAuthenticated)
+            {
                 var username = context.User.Identity.Name;
 
                 HttpCookie authCookie = request.Cookies[FormsAuthentication.FormsCookieName];
-                if (authCookie != null) {
+                if (authCookie != null)
+                {
                     FormsAuthenticationTicket authTicket = FormsAuthentication.Decrypt(authCookie.Value);
                     var roles = authTicket.UserData.Split('|');
                     var user = new GenericPrincipal(context.User.Identity, roles);
@@ -32,7 +39,8 @@ namespace NuGetGallery {
             }
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
         }
     }
 }

@@ -3,15 +3,19 @@ using System.Collections.Generic;
 using System.Web;
 using System.Web.Security;
 
-namespace NuGetGallery {
-    public class FormsAuthenticationService : IFormsAuthenticationService {
+namespace NuGetGallery
+{
+    public class FormsAuthenticationService : IFormsAuthenticationService
+    {
         public void SetAuthCookie(
             string userName,
             bool createPersistentCookie,
-            IEnumerable<string> roles) {
+            IEnumerable<string> roles)
+        {
 
             string formattedRoles = String.Empty;
-            if (roles.AnySafe()) {
+            if (roles.AnySafe())
+            {
                 formattedRoles = String.Join("|", roles);
             }
 
@@ -31,7 +35,8 @@ namespace NuGetGallery {
             context.Response.Cookies.Add(formsCookie);
         }
 
-        public void SignOut() {
+        public void SignOut()
+        {
             FormsAuthentication.SignOut();
         }
     }

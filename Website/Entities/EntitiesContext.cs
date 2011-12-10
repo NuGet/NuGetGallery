@@ -4,14 +4,24 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using MvcMiniProfiler.Data;
+using WebBackgrounder;
 
-namespace NuGetGallery {
-    public class EntitiesContext : DbContext {
+namespace NuGetGallery
+{
+    public class EntitiesContext : DbContext, IWorkItemsContext
+    {
         public EntitiesContext()
-            : base(GetConnection("NuGetGallery"), contextOwnsConnection: true) {
+            : base(GetConnection("NuGetGallery"), contextOwnsConnection: true)
+        {
         }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder) {
+        public EntitiesContext(string connectionStringName)
+            : base(connectionStringName)
+        {
+        }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
             modelBuilder.Conventions.Remove<IncludeMetadataConvention>();
 
             modelBuilder.Entity<User>()
@@ -83,13 +93,28 @@ namespace NuGetGallery {
 
             modelBuilder.Entity<PackageDependency>()
                 .HasKey(pd => pd.Key);
+
+            modelBuilder.Entity<GallerySetting>()
+                .HasKey(gs => gs.Key);
+
+            modelBuilder.Entity<WorkItem>()
+                .HasKey(wi => wi.Id);
+
+            modelBuilder.Entity<PackageOwnerRequest>()
+                .HasKey(por => por.Key);
         }
 
-        private static DbConnection GetConnection(string connectionStringName) {
+        public IDbSet<WorkItem> WorkItems
+        {
+            get;
+            set;
+        }
+
+        private static DbConnection GetConnection(string connectionStringName)
+        {
             var setting = ConfigurationManager.ConnectionStrings[connectionStringName];
             var connection = new SqlConnection(setting.ConnectionString);
             return ProfiledDbConnection.Get(connection);
         }
-
     }
 }

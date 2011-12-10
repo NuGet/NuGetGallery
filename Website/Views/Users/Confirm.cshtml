@@ -1,48 +1,37 @@
 ﻿@model EmailConfirmationModel
-@{
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
-}
 
-@section LeftNav {
-        <img src="@Links.Content.Images.newAccountGraphic_png" style="padding-left:50px" alt="New Account Image"/>
-}                
+<h1 class="page-heading">Confirm Registration</h1>
 
-@section ContentHeader {
-    <span class="right"><img src="@Links.Content.Images.required_png" alt="Required" /></span>
-    <h2>Confirm registration</h2>
-}
-
-<div class="zone-messages description">
-    @if (Model.SuccessfulConfirmation) {
-        <div class="message message-Information">
-            @if (Model.ConfirmingNewAccount) {
-                @: Account registration completed!
-            }
-            else {
-                @: Email address change confirmed!
-            }
-        </div>
-        if (Model.ConfirmingNewAccount) {
-            <p>
-                Click on the Log On link to logon to the site.
-            </p>
-            <p>
-                You may now upload packages and make your mark in 
-                the community.
-            </p>
+@if (Model.SuccessfulConfirmation) {
+    <p>
+        @if (Model.ConfirmingNewAccount) {
+            @: Account registration completed!
         }
         else {
-            <p>
-                Your email address is now updated.
-            </p>
+            @: Email address change confirmed!
         }
-    }
-    else {
-        <div class="message critical message">
-            Could not confirm your email address.
-        </div>
+    </p>
+    if (Model.ConfirmingNewAccount) {
         <p>
-            Make sure you clicked on the confirmation URL in the email we sent.
+            Click on the Log On link to logon to the site.
+        </p>
+        <p>
+            You may now upload packages and make your mark in 
+            the community.
         </p>
     }
-</div>
+    else {
+        <p>
+            Your email address is now updated.
+        </p>
+    }
+}
+
+ else {
+    <p class="message error">
+        Could not confirm your email address.
+    </p>
+    <p>
+        Make sure you clicked on the confirmation URL in the email we sent.
+    </p>
+}

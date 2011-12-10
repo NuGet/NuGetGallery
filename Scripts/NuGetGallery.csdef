@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition">
+  <WebRole name="Website" vmsize="Medium">
+    <ConfigurationSettings>
+      <Setting name ="AzureStorageAccessKey" />
+      <Setting name ="AzureStorageAccountName" />
+      <Setting name ="AzureStorageBlobUrl" />
+      <Setting name ="PackageStoreType" />      
+      <Setting name="UseSmtp" />
+    </ConfigurationSettings>
+    <Sites>
+      <Site name="Web">
+        <Bindings>
+          <Binding name="NonSSLBinding" endpointName="Non-SSL" />
+          <Binding name="SSLBinding" endpointName="SSL" />
+        </Bindings>
+      </Site>
+    </Sites>
+    <Endpoints>
+      <InputEndpoint name="Non-SSL" protocol="http" port="80" />
+      <InputEndpoint name="SSL" protocol="https" port="443" certificate="nuget.org" />
+    </Endpoints>	
+    <Imports>
+      <Import moduleName="Diagnostics" />
+      <Import moduleName="RemoteAccess" />
+      <Import moduleName="RemoteForwarder" />
+    </Imports>
+  </WebRole>
+</ServiceDefinition>

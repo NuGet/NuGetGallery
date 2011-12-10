@@ -6,4 +6,7 @@ obj
 App_Data
 *.results.xml
 /packages
-*.sln.docstates
+_AzurePackage
+*.bak
+NuGetGallery.sln.docstates
+_ReSharper.NuGetGallery

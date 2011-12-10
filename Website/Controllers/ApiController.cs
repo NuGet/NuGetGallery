@@ -1,67 +1,126 @@
 ﻿using System;
+using System.Globalization;
+using System.IO;
+using System.Net;
 using System.Web.Mvc;
 using NuGet;
 
-namespace NuGetGallery {
-    public partial class ApiController : Controller {
-        readonly IPackageService packageSvc;
-        readonly IUserService userSvc;
+namespace NuGetGallery
+{
+    public partial class ApiController : Controller
+    {
+        private readonly IPackageService packageSvc;
+        private readonly IUserService userSvc;
+        private readonly IPackageFileService packageFileSvc;
 
-        public ApiController(IPackageService packageSvc, IUserService userSvc) {
+        public ApiController(IPackageService packageSvc, IPackageFileService packageFileSvc, IUserService userSvc)
+        {
             this.packageSvc = packageSvc;
+            this.packageFileSvc = packageFileSvc;
             this.userSvc = userSvc;
         }
 
-        [ActionName("PushPackageApi"), HttpPost]
-        public virtual ActionResult CreatePackage(Guid apiKey) {
+        [ActionName("GetPackageApi"), HttpGet]
+        public virtual ActionResult GetPackage(string id, string version)
+        {
+            // if the version is null, the user is asking for the latest version. Presumably they don't want pre release versions. 
+            // The allow prerelease flag is ignored if both id and version are specified.
+            var package = packageSvc.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+
+            if (package == null)
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+    
+            packageSvc.AddDownloadStatistics(package,
+                                             Request.UserHostAddress,
+                                             Request.UserAgent);
+
+            if (!string.IsNullOrWhiteSpace(package.ExternalPackageUrl))
+                return Redirect(package.ExternalPackageUrl);
+            else
+                return packageFileSvc.CreateDownloadPackageActionResult(package);
+        }
+
+        [ActionName("VerifyPackageKeyApi"), HttpGet]
+        public virtual ActionResult VerifyPackageKey(Guid apiKey, string id, string version)
+        {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
-                throw new EntityException(Strings.ApiKeyNotAuthorized, "push");
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+
+            if (!package.IsOwner(user))
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+
+            return new EmptyResult();
+        }
+
+        [ActionName("PushPackageApi"), HttpPut]
+        public virtual ActionResult CreatePackagePut(Guid apiKey)
+        {
+            return CreatePackageInternal(apiKey);
+        }
+
+        [ActionName("PushPackageApi"), HttpPost]
+        public virtual ActionResult CreatePackagePost(Guid apiKey)
+        {
+            return CreatePackageInternal(apiKey);
+        }
+
+        private ActionResult CreatePackageInternal(Guid apiKey)
+        {
+            var user = userSvc.FindByApiKey(apiKey);
+            if (user == null)
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
 
             var packageToPush = ReadPackageFromRequest();
 
             var package = packageSvc.FindPackageByIdAndVersion(packageToPush.Id, packageToPush.Version.ToString());
             if (package != null)
-                throw new EntityException(Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString());
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, string.Format(Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString()));
 
             package = packageSvc.CreatePackage(packageToPush, user);
-            return new EmptyResult();
+            return new HttpStatusCodeResult(201);
         }
 
         [ActionName("DeletePackageApi"), HttpDelete]
-        public virtual ActionResult DeletePackage(Guid apiKey, string id, string version) {
+        public virtual ActionResult DeletePackage(Guid apiKey, string id, string version)
+        {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
-                throw new EntityException(Strings.ApiKeyNotAuthorized, "delete");
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
 
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
-                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
 
-            if (!package.IsOwner(user)) {
-                throw new EntityException(Strings.ApiKeyNotAuthorized, "delete");
-            }
+            if (!package.IsOwner(user))
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
 
-            packageSvc.DeletePackage(id, version);
+            packageSvc.MarkPackageUnlisted(package);
             return new EmptyResult();
         }
 
         [ActionName("PublishPackageApi"), HttpPost]
-        public virtual ActionResult PublishPackage(Guid key, string id, string version) {
-            var user = userSvc.FindByApiKey(key);
-            if (user == null)
-                throw new EntityException(Strings.ApiKeyNotAuthorized, "publish");
-
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-                throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
-
-            packageSvc.PublishPackage(id, version);
+        public virtual ActionResult PublishPackage(Guid key, string id, string version)
+        {
             return new EmptyResult();
         }
 
-        public virtual IPackage ReadPackageFromRequest() {
-            return new ZipPackage(Request.InputStream);
+        protected internal virtual IPackage ReadPackageFromRequest()
+        {
+            Stream stream;
+            if (Request.Files.Count > 0)
+            {
+                // If we're using the newer API, the package stream is sent as a file.
+                stream = Request.Files[0].InputStream;
+            }
+            else
+                stream = Request.InputStream;
+
+            return new ZipPackage(stream);
         }
     }
 }

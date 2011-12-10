@@ -6,13 +6,17 @@ using System.Web.Mvc;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery {
-    public class UsersControllerFacts {
-        public class TheRegisterMethod {
+namespace NuGetGallery
+{
+    public class UsersControllerFacts
+    {
+        public class TheRegisterMethod
+        {
             [Fact]
-            public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid() {
+            public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
+            {
                 var controller = CreateController();
-                controller.ModelState.AddModelError(string.Empty, "aFakeError");
+                controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
                 var result = controller.Register(null) as ViewResult;
 
@@ -21,14 +25,16 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillCreateTheUser() {
+            public void WillCreateTheUser()
+            {
                 var userSvc = new Mock<IUserService>();
                 userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(new User() { Username = "theUsername", EmailAddress = "to@example.com" });
                 var controller = CreateController(userSvc: userSvc);
 
-                controller.Register(new RegisterRequest() {
+                controller.Register(new RegisterRequest()
+                {
                     Username = "theUsername",
                     Password = "thePassword",
                     EmailAddress = "theEmailAddress",
@@ -41,14 +47,16 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow() {
+            public void WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow()
+            {
                 var userSvc = new Mock<IUserService>();
                 userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Throws(new EntityException("aMessage"));
                 var controller = CreateController(userSvc: userSvc);
 
-                var result = controller.Register(new RegisterRequest() {
+                var result = controller.Register(new RegisterRequest()
+                {
                     Username = "theUsername",
                     Password = "thePassword",
                     EmailAddress = "theEmailAddress",
@@ -57,32 +65,35 @@ namespace NuGetGallery {
                 Assert.NotNull(result);
                 Assert.Empty(result.ViewName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal("aMessage", controller.ModelState[string.Empty].Errors[0].ErrorMessage);
+                Assert.Equal("aMessage", controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
-            public void WillSendNewUserEmailIfConfirmationRequired() {
+            public void WillSendNewUserEmailIfConfirmationRequired()
+            {
                 var messageSvc = new Mock<IMessageService>();
                 string sentConfirmationUrl = null;
                 MailAddress sentToAddress = null;
                 messageSvc.Setup(m => m.SendNewAccountEmail(It.IsAny<MailAddress>(), It.IsAny<string>()))
-                    .Callback<MailAddress, string>((to, url) => {
+                    .Callback<MailAddress, string>((to, url) =>
+                    {
                         sentToAddress = to;
                         sentConfirmationUrl = url;
                     });
                 var userSvc = new Mock<IUserService>();
                 userSvc
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(new User() {
+                    .Returns(new User()
+                    {
                         Username = "theUsername",
                         EmailAddress = "to@example.com",
                         EmailConfirmationToken = "confirmation"
                     });
-                var config = new Mock<IConfiguration>();
-                config.Setup(c => c.ConfirmEmailAddresses).Returns(true);
-                var controller = CreateController(config: config, userSvc: userSvc, messageSvc: messageSvc);
+                var settings = new GallerySetting { ConfirmEmailAddresses = true };
+                var controller = CreateController(settings: settings, userSvc: userSvc, messageSvc: messageSvc);
 
-                controller.Register(new RegisterRequest() {
+                controller.Register(new RegisterRequest()
+                {
                     Username = "theUsername",
                     Password = "thePassword",
                     EmailAddress = "to@example.com",
@@ -95,10 +106,13 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheEditMethod {
+        public class TheEditMethod
+        {
             [Fact]
-            public void UpdatesEmailAllowedSetting() {
-                var user = new User {
+            public void UpdatesEmailAllowedSetting()
+            {
+                var user = new User
+                {
                     EmailAddress = "test@example.com",
                     EmailAllowed = true
                 };
@@ -113,12 +127,14 @@ namespace NuGetGallery {
 
                 Assert.NotNull(result);
                 userService.Verify(u => u.UpdateProfile(user, "test@example.com", false));
-                Assert.Equal("Account settings Saved!", controller.TempData["Message"]);
+                Assert.Equal("Account settings saved!", controller.TempData["Message"]);
             }
 
             [Fact]
-            public void SendsEmailChangeConfirmationNoticeWhenEmailAddressChanges() {
-                var user = new User {
+            public void SendsEmailChangeConfirmationNoticeWhenEmailConfirmationTokenChanges()
+            {
+                var user = new User
+                {
                     EmailAddress = "test@example.com",
                     EmailAllowed = true
                 };
@@ -136,7 +152,32 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void WithInvalidUsernameReturnsFileNotFound() {
+            public void DoesNotSendEmailChangeConfirmationNoticeWhenTokenDoesNotChange()
+            {
+                var user = new User
+                {
+                    EmailAddress = "old@example.com",
+                    EmailAllowed = true,
+                    EmailConfirmationToken = "token"
+                };
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername(It.IsAny<string>())).Returns(user);
+                userService.Setup(u => u.UpdateProfile(user, It.IsAny<string>(), true));
+                var messageService = new Mock<IMessageService>();
+                messageService.Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>())).Throws(new InvalidOperationException());
+                var controller = CreateController(userSvc: userService, messageSvc: messageService);
+                var model = new EditProfileViewModel { EmailAddress = "old@example.com", EmailAllowed = true };
+
+                var result = controller.Edit(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("Account settings saved!", controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void WithInvalidUsernameReturnsFileNotFound()
+            {
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername(It.IsAny<string>())).Returns((User)null);
                 var controller = CreateController(userSvc: userService);
@@ -147,9 +188,11 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheGenerateApiKeyMethod {
+        public class TheGenerateApiKeyMethod
+        {
             [Fact]
-            public void RedirectsToAccountPage() {
+            public void RedirectsToAccountPage()
+            {
                 var currentUser = new Mock<IPrincipal>();
                 currentUser.Setup(u => u.Identity.Name).Returns("the-username");
                 var controller = CreateController(currentUser: currentUser);
@@ -162,7 +205,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void GeneratesAnApiKey() {
+            public void GeneratesAnApiKey()
+            {
                 var currentUser = new Mock<IPrincipal>();
                 currentUser.Setup(u => u.Identity.Name).Returns("the-username");
                 var userService = new Mock<IUserService>();
@@ -175,9 +219,11 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheConfirmMethod {
+        public class TheConfirmMethod
+        {
             [Fact]
-            public void Returns404WhenTokenIsEmpty() {
+            public void Returns404WhenTokenIsEmpty()
+            {
                 var controller = CreateController();
 
                 var result = controller.Confirm("username", "") as HttpNotFoundResult;
@@ -186,8 +232,10 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void ReturnsConfirmedWhenTokenMatchesUser() {
-                var user = new User {
+            public void ReturnsConfirmedWhenTokenMatchesUser()
+            {
+                var user = new User
+                {
                     UnconfirmedEmailAddress = "email@example.com",
                     EmailConfirmationToken = "the-token"
                 };
@@ -202,9 +250,11 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void SendsAccountChangedNoticeWhenConfirmingChangedEmail() {
+            public void SendsAccountChangedNoticeWhenConfirmingChangedEmail()
+            {
                 var userService = new Mock<IUserService>();
-                var user = new User {
+                var user = new User
+                {
                     EmailAddress = "old@example.com",
                     UnconfirmedEmailAddress = "new@example.com",
                     EmailConfirmationToken = "the-token"
@@ -223,8 +273,10 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void ReturnsFalseWhenTokenDoesNotMatchUser() {
-                var user = new User {
+            public void ReturnsFalseWhenTokenDoesNotMatchUser()
+            {
+                var user = new User
+                {
                     EmailAddress = "old@example.com",
                     UnconfirmedEmailAddress = "new@example.com",
                     EmailConfirmationToken = "the-token"
@@ -240,10 +292,13 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheForgotPasswordMethod {
+        public class TheForgotPasswordMethod
+        {
             [Fact]
-            public void SendsEmailWithPasswordResetUrl() {
-                var user = new User {
+            public void SendsEmailWithPasswordResetUrl()
+            {
+                var user = new User
+                {
                     EmailAddress = "some@example.com",
                     Username = "somebody",
                     PasswordResetToken = "confirmation",
@@ -265,7 +320,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void RedirectsAfterGeneratingToken() {
+            public void RedirectsAfterGeneratingToken()
+            {
                 var userService = new Mock<IUserService>();
                 var user = new User { EmailAddress = "some@example.com", Username = "somebody" };
                 userService.Setup(s => s.GeneratePasswordResetToken("user", 1440)).Returns(user).Verifiable();
@@ -279,7 +335,8 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void ReturnsSameViewIfTokenGenerationFails() {
+            public void ReturnsSameViewIfTokenGenerationFails()
+            {
                 var userService = new Mock<IUserService>();
                 userService.Setup(s => s.GeneratePasswordResetToken("user", 1440)).Returns((User)null);
                 var controller = CreateController(userSvc: userService);
@@ -292,13 +349,16 @@ namespace NuGetGallery {
             }
         }
 
-        public class TheResetPasswordMethod {
+        public class TheResetPasswordMethod
+        {
             [Fact]
-            public void ShowsErrorIfTokenExpired() {
+            public void ShowsErrorIfTokenExpired()
+            {
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd")).Returns(false);
                 var controller = CreateController(userSvc: userService);
-                var model = new PasswordResetViewModel {
+                var model = new PasswordResetViewModel
+                {
                     ConfirmPassword = "pwd",
                     NewPassword = "newpwd"
                 };
@@ -310,11 +370,13 @@ namespace NuGetGallery {
             }
 
             [Fact]
-            public void ResetsPasswordForValidToken() {
+            public void ResetsPasswordForValidToken()
+            {
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd")).Returns(true);
                 var controller = CreateController(userSvc: userService);
-                var model = new PasswordResetViewModel {
+                var model = new PasswordResetViewModel
+                {
                     ConfirmPassword = "pwd",
                     NewPassword = "newpwd"
                 };
@@ -326,19 +388,50 @@ namespace NuGetGallery {
             }
         }
 
+        public class TheThanksMethod
+        {
+            [Fact]
+            public void ShowsDefaultThanksViewWhenConfirmingEmailAddressIsRequired()
+            {
+                var settings = new GallerySetting { ConfirmEmailAddresses = true };
+                var controller = CreateController(settings: settings);
+
+                var result = controller.Thanks() as ViewResult;
+
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.Model);
+            }
+
+            [Fact]
+            public void ShowsConfirmViewWithModelWhenConfirmingEmailAddressIsNotRequired()
+            {
+                var settings = new GallerySetting { ConfirmEmailAddresses = false };
+                var controller = CreateController(settings: settings);
+
+                var result = controller.Thanks() as ViewResult;
+
+                Assert.Equal("Confirm", result.ViewName);
+                var model = result.Model as EmailConfirmationModel;
+                Assert.True(model.ConfirmingNewAccount);
+                Assert.True(model.SuccessfulConfirmation);
+            }
+        }
+
         static UsersController CreateController(
-            Mock<IConfiguration> config = null,
+            GallerySetting settings = null,
             Mock<IFormsAuthenticationService> formsAuthSvc = null,
             Mock<IUserService> userSvc = null,
             Mock<IMessageService> messageSvc = null,
-            Mock<IPrincipal> currentUser = null) {
+            Mock<IPrincipal> currentUser = null)
+        {
             formsAuthSvc = formsAuthSvc ?? new Mock<IFormsAuthenticationService>();
             userSvc = userSvc ?? new Mock<IUserService>();
             var packageService = new Mock<IPackageService>();
             messageSvc = messageSvc ?? new Mock<IMessageService>();
-            config = config ?? new Mock<IConfiguration>();
+            settings = settings ?? new GallerySetting();
 
-            if (currentUser == null) {
+            if (currentUser == null)
+            {
                 currentUser = new Mock<IPrincipal>();
                 currentUser.Setup(u => u.Identity.Name).Returns((string)null);
             }
@@ -348,7 +441,7 @@ namespace NuGetGallery {
                 userSvc.Object,
                 packageService.Object,
                 messageSvc.Object,
-                config.Object,
+                settings,
                 currentUser.Object);
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), controller);

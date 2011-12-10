@@ -5,11 +5,15 @@ using System.Web.Mvc;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery.Infrastructure {
-    public class CookieTempDataProviderFacts {
-        public class TheSaveTempDataMethod {
+namespace NuGetGallery.Infrastructure
+{
+    public class CookieTempDataProviderFacts
+    {
+        public class TheSaveTempDataMethod
+        {
             [Fact]
-            public void StoresValuesInCookie() {
+            public void StoresValuesInCookie()
+            {
                 var cookies = new HttpCookieCollection();
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.Response.Cookies).Returns(cookies);
@@ -31,7 +35,8 @@ namespace NuGetGallery.Infrastructure {
             }
 
             [Fact]
-            public void WithNoValuesDoesNotAddCookie() {
+            public void WithNoValuesDoesNotAddCookie()
+            {
                 var cookies = new HttpCookieCollection();
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.Response.Cookies).Returns(cookies);
@@ -44,9 +49,11 @@ namespace NuGetGallery.Infrastructure {
             }
         }
 
-        public class TheLoadTempDataMethod {
+        public class TheLoadTempDataMethod
+        {
             [Fact]
-            public void RetrievesValuesFromCookie() {
+            public void RetrievesValuesFromCookie()
+            {
                 var cookies = new HttpCookieCollection();
                 var cookie = new HttpCookie("__Controller::TempData");
                 cookies.Add(cookie);
@@ -66,7 +73,8 @@ namespace NuGetGallery.Infrastructure {
             }
 
             [Fact]
-            public void WithNullCookieReturnsEmptyDictionary() {
+            public void WithNullCookieReturnsEmptyDictionary()
+            {
                 var cookies = new HttpCookieCollection();
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.Request.Cookies).Returns(cookies);
@@ -79,7 +87,8 @@ namespace NuGetGallery.Infrastructure {
             }
 
             [Fact]
-            public void WithEmptyCookieReturnsEmptyDictionary() {
+            public void WithEmptyCookieReturnsEmptyDictionary()
+            {
                 var cookies = new HttpCookieCollection();
                 var cookie = new HttpCookie("__Controller::TempData");
                 cookies.Add(cookie);

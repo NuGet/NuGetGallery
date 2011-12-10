@@ -1,61 +1,44 @@
 ﻿@model ReportAbuseViewModel
 @{
     ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-@section LeftNav {
-    <img src="@Links.Content.Images.sendMessageGraphic_png" style="padding-left: 55px" alt="" />
-}    
+<h1 class="page-heading">Report Abuse</h1>
 
-@section ContentHeader {            
-    <h2>Report Abuse</h2>
-}
+<p class="message">
+    Important: This form is for reporting <em>abusive</em> packages such as 
+    packages containing <em>malicious code</em> or spam. If "@Model.PackageId" simply doesn't 
+    appear to work or work correctly, please 
+    <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the owners of "@Model.PackageId".</a> 
+</p>                            
 
-<form id="form" method="post" action="@Url.Current()">
-    @Html.AntiForgeryToken()
-    @Html.LabelFor(m => m.Message, String.Format("Submit an abuse report for Package \"{0}\', version \"{1}\".", Model.PackageId, Model.PackageVersion))
-    <p>
-        <strong>Important:</strong> This form is for reporting <strong>abusive</strong> packages such as 
-        packages containing <strong>malicious code</strong> or spam. If the package simply doesn&#8217;t 
-        appear to work or work correctly, please 
-        <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the package owners.</a> 
-    </p>                            
+<p>Please provide a detailed abuse report. Include exactly what the package did.</p>
 
-    @if (!Model.ConfirmedUser) {
-        <div @if (Html.IsError(m => m.Message)) {<text>class="invalid"</text>}>
+@using (Html.BeginForm()) {
+    <fieldset class="form">
+        <legend>Report Abuse</legend>
+        @Html.AntiForgeryToken()
+        <div class="form-field">
+        @if (!Model.ConfirmedUser) {
             @Html.LabelFor(m => m.Email)
-            <aside>
-                <p>
-                    <strong>@Html.ValidationMessageFor(m => m.Email)</strong>
-                    Provide your email address so we can follow up with you.
-                </p>
-            </aside>
             @Html.EditorFor(m => m.Email)
+            <span class="field-hint-message">Provide your email address so we can follow up with you.</span>
+            @Html.ValidationMessageFor(m => m.Email)
+        }
+        else {
+            <input type="hidden" name="Email" value="test@example.com" />
+        }
         </div>
-    }
-    else {
-        <input type="hidden" name="Email" value="test@example.com" />
-    }
-            
-    <div @if (Html.IsError(m => m.Message)) {<text>class="invalid"</text>}>
-        @Html.LabelFor(m => m.Message)
-        <aside>
-            <p>
-                <strong>@Html.ValidationMessageFor(m => m.Message)</strong>
-                Please provide a detailed abuse report. Include exactly what the package did.
-            </p>
-        </aside>
-        @Html.TextAreaFor(m => m.Message, 10, 50, null)
-    </div>
-        
-    <div>
-        <button type="submit" title="Send Report" singleclickbutton="true">Send Report</button>
-    </div>
-</form>
+        <div class="form-field">
+            @Html.LabelFor(m => m.Message)
+            @Html.TextAreaFor(m => m.Message, 10, 50, null)
+            @Html.ValidationMessageFor(m => m.Message)
+        </div>
+        <input type="submit" value="Report" title="Report '@Model.PackageId' for abuse" />
+    </fieldset>
+}
 
 @section BottomScripts {
     <script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>
     <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")" type="text/javascript"></script>
-    <script src="@Url.Content("~/Scripts/gallery.form.js")" type="text/javascript"></script>
 }

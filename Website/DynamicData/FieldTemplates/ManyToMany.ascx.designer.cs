@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class ManyToManyField {
+    public partial class ManyToManyField
+    {
 
         protected global::System.Web.UI.WebControls.Repeater Repeater1;
     }

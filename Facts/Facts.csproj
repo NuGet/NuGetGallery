@@ -38,18 +38,27 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.4.1.10715.0\lib\EntityFramework.dll</HintPath>
+    </Reference>
     <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MarkdownSharp.1.13.0.0\lib\35\MarkdownSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Moq">
       <HintPath>..\packages\Moq.4.0.10827\lib\NET40\Moq.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=1.5.20818.9011, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NuGet.Core.1.5.20818.9011\lib\net40-Client\NuGet.Core.dll</HintPath>
+    <Reference Include="MvcHaack.Ajax, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MvcHaack.Ajax.1.1\lib\net40\MvcHaack.Ajax.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Core, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NuGet.Core.1.6.0\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.Services" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Mvc, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml.Linq" />
@@ -57,23 +66,39 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="WebBackgrounder, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebBackgrounder.0.1\lib\net40\WebBackgrounder.dll</HintPath>
+    </Reference>
     <Reference Include="xunit">
-      <HintPath>..\3rdParty\xunit\xunit.dll</HintPath>
+      <HintPath>..\packages\xunit.1.8.0.1549\lib\xunit.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.extensions">
+      <HintPath>..\packages\xunit.extensions.1.8.0.1549\lib\xunit.extensions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
+    <Compile Include="Controllers\JsonApiControllerFacts.cs" />
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Infrastructure\CookieTempDataProviderFacts.cs" />
+    <Compile Include="Infrastructure\Jobs\UpdateStatisticsJobFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\FileSystemPackageFileServiceFacts.cs" />
+    <Compile Include="RequireRemoteHttpsAttributeFacts.cs" />
+    <Compile Include="Routing\VersionRouteConstraintFacts.cs" />
+    <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
+    <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
+    <Compile Include="Services\UploadFileServiceFacts.cs" />
     <Compile Include="Services\UsersServiceFacts.cs" />
+    <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="TestUtility.cs" />
-    <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
+    <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
+    <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

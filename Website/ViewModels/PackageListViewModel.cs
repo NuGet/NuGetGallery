@@ -1,20 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using MvcMiniProfiler;
 
-namespace NuGetGallery {
-    public class PackageListViewModel {
+namespace NuGetGallery
+{
+    public class PackageListViewModel
+    {
         public PackageListViewModel(IQueryable<Package> packages,
             string searchTerm,
             string sortOrder,
             int pageIndex,
             int pageSize,
-            UrlHelper url) {
+            UrlHelper url)
+        {
             // TODO: Implement actual sorting
             IEnumerable<ListPackageItemViewModel> items;
-            using (MiniProfiler.Current.Step("Querying and mapping packages to list")) {
+            using (MiniProfiler.Current.Step("Querying and mapping packages to list"))
+            {
                 items = packages.SortBy(GetSortExpression(sortOrder))
                                 .Skip(pageIndex * pageSize)
                                 .Take(pageSize)
@@ -42,7 +45,7 @@ namespace NuGetGallery {
         }
 
         public int FirstResultIndex { get; set; }
-        
+
         public IEnumerable<ListPackageItemViewModel> Items { get; private set; }
 
         public int LastResultIndex { get; set; }
@@ -59,8 +62,10 @@ namespace NuGetGallery {
 
         public int PageSize { get; private set; }
 
-        private string GetSortExpression(string sortOrder) {
-            switch (sortOrder) {
+        private string GetSortExpression(string sortOrder)
+        {
+            switch (sortOrder)
+            {
                 case "package-title":
                     return "PackageRegistration.Id";
                 case "package-created":

@@ -1,97 +1,96 @@
 ﻿@model ManagePackagesViewModel
-@if (Model.UnpublishedPackages.Any()) {
-    <header>
-        <h2>Unpublished Packages</h2>
-        <span class="displayResults">
-            The following packages are in an <strong>unfinished state</strong>. They were uploaded, 
-            but are not published in the gallery. You can choose to delete these or publish them.
-        </span>
-    </header>
-
-    <table class="packages owner">
-        <thead class="header">
-            <tr>
-                <th>Title</th>
-                <th>Package ID</th>
-                <th>Version</th>
-                <th class="ownerActions">Actions</th>
-            </tr>
-        </thead>
-        @foreach (var package in Model.UnpublishedPackages) {
-            <tr>
-                <td>@package.Title</td>
-                <td>@package.Id</td>
-                <td>@package.Version</td>
-                <td class="ownerActions">
-                    <ul>
-                        <li>
-                            <a href="@Url.Publish(package)" title="Publish"><img src="@Links.Content.Images.greenArrow_png" alt="Publish" /></a>
-                        </li>
-                        <li>
-                            <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
-                        </li>
-                    </ul>
-                </td>
-            </tr>
-        }
-    </table>
+@{
+    ViewBag.Tab = "Packages";
 }
 
-@if (Model.PublishedPackages.Any()) {
-    <header class="manage-packages">
-        <h2>Manage My Packages</h2>
-        <p>These packages are currently published for the world to see.</p>
-    </header>
-    @PrintPublishedPackages(Model.PublishedPackages.Where(p => !p.Unlisted))
+<h1 class="page-heading">Manage My Packages</h1>
 
-    var unlistedPackages = Model.PublishedPackages.Where(p => p.Unlisted);
+
+@if (Model.Packages.Any()) {
+    <section id="published">
+        <h1>Packages</h1>
+        <p>These packages are currently published for the world to see.</p>
+
+        @PrintPublishedPackages(Model.Packages.Where(p => p.Listed), unlisted: false)
+    </section>
+
+    var unlistedPackages = Model.Packages.Where(p => !p.Listed);
     if (unlistedPackages.Any()) {
-        <header class="manage-packages">
-            <h2>Unlisted Packages</h2>
-            <p>These packages are currently published but unlisted.</p>
-        </header>
-        @PrintPublishedPackages(unlistedPackages)
+    <section id="unlisted">
+        <h1>Unlisted Packages</h1>
+        <p>These packages are currently unlisted.</p>
+
+        @PrintPublishedPackages(unlistedPackages, unlisted: true)
+    </section>
     }
 }
 else {
-<header>
-    <h2>No Packages?</h2>
-</header>
-<p>
-    You don&#8217;t have any published packages. Maybe now is a good time to 
-    <a href="@Url.UploadPackage()" class="silverButtonBig">Upload a Package</a>
-</p>
+    <section id="published">
+        <h1>No Packages!</h1>
+        <p>
+            You don't have any packages. Maybe now is a good time to 
+            <a href="@Url.UploadPackage()" class="silverButtonBig">upload a package</a>.
+        </p>
+    </section>
 }
 
-
-@helper PrintPublishedPackages(IEnumerable<PackageViewModel> packages) {
-    <table class="packages owned">
-        <thead class="header">
+@helper PrintPublishedPackages(IEnumerable<PackageViewModel> packages, bool unlisted) {
+    var totlalDownloads = 0;
+    <table class="sexy-table">
+        <thead>
             <tr>
+                <th class="first actions">Actions</th>
                 <th>Package</th>
                 <th>Package ID</th>
-                <th>Downloads</th>
-                <th class="ownerActions">Actions</th>
+                <th>Description</th>
+                <th class="last">Downloads</th>
+                
             </tr>
         </thead>
+        <tbody>
         @foreach (var package in packages) {
             <tr>
+                <td class="actions">
+                    @if (unlisted)
+                    {
+                        <a href="@Url.DeletePackage(package)" title="List Package" class="editPackageLink"><img src="@Links.Content.Images.editIcon_png" alt="List Package" /></a>
+                    }
+                    else
+                    { 
+                        <a href="@Url.EditPackage(package)" title="Edit" class="editPackageLink"><img src="@Links.Content.Images.editIcon_png" alt="Edit" /></a>
+                        <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
+                    }
+                </td>
                 <td>
-                    <strong><a href="@Url.Package(package)">@package.Title</a></strong>
-                    <p>@package.Description</p>
+                    <a href="@Url.Package(package)"  title="View package page.">@package.Title</a>
                 </td>
                 <td>@package.Id</td>
-                <td class="downloads">@package.DownloadCount</td>
-                <td class="ownerActions">
-                    <ul>
-                        <li>
-                            <a href="@Url.EditPackage(package)" title="Edit" class="editPackageLink"><img src="@Links.Content.Images.editIcon_png" alt="Edit" /></a>
-                            &nbsp;
-                            <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Links.Content.Images.trash_png" alt="Delete" /></a>
-                        </li>
-                    </ul>
+                <td>
+                    @if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 65)
+                    {
+                            @package.Description
+                    }
+                    else
+                    {
+                            @package.Description.Substring(0, 65)
+                            <a href="@Url.Package(package)" title="View package page.">...</a>
+                    }
+                </td>
+                
+                <td>@package.DownloadCount</td>
+            </tr>
+                    totlalDownloads += package.DownloadCount;
+        }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4">
+                    You have a total of @packages.Count() packages.
+                </td>
+                <td class="total">
+                    @totlalDownloads
                 </td>
             </tr>
-        }
+        </tfoot>
     </table>
 }

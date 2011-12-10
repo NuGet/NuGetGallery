@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class Integer_EditField {
+    public partial class Integer_EditField
+    {
 
         protected global::System.Web.UI.WebControls.TextBox TextBox1;
 

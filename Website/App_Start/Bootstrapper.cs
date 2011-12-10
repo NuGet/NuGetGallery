@@ -1,14 +1,16 @@
-﻿using System.Linq;
-using System.Web.Configuration;
+﻿using System.Data.Entity.Migrations;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Elmah.Contrib.Mvc;
-using Migrator.Framework;
+using NuGetGallery.Migrations;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.Bootstrapper), "Start")]
-namespace NuGetGallery {
-    public static class Bootstrapper {
-        public static void Start() {
+namespace NuGetGallery
+{
+    public static class Bootstrapper
+    {
+        public static void Start()
+        {
             UpdateDatabase();
             Routes.RegisterRoutes(RouteTable.Routes);
 
@@ -16,20 +18,17 @@ namespace NuGetGallery {
 
             // TODO: move profile bootstrapping and container bootstrapping to here
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
+
+            ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
-        private static void UpdateDatabase() {
-            var version = typeof(Bootstrapper).Assembly.GetTypes()
-                .Where(type => typeof(Migration).IsAssignableFrom(type))
-                .SelectMany(x => x.GetCustomAttributes(typeof(MigrationAttribute), false))
-                .Max(x => ((MigrationAttribute)x).Version);
-
-            var migrator = new Migrator.Migrator(
-                "SqlServer",
-                WebConfigurationManager.ConnectionStrings["NuGetGallery"].ConnectionString,
-                typeof(Bootstrapper).Assembly);
-
-            migrator.MigrateTo(version);
+        private static void UpdateDatabase()
+        {
+            var dbMigrator = new DbMigrator(new Settings());
+            dbMigrator.Update();
+            // The Seed method of Settings is never called, so 
+            // we call it here again as a workaround.
+            Settings.SeedDatabase(new EntitiesContext());
         }
     }
 }

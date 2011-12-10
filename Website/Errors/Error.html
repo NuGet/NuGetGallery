@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html> 
+<html lang="en" class="static "> 
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>NuGet Gallery</title> 
+        <link href="../Content/site.css" rel="stylesheet" />
+        <link href="../favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        <script src="../Scripts/modernizr-2.0.6-development-only.js"></script>
+    </head>
+    <body>
+        <div id="content-wraper">
+            <header class="main">
+                <div id="logo"><a href="../">NuGet Gallery</a></div>
+            </header>
+            <nav class="main">
+                <ul id="menu">
+                    <li><a href="../">Home</a></li>
+                    <li><a href="../Packages">Packages</a></li>
+                    <li><a href="http://docs.nuget.org">Documentation</a></li>
+                    <li><a href="../Upload/Package" class="upload">Upload Package</a></li>
+                </ul>
+            </nav>
+            <div id="body">
+                <div class="error-show-code"></div>
+                <div class="error-page">
+                    <h1>Error: Oh no, we broke something!</h1>
+                    <p>You might be here because:</p>
+                    <ul>
+                        <li>There is an error on our server and the server is &quot;given her all she's got, captain.&quot; </li>
+                        <li>The system is down, the system is down, the system is down.</li>
+                        <li>Our name is smalls.</li>
+                    </ul>
+
+                    <p>
+                        We have logged the error and we will look into it, and make sure it doesn’t happen again. However if you keep 
+                        seeing this page please File a bug on <a href="https://github.com/NuGet/NuGetGallery/issues">the NuGet Gallery issue tracker</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div id="layout-footer" class="group">
+            <footer id="footer">
+                <ul class="recommended">
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/overview">Overview</a>
+                        <p>NuGet is a Visual Studio 2010 extension that makes it easy to add, remove, and update libraries and...</p>
+                    </li>
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/installing-nuget">Install</a>
+                        <p>NuGet can be installed and updated using the Visual Studio Extension Manager. To check if your copy...</p>
+                    </li>
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/videos">Videos</a>
+                        <p>Watch screencasts and presentations about anything and everything NuGet.</p>
+                    </li>
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/nuget-faq">FAQ</a>
+                        <p>Read the Frequently Asked Questions about NuGet and see if your question made the list.</p>
+                    </li>
+                </ul>
+                <div class="license">
+                    <p>
+                        &copy; 2011 Outercurve Foundation.
+                    </p>
+                </div>
+            </footer>
+        </div>
+        <script src="../Scripts/jquery-1.6.2.min.js"></script>
+        <script type="text/javascript">
+            function submitQuery() {
+                window.location = "../packages?q="
+                + encodeURIComponent($("#searchBoxInput").val());
+                return false;
+            }
+        </script>
+    </body>
+</html>

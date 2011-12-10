@@ -1,90 +1,78 @@
 ﻿@using NuGetGallery;
 <!DOCTYPE html> 
 <html lang="en" class="static "> 
-    <head> 
+    <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <title>NuGet Gallery</title> 
-        <link href="@Url.Content("~/Content/orchard.css")" rel="stylesheet" type="text/css" />
-        <link href="@Url.Content("~/Content/nuget.css")" rel="stylesheet" type="text/css" />
-        <!--[if IE 7]><link href="@Url.Content("~/Content/ie7.css")" media="screen, projection" rel="stylesheet" type="text/css" /><![endif]-->
-        <link href="@Url.Content("~/Content/nuget.ico")" rel="shortcut icon" type="image/x-icon" />
-        <script src="@Url.Content("~/Scripts/jquery-1.6.2.min.js")" type="text/javascript"></script>
-        <script src="@Url.Content("~/Scripts/html5.js")" type="text/javascript"></script>
-        <script>(function (d) { d.className = "dyn" + d.className.substring(6, d.className.length); })(document.documentElement);</script> 
+        <link href="@Url.Content("~/Content/site.css")" rel="stylesheet" />
+        <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
+        <script src="@Url.Content("~/Scripts/modernizr-2.0.6-development-only.js")"></script>
         @MvcMiniProfiler.MiniProfiler.RenderIncludes()
+        @Analytics.GetGoogleHtml("UA-177588-7")
     </head>
     <body>
-        <div id="layout-wrapper">
-            <header id="layout-header" class="group">
-                <div class="zone zone-header">
-                    <h1 id="branding"><a href="@Url.Home()">NuGet Gallery</a></h1>
-                    @Html.Partial(MVC.Shared.Views.UserDisplay)
-                </div>
+        <div id="content-wraper">
+            <header class="main">
+                <div id="logo"><a href="@Url.Home()">NuGet Gallery</a></div>
+                @Html.Partial(MVC.Shared.Views.UserDisplay)
             </header>
-            <div id="layout-navigation" class="group">
-                <div class="zone zone-navigation">
-                    <nav>
-                        <ul class="menu menu-main">
-                            @* TODO: move tabs into partial and refactor to remove duplicaton of code *@
-                            @* TODO: move tab identifiers to the Const static class *@
-                            @{
-                                var homeClass = ViewBag.Tab == "Home" ? "current" : "";
-                                var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
-                                var uploadClass = ViewBag.Tab == "Upload" ? "current" : "";
-                            }
-                            <li class="@homeClass"><a href="@Url.Home()">Home</a></li>
-                            <li class="@packagesClass"><a href="@Url.PackageList()">Packages</a></li>
-                            <li><a href="http://docs.nuget.org">Documentation</a></li>
-                            <li class="@uploadClass"><a href="@Url.UploadPackage()" class="upload">Upload Package</a></li>
-                        </ul>
-
-                        <form id="search-form" action="@Url.PackageList()" method="get">
-                            <div id="search">
-                                <div>
-                                    <input type="text" name="q" id="searchTerm" value="@(ViewBag.SearchTerm ?? "Search Packages")" />
-                                </div>
-                                @* TODO: This hidden input hack can go away when we fully restructure the UI*@
-                                <input type="hidden" name="sortOrder" value="@Const.DefaultPackageListSortOrder" />
-                                <input type="submit" value=" "/>
-                            </div>
-                        </form>
-                    </nav>
+            <nav class="main">
+                <ul id="menu">
+                    @{
+                        var homeClass = ViewBag.Tab == "Home" ? "current" : "";
+                        var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
+                        var uploadClass = ViewBag.Tab == "Upload" ? "current" : "";
+                    }
+                    <li class="@homeClass"><a href="@Url.Home()">Home</a></li>
+                    <li class="@packagesClass"><a href="@Url.PackageList()">Packages</a></li>
+                    <li class="@uploadClass"><a href="@Url.UploadPackage()" class="upload">Upload Package</a></li>
+                    <li><a href="http://docs.nuget.org">Documentation</a></li>
+                </ul>
+                <div id="searchBox">
+                    <form action="@Url.PackageList()" method="get">
+                        <input name="q" id="searchBoxInput" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
+                        <input id="searchBoxSubmit" type="submit" value=" " />
+                        <input type="hidden" name="sortOrder" value="@Const.DefaultPackageListSortOrder" />
+                    </form>
                 </div>
-            </div>
+            </nav>
+            <div id="body">
+            @if (TempData.ContainsKey("Message")) {
+                <p class="message">@TempData["Message"]</p>
+            }
             @RenderBody()
+            </div>
         </div>
         <div id="layout-footer" class="group">
             <footer id="footer">
-                <h5 class="logo"><a href="#">NuGet Gallery</a></h5>
-                <div id="footer-quad" class="group">
-                    <div style="margin: 33px 0 0 40px;">
-                        <ul class="footer-links">
-                            <li><a href="@Url.Home()">Home</a>&nbsp;&#124;&nbsp;</li>
-                            <li><a href="@Url.PackageList()">Packages</a>&nbsp;&#124;&nbsp;</li>
-                            <li><a href="@Url.UploadPackage()">Upload</a>&nbsp;&#124;&nbsp;</li>
-                            <li><a href="@Url.Action(MVC.Pages.Terms())">Terms of Use</a>&nbsp;&#124;&nbsp;</li>
-                            <li><a href="@Url.Action(MVC.Pages.Privacy())">Privacy</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="credits">
-                    <span class="copyright">&#169; @DateTime.UtcNow.Year Outercurve Foundation.</span>
+                <ul class="recommended">
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/overview">Overview</a>
+                        <p>NuGet is a Visual Studio 2010 extension that makes it easy to add, remove, and update libraries and...</p>
+                    </li>
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/installing-nuget">Install</a>
+                        <p>NuGet can be installed and updated using the Visual Studio Extension Manager. To check if your copy...</p>
+                    </li>
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/videos">Videos</a>
+                        <p>Watch screencasts and presentations about anything and everything NuGet.</p>
+                    </li>
+                    <li>
+                        <a href="http://docs.nuget.org/docs/start-here/nuget-faq">FAQ</a>
+                        <p>Read the Frequently Asked Questions about NuGet and see if your question made the list.</p>
+                    </li>
+                </ul>
+                <div class="license">
+                    <p>
+                        &copy; @DateTime.UtcNow.Year Outercurve Foundation.
+                    </p>
+                    @ViewHelpers.ReleaseTag()
                 </div>
             </footer>
         </div>
-        <script type="text/javascript">
-            var _gaq = _gaq || [];
-            _gaq.push(['_setAccount', 'UA-177588-7']);
-            _gaq.push(['_trackPageview']);
-
-            (function () {
-                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
-        </script>
-        @RenderSection("BottomScripts", false)
-        <script src="@Url.Content("~/Scripts/global.js")" type="text/javascript"></script>
+        <script src="@Url.Content("~/Scripts/jquery-1.6.2.min.js")"></script>
+        @RenderSection("BottomScripts", required: false)
     </body>
 </html>

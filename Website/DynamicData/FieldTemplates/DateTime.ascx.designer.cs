@@ -8,10 +8,12 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataEFCodeFirst {
+namespace DynamicDataEFCodeFirst
+{
 
 
-    public partial class DateTimeField {
+    public partial class DateTimeField
+    {
 
         protected global::System.Web.UI.WebControls.Literal Literal1;
     }

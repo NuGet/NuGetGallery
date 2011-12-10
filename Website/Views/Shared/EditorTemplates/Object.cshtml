@@ -12,23 +12,24 @@ else
         }
         else
         {
-            var className = string.Empty;
+            
+            var className = String.Empty;
             if (ViewData.ModelState[prop.PropertyName] != null && ViewData.ModelState[prop.PropertyName].Errors != null && ViewData.ModelState[prop.PropertyName].Errors.Count > 0)
             {
                 className = "invalid";
-            }
-            <div class="@className">
+            }    
+            <div class="form-field @className">
                 @Html.Label(prop.PropertyName)
-                <aside>
-                    <p>
-                        <strong>@Html.ValidationMessage(prop.PropertyName)</strong>
-                        @if (prop.AdditionalValues.ContainsKey("Hint"))
-                        {
-                            @prop.AdditionalValues["Hint"]   
-                        }
-                    </p>
-                </aside>
                 @Html.Editor(prop.PropertyName)
+                
+                @Html.ValidationMessage(prop.PropertyName)
+                
+                @if (prop.AdditionalValues.ContainsKey("Hint"))
+                {
+                    <span class="field-hint-message">@prop.AdditionalValues["Hint"]</span>
+                }
+                
+                
             </div>
         }
     }

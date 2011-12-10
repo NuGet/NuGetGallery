@@ -2,17 +2,19 @@
 using System.Linq;
 using NuGet;
 
-namespace NuGetGallery {
-    public interface IPackageService {
+namespace NuGetGallery
+{
+    public interface IPackageService
+    {
         Package CreatePackage(IPackage nugetPackage, User currentUser);
 
         void DeletePackage(string id, string version);
 
         PackageRegistration FindPackageRegistrationById(string id);
 
-        Package FindPackageByIdAndVersion(string id, string version = null);
+        Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true);
 
-        IQueryable<Package> GetLatestVersionOfPublishedPackages();
+        IQueryable<Package> GetLatestPackageVersions(bool allowPrerelease);
 
         void PublishPackage(string id, string version);
 
@@ -20,9 +22,13 @@ namespace NuGetGallery {
 
         IEnumerable<Package> FindDependentPackages(Package package);
 
-        void AddPackageOwner(Package package, User user);
+        PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner);
 
-        void RemovePackageOwner(Package package, User user);
+        bool ConfirmPackageOwner(PackageRegistration package, User user, string token);
+
+        void AddPackageOwner(PackageRegistration package, User user);
+
+        void RemovePackageOwner(PackageRegistration package, User user);
 
         void AddDownloadStatistics(Package package, string userHostAddress, string userAgent);
 

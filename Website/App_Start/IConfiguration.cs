@@ -1,9 +1,13 @@
-﻿using System.Net.Mail;
-
-namespace NuGetGallery {
-    public interface IConfiguration {
-        bool ConfirmEmailAddresses { get; }
-        string PackageFileDirectory { get; }
-        MailAddress GalleryOwnerEmailAddress { get; }
+﻿
+namespace NuGetGallery
+{
+    public interface IConfiguration
+    {
+        string SiteRoot { get; }
+        string AzureStorageAccessKey { get; }
+        string AzureStorageAccountName { get; }
+        string AzureStorageBlobUrl { get; }
+        string FileStorageDirectory { get; }
+        PackageStoreType PackageStoreType { get; }
     }
 }

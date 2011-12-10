@@ -1,0 +1,96 @@
+﻿@using NuGetGallery;
+@model VerifyPackageViewModel
+@{
+    ViewBag.Tab = "Upload Your Package";
+}
+
+   
+<h1 class="page-heading">Verify Details &amp; Submit</h1>
+
+@ViewHelpers.UploadSequence(2)
+
+<h2>Verify Details</h2>
+<p class="long note">
+    These package details are read from the package file and cannot be changed. 
+    If anything below is incorrect, click Cancel and upload 
+    a correct package.
+</p>
+
+<ul id="packageDetails">
+    <li>
+        <h3>Package ID</h3>
+        <p>@Model.Id</p>
+    </li>
+    <li>
+        <h3>Version</h3>
+        <p>@Model.Version</p>
+    </li>
+    @if (!String.IsNullOrEmpty(Model.Title)) {
+        <li>
+            <h3>Title</h3>
+            <p>@Model.Title</p>
+        </li>
+    }
+    <li>
+        <h3>Description</h3>
+        <p>@Model.Description</p>
+    </li>
+    <li>
+        <h3>Authors</h3>
+        <p>@Model.Authors</p>
+    </li>
+    @if (!String.IsNullOrEmpty(Model.Tags)) {
+        <li>
+            <h3>Tags</h3>
+            <p>@Model.Tags</p>
+        </li>
+    }
+    @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
+        <li>
+            <h3>License URL</h3>
+            <p>
+                @if (Model.RequiresLicenseAcceptance) {<text>Acceptance of license required: </text>}
+                <a href="@Model.LicenseUrl" target="_blank">@Model.LicenseUrl</a>
+                
+            </p>
+        </li>
+    }
+    @if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
+        <li>
+            <h3>Project URL</h3>
+            <p><a href="@Model.ProjectUrl" target="_blank">@Model.ProjectUrl</a></p>
+        </li>
+    }
+</ul>
+
+
+<h2>Submit Package</h2>
+@using (Html.BeginForm()) {
+<fieldset class="form">
+    <legend>Submit Package</legend>
+    @Html.AntiForgeryToken()
+    <div class="form-field">
+        @Html.EditorFor(package => package.Listed)
+        <label for="Listed" class="checkbox">
+            List this package in search results. 
+        </label>
+    </div>
+    <input type="submit" value="Submit" title="Verify Details &amp; Submit" /> 
+    <a class="cancel" href="@Url.Action(MVC.Packages.CancelUpload())" title="Cancel the upload in progress.">Cancel</a>
+</fieldset>
+}
+
+@section BottomScripts {
+<script>
+    $(function() {
+        $('a.cancel').click(function () {
+            var $anchor = $(this);
+            var $form = $anchor.parents('form');
+            $form.attr('action', $anchor.attr('href'));
+            $form.submit();
+            return false;
+        });
+    });
+</script>
+}
+

@@ -1,3 +1,4 @@
+using System;
 using System.Configuration;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
@@ -11,9 +12,12 @@ using MvcMiniProfiler.MVCHelpers;
 [assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.App_Start.MiniProfilerPackage), "PreStart")]
 [assembly: WebActivator.PostApplicationStartMethod(typeof(NuGetGallery.App_Start.MiniProfilerPackage), "PostStart")]
 
-namespace NuGetGallery.App_Start {
-    public static class MiniProfilerPackage {
-        public static void PreStart() {
+namespace NuGetGallery.App_Start
+{
+    public static class MiniProfilerPackage
+    {
+        public static void PreStart()
+        {
             MiniProfiler.Settings.SqlFormatter = new MvcMiniProfiler.SqlFormatters.SqlServerFormatter();
 
             var sqlConnectionFactory = new SqlConnectionFactory(ConfigurationManager.ConnectionStrings["NuGetGallery"].ConnectionString);
@@ -24,7 +28,8 @@ namespace NuGetGallery.App_Start {
             GlobalFilters.Filters.Add(new ProfilingActionFilter());
         }
 
-        public static void PostStart() {
+        public static void PostStart()
+        {
             var viewEngines = ViewEngines.Engines.ToList();
 
             ViewEngines.Engines.Clear();
@@ -34,22 +39,46 @@ namespace NuGetGallery.App_Start {
         }
     }
 
-    public class MiniProfilerStartupModule : IHttpModule {
-        public void Init(HttpApplication context) {
-            context.BeginRequest += (sender, e) => {
+    public class MiniProfilerStartupModule : IHttpModule
+    {
+        public void Init(HttpApplication context)
+        {
+            context.BeginRequest += (sender, e) =>
+            {
                 var request = ((HttpApplication)sender).Request;
 
-                // TODO: only profile for admin users
-                // Temporarily commenting this out for demo purposes. if (request.IsLocal)
                 MiniProfiler.Start();
             };
 
-            context.EndRequest += (sender, e) => {
+            context.AuthorizeRequest += (sender, e) =>
+            {
+                var stopProfiling = false;
+                var httpContext = HttpContext.Current;
+
+                if (httpContext == null)
+                    stopProfiling = true;
+                else
+                {
+                    // Temporarily removing until we figure out the hammering of request we saw.
+                    //var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
+                    var requestIsLocal = httpContext.Request != null && httpContext.Request.IsLocal;
+
+                    //stopProfiling = !userCanProfile && !requestIsLocal
+                    stopProfiling = !requestIsLocal;
+                }
+
+                if (stopProfiling)
+                    MiniProfiler.Stop(true);
+            };
+
+            context.EndRequest += (sender, e) =>
+            {
                 MiniProfiler.Stop();
             };
         }
 
-        public void Dispose() {
+        public void Dispose()
+        {
         }
     }
 }

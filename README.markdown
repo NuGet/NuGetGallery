@@ -6,7 +6,8 @@ website for the NuGet client. For information about the NuGet clients, visit htt
 ## Getting Started
 
 To compile the project, you'll need Visual Studio 2010 or later and PowerShell 2.0. You'll also need to 
-[install NuGet](http://docs.nuget.org/docs/start-here/installing-nuget). 
+[install NuGet](http://docs.nuget.org/docs/start-here/installing-nuget). Also, make sure to install the 
+[Windows Azure SDK](http://www.microsoft.com/windowsazure/sdk/).
 
 To build the project, clone it locally:
 

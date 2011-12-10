@@ -14,7 +14,7 @@
     <AssemblyName>NuGetGallery.Website</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
-    <UseIISExpress>false</UseIISExpress>
+    <UseIISExpress>true</UseIISExpress>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -54,6 +54,9 @@
     <Reference Include="EntityFramework">
       <HintPath>..\packages\EntityFramework.4.1.10715.0\lib\EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework.Migrations">
+      <HintPath>..\packages\EntityFramework.Migrations.0.7.0.0\lib\net40\EntityFramework.Migrations.dll</HintPath>
+    </Reference>
     <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MarkdownSharp.1.13.0.0\lib\35\MarkdownSharp.dll</HintPath>
     </Reference>
@@ -66,18 +69,16 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Migrator, Version=0.9.0.28138, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MigratorDotNet.0.9.0.28138\lib\Net40\Migrator.dll</HintPath>
+    <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\AnglicanGeek.WindowsAzure.ServiceRuntime.1.6\lib\net35-full\Microsoft.WindowsAzure.ServiceRuntime.dll</HintPath>
     </Reference>
-    <Reference Include="Migrator.Framework, Version=0.9.0.26940, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MigratorDotNet.0.9.0.28138\lib\Net40\Migrator.Framework.dll</HintPath>
+    <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.Storage.1.6\lib\net35-full\Microsoft.WindowsAzure.StorageClient.dll</HintPath>
     </Reference>
-    <Reference Include="Migrator.Providers, Version=0.9.0.26941, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MigratorDotNet.0.9.0.28138\lib\Net40\Migrator.Providers.dll</HintPath>
-    </Reference>
-    <Reference Include="MvcHaack.Ajax, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="MvcHaack.Ajax, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MvcHaack.Ajax.1.0.1\lib\net40\MvcHaack.Ajax.dll</HintPath>
+      <HintPath>..\packages\MvcHaack.Ajax.1.1\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
     <Reference Include="MvcMiniProfiler">
       <HintPath>..\packages\MiniProfiler.1.7\lib\MvcMiniProfiler.dll</HintPath>
@@ -88,9 +89,8 @@
     <Reference Include="Ninject.Web.Mvc">
       <HintPath>..\packages\Ninject.MVC3.2.2.2.0\lib\net40-Full\Ninject.Web.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=1.5.20818.9011, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NuGet.Core.1.5.20818.9011\lib\net40-Client\NuGet.Core.dll</HintPath>
+    <Reference Include="NuGet.Core, Version=1.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NuGet.Core.1.6.0\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
@@ -120,7 +120,6 @@
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Web" />
@@ -130,22 +129,125 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.EnterpriseServices" />
-    <Reference Include="WebActivator, Version=1.4.3.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="WebActivator, Version=1.4.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WebActivator.1.4.3\lib\net40\WebActivator.dll</HintPath>
+      <HintPath>..\packages\WebActivator.1.4.4\lib\net40\WebActivator.dll</HintPath>
+    </Reference>
+    <Reference Include="WebBackgrounder, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebBackgrounder.0.1\lib\net40\WebBackgrounder.dll</HintPath>
+    </Reference>
+    <Reference Include="WebBackgrounder.EntityFramework, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebBackgrounder.EntityFramework.0.1\lib\net40\WebBackgrounder.EntityFramework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionNames.cs" />
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="App_Start\BackgroundTasksSetup.cs" />
+    <Compile Include="App_Start\PackageStoreType.cs" />
+    <Compile Include="DataServices\V1FeedPackage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\V1Feeds.svc.cs">
+      <DependentUpon>V1Feeds.svc</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\FeedContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\FeedServiceBase.cs" />
+    <Compile Include="DataServices\PackageExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\V2Feed.svc.cs">
+      <DependentUpon>V2Feed.svc</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\V2FeedPackage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="HelpersController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Infrastructure\HintAttribute.cs" />
+    <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
+    <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
+    <Compile Include="Infrastructure\HttpStatusCodeWithBodyResult.cs" />
+    <Compile Include="Infrastructure\Jobs\WorkItemCleanupJob.cs" />
+    <Compile Include="Infrastructure\Jobs\UpdateStatisticsJob.cs" />
+    <Compile Include="JsonApiController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201110060711357_Initial.cs" />
+    <Compile Include="Migrations\201110060711357_Initial.Designer.cs">
+      <DependentUpon>201110060711357_Initial.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201110102157002_PrereleaseChanges.cs" />
+    <Compile Include="Migrations\201110102157002_PrereleaseChanges.Designer.cs">
+      <DependentUpon>201110102157002_PrereleaseChanges.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201110180052097_GallerySettings.cs" />
+    <Compile Include="Migrations\201110180052097_GallerySettings.Designer.cs">
+      <DependentUpon>201110180052097_GallerySettings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.cs" />
+    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.Designer.cs">
+      <DependentUpon>201110230649210_PackageOwnerRequests.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.cs" />
+    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.Designer.cs">
+      <DependentUpon>201111022024584_PackageDependencyVersionSpec.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.cs" />
+    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.Designer.cs">
+      <DependentUpon>201111022051010_PackageReleaseNotes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111080239544_ListPackagesIndexes.cs" />
+    <Compile Include="Migrations\201111080239544_ListPackagesIndexes.Designer.cs">
+      <DependentUpon>201111080239544_ListPackagesIndexes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111080816426_DisplayPackageIndexes.cs" />
+    <Compile Include="Migrations\201111080816426_DisplayPackageIndexes.Designer.cs">
+      <DependentUpon>201111080816426_DisplayPackageIndexes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111081908453_MyPackagesIndexes.cs" />
+    <Compile Include="Migrations\201111081908453_MyPackagesIndexes.Designer.cs">
+      <DependentUpon>201111081908453_MyPackagesIndexes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111150729167_AddSmtpPassword.cs" />
+    <Compile Include="Migrations\201111150729167_AddSmtpPassword.Designer.cs">
+      <DependentUpon>201111150729167_AddSmtpPassword.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201111222338036_GalleryOwnerEmailSettings.cs" />
+    <Compile Include="Migrations\201111222338036_GalleryOwnerEmailSettings.Designer.cs">
+      <DependentUpon>201111222338036_GalleryOwnerEmailSettings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Settings.cs" />
+    <Compile Include="PackagesController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Services\CloudBlobClientWrapper.cs" />
+    <Compile Include="Services\CloudBlobContainerWrapper.cs" />
+    <Compile Include="Services\CloudBlobFileStorageService.cs" />
+    <Compile Include="Services\CloudBlobWrapper.cs" />
+    <Compile Include="Services\FileSystemFileStorageService.cs" />
+    <Compile Include="Services\ICloudBlob.cs" />
+    <Compile Include="Services\ICloudBlobClient.cs" />
+    <Compile Include="Services\ICloudBlobContainer.cs" />
+    <Compile Include="Services\IFileStorageService.cs" />
+    <Compile Include="Services\IUploadFileService.cs" />
+    <Compile Include="Services\PackageFileService.cs" />
+    <Compile Include="RequireRemoteHttpsAttribute.cs" />
+    <Compile Include="Services\TestableStorageClientException.cs" />
+    <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
+    <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
+    <Compile Include="ViewModels\ResendConfirmationEmailViewModel.cs" />
     <Compile Include="Views\Helpers\ViewHelpers.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -158,15 +260,13 @@
     <Compile Include="AuthenticationController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="BuildTasks\CreateDatabase.cs" />
+    <Compile Include="BuildTasks\UpdateDatabase.cs" />
     <Compile Include="Controllers\ApiController.cs" />
-    <Compile Include="Controllers\ForgotPasswordViewModel.cs" />
     <Compile Include="Controllers\JsonApiController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
-    <Compile Include="DataServices\PackageExtensions.cs" />
     <Compile Include="DynamicData\Content\GridViewPager.ascx.cs">
       <DependentUpon>GridViewPager.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -392,20 +492,11 @@
     <Compile Include="DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
+    <Compile Include="Entities\PackageOwnerRequest.cs" />
     <Compile Include="Entities\PackageStatistics.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
-    <Compile Include="JsonApiController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20110821181500_AddElmahSupport.cs" />
-    <Compile Include="Migrations\20110825225500_CreateRolesTable.cs" />
-    <Compile Include="Migrations\20110825230500_CreateUserRolesTable.cs" />
-    <Compile Include="Migrations\20110827063348_AddPackageStatistics.cs" />
-    <Compile Include="PackagesController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
     <Compile Include="PagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -427,23 +518,15 @@
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
-    <Compile Include="ViewModels\DeletePackageViewModel.cs" />
     <Compile Include="ViewModels\DependencyViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
     <Compile Include="App_Start\Routes.cs" />
-    <Compile Include="Migrations\20110812222000_OnDeleteCascade.cs" />
     <Compile Include="Services\FileSystemService.cs" />
     <Compile Include="Services\IFileSystemService.cs" />
     <Compile Include="Services\IPackageService.cs" />
     <Compile Include="Services\PackageService.cs" />
     <Compile Include="Entities\PackageDependency.cs" />
-    <Compile Include="Migrations\20110804120000_CreateUsersTable.cs" />
-    <Compile Include="Migrations\20110804130000_CreateEmailMessagesTable.cs" />
-    <Compile Include="Migrations\20110804140000_CreatePackageRegistrationsTable.cs" />
-    <Compile Include="Migrations\20110804150000_CreatePackagesTable.cs" />
-    <Compile Include="Migrations\20110804160000_CreatePackageRegistrationOwnersTable.cs" />
-    <Compile Include="Migrations\20110805190000_CreatePackageAuthorsTable.cs" />
     <Compile Include="App_Start\Configuration.cs" />
     <Compile Include="Const.cs" />
     <Compile Include="App_Start\Container.cs" />
@@ -451,8 +534,6 @@
     <Compile Include="Services\CryptographyService.cs" />
     <Compile Include="Entities\EntityException.cs" />
     <Compile Include="ExtensionMethods.cs" />
-    <Compile Include="DataServices\FeedPackage.cs" />
-    <Compile Include="Services\FileSystemPackageFileService.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
     <Compile Include="App_Start\IConfiguration.cs" />
     <Compile Include="Services\ICryptographyService.cs" />
@@ -467,7 +548,6 @@
     <Compile Include="Entities\PackageAuthor.cs" />
     <Compile Include="Entities\Package.cs" />
     <Compile Include="Entities\EntityRepository.cs" />
-    <Compile Include="Migrations\20110808110000_CreatePackageDependenciesTable.cs" />
     <Compile Include="RequestModels\DisplayPackageRequest.cs" />
     <Compile Include="Strings.Designer.cs">
       <DependentUpon>Strings.resx</DependentUpon>
@@ -481,10 +561,6 @@
     <Compile Include="RequestModels\RegisterRequest.cs" />
     <Compile Include="RequestModels\SubmitPackageRequest.cs" />
     <Compile Include="RouteNames.cs" />
-    <Compile Include="DataServices\FeedsContext.cs" />
-    <Compile Include="DataServices\Feeds.svc.cs">
-      <DependentUpon>Feeds.svc</DependentUpon>
-    </Compile>
     <Compile Include="UrlExtensions.cs" />
     <Compile Include="App_Start\VersionRouteConstraint.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
@@ -496,12 +572,17 @@
     <Compile Include="ViewModels\PasswordResetRequestViewModel.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
-    <Compile Include="ViewModels\SubmitPackageViewModel.cs" />
+    <Compile Include="ViewModels\VerifyPackageViewModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
     <Compile Include="Views\Authentication\LogOn.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>LogOn.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Packages\ConfirmOwner.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ConfirmOwner.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Packages\ContactOwners.generated.cs">
       <AutoGen>True</AutoGen>
@@ -518,6 +599,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>DisplayPackage.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Packages\Download.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Download.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Packages\Edit.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -533,11 +619,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ManagePackageOwners.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Packages\PublishPackage.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>PublishPackage.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Packages\ReportAbuse.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -548,15 +629,15 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>UploadPackage.cshtml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Packages\VerifyPackage.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>VerifyPackage.cshtml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Packages\_ListPackage.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>_ListPackage.cshtml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Packages\_PackageDetailsTable.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_PackageDetailsTable.cshtml</DependentUpon>
     </Compile>
     <Compile Include="Views\Pages\Home.generated.cs">
       <AutoGen>True</AutoGen>
@@ -598,11 +679,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>UserDisplay.cshtml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Shared\_searchbox.generated.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_searchbox.cshtml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Users\Account.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -617,6 +693,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Confirm.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Users\ResendConfirmation.generated.cs">
+      <DependentUpon>ResendConfirmation.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Views\Users\Edit.generated.cs">
       <AutoGen>True</AutoGen>
@@ -665,15 +746,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\Buttons.css" />
-    <Content Include="Content\Confirmations.css" />
-    <Content Include="Content\Footer.css" />
-    <Content Include="Content\Forms.css" />
-    <Content Include="Content\Header.css" />
-    <Content Include="Content\Home.css" />
-    <Content Include="Content\ie-mac.css" />
-    <Content Include="Content\ie7.css" />
-    <Content Include="Content\Images\contribGraphic.png" />
+    <Content Include="Content\Images\changePassword.png" />
+    <Content Include="Content\Images\errorPage.png" />
+    <Content Include="Content\Images\editProfile.png" />
+    <Content Include="Content\Images\managePackages.png" />
+    <Content Include="Content\Images\uploadPackage.png" />
+    <Content Include="Content\Images\YourPackage.png" />
+    <Content Include="Content\Site.css" />
     <Content Include="Content\Images\download.png" />
     <Content Include="Content\Images\editIcon.png" />
     <Content Include="Content\Images\greenArrow.png" />
@@ -700,17 +779,9 @@
     <Content Include="Content\Images\userIcon.png" />
     <Content Include="Content\Images\userIconWhite.png" />
     <Content Include="Content\Images\xmark.png" />
-    <Content Include="Content\jquery.lightbox-0.5.css" />
-    <Content Include="Content\MainNav.css" />
-    <Content Include="Content\nuget.css" />
-    <Content Include="Content\nuget.ico" />
-    <Content Include="Content\orchard.css" />
-    <Content Include="Content\Packages.css" />
-    <Content Include="Content\PageToolbar.css" />
-    <Content Include="Content\Pagination.css" />
-    <Content Include="Content\Reset.css" />
     <Content Include="Content\Images\sendMessageGraphic.png" />
-    <Content Include="Content\Widgets.css" />
+    <Content Include="DataServices\V1Feeds.svc" />
+    <Content Include="DataServices\V2Feed.svc" />
     <Content Include="DynamicData\Content\GridViewPager.ascx" />
     <Content Include="DynamicData\Content\Images\Back.gif" />
     <Content Include="DynamicData\Content\Images\header_back.gif" />
@@ -750,9 +821,8 @@
     <Content Include="DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="DynamicData\PageTemplates\List.aspx" />
     <Content Include="DynamicData\Site.css" />
-    <Content Include="Scripts\gallery.form.js" />
-    <Content Include="Scripts\global.js" />
-    <Content Include="Scripts\html5.js" />
+    <Content Include="Errors\Error.html" />
+    <Content Include="favicon.ico" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
     <Content Include="Scripts\jquery-1.6.2.min.js" />
@@ -760,7 +830,6 @@
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="DataServices\Feeds.svc" />
     <Content Include="Scripts\knockout-latest.js" />
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Web.config">
@@ -793,10 +862,6 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Profiles.generated.cs</LastGenOutput>
     </Content>
-    <Content Include="Views\Shared\_searchbox.cshtml">
-      <Generator>RazorGenerator</Generator>
-      <LastGenOutput>_searchbox.generated.cs</LastGenOutput>
-    </Content>
     <Content Include="Views\Authentication\LogOn.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>LogOn.generated.cs</LastGenOutput>
@@ -813,9 +878,9 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>ListPackages.generated.cs</LastGenOutput>
     </Content>
-    <Content Include="Views\Packages\PublishPackage.cshtml">
+    <Content Include="Views\Packages\VerifyPackage.cshtml">
       <Generator>RazorGenerator</Generator>
-      <LastGenOutput>PublishPackage.generated.cs</LastGenOutput>
+      <LastGenOutput>VerifyPackage.generated.cs</LastGenOutput>
     </Content>
     <Content Include="Views\Packages\ReportAbuse.cshtml">
       <Generator>RazorGenerator</Generator>
@@ -886,6 +951,26 @@
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
     </Content>
+    <Content Include="Views\Packages\Download.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Download.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Packages\ConfirmOwner.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ConfirmOwner.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Errors\404.cshtml" />
+    <Content Include="Errors\ErrorLayout.cshtml" />
+    <Content Include="Errors\_PageStart.cshtml">
+      <LastGenOutput>_ViewStart.generated.cs</LastGenOutput>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="api\Web.config" />
+    <Content Include="_app_offline.htm" />
+    <Content Include="Views\Users\ResendConfirmation.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ResendConfirmation.generated.cs</LastGenOutput>
+    </Content>
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
@@ -906,6 +991,7 @@
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -922,10 +1008,6 @@
     </Content>
     <Content Include="Views\Packages\Edit.cshtml">
       <LastGenOutput>Edit.generated.cs</LastGenOutput>
-      <Generator>RazorGenerator</Generator>
-    </Content>
-    <Content Include="Views\Packages\_PackageDetailsTable.cshtml">
-      <LastGenOutput>_PackageDetailsTable.generated.cs</LastGenOutput>
       <Generator>RazorGenerator</Generator>
     </Content>
     <Content Include="Views\Pages\Terms.cshtml">
@@ -964,12 +1046,11 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>False</UseIIS>
+          <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>46723</DevelopmentServerPort>
+          <DevelopmentServerPort>55880</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>
-          </IISUrl>
+          <IISUrl>http://localhost:55880/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

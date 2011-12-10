@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace NuGetGallery {
-    public class ReportAbuseViewModel {
+namespace NuGetGallery
+{
+    public class ReportAbuseViewModel
+    {
         public string PackageId { get; set; }
         public string PackageVersion { get; set; }
 

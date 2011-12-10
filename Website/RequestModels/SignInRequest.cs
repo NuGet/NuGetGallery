@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace NuGetGallery {
-    public class SignInRequest {
+namespace NuGetGallery
+{
+    public class SignInRequest
+    {
         [Required]
-        [Display(Name = "Username")]
-        [Hint("Enter either your username or email address.")]
+        [Display(Name = "Username or Email")]
+        [Hint("Enter your username or email address.")]
         public string UserNameOrEmail { get; set; }
 
         [Required]
