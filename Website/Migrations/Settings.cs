@@ -28,9 +28,9 @@ namespace NuGetGallery.Migrations
         public static void SeedDatabase(EntitiesContext context)
         {
             var roles = context.Set<Role>();
-            if (!roles.Any(x => x.Name == Const.AdminRoleName))
+            if (!roles.Any(x => x.Name == Constants.AdminRoleName))
             {
-                roles.Add(new Role() { Name = Const.AdminRoleName });
+                roles.Add(new Role() { Name = Constants.AdminRoleName });
                 context.SaveChanges();
             }
 

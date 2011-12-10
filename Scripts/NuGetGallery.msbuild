@@ -11,7 +11,7 @@
   </Target>
   
   <Target Name="Build" DependsOnTargets="Clean">
-    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);RunCodeAnalysis=true;" />
   </Target>
 
   <Target Name="RunFacts" DependsOnTargets="Build"> 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Web;
@@ -8,8 +9,8 @@ namespace NuGetGallery
 {
     public class MessageService : IMessageService
     {
-        readonly IMailSender mailSender;
-        GallerySetting settings;
+        private readonly IMailSender mailSender;
+        private readonly GallerySetting settings;
 
         public MessageService(IMailSender mailSender, GallerySetting settings)
         {
@@ -30,7 +31,7 @@ namespace NuGetGallery
             }
         }
 
-        public MailMessage ReportAbuse(MailAddress fromAddress, Package package, string message)
+        public void ReportAbuse(MailAddress fromAddress, Package package, string message)
         {
             string subject = "[{0}] Abuse Report for Package '{1}' Version '{2}'";
             string body = @"_User {0} ({1}) reports the package '{2}' version '{3}' as abusive. 
@@ -40,7 +41,8 @@ namespace NuGetGallery
 
 _Message sent from {5}_
 ";
-            body = String.Format(body,
+            body = String.Format(CultureInfo.CurrentCulture,
+                body,
                 fromAddress.DisplayName,
                 fromAddress.Address,
                 package.PackageRegistration.Id,
@@ -48,21 +50,18 @@ _Message sent from {5}_
                 message,
                 settings.GalleryOwnerName);
 
-            using (
-                var mailMessage = new MailMessage
-                {
-                    Subject = String.Format(subject, settings.GalleryOwnerName, package.PackageRegistration.Id, package.Version),
-                    Body = body,
-                    From = fromAddress,
-                })
+            using (var mailMessage = new MailMessage())
             {
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, settings.GalleryOwnerName, package.PackageRegistration.Id, package.Version);
+                mailMessage.Body = body;
+                mailMessage.From = fromAddress;
+
                 mailMessage.To.Add(settings.GalleryOwnerEmail);
                 SendMessage(mailMessage);
-                return mailMessage;
             }
         }
 
-        public MailMessage SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl)
+        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
             string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}'._
@@ -75,7 +74,8 @@ _Message sent from {5}_
     [change your email notification settings]({5}).
 </em>";
 
-            body = String.Format(body,
+            body = String.Format(CultureInfo.CurrentCulture,
+                body,
                 fromAddress.DisplayName,
                 fromAddress.Address,
                 packageRegistration.Id,
@@ -83,21 +83,19 @@ _Message sent from {5}_
                 settings.GalleryOwnerName,
                 emailSettingsUrl);
 
-            using (
-                var mailMessage = new MailMessage
-                {
-                    Subject = String.Format(subject, settings.GalleryOwnerName, packageRegistration.Id),
-                    Body = body,
-                    From = fromAddress,
-                })
+            subject = String.Format(CultureInfo.CurrentCulture, subject, settings.GalleryOwnerName, packageRegistration.Id);
+
+            using (var mailMessage = new MailMessage())
             {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = fromAddress;
 
                 AddOwnersToMailMessage(packageRegistration, mailMessage);
                 if (mailMessage.To.Any())
                 {
                     SendMessage(mailMessage);
                 }
-                return mailMessage;
             }
         }
 
@@ -109,7 +107,7 @@ _Message sent from {5}_
             }
         }
 
-        public MailMessage SendNewAccountEmail(MailAddress toAddress, string confirmationUrl)
+        public void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl)
         {
             string body = @"Thank you for registering with the {0}. 
 We can't wait to see what packages you'll upload.
@@ -121,26 +119,24 @@ So we can be sure to contact you, please verify your email address and click the
 Thanks,
 The {0} Team";
 
-            body = String.Format(body,
+            body = String.Format(CultureInfo.CurrentCulture,
+                body,
                 settings.GalleryOwnerName,
                 HttpUtility.UrlDecode(confirmationUrl),
                 confirmationUrl);
 
-            using (
-                var mailMessage = new MailMessage
-                {
-                    Subject = String.Format("[{0}] Please verify your account.", settings.GalleryOwnerName),
-                    Body = body,
-                    From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName),
-                })
+            using (var mailMessage = new MailMessage())
             {
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your account.", settings.GalleryOwnerName);
+                mailMessage.Body = body;
+                mailMessage.From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName);
+
                 mailMessage.To.Add(toAddress);
                 SendMessage(mailMessage);
-                return mailMessage;
             }
         }
 
-        public MailMessage SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)
+        public void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)
         {
             string body = @"You recently changed your {0} email address. 
 
@@ -151,26 +147,24 @@ To verify your new email address, please click the following link:
 Thanks,
 The {0} Team";
 
-            body = String.Format(body,
+            body = String.Format(CultureInfo.CurrentCulture,
+                body,
                 settings.GalleryOwnerName,
                 HttpUtility.UrlDecode(confirmationUrl),
                 confirmationUrl);
 
-            using (
-                var mailMessage = new MailMessage
-                {
-                    Subject = String.Format("[{0}] Please verify your new email address.", settings.GalleryOwnerName),
-                    Body = body,
-                    From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName),
-                })
+            using (var mailMessage = new MailMessage())
             {
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your new email address.", settings.GalleryOwnerName);
+                mailMessage.Body = body;
+                mailMessage.From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName);
+
                 mailMessage.To.Add(newEmailAddress);
                 SendMessage(mailMessage);
-                return mailMessage;
             }
         }
 
-        public MailMessage SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress)
+        public void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress)
         {
             string body = @"Hi there,
 
@@ -180,26 +174,26 @@ changed from _{1}_ to _{2}_.
 Thanks,
 The {0} Team";
 
-            body = String.Format(body,
+            body = String.Format(CultureInfo.CurrentCulture,
+                body,
                 settings.GalleryOwnerName,
                 oldEmailAddress,
                 user.EmailAddress);
 
+            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Recent changes to your account.", settings.GalleryOwnerName);
             using (
-                var mailMessage = new MailMessage
-                {
-                    Subject = String.Format("[{0}] Recent changes to your account.", settings.GalleryOwnerName),
-                    Body = body,
-                    From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName),
-                })
+                var mailMessage = new MailMessage())
             {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName);
+
                 mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
                 SendMessage(mailMessage);
-                return mailMessage;
             }
         }
 
-        public MailMessage SendPasswordResetInstructions(User user, string resetPasswordUrl)
+        public void SendPasswordResetInstructions(User user, string resetPasswordUrl)
         {
             string body = @"The word on the street is you lost your password. Sorry to hear it!
 If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
@@ -211,31 +205,30 @@ Click the following link within the next {0} hours to reset your password:
 Thanks,
 The {2} Team";
 
-            body = String.Format(body,
-                Const.DefaultPasswordResetTokenExpirationHours,
+            body = String.Format(CultureInfo.CurrentCulture,
+                body,
+                Constants.DefaultPasswordResetTokenExpirationHours,
                 resetPasswordUrl,
                 settings.GalleryOwnerName);
 
-            using (
-                var mailMessage = new MailMessage
-                {
-                    Subject = String.Format("[{0}] Please reset your password.", settings.GalleryOwnerName),
-                    Body = body,
-                    From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName),
-                })
+            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please reset your password.", settings.GalleryOwnerName);
+            using (var mailMessage = new MailMessage())
             {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = new MailAddress(settings.GalleryOwnerEmail, settings.GalleryOwnerName);
+
                 mailMessage.To.Add(user.ToMailAddress());
                 SendMessage(mailMessage);
-                return mailMessage;
             }
         }
 
 
-        public MailMessage SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
+        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string confirmationUrl)
         {
             if (!toUser.EmailAllowed)
             {
-                return null;
+                return;
             }
 
             string subject = "[{0}] The user '{1}' wants to add you as an owner of the package '{2}'.";
@@ -250,19 +243,16 @@ To accept this request and become a listed owner of the package, click the follo
 Thanks,
 The {3} Team";
 
-            body = String.Format(body, fromUser.Username, package.Id, confirmationUrl, settings.GalleryOwnerName);
+            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, settings.GalleryOwnerName);
 
-            using (
-                var mailMessage = new MailMessage
-                {
-                    Subject = String.Format(subject, settings.GalleryOwnerName, fromUser.Username, package.Id),
-                    Body = body,
-                    From = fromUser.ToMailAddress(),
-                })
+            using (var mailMessage = new MailMessage())
             {
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, settings.GalleryOwnerName, fromUser.Username, package.Id);
+                mailMessage.Body = body;
+                mailMessage.From = fromUser.ToMailAddress();
+
                 mailMessage.To.Add(toUser.ToMailAddress());
                 SendMessage(mailMessage);
-                return mailMessage;
             }
         }
     }

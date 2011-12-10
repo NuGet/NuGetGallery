@@ -83,7 +83,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = service.CreateDownloadFileActionResult(Const.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = service.CreateDownloadFileActionResult(Constants.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal("http://theuri/", result.Url);
@@ -127,7 +127,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.DeleteFile(Const.PackagesFolderName, "theFileName");
+                service.DeleteFile(Constants.PackagesFolderName, "theFileName");
 
                 fakeBlob.Verify(x => x.DeleteIfExists());
             }
@@ -308,7 +308,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.SaveFile(Const.PackagesFolderName, "theFileName", new MemoryStream());
+                service.SaveFile(Constants.PackagesFolderName, "theFileName", new MemoryStream());
 
                 fakeBlob.Verify(x => x.DeleteIfExists());
             }
@@ -326,7 +326,7 @@ namespace NuGetGallery
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
                 var fakePackageFile = new MemoryStream();
 
-                service.SaveFile(Const.PackagesFolderName, "theFileName", fakePackageFile);
+                service.SaveFile(Constants.PackagesFolderName, "theFileName", fakePackageFile);
 
                 fakeBlob.Verify(x => x.UploadFromStream(fakePackageFile));
             }
@@ -353,7 +353,7 @@ namespace NuGetGallery
 
                 service.SaveFile(folderName, "theFileName", new MemoryStream());
 
-                Assert.Equal(Const.PackageContentType, fakeBlob.Object.Properties.ContentType);
+                Assert.Equal(Constants.PackageContentType, fakeBlob.Object.Properties.ContentType);
                 fakeBlob.Verify(x => x.SetProperties());
             }
         }
@@ -371,8 +371,8 @@ namespace NuGetGallery
             {
                 var folderNames = new List<object[]> 
                 {
-                    new object[] { Const.PackagesFolderName, true },
-                    new object[] { Const.UploadsFolderName, false }
+                    new object[] { Constants.PackagesFolderName, true },
+                    new object[] { Constants.UploadsFolderName, false }
                 };
 
                 if (!IncludePermissions)

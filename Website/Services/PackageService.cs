@@ -135,7 +135,7 @@ namespace NuGetGallery
             else
             {
                 package = packageVersions
-                    .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.InvariantCultureIgnoreCase) && p.Version.Equals(version, StringComparison.InvariantCultureIgnoreCase))
+                    .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && p.Version.Equals(version, StringComparison.OrdinalIgnoreCase))
                     .SingleOrDefault();
             }
             if (package != null)
@@ -261,7 +261,7 @@ namespace NuGetGallery
                 Description = nugetPackage.Description,
                 ReleaseNotes = nugetPackage.ReleaseNotes,
                 RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
-                HashAlgorithm = Const.Sha512HashAlgorithmId,
+                HashAlgorithm = Constants.Sha512HashAlgorithmId,
                 Hash = cryptoSvc.GenerateHash(packageFileStream.ReadAllBytes()),
                 PackageFileSize = packageFileStream.Length,
                 Created = now,
@@ -323,7 +323,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "4000");
         }
 
-        private void UpdateIsLatest(PackageRegistration packageRegistration)
+        private static void UpdateIsLatest(PackageRegistration packageRegistration)
         {
             if (!packageRegistration.Packages.Any())
             {
@@ -482,7 +482,7 @@ namespace NuGetGallery
 
             if (pendingOwner == null)
             {
-                throw new ArgumentNullException("user");
+                throw new ArgumentNullException("pendingOwner");
             }
 
             if (String.IsNullOrEmpty(token))

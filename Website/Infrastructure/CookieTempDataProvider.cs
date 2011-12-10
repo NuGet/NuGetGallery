@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 
@@ -59,7 +60,7 @@ namespace NuGetGallery
                 cookie.HttpOnly = true;
                 foreach (var item in values)
                 {
-                    cookie[item.Key] = Convert.ToString(item.Value);
+                    cookie[item.Key] = Convert.ToString(item.Value, CultureInfo.InvariantCulture);
                 }
                 httpContext.Response.Cookies.Add(cookie);
             }

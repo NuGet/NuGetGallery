@@ -6,7 +6,7 @@ using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery
 {
-    public class Configuration : IConfiguration
+    internal class Configuration : IConfiguration
     {
         private static readonly Dictionary<string, Lazy<object>> configThunks = new Dictionary<string, Lazy<object>>();
         private readonly Lazy<string> siteRoot = new Lazy<string>(GetSiteRoot); 

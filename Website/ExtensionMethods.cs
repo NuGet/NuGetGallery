@@ -9,6 +9,7 @@ using System.ServiceModel.Activation;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
+using System.Globalization;
 
 namespace NuGetGallery
 {
@@ -60,7 +61,7 @@ namespace NuGetGallery
 
         static string FlattenDependencies(IEnumerable<Tuple<string, string>> dependencies)
         {
-            return String.Join("|", dependencies.Select(d => String.Format("{0}:{1}", d.Item1, d.Item2)).ToArray());
+            return String.Join("|", dependencies.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}", d.Item1, d.Item2)).ToArray());
         }
 
         public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template)
@@ -137,14 +138,14 @@ namespace NuGetGallery
             return count == 1 ? singular : plural;
         }
 
-        public static bool IsInThePast(this DateTime? datetime)
+        public static bool IsInThePast(this DateTime? date)
         {
-            return datetime.Value.IsInThePast();
+            return date.Value.IsInThePast();
         }
 
-        public static bool IsInThePast(this DateTime datetime)
+        public static bool IsInThePast(this DateTime date)
         {
-            return datetime < DateTime.UtcNow;
+            return date < DateTime.UtcNow;
         }
 
         public static IQueryable<T> SortBy<T>(this IQueryable<T> source, string sortExpression)

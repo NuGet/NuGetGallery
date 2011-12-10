@@ -73,13 +73,16 @@ namespace NuGetGallery
         {
             var user = userSvc.FindByApiKey(apiKey);
             if (user == null)
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
 
             var packageToPush = ReadPackageFromRequest();
 
             var package = packageSvc.FindPackageByIdAndVersion(packageToPush.Id, packageToPush.Version.ToString());
             if (package != null)
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, string.Format(Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString()));
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
+                    String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString()));
+            }
 
             package = packageSvc.CreatePackage(packageToPush, user);
             return new HttpStatusCodeResult(201);

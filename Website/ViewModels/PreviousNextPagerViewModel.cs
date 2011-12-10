@@ -5,14 +5,12 @@ namespace NuGetGallery
 {
     public class PreviousNextPagerViewModel<T> : IPreviousNextPager
     {
-
         public PreviousNextPagerViewModel(IEnumerable<T> items,
             int pageIndex,
-            int pageSize,
             int totalPages,
             Func<int, string> url)
         {
-            int pageNumber = pageIndex + 1;
+            int pageNumber = pageIndex == Int32.MaxValue ? pageIndex : pageIndex + 1;
             Items = items;
             HasPreviousPage = pageNumber > 1;
             HasNextPage = pageNumber < totalPages;

@@ -7,8 +7,8 @@ namespace NuGetGallery
 {
     public partial class AuthenticationController : Controller
     {
-        readonly IFormsAuthenticationService formsAuthSvc;
-        readonly IUserService userSvc;
+        private readonly IFormsAuthenticationService formsAuthSvc;
+        private readonly IUserService userSvc;
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthSvc,
@@ -81,9 +81,9 @@ namespace NuGetGallery
             if (!String.IsNullOrWhiteSpace(returnUrl)
                 && Url.IsLocalUrl(returnUrl)
                 && returnUrl.Length > 1
-                && returnUrl.StartsWith("/")
-                && !returnUrl.StartsWith("//")
-                && !returnUrl.StartsWith("/\\"))
+                && returnUrl.StartsWith("/", StringComparison.Ordinal)
+                && !returnUrl.StartsWith("//", StringComparison.Ordinal)
+                && !returnUrl.StartsWith("/\\", StringComparison.Ordinal))
             {
                 return Redirect(returnUrl);
             }

@@ -6,9 +6,9 @@ namespace NuGetGallery
 {
     // This code is identical to System.Web.Mvc except that we allow for working in localhost environment without https.
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    public class RequireRemoteHttpsAttribute : FilterAttribute, IAuthorizationFilter
+    public sealed class RequireRemoteHttpsAttribute : FilterAttribute, IAuthorizationFilter
     {
-        public virtual void OnAuthorization(AuthorizationContext filterContext)
+        public void OnAuthorization(AuthorizationContext filterContext)
         {
             if (filterContext == null)
             {
@@ -22,7 +22,7 @@ namespace NuGetGallery
             }
         }
 
-        protected virtual void HandleNonHttpsRequest(AuthorizationContext filterContext)
+        private static void HandleNonHttpsRequest(AuthorizationContext filterContext)
         {
             // only redirect for GET requests, otherwise the browser might not propagate the verb and request
             // body correctly.

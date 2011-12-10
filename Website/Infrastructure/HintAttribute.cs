@@ -4,7 +4,7 @@ using System.Web.Mvc;
 namespace NuGetGallery
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
-    public class HintAttribute : Attribute, IMetadataAware
+    public sealed class HintAttribute : Attribute, IMetadataAware
     {
         readonly object _typeId = new Object();
 

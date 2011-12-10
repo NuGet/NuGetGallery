@@ -10,8 +10,8 @@ namespace NuGetGallery
 {
     public static class BackgroundTasksSetup
     {
-        static readonly HttpApplication _elmahHttpApplication = new ElmahSignalScopeHttpApplication();
-        static JobManager _jobManager = CreateJobManager();
+        private static readonly HttpApplication _elmahHttpApplication = new ElmahSignalScopeHttpApplication();
+        private static readonly JobManager _jobManager = CreateJobManager();
 
         private static JobManager CreateJobManager()
         {
