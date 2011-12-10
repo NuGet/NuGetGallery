@@ -26,8 +26,6 @@ namespace NuGetGallery
             var request = HttpContext.Current.Request;
             if (request.IsAuthenticated)
             {
-                var username = context.User.Identity.Name;
-
                 HttpCookie authCookie = request.Cookies[FormsAuthentication.FormsCookieName];
                 if (authCookie != null)
                 {

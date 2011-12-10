@@ -1086,7 +1086,6 @@ namespace NuGetGallery
         }
 
         static PackagesController CreateController(
-            Mock<ICryptographyService> cryptoSvc = null,
             Mock<IPackageService> packageSvc = null,
             Mock<IUploadFileService> uploadFileSvc = null,
             Mock<IUserService> userSvc = null,
@@ -1097,14 +1096,12 @@ namespace NuGetGallery
             Exception readPackageException = null)
         {
 
-            cryptoSvc = cryptoSvc ?? new Mock<ICryptographyService>();
             packageSvc = packageSvc ?? new Mock<IPackageService>();
             uploadFileSvc = uploadFileSvc ?? new Mock<IUploadFileService>();
             userSvc = userSvc ?? new Mock<IUserService>();
             messageSvc = messageSvc ?? new Mock<IMessageService>();
 
             var controller = new Mock<PackagesController>(
-                cryptoSvc.Object,
                     packageSvc.Object,
                     uploadFileSvc.Object,
                     userSvc.Object,

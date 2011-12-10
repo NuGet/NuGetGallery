@@ -12,7 +12,7 @@ namespace NuGetGallery
 
         public string GenerateHash(
             byte[] input,
-            string hashAlgorithmId = Const.Sha512HashAlgorithmId)
+            string hashAlgorithmId = Constants.Sha512HashAlgorithmId)
         {
             byte[] hashBytes;
 
@@ -27,7 +27,7 @@ namespace NuGetGallery
 
         public string GenerateSaltedHash(
             string input,
-            string hashAlgorithmId = Const.Sha1HashAlgorithmId)
+            string hashAlgorithmId = Constants.Sha1HashAlgorithmId)
         {
             var saltBytes = new byte[saltLengthInBytes];
 
@@ -69,7 +69,7 @@ namespace NuGetGallery
         public bool ValidateHash(
             string hash,
             byte[] input,
-            string hashAlgorithmId = Const.Sha512HashAlgorithmId)
+            string hashAlgorithmId = Constants.Sha512HashAlgorithmId)
         {
             return hash.Equals(GenerateHash(input));
         }
@@ -77,7 +77,7 @@ namespace NuGetGallery
         public bool ValidateSaltedHash(
             string hash,
             string input,
-            string hashAlgorithmId = Const.Sha1HashAlgorithmId)
+            string hashAlgorithmId = Constants.Sha1HashAlgorithmId)
         {
             var saltPlusHashBytes = Convert.FromBase64String(hash);
 

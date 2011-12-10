@@ -1,7 +1,7 @@
 ﻿
 namespace NuGetGallery
 {
-    public static class Const
+    public static class Constants
     {
         public const string AdminRoleName = "Admins";
         public const int DefaultPackageListPageSize = 20;

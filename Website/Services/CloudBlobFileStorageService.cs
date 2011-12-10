@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.StorageClient;
@@ -15,12 +16,12 @@ namespace NuGetGallery
         {
             this.client = client;
 
-            PrepareContainer(Const.PackagesFolderName, isPublic: true);
-            PrepareContainer(Const.UploadsFolderName, isPublic: false);
+            PrepareContainer(Constants.PackagesFolderName, isPublic: true);
+            PrepareContainer(Constants.UploadsFolderName, isPublic: false);
         }
 
         public ActionResult CreateDownloadFileActionResult(
-            string folderName, 
+            string folderName,
             string fileName)
         {
             var container = GetContainer(folderName);
@@ -29,7 +30,7 @@ namespace NuGetGallery
         }
 
         public void DeleteFile(
-            string folderName, 
+            string folderName,
             string fileName)
         {
             var container = GetContainer(folderName);
@@ -46,23 +47,23 @@ namespace NuGetGallery
         {
             switch (folderName)
             {
-                case Const.PackagesFolderName:
-                case Const.UploadsFolderName:
-                    return Const.PackageContentType;
+                case Constants.PackagesFolderName:
+                case Constants.UploadsFolderName:
+                    return Constants.PackageContentType;
                 default:
-                    throw new InvalidOperationException(String.Format("The folder name {0} is not supported.", folderName));
+                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
             }
         }
 
         public Stream GetFile(
-            string folderName, 
+            string folderName,
             string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
             if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
-            
+
             var container = GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             var stream = new MemoryStream();
@@ -99,14 +100,14 @@ namespace NuGetGallery
         }
 
         public void SaveFile(
-            string folderName, 
-            string fileName, 
-            Stream fileStream)
+            string folderName,
+            string fileName,
+            Stream packageFile)
         {
             var container = GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             blob.DeleteIfExists();
-            blob.UploadFromStream(fileStream);
+            blob.UploadFromStream(packageFile);
             blob.Properties.ContentType = GetContentType(folderName);
             blob.SetProperties();
         }

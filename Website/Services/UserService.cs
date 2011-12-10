@@ -148,9 +148,9 @@ namespace NuGetGallery
             return newApiKey.ToString();
         }
 
-        public bool ChangePassword(string username, string oldPassword, string newPassword)
+        public bool ChangePassword(string usernameOrEmail, string oldPassword, string newPassword)
         {
-            var user = FindByUsernameOrEmailAddressAndPassword(username, oldPassword);
+            var user = FindByUsernameOrEmailAddressAndPassword(usernameOrEmail, oldPassword);
             if (user == null)
             {
                 return false;
@@ -189,18 +189,18 @@ namespace NuGetGallery
             return true;
         }
 
-        public User GeneratePasswordResetToken(string email, int tokenExpirationMinutes)
+        public User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes)
         {
-            if (String.IsNullOrEmpty(email))
+            if (String.IsNullOrEmpty(usernameOrEmail))
             {
-                throw new ArgumentNullException("email");
+                throw new ArgumentNullException("usernameOrEmail");
             }
             if (tokenExpirationMinutes < 1)
             {
                 throw new ArgumentException("Token expiration should give the user at least a minute to change their password", "tokenExpirationMinutes");
             }
 
-            var user = FindByEmailAddress(email);
+            var user = FindByEmailAddress(usernameOrEmail);
             if (user == null)
             {
                 return null;

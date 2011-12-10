@@ -34,7 +34,6 @@ namespace NuGetGallery
             var pager = new PreviousNextPagerViewModel<ListPackageItemViewModel>(
                 items,
                 PageIndex,
-                PageSize,
                 pageCount,
                 page => url.PackageList(page, sortOrder, searchTerm)
             );
@@ -62,7 +61,7 @@ namespace NuGetGallery
 
         public int PageSize { get; private set; }
 
-        private string GetSortExpression(string sortOrder)
+        private static string GetSortExpression(string sortOrder)
         {
             switch (sortOrder)
             {

@@ -45,9 +45,9 @@ namespace NuGetGallery
             blob.SetProperties();
         }
 
-        public void UploadFromStream(Stream source)
+        public void UploadFromStream(Stream packageFile)
         {
-            blob.UploadFromStream(source);
+            blob.UploadFromStream(packageFile);
         }
     }
 }

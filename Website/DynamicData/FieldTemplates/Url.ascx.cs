@@ -10,7 +10,7 @@ namespace DynamicDataEFCodeFirst
             HyperLinkUrl.NavigateUrl = ProcessUrl(FieldValueString);
         }
 
-        private string ProcessUrl(string url)
+        private static string ProcessUrl(string url)
         {
             if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -16,20 +17,17 @@ namespace NuGetGallery
         // TODO: add support for uploading logos and screenshots
         // TODO: improve validation summary emphasis
 
-        readonly ICryptographyService cryptoSvc;
-        readonly IPackageService packageSvc;
-        readonly IUploadFileService uploadFileSvc;
-        readonly IUserService userSvc;
-        readonly IMessageService messageService;
+        private readonly IPackageService packageSvc;
+        private readonly IUploadFileService uploadFileSvc;
+        private readonly IUserService userSvc;
+        private readonly IMessageService messageService;
 
         public PackagesController(
-            ICryptographyService cryptoSvc,
             IPackageService packageSvc,
             IUploadFileService uploadFileSvc,
             IUserService userSvc,
             IMessageService messageService)
         {
-            this.cryptoSvc = cryptoSvc;
             this.packageSvc = packageSvc;
             this.uploadFileSvc = uploadFileSvc;
             this.userSvc = userSvc;
@@ -67,8 +65,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            var uploadFileExtension = Path.GetExtension(uploadFile.FileName).ToLowerInvariant();
-            if (uploadFileExtension != Const.NuGetPackageFileExtension)
+            if (!Path.GetExtension(uploadFile.FileName).Equals(Constants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
                 return View();
@@ -91,14 +88,14 @@ namespace NuGetGallery
             var packageRegistration = packageSvc.FindPackageRegistrationById(nuGetPackage.Id);
             if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
             {
-                ModelState.AddModelError(String.Empty, String.Format(Strings.PackageIdNotAvailable, packageRegistration.Id));
+                ModelState.AddModelError(String.Empty, String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
                 return View();
             }
 
             var package = packageSvc.FindPackageByIdAndVersion(nuGetPackage.Id, nuGetPackage.Version.ToStringSafe());
             if (package != null)
             {
-                ModelState.AddModelError(String.Empty, String.Format(Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
+                ModelState.AddModelError(String.Empty, String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
                 return View();
             }
 
@@ -122,7 +119,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual ActionResult ListPackages(string q, string sortOrder = Const.DefaultPackageListSortOrder, int page = 1)
+        public virtual ActionResult ListPackages(string q, string sortOrder = Constants.DefaultPackageListSortOrder, int page = 1)
         {
             if (page < 1)
             {
@@ -152,7 +149,7 @@ namespace NuGetGallery
                 q,
                 sortOrder,
                 page - 1,
-                Const.DefaultPackageListPageSize,
+                Constants.DefaultPackageListPageSize,
                 Url);
 
             ViewBag.SearchTerm = q;
@@ -255,7 +252,7 @@ namespace NuGetGallery
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             messageService.SendContactOwnersMessage(fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Edit(), protocol: Request.Url.Scheme));
 
-            string message = String.Format("Your message has been sent to the owners of {0}.", id);
+            string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
             return RedirectToAction(MVC.Packages.DisplayPackage(id, null));
         }
@@ -471,7 +468,7 @@ namespace NuGetGallery
                 tx.Complete();
             }
 
-            TempData["Message"] = String.Format(Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
+            TempData["Message"] = String.Format(CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
             return RedirectToRoute(RouteName.DisplayPackage, new { package.PackageRegistration.Id, package.Version });
         }
 

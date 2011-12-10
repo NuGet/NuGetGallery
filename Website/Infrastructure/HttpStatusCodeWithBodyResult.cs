@@ -16,7 +16,7 @@ namespace NuGetGallery
         public HttpStatusCodeWithBodyResult(HttpStatusCode statusCode, string statusDescription, string body)
             : base((int)statusCode, statusDescription)
         {
-            this.body = statusDescription;
+            this.body = body;
         }
 
         public override void ExecuteResult(ControllerContext context)

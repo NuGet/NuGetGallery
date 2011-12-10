@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 
 namespace NuGetGallery
@@ -14,7 +15,7 @@ namespace NuGetGallery
 
         static string BuildFileName(int userKey)
         {
-            return String.Format(Const.UploadFileNameTemplate, userKey, Const.NuGetPackageFileExtension);
+            return String.Format(CultureInfo.InvariantCulture, Constants.UploadFileNameTemplate, userKey, Constants.NuGetPackageFileExtension);
         }
 
         public void DeleteUploadFile(int userKey)
@@ -24,7 +25,7 @@ namespace NuGetGallery
 
             var uploadFileName = BuildFileName(userKey);
 
-            fileStorageService.DeleteFile(Const.UploadsFolderName, uploadFileName);
+            fileStorageService.DeleteFile(Constants.UploadsFolderName, uploadFileName);
         }
 
         public Stream GetUploadFile(int userKey)
@@ -34,21 +35,21 @@ namespace NuGetGallery
 
             var uploadFileName = BuildFileName(userKey);
 
-            return fileStorageService.GetFile(Const.UploadsFolderName, uploadFileName);
+            return fileStorageService.GetFile(Constants.UploadsFolderName, uploadFileName);
         }
 
         public void SaveUploadFile(
             int userKey,
-            Stream uploadFileStream)
+            Stream packageFileStream)
         {
             if (userKey < 1)
                 throw new ArgumentException("A user key is required.", "userKey");
-            if (uploadFileStream == null)
+            if (packageFileStream == null)
                 throw new ArgumentNullException("packageFileStream");
 
             var uploadFileName = BuildFileName(userKey);
 
-            fileStorageService.SaveFile(Const.UploadsFolderName, uploadFileName, uploadFileStream);
+            fileStorageService.SaveFile(Constants.UploadsFolderName, uploadFileName, packageFileStream);
         }
     }
 }

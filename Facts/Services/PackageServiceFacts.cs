@@ -157,7 +157,7 @@ namespace NuGetGallery
                     currentUser);
 
                 Assert.Equal("theHash", package.Hash);
-                Assert.Equal(Const.Sha512HashAlgorithmId, package.HashAlgorithm);
+                Assert.Equal(Constants.Sha512HashAlgorithmId, package.HashAlgorithm);
             }
 
             [Fact]
@@ -1250,7 +1250,7 @@ namespace NuGetGallery
             if (cryptoSvc == null)
             {
                 cryptoSvc = new Mock<ICryptographyService>();
-                cryptoSvc.Setup(x => x.GenerateHash(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, Const.Sha512HashAlgorithmId))
+                cryptoSvc.Setup(x => x.GenerateHash(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, Constants.Sha512HashAlgorithmId))
                     .Returns("theHash");
             }
 

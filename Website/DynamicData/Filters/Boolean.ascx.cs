@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -20,7 +21,7 @@ namespace DynamicDataEFCodeFirst
         {
             if (!Column.ColumnType.Equals(typeof(bool)))
             {
-                throw new InvalidOperationException(String.Format("A boolean filter was loaded for column '{0}' but the column has an incompatible type '{1}'.", Column.Name, Column.ColumnType));
+                throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, "A boolean filter was loaded for column '{0}' but the column has an incompatible type '{1}'.", Column.Name, Column.ColumnType));
             }
 
             if (!Page.IsPostBack)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Web.Mvc;
 
@@ -6,22 +7,19 @@ namespace NuGetGallery
 {
     public class PackageFileService : IPackageFileService
     {
-        readonly IConfiguration configuration;
-        readonly IFileStorageService fileStorageSvc;
-
+        private readonly IFileStorageService fileStorageSvc;
+        
         public PackageFileService(
-            IConfiguration configuration,
             IFileStorageService fileStorageSvc)
         {
-            this.configuration = configuration;
             this.fileStorageSvc = fileStorageSvc;
         }
 
-        string BuildFileName(
+        private static string BuildFileName(
             string id, 
             string version)
         {
-            return String.Format(Const.PackageFileSavePathTemplate, id, version, Const.NuGetPackageFileExtension);
+            return String.Format(CultureInfo.InvariantCulture, Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
         }
 
         public ActionResult CreateDownloadPackageActionResult(Package package)
@@ -38,7 +36,7 @@ namespace NuGetGallery
                 package.Version);
 
             return fileStorageSvc.CreateDownloadFileActionResult(
-                Const.PackagesFolderName, 
+                Constants.PackagesFolderName, 
                 fileName);
         }
 
@@ -54,7 +52,7 @@ namespace NuGetGallery
             var fileName = BuildFileName(id, version);
 
             fileStorageSvc.DeleteFile(
-                Const.PackagesFolderName, 
+                Constants.PackagesFolderName, 
                 fileName);
         }
 
@@ -76,7 +74,7 @@ namespace NuGetGallery
                 package.Version);
 
             fileStorageSvc.SaveFile(
-                Const.PackagesFolderName, 
+                Constants.PackagesFolderName, 
                 fileName, 
                 packageFile);
         }

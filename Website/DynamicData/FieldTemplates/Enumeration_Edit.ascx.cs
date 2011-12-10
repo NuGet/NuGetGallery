@@ -57,7 +57,7 @@ namespace DynamicDataEFCodeFirst
         protected override void ExtractValues(IOrderedDictionary dictionary)
         {
             string value = DropDownList1.SelectedValue;
-            if (value == String.Empty)
+            if (String.IsNullOrEmpty(value))
             {
                 value = null;
             }

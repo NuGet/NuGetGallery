@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Web.Mvc;
 
@@ -47,10 +48,10 @@ namespace NuGetGallery
         {
             switch (folderName)
             {
-                case Const.PackagesFolderName:
-                    return Const.PackageContentType;
+                case Constants.PackagesFolderName:
+                    return Constants.PackageContentType;
                 default:
-                    throw new InvalidOperationException(String.Format("The folder name {0} is not supported.", folderName));
+                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
             }
         }
 
@@ -87,14 +88,14 @@ namespace NuGetGallery
         public void SaveFile(
             string folderName,
             string fileName, 
-            Stream fileStream)
+            Stream packageFile)
         {
             if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
             if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
-            if (fileStream == null)
-                throw new ArgumentNullException("fileStream");
+            if (packageFile == null)
+                throw new ArgumentNullException("packageFile");
 
             if (!fileSystemSvc.DirectoryExists(configuration.FileStorageDirectory))
                 fileSystemSvc.CreateDirectory(configuration.FileStorageDirectory);
@@ -106,7 +107,7 @@ namespace NuGetGallery
             var filePath = BuildPath(configuration.FileStorageDirectory, folderName, fileName);
             using (var file = fileSystemSvc.OpenWrite(filePath))
             {
-                fileStream.CopyTo(file);
+                packageFile.CopyTo(file);
             }
         }
     }

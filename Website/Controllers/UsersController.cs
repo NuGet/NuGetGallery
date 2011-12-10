@@ -9,7 +9,6 @@ namespace NuGetGallery
 {
     public partial class UsersController : Controller
     {
-        readonly IFormsAuthenticationService formsAuthSvc;
         readonly IUserService userService;
         readonly IPackageService packageService;
         readonly IMessageService messageService;
@@ -17,14 +16,12 @@ namespace NuGetGallery
         readonly IPrincipal currentUser;
 
         public UsersController(
-            IFormsAuthenticationService formsAuthSvc,
             IUserService userSvc,
             IPackageService packageService,
             IMessageService messageService,
             GallerySetting settings,
             IPrincipal currentUser)
         {
-            this.formsAuthSvc = formsAuthSvc;
             this.userService = userSvc;
             this.packageService = packageService;
             this.messageService = messageService;
@@ -179,10 +176,9 @@ namespace NuGetGallery
         {
             if (ModelState.IsValid)
             {
-                var user = userService.GeneratePasswordResetToken(model.Email, Const.DefaultPasswordResetTokenExpirationHours * 60);
+                var user = userService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
                 if (user != null)
                 {
-                    var token = HttpUtility.UrlEncode(user.PasswordResetToken);
                     var resetPasswordUrl = Url.ConfirmationUrl(MVC.Users.ResetPassword(), user.Username, user.PasswordResetToken, protocol: Request.Url.Scheme);
                     messageService.SendPasswordResetInstructions(user, resetPasswordUrl);
 
@@ -221,7 +217,7 @@ namespace NuGetGallery
         public virtual ActionResult PasswordSent()
         {
             ViewBag.Email = TempData["Email"];
-            ViewBag.Expiration = Const.DefaultPasswordResetTokenExpirationHours;
+            ViewBag.Expiration = Constants.DefaultPasswordResetTokenExpirationHours;
             return View();
         }
 
