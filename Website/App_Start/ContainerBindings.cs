@@ -94,7 +94,7 @@ namespace NuGetGallery
                         EnableSsl = true
                     };
 
-                    if (!string.IsNullOrWhiteSpace(settings.SmtpUsername))
+                    if (!String.IsNullOrWhiteSpace(settings.SmtpUsername))
                     {
                         mailSenderConfiguration.UseDefaultCredentials = false;
                         mailSenderConfiguration.Credentials = new NetworkCredential(
