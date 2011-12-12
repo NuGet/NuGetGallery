@@ -5,6 +5,7 @@ namespace NuGetGallery
     {
         NotSpecified = 0,
         FileSystem,
-        AzureStorageBlob
+        AzureStorageBlob,
+        AmazonS3Storage
     }
 }

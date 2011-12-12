@@ -145,6 +145,14 @@ namespace NuGetGallery
                         .To<CloudBlobFileStorageService>()
                         .InSingletonScope();
                     break;
+                case PackageStoreType.AmazonS3Storage:
+                    Bind<IAmazonS3Client>()
+                        .To<AmazonS3ClientWrapper>()
+                        .InSingletonScope();
+                    Bind<IFileStorageService>()
+                        .To<AmazonS3FileStorageService>()
+                        .InSingletonScope();
+                    break;
             }
 
             Bind<IPackageFileService>()

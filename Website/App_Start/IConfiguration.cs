@@ -9,5 +9,8 @@ namespace NuGetGallery
         string AzureStorageBlobUrl { get; }
         string FileStorageDirectory { get; }
         PackageStoreType PackageStoreType { get; }
+        string S3Bucket { get; }
+        string S3AccessKey { get; }
+        string S3SecretKey { get; }
     }
 }

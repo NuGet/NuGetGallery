@@ -38,6 +38,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
     </Reference>
+    <Reference Include="AWSSDK, Version=1.3.18.0, Culture=neutral, PublicKeyToken=cd2d24cd2bace800, processorArchitecture=MSIL">
+      <HintPath>..\packages\AWSSDK.1.3.18.0\lib\AWSSDK.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.4.1.10715.0\lib\EntityFramework.dll</HintPath>
     </Reference>
@@ -89,6 +92,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequireRemoteHttpsAttributeFacts.cs" />
     <Compile Include="Routing\VersionRouteConstraintFacts.cs" />
+    <Compile Include="Services\AmazoneS3FileStorageServiceFacts.cs" />
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
@@ -101,7 +105,9 @@
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Website\Website.csproj">

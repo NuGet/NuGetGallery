@@ -41,6 +41,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
     </Reference>
+    <Reference Include="AWSSDK, Version=1.3.18.0, Culture=neutral, PublicKeyToken=cd2d24cd2bace800, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\AWSSDK.1.3.18.0\lib\AWSSDK.dll</HintPath>
+    </Reference>
     <Reference Include="DynamicData.EFCodeFirstProvider">
       <HintPath>..\packages\DynamicData.EFCodeFirstProvider.0.2\lib\net40\DynamicData.EFCodeFirstProvider.dll</HintPath>
     </Reference>
@@ -230,11 +234,13 @@
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Services\AmazonS3ClientWrapper.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
+    <Compile Include="Services\IAmazonS3Client.cs" />
     <Compile Include="Services\ICloudBlob.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
@@ -242,6 +248,7 @@
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
+    <Compile Include="Services\AmazonS3FileStorageService.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />

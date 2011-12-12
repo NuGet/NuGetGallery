@@ -115,6 +115,36 @@ namespace NuGetGallery
             }
         }
 
+        public string S3Bucket
+        {
+            get
+            {
+                return ReadConfiguration<string>(
+                   "S3Bucket",
+                   (value) => value ?? string.Empty);
+            }
+        }
+
+        public string S3AccessKey
+        {
+            get
+            {
+                return ReadConfiguration<string>(
+                   "S3AccessKey",
+                   (value) => value ?? string.Empty);
+            }
+        }
+
+        public string S3SecretKey
+        {
+            get
+            {
+                return ReadConfiguration<string>(
+                  "S3SecretKey",
+                  (value) => value ?? string.Empty);
+            }
+        }
+
         private static string GetSiteRoot()
         {
             // TODO: Make this less horrid. 
