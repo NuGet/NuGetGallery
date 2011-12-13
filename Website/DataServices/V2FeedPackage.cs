@@ -24,6 +24,7 @@ namespace NuGetGallery
         public string IconUrl { get; set; }
         public bool IsLatestVersion { get; set; }
         public bool IsAbsoluteLatestVersion { get; set; }
+        public bool IsPrerelease { get; set; }
         public DateTime LastUpdated { get; set; }
         public DateTime Published { get; set; }
         public string Language { get; set; }

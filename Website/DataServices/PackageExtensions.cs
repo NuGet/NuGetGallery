@@ -71,6 +71,7 @@ namespace NuGetGallery
                          IconUrl = p.IconUrl,
                          IsLatestVersion = p.IsLatestStable, // To maintain parity with v1 behavior of the feed, IsLatestVersion would only be used for stable versions.
                          IsAbsoluteLatestVersion = p.IsLatest,
+                         IsPrerelease = p.IsPrerelease,
                          LastUpdated = p.LastUpdated,
                          LicenseUrl = p.LicenseUrl,
                          Language = null,
