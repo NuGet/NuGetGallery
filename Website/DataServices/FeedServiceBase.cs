@@ -48,7 +48,7 @@ namespace NuGetGallery
         }
 
         // This method is called only once to initialize service-wide policies.
-        private static void InitializeService(DataServiceConfiguration config)
+        public static void InitializeService(DataServiceConfiguration config)
         {
             config.SetServiceOperationAccessRule("Search", ServiceOperationRights.AllRead);
             config.SetEntitySetAccessRule("Packages", EntitySetRights.AllRead);
