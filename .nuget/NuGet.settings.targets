@@ -9,7 +9,7 @@
         <PackageOutputDir Condition="$(PackageOutputDir) == ''">$(TargetDir.Trim('\\'))</PackageOutputDir>
 
         <!-- Package sources used to restore packages. By default will used the registered sources under %APPDATA%\NuGet\NuGet.Config -->
-        <PackageSources>"https://go.microsoft.com/fwlink/?LinkID=206669;http://www.myget.org/F/2c042c750fe047a1b5ed74bbd75bcd89/"</PackageSources>
+        <!-- <PackageSources></PackageSources> -->
 
         <!-- Enable the restore command to run before builds -->
         <RestorePackages Condition="$(RestorePackages) == ''">false</RestorePackages>
@@ -18,7 +18,7 @@
         <BuildPackage Condition="$(BuildPackage) == ''">false</BuildPackage>
 
         <!-- Commands -->
-        <RestoreCommand>"$(NuGetExePath)" install "$(PackagesConfig)" -source $(PackageSources) -o "$(PackagesDir)"</RestoreCommand>
+        <RestoreCommand>"$(NuGetExePath)" install "$(PackagesConfig)" -o "$(PackagesDir)"</RestoreCommand>
         <BuildCommand>"$(NuGetExePath)" pack "$(ProjectPath)" -p Configuration=$(Configuration) -o "$(PackageOutputDir)"</BuildCommand>
 
         <!-- Make the build depend on restore packages -->
