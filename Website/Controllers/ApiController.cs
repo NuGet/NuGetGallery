@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Web.Mvc;
 using NuGet;
@@ -81,14 +82,25 @@ namespace NuGetGallery
 
             var packageToPush = ReadPackageFromRequest();
 
-            var package = packageSvc.FindPackageByIdAndVersion(packageToPush.Id, packageToPush.Version.ToString());
-            if (package != null)
+            // Ensure that the user can push packages for this id.
+            var packageRegistration = packageSvc.FindPackageRegistrationById(packageToPush.Id);
+            if (packageRegistration != null)
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
-                    String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString()));
+                if (!packageRegistration.IsOwner(user))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                }
+
+                // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
+                bool packageExists = packageRegistration.Packages.Any(p => p.Version.Equals(packageToPush.Version.ToString(), StringComparison.OrdinalIgnoreCase));
+                if (packageExists)
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
+                        String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version.ToString()));
+                }
             }
 
-            package = packageSvc.CreatePackage(packageToPush, user);
+            packageSvc.CreatePackage(packageToPush, user);
             return new HttpStatusCodeResult(201);
         }
 
@@ -114,6 +126,14 @@ namespace NuGetGallery
         public virtual ActionResult PublishPackage(Guid key, string id, string version)
         {
             return new EmptyResult();
+        }
+
+        protected override void OnException(ExceptionContext filterContext)
+        {
+            filterContext.ExceptionHandled = true;
+            var exception = filterContext.Exception;
+            var request = filterContext.HttpContext.Request;
+            filterContext.Result = new HttpStatusCodeWithBodyResult(HttpStatusCode.InternalServerError, exception.Message, request.IsLocal ? exception.StackTrace : exception.Message);
         }
 
         protected internal virtual IPackage ReadPackageFromRequest()

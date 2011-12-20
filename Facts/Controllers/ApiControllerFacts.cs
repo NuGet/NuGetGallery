@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 using Moq;
 using NuGet;
 using Xunit;
-using System.Web.Routing;
 
 namespace NuGetGallery
 {
@@ -32,13 +32,22 @@ namespace NuGetGallery
             [Fact]
             public void WillReturnConflictIfAPackageWithTheIdAndSemanticVersionAlreadyExists()
             {
+                var version = new SemanticVersion("1.0.42");
                 var nuGetPackage = new Mock<IPackage>();
                 nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
+                nuGetPackage.Setup(x => x.Version).Returns(version);
+
+                var user = new User();
+
+                var packageRegistration = new PackageRegistration { 
+                    Packages = new List<Package> { new Package { Version = version.ToString() } }, 
+                    Owners =  new List<User> { user }
+                };
+
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(new Package());
+                packageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
                 var userSvc = new Mock<IUserService>();
-                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(user);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
 
                 // Act
