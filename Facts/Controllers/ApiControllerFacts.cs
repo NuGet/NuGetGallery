@@ -230,9 +230,24 @@ namespace NuGetGallery
                 // Act
                 var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
 
-                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
-                var httpStatus = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(403, httpStatus.StatusCode);
+                // Assert
+                AssertStatusCodeResult(result, 403, "The specified API key does not provide the authority to push packages.");
+            }
+
+            [Fact]
+            public void VerifyPackageKeyReturnsEmptyResultIfApiKeyExistsAndIdAndVersionAreEmpty()
+            {
+                // Arrange
+                var guid = Guid.NewGuid();
+                var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+                userSvc.Setup(s => s.FindByApiKey(guid)).Returns(new User());
+                var controller = CreateController(userSvc: userSvc);
+
+                // Act
+                var result = controller.VerifyPackageKey(guid, null, null);
+
+                // Assert
+                Assert.IsType<EmptyResult>(result);
             }
 
             [Fact]
@@ -249,9 +264,8 @@ namespace NuGetGallery
                 // Act
                 var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
 
-                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
-                var httpStatus = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(404, httpStatus.StatusCode);
+                // Assert
+                AssertStatusCodeResult(result, 404, "A package with id 'foo' and version '1.0.0' does not exist.");
             }
 
             [Fact]
@@ -268,9 +282,8 @@ namespace NuGetGallery
                 // Act
                 var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
 
-                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
-                var httpStatus = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(403, httpStatus.StatusCode);
+                // Assert
+                AssertStatusCodeResult(result, 403, "The specified API key does not provide the authority to push packages.");
             }
 
             [Fact]
@@ -409,7 +422,15 @@ namespace NuGetGallery
             }
         }
 
-        static ApiController CreateController(
+        private static void AssertStatusCodeResult(ActionResult result, int statusCode, string statusDesc)
+        {
+            Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+            var httpStatus = (HttpStatusCodeWithBodyResult)result;
+            Assert.Equal(statusCode, httpStatus.StatusCode);
+            Assert.Equal(statusDesc, httpStatus.StatusDescription);
+        }
+
+        private static ApiController CreateController(
             Mock<IPackageService> packageSvc = null,
             Mock<IPackageFileService> fileService = null,
             Mock<IUserService> userSvc = null,

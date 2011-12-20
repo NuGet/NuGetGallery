@@ -47,12 +47,16 @@ namespace NuGetGallery
             if (user == null)
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
 
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+            if (!String.IsNullOrEmpty(id))
+            {
+                // If the id is present, then verify that the user has permission to push for the specific Id \ version combination.
+                var package = packageSvc.FindPackageByIdAndVersion(id, version);
+                if (package == null)
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
 
-            if (!package.IsOwner(user))
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                if (!package.IsOwner(user))
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+            }
 
             return new EmptyResult();
         }

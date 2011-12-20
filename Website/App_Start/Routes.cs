@@ -112,8 +112,9 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 "v1" + RouteName.VerifyPackageKey,
-                "api/v1/package/verifykey/{id}/{version}",
-                MVC.Api.VerifyPackageKey()); 
+                "api/v1/verifykey/{id}/{version}",
+                MVC.Api.VerifyPackageKey(),
+                defaults: new { id = UrlParameter.Optional, version = UrlParameter.Optional });
             
             var downloadRoute = routes.MapRoute(
                 "v1" + RouteName.DownloadPackage,
@@ -145,8 +146,9 @@ namespace NuGetGallery
             // V2 routes
             routes.MapRoute(
                 "v2" + RouteName.VerifyPackageKey,
-                "api/v2/package/verifykey/{id}/{version}",
-                MVC.Api.VerifyPackageKey()); 
+                "api/v2/verifykey/{id}/{version}",
+                MVC.Api.VerifyPackageKey(),
+                defaults: new { id = UrlParameter.Optional, version = UrlParameter.Optional });
             
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
