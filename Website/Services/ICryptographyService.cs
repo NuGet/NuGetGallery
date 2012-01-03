@@ -12,7 +12,7 @@ namespace NuGetGallery
 
         string GenerateSaltedHash(
             string input,
-            string hashAlgorithmId = Constants.Sha1HashAlgorithmId);
+            string hashAlgorithmId);
 
         bool ValidateHash(
             string hash,
@@ -22,7 +22,7 @@ namespace NuGetGallery
         bool ValidateSaltedHash(
             string hash,
             string input,
-            string hashAlgorithmId = Constants.Sha1HashAlgorithmId);
+            string hashAlgorithmId);
 
         string GenerateToken();
     }

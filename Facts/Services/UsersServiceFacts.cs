@@ -328,10 +328,11 @@ namespace NuGetGallery
                     Username = "user",
                     EmailAddress = "confirmed@example.com",
                     PasswordResetToken = "some-token",
-                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1),
+                    PasswordHashAlgorithm = "PBKDF2"
                 };
-                var crypto = new Mock<ICryptographyService>();
-                crypto.Setup(c => c.GenerateSaltedHash("new-password", Constants.Sha1HashAlgorithmId)).Returns("bacon-hash-and-eggs");
+                var crypto = new Mock<ICryptographyService>(MockBehavior.Strict);
+                crypto.Setup(c => c.GenerateSaltedHash("new-password", Constants.PBKDF2HashAlgorithmId)).Returns("bacon-hash-and-eggs");
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
                 var userSvc = CreateUsersService(userRepo: userRepository, cryptoSvc: crypto);
@@ -342,6 +343,33 @@ namespace NuGetGallery
                 Assert.Equal("bacon-hash-and-eggs", user.HashedPassword);
                 Assert.Null(user.PasswordResetToken);
                 Assert.Null(user.PasswordResetTokenExpirationDate);
+                userRepository.Verify(u => u.CommitChanges());
+            }
+
+            [Fact]
+            public void ResetsPasswordMigratesPasswordHash()
+            {
+                var user = new User
+                {
+                    Username = "user",
+                    EmailAddress = "confirmed@example.com",
+                    PasswordResetToken = "some-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1),
+                    PasswordHashAlgorithm = "SHA1"
+                };
+                var crypto = new Mock<ICryptographyService>(MockBehavior.Strict);
+                crypto.Setup(c => c.GenerateSaltedHash("new-password", "PBKDF2")).Returns("bacon-hash-and-eggs");
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+                var userSvc = CreateUsersService(userRepo: userRepository, cryptoSvc: crypto);
+
+                bool result = userSvc.ResetPasswordWithToken("user", "some-token", "new-password");
+
+                Assert.True(result);
+                Assert.Equal("bacon-hash-and-eggs", user.HashedPassword);
+                Assert.Null(user.PasswordResetToken);
+                Assert.Null(user.PasswordResetTokenExpirationDate);
+                Assert.Equal("PBKDF2", user.PasswordHashAlgorithm);
                 userRepository.Verify(u => u.CommitChanges());
             }
         }
@@ -450,13 +478,30 @@ namespace NuGetGallery
             [Fact]
             public void ReturnsTrueWhenSuccessful()
             {
-                var crypto = new CryptographyService();
-                var user = new User { Username = "user", HashedPassword = "old hash" };
+                var user = new User { Username = "user", HashedPassword = "old hash", PasswordHashAlgorithm = "PBKDF2" };
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
-                var cryptoService = new Mock<ICryptographyService>();
+                var cryptoService = new Mock<ICryptographyService>(MockBehavior.Strict);
+                cryptoService.Setup(s => s.ValidateSaltedHash("old hash", "oldpwd", Constants.PBKDF2HashAlgorithmId)).Returns(true);
+                cryptoService.Setup(s => s.GenerateSaltedHash("newpwd", Constants.PBKDF2HashAlgorithmId)).Returns("hash and bacon");
+                var service = CreateUsersService(userRepo: userRepository, cryptoSvc: cryptoService);
+
+                var changed = service.ChangePassword("user", "oldpwd", "newpwd");
+
+                Assert.True(changed);
+                Assert.Equal("hash and bacon", user.HashedPassword);
+            }
+
+            [Fact]
+            public void MigratesPasswordIfHashAlgorithmIsNotPBKDF2()
+            {
+                var user = new User { Username = "user", HashedPassword = "old hash", PasswordHashAlgorithm = "SHA1" };
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+                var cryptoService = new Mock<ICryptographyService>(MockBehavior.Strict);
                 cryptoService.Setup(s => s.ValidateSaltedHash("old hash", "oldpwd", Constants.Sha1HashAlgorithmId)).Returns(true);
-                cryptoService.Setup(s => s.GenerateSaltedHash("newpwd", Constants.Sha1HashAlgorithmId)).Returns("hash and bacon");
+                cryptoService.Setup(s => s.GenerateSaltedHash("oldpwd", Constants.PBKDF2HashAlgorithmId)).Returns("monkey fighting snakes");
+                cryptoService.Setup(s => s.GenerateSaltedHash("newpwd", Constants.PBKDF2HashAlgorithmId)).Returns("hash and bacon");
                 var service = CreateUsersService(userRepo: userRepository, cryptoSvc: cryptoService);
 
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");
@@ -555,7 +600,7 @@ namespace NuGetGallery
             [Fact]
             public void FindsUsersByUserName()
             {
-                var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com" };
+                var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com", PasswordHashAlgorithm = "PBKDF2" };
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
 
@@ -572,11 +617,11 @@ namespace NuGetGallery
             [Fact]
             public void FindsUsersByEmailAddress()
             {
-                var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com" };
+                var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com", PasswordHashAlgorithm = "PBKDF2" };
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
 
-                var crypto = new Mock<ICryptographyService>();
+                var crypto = new Mock<ICryptographyService>(MockBehavior.Strict);
                 crypto.Setup(c => c.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
 
                 var service = CreateUsersService(cryptoSvc: crypto, userRepo: userRepository);
@@ -584,6 +629,26 @@ namespace NuGetGallery
                 var foundByEmailAddress = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
                 Assert.NotNull(foundByEmailAddress);
                 Assert.Same(user, foundByEmailAddress);
+            }
+
+            [Fact]
+            public void FindsUsersUpdatesPasswordIfUsingLegacyHashAlgorithm()
+            {
+                var user = new User { Username = "theUsername", HashedPassword = "theHashedPassword", EmailAddress = "test@example.com", PasswordHashAlgorithm = "SHA1" };
+                var userRepository = new Mock<IEntityRepository<User>>();
+                userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+                userRepository.Setup(r => r.CommitChanges()).Verifiable();
+
+                var crypto = new Mock<ICryptographyService>(MockBehavior.Strict);
+                crypto.Setup(c => c.ValidateSaltedHash("theHashedPassword", "thePassword", "SHA1")).Returns(true);
+                crypto.Setup(c => c.GenerateSaltedHash("thePassword", "PBKDF2")).Returns("theBetterHashedPassword");
+
+                var service = CreateUsersService(cryptoSvc: crypto, userRepo: userRepository);
+
+                var foundByEmailAddress = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
+                Assert.Equal("PBKDF2", user.PasswordHashAlgorithm);
+                Assert.Equal("theBetterHashedPassword", user.HashedPassword);
+                userRepository.Verify(r => r.CommitChanges(), Times.Once());
             }
         }
 

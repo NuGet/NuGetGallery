@@ -36,7 +36,7 @@ namespace NuGetGallery
             if (existingUser != null)
                 throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
 
-            var hashedPassword = cryptoSvc.GenerateSaltedHash(password);
+            var hashedPassword = cryptoSvc.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
             var newUser = new User(
                 username,
@@ -45,7 +45,8 @@ namespace NuGetGallery
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
                     UnconfirmedEmailAddress = emailAddress,
-                    EmailConfirmationToken = cryptoSvc.GenerateToken()
+                    EmailConfirmationToken = cryptoSvc.GenerateToken(),
+                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 };
 
             if (!settings.ConfirmEmailAddresses)
@@ -128,8 +129,16 @@ namespace NuGetGallery
             if (user == null)
                 return null;
 
-            if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password))
+            if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            {
                 return null;
+            }
+            else if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
+            {
+                // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
+                ChangePasswordInternal(user, password);
+                userRepo.CommitChanges();
+            }
 
             return user;
         }
@@ -150,20 +159,23 @@ namespace NuGetGallery
 
         public bool ChangePassword(string usernameOrEmail, string oldPassword, string newPassword)
         {
+            // Review: If the old password is hashed using something other than PBKDF2, we end up making an extra db call that changes the old hash password.
+            // This operation is rare enough that I'm not inclined to change it.
             var user = FindByUsernameOrEmailAddressAndPassword(usernameOrEmail, oldPassword);
             if (user == null)
             {
                 return false;
             }
 
-            ChangePassword(user, newPassword);
+            ChangePasswordInternal(user, newPassword);
             userRepo.CommitChanges();
             return true;
         }
 
-        private void ChangePassword(User user, string newPassword)
+        private void ChangePasswordInternal(User user, string newPassword)
         {
-            var hashedPassword = cryptoSvc.GenerateSaltedHash(newPassword);
+            var hashedPassword = cryptoSvc.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
+            user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
             user.HashedPassword = hashedPassword;
         }
 
@@ -241,7 +253,7 @@ namespace NuGetGallery
                     throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
                 }
 
-                ChangePassword(user, newPassword);
+                ChangePasswordInternal(user, newPassword);
                 user.PasswordResetToken = null;
                 user.PasswordResetTokenExpirationDate = null;
                 userRepo.CommitChanges();
