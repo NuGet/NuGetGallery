@@ -25,6 +25,7 @@ namespace NuGetGallery
         public string EmailAddress { get; set; }
         public string UnconfirmedEmailAddress { get; set; }
         public string HashedPassword { get; set; }
+        public string PasswordHashAlgorithm { get; set; }
         public virtual ICollection<EmailMessage> Messages { get; set; }
         public string Username { get; set; }
         public virtual ICollection<Role> Roles { get; set; }
