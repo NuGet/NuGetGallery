@@ -22,7 +22,7 @@ namespace NuGetGallery
             {
                 return false;
             }
-            return Owners.Any(u => u.Username == user.Identity.Name);
+            return user.IsInRole(Constants.AdminRoleName) || Owners.Any(u => u.Username == user.Identity.Name);
         }
         public bool UseVersion
         {
