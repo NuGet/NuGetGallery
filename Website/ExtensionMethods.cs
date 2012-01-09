@@ -116,7 +116,7 @@ namespace NuGetGallery
             {
                 return false;
             }
-            return package.Owners.Any(u => u.Username == user.Identity.Name);
+            return user.IsInRole(Constants.AdminRoleName) || package.Owners.Any(u => u.Username == user.Identity.Name);
         }
 
         public static bool IsOwner(this PackageRegistration package, User user)
