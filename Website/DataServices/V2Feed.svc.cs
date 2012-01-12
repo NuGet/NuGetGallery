@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Data.Services;
 using System.Linq;
 using System.ServiceModel.Web;
@@ -43,6 +44,14 @@ namespace NuGetGallery
             }
             return packages.Search(searchTerm)
                            .ToV2FeedPackageQuery(Configuration.SiteRoot);
+        }
+
+        [WebGet]
+        public IQueryable<V2FeedPackage> FindPackagesById(string id)
+        {
+            return PackageRepo.GetAll().Include(p => p.PackageRegistration)
+                                       .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && p.Listed)
+                                       .ToV2FeedPackageQuery(Configuration.SiteRoot);
         }
 
         public override Uri GetReadStreamUri(

@@ -51,6 +51,7 @@ namespace NuGetGallery
         public static void InitializeService(DataServiceConfiguration config)
         {
             config.SetServiceOperationAccessRule("Search", ServiceOperationRights.AllRead);
+            config.SetServiceOperationAccessRule("FindPackagesById", ServiceOperationRights.AllRead);
             config.SetEntitySetAccessRule("Packages", EntitySetRights.AllRead);
             config.SetEntitySetPageSize("Packages", 100);
             config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
