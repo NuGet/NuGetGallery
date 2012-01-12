@@ -1,5 +1,6 @@
 using System;
 using System.Data.Services;
+using System.Data.Entity;
 using System.Linq;
 using System.ServiceModel.Web;
 using System.Web;
@@ -44,6 +45,14 @@ namespace NuGetGallery
             string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version);
 
             return new Uri(url, UriKind.Absolute);
+        }
+
+        [WebGet]
+        public IQueryable<V1FeedPackage> FindPackagesById(string id)
+        {
+            return PackageRepo.GetAll().Include(p => p.PackageRegistration)
+                                       .Where(p => !p.IsPrerelease && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && p.Listed)
+                                       .ToV1FeedPackageQuery(Configuration.SiteRoot);
         }
 
         [WebGet]
