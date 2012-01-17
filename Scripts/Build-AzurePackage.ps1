@@ -107,38 +107,44 @@ $projFile = join-path $scriptPath NuGetGallery.msbuild
  
 & "$(get-content env:windir)\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $projFile /p:Configuration=Release /t:CIBuild
 
-if ((test-path $cspkgFolder) -eq $false) {
-  mkdir $cspkgFolder | out-null
+if($LastExitCode -ne 0) {
+    Write-Host "Build Failed. Azure packages were not created."
+    exit $LastExitCode
+} 
+else {
+    if ((test-path $cspkgFolder) -eq $false) {
+      mkdir $cspkgFolder | out-null
+    }
+
+    cp $webConfigPath $webConfigBakPath
+    cp $cscfgPath $cscfgBakPath
+
+    set-configurationsetting -path $cscfgPath -name "AzureStorageAccessKey" -value $azureStorageAccessKey
+    set-configurationsetting -path $cscfgPath -name "AzureStorageAccountName" -value $azureStorageAccountName
+    set-configurationsetting -path $cscfgPath -name "AzureStorageBlobUrl" -value $azureStorageBlobUrl
+    set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" -value $remoteDesktopAccountExpiration
+    set-certificatethumbprint -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" -value $remoteDesktopCertificateThumbprint
+    set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" -value $remoteDesktopEnctyptedPassword
+    set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" -value $remoteDesktopUsername
+    set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
+    set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
+    set-releasemode $webConfigPath
+    set-machinekey $webConfigPath
+
+    #Release Tag stuff
+    Write-Host "Setting the release tags"
+    set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
+    set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+    set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value (git rev-parse HEAD)
+    set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value (git name-rev --name-only HEAD)
+
+    & 'C:\Program Files\Windows Azure SDK\v1.6\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
+
+    cp $cscfgPath $cspkgFolder
+
+    cp $webConfigBakPath $webConfigPath
+    cp $cscfgBakPath $cscfgPath
+
+    write-host "Azure package and configuration dropped to $cspkgFolder."
+    write-host ""
 }
-
-cp $webConfigPath $webConfigBakPath
-cp $cscfgPath $cscfgBakPath
-
-set-configurationsetting -path $cscfgPath -name "AzureStorageAccessKey" -value $azureStorageAccessKey
-set-configurationsetting -path $cscfgPath -name "AzureStorageAccountName" -value $azureStorageAccountName
-set-configurationsetting -path $cscfgPath -name "AzureStorageBlobUrl" -value $azureStorageBlobUrl
-set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" -value $remoteDesktopAccountExpiration
-set-certificatethumbprint -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" -value $remoteDesktopCertificateThumbprint
-set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" -value $remoteDesktopEnctyptedPassword
-set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" -value $remoteDesktopUsername
-set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
-set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
-set-releasemode $webConfigPath
-set-machinekey $webConfigPath
-
-#Release Tag stuff
-Write-Host "Setting the release tags"
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value (git rev-parse HEAD)
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value (git name-rev --name-only HEAD)
-
-& 'C:\Program Files\Windows Azure SDK\v1.6\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
-
-cp $cscfgPath $cspkgFolder
-
-cp $webConfigBakPath $webConfigPath
-cp $cscfgBakPath $cscfgPath
-
-write-host "Azure package and configuration dropped to $cspkgFolder."
-write-host ""
