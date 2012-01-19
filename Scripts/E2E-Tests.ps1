@@ -1,4 +1,4 @@
-$scriptPath = split-path $MyInvocation.MyCommand.Path
+﻿$scriptPath = split-path $MyInvocation.MyCommand.Path
 $RootPath = resolve-path(join-path $scriptPath "..")
 $WebsitePath = join-path $rootPath "Website"
 $NuGetPath = Join-Path $rootPath ".nuget\NuGet.exe"

@@ -1,4 +1,4 @@
-function Get-ConnectionString($configPath, $connectionStringName) 
+﻿function Get-ConnectionString($configPath, $connectionStringName) 
 {
   $config = [xml](get-content $configPath)
   

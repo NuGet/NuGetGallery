@@ -1,4 +1,4 @@
-param($connectionString = "")
+﻿param($connectionString = "")
 
 $scriptPath = Split-Path $MyInvocation.MyCommand.Path
 . (join-path $scriptPath Get-ConnectionString.ps1)
