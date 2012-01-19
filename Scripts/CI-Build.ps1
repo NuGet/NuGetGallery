@@ -10,8 +10,8 @@ try {
     C:\Scripts\Set-PreviewVars.ps1
 
     #Do Work Brah
-    & "$ScriptRoot\Package.ps1 -commitSha $commitSha -commitBranch $commitBranch"
-    & "$ScriptRoot\Deploy.ps1 -commitSha $commitSha -commitBranch $commitBranch"
+    & "$ScriptRoot\Package.ps1" -commitSha $commitSha -commitBranch $commitBranch
+    & "$ScriptRoot\Deploy.ps1" -commitSha $commitSha -commitBranch $commitBranch
 
 } catch {
     $error[0]
