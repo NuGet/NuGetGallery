@@ -11,7 +11,7 @@ try {
 
     #Do Work Brah
     & "$ScriptRoot\Package.ps1" -commitSha $commitSha -commitBranch $commitBranch
-    & "$ScriptRoot\Deploy.ps1" -commitSha $commitSha -commitBranch $commitBranch
+    & "$ScriptRoot\Deploy.ps1" -promptBeforDelete $false -commitSha $commitSha -commitBranch $commitBranch
 
 } catch {
     $error[0]
