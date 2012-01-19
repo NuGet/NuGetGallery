@@ -23,13 +23,15 @@ require-module -name "WAPPSCmdlets"
 
 # Get all the stuff ready
 $certificate = (get-item cert:\CurrentUser\MY\$certThumbprint)
-    $commitSha = (git rev-parse HEAD)
-    $commitBranch = (git name-rev --name-only HEAD)
+    $gitPath = join-path (programfiles-dir) "Git\bin\git.exe"
+    $commitSha = (& "$gitPath" rev-parse HEAD)
+    $commitBranch = (& "$gitPath" name-rev --name-only HEAD)
 $deploymentLabel = "AUTO: $commitSha on $commitBranch"
 $deploymentName = "AUTO-$commitSha-$commitBranch"
     $packageLocation = join-path (resolve-path(join-path $ScriptRoot "..")) "_AzurePackage"
 $cspkgFile = join-path $packageLocation "NuGetGallery.cspkg"
 $cscfgFile = join-path $packageLocation "NuGetGallery.cscfg"
+
 
 # Helper Functions
 function CheckForExistingDeployment()

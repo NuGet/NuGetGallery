@@ -101,6 +101,7 @@ $cscfgPath = join-path $scriptPath "NuGetGallery.cscfg"
 $cscfgBakPath = join-path $scriptPath "NuGetGallery.cscfg.bak"
 $cspkgFolder = join-path $rootPath "_AzurePackage"
 $cspkgFile = join-path $cspkgFolder "NuGetGallery.cspkg"
+$gitPath = join-path (programfiles-dir) "Git\bin\git.exe"
 
 if ((test-path $cspkgFolder) -eq $false) {
   mkdir $cspkgFolder | out-null
@@ -125,8 +126,8 @@ set-machinekey $webConfigPath
 print-message("Setting the release tags")
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value (git rev-parse HEAD)
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value (git name-rev --name-only HEAD)
+set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value (& "$gitPath" rev-parse HEAD)
+set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value (& "$gitPath" name-rev --name-only HEAD)
 
 & 'C:\Program Files\Windows Azure SDK\v1.6\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
 

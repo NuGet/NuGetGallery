@@ -40,3 +40,15 @@ function require-Module {
         }
     }
 }
+
+function programfiles-dir {
+    if (is64bit -eq $true) {
+        (Get-Item "Env:ProgramFiles(x86)").Value
+    } else {
+        (Get-Item "Env:ProgramFiles").Value
+    }
+}
+
+function is64bit() {
+    return ([IntPtr]::Size -eq 8)
+}
