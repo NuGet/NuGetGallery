@@ -1,10 +1,12 @@
 ﻿param(
-    $promptBeforDelete                  = $true,
-    $subscriptionID                     = $env:NUGET_GALLERY_AZURE_SUBSCRIPTION_ID,
-    $serviceName                        = $env:NUGET_GALLERY_AZURE_SERVICE_NAME,
-    $slot                               = $env:NUGET_GALLERY_AZURE_SLOT,
-    $certThumbprint                     = $env:NUGET_GALLERY_AZURE_CERT_THUMBPRINT,
-    $storageServiceName                 = $env:NUGET_GALLERY_AZURE_STORAGE_SERVICE_NAME
+    $promptBeforDelete  = $true,
+    $subscriptionID     = $env:NUGET_GALLERY_AZURE_SUBSCRIPTION_ID,
+    $serviceName        = $env:NUGET_GALLERY_AZURE_SERVICE_NAME,
+    $slot               = $env:NUGET_GALLERY_AZURE_SLOT,
+    $certThumbprint     = $env:NUGET_GALLERY_AZURE_CERT_THUMBPRINT,
+    $storageServiceName = $env:NUGET_GALLERY_AZURE_STORAGE_SERVICE_NAME,
+    $commitSha,
+    $commitBranch
 )
 
 $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
@@ -22,13 +24,17 @@ require-param -value $storageServiceName -paramName "storageServiceName"
 require-module -name "WAPPSCmdlets"
 
 # Get all the stuff ready
-$certificate = (get-item cert:\CurrentUser\MY\$certThumbprint)
-    $gitPath = join-path (programfiles-dir) "Git\bin\git.exe"
+$gitPath = join-path (programfiles-dir) "Git\bin\git.exe"
+if ($commitSha -eq $null) {
     $commitSha = (& "$gitPath" rev-parse HEAD)
+}
+if ($commitBranch -eq $null) {
     $commitBranch = (& "$gitPath" name-rev --name-only HEAD)
+}
+$certificate = (get-item cert:\CurrentUser\MY\$certThumbprint)
 $deploymentLabel = "AUTO: $commitSha on $commitBranch"
 $deploymentName = "AUTO-$commitSha-$commitBranch"
-    $packageLocation = join-path (resolve-path(join-path $ScriptRoot "..")) "_AzurePackage"
+$packageLocation = join-path (resolve-path(join-path $ScriptRoot "..")) "_AzurePackage"
 $cspkgFile = join-path $packageLocation "NuGetGallery.cspkg"
 $cscfgFile = join-path $packageLocation "NuGetGallery.cscfg"
 

@@ -1,4 +1,5 @@
-﻿try {
+﻿param($commitSha, $commitBranch)
+try {
     $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
     . $ScriptRoot\_Common.ps1
 
@@ -9,8 +10,8 @@
     C:\Scripts\Set-PreviewVars.ps1
 
     #Do Work Brah
-    & "$ScriptRoot\Package.ps1"
-    & "$ScriptRoot\Deploy.ps1"
+    & "$ScriptRoot\Package.ps1 -commitSha $commitSha -commitBranch $commitBranch"
+    & "$ScriptRoot\Deploy.ps1 -commitSha $commitSha -commitBranch $commitBranch"
 
 } catch {
     $error[0]
