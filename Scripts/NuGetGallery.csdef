@@ -9,7 +9,7 @@
       <Setting name="UseSmtp" />
     </ConfigurationSettings>
     <Startup>
-        <Task commandLine="EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
+        <Task commandLine=".\EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
     </Startup>
     <Sites>
       <Site name="Web">

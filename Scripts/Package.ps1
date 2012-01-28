@@ -104,6 +104,9 @@ $cscfgBakPath = join-path $scriptPath "NuGetGallery.cscfg.bak"
 $cspkgFolder = join-path $rootPath "_AzurePackage"
 $cspkgFile = join-path $cspkgFolder "NuGetGallery.cspkg"
 $gitPath = join-path (programfiles-dir) "Git\bin\git.exe"
+$compressionCmdScriptsPath = join-path $scriptPath "EnableDynamicHttpCompression.cmd"
+$binPath = join-path $websitePath "bin"
+$compressionCmdBinPath = join-path $binPath "EnableDynamicHttpCompression.cmd"
 
 if ($commitSha -eq $null) {
     $commitSha = (& "$gitPath" rev-parse HEAD)
@@ -139,12 +142,15 @@ set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value $commitBranch
 
+cp $compressionCmdScriptsPath $compressionCmdBinPath
+
 & 'C:\Program Files\Windows Azure SDK\v1.6\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
 
 cp $cscfgPath $cspkgFolder
 
 cp $webConfigBakPath $webConfigPath
 cp $cscfgBakPath $cscfgPath
+rm $compressionCmdBinPath
 
 print-success("Azure package and configuration dropped to $cspkgFolder.")
 write-host ""
