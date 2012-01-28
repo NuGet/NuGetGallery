@@ -24,7 +24,7 @@ namespace NuGetGallery
 
         bool ConfirmEmailAddress(User user, string token);
 
-        bool ChangePassword(string usernameOrEmail, string oldPassword, string newPassword);
+        bool ChangePassword(string username, string oldPassword, string newPassword);
 
         User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes);
 

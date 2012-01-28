@@ -126,7 +126,7 @@ namespace NuGetGallery
             if (user == null)
                 return null;
 
-            if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password))
+            if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
                 return null;
 
             return user;
@@ -170,7 +170,7 @@ namespace NuGetGallery
             return newApiKey.ToString();
         }
 
-        public bool ChangePassword(string usernameOrEmail, string oldPassword, string newPassword)
+        public bool ChangePassword(string username, string oldPassword, string newPassword)
         {
             // Review: If the old password is hashed using something other than PBKDF2, we end up making an extra db call that changes the old hash password.
             // This operation is rare enough that I'm not inclined to change it.

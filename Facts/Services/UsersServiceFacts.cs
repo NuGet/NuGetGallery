@@ -603,13 +603,12 @@ namespace NuGetGallery
                 var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com" };
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
-
                 var crypto = new Mock<ICryptographyService>();
                 crypto.Setup(c => c.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-
                 var service = CreateUsersService(cryptoSvc: crypto, userRepo: userRepository);
 
-                var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword");
+                var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
+                
                 Assert.NotNull(foundByUserName);
                 Assert.Same(user, foundByUserName);
             }
@@ -620,13 +619,12 @@ namespace NuGetGallery
                 var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com" };
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
-
                 var crypto = new Mock<ICryptographyService>();
                 crypto.Setup(c => c.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-
                 var service = CreateUsersService(cryptoSvc: crypto, userRepo: userRepository);
 
                 var foundByEmailAddress = service.FindByUsernameAndPassword("test@example.com", "thePassword");
+
                 Assert.Null(foundByEmailAddress);
             }
         }
