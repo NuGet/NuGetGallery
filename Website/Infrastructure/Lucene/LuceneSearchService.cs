@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Lucene.Net.Index;
-using Lucene.Net.Search;
-using Lucene.Net.QueryParsers;
-using System.Collections;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.QueryParsers;
+using Lucene.Net.Search;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NuGetGallery
 {
@@ -77,12 +76,10 @@ namespace NuGetGallery
             {
                 var searcher = new IndexSearcher(directory, readOnly: true);
 
-                searchTerm = searchTerm.ToLowerInvariant();
-
-                var boosts = new Dictionary<string, float> { { "Id", 2.0f }, { "Title", 1.5f }, { "Description", 0.8f } };
+                var boosts = new Dictionary<string, float> { { "Id-Exact", 5.0f }, { "Id", 2.0f }, { "Title", 1.5f }, { "Description", 0.8f } };
                 var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-                var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, new[] { "Id", "Title", "Author", "Description", "Tags" }, analyzer, boosts);
-                
+                var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, new[] { "Id-Exact", "Id", "Title", "Author", "Description", "Tags" }, analyzer, boosts);
+
                 var query = queryParser.Parse(searchTerm);
                 var results = searcher.Search(query, filter: null, n: 1000, sort: Sort.RELEVANCE);
                 var keys = results.scoreDocs.Select(c => Int32.Parse(searcher.Doc(c.doc).Get("Key"), CultureInfo.InvariantCulture))

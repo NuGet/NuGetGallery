@@ -13,8 +13,6 @@ namespace NuGetGallery
 {
     public class LuceneIndexingService : IIndexingService
     {
-        private static readonly DateTime _minDateValue = new DateTime(1900, 01, 01);
-
         public void UpdateIndex()
         {
             DateTime? lastWriteTime = GetLastWriteTime();
@@ -70,36 +68,27 @@ namespace NuGetGallery
                 var document = new Document();
 
                 document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-                document.Add(new Field("Id-Exact", package.Id, Field.Store.YES, Field.Index.NOT_ANALYZED));
-                document.Add(new Field("Id", package.Id, Field.Store.NO, Field.Index.ANALYZED));
+                document.Add(new Field("Id-Exact", package.Id, Field.Store.NO, Field.Index.ANALYZED));
+
                 document.Add(new Field("Description", package.Description, Field.Store.NO, Field.Index.ANALYZED));
+
+                foreach (var idToken in CamelCaseTokenize(package.Id))
+                {
+                    document.Add(new Field("Id", idToken, Field.Store.NO, Field.Index.ANALYZED));
+                }
 
                 if (!String.IsNullOrEmpty(package.Title))
                 {
                     document.Add(new Field("Title", package.Title, Field.Store.NO, Field.Index.ANALYZED));
                 }
-
-                foreach (var tag in (package.Tags ?? String.Empty).Split())
+                if (!String.IsNullOrEmpty(package.Tags))
                 {
-                    document.Add(new Field("Tags", tag, Field.Store.NO, Field.Index.ANALYZED));
+                    document.Add(new Field("Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED));
                 }
-
-                foreach (var author in package.Authors.Split())
-                {
-                    document.Add(new Field("Author", author, Field.Store.NO, Field.Index.ANALYZED));
-                }
+                document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
 
                 indexWriter.AddDocument(document);
             }
-        }
-
-        private static DateTime? GetCreatedTime()
-        {
-            if (File.Exists(LuceneCommon.IndexMetadataPath))
-            {
-                return File.GetCreationTimeUtc(LuceneCommon.IndexMetadataPath);
-            }
-            return null;
         }
 
         private static DateTime? GetLastWriteTime()
@@ -121,9 +110,28 @@ namespace NuGetGallery
             File.SetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath, DateTime.UtcNow);
         }
 
-        private static void ClearIndex()
+        internal static IEnumerable<string> CamelCaseTokenize(string term)
         {
-            Directory.Delete(LuceneCommon.IndexPath, recursive: true);
+            if (term.Length < 2)
+            {
+                yield break;
+            }
+
+            int tokenStart = 0;
+            for (int i = 1; i < term.Length; i++)
+            {
+                if (Char.IsUpper(term[i]) && (i - tokenStart > 2))
+                {
+                    yield return term.Substring(tokenStart, i - tokenStart);
+                    tokenStart = i;
+                }
+            }
+            int length = term.Length - tokenStart;
+            if (length < 2 || (length == term.Length))
+            {
+                yield break;
+            }
+            yield return term.Substring(tokenStart, length);
         }
     }
 }
