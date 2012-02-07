@@ -101,8 +101,14 @@
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
     </Reference>
+    <Reference Include="PoliteCaptcha, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\PoliteCaptcha.0.3.0.0\lib\net40\PoliteCaptcha.dll</HintPath>
+    </Reference>
     <Reference Include="QueryInterceptor">
       <HintPath>..\packages\QueryInterceptor.0.1.4237.2400\lib\net40\QueryInterceptor.dll</HintPath>
+    </Reference>
+    <Reference Include="Recaptcha, Version=1.0.5.0, Culture=neutral, PublicKeyToken=9afc4d65b28c38c2, processorArchitecture=MSIL">
+      <HintPath>..\packages\recaptcha.1.0.5.0\lib\.NetFramework 4.0\Recaptcha.dll</HintPath>
     </Reference>
     <Reference Include="RouteMagic, Version=1.1.3.0, Culture=neutral, PublicKeyToken=84b59be021aa4cee, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

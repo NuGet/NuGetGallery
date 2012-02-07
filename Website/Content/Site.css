@@ -986,6 +986,16 @@ header.main {
             font-size: 1.25em;
             font-weight: 600;
         }
+        
+.PoliteCaptcha.editor-field .field-validation-error {
+    position: static;
+    width: 300px;
+}
+
+/* To fix alignment of generated reCAPTCHA table */
+.PoliteCaptcha.editor-field table {
+    margin-left: -3px !important;
+}
 
 /* Errors */            
 .error-content {
