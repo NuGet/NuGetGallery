@@ -992,6 +992,11 @@ header.main {
     width: 300px;
 }
 
+/* To fix alignment of generated reCAPTCHA table */
+.PoliteCaptcha.editor-field table {
+    margin-left: -3px !important;
+}
+
 /* Errors */            
 .error-content {
     margin-top: 80px;
