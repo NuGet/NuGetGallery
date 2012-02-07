@@ -986,6 +986,11 @@ header.main {
             font-size: 1.25em;
             font-weight: 600;
         }
+        
+.PoliteCaptcha.editor-field .field-validation-error {
+    position: static;
+    width: 300px;
+}
 
 /* Errors */            
 .error-content {

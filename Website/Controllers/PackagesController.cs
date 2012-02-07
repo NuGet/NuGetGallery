@@ -8,6 +8,7 @@ using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+using PoliteCaptcha;
 
 namespace NuGetGallery
 {
@@ -216,13 +217,14 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken, ValidateSpamPrevention]
         public virtual ActionResult ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
             if (!ModelState.IsValid)
             {
                 return ReportAbuse(id, version);
             }
+
             var package = packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
