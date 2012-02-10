@@ -150,6 +150,11 @@ namespace NuGetGallery
                 if (String.IsNullOrEmpty(sortOrder))
                 {
                     packageVersions = searchSvc.SearchWithRelevance(packageVersions, q, take: page * Constants.DefaultPackageListPageSize, totalHits: out totalHits);
+                    if (page == 1 && packageVersions.Count() == 0)
+                    {
+                        // In the event the index wasn't updated, we may get an incorrect count. 
+                        totalHits = 0;
+                    }
                 }
                 else
                 {

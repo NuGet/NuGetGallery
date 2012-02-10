@@ -80,6 +80,7 @@ namespace NuGetGallery
                 var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
                 var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, new[] { "Id-Exact", "Id", "Title", "Author", "Description", "Tags" }, analyzer, boosts);
 
+                searchTerm = QueryParser.Escape(searchTerm);
                 var query = queryParser.Parse(searchTerm);
                 var results = searcher.Search(query, filter: null, n: 1000, sort: Sort.RELEVANCE);
                 var keys = results.scoreDocs.Select(c => Int32.Parse(searcher.Doc(c.doc).Get("Key"), CultureInfo.InvariantCulture))
