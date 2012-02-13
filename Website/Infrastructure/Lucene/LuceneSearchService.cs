@@ -7,6 +7,8 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -75,18 +77,28 @@ namespace NuGetGallery
             using (var directory = new LuceneFileSystem(LuceneCommon.IndexPath))
             {
                 var searcher = new IndexSearcher(directory, readOnly: true);
-
-                var boosts = new Dictionary<string, float> { { "Id-Exact", 5.0f }, { "Id", 2.0f }, { "Title", 1.5f }, { "Description", 0.8f } };
-                var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-                var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, new[] { "Id-Exact", "Id", "Title", "Author", "Description", "Tags" }, analyzer, boosts);
-
-                searchTerm = QueryParser.Escape(searchTerm);
-                var query = queryParser.Parse(searchTerm);
+                var query = TryParseQuery(searchTerm);
                 var results = searcher.Search(query, filter: null, n: 1000, sort: Sort.RELEVANCE);
                 var keys = results.scoreDocs.Select(c => Int32.Parse(searcher.Doc(c.doc).Get("Key"), CultureInfo.InvariantCulture))
                                             .ToList();
                 searcher.Close();
                 return keys;
+            }
+        }
+
+        private static Query TryParseQuery(string searchTerm)
+        {
+            var boosts = new Dictionary<string, float> { { "Id-Exact", 5.0f }, { "Id", 2.0f }, { "Title", 1.5f }, { "Description", 0.8f } };
+            var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
+            var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, new[] { "Id-Exact", "Id", "Title", "Author", "Description", "Tags" }, analyzer, boosts);
+
+            try
+            {
+                return queryParser.Parse(searchTerm);
+            }
+            catch (ParseException)
+            {
+                return queryParser.Parse(QueryParser.Escape(searchTerm));
             }
         }
     }
