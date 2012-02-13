@@ -436,11 +436,12 @@ header.main {
         font-size:2em;
     }
     
-    #apiKey code {
+    #apiKey pre {
         display:block;
         color: #c0c0c0;
         border: 2px solid #c0c0c0;
         padding: 15px;
+        margin: 15px 0 0;
         background-color: #202020;
         overflow: auto;
         font: 1.2em 'andale mono', 'lucida console', monospace; 
@@ -466,7 +467,7 @@ header.main {
             color: #52a4ca;
             cursor: pointer;
             font-size: 2em;
-            height: 220px;
+            height: 240px;
             left: 0;
             line-height: 220px;
             position: absolute;
