@@ -47,7 +47,11 @@
         <h2>Your API key is:</h2>
         
         <div>
-            <p id="key">@Model.ApiKey</p>
+            <p>
+                <span id="key">@Model.ApiKey</span>
+                <img id="copyButton" alt="Copy To Clipboard" src="@Url.Content("~/Content/Images/copy.png")" />
+            </p>
+            
 
             <fieldset class="form">
                 <legend>Generate New API Key</legend>
@@ -58,8 +62,13 @@
             </fieldset>
 
             <h2>Example usage:</h2>
-            <p><code>nuget.exe push MyPackage.1.0.nupkg @Model.ApiKey</code></p>
-        
+            <p>
+                <code>
+                    nuget.exe setApiKey @Model.ApiKey
+                    <br />
+                    nuget.exe push MyPackage.1.0.nupkg
+                </code>
+            </p>
         </div>
 
         <div id="overlayWrapper" title="Click to show API Key">
@@ -69,12 +78,19 @@
 </section>
 
 @section BottomScripts {
+    <script type="text/javascript" src="@Url.Content("~/Scripts/ZeroClipboard.js")"></script>
     <script>
         $(function () {
             $("#overlayWrapper").click(function () {
                 $("#overlayWrapper").fadeOut();
                 return false;
             });
+
+            ZeroClipboard.setMoviePath('@Url.Content("~/Scripts/ZeroClipboard.swf")');
+            var clip = new ZeroClipboard.Client();
+            clip.setText('@HttpUtility.JavaScriptStringEncode(Model.ApiKey.ToString())');
+            clip.setHandCursor(true);
+            clip.glue('copyButton');
         });
     </script>
 }
