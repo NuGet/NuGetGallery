@@ -597,9 +597,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Images\changePassword.png" />
+    <Content Include="Content\Images\copy.png" />
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
     <Content Include="Content\Images\managePackages.png" />
+    <Content Include="Content\Images\page_copy.png" />
     <Content Include="Content\Images\uploadPackage.png" />
     <Content Include="Content\Images\YourPackage.png" />
     <Content Include="Content\Site.css" />
@@ -682,6 +684,8 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\knockout-latest.js" />
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
+    <Content Include="Scripts\ZeroClipboard.js" />
+    <Content Include="Scripts\ZeroClipboard.swf" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
