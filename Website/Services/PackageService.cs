@@ -106,8 +106,7 @@ namespace NuGetGallery
             // Optimization: Everytime we look at a package we almost always want to see 
             // all the other packages with the same ID via the PackageRegistration property. 
             // This resulted in a gnarly query. 
-            // Instead, we can always query for all packages with the ID and then fix up 
-            // the Packages property for the one we plan to return.
+            // Instead, we can always query for all packages with the ID.
             IEnumerable<Package> packagesQuery = packageRepo.GetAll()
                                                             .Include(p => p.Authors)
                                                             .Include(p => p.PackageRegistration)
@@ -143,10 +142,6 @@ namespace NuGetGallery
                 package = packageVersions
                     .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && p.Version.Equals(version, StringComparison.OrdinalIgnoreCase))
                     .SingleOrDefault();
-            }
-            if (package != null)
-            {
-                package.PackageRegistration.Packages = packageVersions;
             }
             return package;
         }
