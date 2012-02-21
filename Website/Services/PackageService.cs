@@ -99,43 +99,25 @@ namespace NuGetGallery
         public virtual Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true)
         {
             if (String.IsNullOrWhiteSpace(id))
-            {
                 throw new ArgumentNullException("id");
-            }
 
-            // Optimization: Everytime we look at a package we almost always want to see 
-            // all the other packages with the same ID via the PackageRegistration property. 
-            // This resulted in a gnarly query. 
-            // Instead, we can always query for all packages with the ID.
-            IEnumerable<Package> packagesQuery = packageRepo.GetAll()
-                                                            .Include(p => p.Authors)
-                                                            .Include(p => p.PackageRegistration)
-                                                            .Where(p => (p.PackageRegistration.Id == id));
-            if (String.IsNullOrEmpty(version) && !allowPrerelease) 
-            {
-                // If there's a specific version given, don't bother filtering by prerelease. You could be asking for a prerelease package.
-                packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
-            }
-            var packageVersions = packagesQuery.ToList();
+            var packageVersions = packageRepo.GetAll()
+                .Include(p => p.Authors)
+                .Include(p => p.PackageRegistration)
+                .Where(p => (p.PackageRegistration.Id == id))
+                .ToList();
 
             Package package = null;
             if (version == null)
             {
                 if (allowPrerelease)
-                {
                     package = packageVersions.FirstOrDefault(p => p.IsLatest);
-                }
                 else
-                {
                     package = packageVersions.FirstOrDefault(p => p.IsLatestStable);
-                }
-
-                // If we couldn't find a package marked as latest, then
-                // return the most recent one.
+                
+                // If we couldn't find a package marked as latest, then return the most recent one.
                 if (package == null)
-                {
                     package = packageVersions.OrderByDescending(p => p.Version).FirstOrDefault();
-                }
             }
             else
             {
@@ -143,6 +125,7 @@ namespace NuGetGallery
                     .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && p.Version.Equals(version, StringComparison.OrdinalIgnoreCase))
                     .SingleOrDefault();
             }
+
             return package;
         }
 
