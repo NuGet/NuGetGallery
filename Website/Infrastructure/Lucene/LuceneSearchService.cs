@@ -6,9 +6,6 @@ using System.Linq;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using System.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -69,12 +66,12 @@ namespace NuGetGallery
 
         private static IEnumerable<int> SearchCore(string searchTerm)
         {
-            if (!Directory.Exists(LuceneCommon.IndexPath))
+            if (!Directory.Exists(LuceneCommon.IndexDirectory))
             {
                 return Enumerable.Empty<int>();
             }
 
-            using (var directory = new LuceneFileSystem(LuceneCommon.IndexPath))
+            using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
             {
                 var searcher = new IndexSearcher(directory, readOnly: true);
                 var query = TryParseQuery(searchTerm);
@@ -88,7 +85,7 @@ namespace NuGetGallery
 
         private static Query TryParseQuery(string searchTerm)
         {
-            var boosts = new Dictionary<string, float> { { "Id-Exact", 5.0f }, { "Id", 2.0f }, { "Title", 1.5f }, { "Description", 0.8f } };
+            var boosts = new Dictionary<string, float> { { "Id-Exact", 2.0f }, { "Id", 1.2f }, { "Description", 0.6f } };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
             var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, new[] { "Id-Exact", "Id", "Title", "Author", "Description", "Tags" }, analyzer, boosts);
 
