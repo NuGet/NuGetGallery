@@ -123,7 +123,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual ActionResult ListPackages(string q, string sortOrder = "", int page = 1)
+        public virtual ActionResult ListPackages(string q, string sortOrder = Constants.PopularitySortOrder, int page = 1)
         {
             if (page < 1)
             {
@@ -147,7 +147,7 @@ namespace NuGetGallery
             int totalHits;
             if (!String.IsNullOrEmpty(q))
             {
-                if (String.IsNullOrEmpty(sortOrder))
+                if (sortOrder.Equals(Constants.RelevanceSortOrder, StringComparison.OrdinalIgnoreCase))
                 {
                     packageVersions = searchSvc.SearchWithRelevance(packageVersions, q, take: page * Constants.DefaultPackageListPageSize, totalHits: out totalHits);
                     if (page == 1 && !packageVersions.Any())
@@ -186,12 +186,14 @@ namespace NuGetGallery
         {
             switch (sortOrder)
             {
-                case "package-title":
+                case Constants.AlphabeticSortOrder:
                     return "PackageRegistration.Id";
-                case "package-created":
+                case Constants.RecentSortOrder:
                     return "Published desc";
+                case Constants.PopularitySortOrder:
+                default:
+                    return "PackageRegistration.DownloadCount desc";
             }
-            return "PackageRegistration.DownloadCount desc";
         }
 
         // NOTE: Intentionally NOT requiring authentication
