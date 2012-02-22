@@ -7,10 +7,10 @@
 
 <hgroup class="search">
     @if (!String.IsNullOrEmpty(Model.SearchTerm)) {
-    <h1>Search for "@Model.SearchTerm" returned @Model.TotalCount packages</h1>
+        <h1>Search for "@Model.SearchTerm" returned @Model.TotalCount @if (Model.TotalCount == 1) { <text>package</text> } else { <text>packages</text> }</h1>
     }
     else {
-    <h1>There are @Model.TotalCount packages</h1>
+        <h1>@if (Model.TotalCount == 1) { <text>There is @Model.TotalCount package</text> } else { <text>There are @Model.TotalCount packages</text> }</h1>
     }
     @if (@Model.LastResultIndex > 0)
     {
