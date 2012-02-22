@@ -145,6 +145,7 @@ set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value $commit
 cp $compressionCmdScriptsPath $compressionCmdBinPath
 
 & 'C:\Program Files\Windows Azure SDK\v1.6\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
+if ($lastexitcode -ne 0) { exit 1 }
 
 cp $cscfgPath $cspkgFolder
 
