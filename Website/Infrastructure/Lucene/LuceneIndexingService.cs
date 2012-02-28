@@ -107,8 +107,7 @@ namespace NuGetGallery
                     document.Add(new Field("Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED));
                 }
                 document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
-
-                document.SetBoost(GetNormalizedBoostValue(package.DownloadCount));
+                document.Add(new Field("DownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
 
                 indexWriter.AddDocument(document);
             }
@@ -201,11 +200,6 @@ namespace NuGetGallery
                 yield break;
             }
             yield return term.Substring(tokenStart);
-        }
-        
-        private static float GetNormalizedBoostValue(int downloadCount)
-        {
-            return (float)(0.5 + Math.Log(downloadCount, 1000));
         }
     }
 }
