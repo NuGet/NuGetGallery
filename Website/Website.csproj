@@ -600,7 +600,6 @@
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
     <Content Include="Content\Images\managePackages.png" />
-    <Content Include="Content\Images\page_copy.png" />
     <Content Include="Content\Images\uploadPackage.png" />
     <Content Include="Content\Images\YourPackage.png" />
     <Content Include="Content\Site.css" />
