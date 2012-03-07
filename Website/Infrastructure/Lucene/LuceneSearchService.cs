@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
-using Lucene.Net.Index;
 
 namespace NuGetGallery
 {
@@ -84,9 +85,10 @@ namespace NuGetGallery
             }
         }
 
+        [SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Search index is in lower case")]
         private static Query ParseQuery(string searchTerm)
         {
-            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 1.0f}, { "Description", 0.8f }, { "Author", 0.6f } };
+            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 1.0f }, { "Description", 0.8f }, { "Author", 0.6f }, { "Id-Exact", 2.0f } };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
             searchTerm = QueryParser.Escape(searchTerm).ToLowerInvariant();
 
@@ -97,14 +99,12 @@ namespace NuGetGallery
             var disjunctionQuery = new BooleanQuery();
             var wildCardQuery = new BooleanQuery();
             wildCardQuery.SetBoost(0.7f);
-            var exactIdQuery = new TermQuery(new Term("Id-Exact", searchTerm));
-            exactIdQuery.SetBoost(2.5f);
-            
-            foreach(var term in searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+
+            foreach (var term in LuceneIdTokenizer.Tokenize(searchTerm))
             {
                 conjuctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.MUST);
                 disjunctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.SHOULD);
-                
+
                 foreach (var field in fields)
                 {
                     var wildCardTermQuery = new WildcardQuery(new Term(field.Key, term + "*"));
@@ -113,7 +113,7 @@ namespace NuGetGallery
                 }
             }
 
-            return conjuctionQuery.Combine(new Query[] { exactIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+            return conjuctionQuery.Combine(new Query[] { conjuctionQuery, disjunctionQuery, wildCardQuery });
         }
     }
 }
