@@ -159,7 +159,6 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="App_Start\BackgroundTasksSetup.cs" />
     <Compile Include="App_Start\PackageStoreType.cs" />
     <Compile Include="DataServices\V1FeedPackage.cs">
       <SubType>Code</SubType>
