@@ -15,7 +15,6 @@ namespace NuGetGallery
     public class LuceneIndexingService : IIndexingService
     {
         private static readonly TimeSpan indexRecreateTime = TimeSpan.FromDays(3);
-        private static readonly char[] idSeparators = new[] { '.', '-' };
 
         public void UpdateIndex()
         {
@@ -132,7 +131,7 @@ namespace NuGetGallery
                     return dateTime;
                 }
             }
-            
+
             return null;
         }
 
@@ -160,7 +159,7 @@ namespace NuGetGallery
                 if (Directory.Exists(LuceneCommon.IndexMetadataPath))
                 {
                     // If the directoey exists, then assume that the index has been created.
-                    File.WriteAllText(LuceneCommon.IndexMetadataPath, DateTime.UtcNow.ToString("R"));
+                    File.WriteAllText(LuceneCommon.IndexMetadataPath, DateTime.UtcNow.ToString("R", CultureInfo.InvariantCulture));
                 }
             }
             else
@@ -171,35 +170,12 @@ namespace NuGetGallery
 
         internal static IEnumerable<string> TokenizeId(string term)
         {
-            var result = CamelCaseTokenize(term).SelectMany(s => s.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries)).ToList();
+            var result = LuceneIdTokenizer.Tokenize(term);
             if (result.Count == 1)
             {
                 return Enumerable.Empty<string>();
             }
             return result;
-        }
-
-        private static IEnumerable<string> CamelCaseTokenize(string term)
-        {
-            if (term.Length < 2)
-            {
-                yield break;
-            }
-
-            int tokenStart = 0;
-            for (int i = 1; i < term.Length; i++)
-            {
-                if (Char.IsUpper(term[i]) && (i - tokenStart > 2))
-                {
-                    yield return term.Substring(tokenStart, i - tokenStart);
-                    tokenStart = i;
-                }
-            }
-            if (term.Length - tokenStart < 2)
-            {
-                yield break;
-            }
-            yield return term.Substring(tokenStart);
         }
     }
 }
