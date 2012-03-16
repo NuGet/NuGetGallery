@@ -50,7 +50,7 @@ namespace NuGetGallery
         public IQueryable<V1FeedPackage> FindPackagesById(string id)
         {
             return PackageRepo.GetAll().Include(p => p.PackageRegistration)
-                                       .Where(p => !p.IsPrerelease && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) && p.Listed)
+                                       .Where(p => !p.IsPrerelease && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
                                        .ToV1FeedPackageQuery(Configuration.SiteRoot);
         }
 

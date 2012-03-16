@@ -16,7 +16,7 @@ namespace NuGetGallery.Services
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
             repo.Setup(r => r.GetAll()).Returns(new[] {
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
-                new Package { PackageRegistration = packageRegistration, Version = "1.0.1a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
+                new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.SetupGet(c => c.SiteRoot).Returns("https://localhost:8081/");
@@ -42,7 +42,7 @@ namespace NuGetGallery.Services
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
             repo.Setup(r => r.GetAll()).Returns(new[] {
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
-                new Package { PackageRegistration = packageRegistration, Version = "1.0.1a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
+                new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
                 new Package { PackageRegistration = new PackageRegistration { Id ="baz" }, Version = "2.0", Listed = false, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
             var searchService = new Mock<ISearchService>(MockBehavior.Strict);
@@ -71,7 +71,7 @@ namespace NuGetGallery.Services
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
             repo.Setup(r => r.GetAll()).Returns(new[] {
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
-                new Package { PackageRegistration = packageRegistration, Version = "1.0.1a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
+                new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
             var searchService = new Mock<ISearchService>(MockBehavior.Strict);
             searchService.Setup(s => s.SearchWithRelevance(It.IsAny<IQueryable<Package>>(), It.IsAny<String>())).Returns<IQueryable<Package>, string>((_, __) => _);
@@ -89,6 +89,56 @@ namespace NuGetGallery.Services
             Assert.Equal("1.0.0", package.Version);
             Assert.Equal("https://staged.nuget.org/packages/Foo/1.0.0", package.GalleryDetailsUrl);
             Assert.Equal("https://staged.nuget.org/package/ReportAbuse/Foo/1.0.0", package.ReportAbuseUrl);
+        }
+
+        [Fact]
+        public void V1FeedFindPackagesByIdReturnsUnlistedPackagesButNotPrereleasePackages()
+        {
+            // Arrange
+            var packageRegistration = new PackageRegistration { Id = "Foo" };
+            var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            repo.Setup(r => r.GetAll()).Returns(new[] {
+                new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = false, DownloadStatistics = new List<PackageStatistics>() },
+                new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
+            }.AsQueryable());
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.SetupGet(c => c.SiteRoot).Returns("https://localhost:8081/");
+            var v1Service = new V1Feed(repo.Object, configuration.Object, null);
+
+            // Act
+            var result = v1Service.FindPackagesById("Foo");
+
+            // Assert
+            Assert.Equal(1, result.Count());
+            Assert.Equal("Foo", result.First().Id);
+            Assert.Equal("1.0.0", result.First().Version);
+            Assert.Equal("https://localhost:8081/packages/Foo/1.0.0", result.First().GalleryDetailsUrl);
+        }
+
+        [Fact]
+        public void V2FeedFindPackagesByIdReturnsUnlistedAndPrereleasePackages()
+        {
+            // Arrange
+            var packageRegistration = new PackageRegistration { Id = "Foo" };
+            var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            repo.Setup(r => r.GetAll()).Returns(new[] {
+                new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = false, DownloadStatistics = new List<PackageStatistics>() },
+                new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
+            }.AsQueryable());
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.SetupGet(c => c.SiteRoot).Returns("https://localhost:8081/");
+            var v2Service = new V2Feed(repo.Object, configuration.Object, null);
+
+            // Act
+            var result = v2Service.FindPackagesById("Foo");
+
+            // Assert
+            Assert.Equal(2, result.Count());
+            Assert.Equal("Foo", result.First().Id);
+            Assert.Equal("1.0.0", result.First().Version);
+
+            Assert.Equal("Foo", result.Last().Id);
+            Assert.Equal("1.0.1-a", result.Last().Version);
         }
     }
 }
