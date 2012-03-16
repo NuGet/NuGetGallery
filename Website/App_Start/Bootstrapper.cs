@@ -4,7 +4,7 @@ using System.Web.Routing;
 using Elmah.Contrib.Mvc;
 using NuGetGallery.Migrations;
 
-[assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.Bootstrapper), "Start")]
+[assembly: WebActivator.PostApplicationStartMethod(typeof(NuGetGallery.Bootstrapper), "Start")]
 namespace NuGetGallery
 {
     public static class Bootstrapper
