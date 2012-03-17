@@ -10,7 +10,7 @@ namespace NuGetGallery.Migrations
             AddColumn("Packages", "IsLatestStable", c => c.Boolean(nullable: false));
             AddColumn("Packages", "Listed", c => c.Boolean(nullable: false));
             AddColumn("Packages", "IsPrerelease", c => c.Boolean(nullable: false));
-            ChangeColumn("Packages", "Published", c => c.DateTime(nullable: false, defaultValue: DateTime.UtcNow));
+            AlterColumn("Packages", "Published", c => c.DateTime(nullable: false, defaultValue: DateTime.UtcNow));
             DropColumn("Packages", "IsAbsoluteLatest");
             DropColumn("Packages", "Unlisted");
         }
@@ -19,7 +19,7 @@ namespace NuGetGallery.Migrations
         {
             AddColumn("Packages", "Unlisted", c => c.Boolean(nullable: false));
             AddColumn("Packages", "IsAbsoluteLatest", c => c.Boolean(nullable: false));
-            ChangeColumn("Packages", "Published", c => c.DateTime());
+            AlterColumn("Packages", "Published", c => c.DateTime());
             DropColumn("Packages", "IsPrerelease");
             DropColumn("Packages", "Listed");
             DropColumn("Packages", "IsLatestStable");

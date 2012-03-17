@@ -1,4 +1,4 @@
-namespace NuGetGallery.Migrations.Migrations
+namespace NuGetGallery.Migrations
 {
     using System.Data.Entity.Migrations;
 
@@ -6,7 +6,7 @@ namespace NuGetGallery.Migrations.Migrations
     {
         public override void Up()
         {
-            ChangeColumn("PackageDependencies", "VersionRange", col => col.String(nullable: true));
+            AlterColumn("PackageDependencies", "VersionRange", col => col.String(nullable: true));
             RenameColumn("PackageDependencies", "VersionRange", "VersionSpec");
         }
 

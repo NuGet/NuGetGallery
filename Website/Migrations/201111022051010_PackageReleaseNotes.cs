@@ -1,4 +1,4 @@
-namespace NuGetGallery.Migrations.Migrations
+namespace NuGetGallery.Migrations
 {
     using System.Data.Entity.Migrations;
 

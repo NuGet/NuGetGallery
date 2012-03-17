@@ -1,9 +1,4 @@
-﻿using System.Configuration;
-using System.Data.Common;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
-using MvcMiniProfiler.Data;
+﻿using System.Data.Entity;
 using WebBackgrounder;
 
 namespace NuGetGallery
@@ -11,18 +6,12 @@ namespace NuGetGallery
     public class EntitiesContext : DbContext, IWorkItemsContext
     {
         public EntitiesContext()
-            : base(GetConnection("NuGetGallery"), contextOwnsConnection: true)
-        {
-        }
-
-        public EntitiesContext(string connectionStringName)
-            : base(connectionStringName)
+            : base("NuGetGallery")
         {
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Conventions.Remove<IncludeMetadataConvention>();
 
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Key);
@@ -38,7 +27,7 @@ namespace NuGetGallery
                 .Map(c => c
                     .ToTable("UserRoles")
                     .MapLeftKey("UserKey")
-                    .MapRightKey("RoleKey")); ;
+                    .MapRightKey("RoleKey"));
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
@@ -108,13 +97,6 @@ namespace NuGetGallery
         {
             get;
             set;
-        }
-
-        private static DbConnection GetConnection(string connectionStringName)
-        {
-            var setting = ConfigurationManager.ConnectionStrings[connectionStringName];
-            var connection = new SqlConnection(setting.ConnectionString);
-            return ProfiledDbConnection.Get(connection);
         }
     }
 }
