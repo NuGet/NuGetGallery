@@ -91,6 +91,28 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageOwnerRequest>()
                 .HasKey(por => por.Key);
+
+            modelBuilder.Entity<CuratedFeed>()
+               .HasKey(cf => cf.Key);
+
+            modelBuilder.Entity<CuratedFeed>()
+                .HasMany<CuratedPackage>(cf => cf.Packages)
+                .WithRequired(cp => cp.CuratedFeed)
+                .HasForeignKey(cp => cp.CuratedFeedKey);
+
+            modelBuilder.Entity<CuratedFeed>()
+                .HasMany<User>(cf => cf.Managers)
+                .WithMany()
+                .Map(c => c
+                    .ToTable("CuratedFeedManagers")
+                    .MapLeftKey("CuratedFeedKey")
+                    .MapRightKey("UserKey"));
+
+            modelBuilder.Entity<CuratedPackage>()
+                .HasKey(cp => cp.Key);
+
+            modelBuilder.Entity<CuratedPackage>()
+                .HasRequired<Package>(cp => cp.Package);
         }
 
         public IDbSet<WorkItem> WorkItems
