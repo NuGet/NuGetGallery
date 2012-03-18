@@ -115,6 +115,8 @@ namespace NuGetGallery
                 .HasRequired<Package>(cp => cp.Package);
         }
 
+        public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
+        public IDbSet<User> Users { get; set; } 
         public IDbSet<WorkItem> WorkItems
         {
             get;

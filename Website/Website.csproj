@@ -164,6 +164,7 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="App_Start\PackageStoreType.cs" />
+    <Compile Include="Controllers\AppController.cs" />
     <Compile Include="DataServices\V1FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -285,6 +286,8 @@
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Queries\CuratedFeedsByManagerKeyQuery.cs" />
+    <Compile Include="Queries\UserByUSernameQuery.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
@@ -302,6 +305,7 @@
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
+    <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />

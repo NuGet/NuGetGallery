@@ -164,6 +164,14 @@ namespace NuGetGallery
 
             Bind<IUploadFileService>()
                 .To<UploadFileService>();
+
+            // todo: bind all queries by convention
+            Bind<ICuratedFeedsByManagerQuery>()
+                .To<CuratedFeedsByManagerQuery>()
+                .InRequestScope();
+            Bind<IUserByUsernameQuery>()
+                .To<UserByUsernameQuery>()
+                .InRequestScope();
         }
     }
 }
