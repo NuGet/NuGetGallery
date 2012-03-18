@@ -45,8 +45,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
     </Reference>
-    <Reference Include="DynamicData.EFCodeFirstProvider">
-      <HintPath>..\packages\DynamicData.EFCodeFirstProvider.0.2\lib\net40\DynamicData.EFCodeFirstProvider.dll</HintPath>
+    <Reference Include="DynamicData.EFCodeFirstProvider, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\DynamicData.EFCodeFirstProvider.0.3.0.0\lib\net40\DynamicData.EFCodeFirstProvider.dll</HintPath>
     </Reference>
     <Reference Include="Elmah, Version=1.2.13605.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -763,7 +764,6 @@
     <Content Include="Views\Users\ResendConfirmation.cshtml">
     </Content>
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
-    <Content Include="Views\Shared\_MINIPROFILER UPDATED Layout.cshtml" />
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
