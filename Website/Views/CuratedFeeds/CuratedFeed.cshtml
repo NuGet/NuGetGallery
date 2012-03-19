@@ -1,0 +1,37 @@
+﻿@model CuratedFeedViewModel
+@{
+    ViewBag.Title = "Curated Feed: " + Model.Name;
+}
+<h1>Curated Feed: @Model.Name</h1>
+<h2>Managers</h2>
+<p>This is a list of NuGet Gallery users authorized to manage the curated feed. To add or remove manaegers, please contact the gallery operators.</p>
+<ul>
+    @foreach(var manager in Model.Managers)
+    {
+        <li>@manager</li>
+    }
+</ul>
+<h2>Included Packages</h2>
+<p>This is a list of all packages included in the curated feed, both manually and automatically added. To manually include a new package to the feed, click the "Include Package" link below. To remove a manually-curated package, click the "Remove" link next to it. To exclude an automatically-curated package, click the "Exclude" link next to it.</p>
+<p>@Html.RouteLink("Include Package", RouteName.CreateCuratedPackageForm, new { curatedFeedName = Model.Name })</p>
+<ul>
+    @foreach(var package in Model.IncludedPackages)
+    {
+        <li>
+            @if(package.AutomaticallyCurated)
+            {
+                <span>* </span>
+            }
+            @package.Id
+        </li>
+    }
+</ul>
+<p><em>* denotes automatically-curated packages</em></p>
+<h2>Excluded Packages</h2>
+<p>This is a list of all automatically-curated packages that have been subsequently manually ecxluded. To include the package in the curated feed, click the "Include" link next to the package.</p>
+<ul>
+    @foreach(var package in Model.ExcludedPackages)
+    {
+        <li>@package</li>
+    }
+</ul>

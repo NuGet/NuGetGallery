@@ -7,9 +7,11 @@
         public CuratedFeed CuratedFeed { get; set; }
         public int CuratedFeedKey { get; set; }
 
-        public Package Package { get; set; }
-        public int PackageKey { get; set; }
+        public PackageRegistration PackageRegistration { get; set; }
+        public int PackageRegistrationKey { get; set; }
 
+        public bool AutomaticallyCurated { get; set; }
+        public bool Included { get; set; }
         public string Notes { get; set; }
     }
 }

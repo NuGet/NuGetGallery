@@ -37,7 +37,7 @@ namespace NuGetGallery
                 .To<LuceneSearchService>()
                 .InRequestScope();
 
-            Bind<EntitiesContext>()
+            Bind<IEntitiesContext>()
                 .ToMethod(context => new EntitiesContext())
                 .InRequestScope();
 
@@ -165,9 +165,26 @@ namespace NuGetGallery
             Bind<IUploadFileService>()
                 .To<UploadFileService>();
 
+            // todo: bind all commands by convention
+            Bind<ICreatedCuratedPackageCommand>()
+                .To<CreatedCuratedPackageCommand>()
+                .InRequestScope();
+
             // todo: bind all queries by convention
+            Bind<ICuratedFeedByKeyQuery>()
+                .To<CuratedFeedByKeyQuery>()
+                .InRequestScope();
+            Bind<ICuratedFeedByNameQuery>()
+                .To<CuratedFeedByNameQuery>()
+                .InRequestScope();
             Bind<ICuratedFeedsByManagerQuery>()
                 .To<CuratedFeedsByManagerQuery>()
+                .InRequestScope();
+            Bind<IPackageRegistrationByKeyQuery>()
+                .To<PackageRegistrationByKeyQuery>()
+                .InRequestScope();
+            Bind<IPackageRegistrationByIdQuery>()
+                .To<PackageRegistrationByIdQuery>()
                 .InRequestScope();
             Bind<IUserByUsernameQuery>()
                 .To<UserByUsernameQuery>()

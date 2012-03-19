@@ -97,6 +97,21 @@ namespace NuGetGallery
                 "account/{action}",
                 MVC.Users.Account());
 
+            routes.MapRoute(
+                RouteName.CuratedFeed,
+                "curated-feeds/{name}",
+                new { controller = CuratedFeedsController.Name, action = "CuratedFeed" });
+
+            routes.MapRoute(
+                RouteName.CreateCuratedPackageForm,
+                "forms/add-package-to-curated-feed",
+                new { controller = CuratedPackagesController.Name, action = "CreateCuratedPackageForm" });
+
+            routes.MapRoute(
+                RouteName.CuratedPackages,
+                "curated-feeds/{curatedFeedName}/curated-packages",
+                new { controller = CuratedPackagesController.Name, action = "CuratedPackages" });
+
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
             // If the push url is /api/v1 then NuGet.Core would ping the path to resolve redirection. 

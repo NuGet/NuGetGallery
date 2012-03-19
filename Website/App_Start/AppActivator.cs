@@ -7,12 +7,12 @@ using System.Web.Routing;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
-using MvcMiniProfiler;
-using MvcMiniProfiler.MVCHelpers;
 using Ninject;
 using Ninject.Web.Mvc;
 using NuGetGallery.Jobs;
 using NuGetGallery.Migrations;
+using StackExchange.Profiling;
+using StackExchange.Profiling.MVCHelpers;
 using WebBackgrounder;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.AppActivator), "PreStart")]
@@ -88,7 +88,6 @@ namespace NuGetGallery
 
         private static void MiniProfilerPreStart()
         {
-            MiniProfiler.Settings.SqlFormatter = new MvcMiniProfiler.SqlFormatters.SqlServerFormatter();
             MiniProfilerEF.Initialize();
             DynamicModuleUtility.RegisterModule(typeof(MiniProfilerStartupModule));
             GlobalFilters.Filters.Add(new ProfilingActionFilter());

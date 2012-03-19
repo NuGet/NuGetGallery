@@ -464,7 +464,7 @@ namespace NuGetGallery
                 var controller = new TestableUsersController();
                 controller.StubCuratedFeedsByManagerQry
                     .Setup(stub => stub.Execute(It.IsAny<int>()))
-                    .Returns(new [] { new CuratedFeed { Id = "theCuratedFeed" } });
+                    .Returns(new [] { new CuratedFeed { Name = "theCuratedFeed" } });
 
                 var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
 

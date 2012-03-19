@@ -12,7 +12,7 @@ namespace NuGetGallery
 
         public int Key { get; set; }
 
-        public string Id { get; set; }
+        public string Name { get; set; }
         public virtual ICollection<User> Managers { get; set; }
         public virtual ICollection<CuratedPackage> Packages { get; set; }
     }

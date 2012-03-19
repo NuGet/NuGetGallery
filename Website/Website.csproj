@@ -83,15 +83,15 @@
     <Reference Include="Microsoft.WindowsAzure.StorageClient, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAzure.Storage.1.6\lib\net35-full\Microsoft.WindowsAzure.StorageClient.dll</HintPath>
     </Reference>
+    <Reference Include="MiniProfiler">
+      <HintPath>..\packages\MiniProfiler.2.0.0-rc1\lib\net40\MiniProfiler.dll</HintPath>
+    </Reference>
+    <Reference Include="MiniProfiler.EntityFramework">
+      <HintPath>..\packages\MiniProfiler.EF.2.0.1-rc1\lib\net40\MiniProfiler.EntityFramework.dll</HintPath>
+    </Reference>
     <Reference Include="MvcHaack.Ajax, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MvcHaack.Ajax.1.1\lib\net40\MvcHaack.Ajax.dll</HintPath>
-    </Reference>
-    <Reference Include="MvcMiniProfiler">
-      <HintPath>..\packages\MiniProfiler.1.9\lib\net40\MvcMiniProfiler.dll</HintPath>
-    </Reference>
-    <Reference Include="MvcMiniProfiler.EntityFramework">
-      <HintPath>..\packages\MiniProfiler.EF.1.9.1\lib\net40\MvcMiniProfiler.EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.2.2.1.4\lib\net40-Full\Ninject.dll</HintPath>
@@ -164,7 +164,11 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="App_Start\PackageStoreType.cs" />
+    <Compile Include="Commands\AppCommand.cs" />
+    <Compile Include="Commands\CreatedCuratedPackageCommand.cs" />
     <Compile Include="Controllers\AppController.cs" />
+    <Compile Include="Controllers\CuratedFeedsController.cs" />
+    <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="DataServices\V1FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -282,12 +286,25 @@
     <Compile Include="Migrations\201203180016174_CuratedFeeds.Designer.cs">
       <DependentUpon>201203180016174_CuratedFeeds.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201203180320147_ChangeCuratedFeedIdToName.cs" />
+    <Compile Include="Migrations\201203180320147_ChangeCuratedFeedIdToName.Designer.cs">
+      <DependentUpon>201203180320147_ChangeCuratedFeedIdToName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201203182132476_CuratedPackages.cs" />
+    <Compile Include="Migrations\201203182132476_CuratedPackages.Designer.cs">
+      <DependentUpon>201203182132476_CuratedPackages.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
+    <Compile Include="Queries\CuratedFeedByKeyQuery.cs" />
+    <Compile Include="Queries\CuratedFeedByNameQuery.cs" />
     <Compile Include="Queries\CuratedFeedsByManagerKeyQuery.cs" />
-    <Compile Include="Queries\UserByUSernameQuery.cs" />
+    <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
+    <Compile Include="Queries\UserByUsernameQuery.cs" />
+    <Compile Include="RequestModels\CreatedCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
@@ -306,6 +323,7 @@
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="ViewModels\AccountViewModel.cs" />
+    <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
@@ -775,6 +793,8 @@
     <Content Include="Views\Users\ResendConfirmation.cshtml">
     </Content>
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
+    <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
+    <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
     <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />

@@ -37,7 +37,7 @@ namespace NuGetGallery
             return View(new AccountViewModel
             {
                 ApiKey = user.ApiKey.ToString(),
-                CuratedFeeds = curatedFeeds.Select(cf => cf.Id),
+                CuratedFeeds = curatedFeeds.Select(cf => cf.Name),
             });
         }
 

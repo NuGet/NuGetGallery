@@ -12,23 +12,23 @@ namespace NuGetGallery
 
     public class UserByUsernameQuery : IUserByUsernameQuery
     {
-        private readonly EntitiesContext _dbContext;
+        private readonly IEntitiesContext _entities;
 
-        public UserByUsernameQuery(EntitiesContext dbContext)
+        public UserByUsernameQuery(IEntitiesContext entities)
         {
-            _dbContext = dbContext;
+            _entities = entities;
         }
 
         public User Execute(
             string username, 
             bool includeRoles = true)
         {
-            var users = _dbContext.Users;
+            var qry = _entities.Users.AsQueryable();
             
             if (includeRoles)
-                users.Include(u => u.Roles);
+                qry = qry.Include(u => u.Roles);
             
-            return users.SingleOrDefault(u => u.Username == username);
+            return qry.SingleOrDefault(u => u.Username == username);
         }
     }
 }

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Transactions;
-using MvcMiniProfiler;
 using NuGet;
+using StackExchange.Profiling;
 
 namespace NuGetGallery
 {

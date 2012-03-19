@@ -10,16 +10,16 @@ namespace NuGetGallery
 
     public class CuratedFeedsByManagerQuery : ICuratedFeedsByManagerQuery
     {
-        private readonly EntitiesContext _dbContext;
+        private readonly IEntitiesContext _entities;
 
-        public CuratedFeedsByManagerQuery(EntitiesContext dbContext)
+        public CuratedFeedsByManagerQuery(IEntitiesContext entities)
         {
-            _dbContext = dbContext;
+            _entities = entities;
         }
 
         public IEnumerable<CuratedFeed> Execute(int managerKey)
         {
-            return _dbContext.CuratedFeeds
+            return _entities.CuratedFeeds
                 .Where(cf => cf.Managers.Any(u => u.Key == managerKey));
         }
     }

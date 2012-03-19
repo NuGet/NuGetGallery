@@ -24,7 +24,7 @@
             <ul>
             @foreach(var curatedFeed in Model.CuratedFeeds)
             {
-                <li><a href="">@curatedFeed</a></li>
+                <li><a href="@Url.RouteUrl(RouteName.CuratedFeed, new { name = curatedFeed })">@curatedFeed</a></li>
             }
             </ul>
         </li>

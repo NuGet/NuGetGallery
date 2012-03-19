@@ -1,9 +1,20 @@
 ﻿using System.Data.Entity;
+using System.Linq;
 using WebBackgrounder;
 
 namespace NuGetGallery
 {
-    public class EntitiesContext : DbContext, IWorkItemsContext
+    public interface IEntitiesContext
+    {
+        int SaveChanges();
+        DbSet<T> Set<T>() where T : class;
+
+        IDbSet<CuratedFeed> CuratedFeeds { get; set; }
+        IDbSet<PackageRegistration> PackageRegistrations { get; set; }
+        IDbSet<User> Users { get; set; }        
+    }
+
+    public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
     {
         public EntitiesContext()
             : base("NuGetGallery")
@@ -112,10 +123,11 @@ namespace NuGetGallery
                 .HasKey(cp => cp.Key);
 
             modelBuilder.Entity<CuratedPackage>()
-                .HasRequired<Package>(cp => cp.Package);
+                .HasRequired(cp => cp.PackageRegistration);
         }
 
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
+        public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; } 
         public IDbSet<WorkItem> WorkItems
         {

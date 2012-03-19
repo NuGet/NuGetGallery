@@ -1,4 +1,5 @@
 ﻿@using NuGetGallery;
+@using StackExchange.Profiling
 <!DOCTYPE html> 
 <html lang="en" class="static "> 
     <head>
@@ -8,7 +9,7 @@
         <link href="@Url.Content("~/Content/site.css")" rel="stylesheet" />
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
         <script src="@Url.Content("~/Scripts/modernizr-2.0.6-development-only.js")"></script>
-        @MvcMiniProfiler.MiniProfiler.RenderIncludes()
+        @MiniProfiler.RenderIncludes()
         @Analytics.GetGoogleHtml("UA-177588-7")
     </head>
     <body>
