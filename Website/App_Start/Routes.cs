@@ -187,6 +187,11 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapServiceRoute(
+                RouteName.V2ApiCuratedFeed,
+                "api/v2/curated-feed",
+                typeof(V2CuratedFeed));
+
+            routes.MapServiceRoute(
                 RouteName.V2ApiFeed,
                 "api/v2/",
                 typeof(V2Feed));

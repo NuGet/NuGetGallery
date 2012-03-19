@@ -169,6 +169,9 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
+    <Compile Include="DataServices\V2CuratedFeed.svc.cs">
+      <DependentUpon>V2CuratedFeed.svc</DependentUpon>
+    </Compile>
     <Compile Include="DataServices\V1FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -683,6 +686,7 @@
     <Content Include="Content\Images\userIconWhite.png" />
     <Content Include="Content\Images\xmark.png" />
     <Content Include="Content\Images\sendMessageGraphic.png" />
+    <Content Include="DataServices\V2CuratedFeed.svc" />
     <Content Include="DataServices\V1Feed.svc" />
     <Content Include="DataServices\V2Feed.svc" />
     <Content Include="DynamicData\Content\GridViewPager.ascx" />
