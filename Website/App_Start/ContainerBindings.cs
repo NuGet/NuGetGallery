@@ -165,7 +165,14 @@ namespace NuGetGallery
             Bind<IUploadFileService>()
                 .To<UploadFileService>();
 
+            // todo: bind all package curators by convention
+            Bind<IAutomaticPackageCurator>()
+                .To<WebMatrixPackageCurator>();
+
             // todo: bind all commands by convention
+            Bind<IAutomaticallyCuratePackageCommand>()
+                .To<AutomaticallyCuratePackageCommand>()
+                .InRequestScope();
             Bind<ICreatedCuratedPackageCommand>()
                 .To<CreatedCuratedPackageCommand>()
                 .InRequestScope();

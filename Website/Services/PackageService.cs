@@ -251,8 +251,6 @@ namespace NuGetGallery
             if (package != null)
                 throw new EntityException("A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
 
-            // TODO: add flattened authors, and other properties
-            // TODO: add package size
             var now = DateTime.UtcNow;
             var packageFileStream = nugetPackage.GetStream();
 

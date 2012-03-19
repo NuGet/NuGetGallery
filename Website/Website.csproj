@@ -166,6 +166,7 @@
     <Compile Include="App_Start\PackageStoreType.cs" />
     <Compile Include="Commands\AppCommand.cs" />
     <Compile Include="Commands\CreatedCuratedPackageCommand.cs" />
+    <Compile Include="Commands\AutomaticallyCuratePackageCommand.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
@@ -298,6 +299,9 @@
       <DependentUpon>201203182132476_CuratedPackages.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
+    <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
+    <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />
+    <Compile Include="PackageCurators\WebMatrixPackageCurator.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
