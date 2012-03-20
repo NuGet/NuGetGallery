@@ -127,10 +127,5 @@ namespace NuGetGallery
 
             return new Uri(url, UriKind.Absolute);
         }
-
-        public bool IsReusable
-        {
-            get { throw new NotImplementedException(); }
-        }
     }
 }
