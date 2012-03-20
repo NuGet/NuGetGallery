@@ -174,7 +174,10 @@ namespace NuGetGallery
                 .To<AutomaticallyCuratePackageCommand>()
                 .InRequestScope();
             Bind<ICreatedCuratedPackageCommand>()
-                .To<CreatedCuratedPackageCommand>()
+                .To<CreateCuratedPackageCommand>()
+                .InRequestScope();
+            Bind<IDeleteCuratedPackageCommand>()
+                .To<DeleteCuratedPackageCommand>()
                 .InRequestScope();
             Bind<IModifyCuratedPackageCommand>()
                 .To<ModifyCuratedPackageCommand>()

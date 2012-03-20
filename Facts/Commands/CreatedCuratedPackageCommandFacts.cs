@@ -12,7 +12,7 @@ namespace NuGetGallery
             [Fact]
             public void WillThrowWhenCuratedFeedDoesNotExist()
             {
-                var cmd = new TestableCreatedCuratedPackageCommand();
+                var cmd = new TestableCreateCuratedPackageCommand();
                 cmd.StubCuratedFeedByKeyQry
                     .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
                     .Returns((CuratedFeed)null);
@@ -25,7 +25,7 @@ namespace NuGetGallery
             [Fact]
             public void WillThrowWhenPackageRegistrationDoesNotExist()
             {
-                var cmd = new TestableCreatedCuratedPackageCommand();
+                var cmd = new TestableCreateCuratedPackageCommand();
                 cmd.StubPackageRegistrationByKeyQuery
                     .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
                     .Returns((PackageRegistration)null);
@@ -38,7 +38,7 @@ namespace NuGetGallery
             [Fact]
             public void WillAddANewCuratedPackageToTheCuratedFeed()
             {
-                var cmd = new TestableCreatedCuratedPackageCommand();
+                var cmd = new TestableCreateCuratedPackageCommand();
                 cmd.StubPackageRegistration.Key = 1066;
 
                 cmd.Execute(
@@ -59,7 +59,7 @@ namespace NuGetGallery
             [Fact]
             public void WillSaveTheEntityChanges()
             {
-                var cmd = new TestableCreatedCuratedPackageCommand();
+                var cmd = new TestableCreateCuratedPackageCommand();
 
                 cmd.Execute(
                     0,
@@ -71,7 +71,7 @@ namespace NuGetGallery
             [Fact]
             public void WillReturnTheCreatedCuratedPackage()
             {
-                var cmd = new TestableCreatedCuratedPackageCommand();
+                var cmd = new TestableCreateCuratedPackageCommand();
                 cmd.StubPackageRegistration.Key = 1066;
 
                 var curatedPackage = cmd.Execute(
@@ -89,9 +89,9 @@ namespace NuGetGallery
             }
         }
 
-        public class TestableCreatedCuratedPackageCommand : CreatedCuratedPackageCommand
+        public class TestableCreateCuratedPackageCommand : CreateCuratedPackageCommand
         {
-            public TestableCreatedCuratedPackageCommand()
+            public TestableCreateCuratedPackageCommand()
                 :  base(null)
             {
                 StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName", };

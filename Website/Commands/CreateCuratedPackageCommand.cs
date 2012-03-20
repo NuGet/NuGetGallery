@@ -12,9 +12,9 @@ namespace NuGetGallery
             string notes = null);
     }
 
-    public class CreatedCuratedPackageCommand : AppCommand, ICreatedCuratedPackageCommand
+    public class CreateCuratedPackageCommand : AppCommand, ICreatedCuratedPackageCommand
     {
-        public CreatedCuratedPackageCommand(IEntitiesContext entities)
+        public CreateCuratedPackageCommand(IEntitiesContext entities)
             : base(entities)
         {
         }

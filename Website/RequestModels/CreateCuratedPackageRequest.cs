@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
-    public class CreatedCuratedPackageRequest
+    public class CreateCuratedPackageRequest
     {   
         [Required]
         [DisplayName("Package ID")]

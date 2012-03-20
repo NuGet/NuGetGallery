@@ -8,8 +8,8 @@ namespace NuGetGallery
     {
         public const string Name = "CuratedPackages";
 
-        [HttpGet]
-        public ActionResult CreateCuratedPackageForm(string curatedFeedName)
+        [ActionName("CreateCuratedPackageForm"), HttpGet]
+        public ActionResult GetCreateCuratedPackageForm(string curatedFeedName)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName);
             if (curatedFeed == null)
@@ -22,10 +22,61 @@ namespace NuGetGallery
             return View();
         }
 
-        [HttpPost]
-        public ActionResult CuratedPackages(
+        [ActionName("CuratedPackage"), HttpDelete]
+        public ActionResult DeleteCuratedPackage(
             string curatedFeedName,
-            CreatedCuratedPackageRequest request)
+            string curatedPackageId)
+        {
+            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
+            if (curatedFeed == null)
+                return HttpNotFound();
+
+            var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.PackageRegistration.Id == curatedPackageId);
+            if (curatedPackage == null)
+                return HttpNotFound();
+
+            if (!curatedFeed.Managers.Any(manager => manager.Username == Identity.Name))
+                return new HttpStatusCodeResult(403);
+
+            GetService<IDeleteCuratedPackageCommand>().Execute(
+                curatedFeed.Key,
+                curatedPackage.Key);
+
+            return new HttpStatusCodeResult(204);
+        }
+
+        [ActionName("CuratedPackage"), AcceptVerbs("patch")]
+        public ActionResult PatchCuratedPackage(
+            string curatedFeedName,
+            string curatedPackageId,
+            ModifyCuratedPackageRequest request)
+        {
+            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
+            if (curatedFeed == null)
+                return HttpNotFound();
+
+            var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.PackageRegistration.Id == curatedPackageId);
+            if (curatedPackage == null)
+                return HttpNotFound();
+
+            if (!curatedFeed.Managers.Any(manager => manager.Username == Identity.Name))
+                return new HttpStatusCodeResult(403);
+
+            if (!ModelState.IsValid)
+                return new HttpStatusCodeResult(400);
+
+            GetService<IModifyCuratedPackageCommand>().Execute(
+                curatedFeed.Key,
+                curatedPackage.Key,
+                request.Included);
+
+            return new HttpStatusCodeResult(200);
+        }
+
+        [ActionName("CuratedPackages"), HttpPost]
+        public ActionResult PostCuratedPackages(
+            string curatedFeedName,
+            CreateCuratedPackageRequest request)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
@@ -54,34 +105,6 @@ namespace NuGetGallery
                 notes: request.Notes);
 
             return RedirectToRoute(RouteName.CuratedFeed, new { name = curatedFeed.Name });
-        }
-
-        [AcceptVerbs("patch")]
-        public ActionResult CuratedPackage(
-            string curatedFeedName,
-            string curatedPackageId,
-            ModifyCuratedPackageRequest request)
-        {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
-            if (curatedFeed == null)
-                return HttpNotFound();
-
-            var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.PackageRegistration.Id == curatedPackageId);
-            if (curatedPackage == null)
-                return HttpNotFound();
-
-            if (!curatedFeed.Managers.Any(manager => manager.Username == Identity.Name))
-                return new HttpStatusCodeResult(403);
-
-            if (!ModelState.IsValid)
-                return new HttpStatusCodeResult(400);
-
-            GetService<IModifyCuratedPackageCommand>().Execute(
-                curatedFeed.Key,
-                curatedPackage.Key,
-                request.Included);
-
-            return new HttpStatusCodeResult(200);
         }
     }
 }

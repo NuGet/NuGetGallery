@@ -17,7 +17,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.StubCuratedFeedByNameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
 
-                var result = controller.CreateCuratedPackageForm("aFeedName");
+                var result = controller.GetCreateCuratedPackageForm("aFeedName");
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
@@ -28,7 +28,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
 
-                var result = controller.CreateCuratedPackageForm("aFeedName") as HttpStatusCodeResult;
+                var result = controller.GetCreateCuratedPackageForm("aFeedName") as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(403, result.StatusCode);
@@ -40,7 +40,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.StubCuratedFeed.Name = "theCuratedFeedName";
 
-                var result = controller.CreateCuratedPackageForm("aFeedName") as ViewResult;
+                var result = controller.GetCreateCuratedPackageForm("aFeedName") as ViewResult;
 
                 Assert.NotNull(result);
                 Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
@@ -65,7 +65,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.StubCuratedFeedByNameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
 
-                var result = controller.CuratedPackages("aFeedName", new CreatedCuratedPackageRequest());
+                var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest());
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
@@ -76,7 +76,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
 
-                var result = controller.CuratedPackages("aFeedName", new CreatedCuratedPackageRequest()) as HttpStatusCodeResult;
+                var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest()) as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(403, result.StatusCode);
@@ -89,7 +89,7 @@ namespace NuGetGallery
                 controller.StubCuratedFeed.Name = "theCuratedFeedName";
                 controller.ModelState.AddModelError("", "anError");
 
-                var result = controller.CuratedPackages("aFeedName", new CreatedCuratedPackageRequest()) as ViewResult;
+                var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest()) as ViewResult;
 
                 Assert.NotNull(result);
                 Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
@@ -103,7 +103,7 @@ namespace NuGetGallery
                 controller.StubCuratedFeed.Name = "theCuratedFeedName";
                 controller.StubPackageRegistrationByIdQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((PackageRegistration)null);
 
-                var result = controller.CuratedPackages("aFeedName", new CreatedCuratedPackageRequest()) as ViewResult;
+                var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest()) as ViewResult;
 
                 Assert.NotNull(result);
                 Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
@@ -118,9 +118,9 @@ namespace NuGetGallery
                 controller.StubCuratedFeed.Key = 42;
                 controller.StubPackageRegistration.Key = 1066;
 
-                controller.CuratedPackages(
+                controller.PostCuratedPackages(
                     "aFeedName", 
-                    new CreatedCuratedPackageRequest
+                    new CreateCuratedPackageRequest
                     {
                         PackageId = "thePackageId", Notes = "theNotes"
                     });
@@ -138,7 +138,7 @@ namespace NuGetGallery
             {
                 var controller = new TestableCuratedPackagesController();
 
-                var result = controller.CuratedPackages("aFeedName", new CreatedCuratedPackageRequest()) as RedirectToRouteResult;
+                var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest()) as RedirectToRouteResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(RouteName.CuratedFeed, result.RouteName);
@@ -166,7 +166,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.StubCuratedFeedByNameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
 
-                var result = controller.CuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest());
+                var result = controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest());
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
@@ -177,7 +177,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.StubCuratedFeed.Packages = new[] { new CuratedPackage { PackageRegistration = new PackageRegistration() } };
 
-                var result = controller.CuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest());
+                var result = controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest());
 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
@@ -188,7 +188,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.StubCuratedFeed.Managers = new[] {new User {Username = "notAManager"}};
 
-                var result = controller.CuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
+                var result = controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(403, result.StatusCode);
@@ -200,7 +200,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.ModelState.AddModelError("", "anError");
 
-                var result = controller.CuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
+                var result = controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(400, result.StatusCode);
@@ -213,7 +213,7 @@ namespace NuGetGallery
                 controller.StubCuratedFeed.Key = 42;
                 controller.StubCuratedFeed.Packages = new[] { new CuratedPackage { Key = 1066, PackageRegistration = new PackageRegistration { Id = "theCuratedPackageId" } } };
 
-                controller.CuratedPackage("theCuratedFeedName", "theCuratedPackageId", new ModifyCuratedPackageRequest{ Included = true});
+                controller.PatchCuratedPackage("theCuratedFeedName", "theCuratedPackageId", new ModifyCuratedPackageRequest{ Included = true});
 
                 controller.StubModifyCuratedPackageCommand.Verify(stub => stub.Execute(
                     42,
@@ -234,6 +234,80 @@ namespace NuGetGallery
             }
         }
 
+        public class TheDeleteCuratedPackageAction
+        {
+            [Fact]
+            public void WillReturn404IfTheCuratedFeedDoesNotExist()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeedByNameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+
+                var result = controller.DeleteCuratedPackage("aCuratedFeedName", "aCuratedPackageId");
+
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public void WillReturn404IfTheCuratedPackageDoesNotExist()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Packages = new[] { new CuratedPackage { PackageRegistration = new PackageRegistration() } };
+
+                var result = controller.DeleteCuratedPackage("aCuratedFeedName", "aCuratedPackageId");
+
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public void WillReturn403IfTheCuratedPackageDoesNotExist()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Managers = new[] { new User { Username = "notAManager" } };
+
+                var result = controller.DeleteCuratedPackage("aCuratedFeedName", "aCuratedPackageId") as HttpStatusCodeResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(403, result.StatusCode);
+            }
+
+            [Fact]
+            public void WillDeleteTheCuratedPackageWhenRequestIsValid()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Key = 42;
+                controller.StubCuratedFeed.Packages = new[] { new CuratedPackage { Key = 1066, PackageRegistration = new PackageRegistration { Id = "theCuratedPackageId" } } };
+
+                controller.DeleteCuratedPackage("theCuratedFeedName", "theCuratedPackageId");
+
+                controller.StubDeleteCuratedPackageCommand.Verify(stub => stub.Execute(
+                    42,
+                    1066));
+            }
+
+            [Fact]
+            public void WillReturn204AfterDeletingTheCuratedPackage()
+            {
+                var controller = new TestableCuratedPackagesController();
+
+                var result = controller.DeleteCuratedPackage("aCuratedFeedName", "aCuratedPackageId") as HttpStatusCodeResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(204, result.StatusCode);
+            }
+
+            public class TestableCuratedPackagesController : TestableCuratedPackagesControllerBase
+            {
+                public TestableCuratedPackagesController()
+                {
+                    StubCuratedFeed.Managers = new[] { new User { Username = "aUsername" } };
+                    StubCuratedFeed.Packages = new[] { new CuratedPackage { PackageRegistration = new PackageRegistration { Id = "aCuratedPackageId" } } };
+                    StubCuratedFeedByNameQry
+                        .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                        .Returns(StubCuratedFeed);
+                }
+            }
+        }
+
         public abstract class TestableCuratedPackagesControllerBase : CuratedPackagesController
         {
             protected TestableCuratedPackagesControllerBase()
@@ -241,6 +315,7 @@ namespace NuGetGallery
                 StubCreatedCuratedPackageCmd = new Mock<ICreatedCuratedPackageCommand>();
                 StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName", Managers = new HashSet<User>( new []{ new User { Username = "aUsername" } }) };
                 StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
+                StubDeleteCuratedPackageCommand = new Mock<IDeleteCuratedPackageCommand>();
                 StubIdentity = new Mock<IIdentity>();
                 StubModifyCuratedPackageCommand = new Mock<IModifyCuratedPackageCommand>();
                 StubPackageRegistration = new PackageRegistration { Key = 0, Id = "anId" };
@@ -253,6 +328,7 @@ namespace NuGetGallery
             public Mock<ICreatedCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
             public CuratedFeed StubCuratedFeed { get; set; }
             public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
+            public Mock<IDeleteCuratedPackageCommand> StubDeleteCuratedPackageCommand { get; private set; }
             public Mock<IIdentity> StubIdentity { get; private set; }
             public Mock<IModifyCuratedPackageCommand> StubModifyCuratedPackageCommand { get; private set; }
             public PackageRegistration StubPackageRegistration { get; private set; }
@@ -271,6 +347,9 @@ namespace NuGetGallery
                 if (typeof(T) == typeof(ICuratedFeedByNameQuery))
                     return (T)StubCuratedFeedByNameQry.Object;
 
+                if (typeof(T) == typeof(IDeleteCuratedPackageCommand))
+                    return (T)StubDeleteCuratedPackageCommand.Object;
+                
                 if (typeof(T) == typeof(IModifyCuratedPackageCommand))
                     return (T)StubModifyCuratedPackageCommand.Object;
 

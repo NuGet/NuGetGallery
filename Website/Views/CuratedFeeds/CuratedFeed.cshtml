@@ -5,6 +5,20 @@
 @section TopScripts {
     <script>
         var urlFormat = "@Url.RouteUrl(RouteName.CuratedPackage, new { curatedFeedName = Model.Name, curatedPackageId = "PACKAGE_ID" })";
+        
+        function deleteCuratedPackage(packageId) {
+            $.ajax({
+                type: 'delete',
+                url: urlFormat.replace("PACKAGE_ID", packageId)
+            })
+                .error(function(jqXhr, textStatus, errorThrown) {
+                    alert("Error: " + errorThrown);
+                })
+                .complete(function () {
+                    location.reload();
+                });
+        }
+        
         function patchCuratedPackage(packageId, included) {
             $.ajax({
                 type: 'patch',
@@ -20,6 +34,12 @@
                 });
         }
 
+        $(document).ready(function() {
+            $(".remove-link").click(function() {
+                deleteCuratedPackage($(this).data("package-id"));
+            });
+        });
+        
         $(document).ready(function() {
             $(".exclude-link").click(function() {
                 patchCuratedPackage($(this).data("package-id"), false);
@@ -57,7 +77,7 @@
             }
             else
             {
-
+                <a href="#" class="remove-link" data-package-id="@package.Id">Remove</a>
             }
         </li>
     }

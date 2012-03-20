@@ -10,6 +10,7 @@ namespace NuGetGallery
         DbSet<T> Set<T>() where T : class;
 
         IDbSet<CuratedFeed> CuratedFeeds { get; set; }
+        IDbSet<CuratedPackage> CuratedPackages { get; set; }
         IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         IDbSet<User> Users { get; set; }        
     }
@@ -23,7 +24,6 @@ namespace NuGetGallery
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Key);
 
@@ -127,6 +127,7 @@ namespace NuGetGallery
         }
 
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
+        public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; } 
         public IDbSet<WorkItem> WorkItems

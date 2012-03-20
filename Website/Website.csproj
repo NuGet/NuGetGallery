@@ -165,8 +165,9 @@
     </Compile>
     <Compile Include="App_Start\PackageStoreType.cs" />
     <Compile Include="Commands\AppCommand.cs" />
+    <Compile Include="Commands\DeleteCuratedPackageCommand.cs" />
     <Compile Include="Commands\ModifyCuratedPackageCommand.cs" />
-    <Compile Include="Commands\CreatedCuratedPackageCommand.cs" />
+    <Compile Include="Commands\CreateCuratedPackageCommand.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommand.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
@@ -313,7 +314,7 @@
     <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
     <Compile Include="Queries\UserByUsernameQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
-    <Compile Include="RequestModels\CreatedCuratedPackageRequest.cs" />
+    <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
