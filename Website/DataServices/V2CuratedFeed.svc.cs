@@ -3,9 +3,11 @@ using System.Data.Entity;
 using System.Data.Services;
 using System.Linq;
 using System.ServiceModel.Web;
+using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Microsoft.WindowsAzure.StorageClient;
 
 namespace NuGetGallery
 {
@@ -43,12 +45,13 @@ namespace NuGetGallery
 
         public IQueryable<Package> GetPackages()
         {
-            string curatedFeed = HttpContext.Current.Request.QueryString["name"];
+            string curatedFeedName = HttpContext.Current.Request.QueryString["name"];
+            var curatedFeed = Entities.CuratedFeeds.SingleOrDefault(cf => cf.Name == curatedFeedName);
             if (curatedFeed == null)
-                throw new Exception();
+                throw new DataServiceException(404, "Not Found");  
 
             return Entities.CuratedFeeds
-                .Where(cf => cf.Name == curatedFeed)
+                .Where(cf => cf.Name == curatedFeedName)
                 .Include(cf => cf.Packages.Select(cp => cp.PackageRegistration.Packages))
                 .SelectMany(cf => cf.Packages.SelectMany(cp => cp.PackageRegistration.Packages.Select(p => p)));
         }
