@@ -70,7 +70,7 @@ namespace NuGetGallery
                 curatedPackage.Key,
                 request.Included);
 
-            return new HttpStatusCodeResult(200);
+            return new HttpStatusCodeResult(204);
         }
 
         [ActionName("CuratedPackages"), HttpPost]

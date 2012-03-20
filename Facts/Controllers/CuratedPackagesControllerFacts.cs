@@ -221,6 +221,17 @@ namespace NuGetGallery
                     true));
             }
 
+            [Fact]
+            public void WillReturn204AfterModifyingTheCuratedPackage()
+            {
+                var controller = new TestableCuratedPackagesController();
+
+                var result = controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(204, result.StatusCode);
+            }
+
             public class TestableCuratedPackagesController : TestableCuratedPackagesControllerBase
             {
                 public TestableCuratedPackagesController()
