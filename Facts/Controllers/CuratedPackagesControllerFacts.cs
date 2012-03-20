@@ -215,7 +215,7 @@ namespace NuGetGallery
 
                 controller.PatchCuratedPackage("theCuratedFeedName", "theCuratedPackageId", new ModifyCuratedPackageRequest{ Included = true});
 
-                controller.StubModifyCuratedPackageCommand.Verify(stub => stub.Execute(
+                controller.StubModifyCuratedPackageCmd.Verify(stub => stub.Execute(
                     42,
                     1066,
                     true));
@@ -290,7 +290,7 @@ namespace NuGetGallery
 
                 controller.DeleteCuratedPackage("theCuratedFeedName", "theCuratedPackageId");
 
-                controller.StubDeleteCuratedPackageCommand.Verify(stub => stub.Execute(
+                controller.StubDeleteCuratedPackageCmd.Verify(stub => stub.Execute(
                     42,
                     1066));
             }
@@ -326,9 +326,9 @@ namespace NuGetGallery
                 StubCreatedCuratedPackageCmd = new Mock<ICreateCuratedPackageCommand>();
                 StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName", Managers = new HashSet<User>( new []{ new User { Username = "aUsername" } }) };
                 StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
-                StubDeleteCuratedPackageCommand = new Mock<IDeleteCuratedPackageCommand>();
+                StubDeleteCuratedPackageCmd = new Mock<IDeleteCuratedPackageCommand>();
                 StubIdentity = new Mock<IIdentity>();
-                StubModifyCuratedPackageCommand = new Mock<IModifyCuratedPackageCommand>();
+                StubModifyCuratedPackageCmd = new Mock<IModifyCuratedPackageCommand>();
                 StubPackageRegistration = new PackageRegistration { Key = 0, Id = "anId" };
                 StubPackageRegistrationByIdQry = new Mock<IPackageRegistrationByIdQuery>();
 
@@ -339,9 +339,9 @@ namespace NuGetGallery
             public Mock<ICreateCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
             public CuratedFeed StubCuratedFeed { get; set; }
             public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
-            public Mock<IDeleteCuratedPackageCommand> StubDeleteCuratedPackageCommand { get; private set; }
+            public Mock<IDeleteCuratedPackageCommand> StubDeleteCuratedPackageCmd { get; private set; }
             public Mock<IIdentity> StubIdentity { get; private set; }
-            public Mock<IModifyCuratedPackageCommand> StubModifyCuratedPackageCommand { get; private set; }
+            public Mock<IModifyCuratedPackageCommand> StubModifyCuratedPackageCmd { get; private set; }
             public PackageRegistration StubPackageRegistration { get; private set; }
             public Mock<IPackageRegistrationByIdQuery> StubPackageRegistrationByIdQry { get; private set; }
 
@@ -359,10 +359,10 @@ namespace NuGetGallery
                     return (T)StubCuratedFeedByNameQry.Object;
 
                 if (typeof(T) == typeof(IDeleteCuratedPackageCommand))
-                    return (T)StubDeleteCuratedPackageCommand.Object;
+                    return (T)StubDeleteCuratedPackageCmd.Object;
                 
                 if (typeof(T) == typeof(IModifyCuratedPackageCommand))
-                    return (T)StubModifyCuratedPackageCommand.Object;
+                    return (T)StubModifyCuratedPackageCmd.Object;
 
                 if (typeof(T) == typeof(IPackageRegistrationByIdQuery))
                     return (T)StubPackageRegistrationByIdQry.Object;

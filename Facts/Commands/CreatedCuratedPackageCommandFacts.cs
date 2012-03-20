@@ -26,7 +26,7 @@ namespace NuGetGallery
             public void WillThrowWhenPackageRegistrationDoesNotExist()
             {
                 var cmd = new TestableCreateCuratedPackageCommand();
-                cmd.StubPackageRegistrationByKeyQuery
+                cmd.StubPackageRegistrationByKeyQry
                     .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
                     .Returns((PackageRegistration)null);
 
@@ -98,12 +98,12 @@ namespace NuGetGallery
                 StubCuratedFeedByKeyQry = new Mock<ICuratedFeedByKeyQuery>();
                 StubEntitiesContext = new Mock<IEntitiesContext>();
                 StubPackageRegistration = new PackageRegistration { Key = 0, };
-                StubPackageRegistrationByKeyQuery = new Mock<IPackageRegistrationByKeyQuery>();
+                StubPackageRegistrationByKeyQry = new Mock<IPackageRegistrationByKeyQuery>();
 
                 StubCuratedFeedByKeyQry
                    .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
                    .Returns(StubCuratedFeed);
-                StubPackageRegistrationByKeyQuery
+                StubPackageRegistrationByKeyQry
                     .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
                     .Returns(StubPackageRegistration);
                 
@@ -114,7 +114,7 @@ namespace NuGetGallery
             public Mock<ICuratedFeedByKeyQuery> StubCuratedFeedByKeyQry { get; set; }
             public Mock<IEntitiesContext> StubEntitiesContext { get; private set; }
             public PackageRegistration StubPackageRegistration { get; set; }
-            public Mock<IPackageRegistrationByKeyQuery> StubPackageRegistrationByKeyQuery { get; set; }
+            public Mock<IPackageRegistrationByKeyQuery> StubPackageRegistrationByKeyQry { get; set; }
 
             protected override T GetService<T>()
             {
@@ -122,7 +122,7 @@ namespace NuGetGallery
                     return (T) StubCuratedFeedByKeyQry.Object;
 
                 if (typeof(T) == typeof(IPackageRegistrationByKeyQuery))
-                    return (T) StubPackageRegistrationByKeyQuery.Object;
+                    return (T) StubPackageRegistrationByKeyQry.Object;
 
                 throw new Exception("Tried to get unexpected service");
             }
