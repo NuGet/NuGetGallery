@@ -93,6 +93,7 @@
   <ItemGroup>
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="Commands\CreatedCuratedPackageCommandFacts.cs" />
+    <Compile Include="Commands\ModifyCuratedPackageCommandFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
     <Compile Include="Controllers\CuratedFeedsControllerFacts.cs" />

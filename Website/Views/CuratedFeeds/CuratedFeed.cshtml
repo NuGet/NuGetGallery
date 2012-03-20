@@ -2,6 +2,37 @@
 @{
     ViewBag.Title = "Curated Feed: " + Model.Name;
 }
+@section TopScripts {
+    <script>
+        var urlFormat = "@Url.RouteUrl(RouteName.CuratedPackage, new { curatedFeedName = Model.Name, curatedPackageId = "PACKAGE_ID" })";
+        function patchCuratedPackage(packageId, included) {
+            $.ajax({
+                type: 'patch',
+                url: urlFormat.replace("PACKAGE_ID", packageId),
+                data: { included: included },
+                dataType: 'json'
+            })
+                .error(function(jqXhr, textStatus, errorThrown) {
+                    alert("Error: " + errorThrown);
+                })
+                .complete(function () {
+                    location.reload();
+                });
+        }
+
+        $(document).ready(function() {
+            $(".exclude-link").click(function() {
+                patchCuratedPackage($(this).data("package-id"), false);
+            });
+        });
+        
+         $(document).ready(function() {
+            $(".include-link").click(function() {
+                patchCuratedPackage($(this).data("package-id"), true);
+            });
+        });
+    </script>
+}
 <h1>Curated Feed: @Model.Name</h1>
 <h2>Managers</h2>
 <p>This is a list of NuGet Gallery users authorized to manage the curated feed. To add or remove manaegers, please contact the gallery operators.</p>
@@ -18,11 +49,16 @@
     @foreach(var package in Model.IncludedPackages)
     {
         <li>
+            @package.Id
             @if(package.AutomaticallyCurated)
             {
-                <span>* </span>
+                <span> *</span>
+                <a href="#" class="exclude-link" data-package-id="@package.Id">Exclude</a>
             }
-            @package.Id
+            else
+            {
+
+            }
         </li>
     }
 </ul>
@@ -30,8 +66,12 @@
 <h2>Excluded Packages</h2>
 <p>This is a list of all automatically-curated packages that have been subsequently manually ecxluded. To include the package in the curated feed, click the "Include" link next to the package.</p>
 <ul>
-    @foreach(var package in Model.ExcludedPackages)
+    @foreach (var package in Model.ExcludedPackages)
     {
-        <li>@package</li>
+        <li>
+            @package
+            <a href="#" class="include-link" data-package-id="@package">Include</a>
+        </li>
+        
     }
 </ul>

@@ -55,5 +55,33 @@ namespace NuGetGallery
 
             return RedirectToRoute(RouteName.CuratedFeed, new { name = curatedFeed.Name });
         }
+
+        [AcceptVerbs("patch")]
+        public ActionResult CuratedPackage(
+            string curatedFeedName,
+            string curatedPackageId,
+            ModifyCuratedPackageRequest request)
+        {
+            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
+            if (curatedFeed == null)
+                return HttpNotFound();
+
+            var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.PackageRegistration.Id == curatedPackageId);
+            if (curatedPackage == null)
+                return HttpNotFound();
+
+            if (!curatedFeed.Managers.Any(manager => manager.Username == Identity.Name))
+                return new HttpStatusCodeResult(403);
+
+            if (!ModelState.IsValid)
+                return new HttpStatusCodeResult(400);
+
+            GetService<IModifyCuratedPackageCommand>().Execute(
+                curatedFeed.Key,
+                curatedPackage.Key,
+                request.Included);
+
+            return new HttpStatusCodeResult(200);
+        }
     }
 }

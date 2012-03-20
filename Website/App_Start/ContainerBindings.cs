@@ -176,6 +176,9 @@ namespace NuGetGallery
             Bind<ICreatedCuratedPackageCommand>()
                 .To<CreatedCuratedPackageCommand>()
                 .InRequestScope();
+            Bind<IModifyCuratedPackageCommand>()
+                .To<ModifyCuratedPackageCommand>()
+                .InRequestScope();
 
             // todo: bind all queries by convention
             Bind<ICuratedFeedByKeyQuery>()
