@@ -33,7 +33,7 @@ namespace NuGetGallery
             }
 
             if (shouldBeIncluded)
-                GetService<ICreatedCuratedPackageCommand>().Execute(
+                GetService<ICreateCuratedPackageCommand>().Execute(
                     curatedFeed.Key,
                     galleryPackage.PackageRegistration.Key,
                     automaticallyCurated: true);

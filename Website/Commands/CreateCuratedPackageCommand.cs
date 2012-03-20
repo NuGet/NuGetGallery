@@ -2,7 +2,7 @@
 
 namespace NuGetGallery
 {
-    public interface ICreatedCuratedPackageCommand
+    public interface ICreateCuratedPackageCommand
     {
         CuratedPackage Execute(
             int curatedFeedKey, 
@@ -12,7 +12,7 @@ namespace NuGetGallery
             string notes = null);
     }
 
-    public class CreateCuratedPackageCommand : AppCommand, ICreatedCuratedPackageCommand
+    public class CreateCuratedPackageCommand : AppCommand, ICreateCuratedPackageCommand
     {
         public CreateCuratedPackageCommand(IEntitiesContext entities)
             : base(entities)

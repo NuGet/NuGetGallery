@@ -216,7 +216,7 @@ namespace NuGetGallery.PackageCurators
         {
             public TestableWebMatrixPackageCurator()
             {
-                StubCreatedCuratedPackageCmd = new Mock<ICreatedCuratedPackageCommand>();
+                StubCreatedCuratedPackageCmd = new Mock<ICreateCuratedPackageCommand>();
                 StubCuratedFeed = new CuratedFeed { Key = 0 };
                 StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
 
@@ -225,13 +225,13 @@ namespace NuGetGallery.PackageCurators
                     .Returns(StubCuratedFeed);
             }
 
-            public Mock<ICreatedCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
+            public Mock<ICreateCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
             public CuratedFeed StubCuratedFeed { get; private set; }
             public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
 
             protected override T GetService<T>()
             {
-                if (typeof(T) == typeof(ICreatedCuratedPackageCommand))
+                if (typeof(T) == typeof(ICreateCuratedPackageCommand))
                     return (T)StubCreatedCuratedPackageCmd.Object;
                 
                 if (typeof(T) == typeof(ICuratedFeedByNameQuery))

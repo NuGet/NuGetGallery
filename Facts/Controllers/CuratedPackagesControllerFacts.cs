@@ -323,7 +323,7 @@ namespace NuGetGallery
         {
             protected TestableCuratedPackagesControllerBase()
             {
-                StubCreatedCuratedPackageCmd = new Mock<ICreatedCuratedPackageCommand>();
+                StubCreatedCuratedPackageCmd = new Mock<ICreateCuratedPackageCommand>();
                 StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName", Managers = new HashSet<User>( new []{ new User { Username = "aUsername" } }) };
                 StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
                 StubDeleteCuratedPackageCommand = new Mock<IDeleteCuratedPackageCommand>();
@@ -336,7 +336,7 @@ namespace NuGetGallery
                 StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
             }
 
-            public Mock<ICreatedCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
+            public Mock<ICreateCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
             public CuratedFeed StubCuratedFeed { get; set; }
             public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
             public Mock<IDeleteCuratedPackageCommand> StubDeleteCuratedPackageCommand { get; private set; }
@@ -352,7 +352,7 @@ namespace NuGetGallery
 
             protected override T GetService<T>()
             {
-                if (typeof(T) == typeof(ICreatedCuratedPackageCommand))
+                if (typeof(T) == typeof(ICreateCuratedPackageCommand))
                     return (T)StubCreatedCuratedPackageCmd.Object;
                 
                 if (typeof(T) == typeof(ICuratedFeedByNameQuery))

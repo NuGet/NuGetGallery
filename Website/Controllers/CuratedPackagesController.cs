@@ -99,7 +99,7 @@ namespace NuGetGallery
                 return View("CreateCuratedPackageForm");
             }
 
-            GetService<ICreatedCuratedPackageCommand>().Execute(
+            GetService<ICreateCuratedPackageCommand>().Execute(
                 curatedFeed.Key,
                 packageRegistration.Key,
                 notes: request.Notes);
