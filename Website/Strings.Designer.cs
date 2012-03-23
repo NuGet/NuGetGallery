@@ -124,6 +124,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package is already curated..
+        /// </summary>
+        public static string PackageIsAlreadyCurated {
+            get {
+                return ResourceManager.GetString("PackageIsAlreadyCurated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; does not exist..
         /// </summary>
         public static string PackageWithIdAndVersionNotFound {

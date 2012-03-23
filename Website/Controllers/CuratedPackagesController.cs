@@ -99,6 +99,13 @@ namespace NuGetGallery
                 return View("CreateCuratedPackageForm");
             }
 
+            if (curatedFeed.Packages.Any(cp => cp.PackageRegistration.Key == packageRegistration.Key))
+            {
+                ModelState.AddModelError("PackageId", Strings.PackageIsAlreadyCurated);
+                ViewBag.CuratedFeedName = curatedFeed.Name;
+                return View("CreateCuratedPackageForm");
+            }
+
             GetService<ICreateCuratedPackageCommand>().Execute(
                 curatedFeed.Key,
                 packageRegistration.Key,

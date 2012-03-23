@@ -143,7 +143,23 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal(RouteName.CuratedFeed, result.RouteName);
             }
-            
+
+            [Fact]
+            public void WillShowAnErrorWhenThePackageHasAlreadyBeenCurated()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Name = "theCuratedFeedName";
+                controller.StubCuratedFeed.Packages.Add(new CuratedPackage{ PackageRegistration  = new PackageRegistration{ Key = 42 } });
+                controller.StubPackageRegistrationByIdQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((new PackageRegistration{ Key = 42 }));
+
+                var result = controller.PostCuratedPackages("theCuratedFeedName", new CreateCuratedPackageRequest()) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
+                Assert.Equal(Strings.PackageIsAlreadyCurated, controller.ModelState["PackageId"].Errors[0].ErrorMessage);
+                Assert.Equal("CreateCuratedPackageForm", result.ViewName);
+            }
+
             public class TestableCuratedPackagesController : TestableCuratedPackagesControllerBase
             {
                 public TestableCuratedPackagesController()
