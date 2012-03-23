@@ -169,6 +169,13 @@ namespace NuGetGallery
                 "api/v2/verifykey/{id}/{version}",
                 MVC.Api.VerifyPackageKey(),
                 defaults: new { id = UrlParameter.Optional, version = UrlParameter.Optional });
+
+            routes.MapRoute(
+                "v2CuratedFeeds" + RouteName.DownloadPackage,
+                "api/v2/curated-feeds/package/{id}/{version}",
+                MVC.Api.GetPackage(),
+                defaults: new { version = UrlParameter.Optional },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
             
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
