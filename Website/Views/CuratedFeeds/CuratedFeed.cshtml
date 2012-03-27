@@ -55,7 +55,7 @@
 }
 <h1>Curated Feed: @Model.Name</h1>
 <h2>Managers</h2>
-<p>This is a list of NuGet Gallery users authorized to manage the curated feed. To add or remove manaegers, please contact the gallery operators.</p>
+<p>This is a list of NuGet Gallery users authorized to manage the curated feed. To add or remove managers, please contact the gallery operators.</p>
 <ul>
     @foreach(var manager in Model.Managers)
     {
@@ -84,7 +84,7 @@
 </ul>
 <p><em>* denotes automatically-curated packages</em></p>
 <h2>Excluded Packages</h2>
-<p>This is a list of all automatically-curated packages that have been subsequently manually ecxluded. To include the package in the curated feed, click the "Include" link next to the package.</p>
+<p>This is a list of all automatically-curated packages that have been subsequently manually excluded. To include the package in the curated feed, click the "Include" link next to the package.</p>
 <ul>
     @foreach (var package in Model.ExcludedPackages)
     {
