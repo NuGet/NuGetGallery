@@ -10,6 +10,7 @@
   $sslCertificateThumbprint           = $env:NUGET_GALLERY_SSL_CERTIFICATE_THUMBPRINT,
   $validationKey                      = $env:NUGET_GALLERY_VALIDATION_KEY,
   $decryptionKey                      = $env:NUGET_GALLERY_DECRYPTION_KEY,
+  $vmSize                             = $env:NUGET_GALLERY_AZURE_VM_SIZE,
   $commitSha,
   $commitBranch
 )
@@ -28,6 +29,9 @@ require-param -value $remoteDesktopEnctyptedPassword -paramName "remoteDesktopEn
 require-param -value $remoteDesktopUsername -paramName "remoteDesktopUsername"
 require-param -value $sqlAzureConnectionString -paramName "sqlAzureConnectionString"
 require-param -value $sslCertificateThumbprint -paramName "sslCertificateThumbprint"
+require-param -value $validationKey -paramName "validationKey"
+require-param -value $decryptionKey -paramName "decryptionKey"
+require-param -value $vmSize -paramName "vmSize"
 
 #Helper Functions
 function set-certificatethumbprint {
@@ -67,6 +71,15 @@ function set-appsetting {
     $settings.save($resolvedPath)
 }
 
+function set-vmsize {
+    param($path, $size)
+    $xml = [xml](get-content $path)
+    $vmSize = $xml.ServiceDefinition.WebRole
+    $vmSize.vmsize = $size.ToString()
+    $resolvedPath = resolve-path($path) 
+    $xml.save($resolvedPath)
+}
+
 function set-releasemode {
   param($path)
   $xml = [xml](get-content $path)
@@ -94,15 +107,16 @@ function set-machinekey {
 #Do Work Brah
 $scriptPath = split-path $MyInvocation.MyCommand.Path
 $rootPath = resolve-path(join-path $scriptPath "..")
-$csdefFile = join-path $scriptPath "NuGetGallery.csdef"
 $websitePath = join-path $rootPath "Website"
 $webConfigPath = join-path $websitePath "Web.config"
 $webConfigBakPath = join-path $scriptPath "Web.config.bak"
 $rolePropertiesPath = join-path $scriptPath "NuGetGallery.RoleProperties.txt"
+$cspkgFolder = join-path $rootPath "_AzurePackage"
+$cspkgPath = join-path $cspkgFolder "NuGetGallery.cspkg"
+$csdefPath = join-path $scriptPath "NuGetGallery.csdef"
+$csdefBakPath = join-path $scriptPath "NuGetGallery.csdef.bak"
 $cscfgPath = join-path $scriptPath "NuGetGallery.cscfg"
 $cscfgBakPath = join-path $scriptPath "NuGetGallery.cscfg.bak"
-$cspkgFolder = join-path $rootPath "_AzurePackage"
-$cspkgFile = join-path $cspkgFolder "NuGetGallery.cspkg"
 $gitPath = join-path (programfiles-dir) "Git\bin\git.exe"
 $compressionCmdScriptsPath = join-path $scriptPath "EnableDynamicHttpCompression.cmd"
 $binPath = join-path $websitePath "bin"
@@ -121,8 +135,10 @@ if ((test-path $cspkgFolder) -eq $false) {
 }
 
 cp $webConfigPath $webConfigBakPath
+cp $csdefPath $csdefBakPath
 cp $cscfgPath $cscfgBakPath
 
+set-vmsize -path $csdefPath -size $vmSize
 set-configurationsetting -path $cscfgPath -name "AzureStorageAccessKey" -value $azureStorageAccessKey
 set-configurationsetting -path $cscfgPath -name "AzureStorageAccountName" -value $azureStorageAccountName
 set-configurationsetting -path $cscfgPath -name "AzureStorageBlobUrl" -value $azureStorageBlobUrl
@@ -144,12 +160,13 @@ set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value $commit
 
 cp $compressionCmdScriptsPath $compressionCmdBinPath
 
-& 'C:\Program Files\Windows Azure SDK\v1.6\bin\cspack.exe' "$csdefFile" /out:"$cspkgFile" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
+& 'C:\Program Files\Windows Azure SDK\v1.6\bin\cspack.exe' "$csdefPath" /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
 if ($lastexitcode -ne 0) { exit 1 }
 
 cp $cscfgPath $cspkgFolder
 
 cp $webConfigBakPath $webConfigPath
+cp $csdefBakPath $csdefPath
 cp $cscfgBakPath $cscfgPath
 rm $compressionCmdBinPath
 
