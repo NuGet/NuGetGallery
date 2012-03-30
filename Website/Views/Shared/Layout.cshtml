@@ -5,7 +5,7 @@
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>NuGet Gallery</title> 
+        <title>NuGet Gallery @(string.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
         <link href="@Url.Content("~/Content/site.css")" rel="stylesheet" />
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
         <script src="@Url.Content("~/Scripts/modernizr-2.0.6-development-only.js")"></script>
