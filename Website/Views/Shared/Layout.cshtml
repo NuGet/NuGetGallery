@@ -33,14 +33,14 @@
                     <li><a href="http://docs.nuget.org">Documentation</a></li>
                     <li><a href="http://blog.nuget.org">Blog</a></li>
                 </ul>
-                <div id="searchBox">
+                <div id="searchBox" role="search">
                     <form action="@Url.PackageList()" method="get">
                         <input name="q" id="searchBoxInput" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
                         <input id="searchBoxSubmit" type="submit" value=" " />
                     </form>
                 </div>
             </nav>
-            <div id="body">
+            <div id="body" role="main">
             @if (TempData.ContainsKey("Message")) {
                 <p class="message">@TempData["Message"]</p>
             }
