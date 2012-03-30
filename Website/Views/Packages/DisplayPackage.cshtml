@@ -1,5 +1,7 @@
 ﻿@model DisplayPackageViewModel
+           @using Microsoft.Web.Helpers
 @{
+    ViewBag.Title = Model.Title;
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
@@ -66,6 +68,12 @@
         <h1>@Model.Title</h1>
         <h2>@Model.Version</h2>
     </hgroup>
+
+    <div id="socialButtons">
+        @Facebook.LikeButton(href: Request.Url.ToString())
+        @Twitter.TweetButton(url: Request.Url.ToString())
+    </div>
+
     <p>@Model.Description</p>
 
     @if (!Model.Listed && Model.IsOwner(User))
@@ -208,4 +216,8 @@
             }
         </tbody>
     </table>
+
+    <div id="socialShare">
+        @LinkShare.GetHtml(pageTitle: Model.Title, linkSites: new LinkShareSite[] { LinkShareSite.Facebook, LinkShareSite.Twitter, LinkShareSite.Delicious })
+    </div>
 </div>
