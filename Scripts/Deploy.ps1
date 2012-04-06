@@ -97,3 +97,7 @@ await-status("Suspended")
 $operationId = (set-deploymentstatus -subscriptionId $subscriptionId -serviceName $serviceName -slot Staging -status Running -certificate $certificate).operationId
 await-operation($operationId)
 await-start
+
+"Moving staging deployment $deploymentName to productionon on $serviceName"
+move-deployment -subscriptionId $subscriptionId -serviceName $serviceName -certificate $certificate -name $deploymentName
+
