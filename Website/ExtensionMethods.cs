@@ -23,7 +23,7 @@ namespace NuGetGallery
         {
             var serviceRoute = new ServiceRoute(routeUrl, new DataServiceHostFactory(), serviceType);
             serviceRoute.Defaults = new RouteValueDictionary { { "serviceType", "odata" } };
-            serviceRoute.Constraints = new RouteValueDictionary { { "serviceType", "odata" }, { "httpMethod", new HttpMethodConstraint("GET") } };
+            serviceRoute.Constraints = new RouteValueDictionary { { "serviceType", "odata" } };
             routes.Add(routeName, serviceRoute);
         }
 
@@ -43,7 +43,7 @@ namespace NuGetGallery
 
             return String.Join(", ", list.ToArray());
         }
-        
+
         public static string Flatten(this ICollection<PackageAuthor> authors)
         {
             return authors.Select(a => a.Name).Flatten();

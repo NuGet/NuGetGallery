@@ -11,6 +11,7 @@ namespace NuGetGallery
         {
             Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
+            SupportedFrameworks = new HashSet<PackageFramework>();
             Listed = true;
         }
 
@@ -45,6 +46,7 @@ namespace NuGetGallery
         public string Version { get; set; }
         public bool Listed { get; set; }
         public bool IsPrerelease { get; set; }
+        public virtual ICollection<PackageFramework> SupportedFrameworks { get; set; }
 
         // TODO: it would be nice if we could change the feed so that we don't need to flatten authors and dependencies
         public string FlattenedAuthors { get; set; }

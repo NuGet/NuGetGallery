@@ -219,6 +219,7 @@
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
+    <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="HelpersController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -319,6 +320,10 @@
     <Compile Include="Migrations\201203182132476_CuratedPackages.cs" />
     <Compile Include="Migrations\201203182132476_CuratedPackages.Designer.cs">
       <DependentUpon>201203182132476_CuratedPackages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201205172325056_FrameworkName.cs" />
+    <Compile Include="Migrations\201205172325056_FrameworkName.Designer.cs">
+      <DependentUpon>201205172325056_FrameworkName.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />

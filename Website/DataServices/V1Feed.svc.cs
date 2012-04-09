@@ -2,6 +2,7 @@ using System;
 using System.Data.Entity;
 using System.Data.Services;
 using System.Linq;
+using System.ServiceModel;
 using System.ServiceModel.Web;
 using System.Web;
 using System.Web.Mvc;
@@ -21,6 +22,11 @@ namespace NuGetGallery
             : base(entities, repo, configuration, searchSvc)
         {
 
+        }
+
+        public static void InitializeService(DataServiceConfiguration config)
+        {
+            InitializeServiceBase(config);
         }
 
         protected override FeedContext<V1FeedPackage> CreateDataSource()
