@@ -23,19 +23,22 @@ namespace NuGetGallery
         private readonly IUserService userSvc;
         private readonly IMessageService messageService;
         private readonly ISearchService searchSvc;
+        private readonly IAutomaticallyCuratePackageCommand autoCuratedPackageCmd;
 
         public PackagesController(
             IPackageService packageSvc,
             IUploadFileService uploadFileSvc,
             IUserService userSvc,
             IMessageService messageService,
-            ISearchService searchSvc)
+            ISearchService searchSvc,
+            IAutomaticallyCuratePackageCommand autoCuratedPackageCmd)
         {
             this.packageSvc = packageSvc;
             this.uploadFileSvc = uploadFileSvc;
             this.userSvc = userSvc;
             this.messageService = messageService;
             this.searchSvc = searchSvc;
+            this.autoCuratedPackageCmd = autoCuratedPackageCmd;
         }
 
         [Authorize]
@@ -505,6 +508,7 @@ namespace NuGetGallery
                 if (listed.HasValue && listed.Value == false)
                     packageSvc.MarkPackageUnlisted(package);
                 uploadFileSvc.DeleteUploadFile(currentUser.Key);
+                autoCuratedPackageCmd.Execute(package, nugetPackage);
                 tx.Complete();
             }
 

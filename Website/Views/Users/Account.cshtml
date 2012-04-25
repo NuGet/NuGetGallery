@@ -1,4 +1,4 @@
-﻿@model User
+﻿@model AccountViewModel
 @{
     ViewBag.Tab = "Contribute";
 }
@@ -16,6 +16,19 @@
                 is different.
             </p>
         </li>
+        @if (Model.CuratedFeeds.Any())
+        {
+        <li id="manageCuratedFeeds">
+            <h2>Manage My Curated Feeds</h2>
+            <p>Click a curated feed to manage the included packages.</p>
+            <ul>
+            @foreach(var curatedFeed in Model.CuratedFeeds)
+            {
+                <li><a href="@Url.RouteUrl(RouteName.CuratedFeed, new { name = curatedFeed })">@curatedFeed</a></li>
+            }
+            </ul>
+        </li>
+        }
         <li id="managePackages">
             <h2><a href="@Url.Action(MVC.Users.Packages())">Manage My Packages</a></h2>
             <p>Edit package details or Remove packages that you have previously uploaded.</p>
@@ -55,7 +68,8 @@
 
             <fieldset class="form">
                 <legend>Generate New API Key</legend>
-                @using(Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post)){
+                @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post))
+                {
                     @Html.AntiForgeryToken()
                     <input type="submit" value="Generate New API Key" />
                 }

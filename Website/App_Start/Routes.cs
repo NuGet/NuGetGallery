@@ -97,6 +97,26 @@ namespace NuGetGallery
                 "account/{action}",
                 MVC.Users.Account());
 
+            routes.MapRoute(
+                RouteName.CuratedFeed,
+                "curated-feeds/{name}",
+                new { controller = CuratedFeedsController.Name, action = "CuratedFeed" });
+
+            routes.MapRoute(
+                RouteName.CreateCuratedPackageForm,
+                "forms/add-package-to-curated-feed",
+                new { controller = CuratedPackagesController.Name, action = "CreateCuratedPackageForm" });
+
+            routes.MapRoute(
+                RouteName.CuratedPackage,
+                "curated-feeds/{curatedFeedName}/curated-packages/{curatedPackageId}",
+                new { controller = CuratedPackagesController.Name, action = "CuratedPackage" });
+
+            routes.MapRoute(
+                RouteName.CuratedPackages,
+                "curated-feeds/{curatedFeedName}/curated-packages",
+                new { controller = CuratedPackagesController.Name, action = "CuratedPackages" });
+
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
             // If the push url is /api/v1 then NuGet.Core would ping the path to resolve redirection. 
@@ -149,6 +169,13 @@ namespace NuGetGallery
                 "api/v2/verifykey/{id}/{version}",
                 MVC.Api.VerifyPackageKey(),
                 defaults: new { id = UrlParameter.Optional, version = UrlParameter.Optional });
+
+            routes.MapRoute(
+                "v2CuratedFeeds" + RouteName.DownloadPackage,
+                "api/v2/curated-feeds/package/{id}/{version}",
+                MVC.Api.GetPackage(),
+                defaults: new { version = UrlParameter.Optional },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
             
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
@@ -170,6 +197,11 @@ namespace NuGetGallery
                 MVC.Api.DeletePackage(),
                 defaults: null,
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapServiceRoute(
+                RouteName.V2ApiCuratedFeed,
+                "api/v2/curated-feed",
+                typeof(V2CuratedFeed));
 
             routes.MapServiceRoute(
                 RouteName.V2ApiFeed,
