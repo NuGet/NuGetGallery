@@ -29,7 +29,7 @@ namespace NuGetGallery
             return new FeedContext<V2FeedPackage>
             {
                 Packages = PackageRepo.GetAll()
-                                      .ToV2FeedPackageQuery(Configuration.SiteRoot)
+                                      .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
             };
         }
 
@@ -43,7 +43,7 @@ namespace NuGetGallery
                 packages = packages.Where(p => !p.IsPrerelease);
             }
             return packages.Search(searchTerm)
-                           .ToV2FeedPackageQuery(Configuration.SiteRoot);
+                           .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
         [WebGet]
@@ -51,7 +51,7 @@ namespace NuGetGallery
         {
             return PackageRepo.GetAll().Include(p => p.PackageRegistration)
                                        .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                                       .ToV2FeedPackageQuery(Configuration.SiteRoot);
+                                       .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
         public override Uri GetReadStreamUri(

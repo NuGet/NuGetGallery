@@ -29,7 +29,7 @@ namespace NuGetGallery
             {
                 Packages = PackageRepo.GetAll()
                                       .Where(p => !p.IsPrerelease)
-                                      .ToV1FeedPackageQuery(Configuration.SiteRoot)
+                                      .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
             };
         }
 
@@ -51,7 +51,7 @@ namespace NuGetGallery
         {
             return PackageRepo.GetAll().Include(p => p.PackageRegistration)
                                        .Where(p => !p.IsPrerelease && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                                       .ToV1FeedPackageQuery(Configuration.SiteRoot);
+                                       .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
         [WebGet]
@@ -62,10 +62,10 @@ namespace NuGetGallery
 
             if (String.IsNullOrEmpty(searchTerm))
             {
-                return packages.ToV1FeedPackageQuery(Configuration.SiteRoot);
+                return packages.ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
             }
             return SearchService.Search(packages, searchTerm)
-                                .ToV1FeedPackageQuery(Configuration.SiteRoot);
+                                .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
     }
 }

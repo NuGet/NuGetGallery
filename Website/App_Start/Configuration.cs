@@ -1,16 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Web;
 using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery
 {
-    internal class Configuration : IConfiguration
+    public class Configuration : IConfiguration
     {
         private static readonly Dictionary<string, Lazy<object>> configThunks = new Dictionary<string, Lazy<object>>();
-        private readonly Lazy<string> siteRoot = new Lazy<string>(GetSiteRoot); 
+        private readonly Lazy<string> _httpSiteRootThunk;
+        private readonly Lazy<string> _httpsSiteRootThunk;
         static readonly Lazy<bool> runningInAzure = new Lazy<bool>(RunningInAzure);
+
+        public Configuration()
+        {
+            _httpSiteRootThunk = new Lazy<string>(GetHttpSiteRoot);
+            _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
+        }
 
         public static string ReadAppSetting(string key)
         {
@@ -63,14 +71,6 @@ namespace NuGetGallery
             return false;
         }
 
-        public string SiteRoot
-        {
-            get
-            {
-                return siteRoot.Value;
-            }
-        }
-
         public string AzureStorageAccessKey
         {
             get
@@ -115,16 +115,49 @@ namespace NuGetGallery
             }
         }
 
-        private static string GetSiteRoot()
+        protected virtual string GetConfiguredSiteRoot()
         {
-            // TODO: Make this less horrid. 
-            var request = HttpContext.Current.Request;
-            if (request.IsLocal)
-            {
-                return request.Url.GetLeftPart(UriPartial.Authority) + '/';
-            }
+            return ConfigurationManager.AppSettings["Configuration:SiteRoot"];
+        }
 
-            return ConfigurationManager.AppSettings["Configuration:SiteRoot"]; 
+        protected virtual HttpRequestBase GetCurrentRequest()
+        {
+            return new HttpRequestWrapper(HttpContext.Current.Request);
+        }
+
+        public string GetSiteRoot(bool useHttps)
+        {
+            return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
+        }
+        
+        private string GetHttpSiteRoot()
+        {
+            var request = GetCurrentRequest();
+            string siteRoot;
+            
+            if (request.IsLocal)
+                siteRoot = request.Url.GetLeftPart(UriPartial.Authority) + '/';
+            else
+                siteRoot = GetConfiguredSiteRoot();
+
+            if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                && !siteRoot.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("The configured site root must start with either http:// or https://.");
+
+            if (siteRoot.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                siteRoot = "http://" + siteRoot.Substring(8);
+
+            return siteRoot;
+        }
+
+        private string GetHttpsSiteRoot()
+        {
+            var siteRoot = _httpSiteRootThunk.Value;
+
+            if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("The configured HTTP site root must start with http://.");
+
+            return "https://" + siteRoot.Substring(7);
         }
     }
 }
