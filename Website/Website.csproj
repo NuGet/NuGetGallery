@@ -185,6 +185,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Entities\GallerySetting.cs" />
+    <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="HelpersController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -273,6 +274,10 @@
     </Compile>
     <Compile Include="Migrations\201201031925005_AddPasswordHash.Designer.cs">
       <DependentUpon>201201031925005_AddPasswordHash.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201204132349251_FrameworkName.cs" />
+    <Compile Include="Migrations\201204132349251_FrameworkName.Designer.cs">
+      <DependentUpon>201204132349251_FrameworkName.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="PackagesController.generated.cs">

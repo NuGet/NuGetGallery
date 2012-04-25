@@ -1,1 +1,1 @@
-﻿<%@ ServiceHost Language="C#" Debug="true" Service="NuGetGallery.V2Feed" CodeBehind="V2Feed.svc.cs" %>
+﻿<%@ ServiceHost Language="C#" Debug="true" Factory="System.Data.Services.DataServiceHostFactory, System.Data.Services, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" Service="NuGetGallery.V2Feed" CodeBehind="V2Feed.svc.cs" %>
