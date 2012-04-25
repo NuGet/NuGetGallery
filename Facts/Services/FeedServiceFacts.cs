@@ -19,10 +19,10 @@ namespace NuGetGallery.Services
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
-            configuration.SetupGet(c => c.SiteRoot).Returns("https://localhost:8081/");
+            configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
             var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-            searchService.Setup(s => s.SearchWithRelevance(It.IsAny<IQueryable<Package>>(), It.IsAny<String>())).Returns<IQueryable<Package>, string>((_, __) => _); 
-            var v1Service = new V1Feed(repo.Object, configuration.Object, searchService.Object);
+            searchService.Setup(s => s.SearchWithRelevance(It.IsAny<IQueryable<Package>>(), It.IsAny<String>())).Returns<IQueryable<Package>, string>((_, __) => _);
+            var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
 
             // Act
             var result = v1Service.Search(null, null);
@@ -48,8 +48,8 @@ namespace NuGetGallery.Services
             var searchService = new Mock<ISearchService>(MockBehavior.Strict);
             searchService.Setup(s => s.SearchWithRelevance(It.IsAny<IQueryable<Package>>(), It.IsAny<String>())).Returns<IQueryable<Package>, string>((_, __) => _);
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
-            configuration.SetupGet(c => c.SiteRoot).Returns("http://test.nuget.org/");
-            var v1Service = new V1Feed(repo.Object, configuration.Object, searchService.Object);
+            configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("http://test.nuget.org/");
+            var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
 
             // Act
             var result = v1Service.Search(null, null);
@@ -76,8 +76,8 @@ namespace NuGetGallery.Services
             var searchService = new Mock<ISearchService>(MockBehavior.Strict);
             searchService.Setup(s => s.SearchWithRelevance(It.IsAny<IQueryable<Package>>(), It.IsAny<String>())).Returns<IQueryable<Package>, string>((_, __) => _);
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
-            configuration.SetupGet(c => c.SiteRoot).Returns("https://staged.nuget.org/");
-            var v2Service = new V2Feed(repo.Object, configuration.Object, searchService.Object);
+            configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://staged.nuget.org/");
+            var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
 
             // Act
             var result = v2Service.Search(null, null, includePrerelease: false);
@@ -102,8 +102,8 @@ namespace NuGetGallery.Services
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
-            configuration.SetupGet(c => c.SiteRoot).Returns("https://localhost:8081/");
-            var v1Service = new V1Feed(repo.Object, configuration.Object, null);
+            configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+            var v1Service = new TestableV1Feed(repo.Object, configuration.Object, null);
 
             // Act
             var result = v1Service.FindPackagesById("Foo");
@@ -126,8 +126,8 @@ namespace NuGetGallery.Services
                 new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
             }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
-            configuration.SetupGet(c => c.SiteRoot).Returns("https://localhost:8081/");
-            var v2Service = new V2Feed(repo.Object, configuration.Object, null);
+            configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
+            var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
             var result = v2Service.FindPackagesById("Foo");
@@ -139,6 +139,38 @@ namespace NuGetGallery.Services
 
             Assert.Equal("Foo", result.Last().Id);
             Assert.Equal("1.0.1-a", result.Last().Version);
+        }
+
+        public class TestableV1Feed : V1Feed
+        {
+            public TestableV1Feed(
+                IEntityRepository<Package> repo,
+                IConfiguration configuration,
+                ISearchService searchSvc)
+                : base(repo, configuration, searchSvc)
+            {
+            }
+
+            protected override bool UseHttps()
+            {
+                return false;
+            }
+        }
+
+        public class TestableV2Feed : V2Feed
+        {
+            public TestableV2Feed(
+                IEntityRepository<Package> repo,
+                IConfiguration configuration,
+                ISearchService searchSvc)
+                : base(repo, configuration, searchSvc)
+            {   
+            }
+
+            protected override bool UseHttps()
+            {
+                return false;
+            }
         }
     }
 }

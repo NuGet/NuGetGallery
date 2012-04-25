@@ -4,6 +4,7 @@ using System.Data.Services.Common;
 using System.Data.Services.Providers;
 using System.IO;
 using System.ServiceModel;
+using System.Web;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -126,6 +127,11 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        protected virtual bool UseHttps()
+        {
+            return HttpContext.Current.Request.IsSecureConnection;
         }
     }
 }
