@@ -9,3 +9,4 @@ _AzurePackage
 *.bak
 NuGetGallery.sln.docstates
 _ReSharper.NuGetGallery
+_PackagedWebsite
