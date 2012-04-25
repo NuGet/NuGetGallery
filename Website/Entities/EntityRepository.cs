@@ -5,9 +5,9 @@ namespace NuGetGallery
     public class EntityRepository<T> : IEntityRepository<T>
         where T : class, IEntity, new()
     {
-        readonly EntitiesContext entities;
+        readonly IEntitiesContext entities;
 
-        public EntityRepository(EntitiesContext entities)
+        public EntityRepository(IEntitiesContext entities)
         {
             this.entities = entities;
         }

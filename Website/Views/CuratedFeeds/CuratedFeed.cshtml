@@ -1,0 +1,97 @@
+﻿@model CuratedFeedViewModel
+@{
+    ViewBag.Title = "Curated Feed: " + Model.Name;
+}
+@section TopScripts {
+    <script>
+        var urlFormat = "@Url.RouteUrl(RouteName.CuratedPackage, new { curatedFeedName = Model.Name, curatedPackageId = "PACKAGE_ID" })";
+        
+        function deleteCuratedPackage(packageId) {
+            $.ajax({
+                type: 'delete',
+                url: urlFormat.replace("PACKAGE_ID", packageId)
+            })
+                .error(function(jqXhr, textStatus, errorThrown) {
+                    alert("Error: " + errorThrown);
+                })
+                .complete(function () {
+                    location.reload();
+                });
+        }
+        
+        function patchCuratedPackage(packageId, included) {
+            $.ajax({
+                type: 'patch',
+                url: urlFormat.replace("PACKAGE_ID", packageId),
+                data: { included: included },
+                dataType: 'json'
+            })
+                .error(function(jqXhr, textStatus, errorThrown) {
+                    alert("Error: " + errorThrown);
+                })
+                .complete(function () {
+                    location.reload();
+                });
+        }
+
+        $(document).ready(function() {
+            $(".remove-link").click(function() {
+                deleteCuratedPackage($(this).data("package-id"));
+            });
+        });
+        
+        $(document).ready(function() {
+            $(".exclude-link").click(function() {
+                patchCuratedPackage($(this).data("package-id"), false);
+            });
+        });
+        
+         $(document).ready(function() {
+            $(".include-link").click(function() {
+                patchCuratedPackage($(this).data("package-id"), true);
+            });
+        });
+    </script>
+}
+<h1>Curated Feed: @Model.Name</h1>
+<h2>Managers</h2>
+<p>This is a list of NuGet Gallery users authorized to manage the curated feed. To add or remove managers, please contact the gallery operators.</p>
+<ul>
+    @foreach(var manager in Model.Managers)
+    {
+        <li>@manager</li>
+    }
+</ul>
+<h2>Included Packages</h2>
+<p>This is a list of all packages included in the curated feed, both manually and automatically added. To manually include a new package to the feed, click the "Include Package" link below. To remove a manually-curated package, click the "Remove" link next to it. To exclude an automatically-curated package, click the "Exclude" link next to it.</p>
+<p>@Html.RouteLink("Include Package", RouteName.CreateCuratedPackageForm, new { curatedFeedName = Model.Name })</p>
+<ul>
+    @foreach(var package in Model.IncludedPackages)
+    {
+        <li>
+            @package.Id
+            @if(package.AutomaticallyCurated)
+            {
+                <span> *</span>
+                <a href="#" class="exclude-link" data-package-id="@package.Id">Exclude</a>
+            }
+            else
+            {
+                <a href="#" class="remove-link" data-package-id="@package.Id">Remove</a>
+            }
+        </li>
+    }
+</ul>
+<p><em>* denotes automatically-curated packages</em></p>
+<h2>Excluded Packages</h2>
+<p>This is a list of all automatically-curated packages that have been subsequently manually excluded. To include the package in the curated feed, click the "Include" link next to the package.</p>
+<ul>
+    @foreach (var package in Model.ExcludedPackages)
+    {
+        <li>
+            @package
+            <a href="#" class="include-link" data-package-id="@package">Include</a>
+        </li>
+        
+    }
+</ul>

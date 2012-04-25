@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Transactions;
-using MvcMiniProfiler;
 using NuGet;
+using StackExchange.Profiling;
 
 namespace NuGetGallery
 {
@@ -251,8 +251,6 @@ namespace NuGetGallery
             if (package != null)
                 throw new EntityException("A package with identifier '{0}' and version '{1}' already exists.", packageRegistration.Id, package.Version);
 
-            // TODO: add flattened authors, and other properties
-            // TODO: add package size
             var now = DateTime.UtcNow;
             var packageFileStream = nugetPackage.GetStream();
 

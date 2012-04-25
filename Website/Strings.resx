@@ -162,4 +162,10 @@
   <data name="SuccessfullyUploadedPackage" xml:space="preserve">
     <value>You successfully uploaded {0} {1}.</value>
   </data>
+  <data name="PackageWithIdDoesNotExist" xml:space="preserve">
+    <value>No package with this ID exists.</value>
+  </data>
+  <data name="PackageIsAlreadyCurated" xml:space="preserve">
+    <value>The package is already curated.</value>
+  </data>
 </root>

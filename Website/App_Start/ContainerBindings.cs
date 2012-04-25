@@ -37,7 +37,7 @@ namespace NuGetGallery
                 .To<LuceneSearchService>()
                 .InRequestScope();
 
-            Bind<EntitiesContext>()
+            Bind<IEntitiesContext>()
                 .ToMethod(context => new EntitiesContext())
                 .InRequestScope();
 
@@ -164,6 +164,44 @@ namespace NuGetGallery
 
             Bind<IUploadFileService>()
                 .To<UploadFileService>();
+
+            // todo: bind all package curators by convention
+            Bind<IAutomaticPackageCurator>()
+                .To<WebMatrixPackageCurator>();
+
+            // todo: bind all commands by convention
+            Bind<IAutomaticallyCuratePackageCommand>()
+                .To<AutomaticallyCuratePackageCommand>()
+                .InRequestScope();
+            Bind<ICreateCuratedPackageCommand>()
+                .To<CreateCuratedPackageCommand>()
+                .InRequestScope();
+            Bind<IDeleteCuratedPackageCommand>()
+                .To<DeleteCuratedPackageCommand>()
+                .InRequestScope();
+            Bind<IModifyCuratedPackageCommand>()
+                .To<ModifyCuratedPackageCommand>()
+                .InRequestScope();
+
+            // todo: bind all queries by convention
+            Bind<ICuratedFeedByKeyQuery>()
+                .To<CuratedFeedByKeyQuery>()
+                .InRequestScope();
+            Bind<ICuratedFeedByNameQuery>()
+                .To<CuratedFeedByNameQuery>()
+                .InRequestScope();
+            Bind<ICuratedFeedsByManagerQuery>()
+                .To<CuratedFeedsByManagerQuery>()
+                .InRequestScope();
+            Bind<IPackageRegistrationByKeyQuery>()
+                .To<PackageRegistrationByKeyQuery>()
+                .InRequestScope();
+            Bind<IPackageRegistrationByIdQuery>()
+                .To<PackageRegistrationByIdQuery>()
+                .InRequestScope();
+            Bind<IUserByUsernameQuery>()
+                .To<UserByUsernameQuery>()
+                .InRequestScope();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web;
@@ -414,6 +415,95 @@ namespace NuGetGallery
                 var model = result.Model as EmailConfirmationModel;
                 Assert.True(model.ConfirmingNewAccount);
                 Assert.True(model.SuccessfulConfirmation);
+            }
+        }
+
+        public class TheAccountAction
+        {
+            [Fact]
+            public void WillGetTheCurrentUserUsingTheRequestIdentityName()
+            {
+                var controller = new TestableUsersController();
+                controller.StubIdentity.Setup(stub => stub.Name).Returns("theUsername");
+                
+                controller.Account();
+
+                controller.StubUserByUsernameQry.Verify(stub => stub.Execute("theUsername", true));
+            }
+
+            [Fact]
+            public void WillGetCuratedFeedsManagedByTheCurrentUser()
+            {
+                var controller = new TestableUsersController();
+                controller.StubUserByUsernameQry
+                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                    .Returns(new User { Key = 42 });
+
+                controller.Account();
+
+                controller.StubCuratedFeedsByManagerQry.Verify(stub => stub.Execute(42));
+            }
+
+            [Fact]
+            public void WillReturnTheAccountViewModelWithTheUserApiKey()
+            {
+                var controller = new TestableUsersController();
+                var stubApiKey = Guid.NewGuid();
+                controller.StubUserByUsernameQry
+                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                    .Returns(new User { Key = 42, ApiKey = stubApiKey });
+
+                var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
+
+                Assert.Equal(stubApiKey.ToString(), model.ApiKey);
+            }
+
+            [Fact]
+            public void WillReturnTheAccountViewModelWithTheCuratedFeeds()
+            {
+                var controller = new TestableUsersController();
+                controller.StubCuratedFeedsByManagerQry
+                    .Setup(stub => stub.Execute(It.IsAny<int>()))
+                    .Returns(new [] { new CuratedFeed { Name = "theCuratedFeed" } });
+
+                var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
+
+                Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
+            }
+        }
+
+        public class TestableUsersController : UsersController
+        {
+            public TestableUsersController()
+                : base(null, null, null, null, null)
+            {
+                StubCuratedFeedsByManagerQry = new Mock<ICuratedFeedsByManagerQuery>();
+                StubIdentity = new Mock<IIdentity>();
+                StubUserByUsernameQry = new Mock<IUserByUsernameQuery>();
+
+                StubIdentity.Setup(stub => stub.IsAuthenticated).Returns(true);
+                StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
+                StubUserByUsernameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns(new User { Key = 0 });
+            }
+
+            public Mock<ICuratedFeedsByManagerQuery> StubCuratedFeedsByManagerQry { get; private set; }
+            public Mock<IIdentity> StubIdentity { get; private set; }
+            public Mock<IUserByUsernameQuery> StubUserByUsernameQry { get; private set; }
+
+            protected override IIdentity Identity
+            {
+                get { return StubIdentity.Object; }
+            }
+
+            protected override T GetService<T>()
+            {
+                if (typeof(T) == typeof(ICuratedFeedsByManagerQuery))
+                    return (T)StubCuratedFeedsByManagerQry.Object;
+
+                if (typeof(T) == typeof(IUserByUsernameQuery))
+                    return (T)StubUserByUsernameQry.Object;
+
+                throw new Exception("Tried to get an unexpected service.");
             }
         }
 

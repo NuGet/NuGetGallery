@@ -17,8 +17,8 @@ namespace NuGetGallery
 
         }
 
-        public V1Feed(IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchSvc)
-            : base(repo, configuration, searchSvc)
+        public V1Feed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchSvc)
+            : base(entities, repo, configuration, searchSvc)
         {
 
         }

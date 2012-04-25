@@ -7,7 +7,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery
 {
-    public partial class UsersController : Controller
+    public partial class UsersController : AppController
     {
         readonly IUserService userService;
         readonly IPackageService packageService;
@@ -32,8 +32,13 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Account()
         {
-            var user = userService.FindByUsername(currentUser.Identity.Name);
-            return View(user);
+            var user = GetService<IUserByUsernameQuery>().Execute(Identity.Name);
+            var curatedFeeds = GetService<ICuratedFeedsByManagerQuery>().Execute(user.Key);
+            return View(new AccountViewModel
+            {
+                ApiKey = user.ApiKey.ToString(),
+                CuratedFeeds = curatedFeeds.Select(cf => cf.Name),
+            });
         }
 
         [Authorize]

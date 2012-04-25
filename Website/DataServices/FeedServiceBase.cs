@@ -14,26 +14,37 @@ namespace NuGetGallery
     [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
     public abstract class FeedServiceBase<TPackage> : DataService<FeedContext<TPackage>>, IDataServiceStreamProvider, IServiceProvider
     {
+        private readonly IEntitiesContext entities;
         private readonly IEntityRepository<Package> packageRepo;
         private readonly IConfiguration configuration;
         private readonly ISearchService searchService;
 
         public FeedServiceBase()
-            : this(DependencyResolver.Current.GetService<IEntityRepository<Package>>(),
+            : this(DependencyResolver.Current.GetService<IEntitiesContext>(),
+                   DependencyResolver.Current.GetService<IEntityRepository<Package>>(),
                    DependencyResolver.Current.GetService<IConfiguration>(),
                    DependencyResolver.Current.GetService<ISearchService>())
         {
 
         }
 
-        protected FeedServiceBase(IEntityRepository<Package> packageRepo, IConfiguration configuration, ISearchService searchService)
+        protected FeedServiceBase(
+            IEntitiesContext entities,
+            IEntityRepository<Package> packageRepo, 
+            IConfiguration configuration, 
+            ISearchService searchService)
         {
-            // TODO: See if there is a way to do proper DI with data services
+            this.entities = entities;
             this.packageRepo = packageRepo;
             this.configuration = configuration;
             this.searchService = searchService;
         }
 
+        protected IEntitiesContext Entities
+        {
+            get { return entities; }
+        }
+        
         protected IEntityRepository<Package> PackageRepo
         {
             get { return packageRepo; }

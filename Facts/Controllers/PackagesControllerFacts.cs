@@ -1040,6 +1040,35 @@ namespace NuGetGallery
                 Assert.Equal(RouteName.DisplayPackage, result.RouteName);
                 fakeFileStream.Dispose();
             }
+
+            [Fact]
+            public void WillCurateThePackage()
+            {
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
+                var fakePackageSvc = new Mock<IPackageService>();
+                var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(fakePackage);
+                var fakeNuGetPackage = new Mock<IPackage>();
+                var fakeAutoCuratePackageCmd = new Mock<IAutomaticallyCuratePackageCommand>();
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity,
+                    fakeNuGetPackage: fakeNuGetPackage,
+                    autoCuratePackageCmd: fakeAutoCuratePackageCmd);
+
+                controller.VerifyPackage(false);
+
+                fakeAutoCuratePackageCmd.Verify(fake => fake.Execute(fakePackage, fakeNuGetPackage.Object));
+            }
         }
 
         public class TheCancelVerifyPackageAction
@@ -1094,7 +1123,8 @@ namespace NuGetGallery
             Mock<IIdentity> fakeIdentity = null,
             Mock<IPackage> fakeNuGetPackage = null,
             Mock<ISearchService> searchService = null,
-            Exception readPackageException = null)
+            Exception readPackageException = null,
+            Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null)
         {
 
             packageSvc = packageSvc ?? new Mock<IPackageService>();
@@ -1102,14 +1132,15 @@ namespace NuGetGallery
             userSvc = userSvc ?? new Mock<IUserService>();
             messageSvc = messageSvc ?? new Mock<IMessageService>();
             searchService = searchService ?? CreateSearchService();
-            
+            autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
 
             var controller = new Mock<PackagesController>(
                     packageSvc.Object,
                     uploadFileSvc.Object,
                     userSvc.Object,
                     messageSvc.Object,
-                    searchService.Object);
+                    searchService.Object,
+                    autoCuratePackageCmd.Object);
             controller.CallBase = true;
 
             if (httpContext != null)
