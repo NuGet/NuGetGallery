@@ -10,7 +10,7 @@ namespace NuGetGallery
             var request = controllerContext.RequestContext.HttpContext.Request;
             
             // Use this value provider only if a route is located under "API"
-            if (request.Path.TrimStart('/').StartsWith("api", StringComparison.OrdinalIgnoreCase))
+            if (controllerContext.Controller is ApiController)
                 return new HttpHeaderValueProvider(request, "ApiKey");
             return null;
         }
