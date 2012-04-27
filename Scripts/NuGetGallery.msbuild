@@ -8,22 +8,24 @@
     <OutDir>$(SolutionDir)..\Website\bin\</OutDir>
     <PackagedWebsiteDir>$(SolutionDir)..\_PackagedWebsite</PackagedWebsiteDir>
   </PropertyGroup>
-
-  <UsingTask AssemblyFile="../3rdParty\xunit\xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
-
+  
   <Target Name="Clean">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform);OutDir=$(OutDir)"/>
     <Exec Command="rd $(PackagedWebsiteDir) /s /q" />
   </Target>
   
-  <Target Name="Build" DependsOnTargets="Clean">
+  <Target Name="RestoreSolutionPackages">
+     <MsBuild Projects="..\.nuget\NuGet.targets" Targets="RestorePackages" Properties="PackagesConfig=$(MsBuildThisFileDirectory)..\.nuget\packages.config" />
+  </Target>
+  
+  <Target Name="Build" DependsOnTargets="Clean;RestoreSolutionPackages">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);OutDir=$(OutDir)" />
     <Exec Command="xcopy.exe $(OutDir)_PublishedWebsites\Website $(PackagedWebsiteDir)\ /ey" />
     <Exec Command="rd $(OutDir)_PublishedWebsites /s /q" />
   </Target>
 
   <Target Name="RunFacts" DependsOnTargets="Build"> 
-    <xunit Assembly="$(OutDir)\NuGetGallery.Facts.dll" Xml="NuGetGallery.Facts.results.xml" />
+    <MsBuild Projects="NuGetGallery.Xunit.msbuild" Properties="OutDir=$(OutDir)" Targets="RunFacts" />
   </Target>
   
   <Target Name="CIBuild" DependsOnTargets="RunFacts" />
