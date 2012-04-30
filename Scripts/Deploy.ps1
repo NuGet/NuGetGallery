@@ -82,8 +82,8 @@ $cscfgFile = join-path $packageLocation "NuGetGallery.cscfg"
 
 "Checking for existing staging deployment on $serviceName"
 $deployment = Get-Deployment -ServiceName $serviceName -Slot Staging -Certificate $certificate -SubscriptionId $subscriptionId
-if ($deployment -ne $null) {
-  "Deleting existing staging deployment $deployment.Name on $serviceName"
+if ($deployment -ne $null -and $deployment.Name -ne $null) {
+  "Deleting existing staging deployment $($deployment.Name) on $serviceName"
   $operationId = (remove-deployment -subscriptionId $subscriptionId -certificate $certificate -slot Staging -serviceName $serviceName ).operationId
   await-operation($operationId)
 }
