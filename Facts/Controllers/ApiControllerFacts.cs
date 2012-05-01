@@ -6,6 +6,7 @@ using System.Web.Routing;
 using Moq;
 using NuGet;
 using Xunit;
+using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -21,12 +22,29 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc);
 
                 // Act
-                var result = controller.CreatePackagePut(Guid.NewGuid());
+                var result = controller.CreatePackagePut(Guid.NewGuid().ToString());
 
                 // Assert
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "push"), statusCodeResult.StatusDescription);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("this-is-bad-guid")]
+            public void WillReturnAn401IfTheApiKeyIsNotAValidGuid(string guid)
+            {
+                var controller = CreateController();
+
+                // Act
+                var result = controller.CreatePackagePut(guid);
+
+                // Assert
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(String.Format(Strings.InvalidApiKey, guid), statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -39,9 +57,10 @@ namespace NuGetGallery
 
                 var user = new User();
 
-                var packageRegistration = new PackageRegistration { 
-                    Packages = new List<Package> { new Package { Version = version.ToString() } }, 
-                    Owners =  new List<User> { user }
+                var packageRegistration = new PackageRegistration
+                {
+                    Packages = new List<Package> { new Package { Version = version.ToString() } },
+                    Owners = new List<User> { user }
                 };
 
                 var packageSvc = new Mock<IPackageService>();
@@ -51,7 +70,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
 
                 // Act
-                var result = controller.CreatePackagePut(Guid.NewGuid());
+                var result = controller.CreatePackagePut(Guid.NewGuid().ToString());
 
                 // Assert
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
@@ -72,7 +91,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
                 var apiKey = Guid.NewGuid();
 
-                controller.CreatePackagePut(apiKey);
+                controller.CreatePackagePut(apiKey.ToString());
 
                 userSvc.Verify(x => x.FindByApiKey(apiKey));
             }
@@ -88,7 +107,7 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
 
-                controller.CreatePackagePut(Guid.NewGuid());
+                controller.CreatePackagePut(Guid.NewGuid().ToString());
 
                 packageSvc.Verify(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>()));
             }
@@ -105,7 +124,7 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
 
-                controller.CreatePackagePut(Guid.NewGuid());
+                controller.CreatePackagePut(Guid.NewGuid().ToString());
 
                 packageSvc.Verify(x => x.CreatePackage(It.IsAny<IPackage>(), matchingUser));
             }
@@ -113,6 +132,23 @@ namespace NuGetGallery
 
         public class TheDeletePackageAction
         {
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("this-is-bad-guid")]
+            public void WillThrowIfTheApiKeyIsAnInvalidGuid(string guidValue)
+            {
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
+                var controller = CreateController(userSvc: userSvc);
+
+                var result = controller.DeletePackage(guidValue, "theId", "1.0.42");
+
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
+                AssertStatusCodeResult(result, 400, String.Format("The API key '{0}' is invalid.", guidValue));
+            }
+
             [Fact]
             public void WillThrowIfTheApiKeyDoesNotExist()
             {
@@ -120,7 +156,7 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
                 var controller = CreateController(userSvc: userSvc);
 
-                var result = controller.DeletePackage(Guid.NewGuid(), "theId", "1.0.42");
+                var result = controller.DeletePackage(Guid.NewGuid().ToString(), "theId", "1.0.42");
 
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
@@ -137,7 +173,7 @@ namespace NuGetGallery
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
 
-                var result = controller.DeletePackage(Guid.NewGuid(), "theId", "1.0.42");
+                var result = controller.DeletePackage(Guid.NewGuid().ToString(), "theId", "1.0.42");
 
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
@@ -160,7 +196,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
                 var apiKey = Guid.NewGuid();
 
-                controller.DeletePackage(apiKey, "theId", "1.0.42");
+                controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42");
 
                 userSvc.Verify(x => x.FindByApiKey(apiKey));
             }
@@ -181,7 +217,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
                 var apiKey = Guid.NewGuid();
 
-                var result = controller.DeletePackage(apiKey, "theId", "1.0.42");
+                var result = controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42");
 
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
@@ -203,7 +239,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
                 var apiKey = Guid.NewGuid();
 
-                controller.DeletePackage(apiKey, "theId", "1.0.42");
+                controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42");
 
                 packageSvc.Verify(x => x.MarkPackageUnlisted(package));
             }
@@ -219,7 +255,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
                 var apiKey = Guid.NewGuid();
 
-                var result = controller.PublishPackage(apiKey, "theId", "1.0.42");
+                var result = controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
 
                 Assert.IsType<EmptyResult>(result);
             }
@@ -227,6 +263,19 @@ namespace NuGetGallery
 
         public class TheVerifyPackageKeyAction
         {
+            [Fact]
+            public void VerifyPackageKeyReturns403IfApiKeyIsInvalidGuid()
+            {
+                // Arrange
+                var controller = CreateController(userSvc: null);
+
+                // Act
+                var result = controller.VerifyPackageKey("bad-guid", "foo", "1.0.0");
+
+                // Assert
+                AssertStatusCodeResult(result, 400, "The API key 'bad-guid' is invalid.");
+            }
+
             [Fact]
             public void VerifyPackageKeyReturns403IfUserDoesNotExist()
             {
@@ -237,7 +286,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc);
 
                 // Act
-                var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
+                var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
 
                 // Assert
                 AssertStatusCodeResult(result, 403, "The specified API key does not provide the authority to push packages.");
@@ -253,7 +302,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc);
 
                 // Act
-                var result = controller.VerifyPackageKey(guid, null, null);
+                var result = controller.VerifyPackageKey(guid.ToString(), null, null);
 
                 // Assert
                 Assert.IsType<EmptyResult>(result);
@@ -271,7 +320,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
 
                 // Act
-                var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
+                var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
 
                 // Assert
                 AssertStatusCodeResult(result, 404, "A package with id 'foo' and version '1.0.0' does not exist.");
@@ -289,7 +338,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
 
                 // Act
-                var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
+                var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
 
                 // Assert
                 AssertStatusCodeResult(result, 403, "The specified API key does not provide the authority to push packages.");
@@ -310,7 +359,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
 
                 // Act
-                var result = controller.VerifyPackageKey(guid, "foo", "1.0.0");
+                var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
 
                 Assert.IsType<EmptyResult>(result);
             }

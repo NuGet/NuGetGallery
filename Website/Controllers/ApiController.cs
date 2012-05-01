@@ -30,7 +30,7 @@ namespace NuGetGallery
 
             if (package == null)
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-    
+
             packageSvc.AddDownloadStatistics(package,
                                              Request.UserHostAddress,
                                              Request.UserAgent);
@@ -42,9 +42,15 @@ namespace NuGetGallery
         }
 
         [ActionName("VerifyPackageKeyApi"), HttpGet]
-        public virtual ActionResult VerifyPackageKey(Guid apiKey, string id, string version)
+        public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
         {
-            var user = userSvc.FindByApiKey(apiKey);
+            Guid parsedApiKey;
+            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+            }
+
+            var user = userSvc.FindByApiKey(parsedApiKey);
             if (user == null)
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
 
@@ -63,20 +69,26 @@ namespace NuGetGallery
         }
 
         [ActionName("PushPackageApi"), HttpPut]
-        public virtual ActionResult CreatePackagePut(Guid apiKey)
+        public virtual ActionResult CreatePackagePut(string apiKey)
         {
             return CreatePackageInternal(apiKey);
         }
 
         [ActionName("PushPackageApi"), HttpPost]
-        public virtual ActionResult CreatePackagePost(Guid apiKey)
+        public virtual ActionResult CreatePackagePost(string apiKey)
         {
             return CreatePackageInternal(apiKey);
         }
 
-        private ActionResult CreatePackageInternal(Guid apiKey)
+        private ActionResult CreatePackageInternal(string apiKey)
         {
-            var user = userSvc.FindByApiKey(apiKey);
+            Guid parsedApiKey;
+            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+            }
+
+            var user = userSvc.FindByApiKey(parsedApiKey);
             if (user == null)
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
 
@@ -105,9 +117,15 @@ namespace NuGetGallery
         }
 
         [ActionName("DeletePackageApi"), HttpDelete]
-        public virtual ActionResult DeletePackage(Guid apiKey, string id, string version)
+        public virtual ActionResult DeletePackage(string apiKey, string id, string version)
         {
-            var user = userSvc.FindByApiKey(apiKey);
+            Guid parsedApiKey;
+            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+            }
+
+            var user = userSvc.FindByApiKey(parsedApiKey);
             if (user == null)
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
 
@@ -123,7 +141,7 @@ namespace NuGetGallery
         }
 
         [ActionName("PublishPackageApi"), HttpPost]
-        public virtual ActionResult PublishPackage(Guid key, string id, string version)
+        public virtual ActionResult PublishPackage(string apiKey, string id, string version)
         {
             return new EmptyResult();
         }

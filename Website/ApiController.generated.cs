@@ -102,7 +102,7 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult VerifyPackageKey(System.Guid apiKey, string id, string version) {
+        public override System.Web.Mvc.ActionResult VerifyPackageKey(string apiKey, string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.VerifyPackageKey);
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
@@ -110,19 +110,19 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult CreatePackagePut(System.Guid apiKey) {
+        public override System.Web.Mvc.ActionResult CreatePackagePut(string apiKey) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePut);
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult CreatePackagePost(System.Guid apiKey) {
+        public override System.Web.Mvc.ActionResult CreatePackagePost(string apiKey) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePost);
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult DeletePackage(System.Guid apiKey, string id, string version) {
+        public override System.Web.Mvc.ActionResult DeletePackage(string apiKey, string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
@@ -130,9 +130,9 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult PublishPackage(System.Guid key, string id, string version) {
+        public override System.Web.Mvc.ActionResult PublishPackage(string apiKey, string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PublishPackage);
-            callInfo.RouteValueDictionary.Add("key", key);
+            callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;

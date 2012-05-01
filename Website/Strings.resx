@@ -168,4 +168,7 @@
   <data name="PackageIsAlreadyCurated" xml:space="preserve">
     <value>The package is already curated.</value>
   </data>
+  <data name="InvalidApiKey" xml:space="preserve">
+    <value>The API key '{0}' is invalid.</value>
+  </data>
 </root>
