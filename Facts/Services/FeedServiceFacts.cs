@@ -147,7 +147,7 @@ namespace NuGetGallery.Services
                 IEntityRepository<Package> repo,
                 IConfiguration configuration,
                 ISearchService searchSvc)
-                : base(repo, configuration, searchSvc)
+                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchSvc)
             {
             }
 
@@ -163,7 +163,7 @@ namespace NuGetGallery.Services
                 IEntityRepository<Package> repo,
                 IConfiguration configuration,
                 ISearchService searchSvc)
-                : base(repo, configuration, searchSvc)
+                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchSvc)
             {   
             }
 

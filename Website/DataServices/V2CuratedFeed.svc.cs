@@ -30,7 +30,7 @@ namespace NuGetGallery
             
             return new FeedContext<V2FeedPackage>
             {
-                Packages = packages.ToV2FeedPackageQuery(Configuration.SiteRoot)
+                Packages = packages.ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
             };
         }
 
@@ -39,7 +39,7 @@ namespace NuGetGallery
         {
             return GetPackages()
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                .ToV2FeedPackageQuery(Configuration.SiteRoot);
+                .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
         private static void FixUpDataServiceUrisForCuratedFeedName(
@@ -112,7 +112,7 @@ namespace NuGetGallery
             {
                 packages = packages.Where(p => !p.IsPrerelease);
             }
-            return packages.Search(searchTerm).ToV2FeedPackageQuery(Configuration.SiteRoot);
+            return packages.Search(searchTerm).ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
         public override Uri GetReadStreamUri(
