@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace NuGetGallery
 {
@@ -32,6 +33,11 @@ namespace NuGetGallery
         public Stream OpenWrite(string path)
         {
             return File.OpenWrite(path);
+        }
+
+        public DateTimeOffset GetCreationTimeUtc(string path)
+        {
+            return File.GetCreationTimeUtc(path);
         }
     }
 }

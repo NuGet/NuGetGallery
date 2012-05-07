@@ -89,6 +89,10 @@ namespace NuGetGallery
                 .To<LuceneIndexingService>()
                 .InRequestScope();
 
+            Bind<INuGetExeDownloaderService>()
+                .To<NuGetExeDownloaderService>()
+                .InRequestScope();
+
             Lazy<IMailSender> mailSenderThunk = new Lazy<IMailSender>(() =>
             {
                 var settings = Kernel.Get<GallerySetting>();
