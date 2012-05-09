@@ -10,15 +10,21 @@ namespace NuGetGallery
 {
     public partial class ApiController : Controller
     {
+        private const string NuGetCommandLinePackage = "NuGet.CommandLine";
         private readonly IPackageService packageSvc;
         private readonly IUserService userSvc;
         private readonly IPackageFileService packageFileSvc;
+        private readonly INuGetExeDownloaderService nugetExeDownloaderSvc;
 
-        public ApiController(IPackageService packageSvc, IPackageFileService packageFileSvc, IUserService userSvc)
+        public ApiController(IPackageService packageSvc, 
+                             IPackageFileService packageFileSvc, 
+                             IUserService userSvc,
+                             INuGetExeDownloaderService nugetExeDownloaderSvc)
         {
             this.packageSvc = packageSvc;
             this.packageFileSvc = packageFileSvc;
             this.userSvc = userSvc;
+            this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
         }
 
         [ActionName("GetPackageApi"), HttpGet]
@@ -39,6 +45,12 @@ namespace NuGetGallery
                 return Redirect(package.ExternalPackageUrl);
             else
                 return packageFileSvc.CreateDownloadPackageActionResult(package);
+        }
+
+        [ActionName("GetNuGetExeApi"), HttpGet]
+        public virtual ActionResult GetNuGetExe()
+        {
+            return nugetExeDownloaderSvc.CreateNuGetExeDownloadActionnResult();
         }
 
         [ActionName("VerifyPackageKeyApi"), HttpGet]
@@ -112,7 +124,13 @@ namespace NuGetGallery
                 }
             }
 
-            packageSvc.CreatePackage(packageToPush, user);
+            var package = packageSvc.CreatePackage(packageToPush, user);
+            if (packageToPush.Id.Equals(NuGetCommandLinePackage, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
+            {
+                // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
+                nugetExeDownloaderSvc.UpdateExecutable(packageToPush);
+            }
+
             return new HttpStatusCodeResult(201);
         }
 

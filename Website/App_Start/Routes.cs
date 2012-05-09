@@ -198,6 +198,11 @@ namespace NuGetGallery
                 defaults: null,
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
+            routes.MapRoute(
+               "v2" + RouteName.DownloadNuGetExe,
+               "api/v2/nuget.exe",
+               new { controller = MVC.Api.Name, action = MVC.Api.ActionNames.GetNuGetExe });
+
             routes.MapServiceRoute(
                 RouteName.V2ApiCuratedFeed,
                 "api/v2/curated-feed",
