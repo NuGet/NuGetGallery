@@ -20,38 +20,27 @@ using System.Web.Mvc.Ajax;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
-
-
-
 namespace T4MVC {
-
     public class SharedController {
-
 
         static readonly ViewNames s_views = new ViewNames();
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-public readonly string Error = "~/Views/Shared/Error.cshtml";
+            public readonly string Error = "~/Views/Shared/Error.cshtml";
             public readonly string Layout = "~/Views/Shared/Layout.cshtml";
             public readonly string TwoColumnLayout = "~/Views/Shared/TwoColumnLayout.cshtml";
             public readonly string UserDisplay = "~/Views/Shared/UserDisplay.cshtml";
-            
-static readonly _EditorTemplates s_EditorTemplates = new _EditorTemplates();
-public _EditorTemplates EditorTemplates { get { return s_EditorTemplates; } }
-public partial class _EditorTemplates{
-public readonly string Object = "Object";
+            static readonly _EditorTemplates s_EditorTemplates = new _EditorTemplates();
+            public _EditorTemplates EditorTemplates { get { return s_EditorTemplates; } }
+            public partial class _EditorTemplates{
+                public readonly string Object = "Object";
             }
-
         }
     }
 
-
-
 }
-
-
 
 #endregion T4MVC
 #pragma warning restore 1591
