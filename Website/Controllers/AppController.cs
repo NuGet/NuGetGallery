@@ -3,7 +3,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery
 {
-    public class AppController : Controller
+    public abstract partial class AppController : Controller
     {
         protected virtual IIdentity Identity
         {

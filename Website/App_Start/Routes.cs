@@ -100,22 +100,22 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.CuratedFeed,
                 "curated-feeds/{name}",
-                new { controller = CuratedFeedsController.Name, action = "CuratedFeed" });
+                MVC.CuratedFeeds.CuratedFeed());
 
             routes.MapRoute(
                 RouteName.CreateCuratedPackageForm,
                 "forms/add-package-to-curated-feed",
-                new { controller = CuratedPackagesController.Name, action = "CreateCuratedPackageForm" });
+                new { controller = MVC.CuratedPackages.Name, action = "CreateCuratedPackageForm" });
 
             routes.MapRoute(
                 RouteName.CuratedPackage,
                 "curated-feeds/{curatedFeedName}/curated-packages/{curatedPackageId}",
-                new { controller = CuratedPackagesController.Name, action = "CuratedPackage" });
+                new { controller = MVC.CuratedPackages.Name, action = "CuratedPackage" });
 
             routes.MapRoute(
                 RouteName.CuratedPackages,
                 "curated-feeds/{curatedFeedName}/curated-packages",
-                new { controller = CuratedPackagesController.Name, action = "CuratedPackages" });
+                new { controller = MVC.CuratedPackages.Name, action = "CuratedPackages" });
 
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
