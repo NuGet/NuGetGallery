@@ -28,7 +28,8 @@ namespace NuGetGallery
             this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
         }
 
-        [ActionName("GetPackageApi"), HttpGet] 
+        [ActionName("GetPackageApi"), HttpGet]
+        [OutputCache(Duration = Int32.MaxValue, Location = OutputCacheLocation.Downstream)]
         public virtual ActionResult GetPackage(string id, string version)
         {
             // if the version is null, the user is asking for the latest version. Presumably they don't want pre release versions. 
