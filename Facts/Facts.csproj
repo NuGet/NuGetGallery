@@ -137,6 +137,7 @@
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
+    <Compile Include="Services\NuGetExeDownloaderServiceFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
     <Compile Include="Services\UploadFileServiceFacts.cs" />
     <Compile Include="Services\UsersServiceFacts.cs" />

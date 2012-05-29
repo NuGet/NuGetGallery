@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace NuGetGallery
 {
@@ -10,5 +11,6 @@ namespace NuGetGallery
         bool FileExists(string path);
         Stream OpenRead(string path);
         Stream OpenWrite(string path);
+        DateTimeOffset GetCreationTimeUtc(string path);
     }
 }

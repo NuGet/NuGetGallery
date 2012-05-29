@@ -75,6 +75,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string GetPackage = "GetPackageApi";
+            public readonly string GetNuGetExe = "GetNuGetExeApi";
             public readonly string VerifyPackageKey = "VerifyPackageKeyApi";
             public readonly string CreatePackagePut = "PushPackageApi";
             public readonly string CreatePackagePost = "PushPackageApi";
@@ -99,6 +100,11 @@ namespace NuGetGallery {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GetPackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult GetNuGetExe() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GetNuGetExe);
             return callInfo;
         }
 

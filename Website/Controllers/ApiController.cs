@@ -4,24 +4,31 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web.Mvc;
+using System.Web.UI;
 using NuGet;
 
 namespace NuGetGallery
 {
     public partial class ApiController : Controller
     {
+        private const string NuGetCommandLinePackage = "NuGet.CommandLine";
         private readonly IPackageService packageSvc;
         private readonly IUserService userSvc;
         private readonly IPackageFileService packageFileSvc;
+        private readonly INuGetExeDownloaderService nugetExeDownloaderSvc;
 
-        public ApiController(IPackageService packageSvc, IPackageFileService packageFileSvc, IUserService userSvc)
+        public ApiController(IPackageService packageSvc,
+                             IPackageFileService packageFileSvc,
+                             IUserService userSvc,
+                             INuGetExeDownloaderService nugetExeDownloaderSvc)
         {
             this.packageSvc = packageSvc;
             this.packageFileSvc = packageFileSvc;
             this.userSvc = userSvc;
+            this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
         }
 
-        [ActionName("GetPackageApi"), HttpGet]
+        [ActionName("GetPackageApi"), HttpGet] 
         public virtual ActionResult GetPackage(string id, string version)
         {
             // if the version is null, the user is asking for the latest version. Presumably they don't want pre release versions. 
@@ -38,7 +45,17 @@ namespace NuGetGallery
             if (!string.IsNullOrWhiteSpace(package.ExternalPackageUrl))
                 return Redirect(package.ExternalPackageUrl);
             else
+            {
                 return packageFileSvc.CreateDownloadPackageActionResult(package);
+            }
+        }
+
+        [ActionName("GetNuGetExeApi"),
+         HttpGet,
+         OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
+        public virtual ActionResult GetNuGetExe()
+        {
+            return nugetExeDownloaderSvc.CreateNuGetExeDownloadActionnResult();
         }
 
         [ActionName("VerifyPackageKeyApi"), HttpGet]
@@ -112,7 +129,13 @@ namespace NuGetGallery
                 }
             }
 
-            packageSvc.CreatePackage(packageToPush, user);
+            var package = packageSvc.CreatePackage(packageToPush, user);
+            if (packageToPush.Id.Equals(NuGetCommandLinePackage, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
+            {
+                // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
+                nugetExeDownloaderSvc.UpdateExecutable(packageToPush);
+            }
+
             return new HttpStatusCodeResult(201);
         }
 

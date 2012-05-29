@@ -208,6 +208,11 @@ namespace NuGetGallery
                 "api/v2/",
                 typeof(V2Feed));
 
+            routes.MapRoute(
+               RouteName.DownloadNuGetExe,
+               "nuget.exe",
+               new { controller = MVC.Api.Name, action = MVC.Api.ActionNames.GetNuGetExe });
+
             // Redirected Legacy Routes
 
             routes.Redirect(
