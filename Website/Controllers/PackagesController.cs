@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly IMessageService messageService;
         private readonly ISearchService searchSvc;
         private readonly IAutomaticallyCuratePackageCommand autoCuratedPackageCmd;
+        private readonly INuGetExeDownloaderService nugetExeDownloaderSvc;
 
         public PackagesController(
             IPackageService packageSvc,
@@ -31,7 +32,8 @@ namespace NuGetGallery
             IUserService userSvc,
             IMessageService messageService,
             ISearchService searchSvc,
-            IAutomaticallyCuratePackageCommand autoCuratedPackageCmd)
+            IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
+            INuGetExeDownloaderService nugetExeDownloaderSvc)
         {
             this.packageSvc = packageSvc;
             this.uploadFileSvc = uploadFileSvc;
@@ -39,6 +41,7 @@ namespace NuGetGallery
             this.messageService = messageService;
             this.searchSvc = searchSvc;
             this.autoCuratedPackageCmd = autoCuratedPackageCmd;
+            this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
         }
 
         [Authorize]
@@ -510,6 +513,12 @@ namespace NuGetGallery
                 uploadFileSvc.DeleteUploadFile(currentUser.Key);
                 autoCuratedPackageCmd.Execute(package, nugetPackage);
                 tx.Complete();
+            }
+
+            if (package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
+            {
+                // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
+                nugetExeDownloaderSvc.UpdateExecutable(nugetPackage);
             }
 
             TempData["Message"] = String.Format(CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);

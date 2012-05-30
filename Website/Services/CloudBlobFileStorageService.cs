@@ -17,6 +17,7 @@ namespace NuGetGallery
             this.client = client;
 
             PrepareContainer(Constants.PackagesFolderName, isPublic: true);
+            PrepareContainer(Constants.DownloadsFolderName, isPublic: true);
             PrepareContainer(Constants.UploadsFolderName, isPublic: false);
         }
 
@@ -38,6 +39,16 @@ namespace NuGetGallery
             blob.DeleteIfExists();
         }
 
+        public bool FileExists(
+            string folderName,
+            string fileName)
+        {
+            
+            var container = GetContainer(folderName);
+            var blob = container.GetBlobReference(fileName);
+            return blob.Exists();
+        }
+
         ICloudBlobContainer GetContainer(string folderName)
         {
             return containers[folderName];
@@ -50,6 +61,8 @@ namespace NuGetGallery
                 case Constants.PackagesFolderName:
                 case Constants.UploadsFolderName:
                     return Constants.PackageContentType;
+                case Constants.DownloadsFolderName:
+                    return Constants.OctetStreamContentType;
                 default:
                     throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
             }
