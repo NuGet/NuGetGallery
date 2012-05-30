@@ -13,7 +13,7 @@ namespace NuGetGallery
             this.blob = blob;
         }
 
-        public BlobProperties Properties 
+        public BlobProperties Properties
         {
             get { return blob.Properties; }
         }
@@ -37,6 +37,26 @@ namespace NuGetGallery
             catch (StorageClientException ex)
             {
                 throw new TestableStorageClientException(ex);
+            }
+        }
+
+        public bool Exists()
+        {
+            try
+            {
+                blob.FetchAttributes();
+                return true;
+            }
+            catch (StorageClientException e)
+            {
+                if (e.ErrorCode == StorageErrorCode.ResourceNotFound)
+                {
+                    return false;
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 

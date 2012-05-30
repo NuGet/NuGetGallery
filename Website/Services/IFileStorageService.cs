@@ -13,6 +13,10 @@ namespace NuGetGallery
             string folderName, 
             string fileName);
 
+        bool FileExists(
+            string folderName,
+            string fileName);
+
         Stream GetFile(
             string folderName,
             string fileName);
