@@ -27,14 +27,14 @@ namespace NuGetGallery
         }
 
         public ActionResult CreateDownloadFileActionResult(
-            string folderName, 
+            string folderName,
             string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
             if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
-            
+
             var path = BuildPath(configuration.FileStorageDirectory, folderName, fileName);
             if (!fileSystemSvc.FileExists(path))
                 return new HttpNotFoundResult();
@@ -50,27 +50,42 @@ namespace NuGetGallery
             {
                 case Constants.PackagesFolderName:
                     return Constants.PackageContentType;
+                case Constants.DownloadsFolderName:
+                    return Constants.OctetStreamContentType;
                 default:
                     throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
             }
         }
 
         public void DeleteFile(
-            string folderName, 
+            string folderName,
             string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
             if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
-            
+
             var path = BuildPath(configuration.FileStorageDirectory, folderName, fileName);
             if (fileSystemSvc.FileExists(path))
                 fileSystemSvc.DeleteFile(path);
         }
 
+        public bool FileExists(
+            string folderName,
+            string fileName)
+        {
+            if (String.IsNullOrWhiteSpace(folderName))
+                throw new ArgumentNullException("folderName");
+            if (String.IsNullOrWhiteSpace(fileName))
+                throw new ArgumentNullException("fileName");
+
+            var path = BuildPath(configuration.FileStorageDirectory, folderName, fileName);
+            return fileSystemSvc.FileExists(path);
+        }
+
         public Stream GetFile(
-            string folderName, 
+            string folderName,
             string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
@@ -87,7 +102,7 @@ namespace NuGetGallery
 
         public void SaveFile(
             string folderName,
-            string fileName, 
+            string fileName,
             Stream packageFile)
         {
             if (String.IsNullOrWhiteSpace(folderName))

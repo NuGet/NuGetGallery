@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Web.Mvc;
 using Moq;
@@ -10,34 +9,36 @@ namespace NuGetGallery.Services
 {
     public class NuGetExeDownloaderServiceFacts
     {
-        private static readonly string _exePath = @"x:\NuGetGallery\nuget.exe";
-
         [Fact]
-        public void CreateNuGetExeDownloadDoesNotExtractFileIfItAlreadyExistsAndIsRecent()
+        public void CreateNuGetExeDownloadDoesNotExtractFileIfItAlreadyExists()
         {
             // Arrange
-            var fileSystem = new Mock<IFileSystemService>(MockBehavior.Strict);
-            fileSystem.Setup(s => s.FileExists(_exePath)).Returns(true).Verifiable();
-            fileSystem.Setup(s => s.GetCreationTimeUtc(_exePath))
-                      .Returns(DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(60)))
-                      .Verifiable();
+            var fileStorage = new Mock<IFileStorageService>(MockBehavior.Strict);
+            fileStorage.Setup(s => s.FileExists("downloads", "nuget.exe"))
+                       .Returns(true).Verifiable();
+            fileStorage.Setup(s => s.CreateDownloadFileActionResult("downloads", "nuget.exe"))
+                       .Returns(Mock.Of<ActionResult>())
+                       .Verifiable();
 
             // Act
-            var downloaderSvc = GetDownloaderService(fileSystemSvc: fileSystem);
-            var result = downloaderSvc.CreateNuGetExeDownloadActionnResult();
+            var downloaderSvc = GetDownloaderService(fileStorageSvc: fileStorage);
+            downloaderSvc.CreateNuGetExeDownloadActionResult();
 
             // Assert
-            fileSystem.Verify();
-            AssertActionResult(result);
+            fileStorage.Verify();
         }
 
         [Fact]
         public void CreateNuGetExeDownloadExtractsFileIfItDoesNotExist()
         {
             // Arrange
-            var fileSystem = new Mock<IFileSystemService>(MockBehavior.Strict);
-            fileSystem.Setup(s => s.FileExists(_exePath)).Returns(false);
-            fileSystem.Setup(s => s.OpenWrite(_exePath)).Returns(Stream.Null);
+            var fileStorage = new Mock<IFileStorageService>(MockBehavior.Strict);
+            fileStorage.Setup(s => s.FileExists("downloads", "nuget.exe")).Returns(false);
+            fileStorage.Setup(s => s.SaveFile("downloads", "nuget.exe", It.IsAny<Stream>()))
+                       .Verifiable();
+            fileStorage.Setup(s => s.CreateDownloadFileActionResult("downloads", "nuget.exe"))
+                       .Returns(Mock.Of<ActionResult>())
+                       .Verifiable();
 
             var package = new Package { Version = "2.0.0" };
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
@@ -50,70 +51,31 @@ namespace NuGetGallery.Services
                           .Verifiable();
 
             // Act
-            var downloaderSvc = GetDownloaderService(packageService, packageFileSvc, fileSystem);
-            var result = downloaderSvc.CreateNuGetExeDownloadActionnResult();
+            var downloaderSvc = GetDownloaderService(packageService, packageFileSvc, fileStorage);
+            downloaderSvc.CreateNuGetExeDownloadActionResult();
 
             // Assert
             packageFileSvc.Verify();
             packageService.Verify();
-            AssertActionResult(result);
         }
 
         [Fact]
-        public void CreateNuGetExeDownloadExtractsFileIfItExistsButIsNotRecent()
+        public void UpdateExecutableExtractsExeToFileStorage()
         {
             // Arrange
-            var fileSystem = new Mock<IFileSystemService>(MockBehavior.Strict);
-            fileSystem.Setup(s => s.FileExists(_exePath)).Returns(true);
-            fileSystem.Setup(s => s.GetCreationTimeUtc(_exePath))
-                      .Returns(DateTime.UtcNow.Subtract(TimeSpan.FromHours(32)));
-            fileSystem.Setup(s => s.OpenWrite(_exePath)).Returns(Stream.Null);
-
-            var package = new Package { Version = "2.0.0" };
-            var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-            packageService.Setup(s => s.FindPackageByIdAndVersion("NuGet.CommandLine", null, false))
-                          .Returns(package)
-                          .Verifiable();
-            var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
-            packageFileSvc.Setup(s => s.DownloadPackageFile(package))
-                          .Returns(CreateCommandLinePackage)
-                          .Verifiable();
-
-            // Act
-            var downloaderSvc = GetDownloaderService(packageService, packageFileSvc, fileSystem);
-            var result = downloaderSvc.CreateNuGetExeDownloadActionnResult();
-
-            // Assert
-            packageFileSvc.Verify();
-            packageService.Verify();
-            AssertActionResult(result);
-        }
-
-        [Fact]
-        public void UpdateExecutableExtractsExeToDisk()
-        {
-            // Arrange
-            var fileSystem = new Mock<IFileSystemService>(MockBehavior.Strict);
-            fileSystem.Setup(s => s.OpenWrite(_exePath)).Returns(Stream.Null);
+            var fileStorage = new Mock<IFileStorageService>(MockBehavior.Strict);
+            fileStorage.Setup(s => s.SaveFile("downloads", "nuget.exe", It.IsAny<Stream>()))
+                       .Verifiable();
 
             var nugetPackage = new Mock<IPackage>();
             nugetPackage.Setup(s => s.GetFiles()).Returns(new[] { CreateExePackageFile() }.AsQueryable());
 
             // Act
-            var downloaderSvc = GetDownloaderService(fileSystemSvc: fileSystem);
+            var downloaderSvc = GetDownloaderService(fileStorageSvc: fileStorage);
             downloaderSvc.UpdateExecutable(nugetPackage.Object);
 
             // Assert
-            fileSystem.Verify();
-        }
-
-        private static void AssertActionResult(ActionResult result)
-        {
-            Assert.IsType<FilePathResult>(result);
-            var filePathResult = (FilePathResult)result;
-            Assert.Equal(_exePath, filePathResult.FileName);
-            Assert.Equal(@"application/octet-stream", filePathResult.ContentType);
-            Assert.Equal(@"NuGet.exe", filePathResult.FileDownloadName);
+            fileStorage.Verify();
         }
 
         private static Stream CreateCommandLinePackage()
@@ -146,16 +108,13 @@ namespace NuGetGallery.Services
         private static NuGetExeDownloaderService GetDownloaderService(
             Mock<IPackageService> packageSvc = null,
             Mock<IPackageFileService> packageFileSvc = null,
-            Mock<IFileSystemService> fileSystemSvc = null)
+            Mock<IFileStorageService> fileStorageSvc = null)
         {
             packageSvc = packageSvc ?? new Mock<IPackageService>(MockBehavior.Strict);
             packageFileSvc = packageFileSvc ?? new Mock<IPackageFileService>(MockBehavior.Strict);
-            fileSystemSvc = fileSystemSvc ?? new Mock<IFileSystemService>(MockBehavior.Strict);
+            fileStorageSvc = fileStorageSvc ?? new Mock<IFileStorageService>(MockBehavior.Strict);
 
-            return new NuGetExeDownloaderService(packageSvc.Object, packageFileSvc.Object, fileSystemSvc.Object)
-            {
-                NuGetExePath = _exePath
-            };
+            return new NuGetExeDownloaderService(packageSvc.Object, packageFileSvc.Object, fileStorageSvc.Object);
         }
     }
 }

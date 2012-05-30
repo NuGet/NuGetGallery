@@ -11,7 +11,6 @@ namespace NuGetGallery
 {
     public partial class ApiController : Controller
     {
-        private const string NuGetCommandLinePackage = "NuGet.CommandLine";
         private readonly IPackageService packageSvc;
         private readonly IUserService userSvc;
         private readonly IPackageFileService packageFileSvc;
@@ -55,7 +54,7 @@ namespace NuGetGallery
          OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
         public virtual ActionResult GetNuGetExe()
         {
-            return nugetExeDownloaderSvc.CreateNuGetExeDownloadActionnResult();
+            return nugetExeDownloaderSvc.CreateNuGetExeDownloadActionResult();
         }
 
         [ActionName("VerifyPackageKeyApi"), HttpGet]
@@ -130,7 +129,7 @@ namespace NuGetGallery
             }
 
             var package = packageSvc.CreatePackage(packageToPush, user);
-            if (packageToPush.Id.Equals(NuGetCommandLinePackage, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
+            if (packageToPush.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
             {
                 // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
                 nugetExeDownloaderSvc.UpdateExecutable(packageToPush);

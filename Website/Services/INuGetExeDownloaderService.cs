@@ -5,7 +5,7 @@ namespace NuGetGallery
 {
     public interface INuGetExeDownloaderService
     {
-        ActionResult CreateNuGetExeDownloadActionnResult();
+        ActionResult CreateNuGetExeDownloadActionResult();
 
         void UpdateExecutable(IPackage package);
     }

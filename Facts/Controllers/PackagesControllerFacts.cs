@@ -1069,6 +1069,100 @@ namespace NuGetGallery
 
                 fakeAutoCuratePackageCmd.Verify(fake => fake.Execute(fakePackage, fakeNuGetPackage.Object));
             }
+
+            [Fact]
+            public void WillExtractNuGetExe()
+            {
+                // Arrange
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(Stream.Null);
+                var fakePackageSvc = new Mock<IPackageService>();
+                var commandLinePackage = new Package { PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" }, Version = "2.0.0", IsLatestStable = true };
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(commandLinePackage);
+                var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
+                nugetExeDownloader.Setup(d => d.UpdateExecutable(It.IsAny<IPackage>())).Verifiable();
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    fakeIdentity: fakeIdentity,
+                    userSvc: fakeUserSvc,
+                    downloaderSvc: nugetExeDownloader);
+
+                // Act
+                controller.VerifyPackage(false);
+
+                // Assert
+                nugetExeDownloader.Verify();
+            }
+
+            [Fact]
+            public void WillNotExtractNuGetExeIfIsNotLatestStable()
+            {
+                // Arrange
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(Stream.Null);
+                var fakePackageSvc = new Mock<IPackageService>();
+                var commandLinePackage = new Package { PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" }, Version = "2.0.0", IsLatestStable = false };
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(commandLinePackage);
+                var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    fakeIdentity: fakeIdentity,
+                    userSvc: fakeUserSvc,
+                    downloaderSvc: nugetExeDownloader);
+
+                // Act
+                controller.VerifyPackage(false);
+
+                // Assert
+                nugetExeDownloader.Verify(d => d.UpdateExecutable(It.IsAny<IPackage>()), Times.Never());
+            }
+
+            [Theory]
+            [InlineData("nuget-commandline")]
+            [InlineData("nuget..commandline")]
+            [InlineData("nuget.command")]
+            public void WillNotExtractNuGetExeIfIsItDoesNotMatchId(string id)
+            {
+                // Arrange
+                var fakeCurrentUser = new User { Key = 42 };
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(fakeCurrentUser);
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                var fakeFileStream = new MemoryStream();
+                fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(Stream.Null);
+                var fakePackageSvc = new Mock<IPackageService>();
+                var commandLinePackage = new Package { PackageRegistration = new PackageRegistration { Id = id }, Version = "2.0.0", IsLatestStable = true };
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(commandLinePackage);
+                var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
+                var controller = CreateController(
+                    packageSvc: fakePackageSvc,
+                    uploadFileSvc: fakeUploadFileSvc,
+                    fakeIdentity: fakeIdentity,
+                    userSvc: fakeUserSvc,
+                    downloaderSvc: nugetExeDownloader);
+
+                // Act
+                controller.VerifyPackage(false);
+
+                // Assert
+                nugetExeDownloader.Verify(d => d.UpdateExecutable(It.IsAny<IPackage>()), Times.Never());
+            }
         }
 
         public class TheCancelVerifyPackageAction
@@ -1124,7 +1218,8 @@ namespace NuGetGallery
             Mock<IPackage> fakeNuGetPackage = null,
             Mock<ISearchService> searchService = null,
             Exception readPackageException = null,
-            Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null)
+            Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
+            Mock<INuGetExeDownloaderService> downloaderSvc = null)
         {
 
             packageSvc = packageSvc ?? new Mock<IPackageService>();
@@ -1133,6 +1228,7 @@ namespace NuGetGallery
             messageSvc = messageSvc ?? new Mock<IMessageService>();
             searchService = searchService ?? CreateSearchService();
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
+            downloaderSvc = downloaderSvc ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
 
             var controller = new Mock<PackagesController>(
                     packageSvc.Object,
@@ -1140,7 +1236,8 @@ namespace NuGetGallery
                     userSvc.Object,
                     messageSvc.Object,
                     searchService.Object,
-                    autoCuratePackageCmd.Object);
+                    autoCuratePackageCmd.Object,
+                    downloaderSvc.Object);
             controller.CallBase = true;
 
             if (httpContext != null)
