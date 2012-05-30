@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using NuGet;
 
@@ -9,38 +8,25 @@ namespace NuGetGallery
 {
     public class NuGetExeDownloaderService : INuGetExeDownloaderService
     {
-        private static readonly TimeSpan _exeRefreshInterval = TimeSpan.FromDays(1);
-        private static readonly Lazy<string> _defaultNuGetExePath = new Lazy<string>(() => Path.Combine(HttpRuntime.AppDomainAppPath, "App_Data", "NuGet.exe"));
         private static readonly object fileLock = new object();
         private readonly IPackageService packageSvc;
         private readonly IPackageFileService packageFileSvc;
-        private readonly IFileSystemService fileSystem;
-        private string _nugetExePath;
+        private readonly IFileStorageService fileStorageSvc;
 
         public NuGetExeDownloaderService(
             IPackageService packageSvc,
             IPackageFileService packageFileSvc,
-            IFileSystemService fileSystem)
+            IFileStorageService fileStorageSvc)
         {
             this.packageSvc = packageSvc;
             this.packageFileSvc = packageFileSvc;
-            this.fileSystem = fileSystem;
-        }
-
-        public string NuGetExePath
-        {
-            get { return _nugetExePath ?? _defaultNuGetExePath.Value; }
-            set { _nugetExePath = value; }
+            this.fileStorageSvc = fileStorageSvc;
         }
 
         public ActionResult CreateNuGetExeDownloadActionnResult()
         {
             EnsureNuGetExe();
-            var result = new FilePathResult(NuGetExePath, Constants.OctetStreamContentType)
-                         {
-                             FileDownloadName = "NuGet.exe"
-                         };
-            return result;
+            return fileStorageSvc.CreateDownloadFileActionResult(Constants.DownloadsFolderName, "nuget.exe");
         }
 
         public void UpdateExecutable(IPackage zipPackage)
@@ -53,9 +39,9 @@ namespace NuGetGallery
 
         private void EnsureNuGetExe()
         {
-            if (fileSystem.FileExists(NuGetExePath) && (DateTime.UtcNow - fileSystem.GetCreationTimeUtc(NuGetExePath)) < _exeRefreshInterval)
+            if (fileStorageSvc.FileExists(Constants.DownloadsFolderName, "nuget.exe"))
             {
-                // Ensure the file exists and it is recent enough.
+                // Ensure the file exists on blob storage.
                 return;
             }
 
@@ -80,10 +66,9 @@ namespace NuGetGallery
             var executable = package.GetFiles("tools")
                                        .First(f => f.Path.Equals(@"tools\NuGet.exe", StringComparison.OrdinalIgnoreCase));
 
-            using (Stream fileStream = fileSystem.OpenWrite(NuGetExePath),
-                          packageFileStream = executable.GetStream())
+            using (Stream packageFileStream = executable.GetStream())
             {
-                packageFileStream.CopyTo(fileStream);
+                fileStorageSvc.SaveFile(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
             }
         }
     }

@@ -11,6 +11,7 @@ namespace NuGetGallery
 
         void DeleteIfExists();
         void DownloadToStream(Stream target);
+        bool Exists();
         void SetProperties();
         void UploadFromStream(Stream packageFile);
     }
