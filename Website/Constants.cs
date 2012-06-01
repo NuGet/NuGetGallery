@@ -28,8 +28,7 @@ namespace NuGetGallery
         
         public const string UploadFileNameTemplate = "{0}{1}";
         public const string UploadsFolderName = "uploads";
-        
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
-
+        public const string PackagesTabCompletionInfoCacheKey = "PackageTabCompletionInfo";
     }
 }

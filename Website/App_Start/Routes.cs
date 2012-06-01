@@ -100,22 +100,22 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.CuratedFeed,
                 "curated-feeds/{name}",
-                new { controller = CuratedFeedsController.Name, action = "CuratedFeed" });
+                new { controller = CuratedFeedsController.ControllerName, action = "CuratedFeed" });
 
             routes.MapRoute(
                 RouteName.CreateCuratedPackageForm,
                 "forms/add-package-to-curated-feed",
-                new { controller = CuratedPackagesController.Name, action = "CreateCuratedPackageForm" });
+				new { controller = CuratedPackagesController.ControllerName, action = "CreateCuratedPackageForm" });
 
             routes.MapRoute(
                 RouteName.CuratedPackage,
                 "curated-feeds/{curatedFeedName}/curated-packages/{curatedPackageId}",
-                new { controller = CuratedPackagesController.Name, action = "CuratedPackage" });
+				new { controller = CuratedPackagesController.ControllerName, action = "CuratedPackage" });
 
             routes.MapRoute(
                 RouteName.CuratedPackages,
                 "curated-feeds/{curatedFeedName}/curated-packages",
-                new { controller = CuratedPackagesController.Name, action = "CuratedPackages" });
+				new { controller = CuratedPackagesController.ControllerName, action = "CuratedPackages" });
 
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
@@ -198,6 +198,12 @@ namespace NuGetGallery
                 defaults: null,
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
+			// V2 routes
+			routes.MapRoute(
+				"v2PackagesTabCompletionInfo",
+				"api/v2/packages-tab-completion-info",
+				MVC.Api.GetPackagesTabCompletionInfo());
+
             routes.MapServiceRoute(
                 RouteName.V2ApiCuratedFeed,
                 "api/v2/curated-feed",
@@ -239,7 +245,7 @@ namespace NuGetGallery
             //    r => r.MapRoute(
             //        "EditPackage",
             //        "Package/Edit/{id}/{version}",
-            //        new { controller = PackagesController.Name, action = "EditPackage" }),
+            //        new { controller = PackagesController.ControllerName, action = "EditPackage" }),
             //    permanent: true).To(packageVersionActionRoute);
 
             routes.Redirect(

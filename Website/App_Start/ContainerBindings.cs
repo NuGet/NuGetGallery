@@ -2,15 +2,18 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Security;
 using System.Security.Principal;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
+using Microsoft.ApplicationServer.Caching;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using Ninject;
 using Ninject.Modules;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
@@ -136,16 +139,35 @@ namespace NuGetGallery
 
             Bind<IPrincipal>().ToMethod(context => HttpContext.Current.User);
 
-            switch (configuration.PackageStoreType)
+			switch (configuration.PackageStoreType)
             {
                 case PackageStoreType.FileSystem:
                 case PackageStoreType.NotSpecified:
+            		Bind<ICache>()
+            			.To<LocalCache>()
+            			.InSingletonScope();
                     Bind<IFileStorageService>()
                         .To<FileSystemFileStorageService>()
                         .InSingletonScope();
                     break;
                 case PackageStoreType.AzureStorageBlob:
-                    Bind<ICloudBlobClient>()
+					Bind<ICache>()
+						.ToMethod(context =>
+						{
+							var dataCacheServerEndpoints = new DataCacheServerEndpoint[1];
+							dataCacheServerEndpoints[0] = new DataCacheServerEndpoint(configuration.AzureCacheEndpoint, 22233);
+							var authToken = configuration.AzureCacheAuthToken;
+							var secureAuthToken = new SecureString();
+							foreach (var a in authToken)
+								secureAuthToken.AppendChar(a);
+							secureAuthToken.MakeReadOnly();
+							var dataCacheSecurity = new DataCacheSecurity(secureAuthToken);
+							var dataCacheFactoryConfiguration = new DataCacheFactoryConfiguration { Servers = dataCacheServerEndpoints, SecurityProperties = dataCacheSecurity };
+							var dataCacheFactory = new DataCacheFactory(dataCacheFactoryConfiguration);
+							return new AzureCache(dataCacheFactory.GetDefaultCache());
+						})
+						.InSingletonScope();
+					Bind<ICloudBlobClient>()
                         .ToMethod(context => new CloudBlobClientWrapper(new CloudBlobClient(
                             new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
                             new StorageCredentialsAccountAndKey(configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
@@ -207,6 +229,9 @@ namespace NuGetGallery
             Bind<IUserByUsernameQuery>()
                 .To<UserByUsernameQuery>()
                 .InRequestScope();
+			Bind<IAllPackageRegistrationsQuery>()
+				.To<AllPackageRegistrationsQuery>()
+				.InRequestScope();
         }
     }
 }

@@ -17,6 +17,7 @@ namespace NuGetGallery
         private readonly IPackageFileService packageFileSvc;
         private readonly IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository;
         private readonly IIndexingService indexingSvc;
+    	private readonly ICache cache;
 
         public PackageService(
             ICryptographyService cryptoSvc,
@@ -25,7 +26,8 @@ namespace NuGetGallery
             IEntityRepository<PackageStatistics> packageStatsRepo,
             IPackageFileService packageFileSvc,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
-            IIndexingService indexingSvc)
+            IIndexingService indexingSvc,
+			ICache cache)
         {
             this.cryptoSvc = cryptoSvc;
             this.packageRegistrationRepo = packageRegistrationRepo;
@@ -34,6 +36,7 @@ namespace NuGetGallery
             this.packageFileSvc = packageFileSvc;
             this.packageOwnerRequestRepository = packageOwnerRequestRepository;
             this.indexingSvc = indexingSvc;
+        	this.cache = cache;
         }
 
         public Package CreatePackage(IPackage nugetPackage, User currentUser)
@@ -53,6 +56,7 @@ namespace NuGetGallery
                     packageRegistrationRepo.CommitChanges();
                     packageFileSvc.SavePackageFile(package, stream);
                     tx.Complete();
+					cache.Remove(Constants.PackagesTabCompletionInfoCacheKey);
                 }
             }
 

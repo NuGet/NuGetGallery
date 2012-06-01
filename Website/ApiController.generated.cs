@@ -81,6 +81,7 @@ namespace NuGetGallery {
             public readonly string CreatePackagePost = "PushPackageApi";
             public readonly string DeletePackage = "DeletePackageApi";
             public readonly string PublishPackage = "PublishPackageApi";
+            public readonly string GetPackagesTabCompletionInfo = "PackagesTabCompletionInfo";
         }
 
 
@@ -141,6 +142,11 @@ namespace NuGetGallery {
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult GetPackagesTabCompletionInfo() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GetPackagesTabCompletionInfo);
             return callInfo;
         }
 

@@ -9,7 +9,7 @@ using NuGet;
 
 namespace NuGetGallery
 {
-    public partial class ApiController : Controller
+	public partial class ApiController : AppController
     {
         private readonly IPackageService packageSvc;
         private readonly IUserService userSvc;
@@ -189,5 +189,33 @@ namespace NuGetGallery
 
             return new ZipPackage(stream);
         }
+
+		[ActionName("PackagesTabCompletionInfo"), HttpGet]
+		public virtual ActionResult GetPackagesTabCompletionInfo()
+		{
+			var cache = GetService<ICache>();
+			var packageRegistrations = cache.Get(Constants.PackagesTabCompletionInfoCacheKey) as PackageRegistrationWithVersionsApiModel[];
+			if (packageRegistrations == null)
+			{
+				packageRegistrations = GetService<IAllPackageRegistrationsQuery>()
+					.Execute()
+					.ToArray()
+					.Select(pr => new PackageRegistrationWithVersionsApiModel
+					              {
+					              	Id = pr.Id,
+					              	Versions = pr.Packages.Select(p => p.Version).ToArray()
+					              })
+					.ToArray();
+				cache.Add(Constants.PackagesTabCompletionInfoCacheKey, packageRegistrations);
+			}
+			return new JsonNetResult(packageRegistrations);
+		}
+
+		[Serializable]
+		class PackageRegistrationWithVersionsApiModel
+		{
+			public string Id { get; set; }
+			public string[] Versions { get; set; }
+		}
     }
 }
