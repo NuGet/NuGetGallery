@@ -194,17 +194,22 @@ namespace NuGetGallery
 		public virtual ActionResult GetPackagesTabCompletionInfo()
 		{
 			var cache = GetService<ICache>();
-			var packageRegistrations = cache.Get(Constants.PackagesTabCompletionInfoCacheKey) as PackageRegistrationWithVersionsApiModel[];
+			var packageRegistrations = cache.Get(Constants.PackagesTabCompletionInfoCacheKey) as PackageTabCompletionInfo[];
 			if (packageRegistrations == null)
 			{
 				packageRegistrations = GetService<IAllPackageRegistrationsQuery>()
 					.Execute()
 					.ToArray()
-					.Select(pr => new PackageRegistrationWithVersionsApiModel
-					              {
-					              	Id = pr.Id,
-					              	Versions = pr.Packages.Select(p => p.Version).ToArray()
-					              })
+					.Select(pr => new PackageTabCompletionInfo
+					{
+						Id = pr.Id,
+						Versions = pr.Packages.Select(p => new VersionTabCompletionInfo
+						{
+							IsLatestStable = p.IsLatestStable,
+							IsPrerelease = p.IsPrerelease,
+							Version = p.Version
+						}).ToArray()
+					})
 					.ToArray();
 				cache.Add(Constants.PackagesTabCompletionInfoCacheKey, packageRegistrations);
 			}
@@ -212,10 +217,18 @@ namespace NuGetGallery
 		}
 
 		[Serializable]
-		class PackageRegistrationWithVersionsApiModel
+		class PackageTabCompletionInfo
 		{
 			public string Id { get; set; }
-			public string[] Versions { get; set; }
+			public VersionTabCompletionInfo[] Versions { get; set; }
+		}
+
+		[Serializable]
+		class VersionTabCompletionInfo
+		{
+			public bool IsLatestStable { get; set; }
+			public bool IsPrerelease { get; set; }
+			public string Version { get; set; }
 		}
     }
 }
