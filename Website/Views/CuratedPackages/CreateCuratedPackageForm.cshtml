@@ -6,7 +6,7 @@
     <p><strong>Note: </strong>Packages might also be automatically included in your curated feed based on pre-defined rules. This form is to manually include a package in the curated feed, which will override any pre-defined rules.</p>
 }
 <h1>Include Package in <i>@ViewBag.CuratedFeedName</i></h1>
-@using (Html.BeginForm("CuratedPackages", CuratedPackagesController.Name, new { curatedFeedName = ViewBag.CuratedFeedName }))
+@using (Html.BeginForm("CuratedPackages", CuratedPackagesController.ControllerName, new { curatedFeedName = ViewBag.CuratedFeedName }))
 {
     <fieldset class="form">
         @Html.AntiForgeryToken()
