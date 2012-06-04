@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization;
 using System.Web.Mvc;
 using System.Web.UI;
 using NuGet;
@@ -30,8 +32,8 @@ namespace NuGetGallery
         [ActionName("GetPackageApi"), HttpGet] 
         public virtual ActionResult GetPackage(string id, string version)
         {
-            // if the version is null, the user is asking for the latest version. Presumably they don't want pre release versions. 
-            // The allow prerelease flag is ignored if both id and version are specified.
+            // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
+            // The allow prerelease flag is ignored if both partialId and version are specified.
             var package = packageSvc.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
 
             if (package == null)
@@ -72,7 +74,7 @@ namespace NuGetGallery
 
             if (!String.IsNullOrEmpty(id))
             {
-                // If the id is present, then verify that the user has permission to push for the specific Id \ version combination.
+                // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
                 var package = packageSvc.FindPackageByIdAndVersion(id, version);
                 if (package == null)
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
@@ -110,7 +112,7 @@ namespace NuGetGallery
 
             var packageToPush = ReadPackageFromRequest();
 
-            // Ensure that the user can push packages for this id.
+            // Ensure that the user can push packages for this partialId.
             var packageRegistration = packageSvc.FindPackageRegistrationById(packageToPush.Id);
             if (packageRegistration != null)
             {
@@ -190,45 +192,93 @@ namespace NuGetGallery
             return new ZipPackage(stream);
         }
 
-		[ActionName("PackagesTabCompletionInfo"), HttpGet]
-		public virtual ActionResult GetPackagesTabCompletionInfo()
-		{
-			var cache = GetService<ICache>();
-			var packageRegistrations = cache.Get(Constants.PackagesTabCompletionInfoCacheKey) as PackageTabCompletionInfo[];
-			if (packageRegistrations == null)
-			{
-				packageRegistrations = GetService<IAllPackageRegistrationsQuery>()
-					.Execute()
-					.ToArray()
-					.Select(pr => new PackageTabCompletionInfo
-					{
-						Id = pr.Id,
-						Versions = pr.Packages.Select(p => new VersionTabCompletionInfo
-						{
-							IsLatestStable = p.IsLatestStable,
-							IsPrerelease = p.IsPrerelease,
-							Version = p.Version
-						}).ToArray()
-					})
-					.ToArray();
-				cache.Add(Constants.PackagesTabCompletionInfoCacheKey, packageRegistrations);
-			}
-			return new JsonNetResult(packageRegistrations);
-		}
+        [ActionName("PackageIDs"), HttpGet]
+        public virtual ActionResult GetPackageIds(
+            string partialId,
+            bool? includePrerelease)
+        {
+            var cache = GetService<ICache>();
+            var packageIds = cache.Get(Constants.PackageIdsCacheKey) as List<PackageId>;
+            if (packageIds == null)
+            {
+                packageIds = GetService<IAllPackageRegistrationsQuery>()
+                    .Execute()
+                    .Where(pr => pr.Packages.Any(p => p.Listed))
+                    .OrderBy(pr => pr.DownloadCount)
+                    .Select(pr => new PackageId
+                    {
+                        Id = pr.Id,
+                        IsPrereleaseOnly = !pr.Packages.Any(p => p.IsLatestStable)
+                    })
+                    .ToList();
+                cache.Add(Constants.PackageIdsCacheKey, packageIds);
+            }
+            var query = packageIds.AsQueryable();
+            if (!includePrerelease.HasValue || !includePrerelease.Value)
+                query = query.Where(x => !x.IsPrereleaseOnly);
+            if (!string.IsNullOrWhiteSpace(partialId))
+                query = query.Where(x => x.Id.StartsWith(partialId, StringComparison.OrdinalIgnoreCase));
+            var result = query
+                .Take(30)
+                .Select(x => x.Id)
+                .ToArray();
+            return new JsonNetResult(result);
+        }
 
-		[Serializable]
-		class PackageTabCompletionInfo
-		{
-			public string Id { get; set; }
-			public VersionTabCompletionInfo[] Versions { get; set; }
-		}
+        [ActionName("PackageVersions"), HttpGet]
+        public virtual ActionResult GetPackageVersions(
+            string id,
+            bool? includePrerelease)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return new JsonNetResult(new string[] {});
+            var cache = GetService<ICache>();
+            var cacheKey = string.Format(Constants.PackageVersionsCacheKeyFormat, id);
+            var packageVersions = cache.Get(cacheKey) as PackageVersions;
+            if (packageVersions == null)
+            {
+                var packageRegistration = GetService<IPackageRegistrationByIdQuery>().Execute(
+                    id, 
+                    includePackages: true, 
+                    includeOwners: false);
+                packageVersions = new PackageVersions
+                {
+                    Id = packageRegistration.Id,
+                    Versions = packageRegistration.Packages
+                    .Select(p => new PackageVersion
+                    {
+                        Version = p.Version, 
+                        IsPrerelease = p.IsPrerelease
+                    })
+                    .ToList()
+                }; 
+                cache.Add(cacheKey, packageVersions);
+            }
+            var query = packageVersions.Versions.AsQueryable();
+            if (!includePrerelease.HasValue || !includePrerelease.Value)
+                query = query.Where(x => !x.IsPrerelease);
+            var result = query
+                .Select(x => x.Version)
+                .ToArray();
+            return new JsonNetResult(result);
+        }
 
-		[Serializable]
-		class VersionTabCompletionInfo
-		{
-			public bool IsLatestStable { get; set; }
-			public bool IsPrerelease { get; set; }
-			public string Version { get; set; }
-		}
+        class PackageId
+        {
+            public string Id { get; set; }
+            public bool IsPrereleaseOnly { get; set; }
+        }
+
+        class PackageVersions
+        {
+            public string Id { get; set; }
+            public List<PackageVersion> Versions { get; set; }
+        }
+
+        class PackageVersion
+        {
+            public bool IsPrerelease { get; set; }
+            public string Version { get; set; }
+        }
     }
 }

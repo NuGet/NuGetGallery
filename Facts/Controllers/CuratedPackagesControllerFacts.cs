@@ -101,7 +101,7 @@ namespace NuGetGallery
             {
                 var controller = new TestableCuratedPackagesController();
                 controller.StubCuratedFeed.Name = "theCuratedFeedName";
-                controller.StubPackageRegistrationByIdQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((PackageRegistration)null);
+                controller.StubPackageRegistrationByIdQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns((PackageRegistration)null);
 
                 var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest()) as ViewResult;
 
@@ -150,7 +150,7 @@ namespace NuGetGallery
                 var controller = new TestableCuratedPackagesController();
                 controller.StubCuratedFeed.Name = "theCuratedFeedName";
                 controller.StubCuratedFeed.Packages.Add(new CuratedPackage{ PackageRegistration  = new PackageRegistration{ Key = 42 } });
-                controller.StubPackageRegistrationByIdQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((new PackageRegistration{ Key = 42 }));
+                controller.StubPackageRegistrationByIdQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns((new PackageRegistration { Key = 42 }));
 
                 var result = controller.PostCuratedPackages("theCuratedFeedName", new CreateCuratedPackageRequest()) as ViewResult;
 
@@ -168,7 +168,7 @@ namespace NuGetGallery
                         .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
                         .Returns(StubCuratedFeed);
                     StubPackageRegistrationByIdQry
-                        .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                        .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
                         .Returns(StubPackageRegistration);
                 }
             }

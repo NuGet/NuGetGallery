@@ -200,9 +200,14 @@ namespace NuGetGallery
 
 			// V2 routes
 			routes.MapRoute(
-				"v2PackagesTabCompletionInfo",
-				"api/v2/packages-tab-completion-info",
-				MVC.Api.GetPackagesTabCompletionInfo());
+				"v2PackageIds",
+				"api/v2/package-ids",
+				MVC.Api.GetPackageIds());
+
+			routes.MapRoute(
+				"v2PackageVersions",
+				"api/v2/package-versions/{id}",
+				MVC.Api.GetPackageVersions());
 
             routes.MapServiceRoute(
                 RouteName.V2ApiCuratedFeed,

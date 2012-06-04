@@ -7,6 +7,7 @@ namespace NuGetGallery
     {
         PackageRegistration Execute(
             string id,
+            bool includePackages = false,
             bool includeOwners = true);
     }
 
@@ -21,10 +22,14 @@ namespace NuGetGallery
 
         public PackageRegistration Execute(
             string id,
+            bool includePackages = false,
             bool includeOwners = true)
         {
             var qry = _entities.PackageRegistrations.AsQueryable();
 
+            if (includePackages)
+	            qry = qry.Include(packageRegistration => packageRegistration.Packages);
+			
             if (includeOwners)
                 qry = qry.Include(packageRegistration => packageRegistration.Owners);
 

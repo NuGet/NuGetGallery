@@ -451,7 +451,7 @@ namespace NuGetGallery
 					nugetPackage.Object,
 					currentUser);
 
-				stubCache.Verify(stub => stub.Remove(Constants.PackagesTabCompletionInfoCacheKey));
+				stubCache.Verify(stub => stub.Remove(Constants.PackageIdsCacheKey));
 			}
         }
 

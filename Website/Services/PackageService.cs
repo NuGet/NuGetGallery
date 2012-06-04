@@ -56,7 +56,8 @@ namespace NuGetGallery
                     packageRegistrationRepo.CommitChanges();
                     packageFileSvc.SavePackageFile(package, stream);
                     tx.Complete();
-					cache.Remove(Constants.PackagesTabCompletionInfoCacheKey);
+                    cache.Remove(Constants.PackageIdsCacheKey);
+                    cache.Remove(string.Format(Constants.PackageVersionsCacheKeyFormat, packageRegistration.Id));
                 }
             }
 
