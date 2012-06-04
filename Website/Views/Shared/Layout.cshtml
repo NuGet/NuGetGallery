@@ -11,7 +11,7 @@
         <script src="@Url.Content("~/Scripts/modernizr-2.0.6-development-only.js")"></script>
         <script src="@Url.Content("~/Scripts/jquery-1.6.2.min.js")"></script>
         @MiniProfiler.RenderIncludes()
-        @Analytics.GetGoogleHtml("UA-177588-7")
+        @ViewHelpers.AnalyticsScript()
         @RenderSection("TopScripts", required: false)
     </head>
     <body>
