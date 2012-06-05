@@ -3,8 +3,6 @@ namespace NuGetGallery
 {
     public interface IConfiguration
     {
-		string AzureCacheAuthToken { get; }
-		string AzureCacheEndpoint { get; }
 		string AzureStorageAccessKey { get; }
         string AzureStorageAccountName { get; }
         string AzureStorageBlobUrl { get; }

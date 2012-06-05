@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -197,32 +198,8 @@ namespace NuGetGallery
             string partialId,
             bool? includePrerelease)
         {
-            var cache = GetService<ICache>();
-            var packageIds = cache.Get(Constants.PackageIdsCacheKey) as List<PackageId>;
-            if (packageIds == null)
-            {
-                packageIds = GetService<IAllPackageRegistrationsQuery>()
-                    .Execute()
-                    .Where(pr => pr.Packages.Any(p => p.Listed))
-                    .OrderBy(pr => pr.DownloadCount)
-                    .Select(pr => new PackageId
-                    {
-                        Id = pr.Id,
-                        IsPrereleaseOnly = !pr.Packages.Any(p => p.IsLatestStable)
-                    })
-                    .ToList();
-                cache.Add(Constants.PackageIdsCacheKey, packageIds);
-            }
-            var query = packageIds.AsQueryable();
-            if (!includePrerelease.HasValue || !includePrerelease.Value)
-                query = query.Where(x => !x.IsPrereleaseOnly);
-            if (!string.IsNullOrWhiteSpace(partialId))
-                query = query.Where(x => x.Id.StartsWith(partialId, StringComparison.OrdinalIgnoreCase));
-            var result = query
-                .Take(30)
-                .Select(x => x.Id)
-                .ToArray();
-            return new JsonNetResult(result);
+            var qry = GetService<IPackageIdsQuery>();
+            return new JsonNetResult(qry.Execute(partialId, includePrerelease).ToArray());
         }
 
         [ActionName("PackageVersions"), HttpGet]
@@ -230,55 +207,8 @@ namespace NuGetGallery
             string id,
             bool? includePrerelease)
         {
-            if (string.IsNullOrWhiteSpace(id))
-                return new JsonNetResult(new string[] {});
-            var cache = GetService<ICache>();
-            var cacheKey = string.Format(Constants.PackageVersionsCacheKeyFormat, id);
-            var packageVersions = cache.Get(cacheKey) as PackageVersions;
-            if (packageVersions == null)
-            {
-                var packageRegistration = GetService<IPackageRegistrationByIdQuery>().Execute(
-                    id, 
-                    includePackages: true, 
-                    includeOwners: false);
-                packageVersions = new PackageVersions
-                {
-                    Id = packageRegistration.Id,
-                    Versions = packageRegistration.Packages
-                    .Select(p => new PackageVersion
-                    {
-                        Version = p.Version, 
-                        IsPrerelease = p.IsPrerelease
-                    })
-                    .ToList()
-                }; 
-                cache.Add(cacheKey, packageVersions);
-            }
-            var query = packageVersions.Versions.AsQueryable();
-            if (!includePrerelease.HasValue || !includePrerelease.Value)
-                query = query.Where(x => !x.IsPrerelease);
-            var result = query
-                .Select(x => x.Version)
-                .ToArray();
-            return new JsonNetResult(result);
-        }
-
-        class PackageId
-        {
-            public string Id { get; set; }
-            public bool IsPrereleaseOnly { get; set; }
-        }
-
-        class PackageVersions
-        {
-            public string Id { get; set; }
-            public List<PackageVersion> Versions { get; set; }
-        }
-
-        class PackageVersion
-        {
-            public bool IsPrerelease { get; set; }
-            public string Version { get; set; }
+            var qry = GetService<IPackageVersionsQuery>();
+            return new JsonNetResult(qry.Execute(id, includePrerelease).ToArray());
         }
     }
 }

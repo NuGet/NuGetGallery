@@ -71,16 +71,6 @@ namespace NuGetGallery
             return false;
         }
 
-		public string AzureCacheAuthToken
-		{
-			get { return ReadConfiguration("AzureCacheAuthToken"); }
-		}
-		
-		public string AzureCacheEndpoint 
-		{
-			get { return ReadConfiguration("AzureCacheEndpoint"); }
-    	}
-
         public string AzureStorageAccessKey
         {
             get

@@ -242,14 +242,11 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
-    <Compile Include="Infrastructure\AzureCache.cs" />
     <Compile Include="Infrastructure\HintAttribute.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResult.cs" />
-    <Compile Include="Infrastructure\ICache.cs" />
     <Compile Include="Infrastructure\JsonNetResult.cs" />
-    <Compile Include="Infrastructure\LocalCache.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneFileSystem.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneCommon.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneIndexingJob.cs" />
@@ -358,7 +355,8 @@
     <Compile Include="PagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="Queries\AllPackageRegistrationsQuery.cs" />
+    <Compile Include="Queries\PackageVersionsQuery.cs" />
+    <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
     <Compile Include="Queries\CuratedFeedByKeyQuery.cs" />
     <Compile Include="Queries\CuratedFeedByNameQuery.cs" />

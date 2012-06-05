@@ -426,33 +426,6 @@ namespace NuGetGallery
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Title", "4000"), ex.Message);
             }
-
-			[Fact]
-			void WillRemoveTheCachedPackagesTabCompletionInfo()
-			{
-				var currentUser = new User();
-				var packageRegistration = new PackageRegistration
-				{
-					Id = "theId",
-					Owners = new HashSet<User> { currentUser },
-				};
-				var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
-				var stubCache = new Mock<ICache>();
-				var service = CreateService(
-					packageRegistrationRepo: packageRegistrationRepo,
-					stubCache: stubCache,
-					setup: mockPackageSvc =>
-					{
-						mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
-					});
-				var nugetPackage = CreateNuGetPackage();
-
-				service.CreatePackage(
-					nugetPackage.Object,
-					currentUser);
-
-				stubCache.Verify(stub => stub.Remove(Constants.PackageIdsCacheKey));
-			}
         }
 
         public class TheDeletePackageMethod
@@ -1273,8 +1246,7 @@ namespace NuGetGallery
             Mock<IPackageFileService> packageFileSvc = null,
             Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Mock<IIndexingService> indexingSvc = null,
-            Action<Mock<PackageService>> setup = null,
-			Mock<ICache> stubCache = null)
+            Action<Mock<PackageService>> setup = null)
         {
             if (cryptoSvc == null)
             {
@@ -1289,7 +1261,6 @@ namespace NuGetGallery
             packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
             indexingSvc = indexingSvc ?? new Mock<IIndexingService>();
-        	stubCache = stubCache ?? new Mock<ICache>();
 
             var packageSvc = new Mock<PackageService>(
                 cryptoSvc.Object,
@@ -1298,8 +1269,7 @@ namespace NuGetGallery
                 packageStatsRepo.Object,
                 packageFileSvc.Object,
                 packageOwnerRequestRepo.Object,
-                indexingSvc.Object,
-				stubCache.Object);
+                indexingSvc.Object);
 
             packageSvc.CallBase = true;
 
