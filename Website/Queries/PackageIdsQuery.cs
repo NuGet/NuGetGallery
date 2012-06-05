@@ -43,7 +43,7 @@ ORDER BY MAX(pr.DownloadCount) DESC";
             var prereleaseFilter = string.Empty;
             if (!includePrerelease.HasValue || !includePrerelease.Value)
                 prereleaseFilter = "AND p.IsPrerelease = 0";
-            return dbContext.Database.SqlQuery<string>(string.Format(_partialIdSqlFormat, partialId, prereleaseFilter));
+            return dbContext.Database.SqlQuery<string>(_partialIdSqlFormat, partialId, prereleaseFilter);
         }
     }
 }
