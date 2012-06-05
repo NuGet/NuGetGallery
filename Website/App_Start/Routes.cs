@@ -105,17 +105,17 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.CreateCuratedPackageForm,
                 "forms/add-package-to-curated-feed",
-				new { controller = CuratedPackagesController.ControllerName, action = "CreateCuratedPackageForm" });
+                new { controller = CuratedPackagesController.ControllerName, action = "CreateCuratedPackageForm" });
 
             routes.MapRoute(
                 RouteName.CuratedPackage,
                 "curated-feeds/{curatedFeedName}/curated-packages/{curatedPackageId}",
-				new { controller = CuratedPackagesController.ControllerName, action = "CuratedPackage" });
+                new { controller = CuratedPackagesController.ControllerName, action = "CuratedPackage" });
 
             routes.MapRoute(
                 RouteName.CuratedPackages,
                 "curated-feeds/{curatedFeedName}/curated-packages",
-				new { controller = CuratedPackagesController.ControllerName, action = "CuratedPackages" });
+                new { controller = CuratedPackagesController.ControllerName, action = "CuratedPackages" });
 
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
@@ -198,16 +198,15 @@ namespace NuGetGallery
                 defaults: null,
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
-			// V2 routes
-			routes.MapRoute(
-				"v2PackageIds",
-				"api/v2/package-ids",
-				MVC.Api.GetPackageIds());
+            routes.MapRoute(
+	            "v2PackageIds",
+	            "api/v2/package-ids",
+	            MVC.Api.GetPackageIds());
 
-			routes.MapRoute(
-				"v2PackageVersions",
-				"api/v2/package-versions/{id}",
-				MVC.Api.GetPackageVersions());
+            routes.MapRoute(
+	            "v2PackageVersions",
+	            "api/v2/package-versions/{id}",
+	            MVC.Api.GetPackageVersions());
 
             routes.MapServiceRoute(
                 RouteName.V2ApiCuratedFeed,

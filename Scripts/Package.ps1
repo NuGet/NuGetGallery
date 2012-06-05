@@ -1,6 +1,4 @@
 ﻿param(
-  $azureCacheAuthToken                = $env:NUGET_GALLERY_AZURE_CACHE_AUTH_TOKEN,
-  $azureCacheEndpoint                 = $env:NUGET_GALLERY_AZURE_CACHE_ENDPOINT,
   $azureStorageAccessKey              = $env:NUGET_GALLERY_AZURE_STORAGE_ACCESS_KEY,
   $azureStorageAccountName            = $env:NUGET_GALLERY_AZURE_STORAGE_ACCOUNT_NAME,
   $azureStorageBlobUrl                = $env:NUGET_GALLERY_AZURE_STORAGE_BLOB_URL,
@@ -22,8 +20,6 @@ $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 . $ScriptRoot\_Common.ps1
 
 #Validate Sutff
-require-param -value $azureCacheAuthToken -paramName "azureCacheAuthToken"
-require-param -value $azureCacheEndpoint -paramName "azureCacheEndpoint"
 require-param -value $azureStorageAccessKey -paramName "azureStorageAccessKey"
 require-param -value $azureStorageAccountName -paramName "azureStorageAccountName"
 require-param -value $azureStorageBlobUrl -paramName "azureStorageBlobUrl"
@@ -157,9 +153,6 @@ set-machinekey $webConfigPath
 
 #Release Tag stuff
 print-message("Setting the release tags")
-set-appsetting -path $webConfigPath -name "Gallery:AzureCacheAuthToken" -value $azureCacheAuthToken
-set-appsetting -path $webConfigPath -name "Gallery:AzureCacheEndpoint" -value $azureCacheEndpoint
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha

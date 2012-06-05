@@ -145,8 +145,7 @@ namespace NuGetGallery
                         .InSingletonScope();
                     break;
                 case PackageStoreType.AzureStorageBlob:
-					
-					Bind<ICloudBlobClient>()
+                    Bind<ICloudBlobClient>()
                         .ToMethod(context => new CloudBlobClientWrapper(new CloudBlobClient(
                             new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
                             new StorageCredentialsAccountAndKey(configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
