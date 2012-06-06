@@ -1,5 +1,6 @@
 ﻿ @* Generator: MvcHelper Namespace: NuGetGallery*@
 
+@using System.Configuration
 @using System.Linq;
 @using System.Collections;
 @using System.Web.Mvc;
@@ -89,5 +90,12 @@
         on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a> 
         at @time.
     </p>
+    }
+}
+
+@helper AnalyticsScript() {
+    var propertyId = ConfigurationManager.AppSettings["Gallery:GoogleAnalyticsPropertyId"];
+    if (propertyId != null) {
+        @Analytics.GetGoogleHtml(propertyId);
     }
 }
