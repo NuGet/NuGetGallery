@@ -11,6 +11,7 @@
   $validationKey                      = $env:NUGET_GALLERY_VALIDATION_KEY,
   $decryptionKey                      = $env:NUGET_GALLERY_DECRYPTION_KEY,
   $vmSize                             = $env:NUGET_GALLERY_AZURE_VM_SIZE,
+  $googleAnalyticsPropertyId          = $env:NUGET_GALLERY_GOOGLE_ANALYTICS_PROPERTY_ID,
   $commitSha,
   $commitBranch
 )
@@ -32,6 +33,7 @@ require-param -value $sslCertificateThumbprint -paramName "sslCertificateThumbpr
 require-param -value $validationKey -paramName "validationKey"
 require-param -value $decryptionKey -paramName "decryptionKey"
 require-param -value $vmSize -paramName "vmSize"
+require-param -value $googleAnalyticsPropertyId -paramName "googleAnalyticsPropertyId"
 
 #Helper Functions
 function set-certificatethumbprint {
@@ -153,6 +155,7 @@ set-machinekey $webConfigPath
 
 #Release Tag stuff
 print-message("Setting the release tags")
+set-appsetting -path $webConfigPath -name "Gallery:GoogleAnalyticsPropertyId" -value $googleAnalyticsPropertyId
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha
