@@ -11,6 +11,18 @@
     <img src="@Url.Content("~/content/images/hero.png")" alt="NuGet GUI Window" />
 </section> 
 
+<section class="aggstats">
+    <span class="stat">
+        <span id="UniquePackages" class="num"></span> unique packages
+    </span>
+    <span class="stat">
+        <span id="Downloads" class="num"></span>total downloads
+    </span>
+    <span class="stat">
+        <span id="TotalPackages" class="num"></span>total packages
+    </span>
+</section>
+
 <section class="release">
      <h2>NuGet 1.8 Released</h2> 
      <p>
@@ -34,3 +46,11 @@
     <a title="Creating and submitting a package" href="http://docs.nuget.org/docs/creating-packages/creating-and-publishing-a-package">how to 
     create and publish a package</a>. If you don&rsquo;t plan on submitting a package, there&rsquo;s no need to register.</p>
 </section>
+
+@section BottomScripts
+{
+    <script src="@Url.Content("~/Scripts/stats.js")"></script>
+    <script>
+    $(getStats);
+    </script>
+}

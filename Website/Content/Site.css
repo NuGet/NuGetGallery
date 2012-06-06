@@ -390,7 +390,34 @@ header.main {
                 border-color: #4585aa;
                 text-decoration: none;
             }
-            
+    
+    /* Aggregate Stats */
+    .aggstats {
+        background: #555;
+        display: none;
+    }
+    
+        .aggstats .stat {
+            display: inline-block;
+            *zoom: 1;
+            color: #bbb;
+            font-weight: bold;
+            text-align: center;
+            padding: 0.5em 0;
+            width: 33%;
+            margin: 0;
+        }
+            .aggstats .num {
+                font-size: 4em;
+                color: #f9f9f9;
+                font-family: monospace;
+                display: block;
+                line-height: 0.9em;
+            }
+
+                .aggstats .num > span {
+                    position: relative;
+                }
 
     /* Account/Actions */
     #actions h1 {

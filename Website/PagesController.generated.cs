@@ -23,9 +23,6 @@ using T4MVC;
 namespace NuGetGallery {
     public partial class PagesController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public PagesController() { }
-
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected PagesController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -50,6 +47,7 @@ namespace NuGetGallery {
             public readonly string Home = "Home";
             public readonly string Terms = "Terms";
             public readonly string Privacy = "Privacy";
+            public readonly string Stats = "Stats";
         }
 
 
@@ -80,6 +78,11 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult Privacy() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Privacy);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.JsonResult Stats() {
+            var callInfo = new T4MVC_JsonResult(Area, Name, ActionNames.Stats);
             return callInfo;
         }
 

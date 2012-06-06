@@ -14,6 +14,11 @@ namespace NuGetGallery
                 "",
                 MVC.Pages.Home());
 
+            routes.MapRoute(
+                RouteName.Stats,
+                "stats",
+                MVC.Pages.Stats());
+
             routes.Add(new JsonRoute("json/{controller}"));
 
             routes.MapRoute(
