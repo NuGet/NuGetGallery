@@ -66,23 +66,31 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> GetUpdates(string packageIds, string versions, bool includePrerelease, bool includeAllVersions, string targetFrameworks)
         {
-            var idValues = packageIds.Split('|');
-            var versionValues = versions.Split('|');
+            if (String.IsNullOrEmpty(packageIds) || String.IsNullOrEmpty(versions))
+            {
+                return Enumerable.Empty<V2FeedPackage>().AsQueryable();
+            }
+
+            var idValues = packageIds.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            var versionValues = versions.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             var targetFrameworkValues = String.IsNullOrEmpty(targetFrameworks) ? null :
                                                                                  targetFrameworks.Split('|').Select(VersionUtility.ParseFrameworkName).ToList();
 
-            if (!idValues.Any() || !idValues.Count().Equals(versionValues.Count()))
+            if ((idValues.Length == 0) || (idValues.Length != versionValues.Length))
             {
-                throw new InvalidOperationException("Number of packages do not match versions");
+                // Exit early if the request looks invalid
+                return Enumerable.Empty<V2FeedPackage>().AsQueryable();
             }
 
-            Dictionary<string, SemanticVersion> versionLookup = new Dictionary<string, SemanticVersion>(idValues.Count(), StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, SemanticVersion> versionLookup = new Dictionary<string, SemanticVersion>(idValues.Length, StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < idValues.Length; i++)
             {
                 var id = idValues[i];
                 SemanticVersion version;
-                SemanticVersion currentVersion = new SemanticVersion(versionValues[i]);
-                if (!versionLookup.TryGetValue(id, out version) || (currentVersion > version))
+                SemanticVersion currentVersion;
+                
+                if (SemanticVersion.TryParse(versionValues[i], out currentVersion) &&
+                     (!versionLookup.TryGetValue(id, out version) || (currentVersion > version)))
                 {
                     // If we've never added the package to lookup or we encounter the same id but with a higher version, then choose the higher version.
                     versionLookup[id] = currentVersion;
@@ -110,11 +118,15 @@ namespace NuGetGallery
                                       // TODO: We could optimize for the includeAllVersions case here by short circuiting the operation once we've encountered the highest version
                                       // for a given Id
                                       var version = SemanticVersion.Parse(p.Version);
-                                      var clientVersion = versionLookup[p.PackageRegistration.Id];
-                                      var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
+                                      SemanticVersion clientVersion;
+                                      if (versionLookup.TryGetValue(p.PackageRegistration.Id, out clientVersion))
+                                      {
+                                          var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
 
-                                      return (version > clientVersion) &&
-                                              (targetFrameworkValues == null || targetFrameworkValues.Any(s => VersionUtility.IsCompatible(s, supportedPackageFrameworks)));
+                                          return (version > clientVersion) &&
+                                                  (targetFrameworkValues == null || targetFrameworkValues.Any(s => VersionUtility.IsCompatible(s, supportedPackageFrameworks)));
+                                      }
+                                      return false;
                                   });
 
             if (!includeAllVersions)
