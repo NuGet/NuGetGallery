@@ -4,12 +4,12 @@ using System.Web.Mvc;
 namespace NuGetGallery
 {
     [Authorize]
-    public class CuratedFeedsController : AppController
+    public partial class CuratedFeedsController : AppController
     {
-        public const string Name = "CuratedFeeds";
+        public const string ControllerName = "CuratedFeeds";
 
         [HttpGet]
-        public ActionResult CuratedFeed(string name)
+        public virtual ActionResult CuratedFeed(string name)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(name, includePackages: true);
             if (curatedFeed == null)

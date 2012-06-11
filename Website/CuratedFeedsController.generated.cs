@@ -21,12 +21,12 @@ using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
 namespace NuGetGallery {
-    public partial class PagesController {
+    public partial class CuratedFeedsController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public PagesController() { }
+        public CuratedFeedsController() { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        protected PagesController(Dummy d) { }
+        protected CuratedFeedsController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected RedirectToRouteResult RedirectToAction(ActionResult result) {
@@ -34,22 +34,25 @@ namespace NuGetGallery {
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
 
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult CuratedFeed() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.CuratedFeed);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public PagesController Actions { get { return MVC.Pages; } }
+        public CuratedFeedsController Actions { get { return MVC.CuratedFeeds; } }
         [GeneratedCode("T4MVC", "2.0")]
         public readonly string Area = "";
         [GeneratedCode("T4MVC", "2.0")]
-        public readonly string Name = "Pages";
+        public readonly string Name = "CuratedFeeds";
 
         static readonly ActionNamesClass s_actions = new ActionNamesClass();
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string Home = "Home";
-            public readonly string Terms = "Terms";
-            public readonly string Privacy = "Privacy";
+            public readonly string CuratedFeed = "CuratedFeed";
         }
 
 
@@ -58,28 +61,17 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-            public readonly string Home = "~/Views/Pages/Home.cshtml";
-            public readonly string Privacy = "~/Views/Pages/Privacy.cshtml";
-            public readonly string Terms = "~/Views/Pages/Terms.cshtml";
+            public readonly string CuratedFeed = "~/Views/CuratedFeeds/CuratedFeed.cshtml";
         }
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_PagesController: NuGetGallery.PagesController {
-        public T4MVC_PagesController() : base(Dummy.Instance) { }
+    public class T4MVC_CuratedFeedsController: NuGetGallery.CuratedFeedsController {
+        public T4MVC_CuratedFeedsController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult Home() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Home);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Terms() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Terms);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Privacy() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Privacy);
+        public override System.Web.Mvc.ActionResult CuratedFeed(string name) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CuratedFeed);
+            callInfo.RouteValueDictionary.Add("name", name);
             return callInfo;
         }
 
