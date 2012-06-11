@@ -16,8 +16,8 @@ namespace NuGetGallery
         const string _sqlFormat = @"SELECT p.[Version]
 FROM Packages p
 	JOIN PackageRegistrations pr on pr.[Key] = p.PackageRegistrationKey
-WHERE pr.ID = '{0}'
-	{1}";
+WHERE pr.ID = {{0}}
+	{0}";
         private readonly IEntitiesContext _entities;
 
         public PackageVersionsQuery(IEntitiesContext entities)
@@ -37,7 +37,7 @@ WHERE pr.ID = '{0}'
             var prereleaseFilter = string.Empty;
             if (!includePrerelease.HasValue || !includePrerelease.Value)
                 prereleaseFilter = "AND p.IsPrerelease = 0";
-            return dbContext.Database.SqlQuery<string>(_sqlFormat, id, prereleaseFilter);
+            return dbContext.Database.SqlQuery<string>(string.Format(_sqlFormat, prereleaseFilter), id);
         }
     }
 }

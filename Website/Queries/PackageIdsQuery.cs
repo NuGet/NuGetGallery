@@ -15,8 +15,8 @@ namespace NuGetGallery
         const string _partialIdSqlFormat = @"SELECT TOP 30 pr.ID
 FROM Packages p
 	JOIN PackageRegistrations pr on pr.[Key] = p.PackageRegistrationKey
-WHERE pr.ID LIKE '{0}%'
-	{1}
+WHERE pr.ID LIKE {{0}}
+	{0}
 GROUP BY pr.ID
 ORDER BY pr.ID";
         private const string _noPartialIdSql = @"SELECT TOP 30 pr.ID
@@ -42,8 +42,8 @@ ORDER BY MAX(pr.DownloadCount) DESC";
             
             var prereleaseFilter = string.Empty;
             if (!includePrerelease.HasValue || !includePrerelease.Value)
-                prereleaseFilter = "AND p.IsPrerelease = 0";
-            return dbContext.Database.SqlQuery<string>(_partialIdSqlFormat, partialId, prereleaseFilter);
+                prereleaseFilter = "AND p.IsPrerelease = {1}";
+            return dbContext.Database.SqlQuery<string>(string.Format(_partialIdSqlFormat, prereleaseFilter), partialId + "%", includePrerelease ?? false);
         }
     }
 }
