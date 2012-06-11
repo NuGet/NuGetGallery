@@ -1,13 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition">
   <WebRole name="Website" vmsize="Medium">
-    <ConfigurationSettings>
-      <Setting name="AzureStorageAccessKey" />
-      <Setting name="AzureStorageAccountName" />
-      <Setting name="AzureStorageBlobUrl" />
-      <Setting name="PackageStoreType" />      
-      <Setting name="UseSmtp" />
-    </ConfigurationSettings>
     <Startup>
         <Task commandLine="EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
     </Startup>

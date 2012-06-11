@@ -9,11 +9,6 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
-      <Setting name="AzureStorageAccessKey" value="" />
-      <Setting name="AzureStorageAccountName" value="" />
-      <Setting name="AzureStorageBlobUrl" value="" />
-      <Setting name="PackageStoreType" value="AzureStorageBlob" />
-      <Setting name="UseSmtp" value="true" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />
