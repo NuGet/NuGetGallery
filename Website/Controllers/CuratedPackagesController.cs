@@ -4,12 +4,12 @@ using System.Web.Mvc;
 namespace NuGetGallery
 {
     [Authorize]
-    public class CuratedPackagesController : AppController
+    public partial class CuratedPackagesController : AppController
     {
-        public const string Name = "CuratedPackages";
+        public const string ControllerName = "CuratedPackages";
 
         [ActionName("CreateCuratedPackageForm"), HttpGet]
-        public ActionResult GetCreateCuratedPackageForm(string curatedFeedName)
+        public virtual ActionResult GetCreateCuratedPackageForm(string curatedFeedName)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName);
             if (curatedFeed == null)
@@ -23,7 +23,7 @@ namespace NuGetGallery
         }
 
         [ActionName("CuratedPackage"), HttpDelete]
-        public ActionResult DeleteCuratedPackage(
+        public virtual ActionResult DeleteCuratedPackage(
             string curatedFeedName,
             string curatedPackageId)
         {
@@ -46,7 +46,7 @@ namespace NuGetGallery
         }
 
         [ActionName("CuratedPackage"), AcceptVerbs("patch")]
-        public ActionResult PatchCuratedPackage(
+        public virtual ActionResult PatchCuratedPackage(
             string curatedFeedName,
             string curatedPackageId,
             ModifyCuratedPackageRequest request)
@@ -74,7 +74,7 @@ namespace NuGetGallery
         }
 
         [ActionName("CuratedPackages"), HttpPost]
-        public ActionResult PostCuratedPackages(
+        public virtual ActionResult PostCuratedPackages(
             string curatedFeedName,
             CreateCuratedPackageRequest request)
         {

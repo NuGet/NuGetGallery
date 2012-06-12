@@ -207,6 +207,12 @@ namespace NuGetGallery
             Bind<IUserByUsernameQuery>()
                 .To<UserByUsernameQuery>()
                 .InRequestScope();
+            Bind<IPackageIdsQuery>()
+                .To<PackageIdsQuery>()
+                .InRequestScope();
+            Bind<IPackageVersionsQuery>()
+                .To<PackageVersionsQuery>()
+                .InRequestScope();
         }
     }
 }
