@@ -5,7 +5,7 @@
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>NuGet Gallery</title> 
+        <title>NuGet Gallery @(string.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
         <link href="@Url.Content("~/Content/site.css")" rel="stylesheet" />
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
         <script src="@Url.Content("~/Scripts/modernizr-2.0.6-development-only.js")"></script>
@@ -15,7 +15,7 @@
         @RenderSection("TopScripts", required: false)
     </head>
     <body>
-        <div id="content-wraper">
+        <div id="content-wrapper">
             <header class="main">
                 <div id="logo"><a href="@Url.Home()">NuGet Gallery</a></div>
                 @Html.Partial(MVC.Shared.Views.UserDisplay)
@@ -33,14 +33,14 @@
                     <li><a href="http://docs.nuget.org">Documentation</a></li>
                     <li><a href="http://blog.nuget.org">Blog</a></li>
                 </ul>
-                <div id="searchBox">
+                <div id="searchBox" role="search">
                     <form action="@Url.PackageList()" method="get">
                         <input name="q" id="searchBoxInput" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
                         <input id="searchBoxSubmit" type="submit" value=" " />
                     </form>
                 </div>
             </nav>
-            <div id="body">
+            <div id="body" role="main">
             @if (TempData.ContainsKey("Message")) {
                 <p class="message">@TempData["Message"]</p>
             }
