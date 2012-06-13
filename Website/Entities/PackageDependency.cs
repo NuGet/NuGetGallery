@@ -10,5 +10,6 @@ namespace NuGetGallery
 
         public string Id { get; set; }
         public string VersionSpec { get; set; }
+        public string TargetFramework { get; set; }
     }
 }

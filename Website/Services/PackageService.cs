@@ -287,8 +287,13 @@ namespace NuGetGallery
             foreach (var author in nugetPackage.Authors)
                 package.Authors.Add(new PackageAuthor { Name = author });
 
-            foreach (var dependency in nugetPackage.Dependencies)
-                package.Dependencies.Add(new PackageDependency { Id = dependency.Id, VersionSpec = dependency.VersionSpec.ToStringSafe() });
+            foreach (var dependency in nugetPackage.DependencySets.SelectMany(ds => ds.Dependencies.Select(d => new { d.Id, d.VersionSpec, ds.TargetFramework })))
+                package.Dependencies.Add(new PackageDependency
+                {
+                    Id = dependency.Id, 
+                    VersionSpec = dependency.VersionSpec.ToStringSafe(),
+                    TargetFramework = VersionUtility.GetShortFrameworkName(dependency.TargetFramework ?? VersionUtility.DefaultTargetFramework)
+                });
 
             package.FlattenedAuthors = package.Authors.Flatten();
             package.FlattenedDependencies = package.Dependencies.Flatten();
@@ -304,8 +309,8 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
             if (nugetPackage.Copyright != null && nugetPackage.Copyright.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000");
-            if (nugetPackage.Dependencies != null && nugetPackage.Dependencies.Flatten().Length > 4000)
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", "4000");
+            if (nugetPackage.DependencySets != null && nugetPackage.DependencySets.Flatten().Length > Int16.MaxValue)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
             if (nugetPackage.Description != null && nugetPackage.Description.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Description", "4000");
             if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.ToString().Length > 4000)
