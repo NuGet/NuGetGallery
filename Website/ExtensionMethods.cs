@@ -10,6 +10,7 @@ using System.ServiceModel.Activation;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -49,19 +50,19 @@ namespace NuGetGallery
             return authors.Select(a => a.Name).Flatten();
         }
 
+        public static string Flatten(this IEnumerable<PackageDependencySet> dependencySets)
+        {
+            return FlattenDependencies(dependencySets.SelectMany(ds => ds.Dependencies.Select(d => new { d.Id, VersionSpec = d.VersionSpec.ToStringSafe(), TargetFramework = ds.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(ds.TargetFramework) })));
+        }
+        
         public static string Flatten(this ICollection<PackageDependency> dependencies)
         {
-            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionSpec.ToStringSafe())));
+            return FlattenDependencies(dependencies.Select(d => new { d.Id, VersionSpec = d.VersionSpec.ToStringSafe(), TargetFramework = d.TargetFramework.ToStringSafe() }));
         }
 
-        public static string Flatten(this IEnumerable<NuGet.PackageDependency> dependencies)
+        static string FlattenDependencies(IEnumerable<dynamic> dependencies)
         {
-            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionSpec.ToStringSafe())));
-        }
-
-        static string FlattenDependencies(IEnumerable<Tuple<string, string>> dependencies)
-        {
-            return String.Join("|", dependencies.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}", d.Item1, d.Item2)).ToArray());
+            return String.Join("|", dependencies.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}:{2}", d.Id, d.VersionSpec, d.TargetFramework)));
         }
 
         public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template)
