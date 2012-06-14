@@ -287,13 +287,24 @@ namespace NuGetGallery
             foreach (var author in nugetPackage.Authors)
                 package.Authors.Add(new PackageAuthor { Name = author });
 
-            foreach (var dependency in nugetPackage.DependencySets.SelectMany(ds => ds.Dependencies.Select(d => new { d.Id, d.VersionSpec, ds.TargetFramework })))
-                package.Dependencies.Add(new PackageDependency
-                {
-                    Id = dependency.Id, 
-                    VersionSpec = dependency.VersionSpec.ToStringSafe(),
-                    TargetFramework = VersionUtility.GetShortFrameworkName(dependency.TargetFramework ?? VersionUtility.DefaultTargetFramework)
-                });
+            foreach(var dependencySet in nugetPackage.DependencySets)
+            {
+                if (dependencySet.Dependencies.Count == 0)
+                    package.Dependencies.Add(new PackageDependency
+                    {
+                        Id = null, 
+                        VersionSpec = null, 
+                        TargetFramework = dependencySet.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependencySet.TargetFramework)
+                    });
+                else
+                    foreach (var dependency in dependencySet.Dependencies.Select(d => new { d.Id, d.VersionSpec, dependencySet.TargetFramework }))
+                        package.Dependencies.Add(new PackageDependency
+                        {
+                            Id = dependency.Id,
+                            VersionSpec = dependency.VersionSpec == null ? null : dependency.VersionSpec.ToString(),
+                            TargetFramework = dependency.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependency.TargetFramework)
+                        });
+            }
 
             package.FlattenedAuthors = package.Authors.Flatten();
             package.FlattenedDependencies = package.Dependencies.Flatten();
