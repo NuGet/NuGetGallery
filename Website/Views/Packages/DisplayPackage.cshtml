@@ -66,7 +66,10 @@
         <h1>@Model.Title</h1>
         <h2>@Model.Version</h2>
     </hgroup>
-    <p>@Model.Description</p>
+    @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
+    {
+        <p>@line</p>
+    }
 
     @if (!Model.Listed && Model.IsOwner(User))
     {                                        
