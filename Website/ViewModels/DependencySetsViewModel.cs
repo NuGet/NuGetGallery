@@ -15,13 +15,13 @@ namespace NuGetGallery
                 .GroupBy(d => d.TargetFramework)
                 .OrderBy(ds => ds.Key);
 
+            OnlyHasAllFrameworks = dependencySets.Count() == 1 && dependencySets.First().Key == null;
+            
             foreach(var dependencySet in dependencySets)
             {
-                var targetFramework = dependencySet.Key ?? "All";
+                var targetFramework = dependencySet.Key == null ? "All Frameworks" : VersionUtility.ParseFrameworkName(dependencySet.Key).ToFriendlyName();
                 DependencySets.Add(targetFramework, dependencySet.Select(d => new DependencyViewModel(d.Id, d.VersionSpec)));
             }
-
-            OnlyHasAllFrameworks = DependencySets.Count == 1 && DependencySets.First().Key == "All";
         }
 
         public IDictionary<string, IEnumerable<DependencyViewModel>> DependencySets { get; private set; }

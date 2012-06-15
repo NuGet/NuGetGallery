@@ -571,23 +571,20 @@ header.main {
         padding: 0;
     } 
     
-    #dependencySets > li {
-        font-style: italic;
-    } 
-    
-    #dependencySets > li > h4 {
+    #dependencySets > li > h4 
+    {
         margin: 2px 0;
+        text-decoration: underline;
     }
     
     ul.dependencySet {
         list-style: none;
-        margin: 0 0 5px 0;
+        margin: 0 0 10px 0;
         padding: 0;
     } 
     
     ul.dependencySet li {
         font-size: 1.25em;
-        font-style: normal;
         padding-right: 6px;
     }
     
