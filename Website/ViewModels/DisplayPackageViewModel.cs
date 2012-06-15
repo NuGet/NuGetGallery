@@ -17,7 +17,7 @@ namespace NuGetGallery
             Copyright = package.Copyright;
             if (!isVersionHistory)
             {
-                Dependencies = package.Dependencies.Select(d => new DependencyViewModel(d));
+                Dependencies = new DependencySetsViewModel(package.Dependencies);
                 PackageVersions = from p in package.PackageRegistration.Packages.ToList()
                                   orderby new SemanticVersion(p.Version) descending
                                   select new DisplayPackageViewModel(p, isVersionHistory: true);
@@ -26,7 +26,7 @@ namespace NuGetGallery
             DownloadCount = package.DownloadCount;
         }
 
-        public IEnumerable<DependencyViewModel> Dependencies { get; set; }
+        public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
 
