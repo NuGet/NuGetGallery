@@ -125,39 +125,7 @@
             }
         </ul>
     }
-    <h3>Dependencies</h3>
-    @if (Model.Dependencies.Any())
-    {
-        <table class="sexy-table">
-            <thead>
-                <tr>
-                    <th class="first">
-                        Id
-                    </th>
-                    <th class="last">
-                        Version Range
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var dependency in Model.Dependencies)
-                {
-                    <tr>
-                        <td>
-                            <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
-                        </td>
-                        <td>@dependency.VersionSpec
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p>@Model.Id @Model.Version does not have any dependencies
-        </p>
-    }
+    @Html.Partial("_PackageDependencies", Model.Dependencies)
     <h3>Version History</h3>
     <table class="sexy-table">
         <thead>

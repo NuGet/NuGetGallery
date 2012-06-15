@@ -564,6 +564,30 @@ header.main {
         padding-right: 6px;
     }
     
+    /* DependencySets */
+    #dependencySets {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    } 
+    
+    #dependencySets > li > h4 
+    {
+        margin: 2px 0;
+        text-decoration: underline;
+    }
+    
+    ul.dependencySet {
+        list-style: none;
+        margin: 0 0 10px 0;
+        padding: 0;
+    } 
+    
+    ul.dependencySet li {
+        font-size: 1.25em;
+        padding-right: 6px;
+    }
+    
     /* Owners */
     .owners { 
         list-style: none;

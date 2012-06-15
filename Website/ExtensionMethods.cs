@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.ServiceModel.Activation;
+using System.Text;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
@@ -223,6 +224,18 @@ namespace NuGetGallery
         public static string ToShortNameOrNull(this FrameworkName frameworkName)
         {
             return frameworkName == null ? null : VersionUtility.GetShortFrameworkName(frameworkName);
+        }
+
+        public static string ToFriendlyName(this FrameworkName frameworkName)
+        {
+            if (frameworkName == null)
+                throw new ArgumentNullException("frameworkName");
+            
+            var sb = new StringBuilder();
+            sb.AppendFormat("{0} {1}", frameworkName.Identifier, frameworkName.Version);
+            if (string.IsNullOrEmpty(frameworkName.Profile))
+                sb.AppendFormat(" {0}", frameworkName.Profile);
+            return sb.ToString();
         }
     }
 }
