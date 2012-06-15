@@ -10,7 +10,7 @@ namespace NuGetGallery
         public DependencySetsViewModel(IEnumerable<PackageDependency> packageDependencies)
         {
             DependencySets = new Dictionary<string, IEnumerable<DependencyViewModel>>();
-            
+
             var dependencySets = packageDependencies
                 .GroupBy(d => d.TargetFramework)
                 .OrderBy(ds => ds.Key);
@@ -20,7 +20,7 @@ namespace NuGetGallery
             foreach(var dependencySet in dependencySets)
             {
                 var targetFramework = dependencySet.Key == null ? "All Frameworks" : VersionUtility.ParseFrameworkName(dependencySet.Key).ToFriendlyName();
-                DependencySets.Add(targetFramework, dependencySet.Select(d => new DependencyViewModel(d.Id, d.VersionSpec)));
+                DependencySets.Add(targetFramework, dependencySet.Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec)));
             }
         }
 
