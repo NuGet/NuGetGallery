@@ -29,7 +29,7 @@ namespace NuGetGallery
                         {
                             UniquePackages = reader.GetInt32(0),
                             TotalPackages = reader.GetInt32(1),
-                            Downloads = reader.GetInt32(2),
+                            Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt32(2),
                         };
                     }
                 }
