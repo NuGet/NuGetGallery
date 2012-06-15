@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Transactions;
 using NuGet;
 using StackExchange.Profiling;
@@ -287,6 +288,11 @@ namespace NuGetGallery
             foreach (var author in nugetPackage.Authors)
                 package.Authors.Add(new PackageAuthor { Name = author });
 
+            var supportedFrameworks = GetSupportedFrameworks(nugetPackage).Select(fn => fn.ToShortNameOrNull()).ToArray();
+            if (!supportedFrameworks.AnySafe(sf => sf == null))
+                foreach(var supportedFramework in supportedFrameworks)
+                    package.SupportedFrameworks.Add(new PackageFramework{ TargetFramework = supportedFramework });
+
             foreach(var dependencySet in nugetPackage.DependencySets)
             {
                 if (dependencySet.Dependencies.Count == 0)
@@ -294,7 +300,7 @@ namespace NuGetGallery
                     {
                         Id = null, 
                         VersionSpec = null, 
-                        TargetFramework = dependencySet.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependencySet.TargetFramework)
+                        TargetFramework = dependencySet.TargetFramework.ToShortNameOrNull()
                     });
                 else
                     foreach (var dependency in dependencySet.Dependencies.Select(d => new { d.Id, d.VersionSpec, dependencySet.TargetFramework }))
@@ -302,7 +308,7 @@ namespace NuGetGallery
                         {
                             Id = dependency.Id,
                             VersionSpec = dependency.VersionSpec == null ? null : dependency.VersionSpec.ToString(),
-                            TargetFramework = dependency.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependency.TargetFramework)
+                            TargetFramework = dependency.TargetFramework.ToShortNameOrNull()
                         });
             }
 
@@ -310,6 +316,11 @@ namespace NuGetGallery
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             return package;
+        }
+
+        public virtual IEnumerable<FrameworkName> GetSupportedFrameworks(IPackage package)
+        {
+            return package.GetSupportedFrameworks();
         }
 
         static void ValidateNuGetPackage(IPackage nugetPackage)

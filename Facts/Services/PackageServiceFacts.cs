@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using Moq;
 using NuGet;
 using Xunit;
@@ -411,6 +412,59 @@ namespace NuGetGallery
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Title", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillSaveSupportedFrameworks()
+            {
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(
+                    packageRegistrationRepo: packageRegistrationRepo,
+                    setup: mockPackageSvc =>
+                    {
+                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                        mockPackageSvc.Setup(p => p.GetSupportedFrameworks(It.IsAny<IPackage>())).Returns(
+                            new[]
+                            {
+                               VersionUtility.ParseFrameworkName("net40"),
+                               VersionUtility.ParseFrameworkName("net35")
+                            });
+                    });
+                var nugetPackage = CreateNuGetPackage();
+                var currentUser = new User();
+
+                var package = service.CreatePackage(
+                    nugetPackage.Object,
+                    currentUser);
+
+                Assert.Equal("net40", package.SupportedFrameworks.First().TargetFramework);
+                Assert.Equal("net35", package.SupportedFrameworks.ElementAt(1).TargetFramework);
+            }
+
+            [Fact]
+            void WillNotSaveAnySuuportedFrameworksWhenThereIsANullTargetFramework()
+            {
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(
+                    packageRegistrationRepo: packageRegistrationRepo,
+                    setup: mockPackageSvc =>
+                    {
+                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                        mockPackageSvc.Setup(p => p.GetSupportedFrameworks(It.IsAny<IPackage>())).Returns(
+                            new []
+                            {
+                               (FrameworkName)null,
+                               VersionUtility.ParseFrameworkName("net35")
+                            });
+                    });
+                var nugetPackage = CreateNuGetPackage();
+                var currentUser = new User();
+
+                var package = service.CreatePackage(
+                    nugetPackage.Object,
+                    currentUser);
+
+                Assert.Empty(package.SupportedFrameworks);
             }
         }
 

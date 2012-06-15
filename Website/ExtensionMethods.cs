@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Mail;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.ServiceModel.Activation;
 using System.Web.Mvc;
@@ -217,6 +218,11 @@ namespace NuGetGallery
             var metadata = ModelMetadata.FromLambdaExpression<TModel, TProperty>(expression, htmlHelper.ViewData);
             var modelState = htmlHelper.ViewData.ModelState[metadata.PropertyName];
             return modelState != null && modelState.Errors != null && modelState.Errors.Count > 0;
+        }
+
+        public static string ToShortNameOrNull(this FrameworkName frameworkName)
+        {
+            return frameworkName == null ? null : VersionUtility.GetShortFrameworkName(frameworkName);
         }
     }
 }
