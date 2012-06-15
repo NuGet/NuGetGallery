@@ -34,9 +34,9 @@ namespace NuGetGallery
             var stats = statsSvc.GetAggregateStats();
             return Json(new
             {
-                Downloads = stats.Downloads.ToString("#,#"),
-                UniquePackages = stats.UniquePackages.ToString("#,#"),
-                TotalPackages = stats.TotalPackages.ToString("#,#")
+                Downloads = stats.Downloads.ToString("n0"),
+                UniquePackages = stats.UniquePackages.ToString("n0"),
+                TotalPackages = stats.TotalPackages.ToString("n0")
             }, JsonRequestBehavior.AllowGet);
         }
     }
