@@ -131,6 +131,7 @@
     <Compile Include="Infrastructure\CookieTempDataProviderFacts.cs" />
     <Compile Include="Infrastructure\Jobs\UpdateStatisticsJobFacts.cs" />
     <Compile Include="Infrastructure\LuceneIndexingServiceFacts.cs" />
+    <Compile Include="PackageCurators\Windows8PackageCuratorFacts.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCuratorFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequireRemoteHttpsAttributeFacts.cs" />
