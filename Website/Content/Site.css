@@ -573,13 +573,14 @@ header.main {
     
     #dependencySets > li > h4 
     {
+        border-bottom: solid 1px #333;
+        display: inline;
         margin: 2px 0;
-        text-decoration: underline;
     }
     
     ul.dependencySet {
         list-style: none;
-        margin: 0 0 10px 0;
+        margin: 5px 0 10px 0;
         padding: 0;
     } 
     
@@ -817,7 +818,7 @@ header.main {
         .sexy-table th {
             font-size: 1.25em;
             font-weight: normal;
-            padding: 5px 15px 5px 0px;
+            padding: 5px 15px 0px 0px;
             text-align:left;
         }
         
