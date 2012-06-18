@@ -20,24 +20,22 @@ namespace NuGetGallery
 
         public override void Curate(Package galleryPackage, IPackage nugetPackage)
         {
-            // Check if this package should be curated
-            if (galleryPackage.Tags != null && RequiredTags.Any(s => galleryPackage.Tags.ToLowerInvariant().Contains(s)))
+            // Make sure the target feed exists
+            CuratedFeed feed = GetService<ICuratedFeedByNameQuery>().Execute(CuratedFeedName, includePackages: false);
+            if (feed != null)
             {
-                // It should! Add it to the curated feed
-                AddPackageToFeed(galleryPackage);
+                // Break the tags up so we can be sure we don't catch any partial matches (i.e. "foobar" when we're looking for "foo")
+                string[] tags = galleryPackage.Tags.Split();
+
+                // Check if this package should be curated
+                if (galleryPackage.Tags != null && tags.Any(tag => RequiredTags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
+                {
+                    // It should! Add it to the curated feed
+                    GetService<ICreateCuratedPackageCommand>().Execute(
+                        feed.Key, galleryPackage.PackageRegistration.Key, automaticallyCurated: true);
+                }
+
             }
-        }
-
-        protected virtual void AddPackageToFeed(Package galleryPackage)
-        {
-            CuratedFeed feed = GetTargetFeed();
-            GetService<ICreateCuratedPackageCommand>().Execute(
-                feed.Key, galleryPackage.PackageRegistration.Key, automaticallyCurated: true);
-        }
-
-        protected virtual CuratedFeed GetTargetFeed()
-        {
-            return GetService<ICuratedFeedByNameQuery>().Execute(CuratedFeedName, includePackages: false);
         }
     }
 }
