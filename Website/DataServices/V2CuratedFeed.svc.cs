@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Data.Services;
+using System.Data.Services.Common;
 using System.Linq;
 using System.Reflection;
 using System.ServiceModel.Web;
@@ -32,6 +33,11 @@ namespace NuGetGallery
             {
                 Packages = packages.ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
             };
+        }
+
+        public static void InitializeService(DataServiceConfiguration config)
+        {
+            InitializeServiceBase(config);
         }
 
         [WebGet]
