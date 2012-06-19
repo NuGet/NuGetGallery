@@ -22,13 +22,13 @@ namespace NuGetGallery
         {
             // Make sure the target feed exists
             CuratedFeed feed = GetService<ICuratedFeedByNameQuery>().Execute(CuratedFeedName, includePackages: false);
-            if (feed != null)
+            if (feed != null && galleryPackage.Tags != null)
             {
                 // Break the tags up so we can be sure we don't catch any partial matches (i.e. "foobar" when we're looking for "foo")
                 string[] tags = galleryPackage.Tags.Split();
 
                 // Check if this package should be curated
-                if (galleryPackage.Tags != null && tags.Any(tag => RequiredTags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
+                if (tags.Any(tag => RequiredTags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
                 {
                     // It should! Add it to the curated feed
                     GetService<ICreateCuratedPackageCommand>().Execute(

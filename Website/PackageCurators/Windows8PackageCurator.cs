@@ -20,7 +20,7 @@ namespace NuGetGallery
 
         protected override string CuratedFeedName
         {
-            get { return "Win8"; }
+            get { return "windows8-packages"; }
         }
     }
 }

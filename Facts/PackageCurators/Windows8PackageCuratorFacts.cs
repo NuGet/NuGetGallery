@@ -71,6 +71,23 @@ namespace NuGetGallery.PackageCurators
             }
 
             [Fact]
+            public void WillNotIncludeThePackageWhenTagsIsNull()
+            {
+                var curator = new TestableWindows8PackageCurator();
+                var stubGalleryPackage = CreateStubGalleryPackage();
+                stubGalleryPackage.Tags = null;
+
+                curator.Curate(stubGalleryPackage, null);
+
+                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
             public void WillIncludeThePackageUsingTheCuratedFeedKey()
             {
                 var curator = new TestableWindows8PackageCurator();
