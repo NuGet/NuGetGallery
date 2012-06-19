@@ -1,20 +1,20 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Website", "Website\Website.csproj", "{1DACF781-5CD0-4123-8BAC-CD385D864BE5}"
-EndProject
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3D9D438F-93F6-4CDF-AABD-9990063BAD67}"
 	ProjectSection(SolutionItems) = preProject
-		Scripts\NuGetGallery.msbuild = Scripts\NuGetGallery.msbuild
 		README.markdown = README.markdown
+		Scripts\NuGetGallery.msbuild = Scripts\NuGetGallery.msbuild
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Facts", "Facts\Facts.csproj", "{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{96E4AFF8-D3A1-4102-ADCF-05F186F916A9}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Website", "Website\Website.csproj", "{1DACF781-5CD0-4123-8BAC-CD385D864BE5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Facts", "Facts\Facts.csproj", "{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

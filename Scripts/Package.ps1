@@ -11,6 +11,7 @@
   $validationKey                      = $env:NUGET_GALLERY_VALIDATION_KEY,
   $decryptionKey                      = $env:NUGET_GALLERY_DECRYPTION_KEY,
   $vmSize                             = $env:NUGET_GALLERY_AZURE_VM_SIZE,
+  $googleAnalyticsPropertyId          = $env:NUGET_GALLERY_GOOGLE_ANALYTICS_PROPERTY_ID,
   $commitSha,
   $commitBranch
 )
@@ -32,6 +33,7 @@ require-param -value $sslCertificateThumbprint -paramName "sslCertificateThumbpr
 require-param -value $validationKey -paramName "validationKey"
 require-param -value $decryptionKey -paramName "decryptionKey"
 require-param -value $vmSize -paramName "vmSize"
+require-param -value $googleAnalyticsPropertyId -paramName "googleAnalyticsPropertyId"
 
 #Helper Functions
 function set-certificatethumbprint {
@@ -139,9 +141,6 @@ cp $csdefPath $csdefBakPath
 cp $cscfgPath $cscfgBakPath
 
 set-vmsize -path $csdefPath -size $vmSize
-set-configurationsetting -path $cscfgPath -name "AzureStorageAccessKey" -value $azureStorageAccessKey
-set-configurationsetting -path $cscfgPath -name "AzureStorageAccountName" -value $azureStorageAccountName
-set-configurationsetting -path $cscfgPath -name "AzureStorageBlobUrl" -value $azureStorageBlobUrl
 set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" -value $remoteDesktopAccountExpiration
 set-certificatethumbprint -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" -value $remoteDesktopCertificateThumbprint
 set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" -value $remoteDesktopEnctyptedPassword
@@ -153,10 +152,15 @@ set-machinekey $webConfigPath
 
 #Release Tag stuff
 print-message("Setting the release tags")
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha
+set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccessKey" -value $azureStorageAccessKey
+set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccountName" -value $azureStorageAccountName
+set-appsetting -path $webConfigPath -name "Gallery:AzureStorageBlobUrl" -value $azureStorageBlobUrl
+set-appsetting -path $webConfigPath -name "Gallery:GoogleAnalyticsPropertyId" -value $googleAnalyticsPropertyId
+set-appsetting -path $webConfigPath -name "Gallery:PackageStoreType" -value "AzureStorageBlob"
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value $commitBranch
+set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
+set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha
+set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
 
 cp $compressionCmdScriptsPath $compressionCmdBinPath
 

@@ -9,10 +9,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery
 {
-    // TODO: make this work for both packages and screen shots?
-
-    // TODO: Disable for live service
-    [ServiceBehavior(IncludeExceptionDetailInFaults = true)]
+    [ServiceBehavior(IncludeExceptionDetailInFaults = true, ConcurrencyMode = ConcurrencyMode.Multiple)]
     public abstract class FeedServiceBase<TPackage> : DataService<FeedContext<TPackage>>, IDataServiceStreamProvider, IServiceProvider
     {
         private readonly IEntitiesContext entities;
@@ -62,7 +59,7 @@ namespace NuGetGallery
         }
 
         // This method is called only once to initialize service-wide policies.
-        public static void InitializeService(DataServiceConfiguration config)
+        protected static void InitializeServiceBase(DataServiceConfiguration config)
         {
             config.SetServiceOperationAccessRule("Search", ServiceOperationRights.AllRead);
             config.SetServiceOperationAccessRule("FindPackagesById", ServiceOperationRights.AllRead);

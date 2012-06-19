@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -13,7 +14,6 @@
     <RootNamespace>NuGetGallery</RootNamespace>
     <AssemblyName>NuGetGallery.Website</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -21,6 +21,11 @@
     <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
     <CodeAnalysisAdditionalOptions>/assemblyCompareMode:StrongNameIgnoringVersion</CodeAnalysisAdditionalOptions>
     <RunCodeAnalysis Condition=" '$(CodeAnalysis)' == 'true' ">true</RunCodeAnalysis>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>4.0</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -93,14 +98,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MvcHaack.Ajax.1.1\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.6\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.2.2.1.4\lib\net40-Full\Ninject.dll</HintPath>
     </Reference>
     <Reference Include="Ninject.Web.Mvc">
       <HintPath>..\packages\Ninject.MVC3.2.2.2.0\lib\net40-Full\Ninject.Web.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core">
-      <HintPath>..\packages\NuGet.Core.1.6.1\lib\net40-Client\NuGet.Core.dll</HintPath>
+    <Reference Include="NuGet.Core, Version=2.0.30612.360, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NuGet.Core.2.0.0-alpha001\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
@@ -121,6 +130,7 @@
     <Reference Include="System.Data.Entity" />
     <Reference Include="System.Data.Services" />
     <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceModel.Activation" />
     <Reference Include="System.ServiceModel.Web" />
@@ -184,6 +194,9 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="App_Start\PackageStoreType.cs" />
+    <Compile Include="AuthenticationController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Commands\AppCommand.cs" />
     <Compile Include="Commands\DeleteCuratedPackageCommand.cs" />
     <Compile Include="Commands\ModifyCuratedPackageCommand.cs" />
@@ -192,6 +205,12 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
+    <Compile Include="CuratedFeedsController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CuratedPackagesController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="DataServices\V2CuratedFeed.svc.cs">
       <DependentUpon>V2CuratedFeed.svc</DependentUpon>
     </Compile>
@@ -219,13 +238,12 @@
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
-    <Compile Include="HelpersController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
+    <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Infrastructure\HintAttribute.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResult.cs" />
+    <Compile Include="Infrastructure\JsonNetResult.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneFileSystem.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneCommon.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneIndexingJob.cs" />
@@ -320,6 +338,14 @@
     <Compile Include="Migrations\201203182132476_CuratedPackages.Designer.cs">
       <DependentUpon>201203182132476_CuratedPackages.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201205172325056_FrameworkName.cs" />
+    <Compile Include="Migrations\201205172325056_FrameworkName.Designer.cs">
+      <DependentUpon>201205172325056_FrameworkName.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201206131919241_AddTargetFxToDependencies.cs" />
+    <Compile Include="Migrations\201206131919241_AddTargetFxToDependencies.Designer.cs">
+      <DependentUpon>201206131919241_AddTargetFxToDependencies.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />
@@ -327,6 +353,11 @@
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="PagesController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\PackageVersionsQuery.cs" />
+    <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
     <Compile Include="Queries\CuratedFeedByKeyQuery.cs" />
     <Compile Include="Queries\CuratedFeedByNameQuery.cs" />
@@ -346,25 +377,37 @@
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\INuGetExeDownloaderService.cs" />
+    <Compile Include="Services\IAggregateStatsService.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
+    <Compile Include="Services\AggregateStatsService.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
+    <Compile Include="SharedController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
+    <Compile Include="T4MVC.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
+    <Compile Include="UsersController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\AccountViewModel.cs" />
+    <Compile Include="ViewModels\AggregateStats.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
+    <Compile Include="ViewModels\DependencySetsViewModel.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
     <Compile Include="ViewModels\ResendConfirmationEmailViewModel.cs" />
     <Compile Include="App_Start\AuthenticationModule.cs" />
     <Compile Include="App_Start\AppActivator.cs" />
-    <Compile Include="AuthenticationController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
     <Compile Include="Controllers\ApiController.cs" />
     <Compile Include="Controllers\JsonApiController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
@@ -601,28 +644,13 @@
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
-    <Compile Include="PagesController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
     <Compile Include="Services\Extensions.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="Services\MessageService.cs" />
-    <Compile Include="SharedController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
-    <Compile Include="T4MVC.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
-    <Compile Include="UsersController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
     <Compile Include="ViewModels\PasswordChangeViewModel.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
-    <Compile Include="ViewModels\DependencyViewModel.cs" />
     <Compile Include="ViewModels\IPackageVersionModel.cs" />
     <Compile Include="ViewModels\IPageableEnumerable.cs" />
     <Compile Include="App_Start\Routes.cs" />
@@ -759,6 +787,7 @@
     <Content Include="DynamicData\Site.css" />
     <Content Include="Errors\Error.html" />
     <Content Include="favicon.ico" />
+    <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
     <Content Include="Scripts\jquery-1.6.2.min.js" />
@@ -825,13 +854,6 @@
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
-    <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
-    <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
-    <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
-    <None Include="_bin_deployableAssemblies\System.Web.WebPages.Deployment.dll" />
-    <None Include="_bin_deployableAssemblies\System.Web.Razor.dll" />
-    <None Include="_bin_deployableAssemblies\System.Web.Helpers.dll" />
-    <None Include="_bin_deployableAssemblies\System.Web.Mvc.dll" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">
@@ -856,12 +878,18 @@
       <LastGenOutput>T4MVC.cs</LastGenOutput>
     </None>
     <None Include="T4MVC.tt.settings.t4" />
+    <Content Include="Views\Packages\_PackageDependencies.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />
   </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -890,5 +918,4 @@
     </VisualStudio>
   </ProjectExtensions>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
-  <Import Project="$(SolutionDir)\packages\RazorGenerator.MsBuild.*\tools\RazorGenerator.targets" />
 </Project>

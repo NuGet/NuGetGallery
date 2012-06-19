@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Transactions;
 using NuGet;
 using StackExchange.Profiling;
@@ -287,13 +288,39 @@ namespace NuGetGallery
             foreach (var author in nugetPackage.Authors)
                 package.Authors.Add(new PackageAuthor { Name = author });
 
-            foreach (var dependency in nugetPackage.Dependencies)
-                package.Dependencies.Add(new PackageDependency { Id = dependency.Id, VersionSpec = dependency.VersionSpec.ToStringSafe() });
+            var supportedFrameworks = GetSupportedFrameworks(nugetPackage).Select(fn => fn.ToShortNameOrNull()).ToArray();
+            if (!supportedFrameworks.AnySafe(sf => sf == null))
+                foreach(var supportedFramework in supportedFrameworks)
+                    package.SupportedFrameworks.Add(new PackageFramework{ TargetFramework = supportedFramework });
+
+            foreach(var dependencySet in nugetPackage.DependencySets)
+            {
+                if (dependencySet.Dependencies.Count == 0)
+                    package.Dependencies.Add(new PackageDependency
+                    {
+                        Id = null, 
+                        VersionSpec = null, 
+                        TargetFramework = dependencySet.TargetFramework.ToShortNameOrNull()
+                    });
+                else
+                    foreach (var dependency in dependencySet.Dependencies.Select(d => new { d.Id, d.VersionSpec, dependencySet.TargetFramework }))
+                        package.Dependencies.Add(new PackageDependency
+                        {
+                            Id = dependency.Id,
+                            VersionSpec = dependency.VersionSpec == null ? null : dependency.VersionSpec.ToString(),
+                            TargetFramework = dependency.TargetFramework.ToShortNameOrNull()
+                        });
+            }
 
             package.FlattenedAuthors = package.Authors.Flatten();
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             return package;
+        }
+
+        public virtual IEnumerable<FrameworkName> GetSupportedFrameworks(IPackage package)
+        {
+            return package.GetSupportedFrameworks();
         }
 
         static void ValidateNuGetPackage(IPackage nugetPackage)
@@ -304,8 +331,8 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
             if (nugetPackage.Copyright != null && nugetPackage.Copyright.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000");
-            if (nugetPackage.Dependencies != null && nugetPackage.Dependencies.Flatten().Length > 4000)
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", "4000");
+            if (nugetPackage.DependencySets != null && nugetPackage.DependencySets.Flatten().Length > Int16.MaxValue)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
             if (nugetPackage.Description != null && nugetPackage.Description.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Description", "4000");
             if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.ToString().Length > 4000)

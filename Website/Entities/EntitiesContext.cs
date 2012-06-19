@@ -103,6 +103,8 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageOwnerRequest>()
                 .HasKey(por => por.Key);
 
+            modelBuilder.Entity<PackageFramework>()
+                .HasKey(pf => pf.Key);
             modelBuilder.Entity<CuratedFeed>()
                .HasKey(cf => cf.Key);
 

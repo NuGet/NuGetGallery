@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization;
 using System.Web.Mvc;
 using System.Web.UI;
 using NuGet;
 
 namespace NuGetGallery
 {
-    public partial class ApiController : Controller
+	public partial class ApiController : AppController
     {
         private readonly IPackageService packageSvc;
         private readonly IUserService userSvc;
@@ -30,8 +33,8 @@ namespace NuGetGallery
         [ActionName("GetPackageApi"), HttpGet] 
         public virtual ActionResult GetPackage(string id, string version)
         {
-            // if the version is null, the user is asking for the latest version. Presumably they don't want pre release versions. 
-            // The allow prerelease flag is ignored if both id and version are specified.
+            // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
+            // The allow prerelease flag is ignored if both partialId and version are specified.
             var package = packageSvc.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
 
             if (package == null)
@@ -72,7 +75,7 @@ namespace NuGetGallery
 
             if (!String.IsNullOrEmpty(id))
             {
-                // If the id is present, then verify that the user has permission to push for the specific Id \ version combination.
+                // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
                 var package = packageSvc.FindPackageByIdAndVersion(id, version);
                 if (package == null)
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
@@ -110,7 +113,7 @@ namespace NuGetGallery
 
             var packageToPush = ReadPackageFromRequest();
 
-            // Ensure that the user can push packages for this id.
+            // Ensure that the user can push packages for this partialId.
             var packageRegistration = packageSvc.FindPackageRegistrationById(packageToPush.Id);
             if (packageRegistration != null)
             {
@@ -188,6 +191,24 @@ namespace NuGetGallery
                 stream = Request.InputStream;
 
             return new ZipPackage(stream);
+        }
+
+        [ActionName("PackageIDs"), HttpGet]
+        public virtual ActionResult GetPackageIds(
+            string partialId,
+            bool? includePrerelease)
+        {
+            var qry = GetService<IPackageIdsQuery>();
+            return new JsonNetResult(qry.Execute(partialId, includePrerelease).ToArray());
+        }
+
+        [ActionName("PackageVersions"), HttpGet]
+        public virtual ActionResult GetPackageVersions(
+            string id,
+            bool? includePrerelease)
+        {
+            var qry = GetService<IPackageVersionsQuery>();
+            return new JsonNetResult(qry.Execute(id, includePrerelease).ToArray());
         }
     }
 }

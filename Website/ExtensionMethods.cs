@@ -5,11 +5,14 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Mail;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.ServiceModel.Activation;
+using System.Text;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -23,7 +26,7 @@ namespace NuGetGallery
         {
             var serviceRoute = new ServiceRoute(routeUrl, new DataServiceHostFactory(), serviceType);
             serviceRoute.Defaults = new RouteValueDictionary { { "serviceType", "odata" } };
-            serviceRoute.Constraints = new RouteValueDictionary { { "serviceType", "odata" }, { "httpMethod", new HttpMethodConstraint("GET") } };
+            serviceRoute.Constraints = new RouteValueDictionary { { "serviceType", "odata" } };
             routes.Add(routeName, serviceRoute);
         }
 
@@ -43,25 +46,45 @@ namespace NuGetGallery
 
             return String.Join(", ", list.ToArray());
         }
-        
+
         public static string Flatten(this ICollection<PackageAuthor> authors)
         {
             return authors.Select(a => a.Name).Flatten();
         }
 
+        public static string Flatten(this IEnumerable<PackageDependencySet> dependencySets)
+        {
+            var dependencies = new List<dynamic>();
+
+            foreach (var dependencySet in dependencySets)
+            {
+                if (dependencySet.Dependencies.Count == 0)
+                    dependencies.Add(new 
+                    {
+                        Id = (string)null, 
+                        VersionSpec = (string)null, 
+                        TargetFramework = dependencySet.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependencySet.TargetFramework)
+                    });
+                else
+                    foreach (var dependency in dependencySet.Dependencies.Select(d => new { d.Id, d.VersionSpec, dependencySet.TargetFramework }))
+                        dependencies.Add(new 
+                        {
+                            dependency.Id,
+                            VersionSpec = dependency.VersionSpec == null ? null : dependency.VersionSpec.ToString(),
+                            TargetFramework = dependency.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependency.TargetFramework)
+                        });
+            }
+            return FlattenDependencies(dependencies);
+        }
+        
         public static string Flatten(this ICollection<PackageDependency> dependencies)
         {
-            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionSpec.ToStringSafe())));
+            return FlattenDependencies(dependencies.Select(d => new { d.Id, VersionSpec = d.VersionSpec.ToStringSafe(), TargetFramework = d.TargetFramework.ToStringSafe() }));
         }
 
-        public static string Flatten(this IEnumerable<NuGet.PackageDependency> dependencies)
+        static string FlattenDependencies(IEnumerable<dynamic> dependencies)
         {
-            return FlattenDependencies(dependencies.Select(d => new Tuple<string, string>(d.Id, d.VersionSpec.ToStringSafe())));
-        }
-
-        static string FlattenDependencies(IEnumerable<Tuple<string, string>> dependencies)
-        {
-            return String.Join("|", dependencies.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}", d.Item1, d.Item2)).ToArray());
+            return String.Join("|", dependencies.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}:{2}", d.Id, d.VersionSpec, d.TargetFramework)));
         }
 
         public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template)
@@ -196,6 +219,23 @@ namespace NuGetGallery
             var metadata = ModelMetadata.FromLambdaExpression<TModel, TProperty>(expression, htmlHelper.ViewData);
             var modelState = htmlHelper.ViewData.ModelState[metadata.PropertyName];
             return modelState != null && modelState.Errors != null && modelState.Errors.Count > 0;
+        }
+
+        public static string ToShortNameOrNull(this FrameworkName frameworkName)
+        {
+            return frameworkName == null ? null : VersionUtility.GetShortFrameworkName(frameworkName);
+        }
+
+        public static string ToFriendlyName(this FrameworkName frameworkName)
+        {
+            if (frameworkName == null)
+                throw new ArgumentNullException("frameworkName");
+            
+            var sb = new StringBuilder();
+            sb.AppendFormat("{0} {1}", frameworkName.Identifier, frameworkName.Version);
+            if (string.IsNullOrEmpty(frameworkName.Profile))
+                sb.AppendFormat(" {0}", frameworkName.Profile);
+            return sb.ToString();
         }
     }
 }

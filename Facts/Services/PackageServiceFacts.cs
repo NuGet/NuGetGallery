@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using Moq;
 using NuGet;
 using Xunit;
@@ -94,7 +95,7 @@ namespace NuGetGallery
                 Assert.False(package.IsPrerelease);
 
                 Assert.Equal("theFirstAuthor, theSecondAuthor", package.FlattenedAuthors);
-                Assert.Equal("theFirstDependency:[1.0, 2.0)|theSecondDependency:[1.0]|theThirdDependency:", package.FlattenedDependencies);
+                Assert.Equal("theFirstDependency:[1.0, 2.0):net4000|theSecondDependency:[1.0]:net4000|theThirdDependency::net4000|theFourthDependency:[1.0]:net35", package.FlattenedDependencies);
             }
 
             [Fact]
@@ -119,25 +120,7 @@ namespace NuGetGallery
                     currentUser);
 
                 // Assert
-                Assert.Equal("2.14.0-a", package.Version);
-                Assert.Equal("theFirstAuthor", package.Authors.ElementAt(0).Name);
-                Assert.Equal("theSecondAuthor", package.Authors.ElementAt(1).Name);
-                Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
-                Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionSpec);
-                Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);
-                Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionSpec);
-                Assert.Equal("theDescription", package.Description);
-                Assert.Equal("http://theiconurl/", package.IconUrl);
-                Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
-                Assert.Equal("http://theprojecturl/", package.ProjectUrl);
-                Assert.Equal(true, package.RequiresLicenseAcceptance);
-                Assert.Equal("theSummary", package.Summary);
-                Assert.Equal("theTags", package.Tags);
-                Assert.Equal("theTitle", package.Title);
                 Assert.True(package.IsPrerelease);
-
-                Assert.Equal("theFirstAuthor, theSecondAuthor", package.FlattenedAuthors);
-                Assert.Equal("theFirstDependency:[1.0, 2.0)|theSecondDependency:[1.0]|theThirdDependency:", package.FlattenedDependencies);
                 packageRegistrationRepo.Verify();
             }
 
@@ -325,22 +308,26 @@ namespace NuGetGallery
             }
 
             [Fact]
-            void WillThrowIfTheNuGetPackageDependenciesIsLongerThan4000()
+            void WillThrowIfTheNuGetPackageDependenciesIsLongerThanInt16MaxValue()
             {
                 var service = CreateService();
                 var nugetPackage = CreateNuGetPackage();
-                nugetPackage.Setup(x => x.Dependencies).Returns(new[] { 
-                    new NuGet.PackageDependency("theFirstDependency".PadRight(2000, '_'), new VersionSpec { 
+                nugetPackage.Setup(x => x.DependencySets).Returns(new[]
+                { 
+                    new PackageDependencySet(VersionUtility.DefaultTargetFramework, new[]
+                    {
+                        new NuGet.PackageDependency("theFirstDependency".PadRight(Int16.MaxValue, '_'), new VersionSpec { 
                         MinVersion = new SemanticVersion("1.0"), 
                         MaxVersion = new SemanticVersion("2.0"), 
                         IsMinInclusive = true, 
                         IsMaxInclusive = false }),
-                    new NuGet.PackageDependency("theSecondDependency".PadRight(2000, '_'), new VersionSpec(new SemanticVersion("1.0"))), 
+                    new NuGet.PackageDependency("theSecondDependency".PadRight(Int16.MaxValue, '_'), new VersionSpec(new SemanticVersion("1.0"))),
+                    })
                 });
 
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependencies", "4000"), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue), ex.Message);
             }
 
             [Fact]
@@ -425,6 +412,59 @@ namespace NuGetGallery
                 var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Title", "4000"), ex.Message);
+            }
+
+            [Fact]
+            void WillSaveSupportedFrameworks()
+            {
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(
+                    packageRegistrationRepo: packageRegistrationRepo,
+                    setup: mockPackageSvc =>
+                    {
+                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                        mockPackageSvc.Setup(p => p.GetSupportedFrameworks(It.IsAny<IPackage>())).Returns(
+                            new[]
+                            {
+                               VersionUtility.ParseFrameworkName("net40"),
+                               VersionUtility.ParseFrameworkName("net35")
+                            });
+                    });
+                var nugetPackage = CreateNuGetPackage();
+                var currentUser = new User();
+
+                var package = service.CreatePackage(
+                    nugetPackage.Object,
+                    currentUser);
+
+                Assert.Equal("net40", package.SupportedFrameworks.First().TargetFramework);
+                Assert.Equal("net35", package.SupportedFrameworks.ElementAt(1).TargetFramework);
+            }
+
+            [Fact]
+            void WillNotSaveAnySuuportedFrameworksWhenThereIsANullTargetFramework()
+            {
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(
+                    packageRegistrationRepo: packageRegistrationRepo,
+                    setup: mockPackageSvc =>
+                    {
+                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                        mockPackageSvc.Setup(p => p.GetSupportedFrameworks(It.IsAny<IPackage>())).Returns(
+                            new []
+                            {
+                               (FrameworkName)null,
+                               VersionUtility.ParseFrameworkName("net35")
+                            });
+                    });
+                var nugetPackage = CreateNuGetPackage();
+                var currentUser = new User();
+
+                var package = service.CreatePackage(
+                    nugetPackage.Object,
+                    currentUser);
+
+                Assert.Empty(package.SupportedFrameworks);
             }
         }
 
@@ -1208,16 +1248,23 @@ namespace NuGetGallery
             nugetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42.0"));
 
             nugetPackage.Setup(x => x.Authors).Returns(new[] { "theFirstAuthor", "theSecondAuthor" });
-            nugetPackage.Setup(x => x.Dependencies).Returns(new[] 
+            nugetPackage.Setup(x => x.DependencySets).Returns(new []
             { 
-                new NuGet.PackageDependency("theFirstDependency", new VersionSpec { 
-                    MinVersion = new SemanticVersion("1.0"), 
-                    MaxVersion = new SemanticVersion("2.0"), 
-                    IsMinInclusive = true, 
-                    IsMaxInclusive = false 
+                new PackageDependencySet(VersionUtility.DefaultTargetFramework, new[]
+                {
+                    new NuGet.PackageDependency("theFirstDependency", new VersionSpec { 
+                        MinVersion = new SemanticVersion("1.0"), 
+                        MaxVersion = new SemanticVersion("2.0"), 
+                        IsMinInclusive = true, 
+                        IsMaxInclusive = false 
+                    }),
+                    new NuGet.PackageDependency("theSecondDependency", new VersionSpec(new SemanticVersion("1.0"))),
+                    new NuGet.PackageDependency("theThirdDependency")
                 }),
-                new NuGet.PackageDependency("theSecondDependency", new VersionSpec(new SemanticVersion("1.0"))),
-                new NuGet.PackageDependency("theThirdDependency")
+                new PackageDependencySet(VersionUtility.ParseFrameworkName("net35"), new[]
+                {
+                    new NuGet.PackageDependency("theFourthDependency", new VersionSpec(new SemanticVersion("1.0"))),
+                })
             });
             nugetPackage.Setup(x => x.Description).Returns("theDescription");
             nugetPackage.Setup(x => x.ReleaseNotes).Returns("theReleaseNotes");

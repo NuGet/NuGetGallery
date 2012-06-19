@@ -390,7 +390,34 @@ header.main {
                 border-color: #4585aa;
                 text-decoration: none;
             }
-            
+    
+    /* Aggregate Stats */
+    .aggstats {
+        background: #555;
+        display: none;
+    }
+    
+        .aggstats .stat {
+            display: inline-block;
+            *zoom: 1;
+            color: #bbb;
+            font-weight: bold;
+            text-align: center;
+            padding: 0.5em 0;
+            width: 33%;
+            margin: 0;
+        }
+            .aggstats .num {
+                font-size: 4em;
+                color: #f9f9f9;
+                font-family: monospace;
+                display: block;
+                line-height: 0.9em;
+            }
+
+                .aggstats .num > span {
+                    position: relative;
+                }
 
     /* Account/Actions */
     #actions h1 {
@@ -534,6 +561,31 @@ header.main {
     ul.tags li,
     ul.authors li {
         display: inline;
+        padding-right: 6px;
+    }
+    
+    /* DependencySets */
+    #dependencySets {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    } 
+    
+    #dependencySets > li > h4 
+    {
+        border-bottom: solid 1px #333;
+        display: inline;
+        margin: 2px 0;
+    }
+    
+    ul.dependencySet {
+        list-style: none;
+        margin: 5px 0 10px 0;
+        padding: 0;
+    } 
+    
+    ul.dependencySet li {
+        font-size: 1.25em;
         padding-right: 6px;
     }
     
@@ -766,7 +818,7 @@ header.main {
         .sexy-table th {
             font-size: 1.25em;
             font-weight: normal;
-            padding: 5px 15px 5px 0px;
+            padding: 5px 15px 0px 0px;
             text-align:left;
         }
         
