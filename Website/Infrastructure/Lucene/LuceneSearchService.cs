@@ -4,9 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
-using Lucene.Net.Index;
 
 namespace NuGetGallery
 {
@@ -86,25 +86,28 @@ namespace NuGetGallery
 
         private static Query ParseQuery(string searchTerm)
         {
-            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 1.0f}, { "Description", 0.8f }, { "Author", 0.6f } };
+            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 0.8f }, { "Description", 0.3f }, 
+                                                         { "Author", 1.0f } };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
             searchTerm = QueryParser.Escape(searchTerm).ToLowerInvariant();
 
             var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields.Keys.ToArray(), analyzer, fields);
 
             var conjuctionQuery = new BooleanQuery();
-            conjuctionQuery.SetBoost(1.5f);
+            conjuctionQuery.SetBoost(1.2f);
             var disjunctionQuery = new BooleanQuery();
+            disjunctionQuery.SetBoost(0.3f);
             var wildCardQuery = new BooleanQuery();
-            wildCardQuery.SetBoost(0.7f);
+            wildCardQuery.SetBoost(0.5f);
             var exactIdQuery = new TermQuery(new Term("Id-Exact", searchTerm));
             exactIdQuery.SetBoost(2.5f);
-            
-            foreach(var term in searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + searchTerm + "*"));
+
+            foreach (var term in searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 conjuctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.MUST);
                 disjunctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.SHOULD);
-                
+
                 foreach (var field in fields)
                 {
                     var wildCardTermQuery = new WildcardQuery(new Term(field.Key, term + "*"));
@@ -113,7 +116,7 @@ namespace NuGetGallery
                 }
             }
 
-            return conjuctionQuery.Combine(new Query[] { exactIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+            return conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
         }
     }
 }
