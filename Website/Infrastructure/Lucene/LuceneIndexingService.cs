@@ -171,7 +171,16 @@ namespace NuGetGallery
 
         internal static IEnumerable<string> TokenizeId(string term)
         {
-            var result = CamelCaseTokenize(term).SelectMany(s => s.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries)).ToList();
+
+            // First tokenize the result by id-separators. For e.g. tokenize SignalR.EventStream as SignalR and EventStream
+            var tokens = term.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries);
+
+            // For each token, further attempt to tokenize camelcase values. e.g. .EventStream -> Event, Stream. 
+            // Skip the exact term since we index it indep
+            var result = tokens.Concat(tokens.SelectMany(CamelCaseTokenize))
+                               .Distinct(StringComparer.OrdinalIgnoreCase)
+                               .Where(t => !term.Equals(t))
+                               .ToList();
             if (result.Count == 1)
             {
                 return Enumerable.Empty<string>();
@@ -181,25 +190,31 @@ namespace NuGetGallery
 
         private static IEnumerable<string> CamelCaseTokenize(string term)
         {
-            if (term.Length < 2)
+            const int MinTokenLength = 3;
+            if (term.Length < MinTokenLength)
             {
                 yield break;
             }
 
-            int tokenStart = 0;
-            for (int i = 1; i < term.Length; i++)
+            int tokenEnd = term.Length;
+            for (int i = term.Length - 1; i > 0; i--)
             {
-                if (Char.IsUpper(term[i]) && (i - tokenStart > 2))
+                // If the remainder is fewer than 2 chars or we have a token that is at least 2 chars long, tokenize it.
+                if (i < MinTokenLength || (Char.IsUpper(term[i]) && (tokenEnd - i >= MinTokenLength)))
                 {
-                    yield return term.Substring(tokenStart, i - tokenStart);
-                    tokenStart = i;
+                    if (i < MinTokenLength)
+                    {
+                        // If the remainder is smaller than 2 chars, just return the entire string
+                        i = 0;
+                    }
+                        
+                    yield return term.Substring(i, tokenEnd - i);
+                    tokenEnd = i;
                 }
             }
-            if (term.Length - tokenStart < 2)
-            {
-                yield break;
-            }
-            yield return term.Substring(tokenStart);
+
+            // Finally return the term in entirety
+            yield return term;
         }
     }
 }

@@ -4,9 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
-using Lucene.Net.Index;
 
 namespace NuGetGallery
 {
@@ -86,19 +86,21 @@ namespace NuGetGallery
 
         private static Query ParseQuery(string searchTerm)
         {
-            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 1.0f}, { "Description", 0.8f }, { "Author", 0.6f } };
+            var fields = new Dictionary<string, float> { { "Id", 1.2f  }, { "Title", 1.0f }, { "Tags", 1.0f }, { "Description", 0.8f }, 
+                                                         { "Author", 0.6f } };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
             searchTerm = QueryParser.Escape(searchTerm).ToLowerInvariant();
 
             var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields.Keys.ToArray(), analyzer, fields);
 
             var conjuctionQuery = new BooleanQuery();
-            conjuctionQuery.SetBoost(1.5f);
+            conjuctionQuery.SetBoost(1.2f);
             var disjunctionQuery = new BooleanQuery();
             var wildCardQuery = new BooleanQuery();
             wildCardQuery.SetBoost(0.7f);
             var exactIdQuery = new TermQuery(new Term("Id-Exact", searchTerm));
             exactIdQuery.SetBoost(2.5f);
+            var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + searchTerm + "*"));
             
             foreach(var term in searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -113,7 +115,7 @@ namespace NuGetGallery
                 }
             }
 
-            return conjuctionQuery.Combine(new Query[] { exactIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+            return conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
         }
     }
 }

@@ -22,11 +22,14 @@
     <fieldset class="form search">
         <legend>Sort Order</legend>
         <input type="hidden" name="q" value="@Model.SearchTerm" />
+
         <div class="form-field">
             <label for="sortOrder">Sort By</label>
             <select name="sortOrder" id="sortOrder">
+                @if (!Model.SearchTerm.IsEmpty()) {
+                    @ViewHelpers.Option(Constants.RelevanceSortOrder, "Relevance", Model.SortOrder)
+                }
                 @ViewHelpers.Option(Constants.PopularitySortOrder, "Popularity", Model.SortOrder)
-                @ViewHelpers.Option(Constants.RelevanceSortOrder, "Relevance", Model.SortOrder)
                 @ViewHelpers.Option(Constants.AlphabeticSortOrder, "A-Z", Model.SortOrder)
                 @ViewHelpers.Option(Constants.RecentSortOrder, "Recent", Model.SortOrder)
             </select>
