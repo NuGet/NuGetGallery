@@ -466,6 +466,28 @@ namespace NuGetGallery
 
                 Assert.Empty(package.SupportedFrameworks);
             }
+
+            [Fact]
+            void WillAddPackageToThePackageCache()
+            {
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
+                var packageCache = new Mock<IPackageCache>();
+                var service = CreateService(
+                    packageRegistrationRepo: packageRegistrationRepo,
+                    setup: mockPackageSvc =>
+                    {
+                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                    },
+                    packageCache: packageCache);
+                var nugetPackage = CreateNuGetPackage();
+                var currentUser = new User();
+
+                var package = service.CreatePackage(
+                    nugetPackage.Object,
+                    currentUser);
+
+                packageCache.Verify(x => x.AddPackage(package));
+            }
         }
 
         public class TheDeletePackageMethod
@@ -1293,7 +1315,8 @@ namespace NuGetGallery
             Mock<IPackageFileService> packageFileSvc = null,
             Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Mock<IIndexingService> indexingSvc = null,
-            Action<Mock<PackageService>> setup = null)
+            Action<Mock<PackageService>> setup = null,
+            Mock<IPackageCache> packageCache = null)
         {
             if (cryptoSvc == null)
             {
@@ -1308,6 +1331,7 @@ namespace NuGetGallery
             packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
             indexingSvc = indexingSvc ?? new Mock<IIndexingService>();
+            packageCache = packageCache ?? new Mock<IPackageCache>();
 
             var packageSvc = new Mock<PackageService>(
                 cryptoSvc.Object,
@@ -1316,7 +1340,8 @@ namespace NuGetGallery
                 packageStatsRepo.Object,
                 packageFileSvc.Object,
                 packageOwnerRequestRepo.Object,
-                indexingSvc.Object);
+                indexingSvc.Object,
+                packageCache.Object);
 
             packageSvc.CallBase = true;
 

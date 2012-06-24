@@ -9,9 +9,11 @@ using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.ServiceModel.Activation;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
+using Elmah;
 using NuGet;
 
 namespace NuGetGallery
@@ -236,6 +238,14 @@ namespace NuGetGallery
             if (string.IsNullOrEmpty(frameworkName.Profile))
                 sb.AppendFormat(" {0}", frameworkName.Profile);
             return sb.ToString();
+        }
+
+        public static Task LogExceptions(this Task task)
+        {
+            task.ContinueWith(
+                t => { ErrorSignal.FromCurrentContext().Raise(t.Exception); },
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+            return task;
         }
     }
 }

@@ -38,6 +38,22 @@ namespace NuGetGallery
             return (T)_configThunks[key].Value;
         }
 
+        public string AzureCacheAuthenticationToken
+        {
+            get
+            {
+                return ReadAppSettings("AzureCacheAuthenticationToken");
+            }
+        }
+
+        public string AzureCacheServiceUrl
+        {
+            get
+            {
+                return ReadAppSettings("AzureCacheServiceUrl");
+            }
+        }
+
         public string AzureStorageAccessKey
         {
             get

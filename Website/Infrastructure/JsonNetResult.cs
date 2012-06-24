@@ -6,15 +6,15 @@ namespace NuGetGallery
 {
     public class JsonNetResult : ActionResult
     {
-	    private readonly object _data;
-
 	    public JsonNetResult(object data)
 	    {
 		    if (data == null)
 			    throw new ArgumentNullException("data");
 			
-		    _data = data;
+		    Data = data;
 	    }
+
+        public object Data { get; private set; }
 
 	    public override void ExecuteResult(ControllerContext context)
 	    {
@@ -25,7 +25,7 @@ namespace NuGetGallery
 		    response.ContentType = "application/json";
 		    var writer = new JsonTextWriter(response.Output);
 		    var serializer = JsonSerializer.Create(new JsonSerializerSettings());
-		    serializer.Serialize(writer, _data);
+		    serializer.Serialize(writer, Data);
 		    writer.Flush();
 	    }
     }

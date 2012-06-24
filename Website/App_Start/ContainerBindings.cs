@@ -2,11 +2,14 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Security;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
+using Microsoft.ApplicationServer.Caching;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using Ninject;
@@ -16,6 +19,22 @@ namespace NuGetGallery
 {
     public class ContainerBindings : NinjectModule
     {
+        Func<IConfiguration, AzureCache> getAzureCache = new Func<IConfiguration, AzureCache>(configuration =>
+        {
+            var servers = new DataCacheServerEndpoint[1];
+            servers[0] = new DataCacheServerEndpoint(configuration.AzureCacheServiceUrl, 22233);
+            var authenticationToken = new SecureString();
+            foreach (char @char in configuration.AzureCacheAuthenticationToken)
+                authenticationToken.AppendChar(@char);
+            authenticationToken.MakeReadOnly();
+            DataCacheSecurity factorySecurity = new DataCacheSecurity(authenticationToken);
+            DataCacheFactoryConfiguration factoryConfig = new DataCacheFactoryConfiguration();
+            factoryConfig.Servers = servers;
+            factoryConfig.SecurityProperties = factorySecurity;
+            DataCacheFactory cacheFactory = new DataCacheFactory(factoryConfig);
+            return new AzureCache(cacheFactory.GetDefaultCache());
+        });
+
         public override void Load()
         {
             IConfiguration configuration = new Configuration();
@@ -32,6 +51,9 @@ namespace NuGetGallery
             });
 
             Bind<GallerySetting>().ToMethod(c => gallerySetting.Value);
+
+            Bind<ITaskFactory>()
+                .ToMethod(context => new TaskFactoryWrapper(Task.Factory));
 
             Bind<ISearchService>()
                 .To<LuceneSearchService>()
@@ -143,6 +165,9 @@ namespace NuGetGallery
                     Bind<IFileStorageService>()
                         .To<FileSystemFileStorageService>()
                         .InSingletonScope();
+                    Bind<ICache>()
+                        .To<LocalCache>()
+                        .InSingletonScope();
                     break;
                 case PackageStoreType.AzureStorageBlob:
                     Bind<ICloudBlobClient>()
@@ -152,6 +177,9 @@ namespace NuGetGallery
                         .InSingletonScope();
                     Bind<IFileStorageService>()
                         .To<CloudBlobFileStorageService>()
+                        .InSingletonScope();
+                    Bind<ICache>()
+                        .ToMethod(context => getAzureCache(configuration))
                         .InSingletonScope();
                     break;
             }
@@ -169,6 +197,10 @@ namespace NuGetGallery
 
             Bind<IUploadFileService>()
                 .To<UploadFileService>();
+
+            Bind<IAggregateStatsService>()
+                .To<AggregateStatsService>()
+                .InRequestScope();
 
             // todo: bind all package curators by convention
             Bind<IAutomaticPackageCurator>()
@@ -207,16 +239,16 @@ namespace NuGetGallery
             Bind<IUserByUsernameQuery>()
                 .To<UserByUsernameQuery>()
                 .InRequestScope();
-
-            Bind<IAggregateStatsService>()
-                .To<AggregateStatsService>()
-                .InRequestScope();
             Bind<IPackageIdsQuery>()
                 .To<PackageIdsQuery>()
                 .InRequestScope();
             Bind<IPackageVersionsQuery>()
                 .To<PackageVersionsQuery>()
                 .InRequestScope();
+
+            Bind<IPackageCache>()
+                .To<PackageCache>()
+                .InSingletonScope();
         }
     }
 }

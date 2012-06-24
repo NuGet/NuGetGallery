@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.Serialization;
 using System.Web.Mvc;
 using System.Web.UI;
 using NuGet;
@@ -198,8 +195,12 @@ namespace NuGetGallery
             string partialId,
             bool? includePrerelease)
         {
-            var qry = GetService<IPackageIdsQuery>();
-            return new JsonNetResult(qry.Execute(partialId, includePrerelease).ToArray());
+            var packageRepo = GetService<IPackageCache>();
+            var packageIds = packageRepo.GetPackageIds(includePrerelease ?? false);
+            if (!string.IsNullOrWhiteSpace(partialId))
+                packageIds = packageIds.Where(packageId => packageId.StartsWith(partialId, StringComparison.OrdinalIgnoreCase));
+            packageIds = packageIds.Take(30);
+            return new JsonNetResult(packageIds.ToArray());
         }
 
         [ActionName("PackageVersions"), HttpGet]

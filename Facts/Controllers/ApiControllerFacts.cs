@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -522,6 +523,85 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.Equal("http://theUrl", result.Url);
+            }
+        }
+
+        public class TheGetPackageIdsAction
+        {
+            [Fact]
+            public void WillReturnThePackageIdsFromThePackageRepository()
+            {
+                var controller = new TestableApiController();
+                controller.StubPackageIds = new[] { "theFirstPackageId", "theSecondPackageId", "theLastPackageId" };
+
+                var result = controller.GetPackageIds(null, null) as JsonNetResult;
+
+                Assert.Equal(controller.StubPackageIds, result.Data);
+            }
+
+            [Theory]
+            [InlineData(null, false)]
+            [InlineData(true, true)]
+            [InlineData(false, false)]
+            public void WillFilterByTheIsPrereleaseParam(bool? isPrereleaseParam, bool expectedFilter)
+            {
+                var controller = new TestableApiController();
+                controller.StubPackageIds = new[] { "aFirstPackageId", "aSecondPackageId", "aLastPackageId" };
+
+                var result = controller.GetPackageIds(null, isPrereleaseParam) as JsonNetResult;
+
+                controller.StubPackageRepository.Verify(stub => stub.GetPackageIds(expectedFilter));
+            }
+
+            [Fact]
+            public void WillFilterThePackageIdsByPartialId()
+            {
+                var controller = new TestableApiController();
+                controller.StubPackageIds = new[] { "theFirstPackageId", "theSecondPackageId", "theLastPackageId" };
+
+                var result = controller.GetPackageIds("theFirst", null) as JsonNetResult;
+
+                var data = (string[])result.Data;
+                Assert.Equal(1, data.Length);
+                Assert.Equal("theFirstPackageId", data[0]);
+            }
+
+            [Fact]
+            public void WillLimitResultTo30PackageIds()
+            {
+                var controller = new TestableApiController();
+                var packageIds = new List<string>();
+                for (var n = 0; n < 50; n++)
+                    packageIds.Add(string.Format("packageId{0}", n));
+                controller.StubPackageIds = packageIds.ToArray();
+
+                var result = controller.GetPackageIds(null, null) as JsonNetResult;
+
+                var data = (string[])result.Data;
+                Assert.Equal(30, data.Length);
+            }
+
+            public class TestableApiController : ApiController
+            {
+                public TestableApiController()
+                    : base(new Mock<IPackageService>().Object, new Mock<IPackageFileService>().Object, new Mock<IUserService>().Object, new Mock<INuGetExeDownloaderService>().Object)
+                {
+                    StubPackageRepository = new Mock<IPackageCache>();
+                    StubPackageRepository
+                        .Setup(stub => stub.GetPackageIds(It.IsAny<bool>()))
+                        .Returns(() => StubPackageIds.AsQueryable());
+                }
+
+                public string[] StubPackageIds { get; set; }
+                public Mock<IPackageCache> StubPackageRepository { get; set; }
+                
+                protected override T GetService<T>()
+                {
+                    if (typeof(T) == typeof(IPackageCache))
+                        return (T)StubPackageRepository.Object;
+
+                    throw new Exception("Tried to get an unexpected service.");
+                }
             }
         }
 

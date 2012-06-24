@@ -1,4 +1,6 @@
 ﻿param(
+  $azureCacheServiceUrl               = $env:NUGET_GALLERY_AZURE_CACHE_SERVICE_URL,
+  $azureCacheAuthenticationToken      = $env:NUGET_GALLERY_AZURE_CACHE_AUTHENTICATION_TOKEN,
   $azureStorageAccessKey              = $env:NUGET_GALLERY_AZURE_STORAGE_ACCESS_KEY,
   $azureStorageAccountName            = $env:NUGET_GALLERY_AZURE_STORAGE_ACCOUNT_NAME,
   $azureStorageBlobUrl                = $env:NUGET_GALLERY_AZURE_STORAGE_BLOB_URL,
@@ -21,6 +23,8 @@ $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 . $ScriptRoot\_Common.ps1
 
 #Validate Sutff
+require-param -value $azureCacheServiceUrl -paramName "azureCacheServiceUrl"
+require-param -value $azureCacheAuthenticationToken -paramName "azureCacheAuthenticationToken"
 require-param -value $azureStorageAccessKey -paramName "azureStorageAccessKey"
 require-param -value $azureStorageAccountName -paramName "azureStorageAccountName"
 require-param -value $azureStorageBlobUrl -paramName "azureStorageBlobUrl"
@@ -150,13 +154,17 @@ set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertific
 set-releasemode $webConfigPath
 set-machinekey $webConfigPath
 
-#Release Tag stuff
-print-message("Setting the release tags")
+#Azure Configuration
+set-appsetting -path $webConfigPath -name "Gallery:AzureCacheServiceUrl" -value $azureCacheServiceUrl
+set-appsetting -path $webConfigPath -name "Gallery:AzureCacheAuthenticationToken" -value $azureCacheAuthenticationToken
 set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccessKey" -value $azureStorageAccessKey
 set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccountName" -value $azureStorageAccountName
 set-appsetting -path $webConfigPath -name "Gallery:AzureStorageBlobUrl" -value $azureStorageBlobUrl
-set-appsetting -path $webConfigPath -name "Gallery:GoogleAnalyticsPropertyId" -value $googleAnalyticsPropertyId
 set-appsetting -path $webConfigPath -name "Gallery:PackageStoreType" -value "AzureStorageBlob"
+set-appsetting -path $webConfigPath -name "Gallery:GoogleAnalyticsPropertyId" -value $googleAnalyticsPropertyId
+
+#Release Tag stuff
+print-message("Setting the release tags")
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value $commitBranch
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha
