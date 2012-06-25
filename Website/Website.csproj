@@ -26,6 +26,10 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
+    <IISExpressSSLPort />
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -345,6 +349,10 @@
     <Compile Include="Migrations\201206131919241_AddTargetFxToDependencies.cs" />
     <Compile Include="Migrations\201206131919241_AddTargetFxToDependencies.Designer.cs">
       <DependentUpon>201206131919241_AddTargetFxToDependencies.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201206250141447_ExecuteELMAHSql.cs" />
+    <Compile Include="Migrations\201206250141447_ExecuteELMAHSql.Designer.cs">
+      <DependentUpon>201206250141447_ExecuteELMAHSql.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -787,6 +795,7 @@
     <Content Include="DynamicData\Site.css" />
     <Content Include="Errors\Error.html" />
     <Content Include="favicon.ico" />
+    <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
