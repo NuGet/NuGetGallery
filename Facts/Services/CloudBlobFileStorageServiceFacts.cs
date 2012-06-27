@@ -86,7 +86,7 @@ namespace NuGetGallery
                 var result = service.CreateDownloadFileActionResult(Constants.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
-                Assert.Equal("http://theuri/", result.Url);
+                Assert.Equal("http://theUri", result.Url);
             }
         }
 
@@ -390,7 +390,7 @@ namespace NuGetGallery
             if (fakeBlobClient == null)
                 fakeBlobClient = new Mock<ICloudBlobClient>();
             
-            return new CloudBlobFileStorageService(fakeBlobClient.Object);
+            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IConfiguration>());
         }
     }
 }

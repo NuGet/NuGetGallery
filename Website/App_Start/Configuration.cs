@@ -82,6 +82,14 @@ namespace NuGetGallery
             }
         }
 
+        public string AzureCdnHost
+        {
+            get
+            {
+                return ReadAppSettings("AzureCdnHost");
+            }
+        }
+
         protected virtual string GetConfiguredSiteRoot()
         {
             return ReadAppSettings("SiteRoot");

@@ -7,6 +7,7 @@ namespace NuGetGallery
         string AzureStorageAccountName { get; }
         string AzureStorageBlobUrl { get; }
         string FileStorageDirectory { get; }
+        string AzureCdnHost { get; }
         PackageStoreType PackageStoreType { get; }
 
         string GetSiteRoot(bool useHttps);
