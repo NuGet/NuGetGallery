@@ -4,9 +4,12 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
-using Lucene.Net.Index;
+using System.Web;
+using System.Diagnostics;
+using Lucene.Net.Search.Function;
 
 namespace NuGetGallery
 {
@@ -76,7 +79,8 @@ namespace NuGetGallery
             {
                 var searcher = new IndexSearcher(directory, readOnly: true);
                 var query = ParseQuery(searchTerm);
-                var results = searcher.Search(query, filter: null, n: 1000, sort: new Sort(new[] { SortField.FIELD_SCORE, new SortField("DownloadCount", SortField.INT, reverse: true) }));
+                
+                var results = searcher.Search(query, filter: null, n: 1000);
                 var keys = results.scoreDocs.Select(c => Int32.Parse(searcher.Doc(c.doc).Get("Key"), CultureInfo.InvariantCulture))
                                             .ToList();
                 searcher.Close();
@@ -86,25 +90,28 @@ namespace NuGetGallery
 
         private static Query ParseQuery(string searchTerm)
         {
-            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 1.0f}, { "Description", 0.8f }, { "Author", 0.6f } };
+            var fields = new Dictionary<string, float> { { "Id", Read("Id", 1.2f)  }, { "Title", Read("Title", 1.0f) }, { "Tags", Read("Tags", 1.0f) }, 
+                                                         { "Description", Read("Description", 0.5f) },  { "Author", Read("Author", 0.6f) } };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
             searchTerm = QueryParser.Escape(searchTerm).ToLowerInvariant();
 
             var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields.Keys.ToArray(), analyzer, fields);
 
             var conjuctionQuery = new BooleanQuery();
-            conjuctionQuery.SetBoost(1.5f);
+            conjuctionQuery.SetBoost(Read("conjuntion", 1.2f));
             var disjunctionQuery = new BooleanQuery();
+            disjunctionQuery.SetBoost(Read("disjunction", 0.5f));
             var wildCardQuery = new BooleanQuery();
-            wildCardQuery.SetBoost(0.7f);
+            wildCardQuery.SetBoost(Read("wildcard", 0.7f));
             var exactIdQuery = new TermQuery(new Term("Id-Exact", searchTerm));
-            exactIdQuery.SetBoost(2.5f);
-            
-            foreach(var term in searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            exactIdQuery.SetBoost(Read("Id-Exact", 2.5f));
+            var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + searchTerm + "*"));
+
+            foreach (var term in searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 conjuctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.MUST);
                 disjunctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.SHOULD);
-                
+
                 foreach (var field in fields)
                 {
                     var wildCardTermQuery = new WildcardQuery(new Term(field.Key, term + "*"));
@@ -113,7 +120,16 @@ namespace NuGetGallery
                 }
             }
 
-            return conjuctionQuery.Combine(new Query[] { exactIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+            return new CustomScoreQuery(conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery }), 
+                                        new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT));
+        }
+
+        private static float Read(string id, float d)
+        {
+            var request = HttpContext.Current.Request;
+            float v;
+
+            return float.TryParse(request.QueryString[id], out v) ? v : d;
         }
     }
 }

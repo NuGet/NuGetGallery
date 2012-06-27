@@ -129,16 +129,24 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual ActionResult ListPackages(string q, string sortOrder = Constants.PopularitySortOrder, int page = 1)
+        public virtual ActionResult ListPackages(string q, string sortOrder = null, int page = 1)
         {
             if (page < 1)
             {
                 page = 1;
             }
 
+
             IQueryable<Package> packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: true);
 
             q = (q ?? "").Trim();
+
+            if (String.IsNullOrEmpty(sortOrder))
+            {
+                // Determine the default sort order. If no query string is specified, then the sortOrder is DownloadCount
+                // If we are searching for something, sort by relevance.
+                sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
+            }
 
             if (GetIdentity().IsAuthenticated)
             {
