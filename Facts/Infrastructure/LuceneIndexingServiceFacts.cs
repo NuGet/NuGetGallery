@@ -11,19 +11,19 @@ namespace NuGetGallery.Infrastructure
     public class LuceneIndexingServiceFacts
     {
         [Theory]
-        [InlineData("NHibernate", new string[0])]
-        [InlineData("NUnit", new string[0])]
-        [InlineData("EntityFramework", new[] { "Framework", "Entity" })]
-        [InlineData("Sys-netFX", new[] { "Sys", "netFX" })]
-        [InlineData("xUnit", new string[0])]
-        [InlineData("jQueryUI", new string[0])]
-        [InlineData("jQuery-UI", new[] { "jQuery", "UI" })]
-        [InlineData("NuGetPowerTools", new[] { "NuGet", "Power", "Tools" } )]
-        [InlineData("microsoft-web-helpers", new[] { "microsoft", "web", "helpers" } )]
-        [InlineData("EntityFramework.sample", new[] { "EntityFramework", "sample", "Framework", "Entity" })]
-        [InlineData("SignalR.MicroSliver", new[] { "SignalR", "MicroSliver", "Micro", "Sliver" })]
-        [InlineData("ABCMicroFramework", new[] { "ABC", "Micro", "Framework" })]
-        [InlineData("SignalR.Hosting.AspNet", new[] { "SignalR", "Hosting", "AspNet", "Asp", "Net"})] 
+        [InlineData("NHibernate", new[] { "NHibernate" })]
+        [InlineData("NUnit", new[] { "NUnit" })]
+        [InlineData("EntityFramework", new[] { "EntityFramework", "Framework", "Entity" })]
+        [InlineData("Sys-netFX", new[] { "Sys-netFX", "Sys", "netFX" })]
+        [InlineData("xUnit", new[] { "xUnit" })]
+        [InlineData("jQueryUI", new [] { "jQueryUI" })]
+        [InlineData("jQuery-UI", new[] { "jQuery-UI", "jQuery", "UI" })]
+        [InlineData("NuGetPowerTools", new[] { "NuGetPowerTools", "NuGet", "Power", "Tools" } )]
+        [InlineData("microsoft-web-helpers", new[] { "microsoft-web-helpers", "microsoft", "web", "helpers" } )]
+        [InlineData("EntityFramework.sample", new[] { "EntityFramework.sample", "EntityFramework", "sample", "Framework", "Entity" })]
+        [InlineData("SignalR.MicroSliver", new[] { "SignalR.MicroSliver", "SignalR", "MicroSliver", "Micro", "Sliver" })]
+        [InlineData("ABCMicroFramework", new[] { "ABCMicroFramework", "ABC", "Micro", "Framework" })]
+        [InlineData("SignalR.Hosting.AspNet", new[] { "SignalR.Hosting.AspNet", "SignalR", "Hosting", "AspNet", "Asp", "Net"})] 
         public void CamelCaseTokenizer(string term, IEnumerable<string> tokens)
         {
             // Act
