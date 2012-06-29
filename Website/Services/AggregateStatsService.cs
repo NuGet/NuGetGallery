@@ -12,7 +12,8 @@ namespace NuGetGallery
                 using (var command = database.Connection.CreateCommand())
                 {
                     command.CommandText = @"Select 
-                    (Select Count([Key]) from PackageRegistrations) as UniquePackages,
+                    (Select Count([Key]) from PackageRegistrations pr 
+                            where exists (Select 1 from Packages p where p.PackageRegistrationKey = pr.[Key] and p.Listed = 1)) as UniquePackages,
                     (Select Count([Key]) from Packages where Listed = 1) as TotalPackages,
                     (
                         (Select Sum(DownloadCount) from Packages) + 
