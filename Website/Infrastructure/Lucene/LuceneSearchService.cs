@@ -7,6 +7,7 @@ using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
+using Lucene.Net.Search.Function;
 
 namespace NuGetGallery
 {
@@ -86,7 +87,7 @@ namespace NuGetGallery
 
         private static Query ParseQuery(string searchTerm)
         {
-            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 0.8f }, { "Description", 0.3f }, 
+            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 0.8f }, { "Description", 0.1f }, 
                                                          { "Author", 1.0f } };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
             searchTerm = QueryParser.Escape(searchTerm).ToLowerInvariant();
@@ -96,14 +97,14 @@ namespace NuGetGallery
             var conjuctionQuery = new BooleanQuery();
             conjuctionQuery.SetBoost(1.2f);
             var disjunctionQuery = new BooleanQuery();
-            disjunctionQuery.SetBoost(0.3f);
+            disjunctionQuery.SetBoost(0.1f);
             var wildCardQuery = new BooleanQuery();
             wildCardQuery.SetBoost(0.5f);
             var exactIdQuery = new TermQuery(new Term("Id-Exact", searchTerm));
             exactIdQuery.SetBoost(2.5f);
             var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + searchTerm + "*"));
-
-            foreach (var term in searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            
+            foreach(var term in GetSearchTerms(searchTerm))
             {
                 conjuctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.MUST);
                 disjunctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.SHOULD);
@@ -116,7 +117,16 @@ namespace NuGetGallery
                 }
             }
 
-            return conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+            var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
+            return new CustomScoreQuery(conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery }),
+                                       downloadCountBooster);
+        }
+
+        private static IEnumerable<string> GetSearchTerms(string searchTerm)
+        {
+            return searchTerm.Split(new[] { ' ', '.', '-' }, StringSplitOptions.RemoveEmptyEntries)
+                             .Concat(new[] { searchTerm })
+                             .Distinct(StringComparer.OrdinalIgnoreCase);
         }
     }
 }

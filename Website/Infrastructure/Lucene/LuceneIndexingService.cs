@@ -89,19 +89,25 @@ namespace NuGetGallery
                 var document = new Document();
 
                 document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-                document.Add(new Field("Id-Exact", package.Id, Field.Store.NO, Field.Index.ANALYZED));
+                document.Add(new Field("Id-Exact", package.Id.ToLowerInvariant(), Field.Store.NO, Field.Index.NOT_ANALYZED));
 
                 document.Add(new Field("Description", package.Description, Field.Store.NO, Field.Index.ANALYZED));
 
-                foreach (var idToken in TokenizeId(package.Id))
+                var tokenizedId = TokenizeId(package.Id);
+                foreach (var idToken in tokenizedId)
                 {
                     document.Add(new Field("Id", idToken, Field.Store.NO, Field.Index.ANALYZED));
                 }
 
-                if (!String.IsNullOrEmpty(package.Title))
+                // If an element does not have a Title, then add all the tokenized Id components as Title.
+                // Lucene's StandardTokenizer does not tokenize items of the format a.b.c which does not play well with things like "xunit.net". 
+                // We will feed it values that are already tokenized.
+                var titleTokens = String.IsNullOrEmpty(package.Title) ? tokenizedId : package.Title.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var idToken in titleTokens)
                 {
-                    document.Add(new Field("Title", package.Title, Field.Store.NO, Field.Index.ANALYZED));
+                    document.Add(new Field("Title", idToken, Field.Store.NO, Field.Index.ANALYZED));
                 }
+
                 if (!String.IsNullOrEmpty(package.Tags))
                 {
                     document.Add(new Field("Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED));
