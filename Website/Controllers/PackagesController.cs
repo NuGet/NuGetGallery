@@ -148,16 +148,6 @@ namespace NuGetGallery
                 sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
             }
 
-            if (GetIdentity().IsAuthenticated)
-            {
-                // Only show listed packages. For unlisted packages, only show them if the owner is viewing it.
-                packageVersions = packageVersions.Where(p => p.Listed || p.PackageRegistration.Owners.Any(owner => owner.Username == User.Identity.Name));
-            }
-            else
-            {
-                packageVersions = packageVersions.Where(p => p.Listed);
-            }
-
             int totalHits;
             if (!String.IsNullOrEmpty(q))
             {
@@ -173,7 +163,7 @@ namespace NuGetGallery
                 else
                 {
                     packageVersions = searchSvc.Search(packageVersions, q)
-                                                   .SortBy(GetSortExpression(sortOrder));
+                                               .SortBy(GetSortExpression(sortOrder));
                     totalHits = packageVersions.Count();
                 }
             }
