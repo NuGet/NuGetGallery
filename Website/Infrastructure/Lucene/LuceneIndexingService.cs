@@ -89,19 +89,25 @@ namespace NuGetGallery
                 var document = new Document();
 
                 document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-                document.Add(new Field("Id-Exact", package.Id, Field.Store.NO, Field.Index.ANALYZED));
+                document.Add(new Field("Id-Exact", package.Id.ToLowerInvariant(), Field.Store.NO, Field.Index.NOT_ANALYZED));
 
                 document.Add(new Field("Description", package.Description, Field.Store.NO, Field.Index.ANALYZED));
 
-                foreach (var idToken in TokenizeId(package.Id))
+                var tokenizedId = TokenizeId(package.Id);
+                foreach (var idToken in tokenizedId)
                 {
                     document.Add(new Field("Id", idToken, Field.Store.NO, Field.Index.ANALYZED));
                 }
 
-                if (!String.IsNullOrEmpty(package.Title))
+                // If an element does not have a Title, then add all the tokenized Id components as Title.
+                // Lucene's StandardTokenizer does not tokenize items of the format a.b.c which does not play well with things like "xunit.net". 
+                // We will feed it values that are already tokenized.
+                var titleTokens = String.IsNullOrEmpty(package.Title) ? tokenizedId : package.Title.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var idToken in titleTokens)
                 {
-                    document.Add(new Field("Title", package.Title, Field.Store.NO, Field.Index.ANALYZED));
+                    document.Add(new Field("Title", idToken, Field.Store.NO, Field.Index.ANALYZED));
                 }
+
                 if (!String.IsNullOrEmpty(package.Tags))
                 {
                     document.Add(new Field("Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED));
@@ -171,35 +177,45 @@ namespace NuGetGallery
 
         internal static IEnumerable<string> TokenizeId(string term)
         {
-            var result = CamelCaseTokenize(term).SelectMany(s => s.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries)).ToList();
-            if (result.Count == 1)
-            {
-                return Enumerable.Empty<string>();
-            }
+
+            // First tokenize the result by id-separators. For e.g. tokenize SignalR.EventStream as SignalR and EventStream
+            var tokens = term.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries);
+
+            // For each token, further attempt to tokenize camelcase values. e.g. .EventStream -> Event, Stream. 
+            var result = tokens.Concat(new[] { term })
+                               .Concat(tokens.SelectMany(CamelCaseTokenize))
+                               .Distinct(StringComparer.OrdinalIgnoreCase)
+                               .ToList();
             return result;
         }
 
         private static IEnumerable<string> CamelCaseTokenize(string term)
         {
-            if (term.Length < 2)
+            const int MinTokenLength = 3;
+            if (term.Length < MinTokenLength)
             {
                 yield break;
             }
 
-            int tokenStart = 0;
-            for (int i = 1; i < term.Length; i++)
+            int tokenEnd = term.Length;
+            for (int i = term.Length - 1; i > 0; i--)
             {
-                if (Char.IsUpper(term[i]) && (i - tokenStart > 2))
+                // If the remainder is fewer than 2 chars or we have a token that is at least 2 chars long, tokenize it.
+                if (i < MinTokenLength || (Char.IsUpper(term[i]) && (tokenEnd - i >= MinTokenLength)))
                 {
-                    yield return term.Substring(tokenStart, i - tokenStart);
-                    tokenStart = i;
+                    if (i < MinTokenLength)
+                    {
+                        // If the remainder is smaller than 2 chars, just return the entire string
+                        i = 0;
+                    }
+                        
+                    yield return term.Substring(i, tokenEnd - i);
+                    tokenEnd = i;
                 }
             }
-            if (term.Length - tokenStart < 2)
-            {
-                yield break;
-            }
-            yield return term.Substring(tokenStart);
+
+            // Finally return the term in entirety
+            yield return term;
         }
     }
 }

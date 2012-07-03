@@ -24,12 +24,14 @@ namespace NuGetGallery
                     database.Connection.Open();
                     using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection | CommandBehavior.SingleRow))
                     {
-                        reader.Read();
+                        bool hasData = reader.Read();
+                        if (!hasData)
+                            return new AggregateStats();
                         return new AggregateStats
                         {
-                            UniquePackages = reader.GetInt32(0),
-                            TotalPackages = reader.GetInt32(1),
-                            Downloads = reader.GetInt32(2),
+                            UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
+                            TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                            Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt32(2),
                         };
                     }
                 }

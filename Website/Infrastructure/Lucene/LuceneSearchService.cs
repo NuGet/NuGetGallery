@@ -4,9 +4,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
-using Lucene.Net.Index;
+using Lucene.Net.Search.Function;
 
 namespace NuGetGallery
 {
@@ -86,25 +87,29 @@ namespace NuGetGallery
 
         private static Query ParseQuery(string searchTerm)
         {
-            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 1.0f}, { "Description", 0.8f }, { "Author", 0.6f } };
+            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 0.8f }, { "Description", 0.1f }, 
+                                                         { "Author", 1.0f } };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
             searchTerm = QueryParser.Escape(searchTerm).ToLowerInvariant();
 
             var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields.Keys.ToArray(), analyzer, fields);
 
             var conjuctionQuery = new BooleanQuery();
-            conjuctionQuery.SetBoost(1.5f);
+            conjuctionQuery.SetBoost(2.0f);
             var disjunctionQuery = new BooleanQuery();
+            disjunctionQuery.SetBoost(0.1f);
             var wildCardQuery = new BooleanQuery();
-            wildCardQuery.SetBoost(0.7f);
+            wildCardQuery.SetBoost(0.5f);
             var exactIdQuery = new TermQuery(new Term("Id-Exact", searchTerm));
             exactIdQuery.SetBoost(2.5f);
+            var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + searchTerm + "*"));
             
-            foreach(var term in searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach(var term in GetSearchTerms(searchTerm))
             {
-                conjuctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.MUST);
-                disjunctionQuery.Add(queryParser.Parse(term), BooleanClause.Occur.SHOULD);
-                
+                var termQuery = queryParser.Parse(term);
+                conjuctionQuery.Add(termQuery, BooleanClause.Occur.MUST);
+                disjunctionQuery.Add(termQuery, BooleanClause.Occur.SHOULD);
+
                 foreach (var field in fields)
                 {
                     var wildCardTermQuery = new WildcardQuery(new Term(field.Key, term + "*"));
@@ -113,7 +118,16 @@ namespace NuGetGallery
                 }
             }
 
-            return conjuctionQuery.Combine(new Query[] { exactIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+            var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
+            return new CustomScoreQuery(conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery }),
+                                       downloadCountBooster);
+        }
+
+        private static IEnumerable<string> GetSearchTerms(string searchTerm)
+        {
+            return searchTerm.Split(new[] { ' ', '.', '-' }, StringSplitOptions.RemoveEmptyEntries)
+                             .Concat(new[] { searchTerm })
+                             .Distinct(StringComparer.OrdinalIgnoreCase);
         }
     }
 }
