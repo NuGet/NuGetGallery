@@ -90,8 +90,6 @@ namespace NuGetGallery
             var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 0.8f }, { "Description", 0.1f }, 
                                                          { "Author", 1.0f } };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-            searchTerm = QueryParser.Escape(searchTerm).ToLowerInvariant();
-
             var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields.Keys.ToArray(), analyzer, fields);
 
             var conjuctionQuery = new BooleanQuery();
@@ -100,9 +98,12 @@ namespace NuGetGallery
             disjunctionQuery.SetBoost(0.1f);
             var wildCardQuery = new BooleanQuery();
             wildCardQuery.SetBoost(0.5f);
-            var exactIdQuery = new TermQuery(new Term("Id-Exact", searchTerm));
+
+            // Escape the entire term we use for exact searches.
+            var escapedSearchTerm = Escape(searchTerm);
+            var exactIdQuery = new TermQuery(new Term("Id-Exact", escapedSearchTerm));
             exactIdQuery.SetBoost(2.5f);
-            var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + searchTerm + "*"));
+            var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedSearchTerm + "*"));
             
             foreach(var term in GetSearchTerms(searchTerm))
             {
@@ -127,7 +128,13 @@ namespace NuGetGallery
         {
             return searchTerm.Split(new[] { ' ', '.', '-' }, StringSplitOptions.RemoveEmptyEntries)
                              .Concat(new[] { searchTerm })
-                             .Distinct(StringComparer.OrdinalIgnoreCase);
+                             .Distinct(StringComparer.OrdinalIgnoreCase)
+                             .Select(Escape);
+        }
+
+        private static string Escape(string term)
+        {
+            return QueryParser.Escape(term).ToLowerInvariant();
         }
     }
 }
