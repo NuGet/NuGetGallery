@@ -14,6 +14,11 @@ namespace NuGetGallery
         public SortProperty SortProperty { get; set; }
 
         public SortDirection SortDirection { get; set; }
+
+        /// <summary>
+        /// Determines if only this is a count only query and does not process the source queryable.
+        /// </summary>
+        public bool CountOnly { get; set; } 
     }
 
     public enum SortProperty
