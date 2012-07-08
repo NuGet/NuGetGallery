@@ -215,6 +215,10 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="DataServices\ODataRemoveVersionSorter.cs" />
+    <Compile Include="DataServices\CountInterceptor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataServices\DisregardODataInterceptor.cs" />
     <Compile Include="DataServices\V2CuratedFeed.svc.cs">
       <DependentUpon>V2CuratedFeed.svc</DependentUpon>
     </Compile>
