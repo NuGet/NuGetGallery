@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.UI;
 using NuGet;
@@ -48,6 +49,9 @@ namespace NuGetGallery
                 return Redirect(package.ExternalPackageUrl);
             else
             {
+                Response.Cache.SetETag(package.Hash);
+                Response.Cache.SetCacheability(HttpCacheability.Public);
+                Response.Cache.SetExpires(DateTime.UtcNow.AddDays(Constants.CacheExpirationInDays));
                 return packageFileSvc.CreateDownloadPackageActionResult(package);
             }
         }
