@@ -95,24 +95,19 @@ This is the Git workflow we're currently using:
     
     There are a few steps to follow to make sure you keep the history clean as you integrate.
     
-    1.  __Fetch changes from origin.__
-        Use `git fetch` instead of `git pull`, because `git pull` automatically tries to merge the 
+    1.  __Pull changes from origin and rebase your topic branch against origin/master.__
+        Use `git pull --rebase`, because `git pull` automatically tries to merge the 
         new changes with your local commits, creating an ugly (and useless) merge commit.
-        
-            git fetch origin
-        
-    2.  __Rebase your topic branch against origin/master.__
-        You want to reolcated your changes on top of any changes that were pulled in the
-        in the fetch, above. You need to do this against origin/master instead of 
-        master, because master isn't yet up to date (remember, you're still in your
-        topic branch).
+        You want to relocate your changes on top of any changes that were pulled. You need
+        to do this against origin/master instead of master, because master isn't yet up to
+        date (remember, you're still in your topic branch).
 
         You might have rebase conflicts, in which case you'll need to resolve them before
         continuing with `git rebase --continue`. You might want to use `git mergetool` to help.
         
-            git rebase origin/master
+            git pull --rebase origin/master
         
-    3.  __Test your changes with the new code integrated.__
+    2.  __Test your changes with the new code integrated.__
         This would be a good time to run your full suite of unit and integration tests.
         
             git clean -xdf
