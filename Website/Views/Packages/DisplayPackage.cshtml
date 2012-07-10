@@ -1,5 +1,6 @@
-﻿﻿@model DisplayPackageViewModel
+@model DisplayPackageViewModel
 @{
+    ViewBag.Title = Model.Title + " " + Model.Version;
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
