@@ -35,5 +35,7 @@ namespace NuGetGallery
         void MarkPackageUnlisted(Package package);
 
         void MarkPackageListed(Package package);
+
+        bool AllowCachingOfPackage { get; }
     }
 }

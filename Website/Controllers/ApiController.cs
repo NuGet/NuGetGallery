@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.UI;
 using NuGet;
@@ -30,7 +31,7 @@ namespace NuGetGallery
             this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
         }
 
-        [ActionName("GetPackageApi"), HttpGet] 
+        [ActionName("GetPackageApi"), HttpGet]
         public virtual ActionResult GetPackage(string id, string version)
         {
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
@@ -46,13 +47,18 @@ namespace NuGetGallery
 
             if (!string.IsNullOrWhiteSpace(package.ExternalPackageUrl))
                 return Redirect(package.ExternalPackageUrl);
-            else
+
+            if (packageFileSvc.AllowCachingOfPackage)
             {
-                return packageFileSvc.CreateDownloadPackageActionResult(package);
+                Response.Cache.SetCacheability(HttpCacheability.Public);
+                Response.Cache.SetProxyMaxAge(new TimeSpan(0, 0, 0, Constants.CacheExpirationInSeconds));
+                Response.Cache.SetETag(package.Hash);
             }
+
+            return packageFileSvc.CreateDownloadPackageActionResult(package);
         }
 
-        [ActionName("GetNuGetExeApi"),
+	    [ActionName("GetNuGetExeApi"),
          HttpGet,
          OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
         public virtual ActionResult GetNuGetExe()

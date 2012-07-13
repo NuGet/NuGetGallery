@@ -24,5 +24,10 @@ namespace NuGetGallery
         /// Downloads the package from the file storage and reads it into a Stream.
         /// </summary>
         Stream DownloadPackageFile(Package package);
+
+        /// <summary>
+        /// Indicates wether or not packages are allowed to be cached by a proxy or other mechanism.
+        /// </summary>
+        bool AllowCachingOfPackage { get; }
     }
 }

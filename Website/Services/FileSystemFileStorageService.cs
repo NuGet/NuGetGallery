@@ -125,5 +125,10 @@ namespace NuGetGallery
                 packageFile.CopyTo(file);
             }
         }
+
+        public bool AllowCachingOfPackage
+        {
+            get { return true; }
+        }
     }
 }
