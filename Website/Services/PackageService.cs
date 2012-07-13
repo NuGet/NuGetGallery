@@ -445,6 +445,11 @@ namespace NuGetGallery
             packageRepo.CommitChanges();
         }
 
+        public bool AllowCachingOfPackage
+        {
+            get { return this.packageFileSvc.AllowCachingOfPackage; }
+        }
+
         // TODO: Should probably be run in a transaction
         public void MarkPackageUnlisted(Package package)
         {

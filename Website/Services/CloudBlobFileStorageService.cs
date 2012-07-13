@@ -124,5 +124,10 @@ namespace NuGetGallery
             blob.Properties.ContentType = GetContentType(folderName);
             blob.SetProperties();
         }
+
+        public bool AllowCachingOfPackage
+        {
+            get { return false; }
+        }
     }
 }

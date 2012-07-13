@@ -65,6 +65,11 @@ namespace NuGetGallery
                 fileName);
         }
 
+        public bool AllowCachingOfPackage
+        {
+            get { return this.fileStorageSvc.AllowCachingOfPackage; }
+        }
+
         private static string BuildFileName(
             string id,
             string version)
