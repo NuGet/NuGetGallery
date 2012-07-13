@@ -21,6 +21,15 @@ namespace NuGetGallery
             PrepareContainer(Constants.UploadsFolderName, isPublic: false);
         }
 
+        public bool AllowCachingOfPackage
+        {
+            get
+            {
+                // We'll let the blob storage handle caching for us.    
+                return false;
+            }
+        }
+
         public ActionResult CreateDownloadFileActionResult(
             string folderName,
             string fileName)
@@ -43,7 +52,7 @@ namespace NuGetGallery
             string folderName,
             string fileName)
         {
-            
+
             var container = GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             return blob.Exists();

@@ -413,6 +413,52 @@ namespace NuGetGallery
         public class TheGetPackageAction
         {
             [Fact]
+            public void GetPackageReturnsCacheablePackageIfAllowCacheIsTrue()
+            {
+                //Arrange
+                var package = new Package();
+                const string packageHash = "1234fe";
+                package.Hash = packageHash;
+                var actionResult = new EmptyResult();
+
+                var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
+                packageSvc.Setup(p => p.FindPackageByIdAndVersion("Baz", "1.0.1", false)).Returns(package).Verifiable();
+                packageSvc.Setup(p => p.AddDownloadStatistics(package, "Foo", "Qux")).Verifiable();
+                var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
+                packageFileSvc.SetupGet(fs => fs.AllowCachingOfPackage).Returns(true);
+                packageFileSvc.Setup(s => s.CreateDownloadPackageActionResult(package)).Returns(actionResult).Verifiable();
+
+                var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+
+                var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
+                httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
+                httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
+
+                var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+                httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
+                
+                var httpCache = new Mock<HttpCachePolicyBase>(MockBehavior.Strict);
+                httpCache.Setup(hc => hc.SetETag(packageHash)).Verifiable();
+                httpCache.Setup(hc => hc.SetCacheability(HttpCacheability.Public)).Verifiable();
+                httpCache.Setup(hc => hc.SetProxyMaxAge(It.IsAny<TimeSpan>())).Verifiable();
+
+                var httpResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
+                httpResponse.SetupGet(res => res.Cache).Returns(httpCache.Object);
+
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, fileService: packageFileSvc);
+                var controllerContext = new ControllerContext(new RequestContext(httpContext.Object, new RouteData()), controller);
+                controller.ControllerContext = controllerContext;
+                httpContext.SetupGet(c => c.Response).Returns(httpResponse.Object);
+
+                //Act
+                var result = controller.GetPackage("Baz", "1.0.1");
+
+                //Assert
+                Assert.Equal(actionResult, result);
+                httpCache.Verify();
+            }
+
+            [Fact]
             public void GetPackageReturns404IfPackageIsNotFound()
             {
                 // Arrange
@@ -439,6 +485,7 @@ namespace NuGetGallery
                 // Arrange
                 var guid = Guid.NewGuid();
                 var package = new Package();
+
                 var actionResult = new EmptyResult();
                 var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.1", false)).Returns(package);
@@ -446,6 +493,7 @@ namespace NuGetGallery
 
                 var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
                 packageFileSvc.Setup(s => s.CreateDownloadPackageActionResult(package)).Returns(actionResult).Verifiable();
+                packageFileSvc.SetupGet(s => s.AllowCachingOfPackage).Returns(false);
                 var userSvc = new Mock<IUserService>(MockBehavior.Strict);
                 userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
@@ -474,6 +522,7 @@ namespace NuGetGallery
                 // Arrange
                 var guid = Guid.NewGuid();
                 var package = new Package();
+
                 var actionResult = new EmptyResult();
                 var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "", false)).Returns(package);
@@ -481,12 +530,14 @@ namespace NuGetGallery
 
                 var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
                 packageFileSvc.Setup(s => s.CreateDownloadPackageActionResult(package)).Returns(actionResult).Verifiable();
+                packageFileSvc.SetupGet(s => s.AllowCachingOfPackage).Returns(false);
                 var userSvc = new Mock<IUserService>(MockBehavior.Strict);
                 userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
                 var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
                 httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
                 httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
+
                 var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
                 httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
 

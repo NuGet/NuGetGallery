@@ -30,6 +30,6 @@ namespace NuGetGallery
         public const string UploadsFolderName = "uploads";
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
-        public const int CacheExpirationInDays = 180;
+        public const int CacheExpirationInSeconds = 14 * 24 * 3600;
     }
 }

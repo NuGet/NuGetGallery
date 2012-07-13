@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.ServiceModel.Web;
 using System.Web.Mvc;
+using System.Web.UI;
 
 namespace NuGetGallery
 {
@@ -16,6 +18,11 @@ namespace NuGetGallery
         {
             this.configuration = configuration;
             this.fileSystemSvc = fileSystemSvc;
+        }
+
+        public bool AllowCachingOfPackage
+        {
+            get { return true; }
         }
 
         static string BuildPath(

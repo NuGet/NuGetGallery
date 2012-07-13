@@ -6,6 +6,11 @@ namespace NuGetGallery
     public interface IPackageFileService
     {
         /// <summary>
+        /// Indicates wether or not packages are allowed to be cached by a proxy or other mechanism.
+        /// </summary>
+        bool AllowCachingOfPackage { get; }
+
+        /// <summary>
         /// Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
         ActionResult CreateDownloadPackageActionResult(Package package);
