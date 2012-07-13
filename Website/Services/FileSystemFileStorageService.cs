@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
-using System.ServiceModel.Web;
 using System.Web.Mvc;
-using System.Web.UI;
 
 namespace NuGetGallery
 {
