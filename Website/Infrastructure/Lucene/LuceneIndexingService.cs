@@ -5,26 +5,21 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.Search;
 
 namespace NuGetGallery
 {
     public class LuceneIndexingService : IIndexingService
     {
-        private static readonly TimeSpan indexRecreateTime = TimeSpan.FromDays(3);
+        private static readonly object indexLock = new object();
         private static readonly char[] idSeparators = new[] { '.', '-' };
+        private static IndexWriter indexWriter;
 
         public void UpdateIndex()
         {
-            DateTime? createdTime = GetIndexCreationTime();
-            if (createdTime.HasValue && (DateTime.UtcNow - createdTime > indexRecreateTime))
-            {
-                ClearLuceneDirectory();
-            }
-
             DateTime? lastWriteTime = GetLastWriteTime();
             bool creatingIndex = lastWriteTime == null;
             using (var context = CreateContext())
@@ -32,7 +27,6 @@ namespace NuGetGallery
                 var packages = GetPackages(context, lastWriteTime);
                 if (packages.Any())
                 {
-                    EnsureIndexDirectory();
                     WriteIndex(creatingIndex, packages);
                 }
             }
@@ -44,110 +38,98 @@ namespace NuGetGallery
             return new EntitiesContext();
         }
 
-        protected internal virtual List<PackageIndexEntity> GetPackages(DbContext context, DateTime? dateTime)
+        protected internal virtual IEnumerable<PackageIndexEntity> GetPackages(DbContext context, DateTime? lastIndexTime)
         {
-            if (dateTime == null)
+            string sql = @"SELECT p.[Key], pr.Id, p.Title, p.Description, p.Tags, p.FlattenedAuthors as Authors, pr.DownloadCount,
+                                  p.IsLatestStable, p.IsLatest, p.Published
+                          FROM Packages p JOIN PackageRegistrations pr on p.PackageRegistrationKey = pr.[Key]";
+
+            object[] parameters;
+
+            if (lastIndexTime == null)
             {
-                // If we're creating the index for the first time, fetch the new packages.
-                string sql = @"Select p.[Key], pr.Id, p.Title, p.Description, p.Tags, p.FlattenedAuthors as Authors, pr.DownloadCount, p.[Key] as LatestKey
-                         from Packages p join PackageRegistrations pr on p.PackageRegistrationKey = pr.[Key]
-                         where p.IsLatestStable = 1 or (p.IsLatest = 1 and Not exists (Select 1 from Packages iP where iP.PackageRegistrationKey = p.PackageRegistrationKey and iP.IsLatestStable = 1))";
-                return context.Database.SqlQuery<PackageIndexEntity>(sql).ToList();
+                // First time creation. Only pull the latest packages.
+                sql += " WHERE ((p.IsLatest = 1) or (p.IsLatestStable = 1)) ";
+                parameters = new object[0];
             }
             else
             {
-                string sql = @"Select p.[Key], pr.Id, p.Title, p.Description, p.Tags, p.FlattenedAuthors as Authors, pr.DownloadCount,
-                                   LatestKey = CASE When p.IsLatest = 1 then p.[Key] Else (Select pLatest.[Key] from Packages pLatest where pLatest.PackageRegistrationKey = pr.[Key] and pLatest.IsLatest = 1) End
-                                   from Packages p join PackageRegistrations pr on p.PackageRegistrationKey = pr.[Key]
-                                   where p.LastUpdated > @UpdatedDate";
-                return context.Database.SqlQuery<PackageIndexEntity>(sql, new SqlParameter("UpdatedDate", dateTime.Value)).ToList();
+                sql += " WHERE p.LastUpdated > @UpdatedDate";
+                parameters = new[] { new SqlParameter("UpdatedDate", lastIndexTime.Value) };
             }
+            return context.Database.SqlQuery<PackageIndexEntity>(sql, parameters).ToList();
         }
 
-        protected internal virtual void WriteIndex(bool creatingIndex, List<PackageIndexEntity> packages)
+        protected internal virtual void WriteIndex(bool creatingIndex, IEnumerable<PackageIndexEntity> packages)
         {
-            using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
-            {
-                var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-                var indexWriter = new IndexWriter(directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
-                AddPackages(indexWriter, packages);
-                indexWriter.Close();
-            }
+            EnsureIndexWriter(creatingIndex);
+            AddPackages(indexWriter, packages);
         }
 
-        private static void AddPackages(IndexWriter indexWriter, List<PackageIndexEntity> packages)
+        private static void AddPackages(IndexWriter indexWriter, IEnumerable<PackageIndexEntity> packages)
         {
-            foreach (var package in packages)
-            {
-                if (package.Key != package.LatestKey)
-                {
-                    indexWriter.DeleteDocuments(new TermQuery(new Term("Key", package.Key.ToString(CultureInfo.InvariantCulture))));
-                    continue;
-                }
+            var packagesToDelete = from package in packages
+                                   where !(package.IsLatest || package.IsLatestStable)
+                                   select new Term("Key", package.Key.ToString(CultureInfo.InvariantCulture));
+            indexWriter.DeleteDocuments(packagesToDelete.ToArray());
 
-                // If there's an older entry for this package, remove it.
-                var document = new Document();
+            // As per http://stackoverflow.com/a/3894582. The IndexWriter is CPU bound, so we can try and write multiple packages in parallel.
+            var packagesToUpdate = from package in packages
+                                   where package.IsLatest || package.IsLatestStable
+                                   select package;
+            // The IndexWriter is thread safe and is primarily CPU-bound. 
+            Parallel.ForEach(packagesToUpdate, UpdatePackage);
 
-                document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-                document.Add(new Field("Id-Exact", package.Id.ToLowerInvariant(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-
-                document.Add(new Field("Description", package.Description, Field.Store.NO, Field.Index.ANALYZED));
-
-                var tokenizedId = TokenizeId(package.Id);
-                foreach (var idToken in tokenizedId)
-                {
-                    document.Add(new Field("Id", idToken, Field.Store.NO, Field.Index.ANALYZED));
-                }
-
-                // If an element does not have a Title, then add all the tokenized Id components as Title.
-                // Lucene's StandardTokenizer does not tokenize items of the format a.b.c which does not play well with things like "xunit.net". 
-                // We will feed it values that are already tokenized.
-                var titleTokens = String.IsNullOrEmpty(package.Title) ? tokenizedId : package.Title.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var idToken in titleTokens)
-                {
-                    document.Add(new Field("Title", idToken, Field.Store.NO, Field.Index.ANALYZED));
-                }
-
-                if (!String.IsNullOrEmpty(package.Tags))
-                {
-                    document.Add(new Field("Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED));
-                }
-                document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
-                document.Add(new Field("DownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.ANALYZED_NO_NORMS));
-
-                indexWriter.AddDocument(document);
-            }
+            indexWriter.Commit();
         }
 
-        protected internal virtual void EnsureIndexDirectory()
+        private static void UpdatePackage(PackageIndexEntity package)
         {
-            if (!Directory.Exists(LuceneCommon.IndexDirectory))
-            {
-                Directory.CreateDirectory(LuceneCommon.IndexDirectory);
-            }
-        }
+            string key = package.Key.ToString(CultureInfo.InvariantCulture);
+            var document = new Document();
 
-        protected internal virtual DateTime? GetIndexCreationTime()
-        {
-            if (File.Exists(LuceneCommon.IndexMetadataPath))
-            {
-                var text = File.ReadLines(LuceneCommon.IndexMetadataPath).FirstOrDefault();
-                DateTime dateTime;
-                if (!String.IsNullOrEmpty(text) && DateTime.TryParseExact(text, "R", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
-                {
-                    return dateTime;
-                }
-            }
-            
-            return null;
-        }
+            var field = new Field("Id-Exact", package.Id.ToLowerInvariant(), Field.Store.NO, Field.Index.NOT_ANALYZED);
+            field.SetBoost(2.5f);
+            document.Add(field);
 
-        protected internal virtual void ClearLuceneDirectory()
-        {
-            if (Directory.Exists(LuceneCommon.IndexDirectory))
+            field = new Field("Description", package.Description, Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.1f);
+            document.Add(field);
+
+            var tokenizedId = TokenizeId(package.Id);
+            foreach (var idToken in tokenizedId)
             {
-                Directory.Delete(LuceneCommon.IndexDirectory, recursive: true);
+                field = new Field("Id", idToken, Field.Store.NO, Field.Index.ANALYZED);
+                field.SetBoost(1.2f);
+                document.Add(field);
             }
+
+            // If an element does not have a Title, then add all the tokenized Id components as Title.
+            // Lucene's StandardTokenizer does not tokenize items of the format a.b.c which does not play well with things like "xunit.net". 
+            // We will feed it values that are already tokenized.
+            var titleTokens = String.IsNullOrEmpty(package.Title) ? tokenizedId : package.Title.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var idToken in titleTokens)
+            {
+                document.Add(new Field("Title", idToken, Field.Store.NO, Field.Index.ANALYZED));
+            }
+
+            if (!String.IsNullOrEmpty(package.Tags))
+            {
+                field = new Field("Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED);
+                field.SetBoost(0.8f);
+                document.Add(field);
+            }
+            document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
+
+            // Fields meant for filtering and sorting
+            document.Add(new Field("Key", key, Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("IsLatestStable", package.IsLatestStable.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("PublishedDate", package.Published.Ticks.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("DownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
+            string displayName = String.IsNullOrEmpty(package.Title) ? package.Id : package.Title;
+            document.Add(new Field("DisplayName", displayName.ToLower(CultureInfo.CurrentCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
+
+            indexWriter.UpdateDocument(new Term("Key", key), document);
         }
 
         protected internal virtual DateTime? GetLastWriteTime()
@@ -163,15 +145,36 @@ namespace NuGetGallery
         {
             if (!File.Exists(LuceneCommon.IndexMetadataPath))
             {
-                if (Directory.Exists(LuceneCommon.IndexMetadataPath))
+                if (Directory.Exists(LuceneCommon.IndexDirectory))
                 {
-                    // If the directoey exists, then assume that the index has been created.
-                    File.WriteAllText(LuceneCommon.IndexMetadataPath, DateTime.UtcNow.ToString("R"));
+                    // If the directory exists, then assume that the index has been created.
+                    File.WriteAllBytes(LuceneCommon.IndexMetadataPath, new byte[0]);
                 }
             }
             else
             {
                 File.SetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath, DateTime.UtcNow);
+            }
+        }
+
+        private static void EnsureIndexWriter(bool creatingIndex)
+        {
+            if (!Directory.Exists(LuceneCommon.IndexDirectory))
+            {
+                Directory.CreateDirectory(LuceneCommon.IndexDirectory);
+            }
+
+            if (indexWriter == null)
+            {
+                lock (indexLock)
+                {
+                    if (indexWriter == null)
+                    {
+                        var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
+                        var directory = new Lucene.Net.Store.SimpleFSDirectory(new DirectoryInfo(LuceneCommon.IndexDirectory));
+                        indexWriter = new IndexWriter(directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
+                    }
+                }
             }
         }
 
@@ -208,7 +211,7 @@ namespace NuGetGallery
                         // If the remainder is smaller than 2 chars, just return the entire string
                         i = 0;
                     }
-                        
+
                     yield return term.Substring(i, tokenEnd - i);
                     tokenEnd = i;
                 }
