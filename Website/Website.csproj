@@ -395,6 +395,7 @@
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\AggregateStatsService.cs" />
+    <Compile Include="Services\SearchFilter.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="SharedController.generated.cs">
