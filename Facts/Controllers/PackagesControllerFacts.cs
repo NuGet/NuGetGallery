@@ -307,7 +307,9 @@ namespace NuGetGallery
             {
                 var fakeIdentity = new Mock<IIdentity>();
                 var httpContext = new Mock<HttpContextBase>();
-                var controller = CreateController(fakeIdentity: fakeIdentity, httpContext: httpContext);
+                var searchService = new Mock<ISearchService>();
+                
+                var controller = CreateController(fakeIdentity: fakeIdentity, httpContext: httpContext, searchService: searchService);
 
                 var result = controller.ListPackages(" test ") as ViewResult;
 
@@ -1263,8 +1265,8 @@ namespace NuGetGallery
         private static Mock<ISearchService> CreateSearchService()
         {
             var searchService = new Mock<ISearchService>();
-            searchService.Setup(s => s.Search(It.IsAny<IQueryable<Package>>(), It.IsAny<string>())).Returns((IQueryable<Package> p, string searchTerm) => p);
-            searchService.Setup(s => s.SearchWithRelevance(It.IsAny<IQueryable<Package>>(), It.IsAny<string>())).Returns((IQueryable<Package> p, string searchTerm) => p);
+            int total;
+            searchService.Setup(s => s.Search(It.IsAny<IQueryable<Package>>(), It.IsAny<SearchFilter>(), out total)).Returns((IQueryable<Package> p, string searchTerm) => p);
 
             return searchService;
         }

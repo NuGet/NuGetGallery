@@ -1,4 +1,5 @@
-﻿namespace NuGetGallery
+﻿using System;
+namespace NuGetGallery
 {
     public class PackageIndexEntity
     {
@@ -16,6 +17,10 @@
 
         public int DownloadCount { get; set; }
 
-        public int? LatestKey { get; set; }
+        public bool IsLatest { get; set; }
+
+        public bool IsLatestStable { get; set; }
+
+        public DateTime Published { get; set; }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using Lucene.Net.Analysis.Standard;
@@ -15,38 +14,46 @@ namespace NuGetGallery
     {
         private const int MaximumRecordsToReturn = 1000;
 
-        public IQueryable<Package> Search(IQueryable<Package> packages, string searchTerm)
+        public IQueryable<Package> Search(IQueryable<Package> packages, SearchFilter searchFilter, out int totalHits)
         {
-            if (String.IsNullOrEmpty(searchTerm))
+            if (packages == null)
             {
-                return packages;
-            }
-            var keys = SearchCore(searchTerm);
-            return SearchByKeys(packages, keys);
-        }
-
-        public IQueryable<Package> SearchWithRelevance(IQueryable<Package> packages, string searchTerm)
-        {
-            int numberOfHits;
-            return SearchWithRelevance(packages, searchTerm, MaximumRecordsToReturn, out numberOfHits);
-        }
-
-        public IQueryable<Package> SearchWithRelevance(IQueryable<Package> packages, string searchTerm, int take, out int numberOfHits)
-        {
-            numberOfHits = 0;
-            if (String.IsNullOrEmpty(searchTerm))
-            {
-                return packages;
+                throw new ArgumentNullException("packages");
             }
 
-            var keys = SearchCore(searchTerm);
-            if (!keys.Any())
+            if (searchFilter == null)
+            {
+                throw new ArgumentNullException("searchFilter");
+            }
+
+            if (String.IsNullOrEmpty(searchFilter.SearchTerm))
+            {
+                throw new ArgumentException("No term to search for.");
+            }
+
+            if (searchFilter.Skip < 0)
+            {
+                throw new ArgumentOutOfRangeException("skip");
+            }
+
+            if (searchFilter.Take < 0)
+            {
+                throw new ArgumentOutOfRangeException("take");
+            }
+
+            // For the given search term, find the keys that match.
+            var keys = SearchCore(searchFilter);
+            totalHits = keys.Count;
+            if (keys.Count == 0)
             {
                 return Enumerable.Empty<Package>().AsQueryable();
             }
 
-            numberOfHits = keys.Count();
-            var results = SearchByKeys(packages, keys.Take(take));
+            // Query the source for each of the keys that need to be taken.
+            var results = packages.Where(p => keys.Contains(p.Key));
+
+            // When querying the database, these keys are returned in no particular order. We use the original order of queries
+            // and retrieve each of the packages from the result in the same order.
             var lookup = results.ToDictionary(p => p.Key, p => p);
 
             return keys.Select(key => LookupPackage(lookup, key))
@@ -61,51 +68,62 @@ namespace NuGetGallery
             return package;
         }
 
-        private static IQueryable<Package> SearchByKeys(IQueryable<Package> packages, IEnumerable<int> keys)
-        {
-            return packages.Where(p => keys.Contains(p.Key));
-        }
-
-        private static IEnumerable<int> SearchCore(string searchTerm)
+        private static IList<int> SearchCore(SearchFilter searchFilter)
         {
             if (!Directory.Exists(LuceneCommon.IndexDirectory))
             {
-                return Enumerable.Empty<int>();
+                return new int[0];
             }
+
+            SortField sortField = GetSortProperties(searchFilter);
+            int numRecords = Math.Min((1 + searchFilter.Skip) * searchFilter.Take, MaximumRecordsToReturn);
 
             using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
             {
                 var searcher = new IndexSearcher(directory, readOnly: true);
-                var query = ParseQuery(searchTerm);
-                var results = searcher.Search(query, filter: null, n: 1000, sort: new Sort(new[] { SortField.FIELD_SCORE, new SortField("DownloadCount", SortField.INT, reverse: true) }));
-                var keys = results.scoreDocs.Select(c => Int32.Parse(searcher.Doc(c.doc).Get("Key"), CultureInfo.InvariantCulture))
+                var query = ParseQuery(searchFilter);
+
+                Filter filter = null;
+                if (!searchFilter.IncludePrerelease)
+                {
+                    var isLatestStableQuery = new TermQuery(new Term("IsLatestStable", Boolean.TrueString));
+                    filter = new QueryWrapperFilter(isLatestStableQuery);
+                }
+
+                var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(sortField));
+                var keys = results.scoreDocs.Skip(searchFilter.Skip)
+                                            .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
                                             .ToList();
                 searcher.Close();
                 return keys;
             }
         }
 
-        private static Query ParseQuery(string searchTerm)
+        private static Query ParseQuery(SearchFilter searchFilter)
         {
-            var fields = new Dictionary<string, float> { { "Id", 1.2f }, { "Title", 1.0f }, { "Tags", 0.8f }, { "Description", 0.1f }, 
-                                                         { "Author", 1.0f } };
+            var fields = new[] { "Id", "Title", "Tags", "Description", "Author" };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-            var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields.Keys.ToArray(), analyzer, fields);
+            var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields, analyzer);
 
+            // All terms in the multi-term query appear in at least one of the fields.
             var conjuctionQuery = new BooleanQuery();
             conjuctionQuery.SetBoost(2.0f);
+
+            // Some terms in the multi-term query appear in at least one of the fields.
             var disjunctionQuery = new BooleanQuery();
             disjunctionQuery.SetBoost(0.1f);
+
+            // Suffix wildcard search e.g. jquer*
             var wildCardQuery = new BooleanQuery();
             wildCardQuery.SetBoost(0.5f);
 
             // Escape the entire term we use for exact searches.
-            var escapedSearchTerm = Escape(searchTerm);
+            var escapedSearchTerm = Escape(searchFilter.SearchTerm);
             var exactIdQuery = new TermQuery(new Term("Id-Exact", escapedSearchTerm));
             exactIdQuery.SetBoost(2.5f);
             var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedSearchTerm + "*"));
-            
-            foreach(var term in GetSearchTerms(searchTerm))
+
+            foreach (var term in GetSearchTerms(searchFilter.SearchTerm))
             {
                 var termQuery = queryParser.Parse(term);
                 conjuctionQuery.Add(termQuery, BooleanClause.Occur.MUST);
@@ -113,15 +131,22 @@ namespace NuGetGallery
 
                 foreach (var field in fields)
                 {
-                    var wildCardTermQuery = new WildcardQuery(new Term(field.Key, term + "*"));
-                    wildCardTermQuery.SetBoost(0.7f * field.Value);
+                    var wildCardTermQuery = new WildcardQuery(new Term(field, term + "*"));
+                    wildCardTermQuery.SetBoost(0.7f);
                     wildCardQuery.Add(wildCardTermQuery, BooleanClause.Occur.SHOULD);
                 }
             }
-
-            var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
-            return new CustomScoreQuery(conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery }),
-                                       downloadCountBooster);
+            
+            // Create an OR of all the queries that we have
+            var combinedQuery = conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+            
+            if (searchFilter.SortProperty == SortProperty.Relevance)
+            {
+                // If searching by relevance, boost scores by download count.
+                var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
+                return new CustomScoreQuery(combinedQuery, downloadCountBooster);
+            }
+            return combinedQuery;
         }
 
         private static IEnumerable<string> GetSearchTerms(string searchTerm)
@@ -132,9 +157,29 @@ namespace NuGetGallery
                              .Select(Escape);
         }
 
+        private static SortField GetSortProperties(SearchFilter searchFilter)
+        {
+            switch (searchFilter.SortProperty)
+            {
+                case SortProperty.DisplayName:
+                    return new SortField("DisplayName", SortField.STRING, reverse: searchFilter.SortDirection == SortDirection.Descending);
+                case SortProperty.DownloadCount:
+                    return new SortField("DownloadCount", SortField.INT, reverse: true);
+                case SortProperty.Recent:
+                    return new SortField("PublishedDate", SortField.LONG, reverse: true);
+            }
+            return SortField.FIELD_SCORE;
+        }
+
         private static string Escape(string term)
         {
             return QueryParser.Escape(term).ToLowerInvariant();
+        }
+
+        private static int ParseKey(string value)
+        {
+            int key;
+            return Int32.TryParse(value, out key) ? key : 0;
         }
     }
 }
