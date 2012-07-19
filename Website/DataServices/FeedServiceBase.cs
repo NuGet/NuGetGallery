@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Data.Services;
 using System.Data.Services.Common;
 using System.Data.Services.Providers;
 using System.IO;
+using System.Linq;
 using System.ServiceModel;
 using System.Web;
 using System.Web.Mvc;
+using QueryInterceptor;
 
 namespace NuGetGallery
 {
@@ -28,8 +31,8 @@ namespace NuGetGallery
 
         protected FeedServiceBase(
             IEntitiesContext entities,
-            IEntityRepository<Package> packageRepo, 
-            IConfiguration configuration, 
+            IEntityRepository<Package> packageRepo,
+            IConfiguration configuration,
             ISearchService searchService)
         {
             this.entities = entities;
@@ -42,7 +45,7 @@ namespace NuGetGallery
         {
             get { return entities; }
         }
-        
+
         protected IEntityRepository<Package> PackageRepo
         {
             get { return packageRepo; }
@@ -135,6 +138,93 @@ namespace NuGetGallery
             }
 
             return null;
+        }
+
+        protected virtual IQueryable<Package> SearchCore(string searchTerm, string targetFramework, bool includePrerelease)
+        {
+            // Filter out unlisted packages when searching. We will return it when a generic "GetPackages" request comes and filter it on the client.
+            var packages = PackageRepo.GetAll()
+                                      .Include(p => p.PackageRegistration)
+                                      .Include(x => x.Authors)
+                                      .Include(x => x.PackageRegistration.Owners)
+                                      .Where(p => p.Listed);
+
+            if (String.IsNullOrEmpty(searchTerm))
+            {
+                return packages;
+            }
+
+            var request = new HttpRequestWrapper(HttpContext.Current.Request);
+            SearchFilter searchFilter;
+            
+            // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package.
+            if (TryReadSearchFilter(request, out searchFilter))
+            {
+                searchFilter.SearchTerm = searchTerm;
+                searchFilter.IncludePrerelease = includePrerelease;
+
+                return GetResultsFromSearchService(packages, searchFilter);
+            }
+            return packages.Search(searchTerm);
+        }
+
+        private IQueryable<Package> GetResultsFromSearchService(IQueryable<Package> packages, SearchFilter searchFilter)
+        {
+            int totalHits = 0;
+            var result = SearchService.Search(packages, searchFilter, out totalHits);
+
+            // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
+            // it very fast.
+            if (searchFilter.CountOnly)
+            {
+                // At this point, we already know what the total count is. We can have it return this value very quickly without doing any SQL.
+                return result.InterceptWith(new CountInterceptor(totalHits));
+            }
+            
+            // For relevance search, Lucene returns us a paged\sorted list. OData tries to apply default ordering and Take \ Skip on top of this.
+            // We avoid it by yanking these expressions out of out the tree.
+            return result.InterceptWith(new DisregardODataInterceptor());
+        }
+
+        private bool TryReadSearchFilter(HttpRequestBase request, out SearchFilter searchFilter)
+        {
+            searchFilter = new SearchFilter 
+            {
+                Take = ReadInt(request["$top"], 30),
+                Skip = ReadInt(request["$skip"], 0),
+                CountOnly = request.Path.TrimEnd('/').EndsWith("$count")
+            };
+
+            switch(request["$orderby"])
+            {
+                case "DownloadCount desc,Id":
+                    searchFilter.SortProperty = SortProperty.DownloadCount;
+                    break;
+                case "Published desc,Id":
+                    searchFilter.SortProperty = SortProperty.Recent;
+                    break;
+                case "concat(Title,Id),Id":
+                    searchFilter.SortProperty = SortProperty.DisplayName;
+                    searchFilter.SortDirection = SortDirection.Ascending;
+                    break;
+                case "concat(Title,Id) desc,Id":
+                    searchFilter.SortProperty = SortProperty.DisplayName;
+                    searchFilter.SortDirection = SortDirection.Descending;
+                    break;
+                default:
+                    searchFilter.SortProperty = SortProperty.Relevance;
+                    break;
+            }
+
+            string filterValue = request["$filter"];
+            return (filterValue.IndexOf("IsLatestVersion", StringComparison.Ordinal) != -1) ||
+                   (filterValue.IndexOf("IsAbsoluteLatestVersion", StringComparison.Ordinal) != -1);
+        }
+
+        private int ReadInt(string requestValue, int defaultValue)
+        {
+            int result;
+            return Int32.TryParse(requestValue, out result) ? result : defaultValue;
         }
 
         protected virtual bool UseHttps()

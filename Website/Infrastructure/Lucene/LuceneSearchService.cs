@@ -44,7 +44,7 @@ namespace NuGetGallery
             // For the given search term, find the keys that match.
             var keys = SearchCore(searchFilter);
             totalHits = keys.Count;
-            if (keys.Count == 0)
+            if (keys.Count == 0 || searchFilter.CountOnly)
             {
                 return Enumerable.Empty<Package>().AsQueryable();
             }
@@ -75,7 +75,7 @@ namespace NuGetGallery
                 return new int[0];
             }
 
-            SortField sortField = GetSortProperties(searchFilter);
+            SortField sortField = GetSortField(searchFilter);
             int numRecords = Math.Min((1 + searchFilter.Skip) * searchFilter.Take, MaximumRecordsToReturn);
 
             using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
@@ -157,7 +157,7 @@ namespace NuGetGallery
                              .Select(Escape);
         }
 
-        private static SortField GetSortProperties(SearchFilter searchFilter)
+        private static SortField GetSortField(SearchFilter searchFilter)
         {
             switch (searchFilter.SortProperty)
             {
