@@ -75,9 +75,12 @@
 }
 
 @helper GravatarImage(string email, string username, int size) {
-    <text>
-    @Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "owner-image" })
-    </text>
+    var gravatarHtml = Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "owner-image" });
+    if (gravatarHtml != null && Request.IsSecureConnection)
+    {
+        gravatarHtml = new HtmlString(gravatarHtml.ToHtmlString().Replace("http://www.gravatar.com/", "https://secure.gravatar.com/"));
+    }
+    @gravatarHtml
 }
 
 @helper ReleaseTag(){
