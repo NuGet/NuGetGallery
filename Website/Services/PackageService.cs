@@ -213,7 +213,7 @@ namespace NuGetGallery
 
                     // IMPORTANT: Until we understand privacy implications of storing IP Addresses thoroughly,
                     // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
-                    IPAddress = "unknown",
+                    IPAddress = null,
                     UserAgent = userAgent,
                     Package = package
                 });
@@ -282,7 +282,11 @@ namespace NuGetGallery
             if (nugetPackage.Summary != null)
                 package.Summary = nugetPackage.Summary;
             if (nugetPackage.Tags != null)
-                package.Tags = nugetPackage.Tags;
+            {
+                // To prevent tag abuse, we'll allow at most 5 tags to be read.
+                var tags = nugetPackage.Tags.Split(' ');
+                package.Tags = String.Join(" ", tags.Take(5));
+            }
             if (nugetPackage.Title != null)
                 package.Title = nugetPackage.Title;
 
