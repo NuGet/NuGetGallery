@@ -6,6 +6,7 @@ using System.Runtime.Versioning;
 using Moq;
 using NuGet;
 using Xunit;
+using Xunit.Extensions;
 
 namespace NuGetGallery
 {
@@ -96,6 +97,31 @@ namespace NuGetGallery
 
                 Assert.Equal("theFirstAuthor, theSecondAuthor", package.FlattenedAuthors);
                 Assert.Equal("theFirstDependency:[1.0, 2.0):net4000|theSecondDependency:[1.0]:net4000|theThirdDependency::net4000|theFourthDependency:[1.0]:net35", package.FlattenedDependencies);
+            }
+
+            [Theory]
+            [InlineData("a b c d e f g hi jk lmn opq rst u vw xy z", "a b c d e f g hi jk lmn")]
+            [InlineData("a b c d ", "a b c d")]
+            public void WillReadAtMost10TagsFromNuGetPackage(string input, string expected)
+            {
+                // Arrange
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(
+                    packageRegistrationRepo: packageRegistrationRepo,
+                    setup: mockPackageSvc =>
+                    {
+                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                    });
+                var nugetPackage = CreateNuGetPackage(p => p.Setup(s => s.Tags).Returns(input));
+                var currentUser = new User();
+
+                // Act
+                var package = service.CreatePackage(
+                    nugetPackage.Object,
+                    currentUser);
+
+                // Assert
+                Assert.Equal(expected, package.Tags);
             }
 
             [Fact]
@@ -1009,7 +1035,7 @@ namespace NuGetGallery
 
                 service.AddDownloadStatistics(package, "::1", "Unit Test");
 
-                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.IPAddress == "unknown")));
+                packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.IPAddress == null)));
                 packageStatsRepo.Verify(x => x.CommitChanges());
             }
 

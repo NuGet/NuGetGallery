@@ -11,6 +11,7 @@ namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
+        private const int MaxTagsToAllow = 10;
         private readonly ICryptographyService cryptoSvc;
         private readonly IEntityRepository<PackageRegistration> packageRegistrationRepo;
         private readonly IEntityRepository<Package> packageRepo;
@@ -213,7 +214,7 @@ namespace NuGetGallery
 
                     // IMPORTANT: Until we understand privacy implications of storing IP Addresses thoroughly,
                     // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
-                    IPAddress = "unknown",
+                    IPAddress = null,
                     UserAgent = userAgent,
                     Package = package
                 });
@@ -244,7 +245,7 @@ namespace NuGetGallery
             return packageRegistration;
         }
 
-        Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, IPackage nugetPackage)
+        internal Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, IPackage nugetPackage)
         {
             var package = packageRegistration.Packages
                 .Where(pv => pv.Version == nugetPackage.Version.ToString())
@@ -282,7 +283,11 @@ namespace NuGetGallery
             if (nugetPackage.Summary != null)
                 package.Summary = nugetPackage.Summary;
             if (nugetPackage.Tags != null)
-                package.Tags = nugetPackage.Tags;
+            {
+                // To prevent tag abuse, we'll allow a limited number of tags.
+                var tags = nugetPackage.Tags.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                package.Tags = String.Join(" ", tags.Take(MaxTagsToAllow));
+            }
             if (nugetPackage.Title != null)
                 package.Title = nugetPackage.Title;
 
