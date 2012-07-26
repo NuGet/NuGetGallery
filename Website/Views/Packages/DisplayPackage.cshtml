@@ -18,9 +18,9 @@
                 Downloads of v @Model.Version</p>
         </div>
         <div class="stat">
-            <p class="stat-number">@Model.LastUpdated.ToShortDateString()</p>
+            <p class="stat-number">@Model.PublishedDate.ToShortDateString()</p>
             <p class="stat-label">
-                Last update</p>
+                Published date</p>
         </div>
     </div>
     <nav>
@@ -168,7 +168,7 @@
                         </td>
                         <td>@packageVersion.DownloadCount
                         </td>
-                        <td>@packageVersion.LastUpdated.ToString("D")
+                        <td>@packageVersion.PublishedDate.ToString("D")
                         </td>
                         @if (Model.IsOwner(User))
                         {
