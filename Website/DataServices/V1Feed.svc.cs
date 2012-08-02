@@ -2,7 +2,6 @@ using System;
 using System.Data.Entity;
 using System.Data.Services;
 using System.Linq;
-using System.ServiceModel;
 using System.ServiceModel.Web;
 using System.Web;
 using System.Web.Mvc;
@@ -29,14 +28,9 @@ namespace NuGetGallery
             InitializeServiceBase(config);
         }
 
-        protected override FeedContext<V1FeedPackage> CreateDataSource()
+        protected internal override IQueryable<Package> GetPackages()
         {
-            return new FeedContext<V1FeedPackage>
-            {
-                Packages = PackageRepo.GetAll()
-                                      .Where(p => !p.IsPrerelease)
-                                      .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
-            };
+            return base.GetPackages().Where(p => !p.IsPrerelease);
         }
 
         public override Uri GetReadStreamUri(
@@ -44,20 +38,11 @@ namespace NuGetGallery
            DataServiceOperationContext operationContext)
         {
             var package = (V1FeedPackage)entity;
-            var httpContext = new HttpContextWrapper(HttpContext.Current);
-            var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
+            var urlHelper = new UrlHelper(new RequestContext(HttpContext, new RouteData()));
 
             string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version);
 
             return new Uri(url, UriKind.Absolute);
-        }
-
-        [WebGet]
-        public IQueryable<V1FeedPackage> FindPackagesById(string id)
-        {
-            return PackageRepo.GetAll().Include(p => p.PackageRegistration)
-                                       .Where(p => !p.IsPrerelease && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                                       .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
         [WebGet]
@@ -71,7 +56,12 @@ namespace NuGetGallery
                 // For v1 feed, only allow stable package versions.
                 packages = SearchCore(searchTerm, targetFramework, includePrerelease: false);
             }
-            return packages.ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
+            return ToFeedPackage(packages);
+        }
+
+        protected override IQueryable<V1FeedPackage> ToFeedPackage(IQueryable<Package> packages)
+        {
+            return packages.ToV1FeedPackageQuery(SiteRoot);
         }
     }
 }

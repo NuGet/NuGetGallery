@@ -27,15 +27,6 @@ namespace NuGetGallery
 
         }
 
-        protected override FeedContext<V2FeedPackage> CreateDataSource()
-        {
-            return new FeedContext<V2FeedPackage>
-            {
-                Packages = PackageRepo.GetAll()
-                                      .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
-            };
-        }
-
         public static void InitializeService(DataServiceConfiguration config)
         {
             InitializeServiceBase(config);
@@ -46,15 +37,7 @@ namespace NuGetGallery
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
             var packages = SearchCore(searchTerm, targetFramework, includePrerelease);
-            return packages.ToV2FeedPackageQuery(GetSiteRoot());
-        }
-
-        [WebGet]
-        public IQueryable<V2FeedPackage> FindPackagesById(string id)
-        {
-            return PackageRepo.GetAll().Include(p => p.PackageRegistration)
-                                       .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                                       .ToV2FeedPackageQuery(GetSiteRoot());
+            return packages.ToV2FeedPackageQuery(SiteRoot);
         }
 
         [WebGet]
@@ -91,13 +74,12 @@ namespace NuGetGallery
                 }
             }
 
-            var packages = PackageRepo.GetAll()
-                              .Include(p => p.PackageRegistration)
+            var packages = GetPackages()
                               .Include(p => p.SupportedFrameworks)
                               .Where(p => p.Listed && (includePrerelease || !p.IsPrerelease) && idValues.Contains(p.PackageRegistration.Id))
                               .OrderBy(p => p.PackageRegistration.Id);
             return GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions).AsQueryable()
-                                                                                                 .ToV2FeedPackageQuery(GetSiteRoot());
+                                                                                                 .ToV2FeedPackageQuery(SiteRoot);
         }
 
         private static IEnumerable<Package> GetUpdates(IEnumerable<Package> packages,
@@ -136,17 +118,16 @@ namespace NuGetGallery
            DataServiceOperationContext operationContext)
         {
             var package = (V2FeedPackage)entity;
-            var httpContext = new HttpContextWrapper(HttpContext.Current);
-            var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
+            var urlHelper = new UrlHelper(new RequestContext(HttpContext, new RouteData()));
 
             string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version);
 
             return new Uri(url, UriKind.Absolute);
         }
 
-        private string GetSiteRoot()
+        protected override IQueryable<V2FeedPackage> ToFeedPackage(IQueryable<Package> packages)
         {
-            return Configuration.GetSiteRoot(UseHttps());
+            return packages.ToV2FeedPackageQuery(SiteRoot);
         }
     }
 }

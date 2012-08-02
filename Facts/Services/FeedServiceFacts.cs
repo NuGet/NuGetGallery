@@ -4,11 +4,50 @@ using System.Linq;
 using Moq;
 using Xunit;
 using Xunit.Extensions;
+using System.Web;
+using System.Data.Services;
+using System.Data.Entity;
+using System.Collections.Specialized;
 
 namespace NuGetGallery.Services
 {
     public class FeedServiceFacts
     {
+        [Theory]
+        [InlineData("http://nuget.org", "http://nuget.org/")]
+        [InlineData("http://nuget.org/", "http://nuget.org/")]
+        public void SiteRootAddsTrailingSlashes(string siteRoot, string expected)
+        {
+            // Arrange
+            var config = new Mock<IConfiguration>();
+            config.Setup(s => s.GetSiteRoot(false)).Returns(siteRoot);
+            var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchSvc: null);
+            feed.HttpContext = GetContext();
+
+            // Act
+            var actual = feed.SiteRoot;
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void SiteRootUsesCurrentRequestToDetermineSiteRoot()
+        {
+            // Arrange
+            var config = new Mock<IConfiguration>();
+            config.Setup(s => s.GetSiteRoot(true)).Returns("https://nuget.org").Verifiable();
+            var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchSvc: null);
+            feed.HttpContext = GetContext(isSecure: true);
+
+            // Act
+            var actual = feed.SiteRoot;
+
+            // Assert
+            Assert.Equal("https://nuget.org/", actual);
+            config.Verify();
+        }
+
         [Fact]
         public void V1FeedSearchDoesNotReturnPrereleasePackages()
         {
@@ -295,6 +334,31 @@ namespace NuGetGallery.Services
             AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
         }
 
+        public class CuratedFeedFacts
+        {
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void CuratedFeedThrowsIfFeedNameInRequestIsNullOrEmpty(string feedName)
+            {
+                // Arrange
+                var feed = new V2CuratedFeed(Mock.Of<IEntitiesContext>(), Mock.Of<IEntityRepository<Package>>(), Mock.Of<IConfiguration>(), Mock.Of<ISearchService>());
+                var httpRequest = new Mock<HttpRequestBase>();
+                var dictionary = new NameValueCollection();
+                dictionary.Add("name", feedName);
+                httpRequest.Setup(s => s.QueryString).Returns(dictionary);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(s => s.Request).Returns(httpRequest.Object);
+                feed.HttpContext = httpContext.Object;
+
+                // Act
+                var ex = Assert.Throws<DataServiceException>(() => feed.GetCuratedFeedName());
+
+                // Assert
+                Assert.Equal(404, ex.StatusCode);
+            }
+        }
+
         public class TestableV1Feed : V1Feed
         {
             public TestableV1Feed(
@@ -305,9 +369,12 @@ namespace NuGetGallery.Services
             {
             }
 
-            protected override bool UseHttps()
+            protected internal override HttpContextBase HttpContext
             {
-                return false;
+                get
+                {
+                    return GetContext();
+                }
             }
         }
 
@@ -321,10 +388,23 @@ namespace NuGetGallery.Services
             {
             }
 
-            protected override bool UseHttps()
+            protected internal override HttpContextBase HttpContext
             {
-                return false;
+                get
+                {
+                    return GetContext();
+                }
             }
+        }
+
+        private static HttpContextBase GetContext(bool isSecure = false)
+        {
+            var httpRequest = new Mock<HttpRequestBase>();
+            httpRequest.Setup(s => s.IsSecureConnection).Returns(isSecure);
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.Setup(s => s.Request).Returns(httpRequest.Object);
+
+            return httpContext.Object;
         }
 
         private static void AssertPackage(dynamic expected, V2FeedPackage package)
