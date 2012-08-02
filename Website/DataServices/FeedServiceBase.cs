@@ -6,8 +6,10 @@ using System.Data.Services.Providers;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
+using System.ServiceModel.Web;
 using System.Web;
 using System.Web.Mvc;
+using OData.Linq;
 using QueryInterceptor;
 
 namespace NuGetGallery
@@ -19,6 +21,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<Package> packageRepo;
         private readonly IConfiguration configuration;
         private readonly ISearchService searchService;
+        private HttpContextBase httpContext;
 
         public FeedServiceBase()
             : this(DependencyResolver.Current.GetService<IEntitiesContext>(),
@@ -61,6 +64,18 @@ namespace NuGetGallery
             get { return searchService; }
         }
 
+        protected internal virtual HttpContextBase HttpContext
+        {
+            get
+            {
+                return httpContext ?? new HttpContextWrapper(System.Web.HttpContext.Current);
+            }
+            set
+            {
+                httpContext = value;
+            }
+        }
+
         // This method is called only once to initialize service-wide policies.
         protected static void InitializeServiceBase(DataServiceConfiguration config)
         {
@@ -72,7 +87,29 @@ namespace NuGetGallery
             config.UseVerboseErrors = true;
         }
 
-        protected abstract override FeedContext<TPackage> CreateDataSource();
+        protected override FeedContext<TPackage> CreateDataSource()
+        {
+            return new FeedContext<TPackage>
+            {
+                Packages = ToFeedPackage(GetPackages())
+            };
+        }
+
+        protected internal virtual IQueryable<Package> GetPackages()
+        {
+            return PackageRepo.GetAll()
+                              .WithoutNullPropagation()
+                              .Include(p => p.PackageRegistration);
+        }
+
+        [WebGet]
+        public IQueryable<TPackage> FindPackagesById(string id)
+        {
+            var package = GetPackages().Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+            return ToFeedPackage(package);
+        }
+
+        protected abstract IQueryable<TPackage> ToFeedPackage(IQueryable<Package> packages);
 
         public void DeleteStream(
             object entity,
@@ -140,25 +177,31 @@ namespace NuGetGallery
             return null;
         }
 
+        protected internal string SiteRoot
+        {
+            get 
+            {
+                string siteRoot = Configuration.GetSiteRoot(HttpContext.Request.IsSecureConnection);
+                return EnsureTrailingSlash(siteRoot);
+            }
+        }
+
         protected virtual IQueryable<Package> SearchCore(string searchTerm, string targetFramework, bool includePrerelease)
         {
             // Filter out unlisted packages when searching. We will return it when a generic "GetPackages" request comes and filter it on the client.
-            var packages = PackageRepo.GetAll()
-                                      .Include(p => p.PackageRegistration)
-                                      .Include(x => x.Authors)
-                                      .Include(x => x.PackageRegistration.Owners)
-                                      .Where(p => p.Listed);
+            var packages = GetPackages().Include(x => x.Authors)
+                                        .Include(x => x.PackageRegistration.Owners)
+                                        .Where(p => p.Listed);
 
             if (String.IsNullOrEmpty(searchTerm))
             {
                 return packages;
             }
 
-            var request = new HttpRequestWrapper(HttpContext.Current.Request);
             SearchFilter searchFilter;
             
             // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package.
-            if (TryReadSearchFilter(request, out searchFilter))
+            if (TryReadSearchFilter(HttpContext.Request, out searchFilter))
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
@@ -227,9 +270,13 @@ namespace NuGetGallery
             return Int32.TryParse(requestValue, out result) ? result : defaultValue;
         }
 
-        protected virtual bool UseHttps()
+        private static string EnsureTrailingSlash(string siteRoot)
         {
-            return HttpContext.Current.Request.IsSecureConnection;
+            if (!siteRoot.EndsWith("/", StringComparison.Ordinal))
+            {
+                siteRoot = siteRoot + '/';
+            }
+            return siteRoot;
         }
     }
 }

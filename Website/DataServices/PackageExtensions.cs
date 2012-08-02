@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Data.Entity;
 using System.Linq;
-using OData.Linq;
 
 namespace NuGetGallery
 {
@@ -11,10 +9,7 @@ namespace NuGetGallery
 
         public static IQueryable<V1FeedPackage> ToV1FeedPackageQuery(this IQueryable<Package> packages, string siteRoot)
         {
-            siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
-                     .WithoutNullPropagation()
-                     .Include(p => p.PackageRegistration)
                      .Select(p => new V1FeedPackage
                      {
                          Id = p.PackageRegistration.Id,
@@ -49,10 +44,7 @@ namespace NuGetGallery
 
         public static IQueryable<V2FeedPackage> ToV2FeedPackageQuery(this IQueryable<Package> packages, string siteRoot)
         {
-            siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
-                     .WithoutNullPropagation()
-                     .Include(p => p.PackageRegistration)
                      .Select(p => new V2FeedPackage
                      {
                          Id = p.PackageRegistration.Id,
@@ -84,15 +76,7 @@ namespace NuGetGallery
                          Title = p.Title,
                          VersionDownloadCount = p.DownloadCount
                      });
-        }
 
-        private static string EnsureTrailingSlash(string siteRoot)
-        {
-            if (!siteRoot.EndsWith("/", StringComparison.Ordinal))
-            {
-                siteRoot = siteRoot + '/';
-            }
-            return siteRoot;
         }
     }
 }
