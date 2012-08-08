@@ -9,7 +9,7 @@ namespace NuGetGallery
         {
             get
             {
-                return !LdapService.Enabled;
+                return !DependencyResolver.Current.GetService<ILdapService>().Enabled;
             }
         }
 

@@ -9,15 +9,18 @@ namespace NuGetGallery
         readonly GallerySetting settings;
         readonly ICryptographyService cryptoSvc;
         readonly IEntityRepository<User> userRepo;
+        readonly ILdapService ldapService;
 
         public UserService(
             GallerySetting settings,
             ICryptographyService cryptoSvc,
-            IEntityRepository<User> userRepo)
+            IEntityRepository<User> userRepo,
+            ILdapService ldapService)
         {
             this.settings = settings;
             this.cryptoSvc = cryptoSvc;
             this.userRepo = userRepo;
+            this.ldapService = ldapService;
         }
 
         public virtual User Create(
@@ -138,11 +141,11 @@ namespace NuGetGallery
 
             var user = FindByUsername(usernameOrEmail)
                        ?? FindByEmailAddress(usernameOrEmail)
-                       ?? LdapService.AutoEnroll(usernameOrEmail, password, cryptoSvc, userRepo);
+                       ?? ldapService.AutoEnroll(usernameOrEmail, password, cryptoSvc, userRepo);
 
             if (user == null)
                 return null;
-            if (!LdapService.Enabled)
+            if (!ldapService.Enabled)
             {
                 if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
                 {

@@ -5,14 +5,14 @@ using System.Linq;
 
 namespace NuGetGallery
 {
-    public static class LdapService
+    public class LdapService : ILdapService
     {
-        public static bool Enabled
+        public bool Enabled
         {
             get { return !string.IsNullOrWhiteSpace(Uri); }
         }
 
-        public static string Domain
+        public string Domain
         {
             get { return ConfigurationManager.AppSettings.Get("Ldap:Domain"); }
         }
@@ -45,17 +45,17 @@ namespace NuGetGallery
             }
         }
 
-        private static DirectoryEntry GetDirectoryEntry(string username, string password)
+        private DirectoryEntry GetDirectoryEntry(string username, string password)
         {
             return new DirectoryEntry(string.Concat(Uri, '/', UserBase), string.Concat(Domain, '\\', username), password);
         }
 
-        public static SearchResult GetUserSearchResult(string username, string password)
+        public SearchResult GetUserSearchResult(string username, string password)
         {
             return new DirectorySearcher(GetDirectoryEntry(username, password), string.Format("({0}={1})", Properties.Username, username), new[] { Properties.Username, Properties.DisplayName, Properties.Email }).FindOne();
         }
 
-        public static bool ValidateUser(string username, string password)
+        public bool ValidateUser(string username, string password)
         {
             return ValidateUser(GetDirectoryEntry(username, password));
         }
@@ -73,7 +73,7 @@ namespace NuGetGallery
             }
         }
 
-        public static User AutoEnroll(string username, string password, ICryptographyService cryptoSvc, IEntityRepository<User> userRepo)
+        public User AutoEnroll(string username, string password, ICryptographyService cryptoSvc, IEntityRepository<User> userRepo)
         {
             if (!Enabled)
                 return null;

@@ -69,6 +69,10 @@ namespace NuGetGallery
                 .To<UserService>()
                 .InRequestScope();
 
+            Bind<ILdapService>()
+                .To<LdapService>()
+                .InRequestScope();
+
             Bind<IPackageService>()
                 .To<PackageService>()
                 .InRequestScope();

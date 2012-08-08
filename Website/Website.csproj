@@ -391,6 +391,7 @@
     <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\IIndexingService.cs" />
+    <Compile Include="Services\ILdapService.cs" />
     <Compile Include="Services\INuGetExeDownloaderService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
     <Compile Include="Services\ISearchService.cs" />
@@ -902,6 +903,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
