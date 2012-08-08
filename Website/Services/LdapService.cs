@@ -7,6 +7,15 @@ namespace NuGetGallery
 {
     public class LdapService : ILdapService
     {
+        readonly ICryptographyService cryptoSvc;
+        readonly IEntityRepository<User> userRepo;
+
+        public LdapService(ICryptographyService cryptoSvc, IEntityRepository<User> userRepo)
+        {
+            this.cryptoSvc = cryptoSvc;
+            this.userRepo = userRepo;
+        }
+
         public bool Enabled
         {
             get { return !string.IsNullOrWhiteSpace(Uri); }
@@ -73,7 +82,7 @@ namespace NuGetGallery
             }
         }
 
-        public User AutoEnroll(string username, string password, ICryptographyService cryptoSvc, IEntityRepository<User> userRepo)
+        public User AutoEnroll(string username, string password)
         {
             if (!Enabled)
                 return null;

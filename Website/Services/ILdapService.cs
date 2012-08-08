@@ -8,6 +8,6 @@ namespace NuGetGallery
         string Domain { get; }
         SearchResult GetUserSearchResult(string username, string password);
         bool ValidateUser(string username, string password);
-        User AutoEnroll(string username, string password, ICryptographyService cryptoSvc, IEntityRepository<User> userRepo);
+        User AutoEnroll(string username, string password);
     }
 }

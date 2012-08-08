@@ -141,7 +141,7 @@ namespace NuGetGallery
 
             var user = FindByUsername(usernameOrEmail)
                        ?? FindByEmailAddress(usernameOrEmail)
-                       ?? ldapService.AutoEnroll(usernameOrEmail, password, cryptoSvc, userRepo);
+                       ?? ldapService.AutoEnroll(usernameOrEmail, password);
 
             if (user == null)
                 return null;
