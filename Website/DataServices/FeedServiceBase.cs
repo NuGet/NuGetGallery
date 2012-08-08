@@ -98,8 +98,8 @@ namespace NuGetGallery
         protected internal virtual IQueryable<Package> GetPackages()
         {
             return PackageRepo.GetAll()
-                              .WithoutNullPropagation()
-                              .Include(p => p.PackageRegistration);
+                              .Include(p => p.PackageRegistration)
+                              .WithoutNullPropagation();
         }
 
         [WebGet]
@@ -259,7 +259,7 @@ namespace NuGetGallery
                     break;
             }
 
-            string filterValue = request["$filter"];
+            string filterValue = request["$filter"] ?? "";
             return (filterValue.IndexOf("IsLatestVersion", StringComparison.Ordinal) != -1) ||
                    (filterValue.IndexOf("IsAbsoluteLatestVersion", StringComparison.Ordinal) != -1);
         }
