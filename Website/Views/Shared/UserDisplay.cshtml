@@ -1,15 +1,16 @@
-﻿<div class="user-display">
+﻿@model UserDisplayViewModel
+<div class="user-display">
     @if (!User.Identity.IsAuthenticated)
     {
         <span class="welcome"><a href="@Url.LogOn()">Log On</a></span>
-        if (string.IsNullOrWhiteSpace(System.Configuration.ConfigurationManager.AppSettings.Get("Ldap:Uri")))
+        if (Model.AllowUserRegistrations)
         {
             <a href="@Url.Action(MVC.Users.Register())" class="register">Register</a>
         }
     }
     else {
-        var user = DependencyResolver.Current.GetService<IUserService>().FindByUsername(User.Identity.Name);
-        <span class="welcome"><a href="@Url.Action(MVC.Users.Account())">@(!string.IsNullOrWhiteSpace(user.DisplayName) ? user.DisplayName : user.Username)</a></span>
+        
+        <span class="welcome"><a href="@Url.Action(MVC.Users.Account())">@Model.UsernameOrDisplayName</a></span>
         <span class="user-actions">
             <a href="@Url.LogOff()">Log Off</a> 
         </span>

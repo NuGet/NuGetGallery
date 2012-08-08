@@ -18,7 +18,7 @@
         <div id="content-wrapper">
             <header class="main">
                 <div id="logo"><a href="@Url.Home()">NuGet Gallery</a></div>
-                @Html.Partial(MVC.Shared.Views.UserDisplay)
+                @Html.Partial(MVC.Shared.Views.UserDisplay, new UserDisplayViewModel())
             </header>
             <nav class="main">
                 <ul id="menu">
