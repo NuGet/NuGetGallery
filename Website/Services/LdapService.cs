@@ -73,8 +73,6 @@ namespace NuGetGallery
             }
         }
 
-
-
         public static User AutoEnroll(string username, string password, ICryptographyService cryptoSvc, IEntityRepository<User> userRepo)
         {
             if (!Enabled)
@@ -85,12 +83,12 @@ namespace NuGetGallery
             if (ValidateUser(username, password))
             {
                 var searchResult = GetUserSearchResult(username, password);
-                var user = new User(GetStringProperty(searchResult, Properties.Username).ToLowerInvariant(), cryptoSvc.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId))
-                               {
-                                   ApiKey = Guid.NewGuid(),
-                                   DisplayName = GetStringProperty(searchResult, Properties.DisplayName),
-                                   PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
-                               };
+                var user = new User(GetStringProperty(searchResult, Properties.Username).ToLowerInvariant(), ".")
+                {
+                    ApiKey = Guid.NewGuid(),
+                    DisplayName = GetStringProperty(searchResult, Properties.DisplayName),
+                    PasswordHashAlgorithm = "LDAP"
+                };
                 var email = GetStringProperty(searchResult, Properties.Email);
                 if (!string.IsNullOrEmpty(email))
                 {

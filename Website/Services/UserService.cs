@@ -142,23 +142,18 @@ namespace NuGetGallery
 
             if (user == null)
                 return null;
-
-            if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!LdapService.Enabled)
             {
-                //perhaps the user has changed their ldap password.
-                if (LdapService.ValidateUser(user.Username, password))
+                if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
                 {
+                    return null;
+                }
+                else if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
+                {
+                    // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
                     ChangePasswordInternal(user, password);
                     userRepo.CommitChanges();
                 }
-                else
-                    return null;
-            }
-            else if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
-            {
-                // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
-                ChangePasswordInternal(user, password);
-                userRepo.CommitChanges();
             }
 
             return user;
