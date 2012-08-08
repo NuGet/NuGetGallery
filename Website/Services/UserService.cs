@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Configuration;
 using System.Data.Entity;
+using System.DirectoryServices;
 using System.Linq;
 
 namespace NuGetGallery
@@ -137,7 +139,8 @@ namespace NuGetGallery
             // TODO: validate input
 
             var user = FindByUsername(usernameOrEmail)
-                       ?? FindByEmailAddress(usernameOrEmail);
+                       ?? FindByEmailAddress(usernameOrEmail)
+                       ?? AutoEnroll(usernameOrEmail, password);
 
             if (user == null)
                 return null;
@@ -154,6 +157,50 @@ namespace NuGetGallery
             }
 
             return user;
+        }
+
+        private User AutoEnroll(string username, string password)
+        {
+            var ldapUri = ConfigurationManager.AppSettings.Get("Ldap:Uri");
+            if (string.IsNullOrWhiteSpace(ldapUri))
+                return null;
+            var ldapUserBase = ConfigurationManager.AppSettings.Get("Ldap:UserBase");
+            var ldapDomain = ConfigurationManager.AppSettings.Get("Ldap:Domain").ToLowerInvariant();
+
+            var ldapPropUsername = ConfigurationManager.AppSettings.Get("Ldap:Prop:Username") ?? "samaccountname";
+            var ldapPropEmail = ConfigurationManager.AppSettings.Get("Ldap:Prop:Email") ?? "mail";
+            var ldapPropDisplayName = ConfigurationManager.AppSettings.Get("Ldap:Prop:DisplayName") ?? "displayname";
+
+            if (username.ToLowerInvariant().StartsWith(string.Concat(ldapDomain, '\\')))
+                username = username.Replace(string.Concat(ldapDomain, '\\'), string.Empty);
+            var entry = new DirectoryEntry(string.Concat(ldapUri, '/', ldapUserBase), string.Concat(ldapDomain, '\\', username), password);
+            if (entry.NativeObject != null)
+            {
+                var searchResult = new DirectorySearcher(entry, string.Format("({0}={1})", ldapPropUsername, username), new[] { ldapPropUsername, ldapPropDisplayName, ldapPropEmail }).FindOne();
+                var user = new User(GetStringProperty(searchResult, ldapPropUsername).ToLowerInvariant(), cryptoSvc.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId))
+                {
+                    ApiKey = Guid.NewGuid(),
+                    DisplayName = GetStringProperty(searchResult, ldapPropDisplayName),
+                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
+                };
+                var email = GetStringProperty(searchResult, ldapPropEmail);
+                if (!string.IsNullOrEmpty(email))
+                {
+                    user.EmailAllowed = true;
+                    user.UnconfirmedEmailAddress = email.ToLowerInvariant();
+                    user.EmailConfirmationToken = cryptoSvc.GenerateToken();
+                    user.ConfirmEmailAddress();
+                }
+                userRepo.InsertOnCommit(user);
+                userRepo.CommitChanges();
+                return user;
+            }
+            return null;
+        }
+
+        private static string GetStringProperty(SearchResult searchResult, string propertyName)
+        {
+            return searchResult.Properties[propertyName].Cast<string>().First();
         }
 
         public string GenerateApiKey(string username)
