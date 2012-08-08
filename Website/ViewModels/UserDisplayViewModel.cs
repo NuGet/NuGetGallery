@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using System.Web;
+﻿using System.Web;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -10,7 +9,7 @@ namespace NuGetGallery
         {
             get
             {
-                return string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings.Get("Ldap:Uri"));
+                return !LdapService.Enabled;
             }
         }
 
@@ -22,7 +21,7 @@ namespace NuGetGallery
                 return !string.IsNullOrWhiteSpace(user.DisplayName)
                            ? user.DisplayName
                            : user.Username;
-            } 
-        } 
+            }
+        }
     }
 }
