@@ -79,9 +79,8 @@ namespace NuGetGallery
         {
             if (!Enabled)
                 return null;
-
-            if (username.ToLowerInvariant().StartsWith(string.Concat(Domain, '\\')))
-                username = username.Replace(string.Concat(Domain, '\\'), string.Empty);
+            if (username.StartsWith(Domain + '\\', StringComparison.OrdinalIgnoreCase))
+                username = username.Substring(Domain.Length + 2);
 
             if (ValidateUser(username, password))
             {
