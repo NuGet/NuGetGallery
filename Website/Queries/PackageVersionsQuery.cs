@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
+using System.Linq;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -13,11 +14,6 @@ namespace NuGetGallery
 
     public class PackageVersionsQuery : IPackageVersionsQuery
     {
-        const string _sqlFormat = @"SELECT p.[Version]
-FROM Packages p
-	JOIN PackageRegistrations pr on pr.[Key] = p.PackageRegistrationKey
-WHERE pr.ID = {{0}}
-	{0}";
         private readonly IEntitiesContext _entities;
 
         public PackageVersionsQuery(IEntitiesContext entities)
@@ -31,13 +27,16 @@ WHERE pr.ID = {{0}}
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentNullException("id");
-            
-            var dbContext = (DbContext)_entities;
 
-            var prereleaseFilter = string.Empty;
-            if (!includePrerelease.HasValue || !includePrerelease.Value)
-                prereleaseFilter = "AND p.IsPrerelease = 0";
-            return dbContext.Database.SqlQuery<string>(string.Format(_sqlFormat, prereleaseFilter), id);
+            var versions = from packageRegistration in _entities.PackageRegistrations
+                           where packageRegistration.Id == id
+                           from package in packageRegistration.Packages
+                           where package.Listed && (includePrerelease == true || !package.IsPrerelease)
+                           select package.Version;
+
+            return versions.Select(SemanticVersion.Parse)
+                           .OrderByDescending(v => v)
+                           .Select(v => v.ToString());
         }
     }
 }

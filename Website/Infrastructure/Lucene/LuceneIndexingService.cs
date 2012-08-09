@@ -122,6 +122,8 @@ namespace NuGetGallery
             document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
 
             // Fields meant for filtering and sorting
+            // The StandardAnalyzer performs lower cases searches, so we can't store Id-Exact in the original case. 
+            document.Add(new Field("Id-Stored", package.Id, Field.Store.YES, Field.Index.NOT_ANALYZED));
             document.Add(new Field("Key", key, Field.Store.YES, Field.Index.NO));
             document.Add(new Field("IsLatestStable", package.IsLatestStable.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
             document.Add(new Field("PublishedDate", package.Published.Ticks.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));

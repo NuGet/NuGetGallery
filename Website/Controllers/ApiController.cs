@@ -194,7 +194,10 @@ namespace NuGetGallery
             return new ZipPackage(stream);
         }
 
-        [ActionName("PackageIDs"), HttpGet]
+        [ActionName("PackageIDs"), 
+         HttpGet,
+         OutputCache(VaryByParam = "*", Location=OutputCacheLocation.Any, Duration=3)
+        ]
         public virtual ActionResult GetPackageIds(
             string partialId,
             bool? includePrerelease)
@@ -203,7 +206,10 @@ namespace NuGetGallery
             return new JsonNetResult(qry.Execute(partialId, includePrerelease).ToArray());
         }
 
-        [ActionName("PackageVersions"), HttpGet]
+        [ActionName("PackageVersions"), 
+         HttpGet,
+         OutputCache(VaryByParam = "*", Location=OutputCacheLocation.Any, Duration=3)
+        ]
         public virtual ActionResult GetPackageVersions(
             string id,
             bool? includePrerelease)
