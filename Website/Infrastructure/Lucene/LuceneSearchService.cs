@@ -61,6 +61,17 @@ namespace NuGetGallery
                        .AsQueryable();
         }
 
+        public IEnumerable<string> FindPackagesById(SearchFilter searchFilter)
+        {
+            Query query = new MatchAllDocsQuery();
+            if (!String.IsNullOrEmpty(searchFilter.SearchTerm))
+            {
+                string id = QueryParser.Escape(searchFilter.SearchTerm).ToLowerInvariant();
+                query = new WildcardQuery(new Term("Id-Exact", id + "*"));
+            }
+            return ReadFromIndex(searchFilter, query, fieldToRead: "Id-Stored");
+        }
+
         private static Package LookupPackage(Dictionary<int, Package> dict, int key)
         {
             Package package;
@@ -75,13 +86,18 @@ namespace NuGetGallery
                 return new int[0];
             }
 
+            var query = ParseQuery(searchFilter);
+            return ReadFromIndex(searchFilter, query).Select(ParseKey).ToList();
+        }
+
+        private static IList<string> ReadFromIndex(SearchFilter searchFilter, Query query, string fieldToRead = "Key")
+        {
             SortField sortField = GetSortField(searchFilter);
             int numRecords = Math.Min((1 + searchFilter.Skip) * searchFilter.Take, MaximumRecordsToReturn);
 
             using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
             {
                 var searcher = new IndexSearcher(directory, readOnly: true);
-                var query = ParseQuery(searchFilter);
 
                 Filter filter = null;
                 if (!searchFilter.IncludePrerelease)
@@ -92,7 +108,7 @@ namespace NuGetGallery
 
                 var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(sortField));
                 var keys = results.scoreDocs.Skip(searchFilter.Skip)
-                                            .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
+                                            .Select(c => searcher.Doc(c.doc).Get(fieldToRead))
                                             .ToList();
                 searcher.Close();
                 return keys;

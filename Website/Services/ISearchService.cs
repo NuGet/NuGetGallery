@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -11,5 +12,11 @@ namespace NuGetGallery
         /// <param name="filter">The filter to be used.</param>
         /// <param name="totalHits">The total number of packages discovered.</param>
         IQueryable<Package> Search(IQueryable<Package> packages, SearchFilter filter, out int totalHits);
+
+        /// <summary>
+        /// Finds package with ids that match partially or fully the search filter. 
+        /// </summary>
+        /// <param name="searchFilter">The filter to be used.</param>
+        IEnumerable<string> FindPackagesById(SearchFilter searchFilter);
     }
 }
