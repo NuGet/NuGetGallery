@@ -105,6 +105,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string _ListPackage = "~/Views/Packages/_ListPackage.cshtml";
+            public readonly string _PackageDependencies = "~/Views/Packages/_PackageDependencies.cshtml";
             public readonly string ConfirmOwner = "~/Views/Packages/ConfirmOwner.cshtml";
             public readonly string ContactOwners = "~/Views/Packages/ContactOwners.cshtml";
             public readonly string Delete = "~/Views/Packages/Delete.cshtml";
@@ -141,11 +142,12 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ListPackages(string q, string sortOrder, int page) {
+        public override System.Web.Mvc.ActionResult ListPackages(string q, string sortOrder, int page, bool prerelease) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ListPackages);
             callInfo.RouteValueDictionary.Add("q", q);
             callInfo.RouteValueDictionary.Add("sortOrder", sortOrder);
             callInfo.RouteValueDictionary.Add("page", page);
+            callInfo.RouteValueDictionary.Add("prerelease", prerelease);
             return callInfo;
         }
 
