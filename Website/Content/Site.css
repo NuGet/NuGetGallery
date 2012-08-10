@@ -707,6 +707,7 @@ header.main {
     
     fieldset.search label {
         display: inline;
+        margin-left: 10px;
     }
     
     #searchResults {
@@ -714,7 +715,6 @@ header.main {
         margin: 0;
         padding: 0;
     }
-    
     
     /* List Package */
     section.package {

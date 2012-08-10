@@ -825,7 +825,7 @@ namespace NuGetGallery
             return new Package
             {
                 PackageRegistration = new PackageRegistration { Id = id },
-                Version = version
+                Version = version,
             };
         }
 
@@ -1263,6 +1263,90 @@ namespace NuGetGallery
                 service.AddPackageOwner(package, pendingOwner);
 
                 repository.VerifyAll();
+            }
+        }
+
+        public class TheGetLatestPackageVersionsReturns
+        {
+            [Fact]
+            public void GetLatestPackageVersionsDoesNotReturnPrereleasePackagesIfStableVersionsAreAvailable()
+            {
+                // Arrange
+                var packages = CreatePackages("A", 
+                    new[] { 
+                        new { Version = "0.9", IsLatestStable = false, IsLatest = false }, 
+                        new { Version = "1.0", IsLatestStable = true, IsLatest = false }, 
+                        new { Version = "1.1-alpha", IsLatestStable = false, IsLatest = true }
+                    }
+                ).AsQueryable();
+                
+                // Act
+                var result = PackageService.GetLatestPackageVersionsInternal(packages, allowPrerelease: false).ToList();
+
+                // Assert
+                Assert.Equal(1, result.Count);
+                Assert.Equal("1.0", result[0].Version);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void GetLatestPackageVersionsReturnsPrereleasePackagesIfNoStableVersionIsAvailable(bool allowPrerelease)
+            {
+                // Arrange
+                var packages = CreatePackages("A",
+                    new[] { 
+                        new { Version = "1.0-alpha", IsLatestStable = false, IsLatest = false }, 
+                        new { Version = "1.0-beta", IsLatestStable = false, IsLatest = false }, 
+                        new { Version = "1.0-rc", IsLatestStable = false, IsLatest = true }
+                    }
+                ).AsQueryable();
+
+                // Act
+                var result = PackageService.GetLatestPackageVersionsInternal(packages, allowPrerelease: allowPrerelease).ToList();
+
+                // Assert
+                Assert.Equal(1, result.Count);
+                Assert.Equal("1.0-rc", result[0].Version);
+            }
+
+            [Fact]
+            public void GetLatestPackageVersionsReturnsPrereleasePackagesIfIsLatest()
+            {
+                // Arrange
+                var packages = CreatePackages("A",
+                    new[] { 
+                        new { Version = "0.9", IsLatestStable = false, IsLatest = false }, 
+                        new { Version = "1.0", IsLatestStable = true, IsLatest = false }, 
+                        new { Version = "1.1-alpha", IsLatestStable = false, IsLatest = true }
+                    }
+                ).AsQueryable();
+
+                // Act
+                var result = PackageService.GetLatestPackageVersionsInternal(packages, allowPrerelease: true).ToList();
+
+                // Assert
+                Assert.Equal(1, result.Count);
+                Assert.Equal("1.1-alpha", result[0].Version);
+            }
+
+            private static IQueryable<Package> CreatePackages(string id, IEnumerable<dynamic> data)
+            {
+                var packageRegistration = new PackageRegistration { Id = id };
+                foreach (var item in data)
+                {
+                    packageRegistration.Packages.Add(
+                        new Package
+                        {
+                            Version = item.Version,
+                            IsPrerelease = SemanticVersion.Parse((string)item.Version).SpecialVersion != null,
+                            IsLatest = item.IsLatest,
+                            IsLatestStable = item.IsLatestStable,
+                            PackageRegistration = packageRegistration
+                        }
+                    );
+                }
+                return packageRegistration.Packages.AsQueryable();
             }
         }
 

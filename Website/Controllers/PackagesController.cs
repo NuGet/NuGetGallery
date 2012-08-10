@@ -129,14 +129,14 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual ActionResult ListPackages(string q, string sortOrder = null, int page = 1)
+        public virtual ActionResult ListPackages(string q, string sortOrder = null, int page = 1, bool prerelease = false)
         {
             if (page < 1)
             {
                 page = 1;
             }
 
-            IQueryable<Package> packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: true);
+            IQueryable<Package> packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: prerelease);
 
             q = (q ?? "").Trim();
 
@@ -150,7 +150,7 @@ namespace NuGetGallery
             int totalHits;
             if (!String.IsNullOrEmpty(q))
             {
-                var searchFilter = GetSearchFilter(q, sortOrder, page);
+                var searchFilter = GetSearchFilter(q, sortOrder, page, prerelease);
                 packageVersions = searchSvc.Search(packageVersions, searchFilter, out totalHits);
                 if (page == 1 && !packageVersions.Any())
                 {
@@ -521,13 +521,14 @@ namespace NuGetGallery
             return new ZipPackage(stream);
         }
 
-        private SearchFilter GetSearchFilter(string q, string sortOrder, int page)
+        private SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)
         {
             var searchFilter = new SearchFilter
             {
                 SearchTerm = q,
                 Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
-                Take = Constants.DefaultPackageListPageSize
+                Take = Constants.DefaultPackageListPageSize,
+                IncludePrerelease = includePrerelease
             };
 
             switch (sortOrder)
