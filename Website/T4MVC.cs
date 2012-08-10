@@ -253,8 +253,7 @@ namespace System.Web.Mvc {
             result.RouteValueDictionary.Add("Action", action);
         }
 
-        public static bool FileExists(string virtualPath)
-        {
+        public static bool FileExists(string virtualPath) {
             if (!HostingEnvironment.IsHosted) return false;
             string filePath = HostingEnvironment.MapPath(virtualPath);
             return System.IO.File.Exists(filePath);
@@ -304,18 +303,16 @@ public class T4MVC_ActionResult : System.Web.Mvc.ActionResult, IT4MVCActionResul
     public RouteValueDictionary RouteValueDictionary { get; set; }
 }
 [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-public class T4MVC_JsonResult : System.Web.Mvc.JsonResult, IT4MVCActionResult
-{
-    public T4MVC_JsonResult(string area, string controller, string action)
-        : base()
-    {
+public class T4MVC_JsonResult : System.Web.Mvc.JsonResult, IT4MVCActionResult {
+    public T4MVC_JsonResult(string area, string controller, string action): base()  {
         this.InitMVCT4Result(area, controller, action);
     }
-
+    
     public string Controller { get; set; }
     public string Action { get; set; }
     public RouteValueDictionary RouteValueDictionary { get; set; }
 }
+
 
 
 namespace Links {
@@ -324,8 +321,6 @@ namespace Links {
         private const string URLPATH = "~/Scripts";
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-        public static readonly string Home_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/Home.min.js") ? Url("Home.min.js") : Url("Home.js");
-
         public static readonly string jquery_1_6_2_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2-vsdoc.min.js") ? Url("jquery-1.6.2-vsdoc.min.js") : Url("jquery-1.6.2-vsdoc.js");
                       
         public static readonly string jquery_1_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2.min.js") ? Url("jquery-1.6.2.min.js") : Url("jquery-1.6.2.js");
@@ -341,8 +336,10 @@ namespace Links {
                       
         public static readonly string modernizr_2_0_6_development_only_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/modernizr-2.0.6-development-only.min.js") ? Url("modernizr-2.0.6-development-only.min.js") : Url("modernizr-2.0.6-development-only.js");
                       
+        public static readonly string stats_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/stats.min.js") ? Url("stats.min.js") : Url("stats.js");
+                      
         public static readonly string ZeroClipboard_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/ZeroClipboard.min.js") ? Url("ZeroClipboard.min.js") : Url("ZeroClipboard.js");
-
+                      
         public static readonly string ZeroClipboard_swf = Url("ZeroClipboard.swf");
     }
 
