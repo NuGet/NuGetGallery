@@ -13,15 +13,14 @@ namespace NuGetGallery
             int totalCount,
             int pageIndex,
             int pageSize,
-            UrlHelper url)
+            UrlHelper url,
+            bool includePrerelease)
         {
             // TODO: Implement actual sorting
             IEnumerable<ListPackageItemViewModel> items;
             using (MiniProfiler.Current.Step("Querying and mapping packages to list"))
             {
-                items = packages.Skip(pageIndex * pageSize)
-                                .Take(pageSize)
-                                .ToList()
+                items = packages.ToList()
                                 .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
             }
             PageIndex = pageIndex;
@@ -35,12 +34,13 @@ namespace NuGetGallery
                 items,
                 PageIndex,
                 pageCount,
-                page => url.PackageList(page, sortOrder, searchTerm)
+                page => url.PackageList(page, sortOrder, searchTerm, includePrerelease)
             );
             Items = pager.Items;
             FirstResultIndex = 1 + (PageIndex * PageSize);
             LastResultIndex = FirstResultIndex + Items.Count() - 1;
             Pager = pager;
+            IncludePrerelease = includePrerelease ? "true" : null;
         }
 
         public int FirstResultIndex { get; set; }
@@ -60,5 +60,7 @@ namespace NuGetGallery
         public int PageIndex { get; private set; }
 
         public int PageSize { get; private set; }
+
+        public string IncludePrerelease { get; private set; }
     }
 }

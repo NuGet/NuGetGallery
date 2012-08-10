@@ -50,7 +50,6 @@ namespace NuGetGallery
 
             return keys.Select(key => LookupPackage(lookup, key))
                        .Where(p => p != null)
-                       .ToList()
                        .AsQueryable();
         }
 
@@ -65,7 +64,7 @@ namespace NuGetGallery
         {
             if (!Directory.Exists(LuceneCommon.IndexDirectory))
             {
-                totalHits = 0; 
+                totalHits = 0;
                 return new int[0];
             }
 
@@ -77,12 +76,10 @@ namespace NuGetGallery
                 var searcher = new IndexSearcher(directory, readOnly: true);
                 var query = ParseQuery(searchFilter);
 
-                Filter filter = null;
-                if (!searchFilter.IncludePrerelease)
-                {
-                    var isLatestStableQuery = new TermQuery(new Term("IsLatestStable", Boolean.TrueString));
-                    filter = new QueryWrapperFilter(isLatestStableQuery);
-                }
+                var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
+                var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
+                Filter filter = new QueryWrapperFilter(termQuery);
+                
 
                 var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(sortField));
                 var keys = results.scoreDocs.Skip(searchFilter.Skip)

@@ -891,7 +891,7 @@ namespace NuGetGallery
             return new Package
             {
                 PackageRegistration = new PackageRegistration { Id = id },
-                Version = version
+                Version = version,
             };
         }
 

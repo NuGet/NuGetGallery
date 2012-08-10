@@ -147,19 +147,15 @@ namespace NuGetGallery
             return package;
         }
 
-        public IQueryable<Package> GetLatestPackageVersions(bool allowPrerelease)
+        public IQueryable<Package> GetPackagesForListing(bool includePrerelease)
         {
             var packages = packageRepo.GetAll()
                 .Include(x => x.PackageRegistration)
                 .Include(x => x.PackageRegistration.Owners)
                 .Where(p => p.Listed);
 
-            if (allowPrerelease)
-            {
-                // Since we use this for listing, only show prerelease versions of a package if it does not have stable version 
-                return packages.Where(p => p.IsLatestStable || (p.IsLatest && !p.PackageRegistration.Packages.Any(p2 => p2.IsLatestStable)));
-            }
-            return packages.Where(x => x.IsLatestStable);
+            return includePrerelease ? packages.Where(p => p.IsLatest) : 
+                                       packages.Where(p => p.IsLatestStable);
         }
 
         public IEnumerable<Package> FindPackagesByOwner(User user)

@@ -14,7 +14,7 @@ namespace NuGetGallery
 
         Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true);
 
-        IQueryable<Package> GetLatestPackageVersions(bool allowPrerelease);
+        IQueryable<Package> GetPackagesForListing(bool includePrerelease);
 
         void PublishPackage(string id, string version);
 

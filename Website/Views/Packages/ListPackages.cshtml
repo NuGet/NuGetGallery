@@ -19,12 +19,17 @@
     }
 </hgroup>
 
-@using (Html.BeginForm()) {
+<form method="get" action="">
     <fieldset class="form search">
         <legend>Sort Order</legend>
         <input type="hidden" name="q" value="@Model.SearchTerm" />
 
         <div class="form-field">
+            <select name="prerelease" id="prerelease">
+                @ViewHelpers.Option("", "Stable Only", Model.IncludePrerelease)
+                @ViewHelpers.Option("true", "Include Prerelease", Model.IncludePrerelease)
+            </select>
+            
             <label for="sortOrder">Sort By</label>
             <select name="sortOrder" id="sortOrder">
                 @if (!Model.SearchTerm.IsEmpty()) {
@@ -36,7 +41,7 @@
             </select>
         </div>
     </fieldset>
-}
+</form>
 
 <ol id="searchResults">
     @foreach (var package in Model.Items) {
@@ -52,7 +57,7 @@
 @section BottomScripts {
     <script>
         $(function () {
-            $("#sortOrder").change(function () {
+            $("#sortOrder,#prerelease").change(function () {
                 $(this).closest("form").submit();
             });
         });

@@ -15,9 +15,9 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.Home);
         }
 
-        public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm)
+        public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm, bool prerelease)
         {
-            return url.Action(MVC.Packages.ListPackages(searchTerm, sortOrder, page));
+            return url.Action(MVC.Packages.ListPackages(searchTerm, sortOrder, page, prerelease));
         }
 
         public static string PackageList(this UrlHelper url)
