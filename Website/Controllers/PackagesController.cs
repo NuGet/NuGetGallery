@@ -136,7 +136,7 @@ namespace NuGetGallery
                 page = 1;
             }
 
-            IQueryable<Package> packageVersions = packageSvc.GetLatestPackageVersions(allowPrerelease: prerelease);
+            IQueryable<Package> packageVersions = packageSvc.GetPackagesForListing(prerelease);
 
             q = (q ?? "").Trim();
 
@@ -170,7 +170,8 @@ namespace NuGetGallery
                 totalHits,
                 page - 1,
                 Constants.DefaultPackageListPageSize,
-                Url);
+                Url,
+                prerelease);
 
             ViewBag.SearchTerm = q;
 

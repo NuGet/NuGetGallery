@@ -42,8 +42,7 @@ namespace NuGetGallery
             }
 
             // For the given search term, find the keys that match.
-            var keys = SearchCore(searchFilter);
-            totalHits = keys.Count;
+            var keys = SearchCore(searchFilter, out totalHits);
             if (keys.Count == 0 || searchFilter.CountOnly)
             {
                 return Enumerable.Empty<Package>().AsQueryable();
@@ -68,32 +67,33 @@ namespace NuGetGallery
             return package;
         }
 
-        private static IList<int> SearchCore(SearchFilter searchFilter)
+        private static IList<int> SearchCore(SearchFilter searchFilter, out int totalHits)
         {
             if (!Directory.Exists(LuceneCommon.IndexDirectory))
             {
+                totalHits = 0;
                 return new int[0];
             }
 
             SortField sortField = GetSortField(searchFilter);
-            int numRecords = Math.Min((1 + searchFilter.Skip) * searchFilter.Take, MaximumRecordsToReturn);
+            int numRecords = searchFilter.CountOnly ? 1 : Math.Min((1 + searchFilter.Skip) * searchFilter.Take, MaximumRecordsToReturn);
 
             using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
             {
                 var searcher = new IndexSearcher(directory, readOnly: true);
                 var query = ParseQuery(searchFilter);
 
-                Filter filter = null;
-                if (!searchFilter.IncludePrerelease)
-                {
-                    var isLatestStableQuery = new TermQuery(new Term("IsLatestStable", Boolean.TrueString));
-                    filter = new QueryWrapperFilter(isLatestStableQuery);
-                }
+                var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
+                var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
+                Filter filter = new QueryWrapperFilter(termQuery);
+                
 
                 var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(sortField));
                 var keys = results.scoreDocs.Skip(searchFilter.Skip)
                                             .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
                                             .ToList();
+
+                totalHits = results.totalHits;
                 searcher.Close();
                 return keys;
             }

@@ -148,7 +148,7 @@ namespace NuGetGallery
             return package;
         }
 
-        public IQueryable<Package> GetLatestPackageVersions(bool allowPrerelease)
+        public IQueryable<Package> GetPackagesForListing(bool includePrerelease)
         {
             var packages = packageRepo.GetAll()
                 .Include(x => x.PackageRegistration)
@@ -156,18 +156,8 @@ namespace NuGetGallery
                 .Include(x => x.PackageRegistration.Owners)
                 .Where(p => p.Listed);
 
-            return GetLatestPackageVersionsInternal(packages, allowPrerelease);
-        }
-
-        internal static IQueryable<Package> GetLatestPackageVersionsInternal(IQueryable<Package> packages, bool allowPrerelease)
-        {
-            if (allowPrerelease)
-            {
-                return packages.Where(x => x.IsLatest);
-            }
-            // Note: Even though the user did not ask for prerelease packages, we will show them prerelease versions if the package has no stable versions 
-            // available.
-            return packages.Where(p => p.IsLatestStable || (p.IsLatest && !p.PackageRegistration.Packages.Any(p2 => p2.IsLatestStable)));
+            return includePrerelease ? packages.Where(p => p.IsLatest) : 
+                                       packages.Where(p => p.IsLatestStable);
         }
 
         public IEnumerable<Package> FindPackagesByOwner(User user)
