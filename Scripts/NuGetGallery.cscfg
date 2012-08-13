@@ -5,14 +5,14 @@
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
-      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="nugetgallery-preview" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCEA/UypTMnTCkSBhhVK2OaS4wDQYJKoZIhvcNAQEBBQAEggEAMXT7E3e1w5zBd5Aj5wb67rp2O+ZWNPj3nHU93FzrAacIMwridbFHsJPvATMjmPF+JRybOo28tH2ZDTeb3bqNdVZ2HrHS8JBMGLnM+UYVkk9mMn3m1UOsP09HwCW1Pni+ukeVIu3ZIuoAEIrxRpXt1RaTPu6iZw2CN56bqVfEjymdeEXlg9+NYbtAiEbPQgHQDL+gtu7r3+UPWVO6p7bTtqFTkS8ARlYrPdnX7imUOSlwzWNANNofQDncjeG1ZyQMy6uJ0q91J25DIb9SelfoB9+CDOR5/UDdOfxYj5fuAjF0DEebD8CdUwwtWbeonHTunMYHBPz9xSpvn7w9gCEz5TAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECM78axgBffICgBBgRA9DshH6o+RN+xPWTjI9" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2012-12-31T23:59:59.0000000-08:00" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
     </ConfigurationSettings>
     <Certificates>
-      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />
-      <Certificate name="nuget.org" thumbprint="‎" thumbprintAlgorithm="sha1" />
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="4F9E542C81757DCA1A6BF42BCA568B0D91E10C79" thumbprintAlgorithm="sha1" />
+      <Certificate name="nuget.org" thumbprint="290E396FD6252F99D09ADD40DC3A58CDC03B6DD0" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>

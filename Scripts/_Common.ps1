@@ -1,5 +1,5 @@
 ﻿function require-param {
-  param($value, $paramNames)
+  param($value, $paramName)
   
   if ($value -eq $null) {
     write-error "The parameter -$paramName is required."
