@@ -2,6 +2,7 @@
   $azureStorageAccessKey              = $env:NUGET_GALLERY_AZURE_STORAGE_ACCESS_KEY,
   $azureStorageAccountName            = $env:NUGET_GALLERY_AZURE_STORAGE_ACCOUNT_NAME,
   $azureStorageBlobUrl                = $env:NUGET_GALLERY_AZURE_STORAGE_BLOB_URL,
+  $azureCdnHost                       = $env:NuGET_GALLERY_AZURE_CDN_HOST,
   $remoteDesktopAccountExpiration     = $env:NUGET_GALLERY_REMOTE_DESKTOP_ACCOUNT_EXPIRATION,
   $remoteDesktopCertificateThumbprint = $env:NUGET_GALLERY_REMOTE_DESKTOP_CERTIFICATE_THUMBPRINT,
   $remoteDesktopEnctyptedPassword     = $env:NUGET_GALLERY_REMOTE_DESKTOP_ENCRYPTED_PASSWORD,
@@ -24,6 +25,7 @@ $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 require-param -value $azureStorageAccessKey -paramName "azureStorageAccessKey"
 require-param -value $azureStorageAccountName -paramName "azureStorageAccountName"
 require-param -value $azureStorageBlobUrl -paramName "azureStorageBlobUrl"
+require-param -value $azureCdnHost -paramName "azureCdnHost"
 require-param -value $remoteDesktopAccountExpiration -paramName "remoteDesktopAccountExpiration"
 require-param -value $remoteDesktopCertificateThumbprint -paramName "remoteDesktopCertificateThumbprint"
 require-param -value $remoteDesktopEnctyptedPassword -paramName "remoteDesktopEnctyptedPassword"
@@ -119,7 +121,7 @@ $csdefPath = join-path $scriptPath "NuGetGallery.csdef"
 $csdefBakPath = join-path $scriptPath "NuGetGallery.csdef.bak"
 $cscfgPath = join-path $scriptPath "NuGetGallery.cscfg"
 $cscfgBakPath = join-path $scriptPath "NuGetGallery.cscfg.bak"
-$gitPath = join-path (programfiles-dir) "Git\bin\git.exe"
+$gitPath = (get-command git)
 $compressionCmdScriptsPath = join-path $scriptPath "EnableDynamicHttpCompression.cmd"
 $binPath = join-path $websitePath "bin"
 $compressionCmdBinPath = join-path $binPath "EnableDynamicHttpCompression.cmd"
@@ -155,6 +157,7 @@ print-message("Setting the release tags")
 set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccessKey" -value $azureStorageAccessKey
 set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccountName" -value $azureStorageAccountName
 set-appsetting -path $webConfigPath -name "Gallery:AzureStorageBlobUrl" -value $azureStorageBlobUrl
+set-appsetting -path $webConfigPath -name "Gallery:AzureCdnHost" -value $azureCdnHost
 set-appsetting -path $webConfigPath -name "Gallery:GoogleAnalyticsPropertyId" -value $googleAnalyticsPropertyId
 set-appsetting -path $webConfigPath -name "Gallery:PackageStoreType" -value "AzureStorageBlob"
 set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value $commitBranch

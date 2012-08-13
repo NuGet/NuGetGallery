@@ -1,7 +1,7 @@
 ﻿param(
     $subscriptionId        = $env:NUGET_GALLERY_AZURE_SUBSCRIPTION_ID,
     $serviceName           = $env:NUGET_GALLERY_AZURE_SERVICE_NAME,
-	$storageServiceName    = $env:NUGET_GALLERY_AZURE_STORAGE_ACCOUNT_NAME,
+    $storageServiceName    = $env:NUGET_GALLERY_AZURE_STORAGE_ACCOUNT_NAME,
     $certificateThumbprint = $env:NUGET_GALLERY_AZURE_MANAGEMENT_CERTIFICATE_THUMBPRINT,
     $commitRevision,
     $commitBranch

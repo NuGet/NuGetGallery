@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition">
-  <WebRole name="Website" vmsize="Medium">
+  <WebRole name="Website" vmsize="Small">
     <Startup>
-        <Task commandLine="EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
+      <Task commandLine="EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
     </Startup>
     <Sites>
       <Site name="Web">
@@ -15,7 +15,7 @@
     <Endpoints>
       <InputEndpoint name="Non-SSL" protocol="http" port="80" />
       <InputEndpoint name="SSL" protocol="https" port="443" certificate="nuget.org" />
-    </Endpoints>	
+    </Endpoints>
     <Imports>
       <Import moduleName="Diagnostics" />
       <Import moduleName="RemoteAccess" />
