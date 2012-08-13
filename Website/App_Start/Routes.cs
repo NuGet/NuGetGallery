@@ -204,6 +204,13 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapRoute(
+                "v2" + RouteName.PublishPackageApi,
+                "api/v2/package/{id}/{version}",
+                MVC.Api.PublishPackage(),
+                defaults: null,
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
 	            "v2PackageIds",
 	            "api/v2/package-ids",
 	            MVC.Api.GetPackageIds());

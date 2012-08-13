@@ -169,6 +169,24 @@ namespace NuGetGallery
         [ActionName("PublishPackageApi"), HttpPost]
         public virtual ActionResult PublishPackage(string apiKey, string id, string version)
         {
+            Guid parsedApiKey;
+            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+            }
+
+            var user = userSvc.FindByApiKey(parsedApiKey);
+            if (user == null)
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+
+            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+
+            if (!package.IsOwner(user))
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+
+            packageSvc.MarkPackageListed(package);
             return new EmptyResult();
         }
 
