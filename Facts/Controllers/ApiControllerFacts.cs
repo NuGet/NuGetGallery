@@ -292,17 +292,116 @@ namespace NuGetGallery
 
         public class ThePublishPackageAction
         {
-            [Fact]
-            public void PublishPackageNoOps()
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("this-is-bad-guid")]
+            public void WillThrowIfTheApiKeyIsAnInvalidGuid(string guidValue)
             {
-                var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
-                var userSvc = new Mock<IUserService>(MockBehavior.Strict);
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
+                var controller = CreateController(userSvc: userSvc);
+
+                var result = controller.PublishPackage(guidValue, "theId", "1.0.42");
+
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
+                AssertStatusCodeResult(result, 400, String.Format("The API key '{0}' is invalid.", guidValue));
+            }
+
+            [Fact]
+            public void WillThrowIfTheApiKeyDoesNotExist()
+            {
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
+                var controller = CreateController(userSvc: userSvc);
+
+                var result = controller.PublishPackage(Guid.NewGuid().ToString(), "theId", "1.0.42");
+
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(403, statusCodeResult.StatusCode);
+                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "publish"), statusCodeResult.StatusDescription);
+            }
+
+            [Fact]
+            public void WillThrowIfAPackageWithTheIdAndSemanticVersionDoesNotExist()
+            {
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns((Package)null);
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+
+                var result = controller.PublishPackage(Guid.NewGuid().ToString(), "theId", "1.0.42");
+
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(404, statusCodeResult.StatusCode);
+                Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), statusCodeResult.StatusDescription);
+            }
+
+            [Fact]
+            public void WillFindTheUserThatMatchesTheApiKey()
+            {
+                var owner = new User { Key = 1 };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                };
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+                var apiKey = Guid.NewGuid();
+
+                controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
+
+                userSvc.Verify(x => x.FindByApiKey(apiKey));
+            }
+
+            [Fact]
+            public void WillNotListThePackageIfApiKeyDoesNotBelongToAnOwner()
+            {
+                var owner = new User { Key = 1 };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
+                };
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                packageSvc.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new InvalidOperationException("Should not have listed the package!"));
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
                 var apiKey = Guid.NewGuid();
 
                 var result = controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
 
-                Assert.IsType<EmptyResult>(result);
+                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "publish"), statusCodeResult.StatusDescription);
+            }
+
+            [Fact]
+            public void WillListThePackageIfApiKeyBelongsToAnOwner()
+            {
+                var owner = new User { Key = 1 };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                };
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
+                var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
+                var apiKey = Guid.NewGuid();
+
+                controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
+
+                packageSvc.Verify(x => x.MarkPackageListed(package));
             }
         }
 
