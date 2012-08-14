@@ -134,6 +134,7 @@
     <Reference Include="System.Data.Entity" />
     <Reference Include="System.Data.Services" />
     <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceModel.Activation" />
@@ -390,10 +391,12 @@
     <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\IIndexingService.cs" />
+    <Compile Include="Services\ILdapService.cs" />
     <Compile Include="Services\INuGetExeDownloaderService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
+    <Compile Include="Services\LdapService.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
@@ -719,6 +722,7 @@
     <Compile Include="ViewModels\PasswordResetRequestViewModel.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
+    <Compile Include="ViewModels\UserDisplayViewModel.cs" />
     <Compile Include="ViewModels\VerifyPackageViewModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
   </ItemGroup>
@@ -899,6 +903,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

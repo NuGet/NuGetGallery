@@ -1,4 +1,5 @@
 using System;
+using System.Configuration;
 using System.Data.Entity.Migrations;
 using System.Linq;
 
@@ -11,7 +12,9 @@ namespace NuGetGallery.Migrations
 
         public MigrationsConfiguration()
         {
-            AutomaticMigrationsEnabled = false;
+            bool enabledInConfig;
+            bool.TryParse(ConfigurationManager.AppSettings.Get("Gallery:AutomaticMigrationsEnabled"), out enabledInConfig);
+            AutomaticMigrationsEnabled = enabledInConfig;
         }
 
         protected override void Seed(EntitiesContext context)

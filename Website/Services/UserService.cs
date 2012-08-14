@@ -9,15 +9,18 @@ namespace NuGetGallery
         readonly GallerySetting settings;
         readonly ICryptographyService cryptoSvc;
         readonly IEntityRepository<User> userRepo;
+        readonly ILdapService ldapService;
 
         public UserService(
             GallerySetting settings,
             ICryptographyService cryptoSvc,
-            IEntityRepository<User> userRepo)
+            IEntityRepository<User> userRepo,
+            ILdapService ldapService)
         {
             this.settings = settings;
             this.cryptoSvc = cryptoSvc;
             this.userRepo = userRepo;
+            this.ldapService = ldapService;
         }
 
         public virtual User Create(
@@ -137,20 +140,23 @@ namespace NuGetGallery
             // TODO: validate input
 
             var user = FindByUsername(usernameOrEmail)
-                       ?? FindByEmailAddress(usernameOrEmail);
+                       ?? FindByEmailAddress(usernameOrEmail)
+                       ?? ldapService.AutoEnroll(usernameOrEmail, password);
 
             if (user == null)
                 return null;
-
-            if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!ldapService.Enabled)
             {
-                return null;
-            }
-            else if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
-            {
-                // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
-                ChangePasswordInternal(user, password);
-                userRepo.CommitChanges();
+                if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+                {
+                    return null;
+                }
+                else if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
+                {
+                    // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
+                    ChangePasswordInternal(user, password);
+                    userRepo.CommitChanges();
+                }
             }
 
             return user;
