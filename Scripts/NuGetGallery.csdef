@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition">
-  <WebRole name="Website" vmsize="Small">
+  <WebRole name="Website" vmsize="Medium">
     <Startup>
       <Task commandLine="EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
     </Startup>
