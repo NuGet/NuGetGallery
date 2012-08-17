@@ -266,11 +266,12 @@ namespace NuGetGallery
                 Hash = cryptoSvc.GenerateHash(packageFileStream.ReadAllBytes()),
                 PackageFileSize = packageFileStream.Length,
                 Created = now,
+                Language = nugetPackage.Language,
                 LastUpdated = now,
                 Published = now,
                 Copyright = nugetPackage.Copyright,
                 IsPrerelease = !nugetPackage.IsReleaseVersion(),
-                Listed = true
+                Listed = true,
             };
 
             if (nugetPackage.IconUrl != null)
@@ -326,6 +327,7 @@ namespace NuGetGallery
 
         static void ValidateNuGetPackage(IPackage nugetPackage)
         {
+            // TODO: Change this to use DataAnnotations
             if (nugetPackage.Id.Length > 128)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "128");
             if (nugetPackage.Authors != null && String.Join(",", nugetPackage.Authors.ToArray()).Length > 4000)
@@ -342,12 +344,17 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000");
             if (nugetPackage.ProjectUrl != null && nugetPackage.ProjectUrl.ToString().Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000");
-            if (nugetPackage.Summary != null && nugetPackage.Summary.ToString().Length > 4000)
+            if (nugetPackage.Summary != null && nugetPackage.Summary.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Summary", "4000");
             if (nugetPackage.Tags != null && nugetPackage.Tags.ToString().Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Tags", "4000");
-            if (nugetPackage.Title != null && nugetPackage.Title.ToString().Length > 4000)
+            if (nugetPackage.Title != null && nugetPackage.Title.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "4000");
+
+            if (nugetPackage.Language != null && nugetPackage.Language.Length > 20)
+            {
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Language", "20");
+            }
         }
 
         private static void UpdateIsLatest(PackageRegistration packageRegistration)
