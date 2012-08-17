@@ -25,7 +25,6 @@ $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 require-param -value $azureStorageAccessKey -paramName "azureStorageAccessKey"
 require-param -value $azureStorageAccountName -paramName "azureStorageAccountName"
 require-param -value $azureStorageBlobUrl -paramName "azureStorageBlobUrl"
-require-param -value $azureCdnHost -paramName "azureCdnHost"
 require-param -value $remoteDesktopAccountExpiration -paramName "remoteDesktopAccountExpiration"
 require-param -value $remoteDesktopCertificateThumbprint -paramName "remoteDesktopCertificateThumbprint"
 require-param -value $remoteDesktopEnctyptedPassword -paramName "remoteDesktopEnctyptedPassword"
@@ -68,9 +67,15 @@ function set-connectionstring {
 
 function set-appsetting {
     param($path, $name, $value)
+
     $settings = [xml](get-content $path)
     $setting = $settings.configuration.appSettings.selectsinglenode("add[@key='" + $name + "']")
-    $setting.value = $value.toString()
+
+    if ($value -ne $null) {
+      $setting.value = $value.toString()
+    } else {
+      $setting.value = ""
+    }
     $resolvedPath = resolve-path($path) 
     $settings.save($resolvedPath)
 }
@@ -128,6 +133,9 @@ $compressionCmdBinPath = join-path $binPath "EnableDynamicHttpCompression.cmd"
 
 if ($commitSha -eq $null) {
     $commitSha = (& "$gitPath" rev-parse HEAD)
+    $packageSha = (& "$gitPath" rev-parse --short HEAD)
+} else {
+  $packageSha = $commitSha
 }
 
 if ($commitBranch -eq $null) {
@@ -177,7 +185,10 @@ cp $csdefBakPath $csdefPath
 cp $cscfgBakPath $cscfgPath
 rm $compressionCmdBinPath
 
-print-success("Azure package and configuration dropped to $cspkgFolder.")
+$packageDateTime = (Get-Date -format "MMMdd @ HHmm")
+print-success("Azure $env:NUGET_GALLERY_ENV package and configuration dropped to $cspkgFolder.")
+print-success("Deployment Name: $packageDateTime ($packageSha on $commitBranch)")
+
 write-host ""
 
 Exit 0
