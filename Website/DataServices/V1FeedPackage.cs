@@ -24,6 +24,7 @@ namespace NuGetGallery
         public string GalleryDetailsUrl { get; set; }
         public string IconUrl { get; set; }
         public bool IsLatestVersion { get; set; }
+        public string Language { get; set; }
         public DateTime LastUpdated { get; set; }
         public string LicenseUrl { get; set; }
         public string PackageHash { get; set; }
@@ -62,7 +63,6 @@ namespace NuGetGallery
         }
 
         public string Categories { get { return String.Empty; } }
-        public string Language { get { return ""; } }
         public string PackageType { get { return "Package"; } }
         public decimal Price { get { return 0; } }
         public bool Prerelease { get { return false; } }

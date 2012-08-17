@@ -36,6 +36,7 @@ namespace NuGetGallery
         public bool IsLatestStable { get; set; }
         public DateTime LastUpdated { get; set; }
         public string LicenseUrl { get; set; }
+        public string Language { get; set; }
         public DateTime Published { get; set; }
         public long PackageFileSize { get; set; }
         public string ProjectUrl { get; set; }

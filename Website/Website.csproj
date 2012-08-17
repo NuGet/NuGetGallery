@@ -355,6 +355,10 @@
     <Compile Include="Migrations\201206250141447_ExecuteELMAHSql.Designer.cs">
       <DependentUpon>201206250141447_ExecuteELMAHSql.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201208171817581_LanguageProperty.cs" />
+    <Compile Include="Migrations\201208171817581_LanguageProperty.Designer.cs">
+      <DependentUpon>201208171817581_LanguageProperty.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />

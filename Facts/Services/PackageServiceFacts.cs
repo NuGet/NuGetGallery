@@ -92,10 +92,32 @@ namespace NuGetGallery
                 Assert.Equal("theTags", package.Tags);
                 Assert.Equal("theTitle", package.Title);
                 Assert.Equal("theCopyright", package.Copyright);
+                Assert.Null(package.Language);
                 Assert.False(package.IsPrerelease);
 
                 Assert.Equal("theFirstAuthor, theSecondAuthor", package.FlattenedAuthors);
                 Assert.Equal("theFirstDependency:[1.0, 2.0):net4000|theSecondDependency:[1.0]:net4000|theThirdDependency::net4000|theFourthDependency:[1.0]:net35", package.FlattenedDependencies);
+            }
+
+            [Fact]
+            public void WillReadTheLanguagePropertyFromThePackage()
+            {
+                var packageRegistrationRepo = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(
+                    packageRegistrationRepo: packageRegistrationRepo,
+                    setup: mockPackageSvc =>
+                    {
+                        mockPackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+                    });
+                var nugetPackage = CreateNuGetPackage(p => p.Setup(s => s.Language).Returns("fr"));
+                var currentUser = new User();
+
+                var package = service.CreatePackage(
+                    nugetPackage.Object,
+                    currentUser);
+
+                // Assert
+                Assert.Equal("fr", package.Language);
             }
 
             [Fact]

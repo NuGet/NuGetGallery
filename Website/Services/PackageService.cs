@@ -266,11 +266,12 @@ namespace NuGetGallery
                 Hash = cryptoSvc.GenerateHash(packageFileStream.ReadAllBytes()),
                 PackageFileSize = packageFileStream.Length,
                 Created = now,
+                Language = nugetPackage.Language,
                 LastUpdated = now,
                 Published = now,
                 Copyright = nugetPackage.Copyright,
                 IsPrerelease = !nugetPackage.IsReleaseVersion(),
-                Listed = true
+                Listed = true,
             };
 
             if (nugetPackage.IconUrl != null)
