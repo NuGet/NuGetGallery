@@ -62,7 +62,10 @@ namespace NuGetGallery
                 new LuceneIndexingJob(TimeSpan.FromMinutes(10), timeout: TimeSpan.FromMinutes(2)),
             };
             var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext()));
-            _jobManager = new JobManager(jobs, jobCoordinator);
+            _jobManager = new JobManager(jobs, jobCoordinator)
+            {
+                RestartSchedulerOnFailure = true
+            };
             _jobManager.Fail(e => ErrorLog.GetDefault(null).Log(new Error(e)));
             _jobManager.Start();
         }
