@@ -14,26 +14,33 @@ namespace NuGetGallery
 {
     public class LuceneIndexingService : IIndexingService
     {
-        private static readonly TimeSpan indexRecreateTime = TimeSpan.FromDays(3);
+        private static readonly object indexWriterLock = new object();
+        private static readonly TimeSpan indexRecreateInterval = TimeSpan.FromDays(3);
         private static readonly char[] idSeparators = new[] { '.', '-' };
+        private static IndexWriter indexWriter;
 
         public void UpdateIndex()
         {
-            DateTime? createdTime = GetIndexCreationTime();
-            if (createdTime.HasValue && (DateTime.UtcNow - createdTime > indexRecreateTime))
-            {
-                ClearLuceneDirectory();
-            }
-
             DateTime? lastWriteTime = GetLastWriteTime();
             bool creatingIndex = lastWriteTime == null;
+
+            EnsureIndexWriter(creatingIndex);
+
+            if (IndexRequiresRefresh())
+            {
+                indexWriter.DeleteAll();
+                indexWriter.Commit();
+
+                // Reset the lastWriteTime to null. This will allow us to get a fresh copy of all the latest \ latest successful packages
+                lastWriteTime = null;
+            }
+
             using (var context = CreateContext())
             {
                 var packages = GetPackages(context, lastWriteTime);
-                if (packages.Any())
+                if (packages.Count > 0)
                 {
-                    EnsureIndexDirectory();
-                    WriteIndex(creatingIndex, packages);
+                    AddPackages(packages);
                 }
             }
             UpdateLastWriteTime();
@@ -64,18 +71,7 @@ namespace NuGetGallery
             }
         }
 
-        protected internal virtual void WriteIndex(bool creatingIndex, List<PackageIndexEntity> packages)
-        {
-            using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
-            {
-                var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-                var indexWriter = new IndexWriter(directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
-                AddPackages(indexWriter, packages);
-                indexWriter.Close();
-            }
-        }
-
-        private static void AddPackages(IndexWriter indexWriter, List<PackageIndexEntity> packages)
+        private static void AddPackages(List<PackageIndexEntity> packages)
         {
             foreach (var package in packages)
             {
@@ -117,37 +113,45 @@ namespace NuGetGallery
 
                 indexWriter.AddDocument(document);
             }
+            indexWriter.Commit();
         }
 
-        protected internal virtual void EnsureIndexDirectory()
+        protected static void EnsureIndexWriter(bool creatingIndex)
+        {
+            if (indexWriter == null)
+            {
+                lock (indexWriterLock)
+                {
+                    if (indexWriter == null)
+                    {
+                        EnsureIndexWriterCore(creatingIndex);
+                    }
+                }
+            }
+        }
+
+        private static void EnsureIndexWriterCore(bool creatingIndex)
         {
             if (!Directory.Exists(LuceneCommon.IndexDirectory))
             {
                 Directory.CreateDirectory(LuceneCommon.IndexDirectory);
             }
+
+            var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
+            var directoryInfo = new DirectoryInfo(LuceneCommon.IndexDirectory);
+            var directory = new Lucene.Net.Store.SimpleFSDirectory(directoryInfo);
+            indexWriter = new IndexWriter(directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
         }
 
-        protected internal virtual DateTime? GetIndexCreationTime()
+        protected internal bool IndexRequiresRefresh()
         {
             if (File.Exists(LuceneCommon.IndexMetadataPath))
             {
-                var text = File.ReadLines(LuceneCommon.IndexMetadataPath).FirstOrDefault();
-                DateTime dateTime;
-                if (!String.IsNullOrEmpty(text) && DateTime.TryParseExact(text, "R", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
-                {
-                    return dateTime;
-                }
+                var creationTime = File.GetCreationTimeUtc(LuceneCommon.IndexMetadataPath);
+                return (DateTime.UtcNow - creationTime) > indexRecreateInterval;
             }
-            
-            return null;
-        }
-
-        protected internal virtual void ClearLuceneDirectory()
-        {
-            if (Directory.Exists(LuceneCommon.IndexDirectory))
-            {
-                Directory.Delete(LuceneCommon.IndexDirectory, recursive: true);
-            }
+            // If we've never created the index, it needs to be refreshed.
+            return true;
         }
 
         protected internal virtual DateTime? GetLastWriteTime()
@@ -163,11 +167,8 @@ namespace NuGetGallery
         {
             if (!File.Exists(LuceneCommon.IndexMetadataPath))
             {
-                if (Directory.Exists(LuceneCommon.IndexMetadataPath))
-                {
-                    // If the directoey exists, then assume that the index has been created.
-                    File.WriteAllText(LuceneCommon.IndexMetadataPath, DateTime.UtcNow.ToString("R"));
-                }
+                // Create the index and add a timestamp to it that specifies the time at which it was created.
+                File.WriteAllBytes(LuceneCommon.IndexMetadataPath, new byte[0]);
             }
             else
             {
@@ -208,7 +209,7 @@ namespace NuGetGallery
                         // If the remainder is smaller than 2 chars, just return the entire string
                         i = 0;
                     }
-                        
+
                     yield return term.Substring(i, tokenEnd - i);
                     tokenEnd = i;
                 }
