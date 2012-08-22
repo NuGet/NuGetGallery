@@ -151,7 +151,6 @@ namespace NuGetGallery
         {
             var packages = packageRepo.GetAll()
                 .Include(x => x.PackageRegistration)
-                .Include(x => x.Authors)
                 .Include(x => x.PackageRegistration.Owners)
                 .Where(p => p.Listed);
 
