@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
@@ -12,6 +13,7 @@ namespace NuGetGallery
 
         public int Key { get; set; }
 
+        [StringLength(128), Required]
         public string Id { get; set; }
         public int DownloadCount { get; set; }
         public virtual ICollection<User> Owners { get; set; }

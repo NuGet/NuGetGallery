@@ -214,7 +214,6 @@
     <Compile Include="CuratedPackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="DataServices\ODataRemoveVersionSorter.cs" />
     <Compile Include="DataServices\V2CuratedFeed.svc.cs">
       <DependentUpon>V2CuratedFeed.svc</DependentUpon>
     </Compile>
@@ -357,6 +356,14 @@
     <Compile Include="Migrations\201208171904586_Language.cs" />
     <Compile Include="Migrations\201208171904586_Language.Designer.cs">
       <DependentUpon>201208171904586_Language.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201208222206329_ColumnLengthOfPackageTable.cs" />
+    <Compile Include="Migrations\201208222206329_ColumnLengthOfPackageTable.Designer.cs">
+      <DependentUpon>201208222206329_ColumnLengthOfPackageTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201208222227425_PackageIndexes.cs" />
+    <Compile Include="Migrations\201208222227425_PackageIndexes.Designer.cs">
+      <DependentUpon>201208222227425_PackageIndexes.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />

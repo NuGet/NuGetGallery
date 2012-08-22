@@ -151,7 +151,6 @@ namespace NuGetGallery
         {
             var packages = packageRepo.GetAll()
                 .Include(x => x.PackageRegistration)
-                .Include(x => x.Authors)
                 .Include(x => x.PackageRegistration.Owners)
                 .Where(p => p.Listed);
 
@@ -334,8 +333,6 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
             if (nugetPackage.Copyright != null && nugetPackage.Copyright.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000");
-            if (nugetPackage.DependencySets != null && nugetPackage.DependencySets.Flatten().Length > Int16.MaxValue)
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
             if (nugetPackage.Description != null && nugetPackage.Description.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Description", "4000");
             if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.ToString().Length > 4000)
@@ -348,13 +345,34 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Summary", "4000");
             if (nugetPackage.Tags != null && nugetPackage.Tags.ToString().Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Tags", "4000");
-            if (nugetPackage.Title != null && nugetPackage.Title.Length > 4000)
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "4000");
+            if (nugetPackage.Title != null && nugetPackage.Title.Length > 256)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "256");
+
+            if (nugetPackage.Version != null && nugetPackage.Version.ToString().Length > 64)
+            {
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Version", "64");
+            }
 
             if (nugetPackage.Language != null && nugetPackage.Language.Length > 20)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Language", "20");
             }
+
+            foreach (var dependency in nugetPackage.DependencySets.SelectMany(s => s.Dependencies))
+            {
+                if (dependency.Id != null && dependency.Id.Length > 128)
+                {
+                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", "128"); 
+                }
+
+                if (dependency.VersionSpec != null && dependency.VersionSpec.ToString().Length > 256)
+                {
+                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", "256"); 
+                }
+            }
+
+            if (nugetPackage.DependencySets != null && nugetPackage.DependencySets.Flatten().Length > Int16.MaxValue)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
         }
 
         private static void UpdateIsLatest(PackageRegistration packageRegistration)
