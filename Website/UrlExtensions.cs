@@ -1,5 +1,4 @@
 ﻿using System.Web.Mvc;
-using System;
 
 namespace NuGetGallery
 {
@@ -54,7 +53,8 @@ namespace NuGetGallery
         public static string PackageDownload(this UrlHelper url, int feedVersion, string id, string version)
         {
             string routeName = "v" + feedVersion + RouteName.DownloadPackage;
-            return url.RouteUrl(routeName, new { Id = id, Version = version }, protocol: "http");
+            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            return url.RouteUrl(routeName, new { Id = id, Version = version }, protocol: protocol);
         }
 
         public static string LogOn(this UrlHelper url)
