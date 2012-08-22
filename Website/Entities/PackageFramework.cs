@@ -12,6 +12,8 @@ namespace NuGetGallery
         public int Key { get; set; }
 
         public Package Package { get; set; }
+        
+        [StringLength(256)]
         public string TargetFramework
         {
             get

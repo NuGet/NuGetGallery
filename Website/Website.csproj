@@ -358,6 +358,10 @@
     <Compile Include="Migrations\201208171904586_Language.Designer.cs">
       <DependentUpon>201208171904586_Language.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201208222206329_ColumnLengthOfPackageTable.cs" />
+    <Compile Include="Migrations\201208222206329_ColumnLengthOfPackageTable.Designer.cs">
+      <DependentUpon>201208222206329_ColumnLengthOfPackageTable.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />

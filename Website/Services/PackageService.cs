@@ -348,12 +348,30 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Summary", "4000");
             if (nugetPackage.Tags != null && nugetPackage.Tags.ToString().Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Tags", "4000");
-            if (nugetPackage.Title != null && nugetPackage.Title.Length > 4000)
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "4000");
+            if (nugetPackage.Title != null && nugetPackage.Title.Length > 256)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Title", "256");
+
+            if (nugetPackage.Version != null && nugetPackage.Version.ToString().Length > 64)
+            {
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Version", "64");
+            }
 
             if (nugetPackage.Language != null && nugetPackage.Language.Length > 20)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Language", "20");
+            }
+
+            foreach (var dependency in nugetPackage.DependencySets.SelectMany(s => s.Dependencies))
+            {
+                if (dependency.Id != null && dependency.Id.Length > 128)
+                {
+                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", "128"); 
+                }
+
+                if (dependency.VersionSpec != null && dependency.VersionSpec.ToString().Length > 256)
+                {
+                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", "256"); 
+                }
             }
         }
 
