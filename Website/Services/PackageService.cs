@@ -334,8 +334,6 @@ namespace NuGetGallery
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
             if (nugetPackage.Copyright != null && nugetPackage.Copyright.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000");
-            if (nugetPackage.DependencySets != null && nugetPackage.DependencySets.Flatten().Length > Int16.MaxValue)
-                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
             if (nugetPackage.Description != null && nugetPackage.Description.Length > 4000)
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Description", "4000");
             if (nugetPackage.IconUrl != null && nugetPackage.IconUrl.ToString().Length > 4000)
@@ -373,6 +371,9 @@ namespace NuGetGallery
                     throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", "256"); 
                 }
             }
+
+            if (nugetPackage.DependencySets != null && nugetPackage.DependencySets.Flatten().Length > Int16.MaxValue)
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
         }
 
         private static void UpdateIsLatest(PackageRegistration packageRegistration)
