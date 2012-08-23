@@ -365,6 +365,10 @@
     <Compile Include="Migrations\201208222227425_PackageIndexes.Designer.cs">
       <DependentUpon>201208222227425_PackageIndexes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201208230640333_PackageSortingIndexes.cs" />
+    <Compile Include="Migrations\201208230640333_PackageSortingIndexes.Designer.cs">
+      <DependentUpon>201208230640333_PackageSortingIndexes.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />
