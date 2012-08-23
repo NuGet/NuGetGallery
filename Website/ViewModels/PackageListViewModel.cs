@@ -22,7 +22,7 @@ namespace NuGetGallery
                 items = packages.Skip(pageIndex * pageSize)
                                 .Take(pageSize)
                                 .ToList()
-                                .Select(pv => new ListPackageItemViewModel(pv));
+                                .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
             }
             PageIndex = pageIndex;
             PageSize = pageSize;

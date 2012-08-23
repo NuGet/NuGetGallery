@@ -6,11 +6,16 @@ namespace NuGetGallery
 {
     public class ListPackageItemViewModel : PackageViewModel
     {
-        public ListPackageItemViewModel(Package package)
+        public ListPackageItemViewModel(Package package, bool needAuthors = true)
             : base(package)
         {
             Tags = package.Tags != null ? package.Tags.Trim().Split(' ') : null;
-            Authors = package.Authors;
+
+            if (needAuthors)
+            {
+                Authors = package.Authors;
+            }
+
             Owners = package.PackageRegistration.Owners;
         }
         public IEnumerable<PackageAuthor> Authors { get; set; }
