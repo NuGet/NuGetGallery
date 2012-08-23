@@ -51,7 +51,7 @@ WHERE [Key] > @lastAggregatedStatisticsId AND
 GROUP BY stats.PackageKey
 
 UPDATE tmp
-SET DownLoadCount = tmp.DownloadCount + p.DownloadCount
+SET DownloadCount = tmp.DownloadCount + p.DownloadCount
 FROM @DownloadStats tmp INNER JOIN 
 (
     SELECT [Key], DownloadCount
@@ -62,24 +62,27 @@ ON p.[Key] = tmp.PackageKey
 BEGIN TRANSACTION
 
     UPDATE p
-    SET p.DownLoadCount = stats.DownloadCount
+    SET p.DownloadCount = stats.DownloadCount
     FROM Packages p INNER JOIN @DownloadStats stats
     ON p.[Key] = stats.PackageKey
+
+    IF @@ROWCOUNT > 0
+    BEGIN
+        UPDATE pr
+        SET pr.DownloadCount = totals.DownloadCount
+        FROM PackageRegistrations pr INNER JOIN
+        (
+            SELECT PackageRegistrationKey, DownloadCount = SUM(DownloadCount)
+            FROM Packages
+            GROUP BY PackageRegistrationKey
+        ) as totals
+        ON pr.[Key] = totals.PackageRegistrationKey
+    END    
 
     UPDATE GallerySettings
     SET DownloadStatsLastAggregatedId = @mostRecentStatisticsId
 
-COMMIT TRANSACTION
-
-UPDATE pr
-SET pr.DownLoadCount = totals.DownloadCount
-FROM PackageRegistrations pr INNER JOIN
-(
-    SELECT PackageRegistrationKey, DownloadCount = SUM(DownloadCount)
-    FROM Packages
-    GROUP BY PackageRegistrationKey
-) as totals
-ON pr.[Key] = totals.PackageRegistrationKey";
+COMMIT TRANSACTION";
             using (var context = _contextThunk())
             {
                 context.Database.ExecuteSqlCommand(sql);
