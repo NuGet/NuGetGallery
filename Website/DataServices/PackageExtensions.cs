@@ -17,6 +17,7 @@ namespace NuGetGallery
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
                      .WithoutNullPropagation()
+                     .WithoutVersionSort()
                      .Include(p => p.PackageRegistration)
                      .Select(p => new V1FeedPackage
                      {
@@ -56,6 +57,7 @@ namespace NuGetGallery
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
                      .WithoutNullPropagation()
+                     .WithoutVersionSort()
                      .Include(p => p.PackageRegistration)
                      .Select(p => new V2FeedPackage
                      {
@@ -88,6 +90,11 @@ namespace NuGetGallery
                          Title = p.Title,
                          VersionDownloadCount = p.DownloadCount
                      });
+        }
+
+        internal static IQueryable<TVal> WithoutVersionSort<TVal>(this IQueryable<TVal> feedQuery)
+        {
+            return feedQuery.InterceptWith(new ODataRemoveVersionSorter());
         }
 
         private static string EnsureTrailingSlash(string siteRoot)
