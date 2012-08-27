@@ -51,7 +51,7 @@ WHERE [Key] > @lastAggregatedStatisticsId AND
 GROUP BY stats.PackageKey
 
 UPDATE tmp
-SET DownLoadCount = tmp.DownloadCount + p.DownloadCount
+SET DownloadCount = tmp.DownloadCount + p.DownloadCount
 FROM @DownloadStats tmp INNER JOIN 
 (
     SELECT [Key], DownloadCount
@@ -62,7 +62,7 @@ ON p.[Key] = tmp.PackageKey
 BEGIN TRANSACTION
 
     UPDATE p
-    SET p.DownLoadCount = stats.DownloadCount
+    SET p.DownloadCount = stats.DownloadCount
     FROM Packages p INNER JOIN @DownloadStats stats
     ON p.[Key] = stats.PackageKey
 
@@ -72,7 +72,7 @@ BEGIN TRANSACTION
 COMMIT TRANSACTION
 
 UPDATE pr
-SET pr.DownLoadCount = totals.DownloadCount
+SET pr.DownloadCount = totals.DownloadCount
 FROM PackageRegistrations pr INNER JOIN
 (
     SELECT PackageRegistrationKey, DownloadCount = SUM(DownloadCount)
