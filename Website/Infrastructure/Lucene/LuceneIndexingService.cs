@@ -33,6 +33,9 @@ namespace NuGetGallery
 
                 // Reset the lastWriteTime to null. This will allow us to get a fresh copy of all the latest \ latest successful packages
                 lastWriteTime = null;
+
+                // Set the index create time to now. This would tell us when we last rebuilt the index.
+                UpdateIndexRefreshTime();
             }
 
             using (var context = CreateContext())
@@ -173,6 +176,14 @@ namespace NuGetGallery
             else
             {
                 File.SetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath, DateTime.UtcNow);
+            }
+        }
+
+        protected void UpdateIndexRefreshTime()
+        {
+            if (File.Exists(LuceneCommon.IndexMetadataPath))
+            {
+                File.SetCreationTimeUtc(LuceneCommon.IndexMetadataPath, DateTime.UtcNow);
             }
         }
 
