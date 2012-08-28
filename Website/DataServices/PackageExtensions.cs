@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
-using System.Linq.Expressions;
 using OData.Linq;
 using QueryInterceptor;
 
@@ -16,9 +14,8 @@ namespace NuGetGallery
         {
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
-                     .WithoutNullPropagation()
-                     .WithoutVersionSort()
                      .Include(p => p.PackageRegistration)
+                     .WithoutNullPropagation()
                      .Select(p => new V1FeedPackage
                      {
                          Id = p.PackageRegistration.Id,
@@ -56,9 +53,8 @@ namespace NuGetGallery
         {
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
-                     .WithoutNullPropagation()
-                     .WithoutVersionSort()
                      .Include(p => p.PackageRegistration)
+                     .WithoutNullPropagation()
                      .Select(p => new V2FeedPackage
                      {
                          Id = p.PackageRegistration.Id,

@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using Moq;
 using Xunit;
 using Xunit.Extensions;
@@ -9,6 +9,41 @@ namespace NuGetGallery.Services
 {
     public class FeedServiceFacts
     {
+        [Theory]
+        [InlineData("http://nuget.org", "http://nuget.org/")]
+        [InlineData("http://nuget.org/", "http://nuget.org/")]
+        public void SiteRootAddsTrailingSlashes(string siteRoot, string expected)
+        {
+            // Arrange
+            var config = new Mock<IConfiguration>();
+            config.Setup(s => s.GetSiteRoot(false)).Returns(siteRoot);
+            var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchSvc: null);
+            feed.HttpContext = GetContext();
+
+            // Act
+            var actual = feed.SiteRoot;
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void SiteRootUsesCurrentRequestToDetermineSiteRoot()
+        {
+            // Arrange
+            var config = new Mock<IConfiguration>();
+            config.Setup(s => s.GetSiteRoot(true)).Returns("https://nuget.org").Verifiable();
+            var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchSvc: null);
+            feed.HttpContext = GetContext(isSecure: true);
+
+            // Act
+            var actual = feed.SiteRoot;
+
+            // Assert
+            Assert.Equal("https://nuget.org/", actual);
+            config.Verify();
+        }
+
         [Fact]
         public void V1FeedSearchDoesNotReturnPrereleasePackages()
         {
@@ -305,9 +340,12 @@ namespace NuGetGallery.Services
             {
             }
 
-            protected override bool UseHttps()
+            protected internal override HttpContextBase HttpContext
             {
-                return false;
+                get
+                {
+                    return GetContext();
+                }
             }
         }
 
@@ -321,11 +359,25 @@ namespace NuGetGallery.Services
             {
             }
 
-            protected override bool UseHttps()
+            protected internal override HttpContextBase HttpContext
             {
-                return false;
+                get
+                {
+                    return GetContext();
+                }
             }
         }
+
+        private static HttpContextBase GetContext(bool isSecure = false)
+        {
+            var httpRequest = new Mock<HttpRequestBase>();
+            httpRequest.Setup(s => s.IsSecureConnection).Returns(isSecure);
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.Setup(s => s.Request).Returns(httpRequest.Object);
+
+            return httpContext.Object;
+        }
+
 
         private static void AssertPackage(dynamic expected, V2FeedPackage package)
         {

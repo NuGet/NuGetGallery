@@ -2,7 +2,6 @@ using System;
 using System.Data.Entity;
 using System.Data.Services;
 using System.Linq;
-using System.ServiceModel;
 using System.ServiceModel.Web;
 using System.Web;
 using System.Web.Mvc;
@@ -35,6 +34,7 @@ namespace NuGetGallery
             {
                 Packages = PackageRepo.GetAll()
                                       .Where(p => !p.IsPrerelease)
+                                      .WithoutVersionSort()
                                       .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
             };
         }
@@ -44,8 +44,7 @@ namespace NuGetGallery
            DataServiceOperationContext operationContext)
         {
             var package = (V1FeedPackage)entity;
-            var httpContext = new HttpContextWrapper(HttpContext.Current);
-            var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
+            var urlHelper = new UrlHelper(new RequestContext(HttpContext, new RouteData()));
 
             string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version);
 
@@ -65,12 +64,11 @@ namespace NuGetGallery
         {
             var packages = PackageRepo.GetAll()
                                       .Include(p => p.PackageRegistration)
-                                      .Where(p => !p.IsPrerelease);
-            if (!String.IsNullOrEmpty(searchTerm))
-            {
-                // For v1 feed, only allow stable package versions.
-                packages = SearchCore(searchTerm, targetFramework, includePrerelease: false);
-            }
+                                      .Include(p => p.PackageRegistration.Owners)
+                                      .Where(p => p.Listed && !p.IsPrerelease);
+            
+            // For v1 feed, only allow stable package versions.
+            packages = SearchCore(packages, searchTerm, targetFramework, includePrerelease: false);
             return packages.ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
     }

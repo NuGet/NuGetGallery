@@ -31,7 +31,7 @@ namespace NuGetGallery
 
     public enum SortDirection
     {
-        Descending,
         Ascending,
+        Descending,
     }
 }

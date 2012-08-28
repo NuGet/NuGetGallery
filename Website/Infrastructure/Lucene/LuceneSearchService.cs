@@ -12,8 +12,6 @@ namespace NuGetGallery
 {
     public class LuceneSearchService : ISearchService
     {
-        private const int MaximumRecordsToReturn = 1000;
-
         public IQueryable<Package> Search(IQueryable<Package> packages, SearchFilter searchFilter, out int totalHits)
         {
             if (packages == null)
@@ -24,11 +22,6 @@ namespace NuGetGallery
             if (searchFilter == null)
             {
                 throw new ArgumentNullException("searchFilter");
-            }
-
-            if (String.IsNullOrEmpty(searchFilter.SearchTerm))
-            {
-                throw new ArgumentException("No term to search for.");
             }
 
             if (searchFilter.Skip < 0)
@@ -42,8 +35,7 @@ namespace NuGetGallery
             }
 
             // For the given search term, find the keys that match.
-            var keys = SearchCore(searchFilter);
-            totalHits = keys.Count;
+            var keys = SearchCore(searchFilter, out totalHits);
             if (keys.Count == 0 || searchFilter.CountOnly)
             {
                 return Enumerable.Empty<Package>().AsQueryable();
@@ -58,6 +50,7 @@ namespace NuGetGallery
 
             return keys.Select(key => LookupPackage(lookup, key))
                        .Where(p => p != null)
+                       .ToList()
                        .AsQueryable();
         }
 
@@ -68,15 +61,16 @@ namespace NuGetGallery
             return package;
         }
 
-        private static IList<int> SearchCore(SearchFilter searchFilter)
+        private static IList<int> SearchCore(SearchFilter searchFilter, out int totalHits)
         {
             if (!Directory.Exists(LuceneCommon.IndexDirectory))
             {
+                totalHits = 0; 
                 return new int[0];
             }
 
             SortField sortField = GetSortField(searchFilter);
-            int numRecords = Math.Min((1 + searchFilter.Skip) * searchFilter.Take, MaximumRecordsToReturn);
+            int numRecords = searchFilter.Skip + searchFilter.Take;
 
             using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
             {
@@ -94,6 +88,7 @@ namespace NuGetGallery
                 var keys = results.scoreDocs.Skip(searchFilter.Skip)
                                             .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
                                             .ToList();
+                totalHits = results.totalHits;
                 searcher.Close();
                 return keys;
             }
@@ -101,6 +96,11 @@ namespace NuGetGallery
 
         private static Query ParseQuery(SearchFilter searchFilter)
         {
+            if (String.IsNullOrWhiteSpace(searchFilter.SearchTerm))
+            {
+                return new MatchAllDocsQuery();
+            }
+
             var fields = new[] { "Id", "Title", "Tags", "Description", "Author" };
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
             var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields, analyzer);

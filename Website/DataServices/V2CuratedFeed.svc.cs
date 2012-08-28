@@ -84,7 +84,7 @@ namespace NuGetGallery
 
         private string GetCuratedFeedName()
         {
-            var curatedFeedName = HttpContext.Current.Request.QueryString["name"];
+            var curatedFeedName = HttpContext.Request.QueryString["name"];
 
             var curatedFeed = Entities.CuratedFeeds.SingleOrDefault(cf => cf.Name == curatedFeedName);
             if (curatedFeed == null)
@@ -130,8 +130,7 @@ namespace NuGetGallery
            DataServiceOperationContext operationContext)
         {
             var package = (V2FeedPackage)entity;
-            var httpContext = new HttpContextWrapper(HttpContext.Current);
-            var urlHelper = new UrlHelper(new RequestContext(httpContext, new RouteData()));
+            var urlHelper = new UrlHelper(new RequestContext(HttpContext, new RouteData()));
 
             string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version);
 

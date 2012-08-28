@@ -110,7 +110,6 @@ namespace NuGetGallery
             foreach (var idToken in tokenizedId)
             {
                 field = new Field("Id", idToken, Field.Store.NO, Field.Index.ANALYZED);
-                field.SetBoost(1.2f);
                 document.Add(field);
             }
 
@@ -120,7 +119,9 @@ namespace NuGetGallery
             var titleTokens = String.IsNullOrEmpty(package.Title) ? tokenizedId : package.Title.Split(idSeparators, StringSplitOptions.RemoveEmptyEntries);
             foreach (var idToken in titleTokens)
             {
-                document.Add(new Field("Title", idToken, Field.Store.NO, Field.Index.ANALYZED));
+                field = new Field("Title", idToken, Field.Store.NO, Field.Index.ANALYZED);
+                field.SetBoost(0.9f);
+                document.Add(field);
             }
 
             if (!String.IsNullOrEmpty(package.Tags))
