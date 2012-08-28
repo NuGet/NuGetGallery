@@ -50,22 +50,13 @@ WHERE [Key] > @lastAggregatedStatisticsId AND
     [Key] <= @mostRecentStatisticsId
 GROUP BY stats.PackageKey
 
-UPDATE tmp
-SET DownloadCount = tmp.DownloadCount + p.DownloadCount
-FROM @DownloadStats tmp INNER JOIN 
-(
-    SELECT [Key], DownloadCount
-    FROM Packages
-) p
-ON p.[Key] = tmp.PackageKey
-
 BEGIN TRANSACTION
 
     UPDATE p
-    SET p.DownloadCount = stats.DownloadCount
+    SET p.DownloadCount = p.DownloadCount + stats.DownloadCount
     FROM Packages p INNER JOIN @DownloadStats stats
     ON p.[Key] = stats.PackageKey
-
+    
     IF @@ROWCOUNT > 0
     BEGIN
         UPDATE pr
@@ -74,6 +65,7 @@ BEGIN TRANSACTION
         (
             SELECT PackageRegistrationKey, DownloadCount = SUM(DownloadCount)
             FROM Packages
+            WHERE EXISTS(SELECT * FROM @DownloadStats stats WHERE stats.PackageKey = Packages.PackageRegistrationKey)
             GROUP BY PackageRegistrationKey
         ) as totals
         ON pr.[Key] = totals.PackageRegistrationKey
