@@ -15,12 +15,7 @@ namespace NuGetGallery
                     (Select Count([Key]) from PackageRegistrations pr 
                             where exists (Select 1 from Packages p where p.PackageRegistrationKey = pr.[Key] and p.Listed = 1)) as UniquePackages,
                     (Select Count([Key]) from Packages where Listed = 1) as TotalPackages,
-                    (
-                        (Select Sum(DownloadCount) from Packages) + 
-                        (Select Count([Key]) from PackageStatistics where [Key] > 
-                            (Select DownloadStatsLastAggregatedId FROM GallerySettings)
-                        )
-                    ) as DownloadCount";
+                    (Select Sum(DownloadCount) from Packages) as DownloadCount";
                     
                     database.Connection.Open();
                     using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection | CommandBehavior.SingleRow))
