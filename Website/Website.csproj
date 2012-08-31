@@ -370,7 +370,12 @@
     <Compile Include="Migrations\201208230640333_PackageSortingIndexes.Designer.cs">
       <DependentUpon>201208230640333_PackageSortingIndexes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201208302051344_CreateAggregateStatisticsSP.cs" />
+    <Compile Include="Migrations\201208302051344_CreateAggregateStatisticsSP.Designer.cs">
+      <DependentUpon>201208302051344_CreateAggregateStatisticsSP.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
+    <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\TagBasedPackageCurator.cs" />
@@ -814,6 +819,7 @@
     <Content Include="Errors\Error.html" />
     <Content Include="favicon.ico" />
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
+    <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
