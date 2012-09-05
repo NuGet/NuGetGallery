@@ -71,6 +71,19 @@ BEGIN TRANSACTION
         ON pr.[Key] = totals.PackageRegistrationKey
     END    
 
+    IF @@ROWCOUNT > 0
+    BEGIN
+        UPDATE pr
+        SET pr.DownLoadCount = totals.DownloadCount
+        FROM PackageRegistrations pr INNER JOIN
+        (
+            SELECT PackageRegistrationKey, DownloadCount = SUM(DownloadCount)
+            FROM Packages
+            GROUP BY PackageRegistrationKey
+        ) as totals
+        ON pr.[Key] = totals.PackageRegistrationKey
+    END    
+
     UPDATE GallerySettings
     SET DownloadStatsLastAggregatedId = @mostRecentStatisticsId
 
