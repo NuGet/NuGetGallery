@@ -85,6 +85,7 @@ namespace NuGetGallery
                 var keys = results.scoreDocs.Skip(searchFilter.Skip)
                                             .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
                                             .ToList();
+
                 totalHits = results.totalHits;
                 searcher.Close();
                 return keys;
@@ -148,7 +149,7 @@ namespace NuGetGallery
 
         private static IEnumerable<string> GetSearchTerms(string searchTerm)
         {
-            return searchTerm.Split(new[] { ' ', '.', '-' }, StringSplitOptions.RemoveEmptyEntries)
+            return searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                              .Concat(new[] { searchTerm })
                              .Distinct(StringComparer.OrdinalIgnoreCase)
                              .Select(Escape);
