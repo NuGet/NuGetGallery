@@ -9,15 +9,27 @@ using System.Threading.Tasks;
 using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using Ninject;
 
 namespace NuGetGallery
 {
     public class LuceneIndexingService : IIndexingService
     {
+        private readonly DbContext _entitiesContext;
         private static readonly object indexWriterLock = new object();
         private static readonly TimeSpan indexRecreateInterval = TimeSpan.FromDays(3);
         private static readonly char[] idSeparators = new[] { '.', '-' };
         private static IndexWriter indexWriter;
+
+        public LuceneIndexingService() : this(new EntitiesContext())
+        {
+        }
+
+        [Inject]
+        public LuceneIndexingService(IEntitiesContext entitiesContext)
+        {
+            _entitiesContext = (DbContext)entitiesContext;
+        }
 
         public void UpdateIndex()
         {
@@ -37,21 +49,15 @@ namespace NuGetGallery
                 // Set the index create time to now. This would tell us when we last rebuilt the index.
                 UpdateIndexRefreshTime();
             }
-
-            using (var context = CreateContext())
+            if (_entitiesContext != null)
             {
-                var packages = GetPackages(context, lastWriteTime);
+                var packages = GetPackages(_entitiesContext, lastWriteTime);
                 if (packages.Count > 0)
                 {
                     AddPackages(packages);
                 }
             }
             UpdateLastWriteTime();
-        }
-
-        protected internal virtual DbContext CreateContext()
-        {
-            return new EntitiesContext();
         }
 
         protected internal virtual List<PackageIndexEntity> GetPackages(DbContext context, DateTime? lastIndexTime)
