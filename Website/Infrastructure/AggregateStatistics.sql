@@ -39,6 +39,7 @@ AS
 
         UPDATE      Packages
         SET         Packages.DownloadCount = Packages.DownloadCount + stats.DownloadCount
+		        ,   Packages.LastUpdated = GetUtcDate()
         OUTPUT      inserted.PackageRegistrationKey INTO @AffectedPackages
         FROM        Packages
         INNER JOIN  @DownloadStats stats ON Packages.[Key] = stats.PackageKey        
