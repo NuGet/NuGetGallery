@@ -43,7 +43,7 @@ namespace NuGetGallery
                 var packages = GetPackages(context, lastWriteTime);
                 if (packages.Count > 0)
                 {
-                    AddPackages(packages);
+                    AddPackages(packages, creatingIndex: lastWriteTime == null);
                 }
             }
             UpdateLastWriteTime();
@@ -56,46 +56,47 @@ namespace NuGetGallery
 
         protected internal virtual List<PackageIndexEntity> GetPackages(DbContext context, DateTime? lastIndexTime)
         {
-            string sql = @"SELECT p.[Key], pr.Id, p.Title, p.Description, p.Tags, p.FlattenedAuthors as Authors, pr.DownloadCount,
+            string sql = @"SELECT p.[Key], p.PackageRegistrationKey, pr.Id, p.Title, p.Description, p.Tags, p.FlattenedAuthors as Authors, pr.DownloadCount,
                                   p.IsLatestStable, p.IsLatest, p.Published
-                          FROM Packages p JOIN PackageRegistrations pr on p.PackageRegistrationKey = pr.[Key]";
+                              FROM Packages p JOIN PackageRegistrations pr on p.PackageRegistrationKey = pr.[Key]
+                              WHERE ((p.IsLatest = 1) or (p.IsLatestStable = 1)) ";
 
             object[] parameters;
-
             if (lastIndexTime == null)
             {
-                // First time creation. Only pull the latest packages.
-                sql += " WHERE ((p.IsLatest = 1) or (p.IsLatestStable = 1)) ";
+                // First time creation. Pull latest packages without filtering
                 parameters = new object[0];
             }
             else
             {
-                sql += " WHERE p.LastUpdated > @UpdatedDate";
+                // Retrieve the Latest and LatestStable version of packages if any package for that registration changed since we last updated the index.
+                // We need to do this because some attributes that we index such as DownloadCount are values in the PackageRegistration table that may
+                // update independent of the package.
+                sql += " AND Exists (Select 1 from dbo.Packages iP where iP.LastUpdated > @UpdatedDate and iP.PackageRegistrationKey = p.PackageRegistrationKey) ";
                 parameters = new[] { new SqlParameter("UpdatedDate", lastIndexTime.Value) };
             }
             return context.Database.SqlQuery<PackageIndexEntity>(sql, parameters).ToList();
         }
 
-        private static void AddPackages(List<PackageIndexEntity> packages)
+        private static void AddPackages(List<PackageIndexEntity> packages, bool creatingIndex)
         {
-            var packagesToDelete = from package in packages
-                                   where !(package.IsLatest || package.IsLatestStable)
-                                   select new Term("Key", package.Key.ToString(CultureInfo.InvariantCulture));
-            indexWriter.DeleteDocuments(packagesToDelete.ToArray());
+            if (!creatingIndex)
+            {
+                // If this is not the first time we're creating the index, clear clear any package registrations for packages we are going to updating.
+                var packagesToDelete = from packageRegistrationKey in packages.Select(p => p.PackageRegistrationKey).Distinct()
+                                       select new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
+                indexWriter.DeleteDocuments(packagesToDelete.ToArray());
+            }
 
             // As per http://stackoverflow.com/a/3894582. The IndexWriter is CPU bound, so we can try and write multiple packages in parallel.
-            var packagesToUpdate = from package in packages
-                                   where package.IsLatest || package.IsLatestStable
-                                   select package;
             // The IndexWriter is thread safe and is primarily CPU-bound. 
-            Parallel.ForEach(packagesToUpdate, UpdatePackage);
+            Parallel.ForEach(packages, AddPackage);
 
             indexWriter.Commit();
         }
 
-        private static void UpdatePackage(PackageIndexEntity package)
+        private static void AddPackage(PackageIndexEntity package)
         {
-            string key = package.Key.ToString(CultureInfo.InvariantCulture);
             var document = new Document();
 
             var field = new Field("Id-Exact", package.Id.ToLowerInvariant(), Field.Store.NO, Field.Index.NOT_ANALYZED);
@@ -133,7 +134,8 @@ namespace NuGetGallery
             document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
 
             // Fields meant for filtering and sorting
-            document.Add(new Field("Key", key, Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("PackageRegistrationKey", package.PackageRegistrationKey.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
             document.Add(new Field("IsLatest", package.IsLatest.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
             document.Add(new Field("IsLatestStable", package.IsLatestStable.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
             document.Add(new Field("PublishedDate", package.Published.Ticks.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
@@ -141,7 +143,7 @@ namespace NuGetGallery
             string displayName = String.IsNullOrEmpty(package.Title) ? package.Id : package.Title;
             document.Add(new Field("DisplayName", displayName.ToLower(CultureInfo.CurrentCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
 
-            indexWriter.UpdateDocument(new Term("Key", key), document);
+            indexWriter.AddDocument(document);
         }
 
         protected static void EnsureIndexWriter(bool creatingIndex)
