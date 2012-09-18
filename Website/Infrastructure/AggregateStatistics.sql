@@ -1,7 +1,10 @@
 ﻿SET ANSI_NULLS ON
 SET QUOTED_IDENTIFIER ON
-IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AggregateStatistics]') AND type in (N'P', N'PC'))
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AggregateStatistics]') AND type in (N'P', N'PC'))
 BEGIN
+	Drop procedure [dbo].[AggregateStatistics]
+END
+GO
 EXEC dbo.sp_executesql @statement = N'
 CREATE PROCEDURE [dbo].[AggregateStatistics]
 AS
@@ -38,7 +41,8 @@ AS
     BEGIN TRANSACTION
 
         UPDATE      Packages
-        SET         Packages.DownloadCount = Packages.DownloadCount + stats.DownloadCount
+        SET         Packages.DownloadCount = Packages.DownloadCount + stats.DownloadCount,
+					Packages.LastUpdated = GetUtcDate()
         OUTPUT      inserted.PackageRegistrationKey INTO @AffectedPackages
         FROM        Packages
         INNER JOIN  @DownloadStats stats ON Packages.[Key] = stats.PackageKey        
@@ -59,5 +63,4 @@ AS
 
     COMMIT TRANSACTION
 ' 
-END
 GO

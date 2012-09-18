@@ -88,7 +88,7 @@ namespace NuGetGallery
         {
             if (!creatingIndex)
             {
-                // If this is not the first time we're creating the index, clear clear any package registrations for packages we are going to updating.
+                // If this is not the first time we're creating the index, clear any package registrations for packages we are going to updating.
                 var packagesToDelete = from packageRegistrationKey in packages.Select(p => p.PackageRegistrationKey).Distinct()
                                        select new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
                 indexWriter.DeleteDocuments(packagesToDelete.ToArray());
