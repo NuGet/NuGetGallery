@@ -112,7 +112,7 @@ namespace NuGetGallery
                                                             .Include(p => p.Authors)
                                                             .Include(p => p.PackageRegistration)
                                                             .Where(p => (p.PackageRegistration.Id == id));
-            if (String.IsNullOrEmpty(version) && !allowPrerelease) 
+            if (String.IsNullOrEmpty(version) && !allowPrerelease)
             {
                 // If there's a specific version given, don't bother filtering by prerelease. You could be asking for a prerelease package.
                 packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
@@ -154,7 +154,7 @@ namespace NuGetGallery
                 .Include(x => x.PackageRegistration.Owners)
                 .Where(p => p.Listed);
 
-            return includePrerelease ? packages.Where(p => p.IsLatest) : 
+            return includePrerelease ? packages.Where(p => p.IsLatest) :
                                        packages.Where(p => p.IsLatestStable);
         }
 
@@ -287,16 +287,16 @@ namespace NuGetGallery
 
             var supportedFrameworks = GetSupportedFrameworks(nugetPackage).Select(fn => fn.ToShortNameOrNull()).ToArray();
             if (!supportedFrameworks.AnySafe(sf => sf == null))
-                foreach(var supportedFramework in supportedFrameworks)
-                    package.SupportedFrameworks.Add(new PackageFramework{ TargetFramework = supportedFramework });
+                foreach (var supportedFramework in supportedFrameworks)
+                    package.SupportedFrameworks.Add(new PackageFramework { TargetFramework = supportedFramework });
 
-            foreach(var dependencySet in nugetPackage.DependencySets)
+            foreach (var dependencySet in nugetPackage.DependencySets)
             {
                 if (dependencySet.Dependencies.Count == 0)
                     package.Dependencies.Add(new PackageDependency
                     {
-                        Id = null, 
-                        VersionSpec = null, 
+                        Id = null,
+                        VersionSpec = null,
                         TargetFramework = dependencySet.TargetFramework.ToShortNameOrNull()
                     });
                 else
@@ -358,12 +358,12 @@ namespace NuGetGallery
             {
                 if (dependency.Id != null && dependency.Id.Length > 128)
                 {
-                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", "128"); 
+                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", "128");
                 }
 
                 if (dependency.VersionSpec != null && dependency.VersionSpec.ToString().Length > 256)
                 {
-                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", "256"); 
+                    throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", "256");
                 }
             }
 
@@ -378,12 +378,12 @@ namespace NuGetGallery
                 return;
             }
 
-            // TODO: improve setting the latest bit; this is horrible. Trigger maybe?
-            // NOTE: EF is suprisingly smart about doing this. It doesn't issue queries for the vast majority of packages that did not have either flags changed.
-            foreach (var pv in packageRegistration.Packages)
+            // TODO: improve setting the latest bit; this is horrible. Trigger maybe? 
+            foreach (var pv in packageRegistration.Packages.Where(p => p.IsLatest || p.IsLatestStable))
             {
                 pv.IsLatest = false;
                 pv.IsLatestStable = false;
+                pv.LastUpdated = DateTime.UtcNow;
             }
 
             // If the last listed package was just unlisted, then we won't find another one
