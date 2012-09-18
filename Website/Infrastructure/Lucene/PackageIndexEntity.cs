@@ -5,6 +5,8 @@ namespace NuGetGallery
     {
         public int Key { get; set; }
 
+        public int PackageRegistrationKey { get; set; }
+
         public string Id { get; set; }
 
         public string Title { get; set; }
