@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -156,19 +157,34 @@ namespace NuGetGallery
             _containers[folderName] = container;
         }
 
-        private Uri ConstructRedirectUri(Uri blobUri)
+        protected virtual HttpContextBase GetContext()
         {
-            if (!String.IsNullOrEmpty(_configuration.AzureCdnHost))
-            {
-                // If a Cdn is specified, convert the blob url to an Azure Cdn url.
-                var builder = new UriBuilder(blobUri.Scheme, _configuration.AzureCdnHost);
-                builder.Path = blobUri.AbsolutePath;
-                builder.Query = blobUri.Query;
+            return HttpContext.Current != null ? new HttpContextWrapper(HttpContext.Current) : null;
+        }
 
-                return builder.Uri;
-            }
+        internal ActionResult CreateDownloadFileActionResult(
+            HttpContextBase httpContext,
+            string folderName,
+            string fileName)
+        {
+            var container = GetContainer(folderName);
+            var blob = container.GetBlobReference(fileName);
 
-            return blobUri;
+            var redirectUri = GetRedirectUri(httpContext, blob.Uri);
+            return new RedirectResult(redirectUri.OriginalString, false);
+        }
+
+        internal Uri GetRedirectUri(HttpContextBase httpContext, Uri blobUri)
+        {
+            var requestUrl = httpContext.Request.Url;
+            string host = String.IsNullOrEmpty(configuration.AzureCdnHost) ? blobUri.Host : configuration.AzureCdnHost;
+            var urlBuilder = new UriBuilder(requestUrl.Scheme, host)
+                            {
+                                Path = blobUri.LocalPath,
+                                Query = blobUri.Query
+                            };
+
+            return urlBuilder.Uri;
         }
     }
 }
