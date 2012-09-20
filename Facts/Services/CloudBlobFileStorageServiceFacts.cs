@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
@@ -82,6 +83,7 @@ namespace NuGetGallery
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                var httpContext = GetContext();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 await service.CreateDownloadFileActionResultAsync(folderName, "theFileName");
@@ -105,7 +107,7 @@ namespace NuGetGallery
                 var result = await service.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
-                Assert.Equal("http://theUri", result.Url);
+                Assert.Equal(scheme + "theuri/", result.Url);
             }
         }
 
@@ -515,6 +517,17 @@ namespace NuGetGallery
                 Assert.Equal(Constants.PackageContentType, fakeBlob.Object.Properties.ContentType);
                 fakeBlob.Verify(x => x.SetPropertiesAsync());
             }
+        }
+
+        private static HttpContextBase GetContext(string protocol = "http://")
+        {
+            var httpRequest = new Mock<HttpRequestBase>();
+            httpRequest.SetupGet(r => r.Url).Returns(new Uri(protocol + "nuget.org"));
+
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
+
+            return httpContext.Object;
         }
     }
 }
