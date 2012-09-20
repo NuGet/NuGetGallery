@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Web;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.StorageClient;
 using Moq;
@@ -65,9 +66,10 @@ namespace NuGetGallery
                     });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                var httpContext = GetContext();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.CreateDownloadFileActionResult(folderName, "theFileName");
+                service.CreateDownloadFileActionResult(httpContext, folderName, "theFileName");
 
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
@@ -83,10 +85,30 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = service.CreateDownloadFileActionResult(Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = service.CreateDownloadFileActionResult(GetContext(), Constants.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
-                Assert.Equal("http://theUri", result.Url);
+                Assert.Equal("http://theuri/", result.Url);
+            }
+
+            [Theory]
+            [InlineData("http://")]
+            [InlineData("https://")]
+            public void WillUseTheSameSchemeAsTheIncomingRequest(string scheme)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                var fakeBlob = new Mock<ICloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri("https://theUri"));
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+                var context = GetContext(scheme);
+
+                var result = service.CreateDownloadFileActionResult(context, Constants.PackagesFolderName, "theFileName") as RedirectResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(scheme + "theuri/", result.Url);
             }
         }
 
@@ -391,6 +413,17 @@ namespace NuGetGallery
                 fakeBlobClient = new Mock<ICloudBlobClient>();
             
             return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IConfiguration>());
+        }
+
+        private static HttpContextBase GetContext(string protocol = "http://")
+        {
+            var httpRequest = new Mock<HttpRequestBase>();
+            httpRequest.SetupGet(r => r.Url).Returns(new Uri(protocol + "nuget.org"));
+
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
+
+            return httpContext.Object;
         }
     }
 }
