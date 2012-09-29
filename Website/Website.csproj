@@ -928,6 +928,10 @@
   <ItemGroup>
     <Content Include="DynamicData\web.config" />
     <Content Include="DynamicData\Site.master" />
+    <Content Include="Diagnostics.wadcfg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>

@@ -62,6 +62,14 @@ namespace NuGetGallery
             }
         }
 
+        public bool UseEmulator
+        {
+            get
+            {
+                return String.Equals(ReadAppSettings("UseAzureEmulator"), "true", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
         public string FileStorageDirectory
         {
             get

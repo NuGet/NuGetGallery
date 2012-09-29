@@ -52,3 +52,6 @@ function programfiles-dir {
 function is64bit() {
     return ([IntPtr]::Size -eq 8)
 }
+
+$AzureToolsRoot = "C:\Program Files\Microsoft SDKs\Windows Azure\"
+$UseEmulator = $env:NUGET_USE_EMULATOR -eq $true

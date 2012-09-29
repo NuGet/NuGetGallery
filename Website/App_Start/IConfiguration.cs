@@ -9,6 +9,7 @@ namespace NuGetGallery
         string FileStorageDirectory { get; }
         string AzureCdnHost { get; }
         PackageStoreType PackageStoreType { get; }
+        bool UseEmulator { get; }
 
         string GetSiteRoot(bool useHttps);
     }
