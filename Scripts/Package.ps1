@@ -22,19 +22,21 @@ $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 . $ScriptRoot\_Common.ps1
 
 #Validate Sutff
-require-param -value $azureStorageAccessKey -paramName "azureStorageAccessKey"
-require-param -value $azureStorageAccountName -paramName "azureStorageAccountName"
-require-param -value $azureStorageBlobUrl -paramName "azureStorageBlobUrl"
-require-param -value $remoteDesktopAccountExpiration -paramName "remoteDesktopAccountExpiration"
-require-param -value $remoteDesktopCertificateThumbprint -paramName "remoteDesktopCertificateThumbprint"
-require-param -value $remoteDesktopEnctyptedPassword -paramName "remoteDesktopEnctyptedPassword"
-require-param -value $remoteDesktopUsername -paramName "remoteDesktopUsername"
-require-param -value $sqlAzureConnectionString -paramName "sqlAzureConnectionString"
-require-param -value $sslCertificateThumbprint -paramName "sslCertificateThumbprint"
-require-param -value $validationKey -paramName "validationKey"
-require-param -value $decryptionKey -paramName "decryptionKey"
-require-param -value $vmSize -paramName "vmSize"
-require-param -value $googleAnalyticsPropertyId -paramName "googleAnalyticsPropertyId"
+if(!$UseEmulator) {
+  require-param -value $azureStorageAccessKey -paramName "azureStorageAccessKey"
+  require-param -value $azureStorageAccountName -paramName "azureStorageAccountName"
+  require-param -value $azureStorageBlobUrl -paramName "azureStorageBlobUrl"
+  require-param -value $remoteDesktopAccountExpiration -paramName "remoteDesktopAccountExpiration"
+  require-param -value $remoteDesktopCertificateThumbprint -paramName "remoteDesktopCertificateThumbprint"
+  require-param -value $remoteDesktopEnctyptedPassword -paramName "remoteDesktopEnctyptedPassword"
+  require-param -value $remoteDesktopUsername -paramName "remoteDesktopUsername"
+  require-param -value $sqlAzureConnectionString -paramName "sqlAzureConnectionString"
+  require-param -value $sslCertificateThumbprint -paramName "sslCertificateThumbprint"
+  require-param -value $validationKey -paramName "validationKey"
+  require-param -value $decryptionKey -paramName "decryptionKey"
+  require-param -value $vmSize -paramName "vmSize"
+  require-param -value $googleAnalyticsPropertyId -paramName "googleAnalyticsPropertyId"
+}
 
 #Helper Functions
 function set-certificatethumbprint {
@@ -87,6 +89,70 @@ function set-vmsize {
     $vmSize.vmsize = $size.ToString()
     $resolvedPath = resolve-path($path) 
     $xml.save($resolvedPath)
+}
+
+function set-instancecount {
+    param($path, $count)
+    $xml = [xml](get-content $path)
+    $instances = $xml.ServiceConfiguration.Role.Instances
+    $instances.count = $count.ToString()
+    $resolvedPath = resolve-path($path) 
+    $xml.save($resolvedPath)
+}
+
+function remove-ssl {
+  param($path)
+  "Removing Azure SSL Settings..."
+  $xml = [xml](get-content $path)
+  $bindings = $xml.ServiceDefinition.WebRole.Sites.Site.Bindings
+  $sslBinding = $xml.ServiceDefinition.WebRole.Sites.Site.Bindings.Binding | where {$_.name -eq "SSLBinding"}
+  $bindings.RemoveChild($sslBinding) | Out-Null
+  $endpoints = $xml.ServiceDefinition.WebRole.Endpoints
+  $sslEndpoint = $xml.ServiceDefinition.WebRole.Endpoints.InputEndpoint | where {$_.name -eq "SSL"}
+  $endpoints.RemoveChild($sslEndpoint) | Out-Null
+  $resolvedPath = resolve-path($path) 
+  $xml.save($resolvedPath)
+}
+
+function remove-setting {
+  param($path, $name)
+  "Removing Azure Setting $name..."
+  $xml = [xml](get-content $path)
+  $settings = $xml.ServiceConfiguration.Role.ConfigurationSettings
+  $toRemove = $settings.Setting | where {$_.name -eq $name}
+  $settings.RemoveChild($toRemove) | Out-Null
+  $resolvedPath = resolve-path($path) 
+  $xml.save($resolvedPath)
+}
+
+function remove-certificates {
+  param($path)
+  "Removing Azure Certificates..."
+  $xml = [xml](get-content $path)
+  $settings = $xml.ServiceConfiguration.Role.Certificates
+  $settings.RemoveAll() | Out-Null
+  $resolvedPath = resolve-path($path) 
+  $xml.save($resolvedPath)
+}
+
+function remove-azmodule {
+  param($path, $name)
+  "Removing Azure Module $name..."
+  $xml = [xml](get-content $path)
+  $modules = $xml.ServiceDefinition.WebRole.Imports
+  $toRemove = $modules.Import | where {$_.moduleName -eq $name}
+  $modules.RemoveChild($toRemove) | Out-Null
+  $resolvedPath = resolve-path($path) 
+  $xml.save($resolvedPath)
+}
+
+function remove-startuptask {
+  param($path)
+  "Removing Startup Task..."
+  $xml = [xml](get-content $path)
+  $xml.ServiceDefinition.WebRole.Startup.RemoveAll()
+  $resolvedPath = resolve-path($path) 
+  $xml.save($resolvedPath)
 }
 
 function set-releasemode {
@@ -150,32 +216,53 @@ cp $webConfigPath $webConfigBakPath
 cp $csdefPath $csdefBakPath
 cp $cscfgPath $cscfgBakPath
 
-set-vmsize -path $csdefPath -size $vmSize
-set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" -value $remoteDesktopAccountExpiration
-set-certificatethumbprint -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" -value $remoteDesktopCertificateThumbprint
-set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" -value $remoteDesktopEnctyptedPassword
-set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" -value $remoteDesktopUsername
-set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
-set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
+if(!$UseEmulator) {
+  set-vmsize -path $csdefPath -size $vmSize
+  set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" -value $remoteDesktopAccountExpiration
+  set-certificatethumbprint -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" -value $remoteDesktopCertificateThumbprint
+  set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" -value $remoteDesktopEnctyptedPassword
+  set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" -value $remoteDesktopUsername
+  set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
+  set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
+} else {
+  remove-startuptask -path $csdefPath
+  remove-ssl -path $csdefPath
+  remove-azmodule -path $csdefPath -name "RemoteAccess"
+  remove-azmodule -path $csdefPath -name "RemoteForwarder"
+  remove-setting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled"
+  remove-setting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled"
+  remove-setting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration"
+  remove-certificates -path $cscfgPath
+  remove-setting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword"
+  remove-setting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername"
+  set-instancecount -path $cscfgPath -count 1
+}
 set-releasemode $webConfigPath
 set-machinekey $webConfigPath
 
 #Release Tag stuff
 print-message("Setting the release tags")
-set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccessKey" -value $azureStorageAccessKey
-set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccountName" -value $azureStorageAccountName
-set-appsetting -path $webConfigPath -name "Gallery:AzureStorageBlobUrl" -value $azureStorageBlobUrl
-set-appsetting -path $webConfigPath -name "Gallery:AzureCdnHost" -value $azureCdnHost
-set-appsetting -path $webConfigPath -name "Gallery:GoogleAnalyticsPropertyId" -value $googleAnalyticsPropertyId
-set-appsetting -path $webConfigPath -name "Gallery:PackageStoreType" -value "AzureStorageBlob"
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value $commitBranch
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha
-set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+if(!$UseEmulator) {
+  set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccessKey" -value $azureStorageAccessKey
+  set-appsetting -path $webConfigPath -name "Gallery:AzureStorageAccountName" -value $azureStorageAccountName
+  set-appsetting -path $webConfigPath -name "Gallery:AzureStorageBlobUrl" -value $azureStorageBlobUrl
+  set-appsetting -path $webConfigPath -name "Gallery:AzureCdnHost" -value $azureCdnHost
+  set-appsetting -path $webConfigPath -name "Gallery:GoogleAnalyticsPropertyId" -value $googleAnalyticsPropertyId
+  set-appsetting -path $webConfigPath -name "Gallery:PackageStoreType" -value "AzureStorageBlob"
+  set-appsetting -path $webConfigPath -name "Gallery:ReleaseBranch" -value $commitBranch
+  set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
+  set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha
+  set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+}
 
 cp $compressionCmdScriptsPath $compressionCmdBinPath
 
-& 'C:\Program Files\Windows Azure SDK\v1.6\bin\cspack.exe' "$csdefPath" /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath"
+$copyOnlySwitch = ""
+if($UseEmulator) {
+  $copyOnlySwitch = "/copyOnly"
+}
+
+& "$AzureToolsRoot\.NET SDK\2012-06\bin\cspack.exe" "$csdefPath" /useCtpPackageFormat /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath" $copyOnlySwitch
 if ($lastexitcode -ne 0) { exit 1 }
 
 cp $cscfgPath $cspkgFolder

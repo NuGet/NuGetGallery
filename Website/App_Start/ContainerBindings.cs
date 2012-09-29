@@ -148,7 +148,9 @@ namespace NuGetGallery
                     Bind<ICloudBlobClient>()
                         .ToMethod(context => new CloudBlobClientWrapper(new CloudBlobClient(
                             new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
-                            new StorageCredentialsAccountAndKey(configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
+                            configuration.UseEmulator ?
+                                CloudStorageAccount.DevelopmentStorageAccount.Credentials :
+                                new StorageCredentialsAccountAndKey(configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
                         .InSingletonScope();
                     Bind<IFileStorageService>()
                         .To<CloudBlobFileStorageService>()

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition">
+<ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2012-05.1.7">
   <WebRole name="Website" vmsize="Medium">
     <Startup>
       <Task commandLine="EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
@@ -16,6 +16,9 @@
       <InputEndpoint name="Non-SSL" protocol="http" port="80" />
       <InputEndpoint name="SSL" protocol="https" port="443" certificate="nuget.org" />
     </Endpoints>
+    <LocalResources>
+      <LocalStorage name="IISLogs" sizeInMB="1024" cleanOnRoleRecycle="false" />
+    </LocalResources>
     <Imports>
       <Import moduleName="Diagnostics" />
       <Import moduleName="RemoteAccess" />
