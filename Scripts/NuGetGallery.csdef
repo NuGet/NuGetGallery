@@ -17,7 +17,7 @@
       <InputEndpoint name="SSL" protocol="https" port="443" certificate="nuget.org" />
     </Endpoints>
     <LocalResources>
-      <LocalStorage name="IISLogs" sizeInMB="1024" cleanOnRoleRecycle="false" />
+      <LocalStorage name="IISLogs" sizeInMB="128" cleanOnRoleRecycle="false" />
     </LocalResources>
     <Imports>
       <Import moduleName="Diagnostics" />

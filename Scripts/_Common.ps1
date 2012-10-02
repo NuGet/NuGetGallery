@@ -54,4 +54,4 @@ function is64bit() {
 }
 
 $AzureToolsRoot = "C:\Program Files\Microsoft SDKs\Windows Azure\"
-$UseEmulator = $env:NUGET_USE_EMULATOR -eq $true
+$UseEmulator = $env:NUGET_GALLERY_USE_EMULATOR -eq $true
