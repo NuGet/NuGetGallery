@@ -253,6 +253,8 @@ if(!$UseEmulator) {
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+  set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+  set-appsetting -path $webConfigPath -name "Gallery:UseAzureEmulator" -value "false"
 }
 
 cp $compressionCmdScriptsPath $compressionCmdBinPath
