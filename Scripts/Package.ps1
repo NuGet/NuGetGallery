@@ -13,6 +13,8 @@
   $decryptionKey                      = $env:NUGET_GALLERY_DECRYPTION_KEY,
   $vmSize                             = $env:NUGET_GALLERY_AZURE_VM_SIZE,
   $googleAnalyticsPropertyId          = $env:NUGET_GALLERY_GOOGLE_ANALYTICS_PROPERTY_ID,
+  $azureDiagStorageAccessKey          = $env:NUGET_GALLERY_AZURE_DIAG_STORAGE_ACCESS_KEY,
+  $azureDiagStorageAccountName        = $env:NUGET_GALLERY_AZURE_DIAG_STORAGE_ACCOUNT_NAME,
   $commitSha,
   $commitBranch
 )
@@ -25,6 +27,8 @@ $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 if(!$UseEmulator) {
   require-param -value $azureStorageAccessKey -paramName "azureStorageAccessKey"
   require-param -value $azureStorageAccountName -paramName "azureStorageAccountName"
+  #require-param -value $azureDiagStorageAccessKey -paramName "azureDiagStorageAccessKey"
+  #require-param -value $azureDiagStorageAccountName -paramName "azureDiagStorageAccountName"
   require-param -value $azureStorageBlobUrl -paramName "azureStorageBlobUrl"
   require-param -value $remoteDesktopAccountExpiration -paramName "remoteDesktopAccountExpiration"
   require-param -value $remoteDesktopCertificateThumbprint -paramName "remoteDesktopCertificateThumbprint"
@@ -208,9 +212,10 @@ if ($commitBranch -eq $null) {
     $commitBranch = (& "$gitPath" name-rev --name-only HEAD)
 }
 
-if ((test-path $cspkgFolder) -eq $false) {
-  mkdir $cspkgFolder | out-null
+if(Test-Path $cspkgFolder) {
+  del $cspkgFolder -Force -Recurse
 }
+mkdir $cspkgFolder | out-null
 
 cp $webConfigPath $webConfigBakPath
 cp $csdefPath $csdefBakPath
@@ -222,6 +227,9 @@ if(!$UseEmulator) {
   set-certificatethumbprint -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" -value $remoteDesktopCertificateThumbprint
   set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" -value $remoteDesktopEnctyptedPassword
   set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" -value $remoteDesktopUsername
+  if(![String]::IsNullOrEmpty($azureDiagStorageAccountName)) {
+    set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" -value "DefaultEndpointsProtocol=https;AccountName=$azureDiagStorageAccountName;AccountKey=$azureDiagStorageAccessKey"
+  }
   set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
   set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
 } else {
@@ -253,6 +261,8 @@ if(!$UseEmulator) {
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseName" -value "NuGet 1.6 'Hershey'"
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseSha" -value $commitSha
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+  set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+  set-appsetting -path $webConfigPath -name "Gallery:UseAzureEmulator" -value "false"
 }
 
 cp $compressionCmdScriptsPath $compressionCmdBinPath
