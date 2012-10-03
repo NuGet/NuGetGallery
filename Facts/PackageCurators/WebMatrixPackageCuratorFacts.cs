@@ -162,6 +162,42 @@ namespace NuGetGallery.PackageCurators
             }
 
             [Fact]
+            public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsNotIncluded()
+            {
+                var curator = new TestableWebMatrixPackageCurator();
+                var stubGalleryPackage = CreateStubGalleryPackage();
+                stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "NotACuratedPackage" });
+
+                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object);
+
+                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
+            public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsExcludedInTheFeed()
+            {
+                var curator = new TestableWebMatrixPackageCurator();
+                curator.StubCuratedFeed.Packages.Add(new CuratedPackage { AutomaticallyCurated = false, Included = false, PackageRegistration = new PackageRegistration { Id = "ManuallyExcludedPackage" } });
+
+                var stubGalleryPackage = CreateStubGalleryPackage();
+                stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "ManuallyExcludedPackage" });
+
+                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object);
+
+                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
             public void WillIncludeThePackageWhenThereIsNotPowerShellOrT4File()
             {
                 var curator = new TestableWebMatrixPackageCurator();
