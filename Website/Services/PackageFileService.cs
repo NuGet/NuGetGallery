@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -57,7 +58,6 @@ namespace NuGetGallery
                 packageFile);
         }
 
-
         public Stream DownloadPackageFile(Package package)
         {
             var fileName = BuildFileName(package);
@@ -67,13 +67,19 @@ namespace NuGetGallery
                 fileName);
         }
 
+        public Task<Stream> DownloadPackageFileAsync(Package package)
+        {
+            var fileName = BuildFileName(package);
+            return fileStorageSvc.GetFileAsync(Constants.PackagesFolderName, fileName);
+        }
+
         private static string BuildFileName(string id, string version)
         {
             return String.Format(
-                CultureInfo.InvariantCulture, 
-                Constants.PackageFileSavePathTemplate, 
-                id, 
-                version, 
+                CultureInfo.InvariantCulture,
+                Constants.PackageFileSavePathTemplate,
+                id,
+                version,
                 Constants.NuGetPackageFileExtension);
         }
 

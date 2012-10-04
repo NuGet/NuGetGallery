@@ -40,20 +40,20 @@ namespace NuGetGallery
                 .To<LuceneSearchService>()
                 .InRequestScope();
 
-			if (RoleEnvironment.IsAvailable)
-			{
-				// when running on Windows Azure, use the Azure Cache service
-				Bind<ICacheService>()
-					.To<CloudCacheService>()
-					.InSingletonScope();
-			}
-			else
-			{
-				// when running locally on dev box, use the built-in ASP.NET Http Cache
-				Bind<ICacheService>()
-					.To<HttpCacheService>()
-					.InSingletonScope();
-			}
+            if (RoleEnvironment.IsAvailable)
+            {
+                // when running on Windows Azure, use the Azure Cache service
+                Bind<ICacheService>()
+                    .To<CloudCacheService>()
+                    .InSingletonScope();
+            }
+            else
+            {
+                // when running locally on dev box, use the built-in ASP.NET Http Cache
+                Bind<ICacheService>()
+                    .To<HttpCacheService>()
+                    .InSingletonScope();
+            }
 
             Bind<IEntitiesContext>()
                 .ToMethod(context => new EntitiesContext())

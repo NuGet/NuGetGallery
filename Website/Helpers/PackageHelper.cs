@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using NuGet;
 
 namespace NuGetGallery.Helpers
@@ -11,7 +12,7 @@ namespace NuGetGallery.Helpers
 		/// Look for the IPackage instance in the cache first. If it's in the cache, return it.
 		/// Otherwise, download the package from the storage service and store it into the cache.
 		/// </summary>
-		public static IPackage GetPackageFromCacheOrDownloadIt(
+		public static async Task<IPackage> GetPackageFromCacheOrDownloadIt(
 			Package package,			
 			ICacheService cacheService, 
 			IPackageFileService packageFileService)
@@ -24,7 +25,7 @@ namespace NuGetGallery.Helpers
 			var buffer = cacheService.GetItem(cacheKey) as byte[];
 			if (buffer == null)
 			{
-				using (Stream stream = packageFileService.DownloadPackageFile(package))
+				using (Stream stream = await packageFileService.DownloadPackageFileAsync(package))
 				{
 					if (stream == null)
 					{

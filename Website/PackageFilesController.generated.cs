@@ -31,21 +31,6 @@ namespace NuGetGallery.Controllers {
             return RedirectToRoute(callInfo.RouteValueDictionary);
         }
 
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult Contents() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.Contents);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult ShowFileContent() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.ShowFileContent);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult DownloadFileContent() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.DownloadFileContent);
-        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public PackageFilesController Actions { get { return MVC.PackageFiles; } }
@@ -59,9 +44,6 @@ namespace NuGetGallery.Controllers {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string Contents = "Contents";
-            public readonly string ShowFileContent = "View";
-            public readonly string DownloadFileContent = "Download";
         }
 
 
@@ -78,29 +60,6 @@ namespace NuGetGallery.Controllers {
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_PackageFilesController: NuGetGallery.Controllers.PackageFilesController {
         public T4MVC_PackageFilesController() : base(Dummy.Instance) { }
-
-        public override System.Web.Mvc.ActionResult Contents(string id, string version) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Contents);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult ShowFileContent(string id, string version, string filePath) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ShowFileContent);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
-            callInfo.RouteValueDictionary.Add("filePath", filePath);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult DownloadFileContent(string id, string version, string filePath) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DownloadFileContent);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
-            callInfo.RouteValueDictionary.Add("filePath", filePath);
-            return callInfo;
-        }
 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
@@ -11,6 +12,8 @@ namespace NuGetGallery
 
         void DeleteIfExists();
         void DownloadToStream(Stream target);
+        Task DownloadToStreamAsync(Stream target);
+
         bool Exists();
         void SetProperties();
         void UploadFromStream(Stream packageFile);
