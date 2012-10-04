@@ -8,6 +8,7 @@ using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+using NuGetGallery.ViewModels.PackagePart;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -22,6 +23,7 @@ namespace NuGetGallery
         private readonly IMessageService _messageService;
         private readonly INuGetExeDownloaderService _nugetExeDownloaderSvc;
         private readonly IPackageService _packageSvc;
+        private readonly IPackageFileService packageFileSvc;
         private readonly ISearchService _searchSvc;
         private readonly IUploadFileService _uploadFileSvc;
         private readonly IUserService _userSvc;
@@ -33,15 +35,17 @@ namespace NuGetGallery
             IMessageService messageService,
             ISearchService searchSvc,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
-            INuGetExeDownloaderService nugetExeDownloaderSvc)
+            INuGetExeDownloaderService nugetExeDownloaderSvc,
+            IPackageFileService packageFileSvc)
         {
-            _packageSvc = packageSvc;
-            _uploadFileSvc = uploadFileSvc;
-            _userSvc = userSvc;
-            _messageService = messageService;
-            _searchSvc = searchSvc;
-            _autoCuratedPackageCmd = autoCuratedPackageCmd;
-            _nugetExeDownloaderSvc = nugetExeDownloaderSvc;
+            this.packageSvc = packageSvc;
+            this.uploadFileSvc = uploadFileSvc;
+            this.userSvc = userSvc;
+            this.messageService = messageService;
+            this.searchSvc = searchSvc;
+            this.autoCuratedPackageCmd = autoCuratedPackageCmd;
+            this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
+            this.packageFileSvc = packageFileSvc;
         }
 
         [Authorize]
@@ -253,12 +257,35 @@ namespace NuGetGallery
             }
 
             var model = new ContactOwnersViewModel
-                {
-                    PackageId = package.Id,
-                    Owners = package.Owners.Where(u => u.EmailAllowed)
-                };
+            {
+                PackageId = package.Id,
+                Owners = package.Owners.Where(u => u.EmailAllowed)
+            };
 
             return View(model);
+        }
+
+        public virtual ActionResult Contents(string id, string version)
+        {
+            Package package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            using (Stream packageStream = packageFileSvc.DownloadPackageFile(package))
+            {
+                if (packageStream == null)
+                {
+                    return PackageNotFound(id, version);
+                }
+
+                var zipPackage = new ZipPackage(packageStream);
+                PackageItem rootFolder = PathToTreeConverter.Convert(zipPackage.GetFiles().ToList());
+
+                var viewModel = new PackageContentsViewModel(zipPackage, rootFolder);
+                return View(viewModel);
+            }
         }
 
         [HttpPost]
