@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -124,6 +125,13 @@ namespace NuGetGallery
             {
                 packageFile.CopyTo(file);
             }
+        }
+
+        public Task<Stream> GetFileAsync(string folderName, string fileName)
+        {
+            // TODO: Implement proper async read file
+            Stream stream = GetFile(folderName, fileName);
+            return TaskEx.FromResult(stream);
         }
     }
 }

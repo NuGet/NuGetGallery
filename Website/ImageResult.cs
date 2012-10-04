@@ -10,10 +10,15 @@ namespace NuGetGallery
 	{
 		public ImageResult(Stream imageStream, string contentType)
 		{
-			if (imageStream == null)
-				throw new ArgumentNullException("imageStream");
-			if (contentType == null)
-				throw new ArgumentNullException("contentType");
+            if (imageStream == null)
+            {
+                throw new ArgumentNullException("imageStream");
+            }
+
+            if (contentType == null)
+            {
+                throw new ArgumentNullException("contentType");
+            }
 
 			this.ImageStream = imageStream;
 			this.ContentType = contentType;
@@ -24,8 +29,10 @@ namespace NuGetGallery
 
 		public override void ExecuteResult(ControllerContext context)
 		{
-			if (context == null)
-				throw new ArgumentNullException("context");
+            if (context == null)
+            {
+                throw new ArgumentNullException("context");
+            }
 
 			HttpResponseBase response = context.HttpContext.Response;
 
@@ -35,8 +42,10 @@ namespace NuGetGallery
 			while (true)
 			{
 				int read = this.ImageStream.Read(buffer, 0, buffer.Length);
-				if (read == 0)
-					break;
+                if (read == 0)
+                {
+                    break;
+                }
 
 				response.OutputStream.Write(buffer, 0, read);
 			}

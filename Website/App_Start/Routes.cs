@@ -60,17 +60,17 @@ namespace NuGetGallery
                 null /*defaults*/,
                 new { version = new VersionRouteConstraint() });
 
-			routes.MapRoute(
-				RouteName.PackageFileContentsAction,
-				"packages/{id}/{version}/Contents",
-				new { controller = MVC.PackageFiles.Name, action = "Contents" },
-				new { version = new VersionRouteConstraint() });
+            routes.MapRoute(
+                RouteName.PackageFileContentsAction,
+                "packages/{id}/{version}/Contents",
+                new { controller = MVC.PackageFiles.Name, action = "Contents" },
+                new { version = new VersionRouteConstraint() });
 
-			routes.MapRoute(
-				RouteName.PackageFilePathAction,
-				"packagefiles/{id}/{version}/{action}",
-				new { controller = MVC.PackageFiles.Name },
-				new { version = new VersionRouteConstraint() });
+            routes.MapRoute(
+                RouteName.PackageFilePathAction,
+                "packagefiles/{id}/{version}/{action}",
+                new { controller = MVC.PackageFiles.Name },
+                new { version = new VersionRouteConstraint() });
 
             var packageVersionActionRoute = routes.MapRoute(
                 RouteName.PackageVersionAction,
@@ -152,7 +152,7 @@ namespace NuGetGallery
                 "api/v1/verifykey/{id}/{version}",
                 MVC.Api.VerifyPackageKey(),
                 defaults: new { id = UrlParameter.Optional, version = UrlParameter.Optional });
-            
+
             var downloadRoute = routes.MapRoute(
                 "v1" + RouteName.DownloadPackage,
                 "api/v1/package/{id}/{version}",
@@ -193,7 +193,7 @@ namespace NuGetGallery
                 MVC.Api.GetPackage(),
                 defaults: new { version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
-            
+
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
                 "api/v2/package/{id}/{version}",
@@ -223,14 +223,14 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
-	            "v2PackageIds",
-	            "api/v2/package-ids",
-	            MVC.Api.GetPackageIds());
+                "v2PackageIds",
+                "api/v2/package-ids",
+                MVC.Api.GetPackageIds());
 
             routes.MapRoute(
-	            "v2PackageVersions",
-	            "api/v2/package-versions/{id}",
-	            MVC.Api.GetPackageVersions());
+                "v2PackageVersions",
+                "api/v2/package-versions/{id}",
+                MVC.Api.GetPackageVersions());
 
             routes.MapServiceRoute(
                 RouteName.V2ApiCuratedFeed,

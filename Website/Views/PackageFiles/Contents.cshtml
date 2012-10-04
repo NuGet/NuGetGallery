@@ -209,9 +209,14 @@
                 e.preventDefault();
 
                 var filePath = this.attributes['data-path'].value;
+
+                if (filePath == $('#fileName').text()) {
+                    // already showing this file, return
+                    return;
+                }
                 
-                var viewUrl = '@Url.Action(MVC.PackageFiles.ShowFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + '?filePath=' + filePath;
-                var downloadUrl = '@Url.Action(MVC.PackageFiles.DownloadFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + '?filePath=' + filePath;
+                var viewUrl = '@Url.ViewPackageFile(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString())' + '?filePath=' + filePath;
+                var downloadUrl = '@Url.DownloadPackageFile(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString())' + '?filePath=' + filePath;
 
                 $('#downloadFileLink').attr('href', downloadUrl);
                 $('#fileContentContainer').show();
@@ -226,7 +231,6 @@
                     $('#fileImageBorder').hide();
                     $('#fileContentArea').show();
                     $('#fileContentArea').text('Loading...');
-
                     
                     var errorMessage = '*** An error occurred while loading this file\'s contents. ***';
                     $.ajax(viewUrl,

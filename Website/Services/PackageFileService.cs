@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -22,15 +23,15 @@ namespace NuGetGallery
 
         public void DeletePackageFile(string id, string version)
         {
-			if (String.IsNullOrWhiteSpace(id))
-			{
-				throw new ArgumentNullException("id");
-			}
+            if (String.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException("id");
+            }
 
-			if (String.IsNullOrWhiteSpace(version))
-			{
-				throw new ArgumentNullException("version");
-			}
+            if (String.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException("version");
+            }
 
             var fileName = BuildFileName(id, version);
             fileStorageSvc.DeleteFile(Constants.PackagesFolderName, fileName);
@@ -38,15 +39,14 @@ namespace NuGetGallery
 
         public void SavePackageFile(Package package, Stream packageFile)
         {
-			if (packageFile == null)
-			{
-				throw new ArgumentNullException("packageFile");
-			}
+            if (packageFile == null)
+            {
+                throw new ArgumentNullException("packageFile");
+            }
 
             var fileName = BuildFileName(package);
             fileStorageSvc.SaveFile(Constants.PackagesFolderName, fileName, packageFile);
         }
-
 
         public Stream DownloadPackageFile(Package package)
         {
@@ -54,14 +54,20 @@ namespace NuGetGallery
             return fileStorageSvc.GetFile(Constants.PackagesFolderName, fileName);
         }
 
+        public Task<Stream> DownloadPackageFileAsync(Package package)
+        {
+            var fileName = BuildFileName(package);
+            return fileStorageSvc.GetFileAsync(Constants.PackagesFolderName, fileName);
+        }
+
         private static string BuildFileName(string id, string version)
         {
             return String.Format(
-				CultureInfo.InvariantCulture, 
-				Constants.PackageFileSavePathTemplate, 
-				id, 
-				version, 
-				Constants.NuGetPackageFileExtension);
+                CultureInfo.InvariantCulture,
+                Constants.PackageFileSavePathTemplate,
+                id,
+                version,
+                Constants.NuGetPackageFileExtension);
         }
 
         private static string BuildFileName(Package package)

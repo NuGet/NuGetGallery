@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.StorageClient;
 
@@ -72,12 +73,16 @@ namespace NuGetGallery
             }
         }
 
-        public Stream GetFile(
-            string folderName,
-            string fileName)
+        public Stream GetFile(string folderName, string fileName)
+        {
+            return GetFileAsync(folderName, fileName).Result;
+        }
+
+        public async Task<Stream> GetFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
+
             if (String.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentNullException("fileName");
 
@@ -86,7 +91,7 @@ namespace NuGetGallery
             var stream = new MemoryStream();
             try
             {
-                blob.DownloadToStream(stream);
+                await blob.DownloadToStreamAsync(stream);
             }
             catch (TestableStorageClientException ex)
             {
