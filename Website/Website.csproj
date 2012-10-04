@@ -260,6 +260,7 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
+    <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="Infrastructure\HintAttribute.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
@@ -457,7 +458,10 @@
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
+    <Compile Include="ViewModels\PackageContentsViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
+    <Compile Include="ViewModels\PackagePart\PackageItem.cs" />
+    <Compile Include="ViewModels\PackagePart\PathToTreeConverter.cs" />
     <Compile Include="ViewModels\ResendConfirmationEmailViewModel.cs" />
     <Compile Include="App_Start\AuthenticationModule.cs" />
     <Compile Include="App_Start\AppActivator.cs" />
@@ -766,8 +770,25 @@
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
     <Content Include="Content\Images\managePackages.png" />
+    <Content Include="Content\Images\treeview\ajax-loader.gif" />
+    <Content Include="Content\Images\treeview\file.gif" />
+    <Content Include="Content\Images\treeview\folder-closed.gif" />
+    <Content Include="Content\Images\treeview\folder.gif" />
+    <Content Include="Content\Images\treeview\minus.gif" />
+    <Content Include="Content\Images\treeview\plus.gif" />
+    <Content Include="Content\Images\treeview\treeview-black-line.gif" />
+    <Content Include="Content\Images\treeview\treeview-black.gif" />
+    <Content Include="Content\Images\treeview\treeview-default-line.gif" />
+    <Content Include="Content\Images\treeview\treeview-default.gif" />
+    <Content Include="Content\Images\treeview\treeview-famfamfam-line.gif" />
+    <Content Include="Content\Images\treeview\treeview-famfamfam.gif" />
+    <Content Include="Content\Images\treeview\treeview-gray-line.gif" />
+    <Content Include="Content\Images\treeview\treeview-gray.gif" />
+    <Content Include="Content\Images\treeview\treeview-red-line.gif" />
+    <Content Include="Content\Images\treeview\treeview-red.gif" />
     <Content Include="Content\Images\uploadPackage.png" />
     <Content Include="Content\Images\YourPackage.png" />
+    <Content Include="Content\jquery.treeview.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\Images\download.png" />
     <Content Include="Content\Images\editIcon.png" />
@@ -842,6 +863,7 @@
     <Content Include="favicon.ico" />
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
+    <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
@@ -939,6 +961,7 @@
     <None Include="T4MVC.tt.settings.t4" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
     <Content Include="Web.ForbiddenHandlers.config" />
+    <Content Include="Views\Packages\Contents.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />

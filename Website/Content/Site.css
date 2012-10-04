@@ -780,7 +780,35 @@ header.main {
             height: 50px;
             width: 50px;
         }
-            
+
+    /* Package Contents page */
+    #metadata {
+        float: left;
+        width: 60%;
+        margin-bottom: 50px;
+    }
+
+        #metadata > h3 {
+            margin-bottom: 15px;
+        }
+
+        #metadata toplabel {
+            vertical-align: top;
+        }
+
+    #contents {
+        float: right;
+        width: 35%;
+        margin-bottom: 50px;
+    }
+
+        #contents > h3 {
+            margin-bottom: 15px;
+        }
+
+    img.packageicon {
+        vertical-align: top;
+    }
             
     /* Pager */
     ul.pager {

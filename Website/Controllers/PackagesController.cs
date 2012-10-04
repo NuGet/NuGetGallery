@@ -8,6 +8,7 @@ using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+using NuGetGallery.ViewModels.PackagePart;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -20,6 +21,7 @@ namespace NuGetGallery
 
         private readonly IPackageService packageSvc;
         private readonly IUploadFileService uploadFileSvc;
+        private readonly IPackageFileService packageFileSvc;
         private readonly IUserService userSvc;
         private readonly IMessageService messageService;
         private readonly ISearchService searchSvc;
@@ -33,7 +35,8 @@ namespace NuGetGallery
             IMessageService messageService,
             ISearchService searchSvc,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
-            INuGetExeDownloaderService nugetExeDownloaderSvc)
+            INuGetExeDownloaderService nugetExeDownloaderSvc,
+            IPackageFileService packageFileSvc)
         {
             this.packageSvc = packageSvc;
             this.uploadFileSvc = uploadFileSvc;
@@ -42,6 +45,7 @@ namespace NuGetGallery
             this.searchSvc = searchSvc;
             this.autoCuratedPackageCmd = autoCuratedPackageCmd;
             this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
+            this.packageFileSvc = packageFileSvc;
         }
 
         [Authorize]
@@ -246,6 +250,29 @@ namespace NuGetGallery
             };
 
             return View(model);
+        }
+
+        public virtual ActionResult Contents(string id, string version)
+        {
+            Package package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            using (Stream packageStream = packageFileSvc.DownloadPackageFile(package))
+            {
+                if (packageStream == null)
+                {
+                    return PackageNotFound(id, version);
+                }
+
+                var zipPackage = new ZipPackage(packageStream);
+                PackageItem rootFolder = PathToTreeConverter.Convert(zipPackage.GetFiles().ToList());
+
+                var viewModel = new PackageContentsViewModel(zipPackage, rootFolder);
+                return View(viewModel);
+            }
         }
 
         [HttpPost, Authorize, ValidateAntiForgeryToken]

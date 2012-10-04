@@ -87,6 +87,11 @@ namespace NuGetGallery
             return url.Action(MVC.Packages.Delete(package.Id, package.Version));
         }
 
+        public static string ViewContents(this UrlHelper url, IPackageVersionModel package)
+        {
+            return url.Action(MVC.Packages.Contents(package.Id, package.Version));
+        }
+
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)
         {
             return url.Action(MVC.Packages.ManagePackageOwners(package.Id, package.Version));
