@@ -1,0 +1,181 @@
+﻿@model PackageContentsViewModel
+
+@using NuGetGallery.Helpers
+
+@{
+    ViewBag.Title = "Package Contents of " + Model.PackageMetadata.Id + " " + Model.PackageMetadata.Version; 
+}
+
+@section TopScripts
+{
+    <link rel="stylesheet" href="@Url.Content("~/Content/jquery.treeview.css")" />
+    <script src="@Url.Content("~/Scripts/jquery.treeview.js")"></script>
+}
+
+<hgroup class="page-heading">
+    <img class="packageicon" src="@(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" alt="@Model.PackageMetadata.Id icon" onerror="this.src='@Links.Content.Images.packageDefaultIcon_50x50_png';" />
+    <h1>@Model.PackageMetadata.Id</h1>
+    <h2>@Model.PackageMetadata.Version</h2>
+</hgroup>
+
+<div id="metadata">
+    <h3>Metadata</h3>
+    <table>
+        <tbody>
+            <tr>
+                <td><strong>Id:</strong></td>
+                <td>@Model.PackageMetadata.Id</td>
+            </tr>
+
+            <tr>
+                <td><strong>Version:</strong></td>
+                <td>@Model.PackageMetadata.Version</td>
+            </tr>
+
+            @if (!Model.PackageMetadata.Title.IsEmpty())
+            {
+                <tr>
+                    <td><strong>Title:</strong></td>
+                    <td>@Model.PackageMetadata.Title</td>
+                </tr>
+            }
+
+            <tr>
+                <td><strong>Authors:</strong></td>
+                <td>@Model.FlattenedAuthors</td>
+            </tr>
+
+            @if (!Model.FlattenedOwners.IsEmpty())
+            {
+                <tr>
+                    <td><strong>Owners:</strong></td>
+                    <td>@Model.FlattenedOwners</td>
+                </tr>
+            }
+
+            @if (!Model.PackageMetadata.Tags.IsEmpty())
+            {
+                <tr>
+                    <td><strong>Tags:</strong></td>
+                    <td>@Model.PackageMetadata.Tags</td>
+                </tr>
+            }
+
+            @if (!Model.PackageMetadata.Language.IsEmpty())
+            {
+                <tr>
+                    <td><strong>Language:</strong></td>
+                    <td>@Model.PackageMetadata.Language</td>
+                </tr>
+            }
+
+            <tr>
+                <td colspan="2"><strong>Requires License Acceptance: </strong><span>@(Model.PackageMetadata.RequireLicenseAcceptance ? "Yes" : "No")</span></td>
+            </tr>
+
+            @if (Model.PackageMetadata.LicenseUrl != null)
+            {
+                <tr>
+                    <td colspan="2"><a href="@Model.PackageMetadata.LicenseUrl" target="_blank">View License Terms</a></td>
+                </tr>
+            }
+
+            @if (Model.PackageMetadata.ProjectUrl != null)
+            {
+                <tr>
+                    <td colspan="2"><a href="@Model.PackageMetadata.ProjectUrl" target="_blank">Package Information</a></td>
+                </tr>
+            }
+
+            @if (!Model.PackageMetadata.Copyright.IsEmpty())
+            {
+                <tr>
+                    <td><strong>Copyright:</strong></td>
+                    <td>@Model.PackageMetadata.Copyright</td>
+                </tr>
+            }
+
+            @if (!Model.PackageMetadata.Summary.IsEmpty())
+            {
+                <tr>
+                    <td><strong>Summary:</strong></td>
+                    <td><p>@Model.PackageMetadata.Summary</p></td>
+                </tr>
+            }
+
+            <tr>
+                <td><strong>Description:</strong></td>
+                <td><p>@Model.PackageMetadata.Description</p></td>
+            </tr>
+
+            @if (!Model.PackageMetadata.ReleaseNotes.IsEmpty())
+            {
+                <tr>
+                    <td class="toplabel"><strong>Release notes:</strong></td>
+                    <td><p>@Model.PackageMetadata.ReleaseNotes</p></td>
+                </tr>
+            }
+
+            @if (Model.PackageMetadata.DependencySets.Any())
+            {
+                <tr>
+                    <td><strong>Dependencies:</strong></td>
+                    <td>
+                        <ul>
+                            @foreach (var dependencySet in Model.PackageMetadata.DependencySets)
+                            {
+                                <li>
+                                    <div>@(dependencySet.TargetFramework == null ? "(not framework specific)" : dependencySet.TargetFramework.ToString())</div>
+                                    @if (dependencySet.Dependencies.Any())
+                                    {
+                                        <ul>
+                                        @foreach (var dependency in dependencySet.Dependencies)
+                                        {
+                                            <li>@dependency.ToString()</li>
+                                        }
+                                        </ul>
+                                    }
+                                </li>                          
+                            }
+                        </ul>
+                    </td>
+                </tr>
+            }
+
+            @if (Model.FrameworkAssemblies.Count > 0)
+            {
+                <tr>
+                    <td colspan="2"><strong>Framework Assembly References:</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        @foreach (var assembly in Model.FrameworkAssemblies)
+                        {
+                            <div>@assembly</div>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+
+<div id="contents">
+    <h3>Contents</h3>
+
+    <ul id="packageView" class="filetree treeview-black">
+        @Html.TreeView(Model.RootFolder.Children).EmptyContent("This package doesn't contain any file.").Children(p => p.Children).ItemTemplate(
+            @<text><span class="@(item.IsFile ? "file" : "folder")">@item.Name</span></text>
+        )
+    </ul>
+</div>
+
+@section BottomScripts
+{
+    <script type="text/javascript">
+        $(function () {
+            $('#packageView').treeview({ collapsed: true });
+        });
+    </script>
+}
