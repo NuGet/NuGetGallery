@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.Filters;
@@ -9,118 +10,160 @@ using NuGetGallery.ViewModels.PackagePart;
 
 namespace NuGetGallery.Controllers
 {
-	public partial class PackageFilesController : Controller
+    public partial class PackageFilesController : AsyncController
     {
-		private const long MaximumAllowedPackageFileSize = 3L * 1024 * 1024;		// maximum package size = 3MB
+        private const long MaximumAllowedPackageFileSize = 3L * 1024 * 1024;		// maximum package size = 3MB
 
-		private readonly IPackageService packageSvc;
-		private readonly IPackageFileService packageFileSvc;
-		private readonly ICacheService cacheSvc;
+        private readonly IPackageService packageSvc;
+        private readonly IPackageFileService packageFileSvc;
+        private readonly ICacheService cacheSvc;
 
-		public PackageFilesController(IPackageService packageSvc, IPackageFileService packageFileSvc, ICacheService cacheSvc)
-		{
-			this.packageSvc = packageSvc;
-			this.packageFileSvc = packageFileSvc;
-			this.cacheSvc = cacheSvc;
-		}
+        public PackageFilesController(IPackageService packageSvc, IPackageFileService packageFileSvc, ICacheService cacheSvc)
+        {
+            this.packageSvc = packageSvc;
+            this.packageFileSvc = packageFileSvc;
+            this.cacheSvc = cacheSvc;
+        }
 
-		public virtual ActionResult Contents(string id, string version)
-		{
-			Package package = packageSvc.FindPackageByIdAndVersion(id, version);
-			if (package == null)
-			{
-				return HttpNotFound();
-			}
+        public void ContentsAsync(string id, string version)
+        {
+            Package package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                AsyncManager.Parameters["packageFile"] = null;
+                return;
+            }
 
-			if (package.PackageFileSize > MaximumAllowedPackageFileSize)
-			{
-				return View("PackageTooBig");
-			}
+            if (package.PackageFileSize > MaximumAllowedPackageFileSize)
+            {
+                AsyncManager.Parameters["fileTooBig"] = true;
+                return;
+            }
 
-			IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
-			PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
+            AsyncManager.OutstandingOperations.Increment();
+            Task<IPackage> downloadTask = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
+            downloadTask.ContinueWith(
+                task =>
+                {
+                    if (!task.IsFaulted && !task.IsCanceled)
+                    {
+                        AsyncManager.Parameters["packageFile"] = task.Result;
+                    }
 
-			var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
-			return View(viewModel);
-		}
+                    AsyncManager.OutstandingOperations.Decrement();
+                });
+        }
 
-		[ActionName("View")]
+        public ActionResult ContentsCompleted(bool fileTooBig, IPackage packageFile)
+        {
+            if (fileTooBig)
+            {
+                return View("PackageTooBig");
+            }
+
+            if (packageFile == null)
+            {
+                return HttpNotFound();
+            }
+
+            PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
+            var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
+            return View(viewModel);
+        }
+
+        [ActionName("View")]
         [CompressFilter]
         [CacheFilter(Duration = 60 * 60 * 24)]      // cache one day
-		public virtual ActionResult ShowFileContent(string id, string version, string filePath)
-		{
-			IPackageFile file;
-			if (!TryGetPackageFile(id, version, filePath, out file))
-			{
-				return HttpNotFound();
-			}
+        public void ShowFileContentAsync(string id, string version, string filePath)
+        {
+            AsyncManager.OutstandingOperations.Increment();
+            TryGetPackageFile(id, version, filePath).ContinueWith(
+                task =>
+                {
+                    if (!task.IsFaulted && !task.IsCanceled)
+                    {
+                        AsyncManager.Parameters["packageFile"] = task.Result;
+                    }
 
-			// treat image files specially
-			if (FileHelper.IsImageFile(file.Path))
-			{
-				return new ImageResult(file.GetStream(), FileHelper.GetMimeType(file.Path));
-			}
+                    AsyncManager.OutstandingOperations.Decrement();
+                });
+        }
 
-			var result = new ContentResult
-			{
-				ContentEncoding = System.Text.Encoding.UTF8,
-				ContentType = "text/plain"
-			};
-			
-			if (FileHelper.IsBinaryFile(file.Path))
-			{
-				result.Content = "The requested file is a binary file.";
-			}
-			else
-			{
-				using (var reader = new StreamReader(file.GetStream()))
-				{
-					result.Content = reader.ReadToEnd();
-				}
-			}
+        public ActionResult ShowFileContentCompleted(IPackageFile packageFile)
+        {
+            if (packageFile == null)
+            {
+                return HttpNotFound();
+            }
 
-			return result;
-		}
+            // treat image files specially
+            if (FileHelper.IsImageFile(packageFile.Path))
+            {
+                return new ImageResult(packageFile.GetStream(), FileHelper.GetImageMimeType(packageFile.Path));
+            }
 
-		[ActionName("Download")]
-		public virtual ActionResult DownloadFileContent(string id, string version, string filePath)
-		{
-			IPackageFile file;
-			if (!TryGetPackageFile(id, version, filePath, out file))
-			{
-				return HttpNotFound();
-			}
+            var result = new ContentResult
+            {
+                ContentEncoding = System.Text.Encoding.UTF8,
+                ContentType = "text/plain"
+            };
 
-			return File(file.GetStream(), "application/octet-stream", Path.GetFileName(file.Path));
-		}
+            if (FileHelper.IsBinaryFile(packageFile.Path))
+            {
+                result.Content = "The requested file is a binary file.";
+            }
+            else
+            {
+                using (var stream = packageFile.GetStream())
+                {
+                    result.Content = FileHelper.ReadTextTruncated(stream, maxLength: 8 * 1024);     // read maximum 8K
+                }
+            }
 
-		private bool TryGetPackageFile(string id, string version, string filePath, out IPackageFile packageFile)
-		{
-			packageFile = null;
+            return result;
+        }
 
-			if (String.IsNullOrEmpty(filePath))
-			{
-				return false;
-			}
+        [ActionName("Download")]
+        public void DownloadFileContentAsync(string id, string version, string filePath)
+        {
+            AsyncManager.OutstandingOperations.Increment();
+            TryGetPackageFile(id, version, filePath).ContinueWith(
+                task =>
+                {
+                    if (!task.IsFaulted && !task.IsCanceled)
+                    {
+                        AsyncManager.Parameters["packageFile"] = task.Result;
+                    }
 
-			Package package = packageSvc.FindPackageByIdAndVersion(id, version);
-			if (package == null || package.PackageFileSize > MaximumAllowedPackageFileSize)
-			{
-				return false;
-			}
+                    AsyncManager.OutstandingOperations.Decrement();
+                });
+        }
 
-			filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
+        public ActionResult DownloadFileContentCompleted(IPackageFile packageFile)
+        {
+            return File(packageFile.GetStream(), "application/octet-stream", Path.GetFileName(packageFile.Path));
+        }
 
-			IPackage packageWithContents = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
+        private async Task<IPackageFile> TryGetPackageFile(string id, string version, string filePath)
+        {
+            if (String.IsNullOrEmpty(filePath))
+            {
+                return null;
+            }
 
-			packageFile = packageWithContents.GetFiles()
-											 .FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
-			if (packageFile == null)
-			{
-				return false;
-			}
+            Package package = packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null || package.PackageFileSize > MaximumAllowedPackageFileSize)
+            {
+                return null;
+            }
 
-			return true;
-		}
+            filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
+
+            IPackage packageWithContents = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
+
+            IPackageFile packageFile = packageWithContents.GetFiles()
+                                                          .FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+            return packageFile;
+        }
     }
 }

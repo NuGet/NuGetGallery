@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.StorageClient;
 
@@ -52,6 +53,25 @@ namespace NuGetGallery
             return blob.Exists();
         }
 
+        ICloudBlobContainer GetContainer(string folderName)
+        {
+            return containers[folderName];
+        }
+
+        static string GetContentType(string folderName)
+        {
+            switch (folderName)
+            {
+                case Constants.PackagesFolderName:
+                case Constants.UploadsFolderName:
+                    return Constants.PackageContentType;
+                case Constants.DownloadsFolderName:
+                    return Constants.OctetStreamContentType;
+                default:
+                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+            }
+        }
+
         public Stream GetFile(
             string folderName,
             string fileName)
@@ -70,7 +90,7 @@ namespace NuGetGallery
             var stream = new MemoryStream();
             try
             {
-                blob.DownloadToStream(stream);
+                await blob.DownloadToStreamAsync(stream);
             }
             catch (TestableStorageClientException ex)
             {

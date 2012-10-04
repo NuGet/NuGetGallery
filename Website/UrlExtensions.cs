@@ -104,9 +104,19 @@ namespace NuGetGallery
             return url.Action(MVC.Packages.Delete(package.Id, package.Version));
         }
 
-        public static string ViewContents(this UrlHelper url, IPackageVersionModel package)
+        public static string ViewPackageContents(this UrlHelper url, IPackageVersionModel package)
         {
-            return url.Action(MVC.PackageFiles.Contents(package.Id, package.Version));
+            return url.RouteUrl(RouteName.PackageFileContentsAction, new { id = package.Id, version = package.Version });
+        }
+
+        public static string ViewPackageFile(this UrlHelper url, string id, string version)
+        {
+            return url.RouteUrl(RouteName.PackageFilePathAction, new { id = id, version = version, action="View" });
+        }
+
+        public static string DownloadPackageFile(this UrlHelper url, string id, string version)
+        {
+            return url.RouteUrl(RouteName.PackageFilePathAction, new { id = id, version = version, action = "Download" });
         }
 
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)

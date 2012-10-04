@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.StorageClient;
 
 namespace NuGetGallery
@@ -33,6 +34,18 @@ namespace NuGetGallery
             try
             {
                 _blob.DownloadToStream(target);
+            }
+            catch (StorageClientException ex)
+            {
+                throw new TestableStorageClientException(ex);
+            }
+        }
+
+        public Task DownloadToStreamAsync(Stream target)
+        {
+            try
+            {
+                return Task.Factory.FromAsync(blob.BeginDownloadToStream(target, null, null), blob.EndDownloadToStream);
             }
             catch (StorageClientException ex)
             {

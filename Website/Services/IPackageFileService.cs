@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet;
 
@@ -25,5 +26,10 @@ namespace NuGetGallery
         ///     Downloads the package from the file storage and reads it into a Stream.
         /// </summary>
         Stream DownloadPackageFile(Package package);
+
+        /// <summary>
+        /// Downloads the package from the file storage and reads it into a Stream asynchronously.
+        /// </summary>
+        Task<Stream> DownloadPackageFileAsync(Package packge);
     }
 }
