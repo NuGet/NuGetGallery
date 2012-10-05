@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.ViewModels.PackagePart;
+using NuGetGallery.Helpers;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -26,6 +28,7 @@ namespace NuGetGallery
         private readonly IPackageService _packageSvc;
         private readonly IPackageFileService _packageFileSvc;
         private readonly ISearchService _searchSvc;
+        private readonly ICacheService _cacheSvc;
         private readonly IUploadFileService _uploadFileSvc;
         private readonly IUserService _userSvc;
 
@@ -35,6 +38,7 @@ namespace NuGetGallery
             IUserService userSvc,
             IMessageService messageService,
             ISearchService searchSvc,
+            ICacheService cacheSvc,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
             INuGetExeDownloaderService nugetExeDownloaderSvc,
             IConfiguration config,
@@ -45,6 +49,7 @@ namespace NuGetGallery
             _userSvc = userSvc;
             _messageService = messageService;
             _searchSvc = searchSvc;
+            _cacheSvc = cacheSvc;
             _autoCuratedPackageCmd = autoCuratedPackageCmd;
             _nugetExeDownloaderSvc = nugetExeDownloaderSvc;
             _config = config;
@@ -277,19 +282,51 @@ namespace NuGetGallery
                 return PackageNotFound(id, version);
             }
 
-            using (Stream packageStream = _packageFileSvc.DownloadPackageFile(package))
+            IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc);
+            PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
+
+            var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
+            return View(viewModel);
+        }
+
+        [ActionName("file")]
+        public virtual ActionResult FileContent(string id, string version, string filePath)
+        {
+            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
             {
-                if (packageStream == null)
-                {
-                    return PackageNotFound(id, version);
-                }
-
-                var zipPackage = new ZipPackage(packageStream);
-                PackageItem rootFolder = PathToTreeConverter.Convert(zipPackage.GetFiles().ToList());
-
-                var viewModel = new PackageContentsViewModel(zipPackage, rootFolder);
-                return View(viewModel);
+                return PackageNotFound(id, version);
             }
+
+            filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
+
+            IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc);
+
+            IPackageFile file = packageFile.GetFiles().FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+            if (file == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            var result = new ContentResult
+            {
+                ContentEncoding = System.Text.Encoding.UTF8,
+                ContentType = "text/plain"
+            };
+
+            if (FileHelper.IsBinaryFile(file.Path))
+            {
+                result.Content = "The requested file is a binary file.";
+            }
+            else
+            {
+                using (var reader = new StreamReader(file.GetStream()))
+                {
+                    result.Content = reader.ReadToEnd();
+                }
+            }
+
+            return result;
         }
 
         [HttpPost]

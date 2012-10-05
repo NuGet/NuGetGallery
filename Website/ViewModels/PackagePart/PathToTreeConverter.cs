@@ -7,37 +7,36 @@ namespace NuGetGallery.ViewModels.PackagePart
 {
     internal static class PathToTreeConverter
     {
-        public static PackageItem Convert(List<IPackageFile> paths)
+        public static PackageItem Convert(IEnumerable<IPackageFile> files)
         {
-            if (paths == null)
+            if (files == null)
             {
-                throw new ArgumentNullException("paths");
+                throw new ArgumentNullException("files");
             }
 
+			List<IPackageFile> paths = files.ToList();
             paths.Sort((p1, p2) => String.Compare(p1.Path, p2.Path, StringComparison.OrdinalIgnoreCase));
 
             var root = new PackageItem("");
 
-            List<Tuple<IPackageFile, string[]>> parsedPaths =
-                paths.Select(p => Tuple.Create(p, p.Path.Split('/', '\\'))).ToList();
+            List<string[]> parsedPaths = paths.Select(p => p.Path.Split('/', '\\')).ToList();
             Parse(root, parsedPaths, 0, 0, parsedPaths.Count);
 
             return root;
         }
 
-        private static void Parse(PackageItem root, List<Tuple<IPackageFile, string[]>> parsedPaths, int level,
-                                  int start, int end)
+        private static void Parse(PackageItem root, List<string[]> parsedPaths, int level, int start, int end)
         {
             int i = start;
             while (i < end)
             { 
-                string s = parsedPaths[i].Item2[level];
+                string s = parsedPaths[i][level];
 
-                if (parsedPaths[i].Item2.Length == level + 1)
+                if (parsedPaths[i].Length == level + 1)
                 {
                     // it's a file
                     // Starting from nuget 2.0, they use a dummy file with the name "_._" to represent
-                    // an empty folder. Therefore, we just ignore it. 
+                    // an empty folder. We just ignore it. 
                     if (!s.Equals("_._", StringComparison.OrdinalIgnoreCase))
                     {
                         root.Children.Add(new PackageItem(s, root, isFile: true));
@@ -49,8 +48,8 @@ namespace NuGetGallery.ViewModels.PackagePart
                     // it's a folder
                     int j = i;
                     while (j < end &&
-                           level < parsedPaths[j].Item2.Length &&
-                           parsedPaths[j].Item2[level].Equals(s, StringComparison.OrdinalIgnoreCase))
+                           level < parsedPaths[j].Length &&
+                           parsedPaths[j][level].Equals(s, StringComparison.OrdinalIgnoreCase))
                     {
                         j++;
                     }

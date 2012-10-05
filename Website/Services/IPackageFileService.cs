@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Web.Mvc;
+using NuGet;
 
 namespace NuGetGallery
 {

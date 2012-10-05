@@ -19,6 +19,7 @@
         public const string UploadPackage = "UploadPackage";
         public const string ManagePackageOwners = "ManagePackageOwners";
         public const string PackageVersionAction = "PackageVersionAction";
+        public const string PackageFileContentAction = "PackageFileContentAction";
         public const string PackageOwnerConfirmation = "PackageOwnerConfirmation";
         public const string PackageAction = "PackageAction";
         public const string PushPackageApi = "PushPackageApi";

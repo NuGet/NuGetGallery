@@ -9,8 +9,7 @@ namespace NuGetGallery
     {
         private readonly IFileStorageService _fileStorageSvc;
 
-        public PackageFileService(
-            IFileStorageService fileStorageSvc)
+        public PackageFileService(IFileStorageService fileStorageSvc)
         {
             _fileStorageSvc = fileStorageSvc;
         }
@@ -24,9 +23,7 @@ namespace NuGetGallery
                 fileName);
         }
 
-        public void DeletePackageFile(
-            string id,
-            string version)
+        public void DeletePackageFile(string id, string version)
         {
             if (String.IsNullOrWhiteSpace(id))
             {
@@ -45,9 +42,7 @@ namespace NuGetGallery
                 fileName);
         }
 
-        public void SavePackageFile(
-            Package package,
-            Stream packageFile)
+        public void SavePackageFile(Package package, Stream packageFile)
         {
             if (packageFile == null)
             {
@@ -72,12 +67,14 @@ namespace NuGetGallery
                 fileName);
         }
 
-        private static string BuildFileName(
-            string id,
-            string version)
+        private static string BuildFileName(string id, string version)
         {
             return String.Format(
-                CultureInfo.InvariantCulture, Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
+                CultureInfo.InvariantCulture, 
+                Constants.PackageFileSavePathTemplate, 
+                id, 
+                version, 
+                Constants.NuGetPackageFileExtension);
         }
 
         private static string BuildFileName(Package package)
@@ -86,6 +83,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("package");
             }
+
             if (package.PackageRegistration == null
                 || String.IsNullOrWhiteSpace(package.PackageRegistration.Id)
                 || String.IsNullOrWhiteSpace(package.Version))

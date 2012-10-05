@@ -58,6 +58,11 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult FileContent() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.FileContent);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult ManagePackageOwners() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ManagePackageOwners);
         }
@@ -95,6 +100,7 @@ namespace NuGetGallery {
             public readonly string ReportAbuse = "ReportAbuse";
             public readonly string ContactOwners = "ContactOwners";
             public readonly string Contents = "Contents";
+            public readonly string FileContent = "file";
             public readonly string Download = "Download";
             public readonly string ManagePackageOwners = "ManagePackageOwners";
             public readonly string Delete = "Delete";
@@ -183,6 +189,14 @@ namespace NuGetGallery {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Contents);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult FileContent(string id, string version, string filePath) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.FileContent);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            callInfo.RouteValueDictionary.Add("filePath", filePath);
             return callInfo;
         }
 
