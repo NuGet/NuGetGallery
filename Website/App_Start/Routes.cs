@@ -66,6 +66,12 @@ namespace NuGetGallery
                 new { controller = MVC.Packages.Name },
                 new { version = new VersionRouteConstraint() });
 
+			routes.MapRoute(
+				RouteName.PackageFileContentAction,
+				"packages/{id}/{version}/file/{*filePath}",
+				new { controller = MVC.Packages.Name, action = "file" },
+				new { version = new VersionRouteConstraint() });
+
             var packageActionRoute = routes.MapRoute(
                 RouteName.PackageAction,
                 "packages/{id}/{action}",
