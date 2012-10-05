@@ -9,8 +9,7 @@ namespace NuGetGallery
     {
         private readonly IFileStorageService fileStorageSvc;
 
-        public PackageFileService(
-            IFileStorageService fileStorageSvc)
+        public PackageFileService(IFileStorageService fileStorageSvc)
         {
             this.fileStorageSvc = fileStorageSvc;
         }
@@ -18,60 +17,52 @@ namespace NuGetGallery
         public ActionResult CreateDownloadPackageActionResult(Package package)
         {
             var fileName = BuildFileName(package);
-
-            return fileStorageSvc.CreateDownloadFileActionResult(
-                Constants.PackagesFolderName,
-                fileName);
+            return fileStorageSvc.CreateDownloadFileActionResult(Constants.PackagesFolderName, fileName);
         }
 
-        public void DeletePackageFile(
-            string id,
-            string version)
+        public void DeletePackageFile(string id, string version)
         {
-            if (String.IsNullOrWhiteSpace(id))
-                throw new ArgumentNullException("id");
-            if (String.IsNullOrWhiteSpace(version))
-                throw new ArgumentNullException("version");
+			if (String.IsNullOrWhiteSpace(id))
+			{
+				throw new ArgumentNullException("id");
+			}
+
+			if (String.IsNullOrWhiteSpace(version))
+			{
+				throw new ArgumentNullException("version");
+			}
 
             var fileName = BuildFileName(id, version);
-
-            fileStorageSvc.DeleteFile(
-                Constants.PackagesFolderName,
-                fileName);
+            fileStorageSvc.DeleteFile(Constants.PackagesFolderName, fileName);
         }
 
-        public void SavePackageFile(
-            Package package,
-            Stream packageFile)
+        public void SavePackageFile(Package package, Stream packageFile)
         {
-            if (packageFile == null)
-                throw new ArgumentNullException("packageFile");
+			if (packageFile == null)
+			{
+				throw new ArgumentNullException("packageFile");
+			}
 
             var fileName = BuildFileName(package);
-
-            fileStorageSvc.SaveFile(
-                Constants.PackagesFolderName,
-                fileName,
-                packageFile);
+            fileStorageSvc.SaveFile(Constants.PackagesFolderName, fileName, packageFile);
         }
 
 
         public Stream DownloadPackageFile(Package package)
         {
             var fileName = BuildFileName(package);
-
-            return fileStorageSvc.GetFile(
-                Constants.PackagesFolderName,
-                fileName);
+            return fileStorageSvc.GetFile(Constants.PackagesFolderName, fileName);
         }
 
-        private static string BuildFileName(
-            string id,
-            string version)
+        private static string BuildFileName(string id, string version)
         {
-            return String.Format(CultureInfo.InvariantCulture, Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
+            return String.Format(
+				CultureInfo.InvariantCulture, 
+				Constants.PackageFileSavePathTemplate, 
+				id, 
+				version, 
+				Constants.NuGetPackageFileExtension);
         }
-
 
         private static string BuildFileName(Package package)
         {
@@ -79,6 +70,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("package");
             }
+
             if (package.PackageRegistration == null
                 || String.IsNullOrWhiteSpace(package.PackageRegistration.Id)
                 || String.IsNullOrWhiteSpace(package.Version))

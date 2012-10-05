@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Web.Mvc;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -19,7 +20,7 @@ namespace NuGetGallery
         /// Saves the contents of the package represented by the stream into the file storage.
         /// </summary>
         void SavePackageFile(Package package, Stream packageFile);
-        
+
         /// <summary>
         /// Downloads the package from the file storage and reads it into a Stream.
         /// </summary>

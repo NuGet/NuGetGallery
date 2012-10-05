@@ -37,6 +37,10 @@ namespace NuGetGallery
                 .To<LuceneSearchService>()
                 .InRequestScope();
 
+			Bind<ICacheService>()
+				.To<HttpCacheService>()
+				.InSingletonScope();
+
             Bind<IEntitiesContext>()
                 .ToMethod(context => new EntitiesContext())
                 .InRequestScope();

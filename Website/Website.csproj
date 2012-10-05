@@ -260,6 +260,7 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
+    <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="Infrastructure\HintAttribute.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
@@ -403,6 +404,7 @@
     <Compile Include="PackageCurators\TagBasedPackageCurator.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCurator.cs" />
     <Compile Include="PackageCurators\Windows8PackageCurator.cs" />
+    <Compile Include="Helpers\PackageHelper.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -419,11 +421,14 @@
     <Compile Include="Queries\UserByUsernameQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
+    <Compile Include="Services\HttpCacheService.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
+    <Compile Include="Services\CloudCacheService.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
+    <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\ICloudBlob.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
