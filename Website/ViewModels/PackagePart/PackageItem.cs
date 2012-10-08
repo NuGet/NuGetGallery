@@ -31,7 +31,7 @@ namespace NuGetGallery.ViewModels.PackagePart
 
 			if (parent != null)
 			{
-				Path = parent == null ? Name : (parent.Path + '\\' + name);
+				Path = String.IsNullOrEmpty(parent.Path) ? Name : (parent.Path + '\\' + name);
 			}
             Children = new SortedSet<PackageItem>();
         }
