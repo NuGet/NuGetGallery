@@ -34,6 +34,7 @@ public static class MVC
     public static CuratedFeedsController CuratedFeeds = new T4MVC_CuratedFeedsController();
     public static CuratedPackagesController CuratedPackages = new T4MVC_CuratedPackagesController();
     public static JsonApiController JsonApi = new T4MVC_JsonApiController();
+    public static NuGetGallery.Controllers.PackageFilesController PackageFiles = new NuGetGallery.Controllers.T4MVC_PackageFilesController();
     public static PackagesController Packages = new T4MVC_PackagesController();
     public static PagesController Pages = new T4MVC_PagesController();
     public static UsersController Users = new T4MVC_UsersController();

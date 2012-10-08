@@ -825,7 +825,7 @@ section.package .side img {
 
 #metadata > h3 { margin-bottom: 15px; }
 
-#metadata toplabel { vertical-align: top; }
+#metadata .toplabel { vertical-align: top; }
 
 #contents {
     float: right;
@@ -836,6 +836,19 @@ section.package .side img {
 #contents > h3 { margin-bottom: 15px; }
 
 img.packageicon { vertical-align: top; }
+
+#fileContentContainer {
+    clear: both;
+    display: none;
+}
+
+#fileContentArea
+{
+    width: 100%;
+    margin: 10px 10px 10px 10px;
+    height: 300px;
+    background-color: lightgray;
+}
 
     /* Pager */
 
@@ -887,12 +900,11 @@ ul.pager li.next { padding-left: 10px; }
 .sexy-table tbody tr:hover { background-color: #f4f5f6; }
 
 .sexy-table tbody tr.recommended { font-weight: 800; }
-        
-        
+
 .sexy-table tbody td { padding: 5px 25px 5px 0; }
 
 .sexy-table tbody td.actions { padding: 2px 5px; }
-        
+
         /* footer */
 
 .sexy-table tfoot {
