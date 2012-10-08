@@ -50,7 +50,7 @@ namespace NuGetGallery.Controllers
 				ContentEncoding = System.Text.Encoding.UTF8,
 				ContentType = "text/plain"
 			};
-
+			
 			if (FileHelper.IsBinaryFile(file.Path))
 			{
 				result.Content = "The requested file is a binary file.";
@@ -75,11 +75,10 @@ namespace NuGetGallery.Controllers
 				return HttpNotFound();
 			}
 
-			var result = new ContentResult
+			if (FileHelper.IsImageFile(file.Path))
 			{
-				ContentEncoding = System.Text.Encoding.UTF8,
-				ContentType = "text/plain"
-			};
+				return new ImageResult(file.GetStream(), FileHelper.GetMimeType(file.Path));
+			}
 
 			return File(file.GetStream(), "application/octet-stream", Path.GetFileName(file.Path));
 		}

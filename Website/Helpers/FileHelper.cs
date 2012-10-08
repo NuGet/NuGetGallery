@@ -17,10 +17,42 @@ namespace NuGetGallery.Helpers
                                                                     ".VSIX", ".NUPKG", ".SNK", ".PFX", ".ICO"
                                                                 };
 
+		private static readonly string[] ImageFileExtensions = new[]
+                                                                {
+                                                                    ".PNG", ".GIF", ".JPG"
+                                                                };
+
 		public static bool IsBinaryFile(string path)
 		{
 			string extension = Path.GetExtension(path).ToUpper(CultureInfo.InvariantCulture);
 			return String.IsNullOrEmpty(extension) || BinaryFileExtensions.Any(p => p.Equals(extension));
+		}
+
+		public static bool IsImageFile(string path)
+		{
+			string extension = Path.GetExtension(path).ToUpper(CultureInfo.InvariantCulture);
+			return String.IsNullOrEmpty(extension) || ImageFileExtensions.Any(p => p.Equals(extension));
+		}
+
+		internal static string GetMimeType(string filePath)
+		{
+			string extension = Path.GetExtension(filePath).ToLowerInvariant();
+			if (extension.Equals(".png"))
+			{
+				return "image/png";
+			}
+
+			if (extension.Equals(".jpg"))
+			{
+				return "image/jpeg";
+			}
+
+			if (extension.Equals(".gif"))
+			{
+				return "image/gif";
+			}
+
+			return "image";
 		}
 	}
 }
