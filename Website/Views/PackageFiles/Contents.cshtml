@@ -182,7 +182,7 @@
 
 <div id="fileContentContainer">
     <div>
-        <strong><span id="fileName" /></strong>
+        <strong><span id="fileName"></span></strong>
         <a id="downloadFileLink">Download this file</a>
     </div>
     <textarea id="fileContentArea" contenteditable="false"></textarea>
@@ -200,14 +200,14 @@
 
                 var filePath = this.attributes['data-path'].value;
                 
-                var downloadUrl = '@Url.Action(MVC.PackageFiles.DownloadFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + filePath;
+                var downloadUrl = '@Url.Action(MVC.PackageFiles.DownloadFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + '?filePath=' + filePath;
                 $('#downloadFileLink').attr('href', downloadUrl);
 
                 $('#fileName').text(filePath);
                 $('#fileContentContainer').show();
                 $('#fileContentArea').text('Loading...');
 
-                var viewUrl = '@Url.Action(MVC.PackageFiles.ShowFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + filePath;
+                var viewUrl = '@Url.Action(MVC.PackageFiles.ShowFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + '?filePath=' + filePath;
                 var errorMessage = '*** An error occurred while loading this file\'s contents.';
                 $.ajax(viewUrl,
                     {
