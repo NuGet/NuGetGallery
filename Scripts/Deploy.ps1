@@ -106,5 +106,5 @@ if(!$UseEmulator) {
     move-deployment -subscriptionId $subscriptionId -serviceName $serviceName -certificate $certificate -name $deploymentName
 } else {
     "Starting Emulator"
-    & "$AzureToolsRoot\Emulator\CSRun.exe" "/run:$cspkgFile;$cscfgFile" /launchbrowser /devfabric /devstore /status /useiisexpress
+    & "$AzureToolsRoot\Emulator\CSRun.exe" "/run:$cspkgFile;$cscfgFile" /launchbrowser /devfabric /devstore /status
 }

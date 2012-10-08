@@ -27,8 +27,8 @@ $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 if(!$UseEmulator) {
   require-param -value $azureStorageAccessKey -paramName "azureStorageAccessKey"
   require-param -value $azureStorageAccountName -paramName "azureStorageAccountName"
-  #require-param -value $azureDiagStorageAccessKey -paramName "azureDiagStorageAccessKey"
-  #require-param -value $azureDiagStorageAccountName -paramName "azureDiagStorageAccountName"
+  require-param -value $azureDiagStorageAccessKey -paramName "azureDiagStorageAccessKey"
+  require-param -value $azureDiagStorageAccountName -paramName "azureDiagStorageAccountName"
   require-param -value $azureStorageBlobUrl -paramName "azureStorageBlobUrl"
   require-param -value $remoteDesktopAccountExpiration -paramName "remoteDesktopAccountExpiration"
   require-param -value $remoteDesktopCertificateThumbprint -paramName "remoteDesktopCertificateThumbprint"
@@ -151,10 +151,12 @@ function remove-azmodule {
 }
 
 function remove-startuptask {
-  param($path)
-  "Removing Startup Task..."
+  param($path, $commandLine)
+  "Removing Startup Task $commandLine..."
   $xml = [xml](get-content $path)
-  $xml.ServiceDefinition.WebRole.Startup.RemoveAll()
+  $startup = $xml.ServiceDefinition.WebRole.Startup
+  $task = $startup.Task | where {$_.commandLine -eq $commandLine}
+  $startup.RemoveChild($task) | Out-Null
   $resolvedPath = resolve-path($path) 
   $xml.save($resolvedPath)
 }
@@ -197,9 +199,10 @@ $csdefBakPath = join-path $scriptPath "NuGetGallery.csdef.bak"
 $cscfgPath = join-path $scriptPath "NuGetGallery.cscfg"
 $cscfgBakPath = join-path $scriptPath "NuGetGallery.cscfg.bak"
 $gitPath = (get-command git)
-$compressionCmdScriptsPath = join-path $scriptPath "EnableDynamicHttpCompression.cmd"
 $binPath = join-path $websitePath "bin"
-$compressionCmdBinPath = join-path $binPath "EnableDynamicHttpCompression.cmd"
+
+# Startup Scripts
+$startupScripts = @("EnableDynamicHttpCompression.cmd", "ConfigureIISLogging.cmd")
 
 if ($commitSha -eq $null) {
     $commitSha = (& "$gitPath" rev-parse HEAD)
@@ -233,7 +236,7 @@ if(!$UseEmulator) {
   set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
   set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
 } else {
-  remove-startuptask -path $csdefPath
+  remove-startuptask -path $csdefPath -commandLine "EnableDynamicHttpCompression.cmd"
   remove-ssl -path $csdefPath
   remove-azmodule -path $csdefPath -name "RemoteAccess"
   remove-azmodule -path $csdefPath -name "RemoteForwarder"
@@ -265,7 +268,9 @@ if(!$UseEmulator) {
   set-appsetting -path $webConfigPath -name "Gallery:UseAzureEmulator" -value "false"
 }
 
-cp $compressionCmdScriptsPath $compressionCmdBinPath
+$startupScripts | ForEach-Object {
+  cp (Join-Path $scriptPath $_) (Join-Path $binPath $_)
+}
 
 $copyOnlySwitch = ""
 if($UseEmulator) {
@@ -273,14 +278,19 @@ if($UseEmulator) {
 }
 
 & "$AzureToolsRoot\.NET SDK\2012-06\bin\cspack.exe" "$csdefPath" /useCtpPackageFormat /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath" $copyOnlySwitch
-if ($lastexitcode -ne 0) { exit 1 }
+if ($lastexitcode -ne 0) {
+  throw "CSPack Failed with Exit Code: $lastexitcode"
+  exit 1 
+}
 
 cp $cscfgPath $cspkgFolder
 
 cp $webConfigBakPath $webConfigPath
 cp $csdefBakPath $csdefPath
 cp $cscfgBakPath $cscfgPath
-rm $compressionCmdBinPath
+$startupScripts | ForEach-Object {
+  rm (Join-Path $binPath $_)
+}
 
 $packageDateTime = (Get-Date -format "MMMdd @ HHmm")
 print-success("Azure $env:NUGET_GALLERY_ENV package and configuration dropped to $cspkgFolder.")

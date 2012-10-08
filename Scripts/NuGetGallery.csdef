@@ -3,6 +3,8 @@
   <WebRole name="Website" vmsize="Medium">
     <Startup>
       <Task commandLine="EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
+      <!-- Configure IIS Logging as a background task, since it will likely need to wait for the IIS site to be created -->
+      <Task commandLine="ConfigureIISLogging.cmd" executionContext="elevated" taskType="background" />
     </Startup>
     <Sites>
       <Site name="Web">
