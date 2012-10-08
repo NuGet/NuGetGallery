@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -9,8 +8,8 @@ using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
-using NuGetGallery.ViewModels.PackagePart;
 using NuGetGallery.Helpers;
+using NuGetGallery.ViewModels.PackagePart;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -618,12 +617,12 @@ namespace NuGetGallery
         private SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)
         {
             var searchFilter = new SearchFilter
-                {
-                    SearchTerm = q,
-                    Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
-                    Take = Constants.DefaultPackageListPageSize,
-                    IncludePrerelease = includePrerelease
-                };
+            {
+                SearchTerm = q,
+                Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
+                Take = Constants.DefaultPackageListPageSize,
+                IncludePrerelease = includePrerelease
+            };
 
             switch (sortOrder)
             {
@@ -642,6 +641,20 @@ namespace NuGetGallery
                     break;
             }
             return searchFilter;
+        }
+
+        private static string GetSortExpression(string sortOrder)
+        {
+            switch (sortOrder)
+            {
+                case Constants.AlphabeticSortOrder:
+                    return "PackageRegistration.Id";
+                case Constants.RecentSortOrder:
+                    return "Published desc";
+                case Constants.PopularitySortOrder:
+                default:
+                    return "PackageRegistration.DownloadCount desc";
+            }
         }
     }
 }

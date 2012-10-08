@@ -90,7 +90,7 @@
             @if (!Model.PackageMetadata.Copyright.IsEmpty())
             {
                 <tr>
-                    <td><strong>Copyright:</strong></td>
+                    <td class="toplabel"><strong>Copyright:</strong></td>
                     <td>@Model.PackageMetadata.Copyright</td>
                 </tr>
             }
@@ -98,13 +98,13 @@
             @if (!Model.PackageMetadata.Summary.IsEmpty())
             {
                 <tr>
-                    <td><strong>Summary:</strong></td>
+                    <td class="toplabel"><strong>Summary:</strong></td>
                     <td><p>@Model.PackageMetadata.Summary</p></td>
                 </tr>
             }
 
             <tr>
-                <td><strong>Description:</strong></td>
+                <td class="toplabel"><strong>Description:</strong></td>
                 <td><p>@Model.PackageMetadata.Description</p></td>
             </tr>
 
@@ -166,9 +166,26 @@
 
     <ul id="packageView" class="filetree treeview-black">
         @Html.TreeView(Model.RootFolder.Children).EmptyContent("This package doesn't contain any file.").Children(p => p.Children).ItemTemplate(
-            @<text><span class="@(item.IsFile ? "file" : "folder")">@item.Name</span></text>
+            @<text>
+                @if (item.IsFile)
+                {
+                    <a><span class="file" data-path="@item.Path.Replace('\\', '/')">@item.Name</span></a>
+                }
+                else 
+                {
+                    <span class="folder">@item.Name</span>
+                }
+            </text>
         )
     </ul>
+</div>
+
+<div id="fileContentContainer">
+    <div>
+        <strong><span id="fileName" /></strong>
+        <a id="downloadFileLink">Download this file</a>
+    </div>
+    <textarea id="fileContentArea" contenteditable="false"></textarea>
 </div>
 
 @section BottomScripts
@@ -176,6 +193,39 @@
     <script type="text/javascript">
         $(function () {
             $('#packageView').treeview({ collapsed: true });
+
+            $('span.file').click(function (e) {
+
+                e.preventDefault();
+
+                var filePath = this.attributes['data-path'].value;
+                
+                var downloadUrl = '@Url.Action(MVC.PackageFiles.DownloadFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + filePath;
+                $('#downloadFileLink').attr('href', downloadUrl);
+
+                $('#fileName').text(filePath);
+                $('#fileContentContainer').show();
+                $('#fileContentArea').text('Loading...');
+
+                var viewUrl = '@Url.Action(MVC.PackageFiles.ShowFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + filePath;
+                var errorMessage = '*** An error occurred while loading this file\'s contents.';
+                $.ajax(viewUrl,
+                    {
+                        success: function (data, status) {
+                            if (status == 'success') {
+                                $('#fileContentArea').text(data);
+                            }
+                            else {
+                                $('#fileContentArea').text(errorMessage);
+                            }
+                        },
+
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            $('#fileContentArea').text(errorMessage);
+                        }
+            
+                });
+            });
         });
     </script>
 }

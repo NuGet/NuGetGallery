@@ -231,6 +231,7 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
+    <Compile Include="Controllers\PackageFilesController.cs" />
     <Compile Include="CuratedFeedsController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -428,6 +429,9 @@
     <Compile Include="PackageCurators\WebMatrixPackageCurator.cs" />
     <Compile Include="PackageCurators\Windows8PackageCurator.cs" />
     <Compile Include="Helpers\PackageHelper.cs" />
+    <Compile Include="PackageFilesController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -989,7 +993,7 @@
     <None Include="T4MVC.tt.settings.t4" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
     <Content Include="Web.ForbiddenHandlers.config" />
-    <Content Include="Views\Packages\Contents.cshtml" />
+    <Content Include="Views\PackageFiles\Contents.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />

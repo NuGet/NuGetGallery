@@ -97,7 +97,7 @@ namespace NuGetGallery
 
         public static string ViewContents(this UrlHelper url, IPackageVersionModel package)
         {
-            return url.Action(MVC.Packages.Contents(package.Id, package.Version));
+            return url.Action(MVC.PackageFiles.Contents(package.Id, package.Version));
         }
 
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)
