@@ -186,11 +186,21 @@
         <a id="downloadFileLink">Download this file</a>
     </div>
     <textarea id="fileContentArea" contenteditable="false"></textarea>
+    
+    <div id="fileImageBorder">
+        <img id="fileImage" />
+    </div>
+    
 </div>
 
 @section BottomScripts
 {
     <script type="text/javascript">
+        function isImage(path) {
+            path = path.toLowerCase().substr(path.length - 3, 3);
+            return path == 'jpg' || path == 'gif' || path == 'png';
+        }
+
         $(function () {
             $('#packageView').treeview({ collapsed: true });
 
@@ -202,29 +212,39 @@
                 
                 var downloadUrl = '@Url.Action(MVC.PackageFiles.DownloadFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + '?filePath=' + filePath;
                 $('#downloadFileLink').attr('href', downloadUrl);
+                $('#fileContentContainer').show();
 
                 $('#fileName').text(filePath);
-                $('#fileContentContainer').show();
-                $('#fileContentArea').text('Loading...');
 
-                var viewUrl = '@Url.Action(MVC.PackageFiles.ShowFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + '?filePath=' + filePath;
-                var errorMessage = '*** An error occurred while loading this file\'s contents.';
-                $.ajax(viewUrl,
-                    {
-                        success: function (data, status) {
-                            if (status == 'success') {
-                                $('#fileContentArea').text(data);
-                            }
-                            else {
+                if (isImage(filePath)) {
+                    $('#fileContentArea').hide();
+                    $('#fileImageBorder').show();
+                    $('#fileImage').attr('src', downloadUrl);
+                }
+                else {
+                    $('#fileImageBorder').hide();
+                    $('#fileContentArea').show();
+                    $('#fileContentArea').text('Loading...');
+
+                    var viewUrl = '@Url.Action(MVC.PackageFiles.ShowFileContent(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString(), String.Empty))' + '?filePath=' + filePath;
+                    var errorMessage = '*** An error occurred while loading this file\'s contents.';
+                    $.ajax(viewUrl,
+                        {
+                            success: function (data, status) {
+                                if (status == 'success') {
+                                    $('#fileContentArea').text(data);
+                                }
+                                else {
+                                    $('#fileContentArea').text(errorMessage);
+                                }
+                            },
+
+                            error: function (jqXHR, textStatus, errorThrown) {
                                 $('#fileContentArea').text(errorMessage);
                             }
-                        },
 
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            $('#fileContentArea').text(errorMessage);
-                        }
-            
-                });
+                        });
+                }
             });
         });
     </script>
