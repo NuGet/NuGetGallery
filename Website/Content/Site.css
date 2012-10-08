@@ -792,7 +792,7 @@ header.main {
             margin-bottom: 15px;
         }
 
-        #metadata toplabel {
+        #metadata .toplabel {
             vertical-align: top;
         }
 
@@ -802,14 +802,27 @@ header.main {
         margin-bottom: 50px;
     }
 
-        #contents > h3 {
-            margin-bottom: 15px;
-        }
+    #contents > h3 {
+        margin-bottom: 15px;
+    }
 
     img.packageicon {
         vertical-align: top;
     }
-            
+
+    #fileContentContainer {
+        clear: both;
+        display: none;
+    }
+
+    #fileContentArea
+    {
+        width: 100%;
+        margin: 10px 10px 10px 10px;
+        height: 300px;
+        background-color: lightgray;
+    }
+
     /* Pager */
     ul.pager {
         list-style: none;
@@ -872,14 +885,13 @@ header.main {
             font-weight: 800;
         }
         
-        
-            .sexy-table tbody td {
-                padding: 5px 25px 5px 0;
-            }
+        .sexy-table tbody td {
+            padding: 5px 25px 5px 0;
+        }
             
-            .sexy-table tbody td.actions {
-                padding: 2px 5px;
-            }
+        .sexy-table tbody td.actions {
+            padding: 2px 5px;
+        }
         
         /* footer */    
         .sexy-table tfoot {
@@ -887,13 +899,13 @@ header.main {
             font-weight: 600;
         }
         
-             .sexy-table tfoot td {
-                padding: 3px 0;
-             }
+        .sexy-table tfoot td {
+        padding: 3px 0;
+        }
              
-             .sexy-table tfoot tr {
-                border-top: 2px solid #333;
-             }
+        .sexy-table tfoot tr {
+        border-top: 2px solid #333;
+        }
 
     /* NuGet Badge */
     .nuget-badge code {

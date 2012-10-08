@@ -7,7 +7,6 @@ namespace NuGetGallery.ViewModels.PackagePart
     public class PackageItem : IComparable<PackageItem>    
     {
         private readonly string _name;
-        private readonly PackageItem _parent;
         private readonly bool _isFile;
 
         public PackageItem(string name)
@@ -28,24 +27,25 @@ namespace NuGetGallery.ViewModels.PackagePart
             }
 
             _name = name;
-
-            // parent can be null (e.g. for the root node)
-            _parent = parent;
-
             _isFile = isFile;
 
+			if (parent != null)
+			{
+				Path = parent == null ? Name : (parent.Path + '\\' + name);
+			}
             Children = new SortedSet<PackageItem>();
-        }
-
-        public PackageItem Parent
-        {
-            get { return _parent; }
         }
 
         public string Name
         {
             get { return _name; }
         }
+
+		public string Path
+		{
+			get;
+			private set;
+		}
 
         public bool IsFile
         {

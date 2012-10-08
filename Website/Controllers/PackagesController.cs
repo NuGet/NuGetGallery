@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -9,8 +8,8 @@ using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
-using NuGetGallery.ViewModels.PackagePart;
 using NuGetGallery.Helpers;
+using NuGetGallery.ViewModels.PackagePart;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -23,11 +22,9 @@ namespace NuGetGallery
 
         private readonly IPackageService packageSvc;
         private readonly IUploadFileService uploadFileSvc;
-        private readonly IPackageFileService packageFileSvc;
         private readonly IUserService userSvc;
         private readonly IMessageService messageService;
         private readonly ISearchService searchSvc;
-		private readonly ICacheService cacheSvc;
         private readonly IAutomaticallyCuratePackageCommand autoCuratedPackageCmd;
         private readonly INuGetExeDownloaderService nugetExeDownloaderSvc;
 
@@ -37,10 +34,8 @@ namespace NuGetGallery
             IUserService userSvc,
             IMessageService messageService,
             ISearchService searchSvc,
-			ICacheService cacheSvc,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
-            INuGetExeDownloaderService nugetExeDownloaderSvc,
-            IPackageFileService packageFileSvc)
+            INuGetExeDownloaderService nugetExeDownloaderSvc)
         {
             this.packageSvc = packageSvc;
             this.uploadFileSvc = uploadFileSvc;
@@ -49,8 +44,6 @@ namespace NuGetGallery
             this.searchSvc = searchSvc;
             this.autoCuratedPackageCmd = autoCuratedPackageCmd;
             this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
-            this.packageFileSvc = packageFileSvc;
-			this.cacheSvc = cacheSvc;
         }
 
         [Authorize]
@@ -256,61 +249,6 @@ namespace NuGetGallery
 
             return View(model);
         }
-
-        public virtual ActionResult Contents(string id, string version)
-        {
-            Package package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-
-			IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
-			PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
-
-			var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
-			return View(viewModel);
-        }
-
-		[ActionName("file")]
-		public virtual ActionResult FileContent(string id, string version, string filePath)
-		{
-			Package package = packageSvc.FindPackageByIdAndVersion(id, version);
-			if (package == null)
-			{
-				return PackageNotFound(id, version);
-			}
-
-			filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
-
-			IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
-			
-			IPackageFile file = packageFile.GetFiles().FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
-			if (file == null)
-			{
-				return PackageNotFound(id, version);
-			}
-
-			var result = new ContentResult
-			{
-				ContentEncoding = System.Text.Encoding.UTF8,
-				ContentType = "text/plain"
-			};
-
-			if (FileHelper.IsBinaryFile(file.Path))
-			{
-				result.Content = "The requested file is a binary file.";
-			}
-			else
-			{
-				using (var reader = new StreamReader(file.GetStream()))
-				{
-					result.Content = reader.ReadToEnd();
-				}
-			}
-
-			return result;
-		}
 
         [HttpPost, Authorize, ValidateAntiForgeryToken]
         public virtual ActionResult ContactOwners(string id, ContactOwnersViewModel contactForm)
@@ -619,6 +557,6 @@ namespace NuGetGallery
                 default:
                     return "PackageRegistration.DownloadCount desc";
             }
-        }
+        }		
     }
 }
