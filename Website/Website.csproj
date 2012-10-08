@@ -274,6 +274,7 @@
     <Compile Include="ErrorEntity.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
+    <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\HintAttribute.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />

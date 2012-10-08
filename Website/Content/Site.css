@@ -850,6 +850,13 @@ img.packageicon { vertical-align: top; }
     background-color: lightgray;
 }
 
+    #fileImageBorder{
+        border: 1px solid blue;
+        display: none;
+    }
+
+
+
     /* Pager */
 
 ul.pager {
