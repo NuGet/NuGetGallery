@@ -45,6 +45,11 @@ namespace NuGetGallery.Controllers
 				return HttpNotFound();
 			}
 
+			if (FileHelper.IsImageFile(file.Path))
+			{
+				return new ImageResult(file.GetStream(), FileHelper.GetMimeType(file.Path));
+			}
+
 			var result = new ContentResult
 			{
 				ContentEncoding = System.Text.Encoding.UTF8,
@@ -73,11 +78,6 @@ namespace NuGetGallery.Controllers
 			if (!TryGetPackageFile(id, version, filePath, out file))
 			{
 				return HttpNotFound();
-			}
-
-			if (FileHelper.IsImageFile(file.Path))
-			{
-				return new ImageResult(file.GetStream(), FileHelper.GetMimeType(file.Path));
 			}
 
 			return File(file.GetStream(), "application/octet-stream", Path.GetFileName(file.Path));
