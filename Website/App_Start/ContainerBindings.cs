@@ -44,7 +44,7 @@ namespace NuGetGallery
 			{
 				// when running on Windows Azure, use the Azure Cache service
 				Bind<ICacheService>()
-					.To<HttpCacheService>()
+					.To<CloudCacheService>()
 					.InSingletonScope();
 			}
 			else
