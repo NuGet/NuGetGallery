@@ -16,6 +16,8 @@
   $azureDiagStorageAccessKey          = $env:NUGET_GALLERY_AZURE_DIAG_STORAGE_ACCESS_KEY,
   $azureDiagStorageAccountName        = $env:NUGET_GALLERY_AZURE_DIAG_STORAGE_ACCOUNT_NAME,
   $facebookAppId                      = $env:NUGET_FACEBOOK_APP_ID,
+  $cacheServiceEndpoint               = $env:NUGET_GALLERY_CACHE_SERVICE_ENDPOINT,
+  $cacheServiceAccessKey              = $env:NUGET_GALLERY_CACHE_SERVICE_ACCESS_KEY,
   $commitSha,
   $commitBranch
 )
@@ -186,6 +188,32 @@ function set-machinekey {
     }
 }
 
+function set-cacheserviceurl {
+    param($path, $value) 
+    
+    $settings = [xml](get-content $path)
+
+    $settings.configuration.dataCacheClients.dataCacheClient | % {
+        $_.hosts.host.name = $value
+    }
+    
+    $resolvedPath = resolve-path($path) 
+    $settings.save($resolvedPath)
+}
+
+function set-cacheserviceaccesskey {
+    param($path, $value) 
+    
+    $settings = [xml](get-content $path)
+
+    $settings.configuration.dataCacheClients.dataCacheClient | % {
+        $_.securityProperties.messageSecurity.authorizationInfo = $value
+    }
+    
+    $resolvedPath = resolve-path($path) 
+    $settings.save($resolvedPath)
+}
+
 function enable-azureElmah {
     param($path)
     $connectionString = "";
@@ -286,6 +314,8 @@ if(!$UseEmulator) {
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
   set-appsetting -path $webConfigPath -name "Gallery:UseAzureEmulator" -value "false"
+  set-cacheserviceurl -path $webConfigPath -value $cacheServiceEndpoint
+  set-cacheserviceaccesskey -path $webConfigPath -value $cacheServiceAccessKey
 }
 
 if(![String]::IsNullOrEmpty($facebookAppId)) {
