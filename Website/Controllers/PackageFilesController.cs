@@ -10,6 +10,8 @@ namespace NuGetGallery.Controllers
 {
 	public partial class PackageFilesController : Controller
     {
+		private const long MaximumAllowedPackageFileSize = 3L * 1024 * 1024;		// maximum package size = 3MB
+
 		private readonly IPackageService packageSvc;
 		private readonly IPackageFileService packageFileSvc;
 		private readonly ICacheService cacheSvc;
@@ -29,6 +31,11 @@ namespace NuGetGallery.Controllers
 				return HttpNotFound();
 			}
 
+			if (package.PackageFileSize > MaximumAllowedPackageFileSize)
+			{
+				return View("PackageTooBig");
+			}
+
 			IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
 			PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
 
@@ -45,6 +52,7 @@ namespace NuGetGallery.Controllers
 				return HttpNotFound();
 			}
 
+			// treat image files specially
 			if (FileHelper.IsImageFile(file.Path))
 			{
 				return new ImageResult(file.GetStream(), FileHelper.GetMimeType(file.Path));
@@ -93,7 +101,7 @@ namespace NuGetGallery.Controllers
 			}
 
 			Package package = packageSvc.FindPackageByIdAndVersion(id, version);
-			if (package == null)
+			if (package == null || package.PackageFileSize > MaximumAllowedPackageFileSize)
 			{
 				return false;
 			}
