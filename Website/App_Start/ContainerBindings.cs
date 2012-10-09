@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
+using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -39,9 +40,20 @@ namespace NuGetGallery
                 .To<LuceneSearchService>()
                 .InRequestScope();
 
-			Bind<ICacheService>()
-				.To<HttpCacheService>()
-				.InSingletonScope();
+			if (RoleEnvironment.IsAvailable)
+			{
+				// when running on Windows Azure, use the Azure Cache service
+				Bind<ICacheService>()
+					.To<HttpCacheService>()
+					.InSingletonScope();
+			}
+			else
+			{
+				// when running locally on dev box, use the built-in ASP.NET Http Cache
+				Bind<ICacheService>()
+					.To<HttpCacheService>()
+					.InSingletonScope();
+			}
 
             Bind<IEntitiesContext>()
                 .ToMethod(context => new EntitiesContext())
