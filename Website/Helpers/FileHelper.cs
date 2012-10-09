@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Web;
 
 namespace NuGetGallery.Helpers
 {
@@ -19,7 +17,7 @@ namespace NuGetGallery.Helpers
 
 		private static readonly string[] ImageFileExtensions = new[]
                                                                 {
-                                                                    ".PNG", ".GIF", ".JPG"
+                                                                    ".PNG", ".GIF", ".JPG", ".BMP", ".JPEG"
                                                                 };
 
 		public static bool IsBinaryFile(string path)
@@ -36,20 +34,10 @@ namespace NuGetGallery.Helpers
 
 		internal static string GetMimeType(string filePath)
 		{
-			string extension = Path.GetExtension(filePath).ToLowerInvariant();
-			if (extension.Equals(".png"))
+			string extension = Path.GetExtension(filePath).ToUpperInvariant();
+			if (ImageFileExtensions.Contains(extension))
 			{
-				return "image/png";
-			}
-
-			if (extension.Equals(".jpg"))
-			{
-				return "image/jpeg";
-			}
-
-			if (extension.Equals(".gif"))
-			{
-				return "image/gif";
+				return "image/" + extension.Substring(1);	// omit the dot in front of extension
 			}
 
 			return "image";
