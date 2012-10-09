@@ -21,8 +21,8 @@ namespace NuGetGallery.Helpers
 			Debug.Assert(packageFileService != null);
 
 			string cacheKey = CreateCacheKey(package.PackageRegistration.Id, package.Version);
-			var item = cacheService.GetItem(cacheKey) as IPackage;
-			if (item == null)
+			var buffer = cacheService.GetItem(cacheKey) as byte[];
+			if (buffer == null)
 			{
 				using (Stream stream = packageFileService.DownloadPackageFile(package))
 				{
@@ -31,12 +31,12 @@ namespace NuGetGallery.Helpers
 						throw new InvalidOperationException("Couldn't download the package from the storage.");
 					}
 
-					item = new ZipPackage(stream);
-					cacheService.SetItem(cacheKey, item, TimeSpan.FromMinutes(5));
+                    buffer = stream.ReadAllBytes();
+					cacheService.SetItem(cacheKey, buffer, TimeSpan.FromMinutes(5));
 				}
 			}
 
-			return item;
+			return new ZipPackage(new MemoryStream(buffer));
 		}
 
 		private static string CreateCacheKey(string id, string version)
