@@ -13,9 +13,10 @@
     <meta property="og:url"         content="@Url.CanonicalCurrent()" /> 
     <meta property="og:description" content="@Model.Description" /> 
     <meta property="og:determiner"  content="a" />
-    <meta property="og:image"       content="@(Model.IconUrl ?? @Links.Content.Images.packageDefaultIcon_png)" />
+    <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute(Links.Content.Images.packageDefaultIcon_png))" />
 }
 @section BottomScripts {
+    @* Facebook SDK *@
     <div id="fb-root"></div>
     <script>(function (d, s, id) {
         var js, fjs = d.getElementsByTagName(s)[0];
@@ -28,6 +29,9 @@
     }
         fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));</script>
+
+    @* Twitter SDK *@
+    <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = "//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "twitter-wjs");</script>
 }
 @section SideColumn {
     <img class="logo" src="@(Model.IconUrl ?? @Links.Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src='@Links.Content.Images.packageDefaultIcon_png';" />
@@ -119,6 +123,7 @@
                 {<text> -Pre </text>}</code></p>
     </div>
  
+    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@Url.CanonicalCurrent()" data-text="Check out this cool #nuget package! @Url.CanonicalCurrent()" data-via="nuget">Tweet</a></div>
     <div class="fb-like" data-href="@Url.CanonicalCurrent()" data-send="false" data-width="450" data-show-faces="true"></div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
