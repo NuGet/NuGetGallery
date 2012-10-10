@@ -13,9 +13,7 @@
     <meta property="og:url"         content="@Url.CanonicalCurrent()" /> 
     <meta property="og:description" content="@Model.Description" /> 
     <meta property="og:determiner"  content="a" />
-    @if(!String.IsNullOrWhiteSpace(Model.IconUrl)) {
-        <meta property="og:image" content="@Model.IconUrl" />
-    }
+    <meta property="og:image"       content="@(Model.IconUrl ?? @Links.Content.Images.packageDefaultIcon_png)" />
 }
 @section BottomScripts {
     <div id="fb-root"></div>
