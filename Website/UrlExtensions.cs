@@ -23,6 +23,7 @@ namespace NuGetGallery
             {
                 builder.Host = builder.Host.Substring(4);
             }
+            builder.Query = String.Empty;
             return builder.Uri.AbsoluteUri;
         }
 
