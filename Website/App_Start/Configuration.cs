@@ -98,6 +98,14 @@ namespace NuGetGallery
             }
         }
 
+        public string FacebookAppID
+        {
+            get
+            {
+                return ReadAppSettings("FacebookAppId");
+            }
+        }
+
         protected virtual string GetConfiguredSiteRoot()
         {
             return ReadAppSettings("SiteRoot");
