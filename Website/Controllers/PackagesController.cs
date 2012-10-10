@@ -19,7 +19,7 @@ namespace NuGetGallery
         // TODO: improve validation summary emphasis
 
         private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
-        private readonly IConfiguration _config
+        private readonly IConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly INuGetExeDownloaderService _nugetExeDownloaderSvc;
         private readonly IPackageService _packageSvc;

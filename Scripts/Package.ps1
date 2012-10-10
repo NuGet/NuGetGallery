@@ -15,6 +15,7 @@
   $googleAnalyticsPropertyId          = $env:NUGET_GALLERY_GOOGLE_ANALYTICS_PROPERTY_ID,
   $azureDiagStorageAccessKey          = $env:NUGET_GALLERY_AZURE_DIAG_STORAGE_ACCESS_KEY,
   $azureDiagStorageAccountName        = $env:NUGET_GALLERY_AZURE_DIAG_STORAGE_ACCOUNT_NAME,
+  $facebookAppId                      = $env:NUGET_FACEBOOK_APP_ID,
   $commitSha,
   $commitBranch
 )
@@ -248,6 +249,7 @@ if(!$UseEmulator) {
   remove-setting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername"
   set-instancecount -path $cscfgPath -count 1
 }
+
 set-releasemode $webConfigPath
 set-machinekey $webConfigPath
 
@@ -266,6 +268,10 @@ if(!$UseEmulator) {
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
   set-appsetting -path $webConfigPath -name "Gallery:ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
   set-appsetting -path $webConfigPath -name "Gallery:UseAzureEmulator" -value "false"
+}
+
+if(![String]::IsNullOrEmpty($facebookAppId)) {
+  set-appsetting -path $webConfigPath -name "Gallery:FacebookAppId" -value $facebookAppId
 }
 
 $startupScripts | ForEach-Object {
