@@ -22,6 +22,7 @@ namespace NuGetGallery
 
         private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
         private readonly ICacheService cacheSvc;
+        private readonly IConfiguration config
         private readonly IMessageService _messageService;
         private readonly INuGetExeDownloaderService _nugetExeDownloaderSvc;
         private readonly IPackageService _packageSvc;
@@ -38,7 +39,8 @@ namespace NuGetGallery
             ISearchService searchSvc,
             ICacheService cacheSvc,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
-            INuGetExeDownloaderService nugetExeDownloaderSvc)
+            INuGetExeDownloaderService nugetExeDownloaderSvc,
+            IConfiguration config)
         {
             this.packageSvc = packageSvc;
             this.uploadFileSvc = uploadFileSvc;
@@ -49,6 +51,7 @@ namespace NuGetGallery
             this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
             this.packageFileSvc = packageFileSvc;
             this.cacheSvc = cacheSvc;
+            this.config = config;        
         }
 
         [Authorize]
@@ -143,6 +146,7 @@ namespace NuGetGallery
                 return PackageNotFound(id, version);
             }
             var model = new DisplayPackageViewModel(package);
+            ViewBag.FacebookAppID = config.FacebookAppID;
             return View(model);
         }
 

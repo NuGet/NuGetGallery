@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System;
+using System.Web.Mvc;
 
 namespace NuGetGallery
 {
@@ -8,6 +9,21 @@ namespace NuGetGallery
         public static string Current(this UrlHelper url)
         {
             return url.RequestContext.HttpContext.Request.RawUrl;
+        }
+
+        /// <summary>
+        /// Gets the "canonical" (as in fully-qualified, without "www") version of the current URL
+        /// </summary>
+        /// <param name="url">A UrlHelper object</param>
+        /// <returns>The canonical URL</returns>
+        public static string CanonicalCurrent(this UrlHelper url)
+        {
+            UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
+            if (builder.Host.StartsWith("www."))
+            {
+                builder.Host = builder.Host.Substring(4);
+            }
+            return builder.Uri.AbsoluteUri;
         }
 
         public static string Home(this UrlHelper url)
