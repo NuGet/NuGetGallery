@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Web.Mvc;
 using NuGet;
+using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.ViewModels.PackagePart;
 
@@ -44,6 +45,8 @@ namespace NuGetGallery.Controllers
 		}
 
 		[ActionName("View")]
+        [CompressFilter]
+        [CacheFilter(Duration = 60 * 60 * 24)]      // cache one day
 		public virtual ActionResult ShowFileContent(string id, string version, string filePath)
 		{
 			IPackageFile file;

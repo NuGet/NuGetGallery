@@ -293,6 +293,8 @@
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="ErrorEntity.cs" />
+    <Compile Include="Filters\CacheFilter.cs" />
+    <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
