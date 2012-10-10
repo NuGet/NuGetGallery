@@ -19,6 +19,7 @@ namespace NuGetGallery
         // TODO: improve validation summary emphasis
 
         private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
+        private readonly IConfiguration _config
         private readonly IMessageService _messageService;
         private readonly INuGetExeDownloaderService _nugetExeDownloaderSvc;
         private readonly IPackageService _packageSvc;
@@ -33,7 +34,8 @@ namespace NuGetGallery
             IMessageService messageService,
             ISearchService searchSvc,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
-            INuGetExeDownloaderService nugetExeDownloaderSvc)
+            INuGetExeDownloaderService nugetExeDownloaderSvc,
+            IConfiguration config)
         {
             _packageSvc = packageSvc;
             _uploadFileSvc = uploadFileSvc;
@@ -42,6 +44,7 @@ namespace NuGetGallery
             _searchSvc = searchSvc;
             _autoCuratedPackageCmd = autoCuratedPackageCmd;
             _nugetExeDownloaderSvc = nugetExeDownloaderSvc;
+            _config = config;
         }
 
         [Authorize]
@@ -136,6 +139,7 @@ namespace NuGetGallery
                 return PackageNotFound(id, version);
             }
             var model = new DisplayPackageViewModel(package);
+            ViewBag.FacebookAppID = _config.FacebookAppID;
             return View(model);
         }
 

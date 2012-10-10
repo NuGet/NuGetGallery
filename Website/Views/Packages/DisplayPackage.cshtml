@@ -5,6 +5,31 @@
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
+@section OpenGraph {
+    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
+        <meta property="fb:app_id" content="@ViewBag.FacebookAppID" /> 
+    }
+    <meta property="og:type"   content="likebuttontesting:package" /> 
+    <meta property="og:url"    content="@Url.CanonicalCurrent()" /> 
+    <meta property="og:title"  content="@Model.Title" />
+    @if(!String.IsNullOrWhiteSpace(Model.IconUrl)) {
+        <meta property="og:image" content="@Model.IconUrl" />
+    }
+}
+@section BottomScripts {
+    <div id="fb-root"></div>
+    <script>(function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
+        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
+    } else {
+        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+    }
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+}
 @section SideColumn {
     <img class="logo" src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src = '@Content.Images.packageDefaultIcon_png';" />
     <div id="stats">
@@ -102,6 +127,8 @@
                     <text> -Pre </text>
                 }</code></p>
     </div>
+ 
+    <div class="fb-like" data-href="@Url.CanonicalCurrent()" data-send="false" data-width="450" data-show-faces="true"></div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {

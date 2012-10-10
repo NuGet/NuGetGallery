@@ -2,6 +2,9 @@
     Layout = "Layout.cshtml";
 }
 
+@section OpenGraph {
+    @RenderSection("OpenGraph", required: false)
+}
 
 <div id="sideColumn">
     @RenderSection("SideColumn")
