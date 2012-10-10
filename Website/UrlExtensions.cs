@@ -18,12 +18,13 @@ namespace NuGetGallery
         /// <returns>The canonical URL</returns>
         public static string CanonicalCurrent(this UrlHelper url)
         {
-            UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
-            if (builder.Host.StartsWith("www."))
-            {
-                builder.Host = builder.Host.Substring(4);
-            }
-            builder.Query = String.Empty;
+            return GetCanonicalUrl(url).Uri.AbsoluteUri;
+        }
+
+        public static string Absolute(this UrlHelper url, string path)
+        {
+            UriBuilder builder = GetCanonicalUrl(url);
+            builder.Path = path;
             return builder.Uri.AbsoluteUri;
         }
 
@@ -117,6 +118,17 @@ namespace NuGetGallery
         public static string VerifyPackage(this UrlHelper url)
         {
             return url.Action(MVC.Packages.VerifyPackage());
+        }
+
+        private static UriBuilder GetCanonicalUrl(UrlHelper url)
+        {
+            UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
+            builder.Query = String.Empty;
+            if (builder.Host.StartsWith("www."))
+            {
+                builder.Host = builder.Host.Substring(4);
+            }
+            return builder;
         }
     }
 }
