@@ -17,6 +17,7 @@
   $azureDiagStorageAccountName        = $env:NUGET_GALLERY_AZURE_DIAG_STORAGE_ACCOUNT_NAME,
   $cacheServiceEndpoint               = $env:NUGET_GALLERY_CACHE_SERVICE_ENDPOINT,
   $cacheServiceAccessKey              = $env:NUGET_GALLERY_CACHE_SERVICE_ACCESS_KEY,
+  $facebookAppId                      = $env:NUGET_FACEBOOK_APP_ID,
   $commitSha,
   $commitBranch
 )
@@ -276,6 +277,7 @@ if(!$UseEmulator) {
   remove-setting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername"
   set-instancecount -path $cscfgPath -count 1
 }
+
 set-releasemode $webConfigPath
 set-machinekey $webConfigPath
 
@@ -296,6 +298,10 @@ if(!$UseEmulator) {
   set-appsetting -path $webConfigPath -name "Gallery:UseAzureEmulator" -value "false"
   set-cacheserviceurl -path $webConfigPath -value $cacheServiceEndpoint
   set-cacheserviceaccesskey -path $webConfigPath -value $cacheServiceAccessKey
+}
+
+if(![String]::IsNullOrEmpty($facebookAppId)) {
+  set-appsetting -path $webConfigPath -name "Gallery:FacebookAppId" -value $facebookAppId
 }
 
 $startupScripts | ForEach-Object {
