@@ -9,8 +9,6 @@ namespace NuGetGallery
     {
         public static void RegisterRoutes(RouteCollection routes)
         {
-            routes.MapRoute("Throwifier", "Throw", MVC.Pages.ThrowIt());
-
             routes.MapRoute(
                 RouteName.Home,
                 "",
