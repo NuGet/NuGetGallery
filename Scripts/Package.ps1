@@ -214,6 +214,24 @@ function set-cacheserviceaccesskey {
     $settings.save($resolvedPath)
 }
 
+function enable-azureElmah {
+    param($path)
+    $connectionString = "";
+    if($azureDiagStorageAccountName -and $azureDiagStorageAccountKey) {
+        $connectionString = "DefaultEndpointsProtocol=https;AccountName=$azureDiagStorageAccountName;AccountKey=$azureDiagStorageAccountKey";
+    } elseif($UseEmulator) {
+        $connectionString = "UseDevelopmentStorage=true";
+    }
+
+    $xml = [xml](get-content $path)
+    $el = $xml.configuration.elmah.errorLog
+    $el.type = "NuGetGallery.TableErrorLog, NuGetGallery.Website";
+    $el.SetAttribute("connectionString", $connectionString);
+    $el.RemoveAttribute("connectionStringName");
+    $resolvedPath = resolve-path($path) 
+    $xml.Save($resolvedPath)
+}
+
 #Do Work Brah
 $scriptPath = split-path $MyInvocation.MyCommand.Path
 $rootPath = resolve-path(join-path $scriptPath "..")
@@ -303,6 +321,7 @@ if(!$UseEmulator) {
 if(![String]::IsNullOrEmpty($facebookAppId)) {
   set-appsetting -path $webConfigPath -name "Gallery:FacebookAppId" -value $facebookAppId
 }
+enable-azureElmah -path $webConfigPath
 
 $startupScripts | ForEach-Object {
   cp (Join-Path $scriptPath $_) (Join-Path $binPath $_)
