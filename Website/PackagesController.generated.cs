@@ -108,7 +108,6 @@ namespace NuGetGallery {
             public readonly string _PackageDependencies = "~/Views/Packages/_PackageDependencies.cshtml";
             public readonly string ConfirmOwner = "~/Views/Packages/ConfirmOwner.cshtml";
             public readonly string ContactOwners = "~/Views/Packages/ContactOwners.cshtml";
-            public readonly string Contents = "~/Views/Packages/Contents.cshtml";
             public readonly string Delete = "~/Views/Packages/Delete.cshtml";
             public readonly string DisplayPackage = "~/Views/Packages/DisplayPackage.cshtml";
             public readonly string Download = "~/Views/Packages/Download.cshtml";
