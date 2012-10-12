@@ -189,9 +189,9 @@ function set-machinekey {
 function enable-azureElmah {
     param($path)
     $connectionString = "";
-    if($azureDiagStorageAccountName -and $azureDiagStorageAccountKey) {
-        $connectionString = "DefaultEndpointsProtocol=https;AccountName=$azureDiagStorageAccountName;AccountKey=$azureDiagStorageAccountKey";
-    } elseif($UseEmulator) {
+    if(!$UseEmulator) {
+        $connectionString = "DefaultEndpointsProtocol=https;AccountName=$azureDiagStorageAccountName;AccountKey=$azureDiagStorageAccessKey";
+    } else {
         $connectionString = "UseDevelopmentStorage=true";
     }
 
