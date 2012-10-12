@@ -47,6 +47,7 @@ namespace NuGetGallery {
             public readonly string Home = "Home";
             public readonly string Terms = "Terms";
             public readonly string Privacy = "Privacy";
+            public readonly string ThrowIt = "ThrowIt";
             public readonly string Stats = "Stats";
         }
 
@@ -78,6 +79,11 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult Privacy() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Privacy);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ThrowIt() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ThrowIt);
             return callInfo;
         }
 

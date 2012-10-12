@@ -27,6 +27,11 @@ namespace NuGetGallery
             return View();
         }
 
+        public virtual ActionResult ThrowIt()
+        {
+            throw new System.Exception("Oh noooooooooes!!!");
+        }
+
         [HttpGet]
         [OutputCache(VaryByParam = "None", Duration = 120, Location = OutputCacheLocation.Server)]
         public virtual JsonResult Stats()
