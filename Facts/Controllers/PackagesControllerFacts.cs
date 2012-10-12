@@ -26,7 +26,8 @@ namespace NuGetGallery
             Mock<ISearchService> searchService = null,
             Exception readPackageException = null,
             Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
-            Mock<INuGetExeDownloaderService> downloaderSvc = null)
+            Mock<INuGetExeDownloaderService> downloaderSvc = null,
+            Mock<IConfiguration> configuration = null)
         {
             packageSvc = packageSvc ?? new Mock<IPackageService>();
             uploadFileSvc = uploadFileSvc ?? new Mock<IUploadFileService>();
@@ -35,6 +36,7 @@ namespace NuGetGallery
             searchService = searchService ?? CreateSearchService();
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
             downloaderSvc = downloaderSvc ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
+            configuration = configuration ?? new Mock<IConfiguration>();
 
             var controller = new Mock<PackagesController>(
                 packageSvc.Object,
@@ -43,7 +45,8 @@ namespace NuGetGallery
                 messageSvc.Object,
                 searchService.Object,
                 autoCuratePackageCmd.Object,
-                downloaderSvc.Object);
+                downloaderSvc.Object,
+                configuration.Object);
             controller.CallBase = true;
 
             if (httpContext != null)
@@ -1310,113 +1313,6 @@ namespace NuGetGallery
                 // Assert
                 nugetExeDownloader.Verify(d => d.UpdateExecutable(It.IsAny<IPackage>()), Times.Never());
             }
-        }
-
-        public class TheCancelVerifyPackageAction
-        {
-            [Fact]
-            public void DeletesTheInProgressPackageUpload()
-            {
-                var fakeUserSvc = new Mock<IUserService>();
-                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
-                var fakeIdentity = new Mock<IIdentity>();
-                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
-                var fakeUploadFileSvc = new Mock<IUploadFileService>();
-                fakeUploadFileSvc.Setup(x => x.DeleteUploadFile(42));
-                var controller = CreateController(
-                    uploadFileSvc: fakeUploadFileSvc,
-                    userSvc: fakeUserSvc,
-                    fakeIdentity: fakeIdentity);
-
-                var result = controller.CancelUpload() as RedirectToRouteResult;
-
-                fakeUploadFileSvc.Verify(x => x.DeleteUploadFile(42));
-            }
-
-            [Fact]
-            public void RedirectsToUploadPageAfterDelete()
-            {
-                var fakeUserSvc = new Mock<IUserService>();
-                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
-                var fakeIdentity = new Mock<IIdentity>();
-                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
-                var fakeUploadFileSvc = new Mock<IUploadFileService>();
-                fakeUploadFileSvc.Setup(x => x.DeleteUploadFile(42));
-                var controller = CreateController(
-                    uploadFileSvc: fakeUploadFileSvc,
-                    userSvc: fakeUserSvc,
-                    fakeIdentity: fakeIdentity);
-
-                var result = controller.CancelUpload() as RedirectToRouteResult;
-
-                Assert.False(result.Permanent);
-                Assert.Equal("UploadPackage", result.RouteValues["Action"]);
-                Assert.Equal("Packages", result.RouteValues["Controller"]);
-            }
-        }
-
-        static PackagesController CreateController(
-            Mock<IPackageService> packageSvc = null,
-            Mock<IUploadFileService> uploadFileSvc = null,
-            Mock<IUserService> userSvc = null,
-            Mock<IMessageService> messageSvc = null,
-            Mock<HttpContextBase> httpContext = null,
-            Mock<IIdentity> fakeIdentity = null,
-            Mock<IPackage> fakeNuGetPackage = null,
-            Mock<ISearchService> searchService = null,
-            Exception readPackageException = null,
-            Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
-            Mock<INuGetExeDownloaderService> downloaderSvc = null,
-            Mock<IConfiguration> configuration = null)
-        {
-
-            packageSvc = packageSvc ?? new Mock<IPackageService>();
-            uploadFileSvc = uploadFileSvc ?? new Mock<IUploadFileService>();
-            userSvc = userSvc ?? new Mock<IUserService>();
-            messageSvc = messageSvc ?? new Mock<IMessageService>();
-            searchService = searchService ?? CreateSearchService();
-            autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
-            downloaderSvc = downloaderSvc ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
-            configuration = configuration ?? new Mock<IConfiguration>();
-
-            var controller = new Mock<PackagesController>(
-                    packageSvc.Object,
-                    uploadFileSvc.Object,
-                    userSvc.Object,
-                    messageSvc.Object,
-                    searchService.Object,
-                    autoCuratePackageCmd.Object,
-                    downloaderSvc.Object,
-                    configuration.Object);
-            controller.CallBase = true;
-
-            if (httpContext != null)
-            {
-                TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
-            }
-
-            if (fakeIdentity != null)
-            {
-                controller.Setup(x => x.GetIdentity()).Returns(fakeIdentity.Object);
-            }
-
-            if (readPackageException != null)
-                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Throws(readPackageException);
-            else if (fakeNuGetPackage != null)
-                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Returns(fakeNuGetPackage.Object);
-            else
-                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Returns(new Mock<IPackage>().Object);
-
-            return controller.Object;
-        }
-
-        private static Mock<ISearchService> CreateSearchService()
-        {
-            var searchService = new Mock<ISearchService>();
-            int total;
-            searchService.Setup(s => s.Search(It.IsAny<IQueryable<Package>>(), It.IsAny<SearchFilter>(), out total)).Returns((IQueryable<Package> p, string searchTerm) => p);
-
-            return searchService;
         }
     }
 }
