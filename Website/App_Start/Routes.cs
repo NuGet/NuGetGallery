@@ -74,7 +74,7 @@ namespace NuGetGallery
 
             var packageVersionActionRoute = routes.MapRoute(
                 RouteName.PackageVersionAction,
-                "packagefiles/{id}/{version}/{action}",
+                "packages/{id}/{version}/{action}",
                 new { controller = MVC.Packages.Name },
                 new { version = new VersionRouteConstraint() });
 
