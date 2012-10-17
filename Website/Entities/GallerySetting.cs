@@ -13,5 +13,6 @@ namespace NuGetGallery
         public string GalleryOwnerName { get; set; }
         public string GalleryOwnerEmail { get; set; }
         public bool ConfirmEmailAddresses { get; set; }
+        public int TotalDownloadCount { get; set; }
     }
 }
