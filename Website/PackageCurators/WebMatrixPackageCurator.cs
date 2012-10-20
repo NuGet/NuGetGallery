@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using NuGet;
 
 namespace NuGetGallery
@@ -6,7 +7,7 @@ namespace NuGetGallery
     public class WebMatrixPackageCurator : AutomaticPackageCurator
     {
         public override void Curate(
-            Package galleryPackage, 
+            Package galleryPackage,
             IPackage nugetPackage)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute("webmatrix");
@@ -32,11 +33,13 @@ namespace NuGetGallery
                 }
             }
 
-            if (shouldBeIncluded)
+            if (shouldBeIncluded && DependenciesAreCurated(galleryPackage, curatedFeed))
+            {
                 GetService<ICreateCuratedPackageCommand>().Execute(
                     curatedFeed.Key,
                     galleryPackage.PackageRegistration.Key,
                     automaticallyCurated: true);
+            }
         }
     }
 }

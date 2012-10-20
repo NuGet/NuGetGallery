@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System.Linq;
+using System.Web.Mvc;
 using NuGet;
 
 namespace NuGetGallery
@@ -12,6 +13,16 @@ namespace NuGetGallery
         protected virtual T GetService<T>()
         {
             return DependencyResolver.Current.GetService<T>();
+        }
+
+        protected bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)
+        {
+            if (galleryPackage != null && galleryPackage.Dependencies.AnySafe())
+            {
+                return galleryPackage.Dependencies.All(d => curatedFeed.Packages.Where(p => p.Included).Select(p => p.PackageRegistration.Id).Contains(d.Id));
+            }
+
+            return true;
         }
     }
 }
