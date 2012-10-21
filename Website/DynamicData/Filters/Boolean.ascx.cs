@@ -18,7 +18,7 @@ namespace DynamicDataEFCodeFirst
 
         protected void Page_Init(object sender, EventArgs e)
         {
-            if (!(Column.ColumnType == typeof (bool)))
+            if (!(Column.ColumnType == typeof(bool)))
             {
                 throw new InvalidOperationException(
                     String.Format(

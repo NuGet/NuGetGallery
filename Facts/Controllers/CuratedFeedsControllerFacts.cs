@@ -15,7 +15,7 @@ namespace NuGetGallery
             public TestableCuratedFeedsController()
             {
                 StubCuratedFeed = new CuratedFeed
-                                      { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { new User { Username = "aUsername" } }) };
+                    { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { new User { Username = "aUsername" } }) };
                 StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
                 StubIdentity = new Mock<IIdentity>();
 
@@ -37,7 +37,7 @@ namespace NuGetGallery
 
             protected override T GetService<T>()
             {
-                if (typeof (T) == typeof (ICuratedFeedByNameQuery))
+                if (typeof(T) == typeof(ICuratedFeedByNameQuery))
                 {
                     return (T)StubCuratedFeedByNameQry.Object;
                 }

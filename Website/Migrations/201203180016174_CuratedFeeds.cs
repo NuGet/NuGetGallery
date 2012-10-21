@@ -9,21 +9,21 @@ namespace NuGetGallery.Migrations
             CreateTable(
                 "CuratedFeeds",
                 c => new
-                         {
-                             Key = c.Int(nullable: false, identity: true),
-                             Id = c.String(),
-                         })
+                    {
+                        Key = c.Int(nullable: false, identity: true),
+                        Id = c.String(),
+                    })
                 .PrimaryKey(t => t.Key);
 
             CreateTable(
                 "CuratedPackages",
                 c => new
-                         {
-                             Key = c.Int(nullable: false, identity: true),
-                             CuratedFeedKey = c.Int(nullable: false),
-                             PackageKey = c.Int(nullable: false),
-                             Notes = c.String(),
-                         })
+                    {
+                        Key = c.Int(nullable: false, identity: true),
+                        CuratedFeedKey = c.Int(nullable: false),
+                        PackageKey = c.Int(nullable: false),
+                        Notes = c.String(),
+                    })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Packages", t => t.PackageKey, cascadeDelete: true)
                 .ForeignKey("CuratedFeeds", t => t.CuratedFeedKey, cascadeDelete: true)
@@ -33,10 +33,10 @@ namespace NuGetGallery.Migrations
             CreateTable(
                 "CuratedFeedManagers",
                 c => new
-                         {
-                             CuratedFeedKey = c.Int(nullable: false),
-                             UserKey = c.Int(nullable: false),
-                         })
+                    {
+                        CuratedFeedKey = c.Int(nullable: false),
+                        UserKey = c.Int(nullable: false),
+                    })
                 .PrimaryKey(t => new { t.CuratedFeedKey, t.UserKey })
                 .ForeignKey("CuratedFeeds", t => t.CuratedFeedKey, cascadeDelete: true)
                 .ForeignKey("Users", t => t.UserKey, cascadeDelete: true)

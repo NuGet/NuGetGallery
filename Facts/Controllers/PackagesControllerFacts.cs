@@ -212,15 +212,15 @@ namespace NuGetGallery
             public void OnlyShowsOwnersWhoAllowReceivingEmails()
             {
                 var package = new PackageRegistration
-                                  {
-                                      Id = "pkgid",
-                                      Owners = new[]
-                                                   {
-                                                       new User { Username = "helpful", EmailAllowed = true },
-                                                       new User { Username = "grinch", EmailAllowed = false },
-                                                       new User { Username = "helpful2", EmailAllowed = true }
-                                                   }
-                                  };
+                    {
+                        Id = "pkgid",
+                        Owners = new[]
+                            {
+                                new User { Username = "helpful", EmailAllowed = true },
+                                new User { Username = "grinch", EmailAllowed = false },
+                                new User { Username = "helpful2", EmailAllowed = true }
+                            }
+                    };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(p => p.FindPackageRegistrationById("pkgid")).Returns(package);
                 var controller = CreateController(packageSvc: packageSvc);
@@ -256,9 +256,9 @@ namespace NuGetGallery
                     userSvc: userSvc,
                     httpContext: httpContext);
                 var model = new ContactOwnersViewModel
-                                {
-                                    Message = "I like the cut of your jib",
-                                };
+                    {
+                        Message = "I like the cut of your jib",
+                    };
 
                 var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
 
@@ -273,11 +273,11 @@ namespace NuGetGallery
             {
                 // Arrange
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Id = "Foo" },
-                                      Version = "1.0",
-                                      Listed = true
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Foo" },
+                        Version = "1.0",
+                        Listed = true
+                    };
                 package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
@@ -306,11 +306,11 @@ namespace NuGetGallery
             {
                 // Arrange
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Id = "Foo" },
-                                      Version = "1.0",
-                                      Listed = true
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Foo" },
+                        Version = "1.0",
+                        Listed = true
+                    };
                 package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
@@ -365,10 +365,10 @@ namespace NuGetGallery
                         It.IsAny<Package>(),
                         "Mordor took my finger"));
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Id = "mordor" },
-                                      Version = "2.0.1"
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "mordor" },
+                        Version = "2.0.1"
+                    };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
@@ -378,10 +378,10 @@ namespace NuGetGallery
                     messageSvc: messageService,
                     httpContext: httpContext);
                 var model = new ReportAbuseViewModel
-                                {
-                                    Email = "frodo@hobbiton.example.com",
-                                    Message = "Mordor took my finger."
-                                };
+                    {
+                        Email = "frodo@hobbiton.example.com",
+                        Message = "Mordor took my finger."
+                    };
 
                 var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
 
@@ -404,10 +404,10 @@ namespace NuGetGallery
                         It.IsAny<Package>(),
                         "Mordor took my finger"));
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Id = "mordor" },
-                                      Version = "2.0.1"
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "mordor" },
+                        Version = "2.0.1"
+                    };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", It.IsAny<string>(), true)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
@@ -421,9 +421,9 @@ namespace NuGetGallery
                     userSvc: userSvc,
                     httpContext: httpContext);
                 var model = new ReportAbuseViewModel
-                                {
-                                    Message = "Mordor took my finger."
-                                };
+                    {
+                        Message = "Mordor took my finger."
+                    };
 
                 var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
 
@@ -578,7 +578,7 @@ namespace NuGetGallery
                 var fakeIdentity = new Mock<IIdentity>();
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakePackageRegistration = new PackageRegistration
-                                                  { Id = "theId", Owners = new[] { new User { Key = 1 /* not the current user */ } } };
+                    { Id = "theId", Owners = new[] { new User { Key = 1 /* not the current user */ } } };
                 var fakePackageSvc = new Mock<IPackageService>();
                 fakePackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakePackageRegistration);
                 var controller = CreateController(
@@ -1220,11 +1220,11 @@ namespace NuGetGallery
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(Stream.Null);
                 var fakePackageSvc = new Mock<IPackageService>();
                 var commandLinePackage = new Package
-                                             {
-                                                 PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" },
-                                                 Version = "2.0.0",
-                                                 IsLatestStable = true
-                                             };
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" },
+                        Version = "2.0.0",
+                        IsLatestStable = true
+                    };
                 fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(commandLinePackage);
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 nugetExeDownloader.Setup(d => d.UpdateExecutable(It.IsAny<IPackage>())).Verifiable();
@@ -1256,11 +1256,11 @@ namespace NuGetGallery
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(Stream.Null);
                 var fakePackageSvc = new Mock<IPackageService>();
                 var commandLinePackage = new Package
-                                             {
-                                                 PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" },
-                                                 Version = "2.0.0",
-                                                 IsLatestStable = false
-                                             };
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" },
+                        Version = "2.0.0",
+                        IsLatestStable = false
+                    };
                 fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(commandLinePackage);
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var controller = CreateController(
@@ -1294,7 +1294,7 @@ namespace NuGetGallery
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(Stream.Null);
                 var fakePackageSvc = new Mock<IPackageService>();
                 var commandLinePackage = new Package
-                                             { PackageRegistration = new PackageRegistration { Id = id }, Version = "2.0.0", IsLatestStable = true };
+                    { PackageRegistration = new PackageRegistration { Id = id }, Version = "2.0.0", IsLatestStable = true };
                 fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(commandLinePackage);
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var controller = CreateController(

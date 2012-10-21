@@ -64,12 +64,12 @@ namespace NuGetGallery
 
             protected override T GetService<T>()
             {
-                if (typeof (T) == typeof (ICuratedFeedsByManagerQuery))
+                if (typeof(T) == typeof(ICuratedFeedsByManagerQuery))
                 {
                     return (T)StubCuratedFeedsByManagerQry.Object;
                 }
 
-                if (typeof (T) == typeof (IUserByUsernameQuery))
+                if (typeof(T) == typeof(IUserByUsernameQuery))
                 {
                     return (T)StubUserByUsernameQry.Object;
                 }
@@ -148,10 +148,10 @@ namespace NuGetGallery
             public void ReturnsConfirmedWhenTokenMatchesUser()
             {
                 var user = new User
-                               {
-                                   UnconfirmedEmailAddress = "email@example.com",
-                                   EmailConfirmationToken = "the-token"
-                               };
+                    {
+                        UnconfirmedEmailAddress = "email@example.com",
+                        EmailConfirmationToken = "the-token"
+                    };
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername("username")).Returns(user);
                 userService.Setup(u => u.ConfirmEmailAddress(user, "the-token")).Returns(true);
@@ -167,11 +167,11 @@ namespace NuGetGallery
             {
                 var userService = new Mock<IUserService>();
                 var user = new User
-                               {
-                                   EmailAddress = "old@example.com",
-                                   UnconfirmedEmailAddress = "new@example.com",
-                                   EmailConfirmationToken = "the-token"
-                               };
+                    {
+                        EmailAddress = "old@example.com",
+                        UnconfirmedEmailAddress = "new@example.com",
+                        EmailConfirmationToken = "the-token"
+                    };
                 userService.Setup(u => u.FindByUsername("username")).Returns(user);
                 userService.Setup(u => u.ConfirmEmailAddress(user, "the-token")).Returns(true);
                 var messageService = new Mock<IMessageService>();
@@ -189,11 +189,11 @@ namespace NuGetGallery
             public void ReturnsFalseWhenTokenDoesNotMatchUser()
             {
                 var user = new User
-                               {
-                                   EmailAddress = "old@example.com",
-                                   UnconfirmedEmailAddress = "new@example.com",
-                                   EmailConfirmationToken = "the-token"
-                               };
+                    {
+                        EmailAddress = "old@example.com",
+                        UnconfirmedEmailAddress = "new@example.com",
+                        EmailConfirmationToken = "the-token"
+                    };
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername("username")).Returns(user);
                 userService.Setup(u => u.ConfirmEmailAddress(user, "not-the-token")).Returns(false);
@@ -211,10 +211,10 @@ namespace NuGetGallery
             public void UpdatesEmailAllowedSetting()
             {
                 var user = new User
-                               {
-                                   EmailAddress = "test@example.com",
-                                   EmailAllowed = true
-                               };
+                    {
+                        EmailAddress = "test@example.com",
+                        EmailAllowed = true
+                    };
 
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername(It.IsAny<string>())).Returns(user);
@@ -233,10 +233,10 @@ namespace NuGetGallery
             public void SendsEmailChangeConfirmationNoticeWhenEmailConfirmationTokenChanges()
             {
                 var user = new User
-                               {
-                                   EmailAddress = "test@example.com",
-                                   EmailAllowed = true
-                               };
+                    {
+                        EmailAddress = "test@example.com",
+                        EmailAllowed = true
+                    };
 
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername(It.IsAny<string>())).Returns(user);
@@ -256,11 +256,11 @@ namespace NuGetGallery
             public void DoesNotSendEmailChangeConfirmationNoticeWhenTokenDoesNotChange()
             {
                 var user = new User
-                               {
-                                   EmailAddress = "old@example.com",
-                                   EmailAllowed = true,
-                                   EmailConfirmationToken = "token"
-                               };
+                    {
+                        EmailAddress = "old@example.com",
+                        EmailAllowed = true,
+                        EmailConfirmationToken = "token"
+                    };
 
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername(It.IsAny<string>())).Returns(user);
@@ -296,12 +296,12 @@ namespace NuGetGallery
             public void SendsEmailWithPasswordResetUrl()
             {
                 var user = new User
-                               {
-                                   EmailAddress = "some@example.com",
-                                   Username = "somebody",
-                                   PasswordResetToken = "confirmation",
-                                   PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
-                               };
+                    {
+                        EmailAddress = "some@example.com",
+                        Username = "somebody",
+                        PasswordResetToken = "confirmation",
+                        PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                    };
                 var messageService = new Mock<IMessageService>();
                 const string resetUrl = "https://example.org/?Controller=Users&Action=ResetPassword&username=somebody&token=confirmation";
                 messageService.Setup(
@@ -344,7 +344,7 @@ namespace NuGetGallery
                 var result = controller.ForgotPassword(model) as ViewResult;
 
                 Assert.NotNull(result);
-                Assert.IsNotType(typeof (RedirectResult), result);
+                Assert.IsNotType(typeof(RedirectResult), result);
             }
         }
 
@@ -490,10 +490,10 @@ namespace NuGetGallery
                 userService.Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd")).Returns(false);
                 var controller = CreateController(userSvc: userService);
                 var model = new PasswordResetViewModel
-                                {
-                                    ConfirmPassword = "pwd",
-                                    NewPassword = "newpwd"
-                                };
+                    {
+                        ConfirmPassword = "pwd",
+                        NewPassword = "newpwd"
+                    };
 
                 controller.ResetPassword("user", "token", model);
 
@@ -508,10 +508,10 @@ namespace NuGetGallery
                 userService.Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd")).Returns(true);
                 var controller = CreateController(userSvc: userService);
                 var model = new PasswordResetViewModel
-                                {
-                                    ConfirmPassword = "pwd",
-                                    NewPassword = "newpwd"
-                                };
+                    {
+                        ConfirmPassword = "pwd",
+                        NewPassword = "newpwd"
+                    };
 
                 var result = controller.ResetPassword("user", "token", model) as RedirectToRouteResult;
 

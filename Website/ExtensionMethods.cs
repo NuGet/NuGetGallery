@@ -211,7 +211,7 @@ namespace NuGetGallery
             string methodName = descIndex == -1 ? "OrderBy" : "OrderByDescending";
 
             Expression methodCallExpression = Expression.Call(
-                typeof (Queryable),
+                typeof(Queryable),
                 methodName,
                 new[]
                     {

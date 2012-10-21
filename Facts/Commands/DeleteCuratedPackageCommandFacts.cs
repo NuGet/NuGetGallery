@@ -34,7 +34,7 @@ namespace NuGetGallery.Commands
 
             protected override T GetService<T>()
             {
-                if (typeof (T) == typeof (ICuratedFeedByKeyQuery))
+                if (typeof(T) == typeof(ICuratedFeedByKeyQuery))
                 {
                     return (T)StubCuratedFeedByKeyQry.Object;
                 }

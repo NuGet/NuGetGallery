@@ -41,7 +41,7 @@ namespace DynamicDataEFCodeFirst
                         break;
                 }
             }
-            else if (Column.ColumnType == typeof (DateTime))
+            else if (Column.ColumnType == typeof(DateTime))
             {
                 validator.Enabled = true;
                 DateValidator.ErrorMessage = HttpUtility.HtmlEncode(DefaultDateAttribute.FormatErrorMessage(Column.DisplayName));

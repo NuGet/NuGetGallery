@@ -38,11 +38,11 @@ namespace NuGetGallery
 
             var owners = from u in package.PackageRegistration.Owners
                          select new OwnerModel
-                                    {
-                                        name = u.Username,
-                                        current = u.Username == HttpContext.User.Identity.Name,
-                                        pending = false
-                                    };
+                             {
+                                 name = u.Username,
+                                 current = u.Username == HttpContext.User.Identity.Name,
+                                 pending = false
+                             };
 
             var pending = from u in _packageOwnerRequestRepository.GetAll()
                           where u.PackageRegistrationKey == package.PackageRegistration.Key

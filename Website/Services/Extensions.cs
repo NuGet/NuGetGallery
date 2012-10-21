@@ -24,13 +24,13 @@ namespace NuGetGallery
                                                                                                p => p.Authors.Any(a => a.Name.Contains(term));
 
         private static readonly Func<string, Expression<Func<Package, bool>>>[] SearchCriteria = new[]
-                                                                                                     {
-                                                                                                         IdCriteria,
-                                                                                                         AuthorCriteria,
-                                                                                                         DescriptionCriteria,
-                                                                                                         SummaryCriteria,
-                                                                                                         TagCriteria
-                                                                                                     };
+            {
+                IdCriteria,
+                AuthorCriteria,
+                DescriptionCriteria,
+                SummaryCriteria,
+                TagCriteria
+            };
 
         public static IQueryable<Package> Search(this IQueryable<Package> source, string searchTerm)
         {
@@ -57,7 +57,7 @@ namespace NuGetGallery
                 .Aggregate(Expression.OrElse);
 
             // Now build the final predicate
-            var parameterExpr = Expression.Parameter(typeof (Package));
+            var parameterExpr = Expression.Parameter(typeof(Package));
 
             // Fix up the body to use our parameter expression
             body = new ParameterExpressionReplacer(parameterExpr).Visit(body);

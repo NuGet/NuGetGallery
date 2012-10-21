@@ -39,12 +39,12 @@ namespace NuGetGallery
             }
 
             var curatedPackage = new CuratedPackage
-                                     {
-                                         PackageRegistrationKey = packageRegistration.Key,
-                                         Included = included,
-                                         AutomaticallyCurated = automaticallyCurated,
-                                         Notes = notes,
-                                     };
+                {
+                    PackageRegistrationKey = packageRegistration.Key,
+                    Included = included,
+                    AutomaticallyCurated = automaticallyCurated,
+                    Notes = notes,
+                };
 
             curatedFeed.Packages.Add(curatedPackage);
 

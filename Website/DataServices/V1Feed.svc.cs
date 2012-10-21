@@ -29,12 +29,12 @@ namespace NuGetGallery
         protected override FeedContext<V1FeedPackage> CreateDataSource()
         {
             return new FeedContext<V1FeedPackage>
-                       {
-                           Packages = PackageRepo.GetAll()
-                               .Where(p => !p.IsPrerelease)
-                               .WithoutVersionSort()
-                               .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
-                       };
+                {
+                    Packages = PackageRepo.GetAll()
+                        .Where(p => !p.IsPrerelease)
+                        .WithoutVersionSort()
+                        .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
+                };
         }
 
         public override Uri GetReadStreamUri(

@@ -6,7 +6,7 @@ using System.Web.Security;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using NuGetGallery;
 
-[assembly: WebActivator.PreApplicationStartMethod(typeof (AuthenticationModule), "Start")]
+[assembly: WebActivator.PreApplicationStartMethod(typeof(AuthenticationModule), "Start")]
 
 namespace NuGetGallery
 {
@@ -23,7 +23,7 @@ namespace NuGetGallery
 
         public static void Start()
         {
-            DynamicModuleUtility.RegisterModule(typeof (AuthenticationModule));
+            DynamicModuleUtility.RegisterModule(typeof(AuthenticationModule));
         }
 
         private void OnAuthenticateRequest(object sender, EventArgs e)

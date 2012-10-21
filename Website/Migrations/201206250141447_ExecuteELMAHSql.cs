@@ -10,7 +10,7 @@ namespace NuGetGallery.Migrations
 
         public override void Up()
         {
-            using (var stream = typeof (ExecuteELMAHSql).Assembly.GetManifestResourceStream("NuGetGallery.Infrastructure.Elmah.SqlServer.sql"))
+            using (var stream = typeof(ExecuteELMAHSql).Assembly.GetManifestResourceStream("NuGetGallery.Infrastructure.Elmah.SqlServer.sql"))
             {
                 using (var streamReader = new StreamReader(stream))
                 {

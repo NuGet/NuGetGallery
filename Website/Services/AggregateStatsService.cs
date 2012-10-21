@@ -26,11 +26,11 @@ namespace NuGetGallery
                             return new AggregateStats();
                         }
                         return new AggregateStats
-                                   {
-                                       UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
-                                       TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
-                                       Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt32(2),
-                                   };
+                            {
+                                UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
+                                TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                                Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt32(2),
+                            };
                     }
                 }
             }
