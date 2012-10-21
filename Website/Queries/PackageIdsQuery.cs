@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 
 namespace NuGetGallery
@@ -39,18 +40,18 @@ ORDER BY MAX(pr.DownloadCount) DESC";
         {
             var dbContext = (DbContext)_entities;
 
-            if (string.IsNullOrWhiteSpace(partialId))
+            if (String.IsNullOrWhiteSpace(partialId))
             {
                 return dbContext.Database.SqlQuery<string>(NoPartialIdSql);
             }
 
-            var prereleaseFilter = string.Empty;
+            var prereleaseFilter = String.Empty;
             if (!includePrerelease.HasValue || !includePrerelease.Value)
             {
                 prereleaseFilter = "AND p.IsPrerelease = {1}";
             }
             return dbContext.Database.SqlQuery<string>(
-                string.Format(PartialIdSqlFormat, prereleaseFilter), partialId + "%", includePrerelease ?? false);
+                String.Format(PartialIdSqlFormat, prereleaseFilter), partialId + "%", includePrerelease ?? false);
         }
     }
 }

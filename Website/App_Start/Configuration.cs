@@ -83,8 +83,8 @@ namespace NuGetGallery
                     new Lazy<object>(
                         () =>
                             {
-                                var value = ConfigurationManager.AppSettings[string.Format("Gallery:{0}", key)];
-                                if (string.IsNullOrWhiteSpace(value))
+                                var value = ConfigurationManager.AppSettings[String.Format("Gallery:{0}", key)];
+                                if (String.IsNullOrWhiteSpace(value))
                                 {
                                     value = null;
                                 }

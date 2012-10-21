@@ -30,19 +30,19 @@ WHERE pr.ID = {{0}}
             string id,
             bool? includePrerelease = false)
         {
-            if (string.IsNullOrWhiteSpace(id))
+            if (String.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentNullException("id");
             }
 
             var dbContext = (DbContext)_entities;
 
-            var prereleaseFilter = string.Empty;
+            var prereleaseFilter = String.Empty;
             if (!includePrerelease.HasValue || !includePrerelease.Value)
             {
                 prereleaseFilter = "AND p.IsPrerelease = 0";
             }
-            return dbContext.Database.SqlQuery<string>(string.Format(SqlFormat, prereleaseFilter), id);
+            return dbContext.Database.SqlQuery<string>(String.Format(SqlFormat, prereleaseFilter), id);
         }
     }
 }
