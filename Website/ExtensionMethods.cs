@@ -42,7 +42,9 @@ namespace NuGetGallery
         public static string Flatten(this IEnumerable<string> list)
         {
             if (list == null)
+            {
                 return String.Empty;
+            }
 
             return String.Join(", ", list.ToArray());
         }
@@ -59,32 +61,46 @@ namespace NuGetGallery
             foreach (var dependencySet in dependencySets)
             {
                 if (dependencySet.Dependencies.Count == 0)
-                    dependencies.Add(new 
-                    {
-                        Id = (string)null, 
-                        VersionSpec = (string)null, 
-                        TargetFramework = dependencySet.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependencySet.TargetFramework)
-                    });
+                {
+                    dependencies.Add(
+                        new
+                            {
+                                Id = (string)null,
+                                VersionSpec = (string)null,
+                                TargetFramework =
+                            dependencySet.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependencySet.TargetFramework)
+                            });
+                }
                 else
+                {
                     foreach (var dependency in dependencySet.Dependencies.Select(d => new { d.Id, d.VersionSpec, dependencySet.TargetFramework }))
-                        dependencies.Add(new 
-                        {
-                            dependency.Id,
-                            VersionSpec = dependency.VersionSpec == null ? null : dependency.VersionSpec.ToString(),
-                            TargetFramework = dependency.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependency.TargetFramework)
-                        });
+                    {
+                        dependencies.Add(
+                            new
+                                {
+                                    dependency.Id,
+                                    VersionSpec = dependency.VersionSpec == null ? null : dependency.VersionSpec.ToString(),
+                                    TargetFramework =
+                                dependency.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependency.TargetFramework)
+                                });
+                    }
+                }
             }
             return FlattenDependencies(dependencies);
         }
-        
+
         public static string Flatten(this ICollection<PackageDependency> dependencies)
         {
-            return FlattenDependencies(dependencies.Select(d => new { d.Id, VersionSpec = d.VersionSpec.ToStringSafe(), TargetFramework = d.TargetFramework.ToStringSafe() }));
+            return
+                FlattenDependencies(
+                    dependencies.Select(
+                        d => new { d.Id, VersionSpec = d.VersionSpec.ToStringSafe(), TargetFramework = d.TargetFramework.ToStringSafe() }));
         }
 
-        static string FlattenDependencies(IEnumerable<dynamic> dependencies)
+        private static string FlattenDependencies(IEnumerable<dynamic> dependencies)
         {
-            return String.Join("|", dependencies.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}:{2}", d.Id, d.VersionSpec, d.TargetFramework)));
+            return String.Join(
+                "|", dependencies.Select(d => String.Format(CultureInfo.InvariantCulture, "{0}:{1}:{2}", d.Id, d.VersionSpec, d.TargetFramework)));
         }
 
         public static HelperResult Flatten<T>(this IEnumerable<T> items, Func<T, HelperResult> template)
@@ -95,10 +111,7 @@ namespace NuGetGallery
             }
             var formattedItems = items.Select(item => template(item).ToHtmlString());
 
-            return new HelperResult(writer =>
-            {
-                writer.Write(String.Join(", ", formattedItems.ToArray()));
-            });
+            return new HelperResult(writer => { writer.Write(String.Join(", ", formattedItems.ToArray())); });
         }
 
         public static bool AnySafe<T>(this IEnumerable<T> items)
@@ -191,20 +204,22 @@ namespace NuGetGallery
 
             ParameterExpression parameter = Expression.Parameter(source.ElementType);
             Expression property = sortExpression.Split('.')
-                                                .Aggregate<string, Expression>(parameter, Expression.Property);
+                .Aggregate<string, Expression>(parameter, Expression.Property);
 
             LambdaExpression lambda = Expression.Lambda(property, parameter);
 
             string methodName = descIndex == -1 ? "OrderBy" : "OrderByDescending";
 
-            Expression methodCallExpression = Expression.Call(typeof(Queryable),
-                                                              methodName,
-                                                              new Type[] { 
-                                                                  source.ElementType, 
-                                                                  property.Type 
-                                                              },
-                                                              source.Expression,
-                                                              Expression.Quote(lambda));
+            Expression methodCallExpression = Expression.Call(
+                typeof(Queryable),
+                methodName,
+                new[]
+                    {
+                        source.ElementType,
+                        property.Type
+                    },
+                source.Expression,
+                Expression.Quote(lambda));
 
             return source.Provider.CreateQuery<T>(methodCallExpression);
         }
@@ -216,7 +231,7 @@ namespace NuGetGallery
 
         public static bool IsError<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression)
         {
-            var metadata = ModelMetadata.FromLambdaExpression<TModel, TProperty>(expression, htmlHelper.ViewData);
+            var metadata = ModelMetadata.FromLambdaExpression(expression, htmlHelper.ViewData);
             var modelState = htmlHelper.ViewData.ModelState[metadata.PropertyName];
             return modelState != null && modelState.Errors != null && modelState.Errors.Count > 0;
         }
@@ -229,12 +244,16 @@ namespace NuGetGallery
         public static string ToFriendlyName(this FrameworkName frameworkName)
         {
             if (frameworkName == null)
+            {
                 throw new ArgumentNullException("frameworkName");
-            
+            }
+
             var sb = new StringBuilder();
             sb.AppendFormat("{0} {1}", frameworkName.Identifier, frameworkName.Version);
-            if (string.IsNullOrEmpty(frameworkName.Profile))
+            if (String.IsNullOrEmpty(frameworkName.Profile))
+            {
                 sb.AppendFormat(" {0}", frameworkName.Profile);
+            }
             return sb.ToString();
         }
     }

@@ -23,11 +23,15 @@ namespace NuGetGallery
         {
             var curatedFeed = GetService<ICuratedFeedByKeyQuery>().Execute(curatedFeedKey);
             if (curatedFeed == null)
+            {
                 throw new InvalidOperationException("The curated feed does not exist.");
+            }
 
             var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.Key == curatedPackageKey);
             if (curatedPackage == null)
+            {
                 throw new InvalidOperationException("The curated package does not exist.");
+            }
 
             Entities.CuratedPackages.Remove(curatedPackage);
 

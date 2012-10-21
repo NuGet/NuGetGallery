@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Linq;
+using System.Web.DynamicData;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class EnumerationFilter : System.Web.DynamicData.QueryableFilterUserControl
+    public partial class EnumerationFilter : QueryableFilterUserControl
     {
         private const string NullValueString = "[null]";
+
         public override Control FilterControl
         {
-            get
-            {
-                return DropDownList1;
-            }
+            get { return DropDownList1; }
         }
 
         public void Page_Init(object sender, EventArgs e)
@@ -58,6 +57,5 @@ namespace DynamicDataEFCodeFirst
         {
             OnFilterChanged();
         }
-
     }
 }

@@ -26,7 +26,9 @@ namespace NuGetGallery
             var qry = _entities.PackageRegistrations.AsQueryable();
 
             if (includeOwners)
+            {
                 qry = qry.Include(packageRegistration => packageRegistration.Owners);
+            }
 
             return qry.SingleOrDefault(pr => pr.Key == key);
         }

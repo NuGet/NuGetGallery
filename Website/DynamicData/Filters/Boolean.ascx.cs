@@ -1,27 +1,31 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Web.DynamicData;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class BooleanFilter : System.Web.DynamicData.QueryableFilterUserControl
+    public partial class BooleanFilter : QueryableFilterUserControl
     {
         private const string NullValueString = "[null]";
+
         public override Control FilterControl
         {
-            get
-            {
-                return DropDownList1;
-            }
+            get { return DropDownList1; }
         }
 
         protected void Page_Init(object sender, EventArgs e)
         {
-            if (!Column.ColumnType.Equals(typeof(bool)))
+            if (!(Column.ColumnType == typeof(bool)))
             {
-                throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, "A boolean filter was loaded for column '{0}' but the column has an incompatible type '{1}'.", Column.Name, Column.ColumnType));
+                throw new InvalidOperationException(
+                    String.Format(
+                        CultureInfo.CurrentCulture,
+                        "A boolean filter was loaded for column '{0}' but the column has an incompatible type '{1}'.",
+                        Column.Name,
+                        Column.ColumnType));
             }
 
             if (!Page.IsPostBack)
@@ -66,6 +70,5 @@ namespace DynamicDataEFCodeFirst
         {
             OnFilterChanged();
         }
-
     }
 }

@@ -15,20 +15,23 @@
 
 <p>Please provide a detailed abuse report. Include exactly what the package did.</p>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     <fieldset class="form">
         <legend>Report Abuse</legend>
         @Html.AntiForgeryToken()
         <div class="form-field">
-        @if (!Model.ConfirmedUser) {
-            @Html.LabelFor(m => m.Email)
-            @Html.EditorFor(m => m.Email)
-            <span class="field-hint-message">Provide your email address so we can follow up with you.</span>
-            @Html.ValidationMessageFor(m => m.Email)
-        }
-        else {
-            <input type="hidden" name="Email" value="test@example.com" />
-        }
+            @if (!Model.ConfirmedUser)
+            {
+                @Html.LabelFor(m => m.Email)
+                @Html.EditorFor(m => m.Email)
+                <span class="field-hint-message">Provide your email address so we can follow up with you.</span>
+                @Html.ValidationMessageFor(m => m.Email)
+            }
+            else
+            {
+                <input type="hidden" name="Email" value="test@example.com" />
+            }
         </div>
         <div class="form-field">
             @Html.LabelFor(m => m.Message)

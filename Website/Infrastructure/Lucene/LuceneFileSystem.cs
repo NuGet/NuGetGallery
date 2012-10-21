@@ -9,12 +9,11 @@ namespace NuGetGallery
         public LuceneFileSystem(string path)
             : base(new DirectoryInfo(path))
         {
-
         }
 
         public void Dispose()
         {
-            base.Close();
+            Close();
         }
     }
 }

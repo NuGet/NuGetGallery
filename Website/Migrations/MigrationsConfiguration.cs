@@ -19,21 +19,22 @@ namespace NuGetGallery.Migrations
             var roles = context.Set<Role>();
             if (!roles.Any(x => x.Name == Constants.AdminRoleName))
             {
-                roles.Add(new Role() { Name = Constants.AdminRoleName });
+                roles.Add(new Role { Name = Constants.AdminRoleName });
                 context.SaveChanges();
             }
 
             var gallerySettings = context.Set<GallerySetting>();
             if (!gallerySettings.Any())
             {
-                gallerySettings.Add(new GallerySetting
-                {
-                    SmtpHost = null,
-                    SmtpPort = null,
-                    GalleryOwnerEmail = GalleryOwnerEmail,
-                    GalleryOwnerName = GalleryOwnerName,
-                    ConfirmEmailAddresses = true
-                });
+                gallerySettings.Add(
+                    new GallerySetting
+                        {
+                            SmtpHost = null,
+                            SmtpPort = null,
+                            GalleryOwnerEmail = GalleryOwnerEmail,
+                            GalleryOwnerName = GalleryOwnerName,
+                            ConfirmEmailAddresses = true
+                        });
                 context.SaveChanges();
             }
             else

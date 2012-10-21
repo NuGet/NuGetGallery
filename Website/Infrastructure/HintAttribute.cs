@@ -6,7 +6,7 @@ namespace NuGetGallery
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public sealed class HintAttribute : Attribute, IMetadataAware
     {
-        readonly object _typeId = new Object();
+        private readonly object _typeId = new Object();
 
         public HintAttribute(string hint)
         {
@@ -15,6 +15,11 @@ namespace NuGetGallery
 
         public string Hint { get; private set; }
 
+        public override object TypeId
+        {
+            get { return _typeId; }
+        }
+
         public void OnMetadataCreated(ModelMetadata metadata)
         {
             if (metadata == null)
@@ -22,14 +27,6 @@ namespace NuGetGallery
                 throw new ArgumentNullException("metadata");
             }
             metadata.AdditionalValues["Hint"] = Hint;
-        }
-
-        public override object TypeId
-        {
-            get
-            {
-                return _typeId;
-            }
         }
     }
 }

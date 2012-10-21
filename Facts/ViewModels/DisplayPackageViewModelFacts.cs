@@ -9,25 +9,25 @@ namespace NuGetGallery.ViewModels
         public void TheCtorSortsPackageVersionsProperly()
         {
             var package = new Package
-            {
-                Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
-                PackageRegistration = new PackageRegistration
                 {
-                    Owners = Enumerable.Empty<User>().ToList(),
+                    Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
+                    PackageRegistration = new PackageRegistration
+                        {
+                            Owners = Enumerable.Empty<User>().ToList(),
+                        }
+                };
 
-                }
-            };
-
-            package.PackageRegistration.Packages = new Package[] 
-            {
-                new Package {Version = "1.0.0-alpha2", PackageRegistration = package.PackageRegistration},
-                new Package {Version = "1.0.0", PackageRegistration = package.PackageRegistration},
-                new Package {Version = "1.0.0-alpha", PackageRegistration = package.PackageRegistration},
-                new Package {Version = "1.0.0-beta", PackageRegistration = package.PackageRegistration},
-                new Package {Version = "1.0.2-beta", PackageRegistration = package.PackageRegistration},
-                new Package {Version = "1.0.2", PackageRegistration = package.PackageRegistration},
-                new Package {Version = "1.0.10", PackageRegistration = package.PackageRegistration}
-            };
+            package.PackageRegistration.Packages = new[]
+                {
+                    new Package { Version = "1.0.0-alpha2", PackageRegistration = package.PackageRegistration }
+                    ,
+                    new Package { Version = "1.0.0", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.0-alpha", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.0-beta", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.2-beta", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.2", PackageRegistration = package.PackageRegistration },
+                    new Package { Version = "1.0.10", PackageRegistration = package.PackageRegistration }
+                };
 
             var packageVersions = new DisplayPackageViewModel(package).PackageVersions.ToList();
 

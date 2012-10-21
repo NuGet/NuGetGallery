@@ -11,12 +11,13 @@ namespace NuGetGallery
             Packages = new HashSet<Package>();
         }
 
-        public int Key { get; set; }
-
-        [StringLength(128), Required]
+        [StringLength(128)]
+        [Required]
         public string Id { get; set; }
+
         public int DownloadCount { get; set; }
         public virtual ICollection<User> Owners { get; set; }
         public virtual ICollection<Package> Packages { get; set; }
+        public int Key { get; set; }
     }
 }

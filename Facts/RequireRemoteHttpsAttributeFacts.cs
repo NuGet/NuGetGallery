@@ -12,7 +12,7 @@ namespace NuGetGallery
         public void RequireFactsAttributeDoesNotThrowForLocalHostRequests()
         {
             // Arrange
-            Mock<AuthorizationContext> mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
+            var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsLocal).Returns(true);
             var context = mockAuthContext.Object;
             var attribute = new RequireRemoteHttpsAttribute();
@@ -30,7 +30,7 @@ namespace NuGetGallery
         public void RequireHttpsAttributeDoesNotThrowForSecureConnection()
         {
             // Arrange
-            Mock<AuthorizationContext> mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
+            var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsLocal).Returns(false);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsSecureConnection).Returns(true);
             var context = mockAuthContext.Object;
@@ -49,7 +49,7 @@ namespace NuGetGallery
         public void RequireHttpsAttributeRedirectsGetRequest()
         {
             // Arrange
-            Mock<AuthorizationContext> mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
+            var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsLocal).Returns(false);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.HttpMethod).Returns("get");
             mockAuthContext.SetupGet(c => c.HttpContext.Request.Url).Returns(new Uri("http://test.nuget.org/login"));
@@ -77,7 +77,7 @@ namespace NuGetGallery
         public void RequireHttpsAttributeReturns403IfNonGetRequest(string method)
         {
             // Arrange
-            Mock<AuthorizationContext> mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
+            var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsLocal).Returns(false);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.HttpMethod).Returns(method);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.Url).Returns(new Uri("http://test.nuget.org/api/create"));

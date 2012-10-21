@@ -1,3 +1,4 @@
+@using Links
 @model DisplayPackageViewModel
 @{
     ViewBag.Title = Model.Title + " " + Model.Version;
@@ -5,7 +6,7 @@
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 @section SideColumn {
-    <img class="logo" src="@(Model.IconUrl ?? @Links.Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src='@Links.Content.Images.packageDefaultIcon_png';" />
+    <img class="logo" src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src = '@Content.Images.packageDefaultIcon_png';" />
     <div id="stats">
         <div class="stat">
             <p class="stat-number">@Model.TotalDownloadCount.ToString("n0")</p>
@@ -25,23 +26,28 @@
     </div>
     <nav>
         <ul class="links">
-            @if (!String.IsNullOrEmpty(Model.ProjectUrl)) {
+            @if (!String.IsNullOrEmpty(Model.ProjectUrl))
+            {
                 <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
-                    Project Site</a></li>
+                        Project Site</a></li>
             }
-            @if (!String.IsNullOrEmpty(Model.LicenseUrl)) {
+            @if (!String.IsNullOrEmpty(Model.LicenseUrl))
+            {
                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
             }
             <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">
-                Report Abuse</a></li>
+                    Report Abuse</a></li>
             <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
             @if (User.Identity.IsAuthenticated)
             {
-                <li><a href="@Url.PackageDownload(2,Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a></li>
-            } else {
+                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a></li>
+            }
+            else
+            {
                 <li><a href="@Url.Action(@MVC.Packages.Download())" title="How do I download?">How to Download</a></li>
             }
-            @if (Model.IsOwner(User)) {
+            @if (Model.IsOwner(User))
+            {
                 <li><a href="@Url.EditPackage(Model)">Edit Package</a></li>
                 <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
                 <li><a href="@Url.DeletePackage(Model)" class="delete">Delete Package</a></li>
@@ -60,7 +66,7 @@
     {
         <p class="not-latest-message">
             This is not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
-                version</a> of @Model.Title available.
+                                version</a> of @Model.Title available.
         </p>
     }
     <hgroup class="page-heading">
@@ -73,24 +79,28 @@
     }
 
     @if (!Model.Listed && Model.IsOwner(User))
-    {                                        
+    {
         <p  class="message warning">
             This package is unlisted and hidden from package listings.
             You can see the package because you are one of its owners. To list the package again, 
             <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-        </p>                             
+        </p>
     }
     <p>
         To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
-            Package Manager Console</a>
+                                                                      Package Manager Console</a>
     </p>
     <div class="nuget-badge">
         <p>
             <code>PM&gt; Install-Package @Model.Id
                 @if (!Model.LatestVersion || !Model.Listed)
-                { <text> -Version @Model.Version</text> }
+                {
+                    <text> -Version @Model.Version</text>
+                }
                 @if (Model.Prerelease)
-                {<text> -Pre </text>}</code></p>
+                {
+                    <text> -Pre </text>
+                }</code></p>
     </div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
@@ -142,9 +152,9 @@
                 </th>
                 @if (Model.IsOwner(User))
                 {
-                <th class="last">
-                    Listed
-                </th>
+                    <th class="last">
+                        Listed
+                    </th>
                 }
             </tr>
         </thead>
@@ -154,9 +164,13 @@
                 if (packageVersion.Listed || Model.IsOwner(User))
                 {
                     <tr class="versionTableRow @if (packageVersion.LatestVersion)
-                                               {<text>recommended </text>}">
+                                               {
+                                                   <text>recommended </text>
+                                               }">
                         <td class="version" @if (packageVersion.LatestVersion)
-                                            {<text>title="Latest Version"</text>}>
+                                            {
+                                                <text>title="Latest Version"</text>
+                                            }>
                             @if (!packageVersion.IsCurrent(Model))
                             {
                                 <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
@@ -172,8 +186,8 @@
                         </td>
                         @if (Model.IsOwner(User))
                         {
-                        <td><a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
-                        </td>
+                            <td><a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
+                            </td>
                         }
                     </tr>
                 }

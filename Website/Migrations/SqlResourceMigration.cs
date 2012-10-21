@@ -6,8 +6,8 @@ namespace NuGetGallery.Migrations
 {
     public class SqlResourceMigration : DbMigration
     {
-        private string _sqlFile;
         private static readonly string[] Go = new[] { "GO" };
+        private readonly string _sqlFile;
 
         public SqlResourceMigration(string embeddedResourceSqlFile)
         {

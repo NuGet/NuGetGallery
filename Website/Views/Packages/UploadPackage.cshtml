@@ -1,5 +1,4 @@
-﻿@using NuGetGallery
-@model SubmitPackageRequest
+﻿@model SubmitPackageRequest
 @{
     ViewBag.Tab = "Upload Your Package";
 }
@@ -8,7 +7,8 @@
 
 @ViewHelpers.UploadSequence(1)
 
-@using(Html.BeginForm("UploadPackage", "Packages", FormMethod.Post, new { enctype="multipart/form-data"})){
+@using (Html.BeginForm("UploadPackage", "Packages", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
     <fieldset class="form">
         <legend>Upload a Package</legend>
         @Html.AntiForgeryToken()

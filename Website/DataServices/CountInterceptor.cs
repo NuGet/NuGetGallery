@@ -6,10 +6,11 @@ namespace NuGetGallery
 {
     public class CountInterceptor : ExpressionVisitor
     {
-        private readonly long count;
+        private readonly long _count;
+
         public CountInterceptor(long count)
         {
-            this.count = count;
+            _count = count;
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -17,7 +18,7 @@ namespace NuGetGallery
             var method = node.Method;
             if ((method.DeclaringType == typeof(Queryable)) && method.Name.Equals("LongCount", StringComparison.Ordinal))
             {
-                return Expression.Constant(count);
+                return Expression.Constant(_count);
             }
 
             return base.VisitMethodCall(node);

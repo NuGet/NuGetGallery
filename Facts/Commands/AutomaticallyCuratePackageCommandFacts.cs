@@ -9,6 +9,27 @@ namespace NuGetGallery.Commands
 {
     public class AutomaticallyCuratePackageCommandFacts
     {
+        public class TestableAutomaticallyCuratePackageCommand : AutomaticallyCuratePackageCommand
+        {
+            public TestableAutomaticallyCuratePackageCommand()
+                : base(null)
+            {
+                StubCurators = new List<Mock<IAutomaticPackageCurator>>();
+            }
+
+            public List<Mock<IAutomaticPackageCurator>> StubCurators { get; private set; }
+
+            protected override IEnumerable<T> GetServices<T>()
+            {
+                if (typeof(T) == typeof(IAutomaticPackageCurator))
+                {
+                    return StubCurators.Select(stub => (T)stub.Object);
+                }
+
+                throw new Exception("Tried to get unexpected servicves");
+            }
+        }
+
         public class TheExecuteMethod
         {
             [Fact]
@@ -26,25 +47,5 @@ namespace NuGetGallery.Commands
                 secondStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<IPackage>()));
             }
         }
-
-        public class TestableAutomaticallyCuratePackageCommand : AutomaticallyCuratePackageCommand
-        {
-            public TestableAutomaticallyCuratePackageCommand()
-                : base(null)
-            {
-                StubCurators = new List<Mock<IAutomaticPackageCurator>>();
-            }
-
-            public List<Mock<IAutomaticPackageCurator>> StubCurators { get; private set; }
-
-            protected override IEnumerable<T> GetServices<T>()
-            {
-                if (typeof(T) == typeof(IAutomaticPackageCurator))
-                    return StubCurators.Select(stub => (T)stub.Object);
-                
-                throw new Exception("Tried to get unexpected servicves");
-            }
-        }
     }
 }
-

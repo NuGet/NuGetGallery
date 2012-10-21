@@ -28,10 +28,14 @@ namespace NuGetGallery
             var qry = _entities.PackageRegistrations.AsQueryable();
 
             if (includePackages)
-	            qry = qry.Include(packageRegistration => packageRegistration.Packages);
-			
+            {
+                qry = qry.Include(packageRegistration => packageRegistration.Packages);
+            }
+
             if (includeOwners)
+            {
                 qry = qry.Include(packageRegistration => packageRegistration.Owners);
+            }
 
             return qry.SingleOrDefault(pr => pr.Id == id);
         }

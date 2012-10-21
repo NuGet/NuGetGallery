@@ -4,12 +4,14 @@
 }
 
 <h1 class="page-heading">Contact the Owners of "@Model.PackageId"</h1>
-@if (Model.Owners.Any()) {
+@if (Model.Owners.Any())
+{
     <p class="message">
         By submitting this form, you agree to <em>disclose your email address</em> 
         to the package owners listed below so they can reply to you.
     </p>
-    using(Html.BeginForm()){
+    using (Html.BeginForm())
+    {
         <fieldset class="form">
             <legend>Contact Owners</legend>
             @Html.AntiForgeryToken()
@@ -25,9 +27,9 @@
             <input type="submit" value="Send" title="Send your message to the owners of '@Model.PackageId'" />
         </fieldset>
     }
-
 }
-else {
+else
+{
     <p class="error message">
         Sorry, the owners of this package do not allow contacting them through this form.
         Try visiting the project home page for "@Model.PackageId" in order to contact the package owner.

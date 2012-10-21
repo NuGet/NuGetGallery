@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-    
     public partial class CuratedPackages : DbMigration
     {
         public override void Up()
@@ -15,7 +15,7 @@ namespace NuGetGallery.Migrations
             CreateIndex("CuratedPackages", "PackageRegistrationKey");
             DropColumn("CuratedPackages", "PackageKey");
         }
-        
+
         public override void Down()
         {
             AddColumn("CuratedPackages", "PackageKey", c => c.Int(nullable: false));

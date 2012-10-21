@@ -51,20 +51,31 @@ namespace NuGetGallery
             get { return 0; }
         }
 
-        public double Rating
-        {
-            get;
-            set;
-        }
+        public double Rating { get; set; }
 
         public double VersionRating
         {
             get { return 0.0; }
         }
 
-        public string Categories { get { return String.Empty; } }
-        public string PackageType { get { return "Package"; } }
-        public decimal Price { get { return 0; } }
-        public bool Prerelease { get { return false; } }
+        public string Categories
+        {
+            get { return String.Empty; }
+        }
+
+        public string PackageType
+        {
+            get { return "Package"; }
+        }
+
+        public decimal Price
+        {
+            get { return 0; }
+        }
+
+        public bool Prerelease
+        {
+            get { return false; }
+        }
     }
 }

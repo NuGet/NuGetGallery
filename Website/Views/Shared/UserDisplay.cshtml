@@ -1,10 +1,11 @@
 ﻿<div class="user-display">
     @if (!User.Identity.IsAuthenticated)
     {
-        <span class="welcome"><a href="@Url.LogOn()">Log On</a></span> 
+        <span class="welcome"><a href="@Url.LogOn()">Log On</a></span>
         <a href="@Url.Action(MVC.Users.Register())" class="register">Register</a>
     }
-    else {
+    else
+    {
         <span class="welcome"><a href="@Url.Action(MVC.Users.Account())">@User.Identity.Name</a></span>
         <span class="user-actions">
             <a href="@Url.LogOff()">Log Off</a> 

@@ -4,26 +4,26 @@ namespace NuGetGallery
 {
     public class CloudBlobContainerWrapper : ICloudBlobContainer
     {
-        CloudBlobContainer blobContainer;
+        private readonly CloudBlobContainer _blobContainer;
 
         public CloudBlobContainerWrapper(CloudBlobContainer blobContainer)
         {
-            this.blobContainer = blobContainer;
+            _blobContainer = blobContainer;
         }
 
         public void CreateIfNotExist()
         {
-            blobContainer.CreateIfNotExist();
+            _blobContainer.CreateIfNotExist();
         }
 
         public void SetPermissions(BlobContainerPermissions permissions)
         {
-            blobContainer.SetPermissions(permissions);
+            _blobContainer.SetPermissions(permissions);
         }
 
         public ICloudBlob GetBlobReference(string blobAddressUri)
         {
-            return new CloudBlobWrapper(blobContainer.GetBlobReference(blobAddressUri));
+            return new CloudBlobWrapper(_blobContainer.GetBlobReference(blobAddressUri));
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class Default_InsertEntityTemplate : System.Web.DynamicData.EntityTemplateUserControl
+    public partial class Default_InsertEntityTemplate : EntityTemplateUserControl
     {
         private MetaColumn currentColumn;
 
@@ -22,15 +22,15 @@ namespace DynamicDataEFCodeFirst
 
         protected void Label_Init(object sender, EventArgs e)
         {
-            Label label = (Label)sender;
+            var label = (Label)sender;
             label.Text = currentColumn.DisplayName;
         }
 
         protected void Label_PreRender(object sender, EventArgs e)
         {
-            Label label = (Label)sender;
-            DynamicControl dynamicControl = (DynamicControl)label.FindControl("DynamicControl");
-            FieldTemplateUserControl ftuc = dynamicControl.FieldTemplate as FieldTemplateUserControl;
+            var label = (Label)sender;
+            var dynamicControl = (DynamicControl)label.FindControl("DynamicControl");
+            var ftuc = dynamicControl.FieldTemplate as FieldTemplateUserControl;
             if (ftuc != null && ftuc.DataControl != null)
             {
                 label.AssociatedControlID = ftuc.DataControl.GetUniqueIDRelativeTo(label);
@@ -39,9 +39,8 @@ namespace DynamicDataEFCodeFirst
 
         protected void DynamicControl_Init(object sender, EventArgs e)
         {
-            DynamicControl dynamicControl = (DynamicControl)sender;
+            var dynamicControl = (DynamicControl)sender;
             dynamicControl.DataField = currentColumn.Name;
         }
-
     }
 }

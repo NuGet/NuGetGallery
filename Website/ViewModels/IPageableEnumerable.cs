@@ -2,7 +2,7 @@
 
 namespace NuGetGallery
 {
-    public interface IPageableEnumerable<T>
+    public interface IPageableEnumerable<out T>
     {
         IEnumerable<T> Items { get; }
         int PageIndex { get; }

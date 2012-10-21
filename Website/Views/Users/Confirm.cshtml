@@ -2,16 +2,20 @@
 
 <h1 class="page-heading">Confirm Registration</h1>
 
-@if (Model.SuccessfulConfirmation) {
+@if (Model.SuccessfulConfirmation)
+{
     <p>
-        @if (Model.ConfirmingNewAccount) {
+        @if (Model.ConfirmingNewAccount)
+        {
             @: Account registration completed!
         }
-        else {
+        else
+        {
             @: Email address change confirmed!
         }
     </p>
-    if (Model.ConfirmingNewAccount) {
+    if (Model.ConfirmingNewAccount)
+    {
         <p>
             Click on the Log On link to logon to the site.
         </p>
@@ -20,14 +24,16 @@
             the community.
         </p>
     }
-    else {
+    else
+    {
         <p>
             Your email address is now updated.
         </p>
     }
 }
 
- else {
+else
+{
     <p class="message error">
         Could not confirm your email address.
     </p>

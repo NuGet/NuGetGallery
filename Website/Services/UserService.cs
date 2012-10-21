@@ -6,18 +6,18 @@ namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        readonly GallerySetting settings;
-        readonly ICryptographyService cryptoSvc;
-        readonly IEntityRepository<User> userRepo;
+        private readonly ICryptographyService _cryptoSvc;
+        private readonly GallerySetting _settings;
+        private readonly IEntityRepository<User> _userRepo;
 
         public UserService(
             GallerySetting settings,
             ICryptographyService cryptoSvc,
             IEntityRepository<User> userRepo)
         {
-            this.settings = settings;
-            this.cryptoSvc = cryptoSvc;
-            this.userRepo = userRepo;
+            _settings = settings;
+            _cryptoSvc = cryptoSvc;
+            _userRepo = userRepo;
         }
 
         public virtual User Create(
@@ -30,13 +30,17 @@ namespace NuGetGallery
 
             var existingUser = FindByUsername(username);
             if (existingUser != null)
+            {
                 throw new EntityException(Strings.UsernameNotAvailable, username);
+            }
 
             existingUser = FindByEmailAddress(emailAddress);
             if (existingUser != null)
+            {
                 throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+            }
 
-            var hashedPassword = cryptoSvc.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = _cryptoSvc.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
             var newUser = new User(
                 username,
@@ -45,17 +49,17 @@ namespace NuGetGallery
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
                     UnconfirmedEmailAddress = emailAddress,
-                    EmailConfirmationToken = cryptoSvc.GenerateToken(),
+                    EmailConfirmationToken = _cryptoSvc.GenerateToken(),
                     PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 };
 
-            if (!settings.ConfirmEmailAddresses)
+            if (!_settings.ConfirmEmailAddresses)
             {
                 newUser.ConfirmEmailAddress();
             }
 
-            userRepo.InsertOnCommit(newUser);
-            userRepo.CommitChanges();
+            _userRepo.InsertOnCommit(newUser);
+            _userRepo.CommitChanges();
 
             return newUser;
         }
@@ -75,46 +79,39 @@ namespace NuGetGallery
                     throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
                 }
                 user.UnconfirmedEmailAddress = emailAddress;
-                user.EmailConfirmationToken = cryptoSvc.GenerateToken();
+                user.EmailConfirmationToken = _cryptoSvc.GenerateToken();
             }
 
             user.EmailAllowed = emailAllowed;
-            userRepo.CommitChanges();
+            _userRepo.CommitChanges();
         }
 
         public User FindByApiKey(Guid apiKey)
         {
-            return userRepo.GetAll()
-                .Where(u => u.ApiKey == apiKey)
-                .SingleOrDefault();
+            return _userRepo.GetAll().SingleOrDefault(u => u.ApiKey == apiKey);
         }
 
         public virtual User FindByEmailAddress(string emailAddress)
         {
             // TODO: validate input
 
-            return userRepo.GetAll()
-                .Where(u => u.EmailAddress == emailAddress)
-                .SingleOrDefault();
+            return _userRepo.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
         }
 
         public virtual User FindByUnconfimedEmailAddress(string unconfirmedEmailAddress)
         {
             // TODO: validate input
 
-            return userRepo.GetAll()
-                .Where(u => u.UnconfirmedEmailAddress == unconfirmedEmailAddress)
-                .SingleOrDefault();
+            return _userRepo.GetAll().SingleOrDefault(u => u.UnconfirmedEmailAddress == unconfirmedEmailAddress);
         }
 
         public virtual User FindByUsername(string username)
         {
             // TODO: validate input
 
-            return userRepo.GetAll()
+            return _userRepo.GetAll()
                 .Include(u => u.Roles)
-                .Where(u => u.Username == username)
-                .SingleOrDefault();
+                .SingleOrDefault(u => u.Username == username);
         }
 
         public virtual User FindByUsernameAndPassword(string username, string password)
@@ -124,10 +121,14 @@ namespace NuGetGallery
             var user = FindByUsername(username);
 
             if (user == null)
+            {
                 return null;
+            }
 
-            if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!_cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            {
                 return null;
+            }
 
             return user;
         }
@@ -140,9 +141,11 @@ namespace NuGetGallery
                        ?? FindByEmailAddress(usernameOrEmail);
 
             if (user == null)
+            {
                 return null;
+            }
 
-            if (!cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!_cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
             {
                 return null;
             }
@@ -150,7 +153,7 @@ namespace NuGetGallery
             {
                 // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
                 ChangePasswordInternal(user, password);
-                userRepo.CommitChanges();
+                _userRepo.CommitChanges();
             }
 
             return user;
@@ -166,7 +169,7 @@ namespace NuGetGallery
 
             var newApiKey = Guid.NewGuid();
             user.ApiKey = newApiKey;
-            userRepo.CommitChanges();
+            _userRepo.CommitChanges();
             return newApiKey.ToString();
         }
 
@@ -181,15 +184,8 @@ namespace NuGetGallery
             }
 
             ChangePasswordInternal(user, newPassword);
-            userRepo.CommitChanges();
+            _userRepo.CommitChanges();
             return true;
-        }
-
-        private void ChangePasswordInternal(User user, string newPassword)
-        {
-            var hashedPassword = cryptoSvc.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
-            user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
-            user.HashedPassword = hashedPassword;
         }
 
         public bool ConfirmEmailAddress(User user, string token)
@@ -210,7 +206,7 @@ namespace NuGetGallery
 
             user.ConfirmEmailAddress();
 
-            userRepo.CommitChanges();
+            _userRepo.CommitChanges();
             return true;
         }
 
@@ -222,7 +218,8 @@ namespace NuGetGallery
             }
             if (tokenExpirationMinutes < 1)
             {
-                throw new ArgumentException("Token expiration should give the user at least a minute to change their password", "tokenExpirationMinutes");
+                throw new ArgumentException(
+                    "Token expiration should give the user at least a minute to change their password", "tokenExpirationMinutes");
             }
 
             var user = FindByEmailAddress(usernameOrEmail);
@@ -241,10 +238,10 @@ namespace NuGetGallery
                 return user;
             }
 
-            user.PasswordResetToken = cryptoSvc.GenerateToken();
+            user.PasswordResetToken = _cryptoSvc.GenerateToken();
             user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(tokenExpirationMinutes);
 
-            userRepo.CommitChanges();
+            _userRepo.CommitChanges();
             return user;
         }
 
@@ -255,7 +252,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("newPassword");
             }
 
-            var user = (from u in userRepo.GetAll()
+            var user = (from u in _userRepo.GetAll()
                         where u.Username == username
                         select u).FirstOrDefault();
 
@@ -269,11 +266,18 @@ namespace NuGetGallery
                 ChangePasswordInternal(user, newPassword);
                 user.PasswordResetToken = null;
                 user.PasswordResetTokenExpirationDate = null;
-                userRepo.CommitChanges();
+                _userRepo.CommitChanges();
                 return true;
             }
 
             return false;
+        }
+
+        private void ChangePasswordInternal(User user, string newPassword)
+        {
+            var hashedPassword = _cryptoSvc.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
+            user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
+            user.HashedPassword = hashedPassword;
         }
     }
 }
