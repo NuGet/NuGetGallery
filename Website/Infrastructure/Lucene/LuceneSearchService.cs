@@ -26,12 +26,12 @@ namespace NuGetGallery
 
             if (searchFilter.Skip < 0)
             {
-                throw new ArgumentOutOfRangeException("skip");
+                throw new ArgumentOutOfRangeException("searchFilter");
             }
 
             if (searchFilter.Take < 0)
             {
-                throw new ArgumentOutOfRangeException("take");
+                throw new ArgumentOutOfRangeException("searchFilter");
             }
 
             // For the given search term, find the keys that match.
@@ -49,8 +49,8 @@ namespace NuGetGallery
             var lookup = results.ToDictionary(p => p.Key, p => p);
 
             return keys.Select(key => LookupPackage(lookup, key))
-                       .Where(p => p != null)
-                       .AsQueryable();
+                .Where(p => p != null)
+                .AsQueryable();
         }
 
         private static Package LookupPackage(Dictionary<int, Package> dict, int key)
@@ -79,12 +79,12 @@ namespace NuGetGallery
                 var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
                 var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
                 Filter filter = new QueryWrapperFilter(termQuery);
-                
+
 
                 var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(sortField));
                 var keys = results.scoreDocs.Skip(searchFilter.Skip)
-                                            .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
-                                            .ToList();
+                    .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
+                    .ToList();
 
                 totalHits = results.totalHits;
                 searcher.Close();
@@ -134,10 +134,11 @@ namespace NuGetGallery
                     wildCardQuery.Add(wildCardTermQuery, BooleanClause.Occur.SHOULD);
                 }
             }
-            
+
             // Create an OR of all the queries that we have
-            var combinedQuery = conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
-            
+            var combinedQuery =
+                conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+
             if (searchFilter.SortProperty == SortProperty.Relevance)
             {
                 // If searching by relevance, boost scores by download count.
@@ -150,9 +151,9 @@ namespace NuGetGallery
         private static IEnumerable<string> GetSearchTerms(string searchTerm)
         {
             return searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                             .Concat(new[] { searchTerm })
-                             .Distinct(StringComparer.OrdinalIgnoreCase)
-                             .Select(Escape);
+                .Concat(new[] { searchTerm })
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(Escape);
         }
 
         private static SortField GetSortField(SearchFilter searchFilter)

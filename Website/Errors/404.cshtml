@@ -1,12 +1,13 @@
 ﻿@* Generator : WebPage *@
-@{ 
+@{
     Page.Title = "Page Not Found";
     var errorPath = Request.QueryString["aspxerrorpath"];
 
-    if(String.IsNullOrEmpty(errorPath)){
+    if (String.IsNullOrEmpty(errorPath))
+    {
         errorPath = Request.RawUrl;
     }
-    
+
     errorPath = Path.GetFileNameWithoutExtension(errorPath);
     Response.StatusCode = 404;
 }
@@ -23,10 +24,10 @@
 
     <h2 class="search">Try Searching</h2>
     <div id="pageSearchBox">
-    <form action="@Href("~/packages")" onsubmit="return submitQuery()">
-        <input name="q" id="searchBoxInput" value="@errorPath" placeholder="Search Gallery" />
-        <input id="searchBoxSubmit" type="submit" value=" " />
-    </form>
+        <form action="@Href("~/packages")" onsubmit="return submitQuery()">
+            <input name="q" id="searchBoxInput" value="@errorPath" placeholder="Search Gallery" />
+            <input id="searchBoxSubmit" type="submit" value=" " />
+        </form>
     </div>
 
     <h2>Still Nothing?</h2>
@@ -37,8 +38,8 @@
 
 <script type="text/javascript">
     function submitQuery() {
-        window.location =  "@Href("~/packages")?q="
-        + encodeURIComponent($("#searchBoxInput").val());
+        window.location = "@Href("~/packages")?q="
+            + encodeURIComponent($("#searchBoxInput").val());
         return false;
     }
 </script>

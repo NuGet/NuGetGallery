@@ -14,15 +14,15 @@
                     @foreach (var dependency in dependencySet.Value)
                     {
                         <li>
-                        @if (dependency == null)
-                        {
-                            @:No dependencies.
-                        }
-                        else
-                        {
-                            <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
-                            <span>@dependency.VersionSpec</span>
-                        }
+                            @if (dependency == null)
+                            {
+                                @:No dependencies.
+                            }
+                            else
+                            {
+                                <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                                <span>@dependency.VersionSpec</span>
+                            }
                         </li>
                     }
                 </ul>

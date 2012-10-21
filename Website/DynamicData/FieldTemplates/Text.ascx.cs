@@ -3,7 +3,7 @@ using System.Web.UI;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class TextField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class TextField : FieldTemplateUserControl
     {
         private const int MAX_DISPLAYLENGTH_IN_LIST = 25;
 
@@ -25,11 +25,7 @@ namespace DynamicDataEFCodeFirst
 
         public override Control DataControl
         {
-            get
-            {
-                return Literal1;
-            }
+            get { return Literal1; }
         }
-
     }
 }

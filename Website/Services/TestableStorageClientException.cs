@@ -8,7 +8,7 @@ namespace NuGetGallery
         public TestableStorageClientException()
         {
         }
-        
+
         public TestableStorageClientException(StorageClientException ex)
         {
             ErrorCode = ex.ErrorCode;

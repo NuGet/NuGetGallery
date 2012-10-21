@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NuGetGallery
+﻿namespace NuGetGallery
 {
     public interface ICryptographyService
     {

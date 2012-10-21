@@ -1,35 +1,24 @@
 ﻿using System;
+using System.Web.DynamicData;
 using System.Web.UI;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class ChildrenField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class ChildrenField : FieldTemplateUserControl
     {
         private bool _allowNavigation = true;
-        private string _navigateUrl;
 
-        public string NavigateUrl
-        {
-            get
-            {
-                return _navigateUrl;
-            }
-            set
-            {
-                _navigateUrl = value;
-            }
-        }
+        public string NavigateUrl { get; set; }
 
         public bool AllowNavigation
         {
-            get
-            {
-                return _allowNavigation;
-            }
-            set
-            {
-                _allowNavigation = value;
-            }
+            get { return _allowNavigation; }
+            set { _allowNavigation = value; }
+        }
+
+        public override Control DataControl
+        {
+            get { return HyperLink1; }
         }
 
         protected void Page_Load(object sender, EventArgs e)
@@ -53,14 +42,5 @@ namespace DynamicDataEFCodeFirst
                 return BuildChildrenPath(NavigateUrl);
             }
         }
-
-        public override Control DataControl
-        {
-            get
-            {
-                return HyperLink1;
-            }
-        }
-
     }
 }

@@ -7,15 +7,15 @@ namespace NuGetGallery
 {
     public partial class AuthenticationController : Controller
     {
-        private readonly IFormsAuthenticationService formsAuthSvc;
-        private readonly IUserService userSvc;
+        private readonly IFormsAuthenticationService _formsAuthSvc;
+        private readonly IUserService _userSvc;
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthSvc,
             IUserService userSvc)
         {
-            this.formsAuthSvc = formsAuthSvc;
-            this.userSvc = userSvc;
+            _formsAuthSvc = formsAuthSvc;
+            _userSvc = userSvc;
         }
 
         [RequireRemoteHttps]
@@ -24,16 +24,19 @@ namespace NuGetGallery
             return View();
         }
 
-        [HttpPost, RequireRemoteHttps]
+        [HttpPost]
+        [RequireRemoteHttps]
         public virtual ActionResult LogOn(SignInRequest request, string returnUrl)
         {
             // TODO: improve the styling of the validation summary
             // TODO: modify the Object.cshtml partial to make the first text box autofocus, or use additional metadata
 
             if (!ModelState.IsValid)
+            {
                 return View();
+            }
 
-            var user = userSvc.FindByUsernameOrEmailAddressAndPassword(
+            var user = _userSvc.FindByUsernameOrEmailAddressAndPassword(
                 request.UserNameOrEmail,
                 request.Password);
 
@@ -58,7 +61,7 @@ namespace NuGetGallery
                 roles = user.Roles.Select(r => r.Name);
             }
 
-            formsAuthSvc.SetAuthCookie(
+            _formsAuthSvc.SetAuthCookie(
                 user.Username,
                 true,
                 roles);
@@ -70,7 +73,7 @@ namespace NuGetGallery
         {
             // TODO: this should really be a POST
 
-            formsAuthSvc.SignOut();
+            _formsAuthSvc.SignOut();
 
             return SafeRedirect(returnUrl);
         }

@@ -5,7 +5,7 @@ using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class DefaultEntityTemplate : System.Web.DynamicData.EntityTemplateUserControl
+    public partial class DefaultEntityTemplate : EntityTemplateUserControl
     {
         private MetaColumn currentColumn;
 
@@ -22,17 +22,18 @@ namespace DynamicDataEFCodeFirst
 
         protected void Label_Init(object sender, EventArgs e)
         {
-            Label label = (Label)sender;
+            var label = (Label)sender;
             label.Text = currentColumn.DisplayName;
         }
 
         protected void DynamicControl_Init(object sender, EventArgs e)
         {
-            DynamicControl dynamicControl = (DynamicControl)sender;
+            var dynamicControl = (DynamicControl)sender;
             dynamicControl.DataField = currentColumn.Name;
         }
 
-        public class _NamingContainer : Control, INamingContainer { }
-
+        public class _NamingContainer : Control, INamingContainer
+        {
+        }
     }
 }

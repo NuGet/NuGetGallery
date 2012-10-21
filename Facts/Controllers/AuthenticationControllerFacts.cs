@@ -9,6 +9,67 @@ namespace NuGetGallery.Controllers
 {
     public class AuthenticationControllerFacts
     {
+        private static AuthenticationController CreateController(
+            Mock<IFormsAuthenticationService> formsAuthSvc = null,
+            Mock<IUserService> userSvc = null,
+            Action<Mock<AuthenticationController>> setup = null)
+        {
+            formsAuthSvc = formsAuthSvc ?? new Mock<IFormsAuthenticationService>();
+            userSvc = userSvc ?? new Mock<IUserService>();
+
+            var controller = new Mock<AuthenticationController>(
+                formsAuthSvc.Object,
+                userSvc.Object);
+
+            controller.CallBase = true;
+
+            if (setup != null)
+            {
+                setup(controller);
+            }
+            else
+            {
+                controller.Setup(x => x.SafeRedirect(It.IsAny<string>()))
+                    .Returns(new RedirectResult("aRedirectUrl "));
+            }
+
+            return controller.Object;
+        }
+
+        public class TheLogOffAction
+        {
+            [Fact]
+            public void WillLogTheUserOff()
+            {
+                var formsAuthSvc = new Mock<IFormsAuthenticationService>();
+                var controller = CreateController(formsAuthSvc: formsAuthSvc);
+
+                controller.LogOff("theReturnUrl");
+
+                formsAuthSvc.Verify(x => x.SignOut());
+            }
+
+            [Fact]
+            public void WillRedirectToTheReturnUrl()
+            {
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(x => x.FindByUsernameOrEmailAddressAndPassword(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(new User("theUsername", null));
+                var controller = CreateController(
+                    userSvc: userSvc,
+                    setup: mock =>
+                               {
+                                   mock.Setup(x => x.SafeRedirect("theReturnUrl"))
+                                       .Returns(new RedirectResult("aSafeRedirectUrl"));
+                               });
+
+                var result = controller.LogOff("theReturnUrl") as RedirectResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("aSafeRedirectUrl", result.Url);
+            }
+        }
+
         public class TheLogOnAction
         {
             [Fact]
@@ -35,13 +96,14 @@ namespace NuGetGallery.Controllers
                     userSvc: userSvc);
 
                 controller.LogOn(
-                    new SignInRequest() { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
 
-                formsAuthSvc.Verify(x => x.SetAuthCookie(
-                    "theUsername",
-                    true,
-                    null));
+                formsAuthSvc.Verify(
+                    x => x.SetAuthCookie(
+                        "theUsername",
+                        true,
+                        null));
             }
 
             [Fact]
@@ -56,13 +118,14 @@ namespace NuGetGallery.Controllers
                     userSvc: userSvc);
 
                 controller.LogOn(
-                    new SignInRequest() { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
+                    new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
                     "theReturnUrl");
 
-                formsAuthSvc.Verify(x => x.SetAuthCookie(
-                    "theUsername",
-                    true,
-                    null));
+                formsAuthSvc.Verify(
+                    x => x.SetAuthCookie(
+                        "theUsername",
+                        true,
+                        null));
             }
 
             [Fact]
@@ -78,7 +141,7 @@ namespace NuGetGallery.Controllers
                     userSvc: userSvc);
 
                 controller.LogOn(
-                    new SignInRequest() { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
             }
 
@@ -88,23 +151,25 @@ namespace NuGetGallery.Controllers
                 var formsAuthSvc = new Mock<IFormsAuthenticationService>();
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword"))
-                    .Returns(new User("theUsername", null)
-                    {
-                        Roles = new[] { new Role { Name = "Administrators" } },
-                        EmailAddress = "confirmed@example.com"
-                    });
+                    .Returns(
+                        new User("theUsername", null)
+                            {
+                                Roles = new[] { new Role { Name = "Administrators" } },
+                                EmailAddress = "confirmed@example.com"
+                            });
                 var controller = CreateController(
                     formsAuthSvc: formsAuthSvc,
                     userSvc: userSvc);
 
                 controller.LogOn(
-                    new SignInRequest() { UserNameOrEmail = "theUsername", Password = "thePassword" },
+                    new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
 
-                formsAuthSvc.Verify(x => x.SetAuthCookie(
-                    "theUsername",
-                    true,
-                    It.Is<IEnumerable<string>>(roles => roles.Count() == 1 && roles.First() == "Administrators")));
+                formsAuthSvc.Verify(
+                    x => x.SetAuthCookie(
+                        "theUsername",
+                        true,
+                        It.Is<IEnumerable<string>>(roles => roles.Count() == 1 && roles.First() == "Administrators")));
             }
 
             [Fact]
@@ -132,75 +197,16 @@ namespace NuGetGallery.Controllers
                 var controller = CreateController(
                     userSvc: userSvc,
                     setup: mock =>
-                    {
-                        mock.Setup(x => x.SafeRedirect("theReturnUrl"))
-                            .Returns(new RedirectResult("aSafeRedirectUrl"));
-                    });
+                               {
+                                   mock.Setup(x => x.SafeRedirect("theReturnUrl"))
+                                       .Returns(new RedirectResult("aSafeRedirectUrl"));
+                               });
 
                 var result = controller.LogOn(new SignInRequest(), "theReturnUrl") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal("aSafeRedirectUrl", result.Url);
             }
-        }
-
-        public class TheLogOffAction
-        {
-            [Fact]
-            public void WillLogTheUserOff()
-            {
-                var formsAuthSvc = new Mock<IFormsAuthenticationService>();
-                var controller = CreateController(formsAuthSvc: formsAuthSvc);
-
-                controller.LogOff("theReturnUrl");
-
-                formsAuthSvc.Verify(x => x.SignOut());
-            }
-
-            [Fact]
-            public void WillRedirectToTheReturnUrl()
-            {
-                var userSvc = new Mock<IUserService>();
-                userSvc.Setup(x => x.FindByUsernameOrEmailAddressAndPassword(It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(new User("theUsername", null));
-                var controller = CreateController(
-                    userSvc: userSvc,
-                    setup: mock =>
-                    {
-                        mock.Setup(x => x.SafeRedirect("theReturnUrl"))
-                            .Returns(new RedirectResult("aSafeRedirectUrl"));
-                    });
-
-                var result = controller.LogOff("theReturnUrl") as RedirectResult;
-
-                Assert.NotNull(result);
-                Assert.Equal("aSafeRedirectUrl", result.Url);
-            }
-        }
-
-        static AuthenticationController CreateController(
-            Mock<IFormsAuthenticationService> formsAuthSvc = null,
-            Mock<IUserService> userSvc = null,
-            Action<Mock<AuthenticationController>> setup = null)
-        {
-            formsAuthSvc = formsAuthSvc ?? new Mock<IFormsAuthenticationService>();
-            userSvc = userSvc ?? new Mock<IUserService>();
-
-            var controller = new Mock<AuthenticationController>(
-                formsAuthSvc.Object,
-                userSvc.Object);
-
-            controller.CallBase = true;
-
-            if (setup != null)
-                setup(controller);
-            else
-            {
-                controller.Setup(x => x.SafeRedirect(It.IsAny<string>()))
-                    .Returns(new RedirectResult("aRedirectUrl "));
-            }
-
-            return controller.Object;
         }
     }
 }

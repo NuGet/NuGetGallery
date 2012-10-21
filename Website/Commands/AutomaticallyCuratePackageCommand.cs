@@ -20,7 +20,7 @@ namespace NuGetGallery
             Package galleryPackage,
             IPackage nugetPackage)
         {
-            foreach(var curator in GetServices<IAutomaticPackageCurator>())
+            foreach (var curator in GetServices<IAutomaticPackageCurator>())
             {
                 curator.Curate(
                     galleryPackage,

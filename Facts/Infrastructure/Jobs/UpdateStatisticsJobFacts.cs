@@ -25,12 +25,14 @@ namespace NuGetGallery.Infrastructure.Jobs
             public void CreatesNewContextOnEachRun()
             {
                 int createTimes = 0;
-                var context = new Mock<DbContext>();
-                var job = new UpdateStatisticsJob(TimeSpan.FromSeconds(10), () =>
-                {
-                    Interlocked.Increment(ref createTimes);
-                    throw new InvalidOperationException(); // Prevent the actual calling of the query.
-                }, TimeSpan.MaxValue);
+                var job = new UpdateStatisticsJob(
+                    TimeSpan.FromSeconds(10),
+                    () =>
+                        {
+                            Interlocked.Increment(ref createTimes);
+                            throw new InvalidOperationException(); // Prevent the actual calling of the query.
+                        },
+                    TimeSpan.MaxValue);
 
                 RunJob(job);
                 RunJob(job);
@@ -48,11 +50,8 @@ namespace NuGetGallery.Infrastructure.Jobs
                 }
                 catch (AggregateException)
                 {
-
                 }
             }
         }
     }
-
-
 }

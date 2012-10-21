@@ -8,25 +8,25 @@ namespace NuGetGallery
 {
     public class HttpHeaderValueProvider : IValueProvider
     {
-        private readonly HttpRequestBase request;
-        private readonly HashSet<string> expectedHeaders;
+        private readonly HashSet<string> _expectedHeaders;
+        private readonly HttpRequestBase _request;
 
         public HttpHeaderValueProvider(HttpRequestBase request, params string[] expectedHeaders)
         {
-            this.request = request;
-            this.expectedHeaders = new HashSet<string>(expectedHeaders, StringComparer.OrdinalIgnoreCase);
+            _request = request;
+            _expectedHeaders = new HashSet<string>(expectedHeaders, StringComparer.OrdinalIgnoreCase);
         }
 
         public bool ContainsPrefix(string prefix)
         {
             // Only serve X- headers
-            return expectedHeaders.Contains(prefix);
+            return _expectedHeaders.Contains(prefix);
         }
 
         public ValueProviderResult GetValue(string key)
         {
             key = "X-NuGet-" + key;
-            return new ValueProviderResult(request.Headers[key], request.Headers[key], CultureInfo.InvariantCulture);
+            return new ValueProviderResult(_request.Headers[key], _request.Headers[key], CultureInfo.InvariantCulture);
         }
     }
 }

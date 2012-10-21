@@ -8,9 +8,9 @@ namespace NuGetGallery
         ActionResult CreateDownloadFileActionResult(
             string folderName,
             string fileName);
-        
+
         void DeleteFile(
-            string folderName, 
+            string folderName,
             string fileName);
 
         bool FileExists(
@@ -22,7 +22,7 @@ namespace NuGetGallery
             string fileName);
 
         void SaveFile(
-            string folderName, 
+            string folderName,
             string fileName,
             Stream packageFile);
     }

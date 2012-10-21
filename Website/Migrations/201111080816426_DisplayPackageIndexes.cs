@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-    
     public partial class DisplayPackageIndexes : DbMigration
     {
         public override void Up()
@@ -38,7 +38,7 @@ namespace NuGetGallery.Migrations
                 [IsPrerelease],
                 [ReleaseNotes])");
         }
-        
+
         public override void Down()
         {
             DropIndex(table: "Packages", name: "IX_Packages_PackageRegistrationKey");

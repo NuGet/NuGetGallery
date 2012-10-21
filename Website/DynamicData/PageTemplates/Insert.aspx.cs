@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Web.DynamicData;
+using System.Web.UI;
 using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class Insert : System.Web.UI.Page
+    public partial class Insert : Page
     {
         protected MetaTable table;
 
@@ -35,6 +36,5 @@ namespace DynamicDataEFCodeFirst
                 Response.Redirect(table.ListActionPath);
             }
         }
-
     }
 }

@@ -10,8 +10,10 @@ namespace NuGetGallery
         public bool Match(HttpContextBase httpContext, Route route, string parameterName, RouteValueDictionary values, RouteDirection routeDirection)
         {
             if (routeDirection == RouteDirection.UrlGeneration)
+            {
                 return true;
-            
+            }
+
             object versionValue;
             if (!values.TryGetValue(parameterName, out versionValue))
             {

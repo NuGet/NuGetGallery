@@ -19,8 +19,6 @@ namespace NuGetGallery
             Username = username;
         }
 
-        public int Key { get; set; }
-
         public Guid ApiKey { get; set; }
         public string EmailAddress { get; set; }
         public string UnconfirmedEmailAddress { get; set; }
@@ -30,16 +28,16 @@ namespace NuGetGallery
         public string Username { get; set; }
         public virtual ICollection<Role> Roles { get; set; }
         public bool EmailAllowed { get; set; }
+
         public bool Confirmed
         {
-            get
-            {
-                return !String.IsNullOrEmpty(EmailAddress);
-            }
+            get { return !String.IsNullOrEmpty(EmailAddress); }
         }
+
         public string EmailConfirmationToken { get; set; }
         public string PasswordResetToken { get; set; }
         public DateTime? PasswordResetTokenExpirationDate { get; set; }
+        public int Key { get; set; }
 
         public void ConfirmEmailAddress()
         {
