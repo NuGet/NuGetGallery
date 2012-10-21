@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.Web.DynamicData;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class ForeignKey_EditField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class ForeignKey_EditField : FieldTemplateUserControl
     {
+        public override Control DataControl
+        {
+            get { return DropDownList1; }
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (DropDownList1.Items.Count == 0)
@@ -32,7 +38,6 @@ namespace DynamicDataEFCodeFirst
             {
                 DropDownList1.SelectedValue = selectedValueString;
             }
-
         }
 
         protected override void ExtractValues(IOrderedDictionary dictionary)
@@ -46,14 +51,5 @@ namespace DynamicDataEFCodeFirst
 
             ExtractForeignKey(dictionary, value);
         }
-
-        public override Control DataControl
-        {
-            get
-            {
-                return DropDownList1;
-            }
-        }
-
     }
 }

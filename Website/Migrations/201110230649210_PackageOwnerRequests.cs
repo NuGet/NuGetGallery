@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-
     public partial class PackageOwnerRequests : DbMigration
     {
         public override void Up()
@@ -9,14 +9,14 @@ namespace NuGetGallery.Migrations
             CreateTable(
                 "PackageOwnerRequests",
                 c => new
-                    {
-                        Key = c.Int(nullable: false, identity: true),
-                        PackageRegistrationKey = c.Int(nullable: false),
-                        NewOwnerKey = c.Int(nullable: false),
-                        RequestingOwnerKey = c.Int(nullable: false),
-                        ConfirmationCode = c.String(),
-                        RequestDate = c.DateTime(nullable: false),
-                    })
+                         {
+                             Key = c.Int(nullable: false, identity: true),
+                             PackageRegistrationKey = c.Int(nullable: false),
+                             NewOwnerKey = c.Int(nullable: false),
+                             RequestingOwnerKey = c.Int(nullable: false),
+                             ConfirmationCode = c.String(),
+                             RequestDate = c.DateTime(nullable: false),
+                         })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("PackageRegistrations", t => t.PackageRegistrationKey)
                 .ForeignKey("Users", t => t.NewOwnerKey)

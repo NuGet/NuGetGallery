@@ -50,15 +50,32 @@ namespace NuGetGallery.Services
             // Arrange
             var packageRegistration = new PackageRegistration { Id = "Foo" };
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            repo.Setup(r => r.GetAll()).Returns(new[] {
-                new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
-                new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
-            }.AsQueryable());
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.1-a",
+                                IsPrerelease = true,
+                                Listed = true,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                    }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
             var searchService = new Mock<ISearchService>(MockBehavior.Strict);
             int total;
-            searchService.Setup(s => s.Search(It.IsAny<IQueryable<Package>>(), It.IsAny<SearchFilter>(), out total)).Returns<IQueryable<Package>, string>((_, __) => _);
+            searchService.Setup(s => s.Search(It.IsAny<IQueryable<Package>>(), It.IsAny<SearchFilter>(), out total)).Returns
+                <IQueryable<Package>, string>((_, __) => _);
             var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
 
             // Act
@@ -77,10 +94,26 @@ namespace NuGetGallery.Services
             // Arrange
             var packageRegistration = new PackageRegistration { Id = "Foo" };
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            repo.Setup(r => r.GetAll()).Returns(new[] {
-                new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = false, DownloadStatistics = new List<PackageStatistics>() },
-                new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
-            }.AsQueryable());
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.0",
+                                IsPrerelease = false,
+                                Listed = false,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.1-a",
+                                IsPrerelease = true,
+                                Listed = true,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                    }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
             var v1Service = new TestableV1Feed(repo.Object, configuration.Object, null);
@@ -101,10 +134,26 @@ namespace NuGetGallery.Services
             // Arrange
             var packageRegistration = new PackageRegistration { Id = "Foo" };
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            repo.Setup(r => r.GetAll()).Returns(new[] {
-                new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsPrerelease = false, Listed = false, DownloadStatistics = new List<PackageStatistics>() },
-                new Package { PackageRegistration = packageRegistration, Version = "1.0.1-a", IsPrerelease = true, Listed = true, DownloadStatistics = new List<PackageStatistics>() },
-            }.AsQueryable());
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.0",
+                                IsPrerelease = false,
+                                Listed = false,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistration,
+                                Version = "1.0.1-a",
+                                IsPrerelease = true,
+                                Listed = true,
+                                DownloadStatistics = new List<PackageStatistics>()
+                            },
+                    }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
@@ -140,7 +189,7 @@ namespace NuGetGallery.Services
 
             // Act
             var result = v2Service.GetUpdates(id, version, includePrerelease: false, includeAllVersions: true, targetFrameworks: null)
-                                  .ToList();
+                .ToList();
 
             // Assert
             Assert.Empty(result);
@@ -153,20 +202,22 @@ namespace NuGetGallery.Services
             var packageRegistrationA = new PackageRegistration { Id = "Foo" };
             var packageRegistrationB = new PackageRegistration { Id = "Qux" };
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            repo.Setup(r => r.GetAll()).Returns(new[] {
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-            }.AsQueryable());
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
             var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|abcd", includePrerelease: false, includeAllVersions: false, targetFrameworks: null)
-                                  .ToList();
+                .ToList();
 
             // Assert
             Assert.Equal(1, result.Count);
@@ -180,20 +231,22 @@ namespace NuGetGallery.Services
             var packageRegistrationA = new PackageRegistration { Id = "Foo" };
             var packageRegistrationB = new PackageRegistration { Id = "Qux" };
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            repo.Setup(r => r.GetAll()).Returns(new[] {
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-            }.AsQueryable());
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
             var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|0.9", includePrerelease: false, includeAllVersions: true, targetFrameworks: null)
-                                  .ToList();
+                .ToList();
 
             // Assert
             Assert.Equal(3, result.Count);
@@ -209,20 +262,22 @@ namespace NuGetGallery.Services
             var packageRegistrationA = new PackageRegistration { Id = "Foo" };
             var packageRegistrationB = new PackageRegistration { Id = "Qux" };
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            repo.Setup(r => r.GetAll()).Returns(new[] {
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-            }.AsQueryable());
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
             var result = v2Service.GetUpdates("Foo|Qux", "1.1.0|0.9", includePrerelease: true, includeAllVersions: true, targetFrameworks: null)
-                                  .ToList();
+                .ToList();
 
             // Assert
             Assert.Equal(3, result.Count);
@@ -238,20 +293,23 @@ namespace NuGetGallery.Services
             var packageRegistrationA = new PackageRegistration { Id = "Foo" };
             var packageRegistrationB = new PackageRegistration { Id = "Qux" };
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            repo.Setup(r => r.GetAll()).Returns(new[] {
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-            }.AsQueryable());
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdates("Foo|Qux|Foo", "0.9|1.5|1.1.2", includePrerelease: false, includeAllVersions: true, targetFrameworks: null)
-                                  .ToList();
+            var result =
+                v2Service.GetUpdates("Foo|Qux|Foo", "0.9|1.5|1.1.2", includePrerelease: false, includeAllVersions: true, targetFrameworks: null)
+                    .ToList();
 
             // Assert
             Assert.Equal(2, result.Count);
@@ -266,26 +324,48 @@ namespace NuGetGallery.Services
             var packageRegistrationA = new PackageRegistration { Id = "Foo" };
             var packageRegistrationB = new PackageRegistration { Id = "Qux" };
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            repo.Setup(r => r.GetAll()).Returns(new[] {
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true, 
-                    SupportedFrameworks = new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } } 
-                },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.3.0-alpha", IsPrerelease = true, Listed = true, 
-                    SupportedFrameworks = new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } } 
-                },
-                new Package { PackageRegistration = packageRegistrationA, Version = "2.0.0", IsPrerelease = false, Listed = true, 
-                    SupportedFrameworks = new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "WinRT" } } 
-                },
-                new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-            }.AsQueryable());
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistrationA,
+                                Version = "1.1.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                SupportedFrameworks =
+                                    new[]
+                                        { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } }
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistrationA,
+                                Version = "1.3.0-alpha",
+                                IsPrerelease = true,
+                                Listed = true,
+                                SupportedFrameworks =
+                                    new[]
+                                        { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } }
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistrationA,
+                                Version = "2.0.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                SupportedFrameworks =
+                                    new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "WinRT" } }
+                            },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
             var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: false, includeAllVersions: true, targetFrameworks: "net40")
-                                  .ToList();
+                .ToList();
 
             // Assert
             Assert.Equal(2, result.Count);
@@ -300,72 +380,63 @@ namespace NuGetGallery.Services
             var packageRegistrationA = new PackageRegistration { Id = "Foo" };
             var packageRegistrationB = new PackageRegistration { Id = "Qux" };
             var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-            repo.Setup(r => r.GetAll()).Returns(new[] {
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true, 
-                    SupportedFrameworks = new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } } 
-                },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true, 
-                    SupportedFrameworks = new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } } 
-                },
-                new Package { PackageRegistration = packageRegistrationA, Version = "1.3.0-alpha", IsPrerelease = true, Listed = true, 
-                    SupportedFrameworks = new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } } 
-                },
-                new Package { PackageRegistration = packageRegistrationA, Version = "2.0.0", IsPrerelease = false, Listed = true, 
-                    SupportedFrameworks = new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "WinRT" } } 
-                },
-                new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-            }.AsQueryable());
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistrationA,
+                                Version = "1.1.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                SupportedFrameworks =
+                                    new[]
+                                        { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } }
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistrationA,
+                                Version = "1.2.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                SupportedFrameworks =
+                                    new[]
+                                        { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } }
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistrationA,
+                                Version = "1.3.0-alpha",
+                                IsPrerelease = true,
+                                Listed = true,
+                                SupportedFrameworks =
+                                    new[]
+                                        { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "Net40-Full" } }
+                            },
+                        new Package
+                            {
+                                PackageRegistration = packageRegistrationA,
+                                Version = "2.0.0",
+                                IsPrerelease = false,
+                                Listed = true,
+                                SupportedFrameworks =
+                                    new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "WinRT" } }
+                            },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
             var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
             var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: true, includeAllVersions: false, targetFrameworks: "net40")
-                                  .ToList();
+                .ToList();
 
             // Assert
             Assert.Equal(2, result.Count);
             AssertPackage(new { Id = "Foo", Version = "1.3.0-alpha" }, result[0]);
             AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
-        }
-
-        public class TestableV1Feed : V1Feed
-        {
-            public TestableV1Feed(
-                IEntityRepository<Package> repo,
-                IConfiguration configuration,
-                ISearchService searchSvc)
-                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchSvc)
-            {
-            }
-
-            protected internal override HttpContextBase HttpContext
-            {
-                get
-                {
-                    return GetContext();
-                }
-            }
-        }
-
-        public class TestableV2Feed : V2Feed
-        {
-            public TestableV2Feed(
-                IEntityRepository<Package> repo,
-                IConfiguration configuration,
-                ISearchService searchSvc)
-                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchSvc)
-            {
-            }
-
-            protected internal override HttpContextBase HttpContext
-            {
-                get
-                {
-                    return GetContext();
-                }
-            }
         }
 
         private static HttpContextBase GetContext(bool isSecure = false)
@@ -383,6 +454,38 @@ namespace NuGetGallery.Services
         {
             Assert.Equal(expected.Id, package.Id);
             Assert.Equal(expected.Version, package.Version);
+        }
+
+        public class TestableV1Feed : V1Feed
+        {
+            public TestableV1Feed(
+                IEntityRepository<Package> repo,
+                IConfiguration configuration,
+                ISearchService searchSvc)
+                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchSvc)
+            {
+            }
+
+            protected internal override HttpContextBase HttpContext
+            {
+                get { return GetContext(); }
+            }
+        }
+
+        public class TestableV2Feed : V2Feed
+        {
+            public TestableV2Feed(
+                IEntityRepository<Package> repo,
+                IConfiguration configuration,
+                ISearchService searchSvc)
+                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchSvc)
+            {
+            }
+
+            protected internal override HttpContextBase HttpContext
+            {
+                get { return GetContext(); }
+            }
         }
     }
 }

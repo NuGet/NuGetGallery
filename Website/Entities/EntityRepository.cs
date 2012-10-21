@@ -5,37 +5,37 @@ namespace NuGetGallery
     public class EntityRepository<T> : IEntityRepository<T>
         where T : class, IEntity, new()
     {
-        readonly IEntitiesContext entities;
+        private readonly IEntitiesContext _entities;
 
         public EntityRepository(IEntitiesContext entities)
         {
-            this.entities = entities;
+            _entities = entities;
         }
 
         public void CommitChanges()
         {
-            entities.SaveChanges();
+            _entities.SaveChanges();
         }
 
         public void DeleteOnCommit(T entity)
         {
-            entities.Set<T>()
+            _entities.Set<T>()
                 .Remove(entity);
         }
 
         public T Get(int key)
         {
-            return entities.Set<T>().Find(key);
+            return _entities.Set<T>().Find(key);
         }
 
         public IQueryable<T> GetAll()
         {
-            return entities.Set<T>();
+            return _entities.Set<T>();
         }
 
         public int InsertOnCommit(T entity)
         {
-            entities.Set<T>()
+            _entities.Set<T>()
                 .Add(entity);
 
             return entity.Key;

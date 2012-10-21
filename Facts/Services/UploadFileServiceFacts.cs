@@ -1,14 +1,22 @@
 ﻿using System;
 using System.IO;
 using Moq;
-using NuGet;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery
 {
     public class UploadFileServiceFacts
     {
+        private static UploadFileService CreateService(Mock<IFileStorageService> fakeFileStorageService = null)
+        {
+            if (fakeFileStorageService == null)
+            {
+                fakeFileStorageService = new Mock<IFileStorageService>();
+            }
+
+            return new UploadFileService(fakeFileStorageService.Object);
+        }
+
         public class TheDeleteUploadFileMethod
         {
             [Fact]
@@ -16,10 +24,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentException>(() =>
-                {
-                    service.DeleteUploadFile(0);
-                });
+                var ex = Assert.Throws<ArgumentException>(() => { service.DeleteUploadFile(0); });
 
                 Assert.Equal("userKey", ex.ParamName);
             }
@@ -55,10 +60,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentException>(() =>
-                {
-                    service.GetUploadFile(0);
-                });
+                var ex = Assert.Throws<ArgumentException>(() => { service.GetUploadFile(0); });
 
                 Assert.Equal("userKey", ex.ParamName);
             }
@@ -100,7 +102,7 @@ namespace NuGetGallery
                 Assert.Same(fakeFileStream, fileStream);
             }
         }
-        
+
         public class TheSaveUploadFileMethod
         {
             [Fact]
@@ -108,10 +110,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentException>(() =>
-                {
-                    service.SaveUploadFile(0, new MemoryStream());
-                });
+                var ex = Assert.Throws<ArgumentException>(() => { service.SaveUploadFile(0, new MemoryStream()); });
 
                 Assert.Equal("userKey", ex.ParamName);
             }
@@ -121,10 +120,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() =>
-                {
-                    service.SaveUploadFile(1, null);
-                });
+                var ex = Assert.Throws<ArgumentNullException>(() => { service.SaveUploadFile(1, null); });
 
                 Assert.Equal("packageFileStream", ex.ParamName);
             }
@@ -158,20 +154,11 @@ namespace NuGetGallery
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var fakeUploadFileStream = new MemoryStream();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
 
                 service.SaveUploadFile(1, fakeUploadFileStream);
 
                 fakeFileStorageService.Verify(x => x.SaveFile(It.IsAny<string>(), It.IsAny<string>(), fakeUploadFileStream));
             }
-        }
-
-        static UploadFileService CreateService(Mock<IFileStorageService> fakeFileStorageService = null)
-        {
-            if (fakeFileStorageService == null)
-                fakeFileStorageService = new Mock<IFileStorageService>();
-            
-            return new UploadFileService(fakeFileStorageService.Object);
         }
     }
 }

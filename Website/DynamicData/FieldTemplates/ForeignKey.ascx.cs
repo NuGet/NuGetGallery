@@ -1,28 +1,24 @@
 ﻿using System;
+using System.Web.DynamicData;
 using System.Web.UI;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class ForeignKeyField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class ForeignKeyField : FieldTemplateUserControl
     {
         private bool _allowNavigation = true;
 
-        public string NavigateUrl
-        {
-            get;
-            set;
-        }
+        public string NavigateUrl { get; set; }
 
         public bool AllowNavigation
         {
-            get
-            {
-                return _allowNavigation;
-            }
-            set
-            {
-                _allowNavigation = value;
-            }
+            get { return _allowNavigation; }
+            set { _allowNavigation = value; }
+        }
+
+        public override Control DataControl
+        {
+            get { return HyperLink1; }
         }
 
         protected string GetDisplayString()
@@ -55,14 +51,5 @@ namespace DynamicDataEFCodeFirst
                 return BuildForeignKeyPath(NavigateUrl);
             }
         }
-
-        public override Control DataControl
-        {
-            get
-            {
-                return HyperLink1;
-            }
-        }
-
     }
 }

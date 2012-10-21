@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-    
     public partial class PackageIndexes : DbMigration
     {
         public override void Up()
@@ -21,7 +21,7 @@ namespace NuGetGallery.Migrations
             Sql(@"Create Unique Index IX_PackageRegistration_Id on [dbo].[PackageRegistrations] (DownloadCount desc, Id asc) 
                          Include ([Key])");
         }
-        
+
         public override void Down()
         {
             DropIndex(table: "Packages", name: "IX_Package_Search");

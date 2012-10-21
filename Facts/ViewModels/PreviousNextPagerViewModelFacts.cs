@@ -8,7 +8,7 @@ namespace NuGetGallery.ViewModels
         public void PagerAtFirstPageDoesNotHavePreviousPageButDoesHaveNext()
         {
             // Arrange
-            int currentPageIndex = 0;
+            const int currentPageIndex = 0;
 
             // Act
             var pager = new PreviousNextPagerViewModel<int>(new[] { 0, 1, 2 }, currentPageIndex, 2, p => p.ToString());
@@ -23,7 +23,7 @@ namespace NuGetGallery.ViewModels
         public void PagerWithPageSizeGreaterThanItemsDoesNotHavePreviousOrNext()
         {
             // Arrange
-            int currentPageIndex = 0;
+            const int currentPageIndex = 0;
 
             // Act
             var pager = new PreviousNextPagerViewModel<int>(new[] { 0, 1, 2 }, currentPageIndex, 1, p => p.ToString());
@@ -37,7 +37,7 @@ namespace NuGetGallery.ViewModels
         public void PagerWithPageSizeEqualToItemsCountDoesNotHavePreviousOrNext()
         {
             // Arrange
-            int currentPageIndex = 0;
+            const int currentPageIndex = 0;
 
             // Act
             var pager = new PreviousNextPagerViewModel<int>(new[] { 0, 1, 2, 3, 4 }, currentPageIndex, 1, p => p.ToString());
@@ -51,7 +51,7 @@ namespace NuGetGallery.ViewModels
         public void LastPageShowsPreviousLinkButNotNextLink()
         {
             // Arrange
-            int currentPageIndex = 1;
+            const int currentPageIndex = 1;
 
             // Act
             var pager = new PreviousNextPagerViewModel<int>(new[] { 0, 1, 2, 3, 4, 5 }, currentPageIndex, 2, p => p.ToString());

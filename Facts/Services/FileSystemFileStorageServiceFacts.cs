@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Web.Mvc;
 using Moq;
@@ -10,6 +9,34 @@ namespace NuGetGallery
 {
     public class FileSystemFileStorgeServiceFacts
     {
+        private const string FakeConfiguredFileStorageDirectory = "theFileStorageDirectory";
+
+        private static MemoryStream CreateFileStream()
+        {
+            return new MemoryStream(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, 0, 8, true, true);
+        }
+
+        private static FileSystemFileStorageService CreateService(
+            Mock<IConfiguration> configuration = null,
+            Mock<IFileSystemService> fileSystemSvc = null)
+        {
+            if (configuration == null)
+            {
+                configuration = new Mock<IConfiguration>();
+                configuration.Setup(x => x.FileStorageDirectory).Returns(FakeConfiguredFileStorageDirectory);
+            }
+
+            if (fileSystemSvc == null)
+            {
+                fileSystemSvc = new Mock<IFileSystemService>();
+                fileSystemSvc.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+            }
+
+            return new FileSystemFileStorageService(
+                configuration.Object,
+                fileSystemSvc.Object);
+        }
+
         public class TheCreateDownloadFileActionResultMethod
         {
             [Theory]
@@ -19,9 +46,10 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => service.CreateDownloadFileActionResult(
-                    folderName, 
-                    "theFileName"));
+                var ex = Assert.Throws<ArgumentNullException>(
+                    () => service.CreateDownloadFileActionResult(
+                        folderName,
+                        "theFileName"));
 
                 Assert.Equal("folderName", ex.ParamName);
             }
@@ -33,13 +61,14 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => service.CreateDownloadFileActionResult(
-                    Constants.PackagesFolderName, 
-                    fileName));
+                var ex = Assert.Throws<ArgumentNullException>(
+                    () => service.CreateDownloadFileActionResult(
+                        Constants.PackagesFolderName,
+                        fileName));
 
                 Assert.Equal("fileName", ex.ParamName);
             }
-            
+
             [Fact]
             public void WillReturnAFilePathResultWithTheFilePath()
             {
@@ -49,7 +78,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.Equal(
-                    Path.Combine(fakeConfiguredFileStorageDirectory, Constants.PackagesFolderName, "theFileName"),
+                    Path.Combine(FakeConfiguredFileStorageDirectory, Constants.PackagesFolderName, "theFileName"),
                     result.FileName);
             }
 
@@ -99,9 +128,10 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => service.DeleteFile(
-                    folderName,
-                    "theFileName"));
+                var ex = Assert.Throws<ArgumentNullException>(
+                    () => service.DeleteFile(
+                        folderName,
+                        "theFileName"));
 
                 Assert.Equal("folderName", ex.ParamName);
             }
@@ -113,9 +143,10 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => service.DeleteFile(
-                    Constants.PackagesFolderName,
-                    fileName));
+                var ex = Assert.Throws<ArgumentNullException>(
+                    () => service.DeleteFile(
+                        Constants.PackagesFolderName,
+                        fileName));
 
                 Assert.Equal("fileName", ex.ParamName);
             }
@@ -129,8 +160,9 @@ namespace NuGetGallery
 
                 service.DeleteFile(Constants.PackagesFolderName, "theFileName");
 
-                fakeFileSystemSvc.Verify(x => x.DeleteFile(
-                    Path.Combine(fakeConfiguredFileStorageDirectory, Constants.PackagesFolderName, "theFileName")));
+                fakeFileSystemSvc.Verify(
+                    x => x.DeleteFile(
+                        Path.Combine(FakeConfiguredFileStorageDirectory, Constants.PackagesFolderName, "theFileName")));
             }
 
             [Fact]
@@ -157,9 +189,10 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => service.GetFile(
-                    folderName,
-                    "theFileName"));
+                var ex = Assert.Throws<ArgumentNullException>(
+                    () => service.GetFile(
+                        folderName,
+                        "theFileName"));
 
                 Assert.Equal("folderName", ex.ParamName);
             }
@@ -171,9 +204,10 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => service.GetFile(
-                    Constants.PackagesFolderName,
-                    fileName));
+                var ex = Assert.Throws<ArgumentNullException>(
+                    () => service.GetFile(
+                        Constants.PackagesFolderName,
+                        fileName));
 
                 Assert.Equal("fileName", ex.ParamName);
             }
@@ -185,7 +219,7 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
                 var service = CreateService(fileSystemSvc: fakeFileSystemService);
                 var expectedPath = Path.Combine(
-                    fakeConfiguredFileStorageDirectory,
+                    FakeConfiguredFileStorageDirectory,
                     "theFolderName",
                     "theFileName");
 
@@ -201,7 +235,7 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
                 var service = CreateService(fileSystemSvc: fakeFileSystemService);
                 var expectedPath = Path.Combine(
-                    fakeConfiguredFileStorageDirectory,
+                    FakeConfiguredFileStorageDirectory,
                     "theFolderName",
                     "theFileName");
 
@@ -214,7 +248,7 @@ namespace NuGetGallery
             public void WillReturnTheRequestFileStreamWhenItExists()
             {
                 var expectedPath = Path.Combine(
-                    fakeConfiguredFileStorageDirectory,
+                    FakeConfiguredFileStorageDirectory,
                     "theFolderName",
                     "theFileName");
                 var fakeFileSystemService = new Mock<IFileSystemService>();
@@ -234,10 +268,6 @@ namespace NuGetGallery
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
                 var service = CreateService(fileSystemSvc: fakeFileSystemService);
-                var expectedPath = Path.Combine(
-                    fakeConfiguredFileStorageDirectory,
-                    "theFolderName",
-                    "theFileName");
 
                 var fileStream = service.GetFile("theFolderName", "theFileName");
 
@@ -291,7 +321,7 @@ namespace NuGetGallery
 
                 service.SaveFile("theFolderName", "theFileName", CreateFileStream());
 
-                fakeFileSystemSvc.Verify(x => x.CreateDirectory(fakeConfiguredFileStorageDirectory));
+                fakeFileSystemSvc.Verify(x => x.CreateDirectory(FakeConfiguredFileStorageDirectory));
             }
 
             [Fact]
@@ -304,7 +334,7 @@ namespace NuGetGallery
 
                 service.SaveFile("theFolderName", "theFileName", CreateFileStream());
 
-                fakeFileSystemSvc.Verify(x => x.CreateDirectory(Path.Combine(fakeConfiguredFileStorageDirectory, "theFolderName")));
+                fakeFileSystemSvc.Verify(x => x.CreateDirectory(Path.Combine(FakeConfiguredFileStorageDirectory, "theFolderName")));
             }
 
             [Fact]
@@ -317,10 +347,11 @@ namespace NuGetGallery
 
                 service.SaveFile("theFolderName", "theFileName", CreateFileStream());
 
-                fakeFileSystemSvc.Verify(x =>
+                fakeFileSystemSvc.Verify(
+                    x =>
                     x.OpenWrite(
                         Path.Combine(
-                            fakeConfiguredFileStorageDirectory,
+                            FakeConfiguredFileStorageDirectory,
                             "theFolderName",
                             "theFileName")));
             }
@@ -338,36 +369,10 @@ namespace NuGetGallery
                 service.SaveFile("theFolderName", "theFileName", CreateFileStream());
 
                 for (var i = 0; i < fakePackageFile.Length; i++)
+                {
                     Assert.Equal(fakePackageFile.GetBuffer()[i], fakeFileStream.GetBuffer()[i]);
+                }
             }
-        }
-
-        static MemoryStream CreateFileStream()
-        {
-            return new MemoryStream(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, 0, 8, true, true);
-        }
-
-        const string fakeConfiguredFileStorageDirectory = "theFileStorageDirectory";
-
-        static FileSystemFileStorageService CreateService(
-            Mock<IConfiguration> configuration = null,
-            Mock<IFileSystemService> fileSystemSvc = null)
-        {
-            if (configuration == null)
-            {
-                configuration = new Mock<IConfiguration>();
-                configuration.Setup(x => x.FileStorageDirectory).Returns(fakeConfiguredFileStorageDirectory);
-            }
-
-            if (fileSystemSvc == null)
-            {
-                fileSystemSvc = new Mock<IFileSystemService>();
-                fileSystemSvc.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
-            }
-
-            return new FileSystemFileStorageService(
-                configuration.Object,
-                fileSystemSvc.Object);
         }
     }
 }

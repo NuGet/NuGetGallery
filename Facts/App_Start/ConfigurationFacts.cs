@@ -7,6 +7,30 @@ namespace NuGetGallery.App_Start
 {
     public class ConfigurationFacts
     {
+        public class TestableConfiguration : Configuration
+        {
+            public TestableConfiguration()
+            {
+                StubRequest = new Mock<HttpRequestBase>();
+                StubConfiguredSiteRoot = "http://aSiteRoot/";
+
+                StubRequest.Setup(stub => stub.IsLocal).Returns(false);
+            }
+
+            public string StubConfiguredSiteRoot { get; set; }
+            public Mock<HttpRequestBase> StubRequest { get; set; }
+
+            protected override string GetConfiguredSiteRoot()
+            {
+                return StubConfiguredSiteRoot;
+            }
+
+            protected override HttpRequestBase GetCurrentRequest()
+            {
+                return StubRequest.Object;
+            }
+        }
+
         public class TheGetSiteRootMethod
         {
             [Fact]
@@ -68,34 +92,10 @@ namespace NuGetGallery.App_Start
             {
                 var configuration = new TestableConfiguration();
                 configuration.GetSiteRoot(useHttps: false);
-                
+
                 configuration.GetSiteRoot(useHttps: true);
 
                 configuration.StubRequest.Verify(stub => stub.IsLocal, Times.Once());
-            }
-        }
-
-        public class TestableConfiguration : Configuration
-        {
-            public TestableConfiguration()
-            {
-                StubRequest = new Mock<HttpRequestBase>();
-                StubConfiguredSiteRoot = "http://aSiteRoot/";
-                
-                StubRequest.Setup(stub => stub.IsLocal).Returns(false);
-            }
-
-            public string StubConfiguredSiteRoot { get; set; }
-            public Mock<HttpRequestBase> StubRequest { get; set; }
-
-            protected override string GetConfiguredSiteRoot()
-            {
-                return StubConfiguredSiteRoot;
-            }
-            
-            protected override HttpRequestBase GetCurrentRequest()
-            {
-                return StubRequest.Object;
             }
         }
     }

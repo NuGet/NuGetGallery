@@ -10,10 +10,9 @@ namespace NuGetGallery
             Packages = new HashSet<CuratedPackage>();
         }
 
-        public int Key { get; set; }
-
         public string Name { get; set; }
         public virtual ICollection<User> Managers { get; set; }
         public virtual ICollection<CuratedPackage> Packages { get; set; }
+        public int Key { get; set; }
     }
 }

@@ -6,33 +6,33 @@ namespace NuGetGallery
 {
     public class CloudBlobWrapper : ICloudBlob
     {
-        CloudBlob blob;
+        private readonly CloudBlob _blob;
 
         public CloudBlobWrapper(CloudBlob blob)
         {
-            this.blob = blob;
+            _blob = blob;
         }
 
         public BlobProperties Properties
         {
-            get { return blob.Properties; }
+            get { return _blob.Properties; }
         }
 
         public Uri Uri
         {
-            get { return blob.Uri; }
+            get { return _blob.Uri; }
         }
 
         public void DeleteIfExists()
         {
-            blob.DeleteIfExists();
+            _blob.DeleteIfExists();
         }
 
         public void DownloadToStream(Stream target)
         {
             try
             {
-                blob.DownloadToStream(target);
+                _blob.DownloadToStream(target);
             }
             catch (StorageClientException ex)
             {
@@ -44,7 +44,7 @@ namespace NuGetGallery
         {
             try
             {
-                blob.FetchAttributes();
+                _blob.FetchAttributes();
                 return true;
             }
             catch (StorageClientException e)
@@ -62,12 +62,12 @@ namespace NuGetGallery
 
         public void SetProperties()
         {
-            blob.SetProperties();
+            _blob.SetProperties();
         }
 
         public void UploadFromStream(Stream packageFile)
         {
-            blob.UploadFromStream(packageFile);
+            _blob.UploadFromStream(packageFile);
         }
     }
 }

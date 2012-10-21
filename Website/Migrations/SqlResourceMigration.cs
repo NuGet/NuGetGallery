@@ -6,8 +6,8 @@ namespace NuGetGallery.Migrations
 {
     public class SqlResourceMigration : DbMigration
     {
-        private string _sqlFile;
         private static readonly string[] Go = new[] { "GO" };
+        private readonly string _sqlFile;
 
         public SqlResourceMigration(string embeddedResourceSqlFile)
         {
@@ -16,7 +16,7 @@ namespace NuGetGallery.Migrations
 
         public override void Up()
         {
-            using (var stream = typeof(ExecuteELMAHSql).Assembly.GetManifestResourceStream(_sqlFile))
+            using (var stream = typeof (ExecuteELMAHSql).Assembly.GetManifestResourceStream(_sqlFile))
             {
                 using (var streamReader = new StreamReader(stream))
                 {

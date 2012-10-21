@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Web.DynamicData;
 using System.Web.UI;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class UrlField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class UrlField : FieldTemplateUserControl
     {
+        public override Control DataControl
+        {
+            get { return HyperLinkUrl; }
+        }
+
         protected override void OnDataBinding(EventArgs e)
         {
             HyperLinkUrl.NavigateUrl = ProcessUrl(FieldValueString);
@@ -19,14 +25,5 @@ namespace DynamicDataEFCodeFirst
 
             return "http://" + url;
         }
-
-        public override Control DataControl
-        {
-            get
-            {
-                return HyperLinkUrl;
-            }
-        }
-
     }
 }

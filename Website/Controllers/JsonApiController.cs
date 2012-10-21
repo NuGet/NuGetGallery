@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using MvcHaack.Ajax;
 
@@ -7,23 +6,27 @@ namespace NuGetGallery
 {
     public partial class JsonApiController : JsonController
     {
-        IPackageService packageSvc;
-        IUserService userSvc;
-        IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository;
-        IMessageService messageSvc;
+        private readonly IMessageService _messageSvc;
+        private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
+        private readonly IPackageService _packageSvc;
+        private readonly IUserService _userSvc;
 
-        public JsonApiController(IPackageService packageSvc, IUserService userSvc, IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository, IMessageService messageService)
+        public JsonApiController(
+            IPackageService packageSvc,
+            IUserService userSvc,
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
+            IMessageService messageService)
         {
-            this.packageSvc = packageSvc;
-            this.userSvc = userSvc;
-            this.packageOwnerRequestRepository = packageOwnerRequestRepository;
-            this.messageSvc = messageService;
+            _packageSvc = packageSvc;
+            _userSvc = userSvc;
+            _packageOwnerRequestRepository = packageOwnerRequestRepository;
+            _messageSvc = messageService;
         }
 
         [Authorize]
         public virtual object GetPackageOwners(string id, string version)
         {
-            var package = packageSvc.FindPackageByIdAndVersion(id, version);
+            var package = _packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
                 return new { message = "Package not found" };
@@ -35,13 +38,13 @@ namespace NuGetGallery
 
             var owners = from u in package.PackageRegistration.Owners
                          select new OwnerModel
-                         {
-                             name = u.Username,
-                             current = u.Username == HttpContext.User.Identity.Name,
-                             pending = false
-                         };
+                                    {
+                                        name = u.Username,
+                                        current = u.Username == HttpContext.User.Identity.Name,
+                                        pending = false
+                                    };
 
-            var pending = from u in packageOwnerRequestRepository.GetAll()
+            var pending = from u in _packageOwnerRequestRepository.GetAll()
                           where u.PackageRegistrationKey == package.PackageRegistration.Key
                           select new OwnerModel { name = u.NewOwner.Username, current = false, pending = true };
 
@@ -50,7 +53,7 @@ namespace NuGetGallery
 
         public object AddPackageOwner(string id, string username)
         {
-            var package = packageSvc.FindPackageRegistrationById(id);
+            var package = _packageSvc.FindPackageRegistrationById(id);
             if (package == null)
             {
                 return new { success = false, message = "Package not found" };
@@ -59,24 +62,25 @@ namespace NuGetGallery
             {
                 return new { success = false, message = "You are not the package owner." };
             }
-            var user = userSvc.FindByUsername(username);
+            var user = _userSvc.FindByUsername(username);
             if (user == null)
             {
                 return new { success = false, message = "Owner not found" };
             }
 
-            var currentUser = userSvc.FindByUsername(HttpContext.User.Identity.Name);
-            var ownerRequest = packageSvc.CreatePackageOwnerRequest(package, currentUser, user);
+            var currentUser = _userSvc.FindByUsername(HttpContext.User.Identity.Name);
+            var ownerRequest = _packageSvc.CreatePackageOwnerRequest(package, currentUser, user);
 
-            var confirmationUrl = Url.ConfirmationUrl(MVC.Packages.ConfirmOwner().AddRouteValue("id", package.Id), user.Username, ownerRequest.ConfirmationCode, Request.Url.Scheme);
-            messageSvc.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl);
+            var confirmationUrl = Url.ConfirmationUrl(
+                MVC.Packages.ConfirmOwner().AddRouteValue("id", package.Id), user.Username, ownerRequest.ConfirmationCode, Request.Url.Scheme);
+            _messageSvc.SendPackageOwnerRequest(currentUser, user, package, confirmationUrl);
 
             return new { success = true, name = user.Username, pending = true };
         }
 
         public object RemovePackageOwner(string id, string username)
         {
-            var package = packageSvc.FindPackageRegistrationById(id);
+            var package = _packageSvc.FindPackageRegistrationById(id);
             if (package == null)
             {
                 return new { success = false, message = "Package not found" };
@@ -85,13 +89,13 @@ namespace NuGetGallery
             {
                 return new { success = false, message = "You are not the package owner." };
             }
-            var user = userSvc.FindByUsername(username);
+            var user = _userSvc.FindByUsername(username);
             if (user == null)
             {
                 return new { success = false, message = "Owner not found" };
             }
 
-            packageSvc.RemovePackageOwner(package, user);
+            _packageSvc.RemovePackageOwner(package, user);
             return new { success = true };
         }
 

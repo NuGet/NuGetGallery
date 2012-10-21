@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Objects;
@@ -10,23 +9,28 @@ using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class ManyToMany_EditField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class ManyToMany_EditField : FieldTemplateUserControl
     {
         protected ObjectContext ObjectContext { get; set; }
+
+        public override Control DataControl
+        {
+            get { return CheckBoxList1; }
+        }
 
         public void Page_Load(object sender, EventArgs e)
         {
             // Register for the DataSource's updating event
-            EntityDataSource ds = (EntityDataSource)this.FindDataSourceControl();
+            var ds = (EntityDataSource)this.FindDataSourceControl();
 
             ds.ContextCreated += (_, ctxCreatedEventArg) => ObjectContext = ctxCreatedEventArg.Context;
 
             // This field template is used both for Editing and Inserting
-            ds.Updating += new EventHandler<EntityDataSourceChangingEventArgs>(DataSource_UpdatingOrInserting);
-            ds.Inserting += new EventHandler<EntityDataSourceChangingEventArgs>(DataSource_UpdatingOrInserting);
+            ds.Updating += DataSource_UpdatingOrInserting;
+            ds.Inserting += DataSource_UpdatingOrInserting;
         }
 
-        void DataSource_UpdatingOrInserting(object sender, EntityDataSourceChangingEventArgs e)
+        private void DataSource_UpdatingOrInserting(object sender, EntityDataSourceChangingEventArgs e)
         {
             MetaTable childTable = ChildrenColumn.ChildTable;
 
@@ -40,7 +44,6 @@ namespace DynamicDataEFCodeFirst
             // Go through all the territories (not just those for this employee)
             foreach (dynamic childEntity in childTable.GetQuery(e.Context))
             {
-
                 // Check if the employee currently has this territory
                 bool isCurrentlyInList = ListContainsEntity(childTable, entityList, childEntity);
 
@@ -48,18 +51,24 @@ namespace DynamicDataEFCodeFirst
                 string pkString = childTable.GetPrimaryKeyString(childEntity);
                 ListItem listItem = CheckBoxList1.Items.FindByValue(pkString);
                 if (listItem == null)
+                {
                     continue;
+                }
 
                 // If the states differs, make the appropriate add/remove change
                 if (listItem.Selected)
                 {
                     if (!isCurrentlyInList)
+                    {
                         entityList.Add(childEntity);
+                    }
                 }
                 else
                 {
                     if (isCurrentlyInList)
+                    {
                         entityList.Remove(childEntity);
+                    }
                 }
             }
         }
@@ -75,7 +84,7 @@ namespace DynamicDataEFCodeFirst
             if (Mode == DataBoundControlMode.Edit)
             {
                 object entity;
-                ICustomTypeDescriptor rowDescriptor = Row as ICustomTypeDescriptor;
+                var rowDescriptor = Row as ICustomTypeDescriptor;
                 if (rowDescriptor != null)
                 {
                     // Get the real entity from the wrapper
@@ -94,7 +103,7 @@ namespace DynamicDataEFCodeFirst
             foreach (object childEntity in childTable.GetQuery(ObjectContext))
             {
                 // Create a checkbox for it
-                ListItem listItem = new ListItem(
+                var listItem = new ListItem(
                     childTable.GetDisplayString(childEntity),
                     childTable.GetPrimaryKeyString(childEntity));
 
@@ -118,16 +127,7 @@ namespace DynamicDataEFCodeFirst
             var pks1 = table.GetPrimaryKeyValues(entity1);
             var pks2 = table.GetPrimaryKeyValues(entity2);
 
-            return Enumerable.SequenceEqual(pks1, pks2);
+            return pks1.SequenceEqual(pks2);
         }
-
-        public override Control DataControl
-        {
-            get
-            {
-                return CheckBoxList1;
-            }
-        }
-
     }
 }

@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-
     public partial class GallerySettings : DbMigration
     {
         public override void Up()
@@ -9,14 +9,14 @@ namespace NuGetGallery.Migrations
             CreateTable(
                 "WorkItems",
                 c => new
-                    {
-                        Id = c.Long(nullable: false, identity: true),
-                        JobName = c.String(maxLength: 64),
-                        WorkerId = c.String(maxLength: 64),
-                        Started = c.DateTime(nullable: false),
-                        Completed = c.DateTime(nullable: true),
-                        ExceptionInfo = c.String(),
-                    })
+                         {
+                             Id = c.Long(nullable: false, identity: true),
+                             JobName = c.String(maxLength: 64),
+                             WorkerId = c.String(maxLength: 64),
+                             Started = c.DateTime(nullable: false),
+                             Completed = c.DateTime(nullable: true),
+                             ExceptionInfo = c.String(),
+                         })
                 .PrimaryKey(t => t.Id);
 
             Sql("ALTER TABLE WorkItems ADD CONSTRAINT DF_WorkItems_Started DEFAULT getutcdate() FOR Started");
@@ -25,13 +25,13 @@ namespace NuGetGallery.Migrations
             CreateTable(
                 "GallerySettings",
                 c => new
-                    {
-                        Key = c.Int(nullable: false, identity: true),
-                        DownloadStatsLastAggregatedId = c.Int(nullable: true),
-                        SmtpPort = c.Int(),
-                        SmtpUsername = c.String(),
-                        SmtpHost = c.String(),
-                    })
+                         {
+                             Key = c.Int(nullable: false, identity: true),
+                             DownloadStatsLastAggregatedId = c.Int(nullable: true),
+                             SmtpPort = c.Int(),
+                             SmtpUsername = c.String(),
+                             SmtpHost = c.String(),
+                         })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("PackageStatistics", t => t.DownloadStatsLastAggregatedId);
 

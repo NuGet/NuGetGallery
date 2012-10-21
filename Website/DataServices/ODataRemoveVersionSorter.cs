@@ -22,7 +22,7 @@ namespace NuGetGallery
             var methodsToIgnore = new[] { "ThenBy", "ThenByDescending" };
             var method = expression.Method;
 
-            if (method.DeclaringType == typeof(Queryable) && methodsToIgnore.Contains(method.Name, StringComparer.Ordinal))
+            if (method.DeclaringType == typeof (Queryable) && methodsToIgnore.Contains(method.Name, StringComparer.Ordinal))
             {
                 return IsVersionArgument(expression);
             }
@@ -44,7 +44,7 @@ namespace NuGetGallery
 
         private sealed class MemberVisitor : ExpressionVisitor
         {
-            public bool Flag { get; set; }
+            public bool Flag { get; private set; }
 
             protected override Expression VisitMember(MemberExpression node)
             {
@@ -56,6 +56,5 @@ namespace NuGetGallery
                 return base.VisitMember(node);
             }
         }
-
     }
 }

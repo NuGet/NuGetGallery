@@ -18,16 +18,16 @@
         </li>
         @if (Model.CuratedFeeds.Any())
         {
-        <li id="manageCuratedFeeds">
-            <h2>Manage My Curated Feeds</h2>
-            <p>Click a curated feed to manage the included packages.</p>
-            <ul>
-            @foreach(var curatedFeed in Model.CuratedFeeds)
-            {
-                <li><a href="@Url.RouteUrl(RouteName.CuratedFeed, new { name = curatedFeed })">@curatedFeed</a></li>
-            }
-            </ul>
-        </li>
+            <li id="manageCuratedFeeds">
+                <h2>Manage My Curated Feeds</h2>
+                <p>Click a curated feed to manage the included packages.</p>
+                <ul>
+                    @foreach (var curatedFeed in Model.CuratedFeeds)
+                    {
+                        <li><a href="@Url.RouteUrl(RouteName.CuratedFeed, new { name = curatedFeed })">@curatedFeed</a></li>
+                    }
+                </ul>
+            </li>
         }
         <li id="managePackages">
             <h2><a href="@Url.Action(MVC.Users.Packages())">Manage My Packages</a></h2>
@@ -47,7 +47,7 @@
 
 
 <section id="apiKey">
-<h1>API Key</h1>
+    <h1>API Key</h1>
     <p>
         Your API key provides you with a token that identifies you to the gallery. 
         Keep this a secret. You can always regenerate your key at any time (invalidating 
@@ -92,15 +92,15 @@ nuget.exe push MyPackage.1.0.nupkg</pre>
 @section BottomScripts {
     <script type="text/javascript" src="@Url.Content("~/Scripts/ZeroClipboard.js")"></script>
     <script>
-        $(function () {
-            $("#overlayWrapper").click(function () {
+        $(function() {
+            $("#overlayWrapper").click(function() {
                 $("#overlayWrapper").fadeOut();
                 return false;
             });
 
             ZeroClipboard.setMoviePath('@Url.Content("~/Scripts/ZeroClipboard.swf")');
             var clip = new ZeroClipboard.Client();
-            clip.setText('@HttpUtility.JavaScriptStringEncode(Model.ApiKey.ToString())');
+            clip.setText('@HttpUtility.JavaScriptStringEncode(Model.ApiKey)');
             clip.setHandCursor(true);
             clip.glue('copyButton');
         });

@@ -12,7 +12,7 @@
         </DataControls>
     </asp:DynamicDataManager>
 
-    <h2 class="DDSubHeader"><%= table.DisplayName%></h2>
+    <h2 class="DDSubHeader"><%= table.DisplayName %></h2>
 
     <asp:UpdatePanel ID="UpdatePanel1" runat="server">
         <ContentTemplate>
@@ -25,7 +25,7 @@
 
                 <asp:QueryableFilterRepeater runat="server" ID="FilterRepeater">
                     <ItemTemplate>
-                        <asp:Label runat="server" Text='<%# Eval("DisplayName") %>' OnPreRender="Label_PreRender" />
+                        <asp:Label runat="server" Text='<%#Eval("DisplayName") %>' OnPreRender="Label_PreRender" />
                         <asp:DynamicFilter runat="server" ID="DynamicFilter" OnFilterChanged="DynamicFilter_FilterChanged" /><br />
                     </ItemTemplate>
                 </asp:QueryableFilterRepeater>

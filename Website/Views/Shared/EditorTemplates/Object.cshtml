@@ -12,12 +12,11 @@ else
         }
         else
         {
-            
             var className = String.Empty;
             if (ViewData.ModelState[prop.PropertyName] != null && ViewData.ModelState[prop.PropertyName].Errors != null && ViewData.ModelState[prop.PropertyName].Errors.Count > 0)
             {
                 className = "invalid";
-            }    
+            }
             <div class="form-field @className">
                 @Html.Label(prop.PropertyName)
                 @Html.Editor(prop.PropertyName)

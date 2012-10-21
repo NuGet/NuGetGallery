@@ -12,7 +12,6 @@ namespace NuGetGallery
             bool createPersistentCookie,
             IEnumerable<string> roles)
         {
-
             string formattedRoles = String.Empty;
             if (roles.AnySafe())
             {
@@ -21,14 +20,14 @@ namespace NuGetGallery
 
             HttpContext context = HttpContext.Current;
 
-            FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(
-                     version: 1,
-                     name: userName,
-                     issueDate: DateTime.UtcNow,
-                     expiration: DateTime.UtcNow.AddMinutes(30),
-                     isPersistent: createPersistentCookie,
-                     userData: formattedRoles
-            );
+            var ticket = new FormsAuthenticationTicket(
+                version: 1,
+                name: userName,
+                issueDate: DateTime.UtcNow,
+                expiration: DateTime.UtcNow.AddMinutes(30),
+                isPersistent: createPersistentCookie,
+                userData: formattedRoles
+                );
 
             string encryptedTicket = FormsAuthentication.Encrypt(ticket);
             var formsCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket);

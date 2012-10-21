@@ -4,14 +4,11 @@ using System.Web.UI;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class EnumerationField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class EnumerationField : FieldTemplateUserControl
     {
         public override Control DataControl
         {
-            get
-            {
-                return Literal1;
-            }
+            get { return Literal1; }
         }
 
         public string EnumFieldValueString
@@ -26,13 +23,12 @@ namespace DynamicDataEFCodeFirst
                 Type enumType = Column.GetEnumType();
                 if (enumType != null)
                 {
-                    object enumValue = System.Enum.ToObject(enumType, FieldValue);
+                    object enumValue = Enum.ToObject(enumType, FieldValue);
                     return FormatFieldValue(enumValue);
                 }
 
                 return FieldValueString;
             }
         }
-
     }
 }

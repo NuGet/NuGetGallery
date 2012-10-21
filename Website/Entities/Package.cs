@@ -15,8 +15,6 @@ namespace NuGetGallery
             Listed = true;
         }
 
-        public int Key { get; set; }
-
         public PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
 
@@ -24,44 +22,48 @@ namespace NuGetGallery
         public virtual ICollection<PackageAuthor> Authors { get; set; }
 
         /// <remarks>
-        /// Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
+        ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
         public string Copyright { get; set; }
+
         public DateTime Created { get; set; }
         public virtual ICollection<PackageDependency> Dependencies { get; set; }
-        
+
         /// <remarks>
-        /// Has a max length of 4000. Is not indexed but *IS* used for searches. Db column is nvarchar(max).
+        ///     Has a max length of 4000. Is not indexed but *IS* used for searches. Db column is nvarchar(max).
         /// </remarks>
         public string Description { get; set; }
 
         /// <remarks>
-        /// Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
+        ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
         public string ReleaseNotes { get; set; }
+
         public int DownloadCount { get; set; }
-        
+
         /// <remarks>
-        /// Is not a property that we support. Maintained for legacy reasons.
+        ///     Is not a property that we support. Maintained for legacy reasons.
         /// </remarks>
         public string ExternalPackageUrl { get; set; }
 
         [StringLength(10)]
         public string HashAlgorithm { get; set; }
 
-        [StringLength(256), Required]
+        [StringLength(256)]
+        [Required]
         public string Hash { get; set; }
 
         /// <remarks>
-        /// Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
+        ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
         public string IconUrl { get; set; }
+
         public bool IsLatest { get; set; }
         public bool IsLatestStable { get; set; }
         public DateTime LastUpdated { get; set; }
 
         /// <remarks>
-        /// Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
+        ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
         public string LicenseUrl { get; set; }
 
@@ -72,25 +74,27 @@ namespace NuGetGallery
         public long PackageFileSize { get; set; }
 
         /// <remarks>
-        /// Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
+        ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
         public string ProjectUrl { get; set; }
+
         public bool RequiresLicenseAcceptance { get; set; }
 
         /// <remarks>
-        /// Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
+        ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
         public string Summary { get; set; }
 
         /// <remarks>
-        /// Has a max length of 4000. Is not indexed and *IS* used for searches, but is maintained via Lucene. Db column is nvarchar(max).
+        ///     Has a max length of 4000. Is not indexed and *IS* used for searches, but is maintained via Lucene. Db column is nvarchar(max).
         /// </remarks>
         public string Tags { get; set; }
 
         [StringLength(256)]
         public string Title { get; set; }
 
-        [StringLength(64), Required]
+        [StringLength(64)]
+        [Required]
         public string Version { get; set; }
 
         public bool Listed { get; set; }
@@ -100,5 +104,6 @@ namespace NuGetGallery
         // TODO: it would be nice if we could change the feed so that we don't need to flatten authors and dependencies
         public string FlattenedAuthors { get; set; }
         public string FlattenedDependencies { get; set; }
+        public int Key { get; set; }
     }
 }
