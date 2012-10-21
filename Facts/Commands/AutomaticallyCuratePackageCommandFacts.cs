@@ -21,7 +21,7 @@ namespace NuGetGallery.Commands
 
             protected override IEnumerable<T> GetServices<T>()
             {
-                if (typeof (T) == typeof (IAutomaticPackageCurator))
+                if (typeof(T) == typeof(IAutomaticPackageCurator))
                 {
                     return StubCurators.Select(stub => (T)stub.Object);
                 }

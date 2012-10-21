@@ -53,7 +53,7 @@ namespace NuGetGallery
             {
                 return ReadAppSettings(
                     "PackageStoreType",
-                    value => (PackageStoreType)Enum.Parse(typeof (PackageStoreType), value ?? PackageStoreType.NotSpecified.ToString()));
+                    value => (PackageStoreType)Enum.Parse(typeof(PackageStoreType), value ?? PackageStoreType.NotSpecified.ToString()));
             }
         }
 

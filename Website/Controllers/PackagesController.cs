@@ -192,10 +192,10 @@ namespace NuGetGallery
             }
 
             var model = new ReportAbuseViewModel
-                            {
-                                PackageId = id,
-                                PackageVersion = package.Version,
-                            };
+                {
+                    PackageId = id,
+                    PackageVersion = package.Version,
+                };
 
             if (Request.IsAuthenticated)
             {
@@ -253,10 +253,10 @@ namespace NuGetGallery
             }
 
             var model = new ContactOwnersViewModel
-                            {
-                                PackageId = package.Id,
-                                Owners = package.Owners.Where(u => u.EmailAllowed)
-                            };
+                {
+                    PackageId = package.Id,
+                    Owners = package.Owners.Where(u => u.EmailAllowed)
+                };
 
             return View(model);
         }
@@ -389,10 +389,10 @@ namespace NuGetGallery
             }
 
             var model = new PackageOwnerConfirmationModel
-                            {
-                                Success = _packageSvc.ConfirmPackageOwner(package, user, token),
-                                PackageId = id
-                            };
+                {
+                    Success = _packageSvc.ConfirmPackageOwner(package, user, token),
+                    PackageId = id
+                };
 
             return View(model);
         }
@@ -550,12 +550,12 @@ namespace NuGetGallery
         private SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)
         {
             var searchFilter = new SearchFilter
-                                   {
-                                       SearchTerm = q,
-                                       Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
-                                       Take = Constants.DefaultPackageListPageSize,
-                                       IncludePrerelease = includePrerelease
-                                   };
+                {
+                    SearchTerm = q,
+                    Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
+                    Take = Constants.DefaultPackageListPageSize,
+                    IncludePrerelease = includePrerelease
+                };
 
             switch (sortOrder)
             {

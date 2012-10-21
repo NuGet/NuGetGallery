@@ -18,9 +18,9 @@ using StackExchange.Profiling.MVCHelpers;
 using WebActivator;
 using WebBackgrounder;
 
-[assembly: WebActivator.PreApplicationStartMethod(typeof (AppActivator), "PreStart")]
-[assembly: PostApplicationStartMethod(typeof (AppActivator), "PostStart")]
-[assembly: ApplicationShutdownMethod(typeof (AppActivator), "Stop")]
+[assembly: WebActivator.PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
+[assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
+[assembly: ApplicationShutdownMethod(typeof(AppActivator), "Stop")]
 
 namespace NuGetGallery
 {
@@ -60,16 +60,16 @@ namespace NuGetGallery
         private static void BackgroundJobsPostStart()
         {
             var jobs = new IJob[]
-                           {
-                               new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(), timeout: TimeSpan.FromMinutes(5)),
-                               new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(), timeout: TimeSpan.FromDays(4)),
-                               new LuceneIndexingJob(TimeSpan.FromMinutes(10), timeout: TimeSpan.FromMinutes(2))
-                           };
+                {
+                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(), timeout: TimeSpan.FromMinutes(5)),
+                    new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(), timeout: TimeSpan.FromDays(4)),
+                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), timeout: TimeSpan.FromMinutes(2))
+                };
             var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext()));
             _jobManager = new JobManager(jobs, jobCoordinator)
-                              {
-                                  RestartSchedulerOnFailure = true
-                              };
+                {
+                    RestartSchedulerOnFailure = true
+                };
             _jobManager.Fail(e => ErrorLog.GetDefault(null).Log(new Error(e)));
             _jobManager.Start();
         }
@@ -96,7 +96,7 @@ namespace NuGetGallery
         private static void MiniProfilerPreStart()
         {
             MiniProfilerEF.Initialize();
-            DynamicModuleUtility.RegisterModule(typeof (MiniProfilerStartupModule));
+            DynamicModuleUtility.RegisterModule(typeof(MiniProfilerStartupModule));
             GlobalFilters.Filters.Add(new ProfilingActionFilter());
         }
 
@@ -112,8 +112,8 @@ namespace NuGetGallery
 
         private static void NinjectPreStart()
         {
-            DynamicModuleUtility.RegisterModule(typeof (OnePerRequestModule));
-            DynamicModuleUtility.RegisterModule(typeof (HttpApplicationInitializationModule));
+            DynamicModuleUtility.RegisterModule(typeof(OnePerRequestModule));
+            DynamicModuleUtility.RegisterModule(typeof(HttpApplicationInitializationModule));
             NinjectBootstrapper.Initialize(() => Container.Kernel);
         }
 

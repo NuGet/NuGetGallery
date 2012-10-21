@@ -144,7 +144,7 @@ namespace NuGetGallery
 
         public object GetService(Type serviceType)
         {
-            if (serviceType == typeof (IDataServiceStreamProvider))
+            if (serviceType == typeof(IDataServiceStreamProvider))
             {
                 return this;
             }
@@ -207,16 +207,16 @@ namespace NuGetGallery
 
             var keywordPath = odataQuery.Path as KeywordSegmentQueryToken;
             searchFilter = new SearchFilter
-                               {
-                                   // HACK: The way the default paging works is WCF attempts to read up to the MaxPageSize elements. If it finds as many, it'll assume there 
-                                   // are more elements to be paged and generate a continuation link. Consequently we'll always ask to pull MaxPageSize elements so WCF generates the 
-                                   // link for us and then allow it to do a Take on the results. The alternative to do is roll our IDataServicePagingProvider, but we run into 
-                                   // issues since we need to manage state over concurrent requests. This seems like an easier solution.
-                                   Take = MaxPageSize,
-                                   Skip = odataQuery.Skip ?? 0,
-                                   CountOnly = keywordPath != null && keywordPath.Keyword == KeywordKind.Count,
-                                   SortDirection = SortDirection.Ascending
-                               };
+                {
+                    // HACK: The way the default paging works is WCF attempts to read up to the MaxPageSize elements. If it finds as many, it'll assume there 
+                    // are more elements to be paged and generate a continuation link. Consequently we'll always ask to pull MaxPageSize elements so WCF generates the 
+                    // link for us and then allow it to do a Take on the results. The alternative to do is roll our IDataServicePagingProvider, but we run into 
+                    // issues since we need to manage state over concurrent requests. This seems like an easier solution.
+                    Take = MaxPageSize,
+                    Skip = odataQuery.Skip ?? 0,
+                    CountOnly = keywordPath != null && keywordPath.Keyword == KeywordKind.Count,
+                    SortDirection = SortDirection.Ascending
+                };
 
             var filterProperty = odataQuery.Filter as PropertyAccessQueryToken;
             if (filterProperty == null ||

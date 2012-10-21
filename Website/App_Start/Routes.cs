@@ -128,12 +128,12 @@ namespace NuGetGallery
             routes.MapServiceRoute(
                 RouteName.V1ApiFeed,
                 "api/v1/FeedService.svc",
-                typeof (V1Feed));
+                typeof(V1Feed));
 
             routes.MapServiceRoute(
                 "LegacyFeedService",
                 "v1/FeedService.svc",
-                typeof (V1Feed));
+                typeof(V1Feed));
 
             routes.MapRoute(
                 "v1" + RouteName.VerifyPackageKey,
@@ -166,7 +166,7 @@ namespace NuGetGallery
             routes.MapServiceRoute(
                 "v1" + RouteName.V1ApiFeed,
                 "api/v1",
-                typeof (V1Feed));
+                typeof(V1Feed));
 
             // V2 routes
             routes.MapRoute(
@@ -223,12 +223,12 @@ namespace NuGetGallery
             routes.MapServiceRoute(
                 RouteName.V2ApiCuratedFeed,
                 "api/v2/curated-feed",
-                typeof (V2CuratedFeed));
+                typeof(V2CuratedFeed));
 
             routes.MapServiceRoute(
                 RouteName.V2ApiFeed,
                 "api/v2/",
-                typeof (V2Feed));
+                typeof(V2Feed));
 
             routes.MapRoute(
                 RouteName.DownloadNuGetExe,

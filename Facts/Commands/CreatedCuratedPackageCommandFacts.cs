@@ -36,12 +36,12 @@ namespace NuGetGallery
 
             protected override T GetService<T>()
             {
-                if (typeof (T) == typeof (ICuratedFeedByKeyQuery))
+                if (typeof(T) == typeof(ICuratedFeedByKeyQuery))
                 {
                     return (T)StubCuratedFeedByKeyQry.Object;
                 }
 
-                if (typeof (T) == typeof (IPackageRegistrationByKeyQuery))
+                if (typeof(T) == typeof(IPackageRegistrationByKeyQuery))
                 {
                     return (T)StubPackageRegistrationByKeyQry.Object;
                 }

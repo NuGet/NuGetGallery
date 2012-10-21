@@ -120,11 +120,11 @@ namespace NuGetGallery
             public void WithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue()
             {
                 var user = new User
-                               {
-                                   Username = "username",
-                                   EmailConfirmationToken = "secret",
-                                   UnconfirmedEmailAddress = "new@example.com"
-                               };
+                    {
+                        Username = "username",
+                        EmailConfirmationToken = "secret",
+                        UnconfirmedEmailAddress = "new@example.com"
+                    };
                 var service = CreateUsersService();
 
                 var confirmed = service.ConfirmEmailAddress(user, "secret");
@@ -140,12 +140,12 @@ namespace NuGetGallery
             public void ForUserWithConfirmedEmailWithTokenThatDoesMatchUserConfirmsUserAndReturnsTrue()
             {
                 var user = new User
-                               {
-                                   Username = "username",
-                                   EmailConfirmationToken = "secret",
-                                   EmailAddress = "existing@example.com",
-                                   UnconfirmedEmailAddress = "new@example.com"
-                               };
+                    {
+                        Username = "username",
+                        EmailConfirmationToken = "secret",
+                        EmailAddress = "existing@example.com",
+                        UnconfirmedEmailAddress = "new@example.com"
+                    };
                 var service = CreateUsersService();
 
                 var confirmed = service.ConfirmEmailAddress(user, "secret");
@@ -377,12 +377,12 @@ namespace NuGetGallery
             public void FindsUsersByUserName()
             {
                 var user = new User
-                               {
-                                   Username = "theUsername",
-                                   HashedPassword = "thePassword",
-                                   EmailAddress = "test@example.com",
-                                   PasswordHashAlgorithm = "PBKDF2"
-                               };
+                    {
+                        Username = "theUsername",
+                        HashedPassword = "thePassword",
+                        EmailAddress = "test@example.com",
+                        PasswordHashAlgorithm = "PBKDF2"
+                    };
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
 
@@ -400,12 +400,12 @@ namespace NuGetGallery
             public void FindsUsersByEmailAddress()
             {
                 var user = new User
-                               {
-                                   Username = "theUsername",
-                                   HashedPassword = "thePassword",
-                                   EmailAddress = "test@example.com",
-                                   PasswordHashAlgorithm = "PBKDF2"
-                               };
+                    {
+                        Username = "theUsername",
+                        HashedPassword = "thePassword",
+                        EmailAddress = "test@example.com",
+                        PasswordHashAlgorithm = "PBKDF2"
+                    };
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
 
@@ -423,12 +423,12 @@ namespace NuGetGallery
             public void FindsUsersUpdatesPasswordIfUsingLegacyHashAlgorithm()
             {
                 var user = new User
-                               {
-                                   Username = "theUsername",
-                                   HashedPassword = "theHashedPassword",
-                                   EmailAddress = "test@example.com",
-                                   PasswordHashAlgorithm = "SHA1"
-                               };
+                    {
+                        Username = "theUsername",
+                        HashedPassword = "theHashedPassword",
+                        EmailAddress = "test@example.com",
+                        PasswordHashAlgorithm = "SHA1"
+                    };
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
                 userRepository.Setup(r => r.CommitChanges()).Verifiable();
@@ -532,12 +532,12 @@ namespace NuGetGallery
             public void WithExistingNotYetExpiredTokenReturnsExistingToken()
             {
                 var user = new User
-                               {
-                                   Username = "user",
-                                   EmailAddress = "confirmed@example.com",
-                                   PasswordResetToken = "existing-token",
-                                   PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
-                               };
+                    {
+                        Username = "user",
+                        EmailAddress = "confirmed@example.com",
+                        PasswordResetToken = "existing-token",
+                        PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                    };
                 var cryptoSvc = new Mock<ICryptographyService>();
                 cryptoSvc.Setup(s => s.GenerateToken()).Throws(new InvalidOperationException("Should not get called"));
                 var userSvc = CreateUsersService(
@@ -559,12 +559,12 @@ namespace NuGetGallery
             public void WithExistingExpiredTokenReturnsNewToken()
             {
                 var user = new User
-                               {
-                                   Username = "user",
-                                   EmailAddress = "confirmed@example.com",
-                                   PasswordResetToken = "existing-token",
-                                   PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMilliseconds(-1)
-                               };
+                    {
+                        Username = "user",
+                        EmailAddress = "confirmed@example.com",
+                        PasswordResetToken = "existing-token",
+                        PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMilliseconds(-1)
+                    };
                 var cryptoSvc = new Mock<ICryptographyService>();
                 cryptoSvc.Setup(s => s.GenerateToken()).Returns("reset-token");
                 var userSvc = CreateUsersService(
@@ -603,11 +603,11 @@ namespace NuGetGallery
             public void ThrowsExceptionIfUserNotConfirmed()
             {
                 var user = new User
-                               {
-                                   Username = "user",
-                                   PasswordResetToken = "some-token",
-                                   PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
-                               };
+                    {
+                        Username = "user",
+                        PasswordResetToken = "some-token",
+                        PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1)
+                    };
                 var crypto = new Mock<ICryptographyService>();
                 crypto.Setup(c => c.GenerateSaltedHash("new-password", Constants.Sha512HashAlgorithmId)).Returns("bacon-hash-and-eggs");
                 var userRepository = new Mock<IEntityRepository<User>>();
@@ -621,13 +621,13 @@ namespace NuGetGallery
             public void ResetsPasswordAndPasswordTokenAndPasswordTokenDate()
             {
                 var user = new User
-                               {
-                                   Username = "user",
-                                   EmailAddress = "confirmed@example.com",
-                                   PasswordResetToken = "some-token",
-                                   PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1),
-                                   PasswordHashAlgorithm = "PBKDF2"
-                               };
+                    {
+                        Username = "user",
+                        EmailAddress = "confirmed@example.com",
+                        PasswordResetToken = "some-token",
+                        PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1),
+                        PasswordHashAlgorithm = "PBKDF2"
+                    };
                 var crypto = new Mock<ICryptographyService>(MockBehavior.Strict);
                 crypto.Setup(c => c.GenerateSaltedHash("new-password", Constants.PBKDF2HashAlgorithmId)).Returns("bacon-hash-and-eggs");
                 var userRepository = new Mock<IEntityRepository<User>>();
@@ -647,13 +647,13 @@ namespace NuGetGallery
             public void ResetsPasswordMigratesPasswordHash()
             {
                 var user = new User
-                               {
-                                   Username = "user",
-                                   EmailAddress = "confirmed@example.com",
-                                   PasswordResetToken = "some-token",
-                                   PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1),
-                                   PasswordHashAlgorithm = "SHA1"
-                               };
+                    {
+                        Username = "user",
+                        EmailAddress = "confirmed@example.com",
+                        PasswordResetToken = "some-token",
+                        PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1),
+                        PasswordHashAlgorithm = "SHA1"
+                    };
                 var crypto = new Mock<ICryptographyService>(MockBehavior.Strict);
                 crypto.Setup(c => c.GenerateSaltedHash("new-password", "PBKDF2")).Returns("bacon-hash-and-eggs");
                 var userRepository = new Mock<IEntityRepository<User>>();

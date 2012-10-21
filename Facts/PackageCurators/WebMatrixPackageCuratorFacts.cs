@@ -26,12 +26,12 @@ namespace NuGetGallery.PackageCurators
 
             protected override T GetService<T>()
             {
-                if (typeof (T) == typeof (ICreateCuratedPackageCommand))
+                if (typeof(T) == typeof(ICreateCuratedPackageCommand))
                 {
                     return (T)StubCreatedCuratedPackageCmd.Object;
                 }
 
-                if (typeof (T) == typeof (ICuratedFeedByNameQuery))
+                if (typeof(T) == typeof(ICuratedFeedByNameQuery))
                 {
                     return (T)StubCuratedFeedByNameQry.Object;
                 }
@@ -239,13 +239,13 @@ namespace NuGetGallery.PackageCurators
             private static Package CreateStubGalleryPackage()
             {
                 return new Package
-                           {
-                               IsLatestStable = true,
-                               PackageRegistration = new PackageRegistration
-                                                         {
-                                                             Key = 0,
-                                                         },
-                           };
+                    {
+                        IsLatestStable = true,
+                        PackageRegistration = new PackageRegistration
+                            {
+                                Key = 0,
+                            },
+                    };
             }
 
             private static Mock<IPackage> CreateStubNuGetPackage()

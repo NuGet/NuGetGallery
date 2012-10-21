@@ -81,11 +81,11 @@ namespace NuGetGallery.Services
         private static Stream CreateCommandLinePackage()
         {
             var packageBuilder = new PackageBuilder
-                                     {
-                                         Id = "NuGet.CommandLine",
-                                         Version = new SemanticVersion("2.0.0"),
-                                         Description = "Some desc"
-                                     };
+                {
+                    Id = "NuGet.CommandLine",
+                    Version = new SemanticVersion("2.0.0"),
+                    Description = "Some desc"
+                };
             packageBuilder.Authors.Add("test");
             var exeFile = CreateExePackageFile();
             packageBuilder.Files.Add(exeFile);

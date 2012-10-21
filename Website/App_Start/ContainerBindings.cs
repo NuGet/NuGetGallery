@@ -101,12 +101,12 @@ namespace NuGetGallery
                         if (settings.UseSmtp)
                         {
                             var mailSenderConfiguration = new MailSenderConfiguration
-                                                              {
-                                                                  DeliveryMethod = SmtpDeliveryMethod.Network,
-                                                                  Host = settings.SmtpHost,
-                                                                  Port = settings.SmtpPort,
-                                                                  EnableSsl = true
-                                                              };
+                                {
+                                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                                    Host = settings.SmtpHost,
+                                    Port = settings.SmtpPort,
+                                    EnableSsl = true
+                                };
 
                             if (!String.IsNullOrWhiteSpace(settings.SmtpUsername))
                             {
@@ -121,10 +121,10 @@ namespace NuGetGallery
                         else
                         {
                             var mailSenderConfiguration = new MailSenderConfiguration
-                                                              {
-                                                                  DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
-                                                                  PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
-                                                              };
+                                {
+                                    DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
+                                    PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
+                                };
 
                             return new MailSender(mailSenderConfiguration);
                         }

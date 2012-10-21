@@ -28,9 +28,9 @@ namespace NuGetGallery
             var packages = GetPackages();
 
             return new FeedContext<V2FeedPackage>
-                       {
-                           Packages = packages.ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
-                       };
+                {
+                    Packages = packages.ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
+                };
         }
 
         public static void InitializeService(DataServiceConfiguration config)

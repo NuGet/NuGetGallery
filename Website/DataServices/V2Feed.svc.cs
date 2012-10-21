@@ -27,11 +27,11 @@ namespace NuGetGallery
         protected override FeedContext<V2FeedPackage> CreateDataSource()
         {
             return new FeedContext<V2FeedPackage>
-                       {
-                           Packages = PackageRepo.GetAll()
-                               .WithoutVersionSort()
-                               .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
-                       };
+                {
+                    Packages = PackageRepo.GetAll()
+                        .WithoutVersionSort()
+                        .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
+                };
         }
 
         public static void InitializeService(DataServiceConfiguration config)

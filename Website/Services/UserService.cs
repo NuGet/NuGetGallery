@@ -45,13 +45,13 @@ namespace NuGetGallery
             var newUser = new User(
                 username,
                 hashedPassword)
-                              {
-                                  ApiKey = Guid.NewGuid(),
-                                  EmailAllowed = true,
-                                  UnconfirmedEmailAddress = emailAddress,
-                                  EmailConfirmationToken = _cryptoSvc.GenerateToken(),
-                                  PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
-                              };
+                {
+                    ApiKey = Guid.NewGuid(),
+                    EmailAllowed = true,
+                    UnconfirmedEmailAddress = emailAddress,
+                    EmailConfirmationToken = _cryptoSvc.GenerateToken(),
+                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
+                };
 
             if (!_settings.ConfirmEmailAddresses)
             {

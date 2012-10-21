@@ -15,10 +15,10 @@ namespace NuGetGallery.Services
             {
                 var from = new MailAddress("legit@example.com", "too");
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Id = "smangit" },
-                                      Version = "1.42.0.1"
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "smangit" },
+                        Version = "1.42.0.1"
+                    };
                 var mailSender = new Mock<IMailSender>();
                 var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
                 var messageService = new MessageService(mailSender.Object, setting);
@@ -42,10 +42,10 @@ namespace NuGetGallery.Services
                 var from = new MailAddress("smangit@example.com", "flossy");
                 var package = new PackageRegistration { Id = "smangit" };
                 package.Owners = new[]
-                                     {
-                                         new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                                         new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
-                                     };
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                    };
                 var mailSender = new Mock<IMailSender>();
                 var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
                 var messageService = new MessageService(mailSender.Object, setting);
@@ -69,10 +69,10 @@ namespace NuGetGallery.Services
                 var from = new MailAddress("smangit@example.com", "flossy");
                 var package = new PackageRegistration { Id = "smangit" };
                 package.Owners = new[]
-                                     {
-                                         new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                                         new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
-                                     };
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                    };
                 var mailSender = new Mock<IMailSender>();
                 var setting = new GallerySetting { GalleryOwnerName = "Joe Schmoe", GalleryOwnerEmail = "joe@example.com" };
                 var messageService = new MessageService(mailSender.Object, setting);
@@ -92,10 +92,10 @@ namespace NuGetGallery.Services
                 var from = new MailAddress("smangit@example.com", "flossy");
                 var package = new PackageRegistration { Id = "smangit" };
                 package.Owners = new[]
-                                     {
-                                         new User { EmailAddress = "yung@example.com", EmailAllowed = false },
-                                         new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
-                                     };
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = false },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                    };
                 var mailSender = new Mock<IMailSender>();
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Throws(new InvalidOperationException());
                 var setting = new GallerySetting { GalleryOwnerName = "Joe Schmoe", GalleryOwnerEmail = "joe@example.com" };

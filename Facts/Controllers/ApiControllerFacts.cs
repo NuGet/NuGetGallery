@@ -87,10 +87,10 @@ namespace NuGetGallery
                 var user = new User();
 
                 var packageRegistration = new PackageRegistration
-                                              {
-                                                  Packages = new List<Package> { new Package { Version = version.ToString() } },
-                                                  Owners = new List<User> { user }
-                                              };
+                    {
+                        Packages = new List<Package> { new Package { Version = version.ToString() } },
+                        Owners = new List<User> { user }
+                    };
 
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
@@ -262,9 +262,9 @@ namespace NuGetGallery
             {
                 var owner = new User { Key = 1 };
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 var userSvc = new Mock<IUserService>();
@@ -282,9 +282,9 @@ namespace NuGetGallery
             {
                 var owner = new User { Key = 1 };
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
+                    };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 packageSvc.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(
@@ -306,9 +306,9 @@ namespace NuGetGallery
             {
                 var owner = new User { Key = 1 };
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 var userSvc = new Mock<IUserService>();
@@ -492,9 +492,9 @@ namespace NuGetGallery
             {
                 var owner = new User { Key = 1 };
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 var userSvc = new Mock<IUserService>();
@@ -512,9 +512,9 @@ namespace NuGetGallery
             {
                 var owner = new User { Key = 1 };
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
+                    };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 packageSvc.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(
@@ -536,9 +536,9 @@ namespace NuGetGallery
             {
                 var owner = new User { Key = 1 };
                 var package = new Package
-                                  {
-                                      PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
-                                  };
+                    {
+                        PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    };
                 var packageSvc = new Mock<IPackageService>();
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 var userSvc = new Mock<IUserService>();

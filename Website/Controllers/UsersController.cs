@@ -46,11 +46,11 @@ namespace NuGetGallery
         {
             var user = _userService.FindByUsername(_currentUser.Identity.Name);
             var model = new EditProfileViewModel
-                            {
-                                EmailAddress = user.EmailAddress,
-                                EmailAllowed = user.EmailAllowed,
-                                PendingNewEmailAddress = user.UnconfirmedEmailAddress
-                            };
+                {
+                    EmailAddress = user.EmailAddress,
+                    EmailAllowed = user.EmailAllowed,
+                    PendingNewEmailAddress = user.UnconfirmedEmailAddress
+                };
             return View(model);
         }
 
@@ -161,14 +161,14 @@ namespace NuGetGallery
                             group p by p.PackageRegistration.Id;
 
             var model = new ManagePackagesViewModel
-                            {
-                                Packages = from pr in published
-                                           select new PackageViewModel(pr.First())
-                                                      {
-                                                          DownloadCount = pr.Sum(p => p.DownloadCount),
-                                                          Version = null
-                                                      },
-                            };
+                {
+                    Packages = from pr in published
+                               select new PackageViewModel(pr.First())
+                                   {
+                                       DownloadCount = pr.Sum(p => p.DownloadCount),
+                                       Version = null
+                                   },
+                };
             return View(model);
         }
 
@@ -274,10 +274,10 @@ namespace NuGetGallery
 
             string existingEmail = user.EmailAddress;
             var model = new EmailConfirmationModel
-                            {
-                                ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
-                                SuccessfulConfirmation = _userService.ConfirmEmailAddress(user, token)
-                            };
+                {
+                    ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
+                    SuccessfulConfirmation = _userService.ConfirmEmailAddress(user, token)
+                };
 
             if (!model.ConfirmingNewAccount)
             {
@@ -302,12 +302,12 @@ namespace NuGetGallery
                 .ToList();
 
             var model = new UserProfileModel
-                            {
-                                Username = user.Username,
-                                EmailAddress = user.EmailAddress,
-                                Packages = packages,
-                                TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount)
-                            };
+                {
+                    Username = user.Username,
+                    EmailAddress = user.EmailAddress,
+                    Packages = packages,
+                    TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount)
+                };
 
             return View(model);
         }

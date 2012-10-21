@@ -38,10 +38,10 @@ namespace NuGetGallery
                 Type[] parameterTypes)
             {
                 var folderNames = new List<object[]>
-                                      {
-                                          new object[] { Constants.PackagesFolderName, true },
-                                          new object[] { Constants.UploadsFolderName, false }
-                                      };
+                    {
+                        new object[] { Constants.PackagesFolderName, true },
+                        new object[] { Constants.UploadsFolderName, false }
+                    };
 
                 if (!IncludePermissions)
                 {

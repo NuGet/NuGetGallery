@@ -304,13 +304,13 @@ namespace NuGetGallery
             }
 
             var newRequest = new PackageOwnerRequest
-                                 {
-                                     PackageRegistrationKey = package.Key,
-                                     RequestingOwnerKey = currentOwner.Key,
-                                     NewOwnerKey = newOwner.Key,
-                                     ConfirmationCode = _cryptoSvc.GenerateToken(),
-                                     RequestDate = DateTime.UtcNow
-                                 };
+                {
+                    PackageRegistrationKey = package.Key,
+                    RequestingOwnerKey = currentOwner.Key,
+                    NewOwnerKey = newOwner.Key,
+                    ConfirmationCode = _cryptoSvc.GenerateToken(),
+                    RequestDate = DateTime.UtcNow
+                };
 
             _packageOwnerRequestRepository.InsertOnCommit(newRequest);
             _packageOwnerRequestRepository.CommitChanges();
@@ -361,9 +361,9 @@ namespace NuGetGallery
             if (packageRegistration == null)
             {
                 packageRegistration = new PackageRegistration
-                                          {
-                                              Id = nugetPackage.Id
-                                          };
+                    {
+                        Id = nugetPackage.Id
+                    };
 
                 packageRegistration.Owners.Add(currentUser);
 
@@ -387,22 +387,22 @@ namespace NuGetGallery
             var packageFileStream = nugetPackage.GetStream();
 
             package = new Package
-                          {
-                              Version = nugetPackage.Version.ToString(),
-                              Description = nugetPackage.Description,
-                              ReleaseNotes = nugetPackage.ReleaseNotes,
-                              RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
-                              HashAlgorithm = Constants.Sha512HashAlgorithmId,
-                              Hash = _cryptoSvc.GenerateHash(packageFileStream.ReadAllBytes()),
-                              PackageFileSize = packageFileStream.Length,
-                              Created = now,
-                              Language = nugetPackage.Language,
-                              LastUpdated = now,
-                              Published = now,
-                              Copyright = nugetPackage.Copyright,
-                              IsPrerelease = !nugetPackage.IsReleaseVersion(),
-                              Listed = true,
-                          };
+                {
+                    Version = nugetPackage.Version.ToString(),
+                    Description = nugetPackage.Description,
+                    ReleaseNotes = nugetPackage.ReleaseNotes,
+                    RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
+                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                    Hash = _cryptoSvc.GenerateHash(packageFileStream.ReadAllBytes()),
+                    PackageFileSize = packageFileStream.Length,
+                    Created = now,
+                    Language = nugetPackage.Language,
+                    LastUpdated = now,
+                    Published = now,
+                    Copyright = nugetPackage.Copyright,
+                    IsPrerelease = !nugetPackage.IsReleaseVersion(),
+                    Listed = true,
+                };
 
             if (nugetPackage.IconUrl != null)
             {

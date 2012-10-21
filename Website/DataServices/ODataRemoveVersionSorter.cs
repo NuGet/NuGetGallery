@@ -22,7 +22,7 @@ namespace NuGetGallery
             var methodsToIgnore = new[] { "ThenBy", "ThenByDescending" };
             var method = expression.Method;
 
-            if (method.DeclaringType == typeof (Queryable) && methodsToIgnore.Contains(method.Name, StringComparer.Ordinal))
+            if (method.DeclaringType == typeof(Queryable) && methodsToIgnore.Contains(method.Name, StringComparer.Ordinal))
             {
                 return IsVersionArgument(expression);
             }

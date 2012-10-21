@@ -16,7 +16,7 @@ namespace NuGetGallery.Migrations
 
         public override void Up()
         {
-            using (var stream = typeof (ExecuteELMAHSql).Assembly.GetManifestResourceStream(_sqlFile))
+            using (var stream = typeof(ExecuteELMAHSql).Assembly.GetManifestResourceStream(_sqlFile))
             {
                 using (var streamReader = new StreamReader(stream))
                 {

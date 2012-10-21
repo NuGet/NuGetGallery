@@ -9,11 +9,11 @@ namespace NuGetGallery.Migrations
             CreateTable(
                 "PackageFrameworks",
                 c => new
-                         {
-                             Key = c.Int(nullable: false, identity: true),
-                             TargetFramework = c.String(),
-                             Package_Key = c.Int(),
-                         })
+                    {
+                        Key = c.Int(nullable: false, identity: true),
+                        TargetFramework = c.String(),
+                        Package_Key = c.Int(),
+                    })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Packages", t => t.Package_Key)
                 .Index(t => t.Package_Key);
