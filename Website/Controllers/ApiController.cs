@@ -35,11 +35,11 @@ namespace NuGetGallery
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
             // The allow prerelease flag is ignored if both partialId and version are specified.
             var package = _packageSvc.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
-
+            
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             _packageSvc.AddDownloadStatistics(
@@ -47,7 +47,7 @@ namespace NuGetGallery
                 Request.UserHostAddress,
                 Request.UserAgent);
 
-            if (!string.IsNullOrWhiteSpace(package.ExternalPackageUrl))
+            if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
             {
                 return Redirect(package.ExternalPackageUrl);
             }
@@ -73,14 +73,14 @@ namespace NuGetGallery
             if (!Guid.TryParse(apiKey, out parsedApiKey))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, string.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
             var user = _userSvc.FindByApiKey(parsedApiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
             }
 
             if (!String.IsNullOrEmpty(id))
@@ -90,13 +90,13 @@ namespace NuGetGallery
                 if (package == null)
                 {
                     return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                 }
 
                 if (!package.IsOwner(user))
                 {
                     return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                        HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
                 }
             }
 
@@ -123,7 +123,7 @@ namespace NuGetGallery
             if (!Guid.TryParse(apiKey, out parsedApiKey))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, string.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
             var user = _userSvc.FindByApiKey(parsedApiKey);
@@ -174,27 +174,27 @@ namespace NuGetGallery
             if (!Guid.TryParse(apiKey, out parsedApiKey))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, string.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
             var user = _userSvc.FindByApiKey(parsedApiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
             }
 
             var package = _packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
             }
 
             _packageSvc.MarkPackageUnlisted(package);
@@ -209,27 +209,27 @@ namespace NuGetGallery
             if (!Guid.TryParse(apiKey, out parsedApiKey))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, string.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
             var user = _userSvc.FindByApiKey(parsedApiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
             }
 
             var package = _packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
             }
 
             _packageSvc.MarkPackageListed(package);

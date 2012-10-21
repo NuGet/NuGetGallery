@@ -250,7 +250,7 @@ namespace NuGetGallery
 
             var sb = new StringBuilder();
             sb.AppendFormat("{0} {1}", frameworkName.Identifier, frameworkName.Version);
-            if (string.IsNullOrEmpty(frameworkName.Profile))
+            if (String.IsNullOrEmpty(frameworkName.Profile))
             {
                 sb.AppendFormat(" {0}", frameworkName.Profile);
             }
