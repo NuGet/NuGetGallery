@@ -15,10 +15,10 @@ namespace NuGetGallery.Services
             // Arrange
             var fileStorage = new Mock<IFileStorageService>(MockBehavior.Strict);
             fileStorage.Setup(s => s.FileExists("downloads", "nuget.exe"))
-                       .Returns(true).Verifiable();
+                .Returns(true).Verifiable();
             fileStorage.Setup(s => s.CreateDownloadFileActionResult("downloads", "nuget.exe"))
-                       .Returns(Mock.Of<ActionResult>())
-                       .Verifiable();
+                .Returns(Mock.Of<ActionResult>())
+                .Verifiable();
 
             // Act
             var downloaderSvc = GetDownloaderService(fileStorageSvc: fileStorage);
@@ -35,20 +35,20 @@ namespace NuGetGallery.Services
             var fileStorage = new Mock<IFileStorageService>(MockBehavior.Strict);
             fileStorage.Setup(s => s.FileExists("downloads", "nuget.exe")).Returns(false);
             fileStorage.Setup(s => s.SaveFile("downloads", "nuget.exe", It.IsAny<Stream>()))
-                       .Verifiable();
+                .Verifiable();
             fileStorage.Setup(s => s.CreateDownloadFileActionResult("downloads", "nuget.exe"))
-                       .Returns(Mock.Of<ActionResult>())
-                       .Verifiable();
+                .Returns(Mock.Of<ActionResult>())
+                .Verifiable();
 
             var package = new Package { Version = "2.0.0" };
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
             packageService.Setup(s => s.FindPackageByIdAndVersion("NuGet.CommandLine", null, false))
-                          .Returns(package)
-                          .Verifiable();
+                .Returns(package)
+                .Verifiable();
             var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
             packageFileSvc.Setup(s => s.DownloadPackageFile(package))
-                          .Returns(CreateCommandLinePackage)
-                          .Verifiable();
+                .Returns(CreateCommandLinePackage)
+                .Verifiable();
 
             // Act
             var downloaderSvc = GetDownloaderService(packageService, packageFileSvc, fileStorage);
@@ -65,7 +65,7 @@ namespace NuGetGallery.Services
             // Arrange
             var fileStorage = new Mock<IFileStorageService>(MockBehavior.Strict);
             fileStorage.Setup(s => s.SaveFile("downloads", "nuget.exe", It.IsAny<Stream>()))
-                       .Verifiable();
+                .Verifiable();
 
             var nugetPackage = new Mock<IPackage>();
             nugetPackage.Setup(s => s.GetFiles()).Returns(new[] { CreateExePackageFile() }.AsQueryable());
@@ -81,11 +81,11 @@ namespace NuGetGallery.Services
         private static Stream CreateCommandLinePackage()
         {
             var packageBuilder = new PackageBuilder
-                                 {
-                                     Id = "NuGet.CommandLine",
-                                     Version = new SemanticVersion("2.0.0"),
-                                     Description = "Some desc"
-                                 };
+                {
+                    Id = "NuGet.CommandLine",
+                    Version = new SemanticVersion("2.0.0"),
+                    Description = "Some desc"
+                };
             packageBuilder.Authors.Add("test");
             var exeFile = CreateExePackageFile();
             packageBuilder.Files.Add(exeFile);

@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace NuGetGallery
 {
     public class PackageIndexEntity

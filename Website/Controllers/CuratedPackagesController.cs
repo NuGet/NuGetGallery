@@ -8,35 +8,47 @@ namespace NuGetGallery
     {
         public const string ControllerName = "CuratedPackages";
 
-        [ActionName("CreateCuratedPackageForm"), HttpGet]
+        [ActionName("CreateCuratedPackageForm")]
+        [HttpGet]
         public virtual ActionResult GetCreateCuratedPackageForm(string curatedFeedName)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName);
             if (curatedFeed == null)
+            {
                 return HttpNotFound();
-            
-            if (!curatedFeed.Managers.Any(manager => manager.Username == Identity.Name))
+            }
+
+            if (curatedFeed.Managers.All(manager => manager.Username != Identity.Name))
+            {
                 return new HttpStatusCodeResult(403);
+            }
 
             ViewBag.CuratedFeedName = curatedFeed.Name;
             return View();
         }
 
-        [ActionName("CuratedPackage"), HttpDelete]
+        [ActionName("CuratedPackage")]
+        [HttpDelete]
         public virtual ActionResult DeleteCuratedPackage(
             string curatedFeedName,
             string curatedPackageId)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
+            {
                 return HttpNotFound();
+            }
 
             var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.PackageRegistration.Id == curatedPackageId);
             if (curatedPackage == null)
+            {
                 return HttpNotFound();
+            }
 
-            if (!curatedFeed.Managers.Any(manager => manager.Username == Identity.Name))
+            if (curatedFeed.Managers.All(manager => manager.Username != Identity.Name))
+            {
                 return new HttpStatusCodeResult(403);
+            }
 
             GetService<IDeleteCuratedPackageCommand>().Execute(
                 curatedFeed.Key,
@@ -45,7 +57,8 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(204);
         }
 
-        [ActionName("CuratedPackage"), AcceptVerbs("patch")]
+        [ActionName("CuratedPackage")]
+        [AcceptVerbs("patch")]
         public virtual ActionResult PatchCuratedPackage(
             string curatedFeedName,
             string curatedPackageId,
@@ -53,17 +66,25 @@ namespace NuGetGallery
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
+            {
                 return HttpNotFound();
+            }
 
             var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.PackageRegistration.Id == curatedPackageId);
             if (curatedPackage == null)
+            {
                 return HttpNotFound();
+            }
 
-            if (!curatedFeed.Managers.Any(manager => manager.Username == Identity.Name))
+            if (curatedFeed.Managers.All(manager => manager.Username != Identity.Name))
+            {
                 return new HttpStatusCodeResult(403);
+            }
 
             if (!ModelState.IsValid)
+            {
                 return new HttpStatusCodeResult(400);
+            }
 
             GetService<IModifyCuratedPackageCommand>().Execute(
                 curatedFeed.Key,
@@ -73,17 +94,22 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(204);
         }
 
-        [ActionName("CuratedPackages"), HttpPost]
+        [ActionName("CuratedPackages")]
+        [HttpPost]
         public virtual ActionResult PostCuratedPackages(
             string curatedFeedName,
             CreateCuratedPackageRequest request)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
+            {
                 return HttpNotFound();
+            }
 
-            if (!curatedFeed.Managers.Any(manager => manager.Username == Identity.Name))
+            if (curatedFeed.Managers.All(manager => manager.Username != Identity.Name))
+            {
                 return new HttpStatusCodeResult(403);
+            }
 
             if (!ModelState.IsValid)
             {

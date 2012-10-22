@@ -5,7 +5,7 @@ namespace NuGetGallery
     public interface ICreateCuratedPackageCommand
     {
         CuratedPackage Execute(
-            int curatedFeedKey, 
+            int curatedFeedKey,
             int packageRegistrationKey,
             bool included = true,
             bool automaticallyCurated = false,
@@ -20,7 +20,7 @@ namespace NuGetGallery
         }
 
         public CuratedPackage Execute(
-            int curatedFeedKey, 
+            int curatedFeedKey,
             int packageRegistrationKey,
             bool included = true,
             bool automaticallyCurated = false,
@@ -28,19 +28,23 @@ namespace NuGetGallery
         {
             var curatedFeed = GetService<ICuratedFeedByKeyQuery>().Execute(curatedFeedKey);
             if (curatedFeed == null)
+            {
                 throw new InvalidOperationException("The curated feed does not exist.");
+            }
 
             var packageRegistration = GetService<IPackageRegistrationByKeyQuery>().Execute(packageRegistrationKey);
             if (packageRegistration == null)
+            {
                 throw new InvalidOperationException("The package ID to curate does not exist.");
+            }
 
             var curatedPackage = new CuratedPackage
-            {
-                PackageRegistrationKey = packageRegistration.Key,
-                Included = included,
-                AutomaticallyCurated = automaticallyCurated,
-                Notes = notes,
-            };
+                {
+                    PackageRegistrationKey = packageRegistration.Key,
+                    Included = included,
+                    AutomaticallyCurated = automaticallyCurated,
+                    Notes = notes,
+                };
 
             curatedFeed.Packages.Add(curatedPackage);
 

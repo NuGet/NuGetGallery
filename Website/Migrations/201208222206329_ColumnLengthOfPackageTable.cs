@@ -1,14 +1,14 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-    
     public partial class ColumnLengthOfPackageTable : DbMigration
     {
         public override void Up()
         {
             // There's an existing index that prevents altering these columns. We'll drop the index and recreate it.
             DropIndex(table: "Packages", name: "IX_Packages_PackageRegistrationKey");
-            
+
             AlterColumn("PackageRegistrations", "Id", c => c.String(nullable: false, maxLength: 128));
             AlterColumn("Packages", "HashAlgorithm", c => c.String(maxLength: 10));
             AlterColumn("Packages", "Hash", c => c.String(nullable: false, maxLength: 256));
@@ -51,7 +51,7 @@ namespace NuGetGallery.Migrations
                 [IsPrerelease],
                 [ReleaseNotes])");
         }
-        
+
         public override void Down()
         {
             AlterColumn("PackageFrameworks", "TargetFramework", c => c.String());

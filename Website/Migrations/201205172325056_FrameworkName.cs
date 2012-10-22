@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-    
     public partial class FrameworkName : DbMigration
     {
         public override void Up()
@@ -17,9 +17,8 @@ namespace NuGetGallery.Migrations
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Packages", t => t.Package_Key)
                 .Index(t => t.Package_Key);
-            
         }
-        
+
         public override void Down()
         {
             DropIndex("PackageFrameworks", new[] { "Package_Key" });

@@ -22,14 +22,15 @@ namespace NuGetGallery
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
 
-            Lazy<GallerySetting> gallerySetting = new Lazy<GallerySetting>(() =>
-            {
-                using (var entitiesContext = new EntitiesContext())
-                {
-                    var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
-                    return settingsRepo.GetAll().FirstOrDefault();
-                }
-            });
+            var gallerySetting = new Lazy<GallerySetting>(
+                () =>
+                    {
+                        using (var entitiesContext = new EntitiesContext())
+                        {
+                            var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
+                            return settingsRepo.GetAll().FirstOrDefault();
+                        }
+                    });
 
             Bind<GallerySetting>().ToMethod(c => gallerySetting.Value);
 
@@ -93,40 +94,41 @@ namespace NuGetGallery
                 .To<NuGetExeDownloaderService>()
                 .InRequestScope();
 
-            Lazy<IMailSender> mailSenderThunk = new Lazy<IMailSender>(() =>
-            {
-                var settings = Kernel.Get<GallerySetting>();
-                if (settings.UseSmtp)
-                {
-                    var mailSenderConfiguration = new MailSenderConfiguration()
+            var mailSenderThunk = new Lazy<IMailSender>(
+                () =>
                     {
-                        DeliveryMethod = SmtpDeliveryMethod.Network,
-                        Host = settings.SmtpHost,
-                        Port = settings.SmtpPort,
-                        EnableSsl = true
-                    };
+                        var settings = Kernel.Get<GallerySetting>();
+                        if (settings.UseSmtp)
+                        {
+                            var mailSenderConfiguration = new MailSenderConfiguration
+                                {
+                                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                                    Host = settings.SmtpHost,
+                                    Port = settings.SmtpPort,
+                                    EnableSsl = true
+                                };
 
-                    if (!String.IsNullOrWhiteSpace(settings.SmtpUsername))
-                    {
-                        mailSenderConfiguration.UseDefaultCredentials = false;
-                        mailSenderConfiguration.Credentials = new NetworkCredential(
-                            settings.SmtpUsername,
-                            settings.SmtpPassword);
-                    }
+                            if (!String.IsNullOrWhiteSpace(settings.SmtpUsername))
+                            {
+                                mailSenderConfiguration.UseDefaultCredentials = false;
+                                mailSenderConfiguration.Credentials = new NetworkCredential(
+                                    settings.SmtpUsername,
+                                    settings.SmtpPassword);
+                            }
 
-                    return new MailSender(mailSenderConfiguration);
-                }
-                else
-                {
-                    var mailSenderConfiguration = new MailSenderConfiguration()
-                    {
-                        DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
-                        PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
-                    };
+                            return new MailSender(mailSenderConfiguration);
+                        }
+                        else
+                        {
+                            var mailSenderConfiguration = new MailSenderConfiguration
+                                {
+                                    DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
+                                    PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
+                                };
 
-                    return new MailSender(mailSenderConfiguration);
-                }
-            });
+                            return new MailSender(mailSenderConfiguration);
+                        }
+                    });
 
             Bind<IMailSender>()
                 .ToMethod(context => mailSenderThunk.Value);
@@ -146,11 +148,14 @@ namespace NuGetGallery
                     break;
                 case PackageStoreType.AzureStorageBlob:
                     Bind<ICloudBlobClient>()
-                        .ToMethod(context => new CloudBlobClientWrapper(new CloudBlobClient(
-                            new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
-                            configuration.UseEmulator ?
-                                CloudStorageAccount.DevelopmentStorageAccount.Credentials :
-                                new StorageCredentialsAccountAndKey(configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
+                        .ToMethod(
+                            context => new CloudBlobClientWrapper(
+                                           new CloudBlobClient(
+                                               new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
+                                               configuration.UseEmulator
+                                                   ? CloudStorageAccount.DevelopmentStorageAccount.Credentials
+                                                   : new StorageCredentialsAccountAndKey(
+                                                         configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
                         .InSingletonScope();
                     Bind<IFileStorageService>()
                         .To<CloudBlobFileStorageService>()

@@ -20,14 +20,16 @@ namespace NuGetGallery
         }
 
         public User Execute(
-            string username, 
+            string username,
             bool includeRoles = true)
         {
             var qry = _entities.Users.AsQueryable();
-            
+
             if (includeRoles)
+            {
                 qry = qry.Include(u => u.Roles);
-            
+            }
+
             return qry.SingleOrDefault(u => u.Username == username);
         }
     }

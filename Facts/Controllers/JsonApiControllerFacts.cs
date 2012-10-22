@@ -7,6 +7,26 @@ namespace NuGetGallery.Controllers
 {
     public class JsonApiControllerFacts
     {
+        private static JsonApiController CreateJsonApiController(
+            Mock<IPackageService> packageService = null,
+            Mock<IUserService> userService = null,
+            Mock<IEntityRepository<PackageOwnerRequest>> repository = null,
+            Mock<IMessageService> messageService = null,
+            Mock<IPrincipal> currentUser = null)
+        {
+            packageService = packageService ?? new Mock<IPackageService>();
+            userService = userService ?? new Mock<IUserService>();
+            repository = repository ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
+            messageService = messageService ?? new Mock<IMessageService>();
+            currentUser = currentUser ?? new Mock<IPrincipal>();
+
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.Setup(c => c.User).Returns(currentUser.Object);
+            var controller = new JsonApiController(packageService.Object, userService.Object, repository.Object, messageService.Object);
+            TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller);
+            return controller;
+        }
+
         public class TheAddPackageOwnerMethod
         {
             [Fact]
@@ -65,11 +85,12 @@ namespace NuGetGallery.Controllers
                 packageService.Setup(svc => svc.FindPackageRegistrationById("foo")).Returns(package);
                 packageService.Setup(svc => svc.CreatePackageOwnerRequest(package, currentOwner, It.IsAny<User>())).Returns(packageOwnerRequest);
                 var messageService = new Mock<IMessageService>();
-                messageService.Setup(m => m.SendPackageOwnerRequest(
-                    currentOwner,
-                    newOwner,
-                    package,
-                    "https://example.org/?Controller=Packages&Action=ConfirmOwner&id=foo&username=steve&token=some-generated-code")).Verifiable();
+                messageService.Setup(
+                    m => m.SendPackageOwnerRequest(
+                        currentOwner,
+                        newOwner,
+                        package,
+                        "https://example.org/?Controller=Packages&Action=ConfirmOwner&id=foo&username=steve&token=some-generated-code")).Verifiable();
                 var controller = CreateJsonApiController(packageService, userService, currentUser: currentUser, messageService: messageService);
 
                 var result = controller.AddPackageOwner("foo", newOwner.Username);
@@ -81,26 +102,6 @@ namespace NuGetGallery.Controllers
                 Assert.True(TestUtility.GetAnonymousPropertyValue<bool>(result, "pending"));
                 messageService.VerifyAll();
             }
-        }
-
-        static JsonApiController CreateJsonApiController(
-            Mock<IPackageService> packageService = null,
-            Mock<IUserService> userService = null,
-            Mock<IEntityRepository<PackageOwnerRequest>> repository = null,
-            Mock<IMessageService> messageService = null,
-            Mock<IPrincipal> currentUser = null)
-        {
-            packageService = packageService ?? new Mock<IPackageService>();
-            userService = userService ?? new Mock<IUserService>();
-            repository = repository ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
-            messageService = messageService ?? new Mock<IMessageService>();
-            currentUser = currentUser ?? new Mock<IPrincipal>();
-
-            var httpContext = new Mock<HttpContextBase>();
-            httpContext.Setup(c => c.User).Returns(currentUser.Object);
-            var controller = new JsonApiController(packageService.Object, userService.Object, repository.Object, messageService.Object);
-            TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller);
-            return controller;
         }
     }
 }

@@ -8,7 +8,8 @@
 
 @Html.ValidationSummary(true)
 
-@if (!String.IsNullOrEmpty(Model.PendingNewEmailAddress)) {
+@if (!String.IsNullOrEmpty(Model.PendingNewEmailAddress))
+{
     <p class="message">
         You recently requested to change your email address to <strong>@Model.PendingNewEmailAddress</strong>. 
         This change will take effect when you confirm the address. Check your inbox (or spam folder) for an 
@@ -16,7 +17,8 @@
     </p>
 }
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     @Html.AntiForgeryToken()
 
     <fieldset class="form">

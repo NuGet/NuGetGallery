@@ -13,7 +13,8 @@
     other packages.
 </p>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     <fieldset id="unlist-form" class="form">
         <legend>Edit @Model.Title Package</legend>
         @Html.AntiForgeryToken()
@@ -58,9 +59,9 @@
     </li>
 </ul>
 <p>
-If you need the package permanently removed, click on the <a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">Report Abuse</a> link and we'll take care 
-of it for you. PLEASE ONLY DO THIS IF THERE IS AN URGENT PROBLEM WITH THE PACKAGE. 
-(Passwords, malicious code, etc). Even if you remove it, it&#8217;s prudent to immediately 
-reset any passwords/sensitive data you accidentally pushed instead of waiting for us to delete 
-the package.
+    If you need the package permanently removed, click on the <a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">Report Abuse</a> link and we'll take care 
+    of it for you. PLEASE ONLY DO THIS IF THERE IS AN URGENT PROBLEM WITH THE PACKAGE. 
+    (Passwords, malicious code, etc). Even if you remove it, it&#8217;s prudent to immediately 
+    reset any passwords/sensitive data you accidentally pushed instead of waiting for us to delete 
+    the package.
 </p>

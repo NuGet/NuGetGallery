@@ -7,7 +7,8 @@ namespace NuGetGallery
 {
     public class PackageListViewModel
     {
-        public PackageListViewModel(IQueryable<Package> packages,
+        public PackageListViewModel(
+            IQueryable<Package> packages,
             string searchTerm,
             string sortOrder,
             int totalCount,
@@ -21,7 +22,7 @@ namespace NuGetGallery
             using (MiniProfiler.Current.Step("Querying and mapping packages to list"))
             {
                 items = packages.ToList()
-                                .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
+                    .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
             }
             PageIndex = pageIndex;
             PageSize = pageSize;
@@ -35,7 +36,7 @@ namespace NuGetGallery
                 PageIndex,
                 pageCount,
                 page => url.PackageList(page, sortOrder, searchTerm, includePrerelease)
-            );
+                );
             Items = pager.Items;
             FirstResultIndex = 1 + (PageIndex * PageSize);
             LastResultIndex = FirstResultIndex + Items.Count() - 1;

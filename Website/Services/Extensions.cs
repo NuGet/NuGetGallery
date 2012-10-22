@@ -8,28 +8,29 @@ namespace NuGetGallery
     public static class Extensions
     {
         // Search criteria
-        private static Func<string, Expression<Func<Package, bool>>> idCriteria = term =>
-            p => p.PackageRegistration.Id.Contains(term);
+        private static readonly Func<string, Expression<Func<Package, bool>>> IdCriteria = term =>
+                                                                                           p => p.PackageRegistration.Id.Contains(term);
 
-        private static Func<string, Expression<Func<Package, bool>>> descriptionCriteria = term =>
-            p => p.Description.Contains(term);
+        private static readonly Func<string, Expression<Func<Package, bool>>> DescriptionCriteria = term =>
+                                                                                                    p => p.Description.Contains(term);
 
-        private static Func<string, Expression<Func<Package, bool>>> summaryCriteria = term =>
-            p => p.Summary.Contains(term);
+        private static readonly Func<string, Expression<Func<Package, bool>>> SummaryCriteria = term =>
+                                                                                                p => p.Summary.Contains(term);
 
-        private static Func<string, Expression<Func<Package, bool>>> tagCriteria = term =>
-            p => p.Tags.Contains(term);
+        private static readonly Func<string, Expression<Func<Package, bool>>> TagCriteria = term =>
+                                                                                            p => p.Tags.Contains(term);
 
-        private static Func<string, Expression<Func<Package, bool>>> authorCriteria = term =>
-            p => p.Authors.Any(a => a.Name.Contains(term));
+        private static readonly Func<string, Expression<Func<Package, bool>>> AuthorCriteria = term =>
+                                                                                               p => p.Authors.Any(a => a.Name.Contains(term));
 
-        private static Func<string, Expression<Func<Package, bool>>>[] searchCriteria = new[] { 
-                idCriteria, 
-                authorCriteria,
-                descriptionCriteria, 
-                summaryCriteria, 
-                tagCriteria 
-        };
+        private static readonly Func<string, Expression<Func<Package, bool>>>[] SearchCriteria = new[]
+            {
+                IdCriteria,
+                AuthorCriteria,
+                DescriptionCriteria,
+                SummaryCriteria,
+                TagCriteria
+            };
 
         public static IQueryable<Package> Search(this IQueryable<Package> source, string searchTerm)
         {
@@ -39,11 +40,11 @@ namespace NuGetGallery
             }
 
             // Split the search terms by spaces
-            var terms = (searchTerm ?? String.Empty).Split();
+            var terms = searchTerm.Split();
 
             // Build a list of expressions for each term
             var expressions = new List<LambdaExpression>();
-            foreach (var criteria in searchCriteria)
+            foreach (var criteria in SearchCriteria)
             {
                 foreach (var term in terms)
                 {
@@ -53,7 +54,7 @@ namespace NuGetGallery
 
             // Build a giant or statement using the bodies of the lambdas
             var body = expressions.Select(p => p.Body)
-                                  .Aggregate(Expression.OrElse);
+                .Aggregate(Expression.OrElse);
 
             // Now build the final predicate
             var parameterExpr = Expression.Parameter(typeof(Package));
@@ -71,6 +72,7 @@ namespace NuGetGallery
         private class ParameterExpressionReplacer : ExpressionVisitor
         {
             private readonly ParameterExpression _parameterExpr;
+
             public ParameterExpressionReplacer(ParameterExpression parameterExpr)
             {
                 _parameterExpr = parameterExpr;

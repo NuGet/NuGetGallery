@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-
     public partial class GallerySettings : DbMigration
     {
         public override void Up()

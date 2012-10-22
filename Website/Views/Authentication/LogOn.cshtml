@@ -1,5 +1,4 @@
-﻿@using NuGetGallery;
-@model SignInRequest
+﻿@model SignInRequest
 @{
     ViewBag.Title = "Log On";
 }
@@ -10,14 +9,16 @@
     Don't have an account yet? <a href="@Url.Action(MVC.Users.Register())">Register now.</a>
 </p>
 
-@using (Html.BeginForm()) {
+@using (Html.BeginForm())
+{
     <fieldset class="form">
         <legend>Log On Form</legend>
 
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true)
 
-        @if (ViewBag.ConfirmationRequired != null && ViewBag.ConfirmationRequired) {
+        @if (ViewBag.ConfirmationRequired != null && ViewBag.ConfirmationRequired)
+        {
             <p class="validation-summary-errors">
                 Before you can log on, you&#8217;ll need to confirm your account. When you registered, 
                 we sent you an email with a URL you can click to confirm your account. 

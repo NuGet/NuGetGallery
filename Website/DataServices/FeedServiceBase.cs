@@ -18,22 +18,23 @@ namespace NuGetGallery
     public abstract class FeedServiceBase<TPackage> : DataService<FeedContext<TPackage>>, IDataServiceStreamProvider, IServiceProvider
     {
         /// <summary>
-        /// Determines the maximum number of packages returned in a single page of an OData result.
+        ///     Determines the maximum number of packages returned in a single page of an OData result.
         /// </summary>
         private const int MaxPageSize = 40;
-        private readonly IEntitiesContext entities;
-        private readonly IEntityRepository<Package> packageRepo;
-        private readonly IConfiguration configuration;
-        private readonly ISearchService searchService;
-        private HttpContextBase httpContext;
 
-        public FeedServiceBase()
+        private readonly IConfiguration _configuration;
+
+        private readonly IEntitiesContext _entities;
+        private readonly IEntityRepository<Package> _packageRepo;
+        private readonly ISearchService _searchService;
+        private HttpContextBase _httpContext;
+
+        protected FeedServiceBase()
             : this(DependencyResolver.Current.GetService<IEntitiesContext>(),
                    DependencyResolver.Current.GetService<IEntityRepository<Package>>(),
                    DependencyResolver.Current.GetService<IConfiguration>(),
                    DependencyResolver.Current.GetService<ISearchService>())
         {
-
         }
 
         protected FeedServiceBase(
@@ -42,42 +43,36 @@ namespace NuGetGallery
             IConfiguration configuration,
             ISearchService searchService)
         {
-            this.entities = entities;
-            this.packageRepo = packageRepo;
-            this.configuration = configuration;
-            this.searchService = searchService;
+            _entities = entities;
+            _packageRepo = packageRepo;
+            _configuration = configuration;
+            _searchService = searchService;
         }
 
         protected IEntitiesContext Entities
         {
-            get { return entities; }
+            get { return _entities; }
         }
 
         protected IEntityRepository<Package> PackageRepo
         {
-            get { return packageRepo; }
+            get { return _packageRepo; }
         }
 
         protected IConfiguration Configuration
         {
-            get { return configuration; }
+            get { return _configuration; }
         }
 
         protected ISearchService SearchService
         {
-            get { return searchService; }
+            get { return _searchService; }
         }
 
         protected internal virtual HttpContextBase HttpContext
         {
-            get
-            {
-                return httpContext ?? new HttpContextWrapper(System.Web.HttpContext.Current);
-            }
-            set
-            {
-                httpContext = value;
-            }
+            get { return _httpContext ?? new HttpContextWrapper(System.Web.HttpContext.Current); }
+            set { _httpContext = value; }
         }
 
         protected internal string SiteRoot
@@ -90,15 +85,6 @@ namespace NuGetGallery
         }
 
         // This method is called only once to initialize service-wide policies.
-        protected static void InitializeServiceBase(DataServiceConfiguration config)
-        {
-            config.SetServiceOperationAccessRule("Search", ServiceOperationRights.AllRead);
-            config.SetServiceOperationAccessRule("FindPackagesById", ServiceOperationRights.AllRead);
-            config.SetEntitySetAccessRule("Packages", EntitySetRights.AllRead);
-            config.SetEntitySetPageSize("Packages", MaxPageSize);
-            config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
-            config.UseVerboseErrors = true;
-        }
 
         public void DeleteStream(
             object entity,
@@ -166,9 +152,19 @@ namespace NuGetGallery
             return null;
         }
 
-        protected virtual IQueryable<Package> SearchCore(IQueryable<Package> packages, string searchTerm, string targetFramework, bool includePrerelease)
+        protected static void InitializeServiceBase(DataServiceConfiguration config)
         {
-            
+            config.SetServiceOperationAccessRule("Search", ServiceOperationRights.AllRead);
+            config.SetServiceOperationAccessRule("FindPackagesById", ServiceOperationRights.AllRead);
+            config.SetEntitySetAccessRule("Packages", EntitySetRights.AllRead);
+            config.SetEntitySetPageSize("Packages", MaxPageSize);
+            config.DataServiceBehavior.MaxProtocolVersion = DataServiceProtocolVersion.V2;
+            config.UseVerboseErrors = true;
+        }
+
+        protected virtual IQueryable<Package> SearchCore(
+            IQueryable<Package> packages, string searchTerm, string targetFramework, bool includePrerelease)
+        {
             SearchFilter searchFilter;
             // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
             // and specific sort orders that we have in the index.
@@ -189,7 +185,7 @@ namespace NuGetGallery
 
         private IQueryable<Package> GetResultsFromSearchService(IQueryable<Package> packages, SearchFilter searchFilter)
         {
-            int totalHits = 0;
+            int totalHits;
             var result = SearchService.Search(packages, searchFilter, out totalHits);
 
             // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
@@ -199,7 +195,7 @@ namespace NuGetGallery
                 // At this point, we already know what the total count is. We can have it return this value very quickly without doing any SQL.
                 return result.InterceptWith(new CountInterceptor(totalHits));
             }
-            
+
             // For relevance search, Lucene returns us a paged\sorted list. OData tries to apply default ordering and Take \ Skip on top of this.
             // We avoid it by yanking these expressions out of out the tree.
             return result.InterceptWith(new DisregardODataInterceptor());
@@ -211,21 +207,21 @@ namespace NuGetGallery
 
             var keywordPath = odataQuery.Path as KeywordSegmentQueryToken;
             searchFilter = new SearchFilter
-            {
-                // HACK: The way the default paging works is WCF attempts to read up to the MaxPageSize elements. If it finds as many, it'll assume there 
-                // are more elements to be paged and generate a continuation link. Consequently we'll always ask to pull MaxPageSize elements so WCF generates the 
-                // link for us and then allow it to do a Take on the results. The alternative to do is roll our IDataServicePagingProvider, but we run into 
-                // issues since we need to manage state over concurrent requests. This seems like an easier solution.
-                Take = MaxPageSize,
-                Skip = odataQuery.Skip ?? 0,
-                CountOnly = keywordPath != null && keywordPath.Keyword == KeywordKind.Count,
-                SortDirection = SortDirection.Ascending
-            };
+                {
+                    // HACK: The way the default paging works is WCF attempts to read up to the MaxPageSize elements. If it finds as many, it'll assume there 
+                    // are more elements to be paged and generate a continuation link. Consequently we'll always ask to pull MaxPageSize elements so WCF generates the 
+                    // link for us and then allow it to do a Take on the results. The alternative to do is roll our IDataServicePagingProvider, but we run into 
+                    // issues since we need to manage state over concurrent requests. This seems like an easier solution.
+                    Take = MaxPageSize,
+                    Skip = odataQuery.Skip ?? 0,
+                    CountOnly = keywordPath != null && keywordPath.Keyword == KeywordKind.Count,
+                    SortDirection = SortDirection.Ascending
+                };
 
             var filterProperty = odataQuery.Filter as PropertyAccessQueryToken;
             if (filterProperty == null ||
-                    !(filterProperty.Name.Equals("IsLatestVersion", StringComparison.Ordinal) ||
-                      filterProperty.Name.Equals("IsAbsoluteLatestVersion", StringComparison.Ordinal)))
+                !(filterProperty.Name.Equals("IsLatestVersion", StringComparison.Ordinal) ||
+                  filterProperty.Name.Equals("IsAbsoluteLatestVersion", StringComparison.Ordinal)))
             {
                 // We'll only use the index if we the query searches for latest \ latest-stable packages
                 return false;

@@ -4,23 +4,29 @@ using System.Threading;
 using System.Web;
 using System.Web.Security;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
+using NuGetGallery;
 
-[assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.AuthenticationModule), "Start")]
+[assembly: WebActivator.PreApplicationStartMethod(typeof(AuthenticationModule), "Start")]
+
 namespace NuGetGallery
 {
     public class AuthenticationModule : IHttpModule
     {
-        public static void Start()
-        {
-            DynamicModuleUtility.RegisterModule(typeof(AuthenticationModule));
-        }
-
         public void Init(HttpApplication context)
         {
             context.AuthenticateRequest += OnAuthenticateRequest;
         }
 
-        void OnAuthenticateRequest(object sender, EventArgs e)
+        public void Dispose()
+        {
+        }
+
+        public static void Start()
+        {
+            DynamicModuleUtility.RegisterModule(typeof(AuthenticationModule));
+        }
+
+        private void OnAuthenticateRequest(object sender, EventArgs e)
         {
             var context = HttpContext.Current;
             var request = HttpContext.Current.Request;
@@ -35,10 +41,6 @@ namespace NuGetGallery
                     context.User = Thread.CurrentPrincipal = user;
                 }
             }
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

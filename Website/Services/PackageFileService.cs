@@ -7,19 +7,19 @@ namespace NuGetGallery
 {
     public class PackageFileService : IPackageFileService
     {
-        private readonly IFileStorageService fileStorageSvc;
+        private readonly IFileStorageService _fileStorageSvc;
 
         public PackageFileService(
             IFileStorageService fileStorageSvc)
         {
-            this.fileStorageSvc = fileStorageSvc;
+            _fileStorageSvc = fileStorageSvc;
         }
 
         public ActionResult CreateDownloadPackageActionResult(Package package)
         {
             var fileName = BuildFileName(package);
 
-            return fileStorageSvc.CreateDownloadFileActionResult(
+            return _fileStorageSvc.CreateDownloadFileActionResult(
                 Constants.PackagesFolderName,
                 fileName);
         }
@@ -29,13 +29,17 @@ namespace NuGetGallery
             string version)
         {
             if (String.IsNullOrWhiteSpace(id))
+            {
                 throw new ArgumentNullException("id");
+            }
             if (String.IsNullOrWhiteSpace(version))
+            {
                 throw new ArgumentNullException("version");
+            }
 
             var fileName = BuildFileName(id, version);
 
-            fileStorageSvc.DeleteFile(
+            _fileStorageSvc.DeleteFile(
                 Constants.PackagesFolderName,
                 fileName);
         }
@@ -45,11 +49,13 @@ namespace NuGetGallery
             Stream packageFile)
         {
             if (packageFile == null)
+            {
                 throw new ArgumentNullException("packageFile");
+            }
 
             var fileName = BuildFileName(package);
 
-            fileStorageSvc.SaveFile(
+            _fileStorageSvc.SaveFile(
                 Constants.PackagesFolderName,
                 fileName,
                 packageFile);
@@ -60,7 +66,7 @@ namespace NuGetGallery
         {
             var fileName = BuildFileName(package);
 
-            return fileStorageSvc.GetFile(
+            return _fileStorageSvc.GetFile(
                 Constants.PackagesFolderName,
                 fileName);
         }
@@ -69,7 +75,8 @@ namespace NuGetGallery
             string id,
             string version)
         {
-            return String.Format(CultureInfo.InvariantCulture, Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
+            return String.Format(
+                CultureInfo.InvariantCulture, Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
         }
 
 

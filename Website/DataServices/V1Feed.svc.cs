@@ -3,7 +3,6 @@ using System.Data.Entity;
 using System.Data.Services;
 using System.Linq;
 using System.ServiceModel.Web;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
@@ -12,15 +11,14 @@ namespace NuGetGallery
     public class V1Feed : FeedServiceBase<V1FeedPackage>
     {
         private const int FeedVersion = 1;
+
         public V1Feed()
         {
-
         }
 
         public V1Feed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchSvc)
             : base(entities, repo, configuration, searchSvc)
         {
-
         }
 
         public static void InitializeService(DataServiceConfiguration config)
@@ -31,17 +29,17 @@ namespace NuGetGallery
         protected override FeedContext<V1FeedPackage> CreateDataSource()
         {
             return new FeedContext<V1FeedPackage>
-            {
-                Packages = PackageRepo.GetAll()
-                                      .Where(p => !p.IsPrerelease)
-                                      .WithoutVersionSort()
-                                      .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
-            };
+                {
+                    Packages = PackageRepo.GetAll()
+                        .Where(p => !p.IsPrerelease)
+                        .WithoutVersionSort()
+                        .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
+                };
         }
 
         public override Uri GetReadStreamUri(
-           object entity,
-           DataServiceOperationContext operationContext)
+            object entity,
+            DataServiceOperationContext operationContext)
         {
             var package = (V1FeedPackage)entity;
             var urlHelper = new UrlHelper(new RequestContext(HttpContext, new RouteData()));
@@ -55,18 +53,18 @@ namespace NuGetGallery
         public IQueryable<V1FeedPackage> FindPackagesById(string id)
         {
             return PackageRepo.GetAll().Include(p => p.PackageRegistration)
-                                       .Where(p => !p.IsPrerelease && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
-                                       .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
+                .Where(p => !p.IsPrerelease && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
+                .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
         [WebGet]
         public IQueryable<V1FeedPackage> Search(string searchTerm, string targetFramework)
         {
             var packages = PackageRepo.GetAll()
-                                      .Include(p => p.PackageRegistration)
-                                      .Include(p => p.PackageRegistration.Owners)
-                                      .Where(p => p.Listed && !p.IsPrerelease);
-            
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .Where(p => p.Listed && !p.IsPrerelease);
+
             // For v1 feed, only allow stable package versions.
             packages = SearchCore(packages, searchTerm, targetFramework, includePrerelease: false);
             return packages.ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));

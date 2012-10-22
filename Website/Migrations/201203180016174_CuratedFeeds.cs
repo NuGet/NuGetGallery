@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-    
     public partial class CuratedFeeds : DbMigration
     {
         public override void Up()
@@ -14,7 +14,7 @@ namespace NuGetGallery.Migrations
                         Id = c.String(),
                     })
                 .PrimaryKey(t => t.Key);
-            
+
             CreateTable(
                 "CuratedPackages",
                 c => new
@@ -29,7 +29,7 @@ namespace NuGetGallery.Migrations
                 .ForeignKey("CuratedFeeds", t => t.CuratedFeedKey, cascadeDelete: true)
                 .Index(t => t.PackageKey)
                 .Index(t => t.CuratedFeedKey);
-            
+
             CreateTable(
                 "CuratedFeedManagers",
                 c => new
@@ -42,9 +42,8 @@ namespace NuGetGallery.Migrations
                 .ForeignKey("Users", t => t.UserKey, cascadeDelete: true)
                 .Index(t => t.CuratedFeedKey)
                 .Index(t => t.UserKey);
-            
         }
-        
+
         public override void Down()
         {
             DropIndex("CuratedFeedManagers", new[] { "UserKey" });

@@ -15,207 +15,113 @@ namespace NuGetGallery
 {
     public class PackagesControllerFacts
     {
-        public class TheContactOwnersMethod
+        private static PackagesController CreateController(
+            Mock<IPackageService> packageSvc = null,
+            Mock<IUploadFileService> uploadFileSvc = null,
+            Mock<IUserService> userSvc = null,
+            Mock<IMessageService> messageSvc = null,
+            Mock<HttpContextBase> httpContext = null,
+            Mock<IIdentity> fakeIdentity = null,
+            Mock<IPackage> fakeNuGetPackage = null,
+            Mock<ISearchService> searchService = null,
+            Exception readPackageException = null,
+            Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
+            Mock<INuGetExeDownloaderService> downloaderSvc = null)
         {
-            [Fact]
-            public void OnlyShowsOwnersWhoAllowReceivingEmails()
+            packageSvc = packageSvc ?? new Mock<IPackageService>();
+            uploadFileSvc = uploadFileSvc ?? new Mock<IUploadFileService>();
+            userSvc = userSvc ?? new Mock<IUserService>();
+            messageSvc = messageSvc ?? new Mock<IMessageService>();
+            searchService = searchService ?? CreateSearchService();
+            autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
+            downloaderSvc = downloaderSvc ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
+
+            var controller = new Mock<PackagesController>(
+                packageSvc.Object,
+                uploadFileSvc.Object,
+                userSvc.Object,
+                messageSvc.Object,
+                searchService.Object,
+                autoCuratePackageCmd.Object,
+                downloaderSvc.Object);
+            controller.CallBase = true;
+
+            if (httpContext != null)
             {
-                var package = new PackageRegistration
-                {
-                    Id = "pkgid",
-                    Owners = new[]{
-                        new User { Username = "helpful", EmailAllowed = true},
-                        new User { Username = "grinch", EmailAllowed = false},
-                        new User { Username = "helpful2", EmailAllowed = true}
-                    }
-                };
-                var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(p => p.FindPackageRegistrationById("pkgid")).Returns(package);
-                var controller = CreateController(packageSvc: packageSvc);
-
-                var model = (controller.ContactOwners("pkgid") as ViewResult).Model as ContactOwnersViewModel;
-
-                Assert.Equal(2, model.Owners.Count());
-                Assert.Empty(model.Owners.Where(u => u.Username == "grinch"));
+                TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
             }
 
-            [Fact]
-            public void CallsSendContactOwnersMessageWithUserInfo()
+            if (fakeIdentity != null)
             {
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(s => s.SendContactOwnersMessage(
-                    It.IsAny<MailAddress>(),
-                    It.IsAny<PackageRegistration>(),
-                    "I like the cut of your jib", It.IsAny<string>()));
-                var package = new PackageRegistration { Id = "factory" };
-
-                var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(p => p.FindPackageRegistrationById("factory")).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Montgomery");
-                var userSvc = new Mock<IUserService>();
-                userSvc.Setup(u => u.FindByUsername("Montgomery")).Returns(new User { EmailAddress = "montgomery@burns.example.com", Username = "Montgomery" });
-                var controller = CreateController(packageSvc: packageSvc,
-                    messageSvc: messageService,
-                    userSvc: userSvc,
-                    httpContext: httpContext);
-                var model = new ContactOwnersViewModel
-                {
-                    Message = "I like the cut of your jib",
-                };
-
-                var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
-
-                Assert.NotNull(result);
+                controller.Setup(x => x.GetIdentity()).Returns(fakeIdentity.Object);
             }
+
+            if (readPackageException != null)
+            {
+                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Throws(readPackageException);
+            }
+            else if (fakeNuGetPackage != null)
+            {
+                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Returns(fakeNuGetPackage.Object);
+            }
+            else
+            {
+                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Returns(new Mock<IPackage>().Object);
+            }
+
+            return controller.Object;
         }
 
-        public class TheReportAbuseMethod
+        private static Mock<ISearchService> CreateSearchService()
         {
-            [Fact]
-            public void SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
-            {
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(s => s.ReportAbuse(
-                    It.IsAny<MailAddress>(),
-                    It.IsAny<Package>(),
-                    "Mordor took my finger"));
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "mordor" },
-                    Version = "2.0.1"
-                };
-                var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(false);
-                var controller = CreateController(packageSvc: packageSvc,
-                    messageSvc: messageService,
-                    httpContext: httpContext);
-                var model = new ReportAbuseViewModel
-                {
-                    Email = "frodo@hobbiton.example.com",
-                    Message = "Mordor took my finger."
-                };
+            var searchService = new Mock<ISearchService>();
+            int total;
+            searchService.Setup(s => s.Search(It.IsAny<IQueryable<Package>>(), It.IsAny<SearchFilter>(), out total)).Returns(
+                (IQueryable<Package> p, string searchTerm) => p);
 
-                var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
-
-                Assert.NotNull(result);
-                messageService.Verify(s => s.ReportAbuse(
-                    It.Is<MailAddress>(m => m.Address == "frodo@hobbiton.example.com"),
-                    package,
-                    "Mordor took my finger."
-                ));
-            }
-
-            [Fact]
-            public void SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
-            {
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(s => s.ReportAbuse(
-                    It.IsAny<MailAddress>(),
-                    It.IsAny<Package>(),
-                    "Mordor took my finger"));
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "mordor" },
-                    Version = "2.0.1"
-                };
-                var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", It.IsAny<string>(), true)).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
-                var userSvc = new Mock<IUserService>();
-                userSvc.Setup(u => u.FindByUsername("Frodo")).Returns(new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo" });
-                var controller = CreateController(packageSvc: packageSvc,
-                    messageSvc: messageService,
-                    userSvc: userSvc,
-                    httpContext: httpContext);
-                var model = new ReportAbuseViewModel
-                {
-                    Message = "Mordor took my finger."
-                };
-
-                var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
-
-                Assert.NotNull(result);
-                userSvc.VerifyAll();
-                messageService.Verify(s => s.ReportAbuse(
-                    It.Is<MailAddress>(m => m.Address == "frodo@hobbiton.example.com"
-                    && m.DisplayName == "Frodo"),
-                    package,
-                    "Mordor took my finger."
-                ));
-            }
+            return searchService;
         }
 
-        public class TheEditMethod
+        public class TheCancelVerifyPackageAction
         {
             [Fact]
-            public void UpdatesUnlistedIfSelected()
+            public void DeletesTheInProgressPackageUpload()
             {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Foo" },
-                    Version = "1.0",
-                    Listed = true
-                };
-                package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                fakeUploadFileSvc.Setup(x => x.DeleteUploadFile(42));
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
 
-                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Verifiable();
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
+                controller.CancelUpload();
 
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
-
-                var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
-                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
-
-                // Act
-                var result = controller.Edit("Foo", "1.0", listed: false, urlFactory: p => @"~\Bar.cshtml");
-
-                // Assert
-                packageService.Verify();
-                Assert.IsType<RedirectResult>(result);
-                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+                fakeUploadFileSvc.Verify(x => x.DeleteUploadFile(42));
             }
 
             [Fact]
-            public void UpdatesUnlistedIfNotSelected()
+            public void RedirectsToUploadPageAfterDelete()
             {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Foo" },
-                    Version = "1.0",
-                    Listed = true
-                };
-                package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
+                var fakeUserSvc = new Mock<IUserService>();
+                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
+                var fakeIdentity = new Mock<IIdentity>();
+                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
+                var fakeUploadFileSvc = new Mock<IUploadFileService>();
+                fakeUploadFileSvc.Setup(x => x.DeleteUploadFile(42));
+                var controller = CreateController(
+                    uploadFileSvc: fakeUploadFileSvc,
+                    userSvc: fakeUserSvc,
+                    fakeIdentity: fakeIdentity);
 
-                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Verifiable();
-                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
+                var result = controller.CancelUpload() as RedirectToRouteResult;
 
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
-
-                var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
-                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
-
-                // Act
-                var result = controller.Edit("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
-
-                // Assert
-                packageService.Verify();
-                Assert.IsType<RedirectResult>(result);
-                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+                Assert.False(result.Permanent);
+                Assert.Equal("UploadPackage", result.RouteValues["Action"]);
+                Assert.Equal("Packages", result.RouteValues["Controller"]);
             }
         }
 
@@ -300,6 +206,135 @@ namespace NuGetGallery
             }
         }
 
+        public class TheContactOwnersMethod
+        {
+            [Fact]
+            public void OnlyShowsOwnersWhoAllowReceivingEmails()
+            {
+                var package = new PackageRegistration
+                    {
+                        Id = "pkgid",
+                        Owners = new[]
+                            {
+                                new User { Username = "helpful", EmailAllowed = true },
+                                new User { Username = "grinch", EmailAllowed = false },
+                                new User { Username = "helpful2", EmailAllowed = true }
+                            }
+                    };
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(p => p.FindPackageRegistrationById("pkgid")).Returns(package);
+                var controller = CreateController(packageSvc: packageSvc);
+
+                var model = (controller.ContactOwners("pkgid") as ViewResult).Model as ContactOwnersViewModel;
+
+                Assert.Equal(2, model.Owners.Count());
+                Assert.Empty(model.Owners.Where(u => u.Username == "grinch"));
+            }
+
+            [Fact]
+            public void CallsSendContactOwnersMessageWithUserInfo()
+            {
+                var messageService = new Mock<IMessageService>();
+                messageService.Setup(
+                    s => s.SendContactOwnersMessage(
+                        It.IsAny<MailAddress>(),
+                        It.IsAny<PackageRegistration>(),
+                        "I like the cut of your jib",
+                        It.IsAny<string>()));
+                var package = new PackageRegistration { Id = "factory" };
+
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(p => p.FindPackageRegistrationById("factory")).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Montgomery");
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(u => u.FindByUsername("Montgomery")).Returns(
+                    new User { EmailAddress = "montgomery@burns.example.com", Username = "Montgomery" });
+                var controller = CreateController(
+                    packageSvc: packageSvc,
+                    messageSvc: messageService,
+                    userSvc: userSvc,
+                    httpContext: httpContext);
+                var model = new ContactOwnersViewModel
+                    {
+                        Message = "I like the cut of your jib",
+                    };
+
+                var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+            }
+        }
+
+        public class TheEditMethod
+        {
+            [Fact]
+            public void UpdatesUnlistedIfSelected()
+            {
+                // Arrange
+                var package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Foo" },
+                        Version = "1.0",
+                        Listed = true
+                    };
+                package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Verifiable();
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
+
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
+
+                var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = controller.Edit("Foo", "1.0", listed: false, urlFactory: p => @"~\Bar.cshtml");
+
+                // Assert
+                packageService.Verify();
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+            }
+
+            [Fact]
+            public void UpdatesUnlistedIfNotSelected()
+            {
+                // Arrange
+                var package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Foo" },
+                        Version = "1.0",
+                        Listed = true
+                    };
+                package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Verifiable();
+                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
+
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
+
+                var controller = CreateController(packageSvc: packageService, httpContext: httpContext);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = controller.Edit("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
+
+                // Assert
+                packageService.Verify();
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+            }
+        }
+
         public class TheListPackagesMethod
         {
             [Fact]
@@ -308,13 +343,100 @@ namespace NuGetGallery
                 var fakeIdentity = new Mock<IIdentity>();
                 var httpContext = new Mock<HttpContextBase>();
                 var searchService = new Mock<ISearchService>();
-                
+
                 var controller = CreateController(fakeIdentity: fakeIdentity, httpContext: httpContext, searchService: searchService);
 
                 var result = controller.ListPackages(" test ") as ViewResult;
 
                 var model = result.Model as PackageListViewModel;
                 Assert.Equal("test", model.SearchTerm);
+            }
+        }
+
+        public class TheReportAbuseMethod
+        {
+            [Fact]
+            public void SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
+            {
+                var messageService = new Mock<IMessageService>();
+                messageService.Setup(
+                    s => s.ReportAbuse(
+                        It.IsAny<MailAddress>(),
+                        It.IsAny<Package>(),
+                        "Mordor took my finger"));
+                var package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "mordor" },
+                        Version = "2.0.1"
+                    };
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", "2.0.1", true)).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(false);
+                var controller = CreateController(
+                    packageSvc: packageSvc,
+                    messageSvc: messageService,
+                    httpContext: httpContext);
+                var model = new ReportAbuseViewModel
+                    {
+                        Email = "frodo@hobbiton.example.com",
+                        Message = "Mordor took my finger."
+                    };
+
+                var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                messageService.Verify(
+                    s => s.ReportAbuse(
+                        It.Is<MailAddress>(m => m.Address == "frodo@hobbiton.example.com"),
+                        package,
+                        "Mordor took my finger."
+                             ));
+            }
+
+            [Fact]
+            public void SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
+            {
+                var messageService = new Mock<IMessageService>();
+                messageService.Setup(
+                    s => s.ReportAbuse(
+                        It.IsAny<MailAddress>(),
+                        It.IsAny<Package>(),
+                        "Mordor took my finger"));
+                var package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "mordor" },
+                        Version = "2.0.1"
+                    };
+                var packageSvc = new Mock<IPackageService>();
+                packageSvc.Setup(p => p.FindPackageByIdAndVersion("mordor", It.IsAny<string>(), true)).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
+                var userSvc = new Mock<IUserService>();
+                userSvc.Setup(u => u.FindByUsername("Frodo")).Returns(new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo" });
+                var controller = CreateController(
+                    packageSvc: packageSvc,
+                    messageSvc: messageService,
+                    userSvc: userSvc,
+                    httpContext: httpContext);
+                var model = new ReportAbuseViewModel
+                    {
+                        Message = "Mordor took my finger."
+                    };
+
+                var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                userSvc.VerifyAll();
+                messageService.Verify(
+                    s => s.ReportAbuse(
+                        It.Is<MailAddress>(
+                            m => m.Address == "frodo@hobbiton.example.com"
+                                 && m.DisplayName == "Frodo"),
+                        package,
+                        "Mordor took my finger."
+                             ));
             }
         }
 
@@ -455,7 +577,8 @@ namespace NuGetGallery
                 fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
                 var fakeIdentity = new Mock<IIdentity>();
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
-                var fakePackageRegistration = new PackageRegistration { Id = "theId", Owners = new[] { new User { Key = 1 /* not the current user */ } } };
+                var fakePackageRegistration = new PackageRegistration
+                    { Id = "theId", Owners = new[] { new User { Key = 1 /* not the current user */ } } };
                 var fakePackageSvc = new Mock<IPackageService>();
                 fakePackageSvc.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakePackageRegistration);
                 var controller = CreateController(
@@ -480,7 +603,8 @@ namespace NuGetGallery
                 var fakeIdentity = new Mock<IIdentity>();
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakePackageSvc = new Mock<IPackageService>();
-                fakePackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageSvc.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
                 var controller = CreateController(
                     packageSvc: fakePackageSvc,
                     userSvc: fakeUserSvc,
@@ -490,7 +614,9 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "theVersion"), controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(
+                    String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "theVersion"),
+                    controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -863,7 +989,8 @@ namespace NuGetGallery
                 var fakeFileStream = new MemoryStream();
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
                 var fakePackageSvc = new Mock<IPackageService>();
-                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
                 var fakeNuGetPackage = new Mock<IPackage>();
                 var controller = CreateController(
                     packageSvc: fakePackageSvc,
@@ -890,7 +1017,8 @@ namespace NuGetGallery
                 var fakeFileStream = new MemoryStream();
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
                 var fakePackageSvc = new Mock<IPackageService>();
-                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
                 var fakeNuGetPackage = new Mock<IPackage>();
                 var controller = CreateController(
                     packageSvc: fakePackageSvc,
@@ -917,7 +1045,8 @@ namespace NuGetGallery
                 var fakeFileStream = new MemoryStream();
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
                 var fakePackageSvc = new Mock<IPackageService>();
-                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
                 var fakeNuGetPackage = new Mock<IPackage>();
                 var controller = CreateController(
                     packageSvc: fakePackageSvc,
@@ -928,7 +1057,8 @@ namespace NuGetGallery
 
                 controller.VerifyPackage(false);
 
-                fakePackageSvc.Verify(x => x.MarkPackageUnlisted(It.Is<Package>(p => p.PackageRegistration.Id == "theId" && p.Version == "theVersion")));
+                fakePackageSvc.Verify(
+                    x => x.MarkPackageUnlisted(It.Is<Package>(p => p.PackageRegistration.Id == "theId" && p.Version == "theVersion")));
                 fakeFileStream.Dispose();
             }
 
@@ -946,7 +1076,8 @@ namespace NuGetGallery
                 var fakeFileStream = new MemoryStream();
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
                 var fakePackageSvc = new Mock<IPackageService>();
-                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
                 var fakeNuGetPackage = new Mock<IPackage>();
                 var controller = CreateController(
                     packageSvc: fakePackageSvc,
@@ -973,7 +1104,8 @@ namespace NuGetGallery
                 var fakeFileStream = new MemoryStream();
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
                 var fakePackageSvc = new Mock<IPackageService>();
-                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
                 var fakeNuGetPackage = new Mock<IPackage>();
                 var controller = CreateController(
                     packageSvc: fakePackageSvc,
@@ -1000,7 +1132,8 @@ namespace NuGetGallery
                 var fakeFileStream = new MemoryStream();
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
                 var fakePackageSvc = new Mock<IPackageService>();
-                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
                 var fakeNuGetPackage = new Mock<IPackage>();
                 var controller = CreateController(
                     packageSvc: fakePackageSvc,
@@ -1027,7 +1160,8 @@ namespace NuGetGallery
                 var fakeFileStream = new MemoryStream();
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(fakeFileStream);
                 var fakePackageSvc = new Mock<IPackageService>();
-                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
                 var fakeNuGetPackage = new Mock<IPackage>();
                 var controller = CreateController(
                     packageSvc: fakePackageSvc,
@@ -1082,10 +1216,15 @@ namespace NuGetGallery
                 var fakeIdentity = new Mock<IIdentity>();
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakeUploadFileSvc = new Mock<IUploadFileService>();
-                var fakeFileStream = new MemoryStream();
+
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(Stream.Null);
                 var fakePackageSvc = new Mock<IPackageService>();
-                var commandLinePackage = new Package { PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" }, Version = "2.0.0", IsLatestStable = true };
+                var commandLinePackage = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" },
+                        Version = "2.0.0",
+                        IsLatestStable = true
+                    };
                 fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(commandLinePackage);
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 nugetExeDownloader.Setup(d => d.UpdateExecutable(It.IsAny<IPackage>())).Verifiable();
@@ -1113,10 +1252,15 @@ namespace NuGetGallery
                 var fakeIdentity = new Mock<IIdentity>();
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakeUploadFileSvc = new Mock<IUploadFileService>();
-                var fakeFileStream = new MemoryStream();
+
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(Stream.Null);
                 var fakePackageSvc = new Mock<IPackageService>();
-                var commandLinePackage = new Package { PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" }, Version = "2.0.0", IsLatestStable = false };
+                var commandLinePackage = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "NuGet.CommandLine" },
+                        Version = "2.0.0",
+                        IsLatestStable = false
+                    };
                 fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(commandLinePackage);
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var controller = CreateController(
@@ -1146,10 +1290,11 @@ namespace NuGetGallery
                 var fakeIdentity = new Mock<IIdentity>();
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakeUploadFileSvc = new Mock<IUploadFileService>();
-                var fakeFileStream = new MemoryStream();
+
                 fakeUploadFileSvc.Setup(x => x.GetUploadFile(42)).Returns(Stream.Null);
                 var fakePackageSvc = new Mock<IPackageService>();
-                var commandLinePackage = new Package { PackageRegistration = new PackageRegistration { Id = id }, Version = "2.0.0", IsLatestStable = true };
+                var commandLinePackage = new Package
+                    { PackageRegistration = new PackageRegistration { Id = id }, Version = "2.0.0", IsLatestStable = true };
                 fakePackageSvc.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>())).Returns(commandLinePackage);
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var controller = CreateController(
@@ -1165,110 +1310,6 @@ namespace NuGetGallery
                 // Assert
                 nugetExeDownloader.Verify(d => d.UpdateExecutable(It.IsAny<IPackage>()), Times.Never());
             }
-        }
-
-        public class TheCancelVerifyPackageAction
-        {
-            [Fact]
-            public void DeletesTheInProgressPackageUpload()
-            {
-                var fakeUserSvc = new Mock<IUserService>();
-                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
-                var fakeIdentity = new Mock<IIdentity>();
-                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
-                var fakeUploadFileSvc = new Mock<IUploadFileService>();
-                fakeUploadFileSvc.Setup(x => x.DeleteUploadFile(42));
-                var controller = CreateController(
-                    uploadFileSvc: fakeUploadFileSvc,
-                    userSvc: fakeUserSvc,
-                    fakeIdentity: fakeIdentity);
-
-                var result = controller.CancelUpload() as RedirectToRouteResult;
-
-                fakeUploadFileSvc.Verify(x => x.DeleteUploadFile(42));
-            }
-
-            [Fact]
-            public void RedirectsToUploadPageAfterDelete()
-            {
-                var fakeUserSvc = new Mock<IUserService>();
-                fakeUserSvc.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
-                var fakeIdentity = new Mock<IIdentity>();
-                fakeIdentity.Setup(x => x.Name).Returns("theUsername");
-                var fakeUploadFileSvc = new Mock<IUploadFileService>();
-                fakeUploadFileSvc.Setup(x => x.DeleteUploadFile(42));
-                var controller = CreateController(
-                    uploadFileSvc: fakeUploadFileSvc,
-                    userSvc: fakeUserSvc,
-                    fakeIdentity: fakeIdentity);
-
-                var result = controller.CancelUpload() as RedirectToRouteResult;
-
-                Assert.False(result.Permanent);
-                Assert.Equal("UploadPackage", result.RouteValues["Action"]);
-                Assert.Equal("Packages", result.RouteValues["Controller"]);
-            }
-        }
-
-        static PackagesController CreateController(
-            Mock<IPackageService> packageSvc = null,
-            Mock<IUploadFileService> uploadFileSvc = null,
-            Mock<IUserService> userSvc = null,
-            Mock<IMessageService> messageSvc = null,
-            Mock<HttpContextBase> httpContext = null,
-            Mock<IIdentity> fakeIdentity = null,
-            Mock<IPackage> fakeNuGetPackage = null,
-            Mock<ISearchService> searchService = null,
-            Exception readPackageException = null,
-            Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
-            Mock<INuGetExeDownloaderService> downloaderSvc = null)
-        {
-
-            packageSvc = packageSvc ?? new Mock<IPackageService>();
-            uploadFileSvc = uploadFileSvc ?? new Mock<IUploadFileService>();
-            userSvc = userSvc ?? new Mock<IUserService>();
-            messageSvc = messageSvc ?? new Mock<IMessageService>();
-            searchService = searchService ?? CreateSearchService();
-            autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
-            downloaderSvc = downloaderSvc ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
-
-            var controller = new Mock<PackagesController>(
-                    packageSvc.Object,
-                    uploadFileSvc.Object,
-                    userSvc.Object,
-                    messageSvc.Object,
-                    searchService.Object,
-                    autoCuratePackageCmd.Object,
-                    downloaderSvc.Object);
-            controller.CallBase = true;
-
-            if (httpContext != null)
-            {
-                TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller.Object);
-            }
-
-            if (fakeIdentity != null)
-            {
-                controller.Setup(x => x.GetIdentity()).Returns(fakeIdentity.Object);
-            }
-
-            if (readPackageException != null)
-                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Throws(readPackageException);
-            else if (fakeNuGetPackage != null)
-                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Returns(fakeNuGetPackage.Object);
-            else
-                controller.Setup(x => x.ReadNuGetPackage(It.IsAny<Stream>())).Returns(new Mock<IPackage>().Object);
-
-            return controller.Object;
-        }
-
-        private static Mock<ISearchService> CreateSearchService()
-        {
-            var searchService = new Mock<ISearchService>();
-            int total;
-            searchService.Setup(s => s.Search(It.IsAny<IQueryable<Package>>(), It.IsAny<SearchFilter>(), out total)).Returns((IQueryable<Package> p, string searchTerm) => p);
-
-            return searchService;
         }
     }
 }

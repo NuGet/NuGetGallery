@@ -7,6 +7,49 @@ namespace NuGetGallery
 {
     public class CreatedCuratedPackageCommandFacts
     {
+        public class TestableCreateCuratedPackageCommand : CreateCuratedPackageCommand
+        {
+            public TestableCreateCuratedPackageCommand()
+                : base(null)
+            {
+                StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName", };
+                StubCuratedFeedByKeyQry = new Mock<ICuratedFeedByKeyQuery>();
+                StubEntitiesContext = new Mock<IEntitiesContext>();
+                StubPackageRegistration = new PackageRegistration { Key = 0, };
+                StubPackageRegistrationByKeyQry = new Mock<IPackageRegistrationByKeyQuery>();
+
+                StubCuratedFeedByKeyQry
+                    .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
+                    .Returns(StubCuratedFeed);
+                StubPackageRegistrationByKeyQry
+                    .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
+                    .Returns(StubPackageRegistration);
+
+                Entities = StubEntitiesContext.Object;
+            }
+
+            public CuratedFeed StubCuratedFeed { get; set; }
+            public Mock<ICuratedFeedByKeyQuery> StubCuratedFeedByKeyQry { get; set; }
+            public Mock<IEntitiesContext> StubEntitiesContext { get; private set; }
+            public PackageRegistration StubPackageRegistration { get; set; }
+            public Mock<IPackageRegistrationByKeyQuery> StubPackageRegistrationByKeyQry { get; set; }
+
+            protected override T GetService<T>()
+            {
+                if (typeof(T) == typeof(ICuratedFeedByKeyQuery))
+                {
+                    return (T)StubCuratedFeedByKeyQry.Object;
+                }
+
+                if (typeof(T) == typeof(IPackageRegistrationByKeyQuery))
+                {
+                    return (T)StubPackageRegistrationByKeyQry.Object;
+                }
+
+                throw new Exception("Tried to get unexpected service");
+            }
+        }
+
         public class TheExecuteMethod
         {
             [Fact]
@@ -17,9 +60,10 @@ namespace NuGetGallery
                     .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
                     .Returns((CuratedFeed)null);
 
-                Assert.Throws<InvalidOperationException>(() => cmd.Execute(
-                    0,
-                    0));
+                Assert.Throws<InvalidOperationException>(
+                    () => cmd.Execute(
+                        0,
+                        0));
             }
 
             [Fact]
@@ -30,9 +74,10 @@ namespace NuGetGallery
                     .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
                     .Returns((PackageRegistration)null);
 
-                Assert.Throws<InvalidOperationException>(() => cmd.Execute(
-                    0,
-                    0));
+                Assert.Throws<InvalidOperationException>(
+                    () => cmd.Execute(
+                        0,
+                        0));
             }
 
             [Fact]
@@ -53,7 +98,6 @@ namespace NuGetGallery
                 Assert.Equal(false, curatedPackage.Included);
                 Assert.Equal(true, curatedPackage.AutomaticallyCurated);
                 Assert.Equal("theNotes", curatedPackage.Notes);
-                
             }
 
             [Fact]
@@ -85,46 +129,6 @@ namespace NuGetGallery
                 Assert.Equal(false, curatedPackage.Included);
                 Assert.Equal(true, curatedPackage.AutomaticallyCurated);
                 Assert.Equal("theNotes", curatedPackage.Notes);
-
-            }
-        }
-
-        public class TestableCreateCuratedPackageCommand : CreateCuratedPackageCommand
-        {
-            public TestableCreateCuratedPackageCommand()
-                :  base(null)
-            {
-                StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName", };
-                StubCuratedFeedByKeyQry = new Mock<ICuratedFeedByKeyQuery>();
-                StubEntitiesContext = new Mock<IEntitiesContext>();
-                StubPackageRegistration = new PackageRegistration { Key = 0, };
-                StubPackageRegistrationByKeyQry = new Mock<IPackageRegistrationByKeyQuery>();
-
-                StubCuratedFeedByKeyQry
-                   .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
-                   .Returns(StubCuratedFeed);
-                StubPackageRegistrationByKeyQry
-                    .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
-                    .Returns(StubPackageRegistration);
-                
-                Entities = StubEntitiesContext.Object;
-            }
-
-            public CuratedFeed StubCuratedFeed{ get; set; }
-            public Mock<ICuratedFeedByKeyQuery> StubCuratedFeedByKeyQry { get; set; }
-            public Mock<IEntitiesContext> StubEntitiesContext { get; private set; }
-            public PackageRegistration StubPackageRegistration { get; set; }
-            public Mock<IPackageRegistrationByKeyQuery> StubPackageRegistrationByKeyQry { get; set; }
-
-            protected override T GetService<T>()
-            {
-                if (typeof(T) == typeof(ICuratedFeedByKeyQuery))
-                    return (T) StubCuratedFeedByKeyQry.Object;
-
-                if (typeof(T) == typeof(IPackageRegistrationByKeyQuery))
-                    return (T) StubPackageRegistrationByKeyQry.Object;
-
-                throw new Exception("Tried to get unexpected service");
             }
         }
     }

@@ -4,16 +4,16 @@ namespace NuGetGallery
 {
     public class CloudBlobClientWrapper : ICloudBlobClient
     {
-        CloudBlobClient blobClient;
+        private readonly CloudBlobClient _blobClient;
 
         public CloudBlobClientWrapper(CloudBlobClient blobClient)
         {
-            this.blobClient = blobClient;
+            _blobClient = blobClient;
         }
 
         public ICloudBlobContainer GetContainerReference(string containerAddress)
         {
-            return new CloudBlobContainerWrapper(blobClient.GetContainerReference(containerAddress));
+            return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
         }
     }
 }

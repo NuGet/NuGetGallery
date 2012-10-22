@@ -6,15 +6,19 @@ namespace NuGetGallery
     public class WebMatrixPackageCurator : AutomaticPackageCurator
     {
         public override void Curate(
-            Package galleryPackage, 
+            Package galleryPackage,
             IPackage nugetPackage)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute("webmatrix");
             if (curatedFeed == null)
+            {
                 return;
+            }
 
             if (!galleryPackage.IsLatestStable)
+            {
                 return;
+            }
 
             var shouldBeIncluded = galleryPackage.Tags != null && galleryPackage.Tags.ToLowerInvariant().Contains("aspnetwebpages");
 
@@ -33,10 +37,12 @@ namespace NuGetGallery
             }
 
             if (shouldBeIncluded)
+            {
                 GetService<ICreateCuratedPackageCommand>().Execute(
                     curatedFeed.Key,
                     galleryPackage.PackageRegistration.Key,
                     automaticallyCurated: true);
+            }
         }
     }
 }

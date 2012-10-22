@@ -5,7 +5,7 @@ using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class GridViewPager : System.Web.UI.UserControl
+    public partial class GridViewPager : UserControl
     {
         private GridView _gridView;
 
@@ -51,7 +51,7 @@ namespace DynamicDataEFCodeFirst
             {
                 return;
             }
-            DropDownList dropdownlistpagersize = (DropDownList)sender;
+            var dropdownlistpagersize = (DropDownList)sender;
             _gridView.PageSize = Convert.ToInt32(dropdownlistpagersize.SelectedValue, CultureInfo.CurrentCulture);
             int pageindex = _gridView.PageIndex;
             _gridView.DataBind();
@@ -71,6 +71,5 @@ namespace DynamicDataEFCodeFirst
                 DropDownListPageSize.SelectedValue = _gridView.PageSize.ToString(CultureInfo.CurrentCulture);
             }
         }
-
     }
 }

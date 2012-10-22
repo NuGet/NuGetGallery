@@ -7,42 +7,35 @@ namespace NuGetGallery
 {
     public class PackageFramework : IEntity, IEquatable<PackageFramework>
     {
-        private string targetFramework;
-
-        public int Key { get; set; }
+        private string _targetFramework;
 
         public Package Package { get; set; }
-        
+
         [StringLength(256)]
         public string TargetFramework
         {
-            get
-            {
-                return targetFramework;
-            }
+            get { return _targetFramework; }
             set
             {
-                targetFramework = value;
-                FrameworkName = VersionUtility.ParseFrameworkName(targetFramework);
+                _targetFramework = value;
+                FrameworkName = VersionUtility.ParseFrameworkName(_targetFramework);
             }
         }
 
         [NotMapped]
-        public FrameworkName FrameworkName
-        {
-            get;
-            private set;
-        }
+        public FrameworkName FrameworkName { get; private set; }
 
-        public override bool Equals(object obj)
-        {
-            PackageFramework other = obj as PackageFramework;
-            return Equals(other);
-        }
+        public int Key { get; set; }
 
         public bool Equals(PackageFramework framework)
         {
             return framework != null && FrameworkName == framework.FrameworkName;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as PackageFramework;
+            return Equals(other);
         }
 
         public override int GetHashCode()

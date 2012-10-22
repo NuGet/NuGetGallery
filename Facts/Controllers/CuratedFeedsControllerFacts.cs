@@ -10,6 +10,42 @@ namespace NuGetGallery
 {
     public class CuratedFeedsControllerFacts
     {
+        public class TestableCuratedFeedsController : CuratedFeedsController
+        {
+            public TestableCuratedFeedsController()
+            {
+                StubCuratedFeed = new CuratedFeed
+                    { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { new User { Username = "aUsername" } }) };
+                StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
+                StubIdentity = new Mock<IIdentity>();
+
+                StubIdentity.Setup(stub => stub.IsAuthenticated).Returns(true);
+                StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
+                StubCuratedFeedByNameQry
+                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                    .Returns(StubCuratedFeed);
+            }
+
+            public CuratedFeed StubCuratedFeed { get; set; }
+            public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
+            public Mock<IIdentity> StubIdentity { get; private set; }
+
+            protected override IIdentity Identity
+            {
+                get { return StubIdentity.Object; }
+            }
+
+            protected override T GetService<T>()
+            {
+                if (typeof(T) == typeof(ICuratedFeedByNameQuery))
+                {
+                    return (T)StubCuratedFeedByNameQry.Object;
+                }
+
+                throw new Exception("Tried to get an unexpected service.");
+            }
+        }
+
         public class TheGetCuratedFeedAction
         {
             [Fact]
@@ -64,12 +100,28 @@ namespace NuGetGallery
             public void WillPassTheIncludedPackagesToTheView()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.StubCuratedFeed.Packages = new HashSet<CuratedPackage>(new[]
-                {
-                    new CuratedPackage { AutomaticallyCurated = true, Included = true, PackageRegistration = new PackageRegistration{ Id = "theAutomaticallyCuratedId" } },
-                    new CuratedPackage { AutomaticallyCurated = false, Included = true, PackageRegistration = new PackageRegistration{ Id = "theManuallyCuratedId" } },
-                    new CuratedPackage { AutomaticallyCurated = true, Included = false, PackageRegistration = new PackageRegistration{ Id = "theExcludedId" } },
-                });
+                controller.StubCuratedFeed.Packages = new HashSet<CuratedPackage>(
+                    new[]
+                        {
+                            new CuratedPackage
+                                {
+                                    AutomaticallyCurated = true,
+                                    Included = true,
+                                    PackageRegistration = new PackageRegistration { Id = "theAutomaticallyCuratedId" }
+                                },
+                            new CuratedPackage
+                                {
+                                    AutomaticallyCurated = false,
+                                    Included = true,
+                                    PackageRegistration = new PackageRegistration { Id = "theManuallyCuratedId" }
+                                },
+                            new CuratedPackage
+                                {
+                                    AutomaticallyCurated = true,
+                                    Included = false,
+                                    PackageRegistration = new PackageRegistration { Id = "theExcludedId" }
+                                }
+                        });
 
                 var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
 
@@ -83,51 +135,34 @@ namespace NuGetGallery
             public void WillPassTheExcludedPackagesToTheView()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.StubCuratedFeed.Packages = new HashSet<CuratedPackage>(new[]
-                {
-                    new CuratedPackage { AutomaticallyCurated = true, Included = true, PackageRegistration = new PackageRegistration{ Id = "theAutomaticallyCuratedId" } },
-                    new CuratedPackage { AutomaticallyCurated = false, Included = true, PackageRegistration = new PackageRegistration{ Id = "theManuallyCuratedId" } },
-                    new CuratedPackage { AutomaticallyCurated = true, Included = false, PackageRegistration = new PackageRegistration{ Id = "theExcludedId" } },
-                });
+                controller.StubCuratedFeed.Packages = new HashSet<CuratedPackage>(
+                    new[]
+                        {
+                            new CuratedPackage
+                                {
+                                    AutomaticallyCurated = true,
+                                    Included = true,
+                                    PackageRegistration = new PackageRegistration { Id = "theAutomaticallyCuratedId" }
+                                },
+                            new CuratedPackage
+                                {
+                                    AutomaticallyCurated = false,
+                                    Included = true,
+                                    PackageRegistration = new PackageRegistration { Id = "theManuallyCuratedId" }
+                                },
+                            new CuratedPackage
+                                {
+                                    AutomaticallyCurated = true,
+                                    Included = false,
+                                    PackageRegistration = new PackageRegistration { Id = "theExcludedId" }
+                                }
+                        });
 
                 var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
                 Assert.Equal(1, viewModel.ExcludedPackages.Count());
                 Assert.Equal("theExcludedId", viewModel.ExcludedPackages.First());
-            }
-        }
-
-        public class TestableCuratedFeedsController : CuratedFeedsController
-        {
-            public TestableCuratedFeedsController()
-            {
-                StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName", Managers = new HashSet<User>( new []{ new User { Username = "aUsername" } }) };
-                StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
-                StubIdentity = new Mock<IIdentity>();
-
-                StubIdentity.Setup(stub => stub.IsAuthenticated).Returns(true);
-                StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
-                StubCuratedFeedByNameQry
-                   .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
-                   .Returns(StubCuratedFeed);
-            }
-
-            public CuratedFeed StubCuratedFeed { get; set; }
-            public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
-            public Mock<IIdentity> StubIdentity { get; private set; }
-
-            protected override IIdentity Identity
-            {
-                get { return StubIdentity.Object; }
-            }
-
-            protected override T GetService<T>()
-            {
-                if (typeof(T) == typeof(ICuratedFeedByNameQuery))
-                    return (T)StubCuratedFeedByNameQry.Object;
-
-                throw new Exception("Tried to get an unexpected service.");
             }
         }
     }

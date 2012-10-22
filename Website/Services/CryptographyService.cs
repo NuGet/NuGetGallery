@@ -21,7 +21,7 @@ namespace NuGetGallery
             {
                 hashBytes = hashAlgorithm.ComputeHash(input);
             }
-            
+
             var hash = Convert.ToBase64String(hashBytes);
             return hash;
         }
@@ -38,41 +38,14 @@ namespace NuGetGallery
             return GenerateLegacySaltedHash(input, hashAlgorithmId);
         }
 
-        private static string GenerateLegacySaltedHash(string input, string hashAlgorithmId)
-        {
-            var saltBytes = new byte[SaltLengthInBytes];
-
-            using (var cryptoProvider = new RNGCryptoServiceProvider())
-                cryptoProvider.GetNonZeroBytes(saltBytes);
-
-            var textBytes = Encoding.Unicode.GetBytes(input);
-
-            var saltedTextBytes = new byte[saltBytes.Length + textBytes.Length];
-            Array.Copy(saltBytes, saltedTextBytes, saltBytes.Length);
-            Array.Copy(textBytes, 0, saltedTextBytes, saltBytes.Length, textBytes.Length);
-
-            byte[] hashBytes;
-            using (var hashAlgorithm = HashAlgorithm.Create(hashAlgorithmId))
-            {
-                hashBytes = hashAlgorithm.ComputeHash(saltedTextBytes);
-            }
-
-            var saltPlusHashBytes = new byte[saltBytes.Length + hashBytes.Length];
-            Array.Copy(saltBytes, saltPlusHashBytes, saltBytes.Length);
-            Array.Copy(hashBytes, 0, saltPlusHashBytes, saltBytes.Length, hashBytes.Length);
-
-            var saltedHash = Convert.ToBase64String(saltPlusHashBytes);
-            return saltedHash;
-        }
-
         public string GenerateToken()
         {
-            byte[] data = new byte[0x10];
-            
+            var data = new byte[0x10];
+
             using (var crypto = new RNGCryptoServiceProvider())
             {
                 crypto.GetBytes(data);
-            
+
                 return HttpServerUtility.UrlTokenEncode(data);
             }
         }
@@ -98,6 +71,35 @@ namespace NuGetGallery
             return ValidateLegacySaltedHash(hash, input, hashAlgorithmId);
         }
 
+        private static string GenerateLegacySaltedHash(string input, string hashAlgorithmId)
+        {
+            var saltBytes = new byte[SaltLengthInBytes];
+
+            using (var cryptoProvider = new RNGCryptoServiceProvider())
+            {
+                cryptoProvider.GetNonZeroBytes(saltBytes);
+            }
+
+            var textBytes = Encoding.Unicode.GetBytes(input);
+
+            var saltedTextBytes = new byte[saltBytes.Length + textBytes.Length];
+            Array.Copy(saltBytes, saltedTextBytes, saltBytes.Length);
+            Array.Copy(textBytes, 0, saltedTextBytes, saltBytes.Length, textBytes.Length);
+
+            byte[] hashBytes;
+            using (var hashAlgorithm = HashAlgorithm.Create(hashAlgorithmId))
+            {
+                hashBytes = hashAlgorithm.ComputeHash(saltedTextBytes);
+            }
+
+            var saltPlusHashBytes = new byte[saltBytes.Length + hashBytes.Length];
+            Array.Copy(saltBytes, saltPlusHashBytes, saltBytes.Length);
+            Array.Copy(hashBytes, 0, saltPlusHashBytes, saltBytes.Length, hashBytes.Length);
+
+            var saltedHash = Convert.ToBase64String(saltPlusHashBytes);
+            return saltedHash;
+        }
+
         private static bool ValidateLegacySaltedHash(string hash, string input, string hashAlgorithmId)
         {
             var saltPlusHashBytes = Convert.FromBase64String(hash);
@@ -118,8 +120,12 @@ namespace NuGetGallery
             }
 
             for (int i = 0; i < hashBytes.Length; i++)
+            {
                 if (!hashBytes[i].Equals(hashToValidateBytes[i]))
+                {
                     return false;
+                }
+            }
 
             return true;
         }

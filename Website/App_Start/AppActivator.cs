@@ -4,27 +4,30 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using DynamicDataEFCodeFirst;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Ninject;
 using Ninject.Web.Mvc;
+using NuGetGallery;
 using NuGetGallery.Jobs;
 using NuGetGallery.Migrations;
 using StackExchange.Profiling;
 using StackExchange.Profiling.MVCHelpers;
+using WebActivator;
 using WebBackgrounder;
 
-[assembly: WebActivator.PreApplicationStartMethod(typeof(NuGetGallery.AppActivator), "PreStart")]
-[assembly: WebActivator.PostApplicationStartMethod(typeof(NuGetGallery.AppActivator), "PostStart")]
-[assembly: WebActivator.ApplicationShutdownMethodAttribute(typeof(NuGetGallery.AppActivator), "Stop")]
+[assembly: WebActivator.PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
+[assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
+[assembly: ApplicationShutdownMethod(typeof(AppActivator), "Stop")]
 
 namespace NuGetGallery
 {
     public static class AppActivator
     {
         private static JobManager _jobManager;
-        private static readonly Bootstrapper _ninjectBootstrapper = new Bootstrapper();
+        private static readonly Bootstrapper NinjectBootstrapper = new Bootstrapper();
 
         public static void PreStart()
         {
@@ -56,16 +59,17 @@ namespace NuGetGallery
 
         private static void BackgroundJobsPostStart()
         {
-            var jobs = new IJob[] { 
-                new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(), timeout: TimeSpan.FromMinutes(5)),
-                new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(), timeout: TimeSpan.FromDays(4)),
-                new LuceneIndexingJob(TimeSpan.FromMinutes(10), timeout: TimeSpan.FromMinutes(2)),
-            };
+            var jobs = new IJob[]
+                {
+                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(), timeout: TimeSpan.FromMinutes(5)),
+                    new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(), timeout: TimeSpan.FromDays(4)),
+                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), timeout: TimeSpan.FromMinutes(2))
+                };
             var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext()));
             _jobManager = new JobManager(jobs, jobCoordinator)
-            {
-                RestartSchedulerOnFailure = true
-            };
+                {
+                    RestartSchedulerOnFailure = true
+                };
             _jobManager.Fail(e => ErrorLog.GetDefault(null).Log(new Error(e)));
             _jobManager.Start();
         }
@@ -74,7 +78,7 @@ namespace NuGetGallery
         {
             _jobManager.Dispose();
         }
-        
+
         private static void DbMigratorPostStart()
         {
             var dbMigrator = new DbMigrator(new MigrationsConfiguration());
@@ -86,7 +90,7 @@ namespace NuGetGallery
 
         private static void DynamicDataPostStart()
         {
-            DynamicDataEFCodeFirst.Registration.Register(RouteTable.Routes);
+            Registration.Register(RouteTable.Routes);
         }
 
         private static void MiniProfilerPreStart()
@@ -101,19 +105,21 @@ namespace NuGetGallery
             var copy = ViewEngines.Engines.ToList();
             ViewEngines.Engines.Clear();
             foreach (var item in copy)
+            {
                 ViewEngines.Engines.Add(new ProfilingViewEngine(item));
+            }
         }
 
         private static void NinjectPreStart()
         {
             DynamicModuleUtility.RegisterModule(typeof(OnePerRequestModule));
             DynamicModuleUtility.RegisterModule(typeof(HttpApplicationInitializationModule));
-            _ninjectBootstrapper.Initialize(() => Container.Kernel);
+            NinjectBootstrapper.Initialize(() => Container.Kernel);
         }
 
         private static void NinjectStop()
         {
-            _ninjectBootstrapper.ShutDown();
+            NinjectBootstrapper.ShutDown();
         }
 
         private class MiniProfilerStartupModule : IHttpModule
@@ -123,25 +129,29 @@ namespace NuGetGallery
                 context.BeginRequest += (sender, e) => MiniProfiler.Start();
 
                 context.AuthorizeRequest += (sender, e) =>
-                {
-                    bool stopProfiling;
-                    var httpContext = HttpContext.Current;
+                                                {
+                                                    bool stopProfiling;
+                                                    var httpContext = HttpContext.Current;
 
-                    if (httpContext == null)
-                        stopProfiling = true;
-                    else
-                    {
-                        // Temporarily removing until we figure out the hammering of request we saw.
-                        //var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
-                        var requestIsLocal = httpContext.Request.IsLocal;
+                                                    if (httpContext == null)
+                                                    {
+                                                        stopProfiling = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        // Temporarily removing until we figure out the hammering of request we saw.
+                                                        //var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
+                                                        var requestIsLocal = httpContext.Request.IsLocal;
 
-                        //stopProfiling = !userCanProfile && !requestIsLocal
-                        stopProfiling = !requestIsLocal;
-                    }
+                                                        //stopProfiling = !userCanProfile && !requestIsLocal
+                                                        stopProfiling = !requestIsLocal;
+                                                    }
 
-                    if (stopProfiling)
-                        MiniProfiler.Stop(true);
-                };
+                                                    if (stopProfiling)
+                                                    {
+                                                        MiniProfiler.Stop(true);
+                                                    }
+                                                };
 
                 context.EndRequest += (sender, e) => MiniProfiler.Stop();
             }

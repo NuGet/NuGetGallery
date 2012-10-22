@@ -6,9 +6,19 @@ using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class Enumeration_EditField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class Enumeration_EditField : FieldTemplateUserControl
     {
         private Type _enumType;
+
+        private Type EnumType
+        {
+            get { return _enumType ?? (_enumType = Column.GetEnumType()); }
+        }
+
+        public override Control DataControl
+        {
+            get { return DropDownList1; }
+        }
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -42,18 +52,6 @@ namespace DynamicDataEFCodeFirst
             }
         }
 
-        private Type EnumType
-        {
-            get
-            {
-                if (_enumType == null)
-                {
-                    _enumType = Column.GetEnumType();
-                }
-                return _enumType;
-            }
-        }
-
         protected override void ExtractValues(IOrderedDictionary dictionary)
         {
             string value = DropDownList1.SelectedValue;
@@ -63,14 +61,5 @@ namespace DynamicDataEFCodeFirst
             }
             dictionary[Column.Name] = ConvertEditedValue(value);
         }
-
-        public override Control DataControl
-        {
-            get
-            {
-                return DropDownList1;
-            }
-        }
-
     }
 }

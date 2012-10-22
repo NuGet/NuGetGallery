@@ -9,7 +9,8 @@ namespace NuGetGallery
     {
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            var methodsToIgnore = new HashSet<string>(new[] { "Skip", "OrderBy", "ThenBy", "OrderByDescending", "ThenByDescending" }, StringComparer.Ordinal);
+            var methodsToIgnore = new HashSet<string>(
+                new[] { "Skip", "OrderBy", "ThenBy", "OrderByDescending", "ThenByDescending" }, StringComparer.Ordinal);
             var method = node.Method;
             if ((method.DeclaringType == typeof(Queryable)) && methodsToIgnore.Contains(method.Name))
             {

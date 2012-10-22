@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-    
     public partial class PackageSortingIndexes : DbMigration
     {
         public override void Up()
@@ -16,9 +16,8 @@ namespace NuGetGallery.Migrations
 
             Sql(@"Create NonClustered Index [IX_Package_Listed] On [dbo].[Packages] ([Listed]) 
                          Include ([PackageRegistrationKey],[IsLatest],[IsLatestStable])");
-
         }
-        
+
         public override void Down()
         {
             DropIndex(table: "Packages", name: "IX_Package_Listed");

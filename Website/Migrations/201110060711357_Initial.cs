@@ -1,7 +1,7 @@
+using System.Data.Entity.Migrations;
+
 namespace NuGetGallery.Migrations
 {
-    using System.Data.Entity.Migrations;
-
     public partial class Initial : DbMigration
     {
         public override void Up()
@@ -147,7 +147,6 @@ namespace NuGetGallery.Migrations
                 .PrimaryKey(t => new { t.PackageRegistrationKey, t.UserKey })
                 .ForeignKey("PackageRegistrations", t => t.PackageRegistrationKey)
                 .ForeignKey("Users", t => t.UserKey);
-
         }
 
         public override void Down()

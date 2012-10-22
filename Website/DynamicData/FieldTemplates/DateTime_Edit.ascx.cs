@@ -2,14 +2,21 @@
 using System.Collections.Specialized;
 using System.ComponentModel.DataAnnotations;
 using System.Web;
+using System.Web.DynamicData;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class DateTime_EditField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class DateTime_EditField : FieldTemplateUserControl
     {
-        private static DataTypeAttribute DefaultDateAttribute = new DataTypeAttribute(DataType.DateTime);
+        private static readonly DataTypeAttribute DefaultDateAttribute = new DataTypeAttribute(DataType.DateTime);
+
+        public override Control DataControl
+        {
+            get { return TextBox1; }
+        }
+
         protected void Page_Load(object sender, EventArgs e)
         {
             TextBox1.ToolTip = Column.Description;
@@ -34,7 +41,7 @@ namespace DynamicDataEFCodeFirst
                         break;
                 }
             }
-            else if (Column.ColumnType.Equals(typeof(DateTime)))
+            else if (Column.ColumnType == typeof(DateTime))
             {
                 validator.Enabled = true;
                 DateValidator.ErrorMessage = HttpUtility.HtmlEncode(DefaultDateAttribute.FormatErrorMessage(Column.DisplayName));
@@ -51,14 +58,5 @@ namespace DynamicDataEFCodeFirst
         {
             dictionary[Column.Name] = ConvertEditedValue(TextBox1.Text);
         }
-
-        public override Control DataControl
-        {
-            get
-            {
-                return TextBox1;
-            }
-        }
-
     }
 }

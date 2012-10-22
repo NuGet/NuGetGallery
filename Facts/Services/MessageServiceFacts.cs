@@ -8,6 +8,32 @@ namespace NuGetGallery.Services
 {
     public class MessageServiceFacts
     {
+        public class TheReportAbuseMethod
+        {
+            [Fact]
+            public void WillSendEmailToGalleryOwner()
+            {
+                var from = new MailAddress("legit@example.com", "too");
+                var package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "smangit" },
+                        Version = "1.42.0.1"
+                    };
+                var mailSender = new Mock<IMailSender>();
+                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
+                var messageService = new MessageService(mailSender.Object, setting);
+                MailMessage message = null;
+                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
+
+                messageService.ReportAbuse(from, package, "Abuse!");
+
+                Assert.Equal("joe@example.com", message.To[0].Address);
+                Assert.Equal("[NuGet Gallery] Abuse Report for Package 'smangit' Version '1.42.0.1'", message.Subject);
+                Assert.Contains("Abuse!", message.Body);
+                Assert.Contains("User too (legit@example.com) reports the package 'smangit' version '1.42.0.1' as abusive", message.Body);
+            }
+        }
+
         public class TheSendContactOwnersMessageMethod
         {
             [Fact]
@@ -15,10 +41,11 @@ namespace NuGetGallery.Services
             {
                 var from = new MailAddress("smangit@example.com", "flossy");
                 var package = new PackageRegistration { Id = "smangit" };
-                package.Owners = new[] {
-                    new User {EmailAddress = "yung@example.com", EmailAllowed = true },
-                    new User {EmailAddress = "flynt@example.com", EmailAllowed = true }
-                };
+                package.Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                    };
                 var mailSender = new Mock<IMailSender>();
                 var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
                 var messageService = new MessageService(mailSender.Object, setting);
@@ -32,7 +59,8 @@ namespace NuGetGallery.Services
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Contains("[NuGet Gallery] Message for owners of the package 'smangit'", message.Subject);
                 Assert.Contains("Test message", message.Body);
-                Assert.Contains("User flossy &lt;smangit@example.com&gt; sends the following message to the owners of Package 'smangit'.", message.Body);
+                Assert.Contains(
+                    "User flossy &lt;smangit@example.com&gt; sends the following message to the owners of Package 'smangit'.", message.Body);
             }
 
             [Fact]
@@ -40,10 +68,11 @@ namespace NuGetGallery.Services
             {
                 var from = new MailAddress("smangit@example.com", "flossy");
                 var package = new PackageRegistration { Id = "smangit" };
-                package.Owners = new[] {
-                    new User {EmailAddress = "yung@example.com", EmailAllowed = true },
-                    new User {EmailAddress = "flynt@example.com", EmailAllowed = false }
-                };
+                package.Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                    };
                 var mailSender = new Mock<IMailSender>();
                 var setting = new GallerySetting { GalleryOwnerName = "Joe Schmoe", GalleryOwnerEmail = "joe@example.com" };
                 var messageService = new MessageService(mailSender.Object, setting);
@@ -62,10 +91,11 @@ namespace NuGetGallery.Services
             {
                 var from = new MailAddress("smangit@example.com", "flossy");
                 var package = new PackageRegistration { Id = "smangit" };
-                package.Owners = new[] {
-                    new User {EmailAddress = "yung@example.com", EmailAllowed = false },
-                    new User {EmailAddress = "flynt@example.com", EmailAllowed = false }
-                };
+                package.Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = false },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                    };
                 var mailSender = new Mock<IMailSender>();
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Throws(new InvalidOperationException());
                 var setting = new GallerySetting { GalleryOwnerName = "Joe Schmoe", GalleryOwnerEmail = "joe@example.com" };
@@ -77,32 +107,6 @@ namespace NuGetGallery.Services
 
                 mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()), Times.Never());
                 Assert.Null(message);
-            }
-        }
-
-        public class TheReportAbuseMethod
-        {
-            [Fact]
-            public void WillSendEmailToGalleryOwner()
-            {
-                var from = new MailAddress("legit@example.com", "too");
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "smangit" },
-                    Version = "1.42.0.1"
-                };
-                var mailSender = new Mock<IMailSender>();
-                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
-                MailMessage message = null;
-                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
-
-                messageService.ReportAbuse(from, package, "Abuse!");
-
-                Assert.Equal("joe@example.com", message.To[0].Address);
-                Assert.Equal("[NuGet Gallery] Abuse Report for Package 'smangit' Version '1.42.0.1'", message.Subject);
-                Assert.Contains("Abuse!", message.Body);
-                Assert.Contains("User too (legit@example.com) reports the package 'smangit' version '1.42.0.1' as abusive", message.Body);
             }
         }
 
@@ -126,27 +130,6 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class TheSendResetPasswordInstructionsMethod
-        {
-            [Fact]
-            public void WillSendInstructions()
-            {
-                var user = new User { EmailAddress = "legit@example.com", Username = "too" };
-                var mailSender = new Mock<IMailSender>();
-                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
-                MailMessage message = null;
-                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
-
-                messageService.SendPasswordResetInstructions(user, "http://example.com/pwd-reset-token-url");
-
-                Assert.Equal("legit@example.com", message.To[0].Address);
-                Assert.Equal("[NuGet Gallery] Please reset your password.", message.Subject);
-                Assert.Contains("Click the following link within the next", message.Body);
-                Assert.Contains("http://example.com/pwd-reset-token-url", message.Body);
-            }
-        }
-
         public class TheSendPackageOwnerRequestMethod
         {
             [Fact]
@@ -158,7 +141,7 @@ namespace NuGetGallery.Services
                 var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
                 var messageService = new MessageService(mailSender.Object, setting);
                 var package = new PackageRegistration { Id = "CoolStuff" };
-                var confirmationUrl = "http://example.com/confirmation-token-url";
+                const string confirmationUrl = "http://example.com/confirmation-token-url";
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
@@ -181,13 +164,34 @@ namespace NuGetGallery.Services
                 var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
                 var messageService = new MessageService(mailSender.Object, setting);
                 var package = new PackageRegistration { Id = "CoolStuff" };
-                var confirmationUrl = "http://example.com/confirmation-token-url";
+                const string confirmationUrl = "http://example.com/confirmation-token-url";
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
                 messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
 
                 Assert.Null(message);
+            }
+        }
+
+        public class TheSendResetPasswordInstructionsMethod
+        {
+            [Fact]
+            public void WillSendInstructions()
+            {
+                var user = new User { EmailAddress = "legit@example.com", Username = "too" };
+                var mailSender = new Mock<IMailSender>();
+                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
+                var messageService = new MessageService(mailSender.Object, setting);
+                MailMessage message = null;
+                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
+
+                messageService.SendPasswordResetInstructions(user, "http://example.com/pwd-reset-token-url");
+
+                Assert.Equal("legit@example.com", message.To[0].Address);
+                Assert.Equal("[NuGet Gallery] Please reset your password.", message.Subject);
+                Assert.Contains("Click the following link within the next", message.Body);
+                Assert.Contains("http://example.com/pwd-reset-token-url", message.Body);
             }
         }
     }

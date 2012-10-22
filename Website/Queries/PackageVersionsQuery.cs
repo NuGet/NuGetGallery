@@ -13,11 +13,12 @@ namespace NuGetGallery
 
     public class PackageVersionsQuery : IPackageVersionsQuery
     {
-        const string _sqlFormat = @"SELECT p.[Version]
+        private const string SqlFormat = @"SELECT p.[Version]
 FROM Packages p
 	JOIN PackageRegistrations pr on pr.[Key] = p.PackageRegistrationKey
 WHERE pr.ID = {{0}}
 	{0}";
+
         private readonly IEntitiesContext _entities;
 
         public PackageVersionsQuery(IEntitiesContext entities)
@@ -29,15 +30,19 @@ WHERE pr.ID = {{0}}
             string id,
             bool? includePrerelease = false)
         {
-            if (string.IsNullOrWhiteSpace(id))
+            if (String.IsNullOrWhiteSpace(id))
+            {
                 throw new ArgumentNullException("id");
-            
+            }
+
             var dbContext = (DbContext)_entities;
 
-            var prereleaseFilter = string.Empty;
+            var prereleaseFilter = String.Empty;
             if (!includePrerelease.HasValue || !includePrerelease.Value)
+            {
                 prereleaseFilter = "AND p.IsPrerelease = 0";
-            return dbContext.Database.SqlQuery<string>(string.Format(_sqlFormat, prereleaseFilter), id);
+            }
+            return dbContext.Database.SqlQuery<string>(String.Format(SqlFormat, prereleaseFilter), id);
         }
     }
 }

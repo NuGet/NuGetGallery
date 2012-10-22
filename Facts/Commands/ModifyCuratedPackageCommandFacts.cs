@@ -6,51 +6,6 @@ namespace NuGetGallery.Commands
 {
     public class ModifyCuratedPackageCommandFacts
     {
-        public class TheExecuteMethod
-        {
-            [Fact]
-            public void WillThrowWhenCuratedFeedDoesNotExist()
-            {
-                var cmd = new TestableModifyCuratedPackageCommand();
-                cmd.StubCuratedFeedByKeyQry
-                    .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
-                    .Returns((CuratedFeed)null);
-
-                Assert.Throws<InvalidOperationException>(() => cmd.Execute(
-                    42,
-                    0,
-                    false));
-            }
-
-            [Fact]
-            public void WillThrowWhenCuratedPackageDoesNotExist()
-            {
-                var cmd = new TestableModifyCuratedPackageCommand();
-                cmd.StubCuratedFeed.Packages = new[] {new CuratedPackage() {Key = 0}};
-
-                Assert.Throws<InvalidOperationException>(() => cmd.Execute(
-                    0,
-                    1066,
-                    false));
-            }
-
-            [Fact]
-            public void WillModifyAndSaveTheCuratedPackage()
-            {
-                var cmd = new TestableModifyCuratedPackageCommand();
-                var stubCuratedPackage = new CuratedPackage() {Key = 1066};
-                cmd.StubCuratedFeed.Packages = new[] { stubCuratedPackage };
-
-                cmd.Execute(
-                    0,
-                    1066,
-                    true);
-
-                Assert.True(stubCuratedPackage.Included);
-                cmd.StubEntitiesContext.Verify(stub => stub.SaveChanges());
-            }
-        }
-        
         public class TestableModifyCuratedPackageCommand : ModifyCuratedPackageCommand
         {
             public TestableModifyCuratedPackageCommand()
@@ -61,8 +16,8 @@ namespace NuGetGallery.Commands
                 StubEntitiesContext = new Mock<IEntitiesContext>();
 
                 StubCuratedFeedByKeyQry
-                   .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
-                   .Returns(StubCuratedFeed);
+                    .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
+                    .Returns(StubCuratedFeed);
 
                 Entities = StubEntitiesContext.Object;
             }
@@ -74,9 +29,58 @@ namespace NuGetGallery.Commands
             protected override T GetService<T>()
             {
                 if (typeof(T) == typeof(ICuratedFeedByKeyQuery))
+                {
                     return (T)StubCuratedFeedByKeyQry.Object;
+                }
 
                 throw new Exception("Tried to get unexpected service");
+            }
+        }
+
+        public class TheExecuteMethod
+        {
+            [Fact]
+            public void WillThrowWhenCuratedFeedDoesNotExist()
+            {
+                var cmd = new TestableModifyCuratedPackageCommand();
+                cmd.StubCuratedFeedByKeyQry
+                    .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
+                    .Returns((CuratedFeed)null);
+
+                Assert.Throws<InvalidOperationException>(
+                    () => cmd.Execute(
+                        42,
+                        0,
+                        false));
+            }
+
+            [Fact]
+            public void WillThrowWhenCuratedPackageDoesNotExist()
+            {
+                var cmd = new TestableModifyCuratedPackageCommand();
+                cmd.StubCuratedFeed.Packages = new[] { new CuratedPackage { Key = 0 } };
+
+                Assert.Throws<InvalidOperationException>(
+                    () => cmd.Execute(
+                        0,
+                        1066,
+                        false));
+            }
+
+            [Fact]
+            public void WillModifyAndSaveTheCuratedPackage()
+            {
+                var cmd = new TestableModifyCuratedPackageCommand();
+                var stubCuratedPackage = new CuratedPackage { Key = 1066 };
+                cmd.StubCuratedFeed.Packages = new[] { stubCuratedPackage };
+
+                cmd.Execute(
+                    0,
+                    1066,
+                    true);
+
+                Assert.True(stubCuratedPackage.Included);
+                cmd.StubEntitiesContext.Verify(stub => stub.SaveChanges());
             }
         }
     }

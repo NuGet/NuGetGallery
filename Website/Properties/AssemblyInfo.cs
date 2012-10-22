@@ -5,10 +5,12 @@ using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("NuGetGallery")]
 #if DEBUG
+
 [assembly: AssemblyConfiguration("Debug")]
 #else
 [assembly: AssemblyConfiguration("Release")]
 #endif
+
 [assembly: AssemblyCompany("Microsoft")]
 [assembly: AssemblyProduct("NuGetGallery")]
 [assembly: AssemblyCopyright("Copyright © Microsoft 2011")]

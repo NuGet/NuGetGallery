@@ -1,6 +1,6 @@
 ﻿<%@ Control Language="C#" CodeBehind="Integer_Edit.ascx.cs" Inherits="DynamicDataEFCodeFirst.Integer_EditField" %>
 
-<asp:TextBox ID="TextBox1" runat="server" Text="<%# FieldValueEditString %>" Columns="10" CssClass="DDTextBox"></asp:TextBox>
+<asp:TextBox ID="TextBox1" runat="server" Text="<%#FieldValueEditString %>" Columns="10" CssClass="DDTextBox"></asp:TextBox>
 
 <asp:RequiredFieldValidator runat="server" ID="RequiredFieldValidator1" CssClass="DDControl DDValidator" ControlToValidate="TextBox1" Display="Static" Enabled="false" />
 <asp:CompareValidator runat="server" ID="CompareValidator1" CssClass="DDControl DDValidator" ControlToValidate="TextBox1" Display="Static"

@@ -1,16 +1,13 @@
-﻿using System.Web.UI;
+﻿using System.Web.DynamicData;
+using System.Web.UI;
 
 namespace DynamicDataEFCodeFirst
 {
-    public partial class DateTimeField : System.Web.DynamicData.FieldTemplateUserControl
+    public partial class DateTimeField : FieldTemplateUserControl
     {
         public override Control DataControl
         {
-            get
-            {
-                return Literal1;
-            }
+            get { return Literal1; }
         }
-
     }
 }
