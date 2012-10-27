@@ -1190,3 +1190,26 @@ footer#footer div.license {
     clear: both;
     font-size: .7em;
 }
+
+/* async upload */
+form .async-upload-panel
+{
+    display: none;
+    margin-top: 50px;
+    width: 300px;
+}
+
+form .async-upload-progress-initial 
+{
+    width: 300px;
+    height: 20px;
+    background-color: yellow;
+}
+
+form .async-upload-progress-advance
+{
+    width: 0;
+    height: 20px;
+    display: block;
+    background-color: green;
+}

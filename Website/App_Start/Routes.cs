@@ -37,6 +37,11 @@ namespace NuGetGallery
                 new { controller = MVC.Packages.Name, action = "UploadPackage" });
 
             routes.MapRoute(
+                RouteName.UploadPackageProgress,
+                "packages/upload-progress",
+                MVC.Packages.UploadPackageProgress());
+
+            routes.MapRoute(
                 RouteName.VerifyPackage,
                 "packages/verify-upload",
                 new { controller = MVC.Packages.Name, action = "VerifyPackage" });

@@ -9,6 +9,7 @@ using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+using NuGetGallery.AsyncFileUpload;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -55,6 +56,21 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext;
             _config = config;
             _indexingService = indexingService;
+        }
+
+        [Authorize]
+        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
+        public virtual ActionResult UploadPackageProgress()
+        {
+            string username = GetIdentity().Name;
+
+            AsyncFileUploadProgress progress = AsyncFileUploadManager.GetProgressDetails(username);
+            if (progress == null)
+            {
+                progress = new AsyncFileUploadProgress(100) { FileName = "none", TotalBytesRead = 0 };
+            }
+
+            return Json(progress, JsonRequestBehavior.AllowGet);
         }
 
         [Authorize]
@@ -112,6 +128,10 @@ namespace NuGetGallery
             {
                 ModelState.AddModelError(String.Empty, Strings.FailedToReadUploadFile);
                 return View();
+            }
+            finally
+            {
+                AsyncFileUploadManager.RemoveProgressDetails(currentUser.Username);
             }
 
             var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Id);
