@@ -60,6 +60,7 @@ AS
                 
         UPDATE      GallerySettings
         SET         DownloadStatsLastAggregatedId = @mostRecentStatisticsId
+				,	TotalDownloadCount = (SELECT SUM(DownloadCount) FROM PackageRegistrations)
 
     COMMIT TRANSACTION
 ' 

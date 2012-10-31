@@ -3,6 +3,7 @@
     public class GallerySetting : IEntity
     {
         public int? DownloadStatsLastAggregatedId { get; set; }
+        public long? TotalDownloadCount { get; set; }
         public string SmtpHost { get; set; }
         public string SmtpUsername { get; set; }
         public string SmtpPassword { get; set; }
