@@ -11,11 +11,11 @@ namespace NuGetGallery
                 var database = dbContext.Database;
                 using (var command = database.Connection.CreateCommand())
                 {
-                    command.CommandText = @"Select 
-                    (Select Count([Key]) from PackageRegistrations pr 
-                            where exists (Select 1 from Packages p where p.PackageRegistrationKey = pr.[Key] and p.Listed = 1)) as UniquePackages,
-                    (Select Count([Key]) from Packages where Listed = 1) as TotalPackages,
-                    (Select Sum(DownloadCount) from Packages) as DownloadCount";
+                    command.CommandText = @"SELECT 
+                    (SELECT COUNT([Key]) FROM PackageRegistrations pr 
+                            WHERE EXISTS (SELECT 1 FROM Packages p WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1)) AS UniquePackages,
+                    (SELECT COUNT([Key]) FROM Packages WHERE Listed = 1) AS TotalPackages,
+                    (SELECT TotalDownloadCount FROM GallerySettings) AS DownloadCount";
 
                     database.Connection.Open();
                     using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection | CommandBehavior.SingleRow))
@@ -29,7 +29,7 @@ namespace NuGetGallery
                             {
                                 UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
                                 TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
-                                Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt32(2),
+                                Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt64(2),
                             };
                     }
                 }
