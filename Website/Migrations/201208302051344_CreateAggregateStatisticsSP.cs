@@ -1,10 +1,11 @@
+using System.Data.Entity.Migrations;
 namespace NuGetGallery.Migrations
 {
-    public partial class CreateAggregateStatisticsSP : SqlResourceMigration
+    public partial class CreateAggregateStatisticsSP : DbMigration
     {
-        public CreateAggregateStatisticsSP()
-            : base("NuGetGallery.Infrastructure.AggregateStatistics.sql")
+        public override void Up()
         {
+            // This migration is now a no-op. The script it used to reference has been updated to use a column that is added by a later migration.
         }
     }
 }
