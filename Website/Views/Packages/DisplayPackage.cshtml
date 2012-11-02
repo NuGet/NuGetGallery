@@ -4,6 +4,7 @@
     ViewBag.Title = Model.Title + " " + Model.Version;
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 }
 @section OpenGraph {
     @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
@@ -11,7 +12,7 @@
     }
     <meta property="og:title"       content="@Model.Title" />
     <meta property="og:type"        content="nugetgallery:package" /> 
-    <meta property="og:url"         content="@Url.CanonicalCurrent()" /> 
+    <meta property="og:url"         content="@absolutePackageUrl" /> 
     <meta property="og:description" content="@Model.Description" /> 
     <meta property="og:determiner"  content="a" />
     <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute(Links.Content.Images.packageDefaultIcon_png))" />
@@ -133,8 +134,8 @@
                 }</code></p>
     </div>
  
-    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@Url.CanonicalCurrent()" data-text="Check out this cool #nuget package!" data-via="nuget">Tweet</a></div>
-    <div class="fb-like" data-href="@Url.CanonicalCurrent()" data-send="false" data-width="450" data-show-faces="true"></div>
+    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out this cool #nuget package!" data-via="nuget">Tweet</a></div>
+    <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {

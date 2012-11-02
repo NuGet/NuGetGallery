@@ -11,16 +11,6 @@ namespace NuGetGallery
             return url.RequestContext.HttpContext.Request.RawUrl;
         }
 
-        /// <summary>
-        /// Gets the "canonical" (as in fully-qualified, without "www") version of the current URL
-        /// </summary>
-        /// <param name="url">A UrlHelper object</param>
-        /// <returns>The canonical URL</returns>
-        public static string CanonicalCurrent(this UrlHelper url)
-        {
-            return GetCanonicalUrl(url).Uri.AbsoluteUri;
-        }
-
         public static string Absolute(this UrlHelper url, string path)
         {
             UriBuilder builder = GetCanonicalUrl(url);
