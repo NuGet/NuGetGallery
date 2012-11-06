@@ -38,8 +38,8 @@ namespace NuGetGallery
             Bind<ISearchService>()
                 .To<LuceneSearchService>()
                 .InRequestScope();
-
-            if (RoleEnvironment.IsAvailable)
+            
+            if (CanBindCache())
             {
                 // when running on Windows Azure, use the Azure Cache service
                 Bind<ICacheService>()
@@ -242,6 +242,23 @@ namespace NuGetGallery
             Bind<IPackageVersionsQuery>()
                 .To<PackageVersionsQuery>()
                 .InRequestScope();
+        }
+
+        private bool CanBindCache()
+        {
+            try
+            {
+                if (RoleEnvironment.IsAvailable)
+                {
+                    return true;
+                }
+            }
+            catch (TypeInitializationException)
+            {
+                // Catch 'Could not load file or assembly 'msshrtmi' from not having Azure SDK installed.
+            }
+
+            return false;
         }
     }
 }
