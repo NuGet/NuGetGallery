@@ -4,7 +4,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery.Filters
 {
-    public class CacheFilterAttribute : ActionFilterAttribute
+    public sealed class CacheFilterAttribute : ActionFilterAttribute
     {
         /// <summary>
         /// Gets or sets the cache duration in seconds. The default is 10 seconds.

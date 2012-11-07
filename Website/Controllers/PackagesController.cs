@@ -21,12 +21,12 @@ namespace NuGetGallery
         // TODO: improve validation summary emphasis
 
         private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
-        private readonly ICacheService cacheSvc;
-        private readonly IConfiguration config
+        private readonly ICacheService _cacheSvc;
+        private readonly IConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly INuGetExeDownloaderService _nugetExeDownloaderSvc;
         private readonly IPackageService _packageSvc;
-        private readonly IPackageFileService packageFileSvc;
+        private readonly IPackageFileService _packageFileSvc;
         private readonly ISearchService _searchSvc;
         private readonly IUploadFileService _uploadFileSvc;
         private readonly IUserService _userSvc;
@@ -40,18 +40,19 @@ namespace NuGetGallery
             ICacheService cacheSvc,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
             INuGetExeDownloaderService nugetExeDownloaderSvc,
-            IConfiguration config)
+            IConfiguration config,
+            IPackageFileService packageFileSvc)
         {
-            this.packageSvc = packageSvc;
-            this.uploadFileSvc = uploadFileSvc;
-            this.userSvc = userSvc;
-            this.messageService = messageService;
-            this.searchSvc = searchSvc;
-            this.autoCuratedPackageCmd = autoCuratedPackageCmd;
-            this.nugetExeDownloaderSvc = nugetExeDownloaderSvc;
-            this.packageFileSvc = packageFileSvc;
-            this.cacheSvc = cacheSvc;
-            this.config = config;        
+            _packageSvc = packageSvc;
+            _uploadFileSvc = uploadFileSvc;
+            _userSvc = userSvc;
+            _messageService = messageService;
+            _searchSvc = searchSvc;
+            _autoCuratedPackageCmd = autoCuratedPackageCmd;
+            _nugetExeDownloaderSvc = nugetExeDownloaderSvc;
+            _packageFileSvc = packageFileSvc;
+            _cacheSvc = cacheSvc;
+            _config = config;
         }
 
         [Authorize]
@@ -146,7 +147,7 @@ namespace NuGetGallery
                 return PackageNotFound(id, version);
             }
             var model = new DisplayPackageViewModel(package);
-            ViewBag.FacebookAppID = config.FacebookAppID;
+            ViewBag.FacebookAppID = _config.FacebookAppID;
             return View(model);
         }
 
@@ -271,61 +272,6 @@ namespace NuGetGallery
 
             return View(model);
         }
-
-        public virtual ActionResult Contents(string id, string version)
-        {
-            Package package = packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-
-			IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
-			PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
-
-			var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
-			return View(viewModel);
-        }
-
-		[ActionName("file")]
-		public virtual ActionResult FileContent(string id, string version, string filePath)
-		{
-			Package package = packageSvc.FindPackageByIdAndVersion(id, version);
-			if (package == null)
-			{
-				return PackageNotFound(id, version);
-			}
-
-			filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
-
-			IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
-			
-			IPackageFile file = packageFile.GetFiles().FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
-			if (file == null)
-			{
-				return PackageNotFound(id, version);
-			}
-
-			var result = new ContentResult
-			{
-				ContentEncoding = System.Text.Encoding.UTF8,
-				ContentType = "text/plain"
-			};
-
-			if (FileHelper.IsBinaryFile(file.Path))
-			{
-				result.Content = "The requested file is a binary file.";
-			}
-			else
-			{
-				using (var reader = new StreamReader(file.GetStream()))
-				{
-					result.Content = reader.ReadToEnd();
-				}
-			}
-
-			return result;
-		}
 
         [HttpPost]
         [Authorize]
@@ -654,6 +600,6 @@ namespace NuGetGallery
                 default:
                     return "PackageRegistration.DownloadCount desc";
             }
-        }
+        }		
     }
 }

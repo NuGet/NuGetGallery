@@ -30,6 +30,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("id");
             }
+
             if (String.IsNullOrWhiteSpace(version))
             {
                 throw new ArgumentNullException("version");
@@ -69,7 +70,9 @@ namespace NuGetGallery
         public Task<Stream> DownloadPackageFileAsync(Package package)
         {
             var fileName = BuildFileName(package);
-            return fileStorageSvc.GetFileAsync(Constants.PackagesFolderName, fileName);
+            return _fileStorageSvc.GetFileAsync(
+                Constants.PackagesFolderName,
+                fileName);
         }
 
         private static string BuildFileName(string id, string version)
@@ -81,6 +84,7 @@ namespace NuGetGallery
                 version,
                 Constants.NuGetPackageFileExtension);
         }
+
 
         private static string BuildFileName(Package package)
         {

@@ -53,32 +53,18 @@ namespace NuGetGallery
             return blob.Exists();
         }
 
-        ICloudBlobContainer GetContainer(string folderName)
+        public Stream GetFile(string folderName, string fileName)
         {
-            return containers[folderName];
+            return GetFileAsync(folderName, fileName).Result;
         }
 
-        static string GetContentType(string folderName)
-        {
-            switch (folderName)
-            {
-                case Constants.PackagesFolderName:
-                case Constants.UploadsFolderName:
-                    return Constants.PackageContentType;
-                case Constants.DownloadsFolderName:
-                    return Constants.OctetStreamContentType;
-                default:
-                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
-            }
-        }
-
-        public Stream GetFile(
-            string folderName,
-            string fileName)
+        public async Task<Stream> GetFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
+            {
                 throw new ArgumentNullException("folderName");
             }
+
             if (String.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException("fileName");

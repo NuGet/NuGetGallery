@@ -1095,6 +1095,7 @@ input:focus ~ .field-validation-error ~ .field-hint-message { display: none; }
     height: 125px;
     left: 0;
     position: fixed;
+    top: 0;
     text-indent: -9999px;
     width: 220px;
 }

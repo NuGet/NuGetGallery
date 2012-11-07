@@ -45,7 +45,7 @@ namespace NuGetGallery
         {
             try
             {
-                return Task.Factory.FromAsync(blob.BeginDownloadToStream(target, null, null), blob.EndDownloadToStream);
+                return Task.Factory.FromAsync(_blob.BeginDownloadToStream(target, null, null), _blob.EndDownloadToStream);
             }
             catch (StorageClientException ex)
             {

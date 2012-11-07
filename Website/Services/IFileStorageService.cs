@@ -22,6 +22,10 @@ namespace NuGetGallery
             string folderName,
             string fileName);
 
+        Task<Stream> GetFileAsync(
+            string folderName,
+            string fileName);
+
         void SaveFile(
             string folderName,
             string fileName,
