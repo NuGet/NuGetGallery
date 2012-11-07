@@ -60,6 +60,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("folderName");
             }
+
             if (String.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException("fileName");

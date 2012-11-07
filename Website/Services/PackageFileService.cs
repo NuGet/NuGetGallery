@@ -32,6 +32,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("id");
             }
+
             if (String.IsNullOrWhiteSpace(version))
             {
                 throw new ArgumentNullException("version");
