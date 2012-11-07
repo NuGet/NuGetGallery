@@ -299,6 +299,61 @@ namespace NuGetGallery
             return RedirectToAction(MVC.Packages.DisplayPackage(id, null));
         }
 
+        public virtual ActionResult Contents(string id, string version)
+        {
+            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc).Result;
+            PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
+
+            var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
+            return View(viewModel);
+        }
+
+        [ActionName("file")]
+        public virtual ActionResult FileContent(string id, string version, string filePath)
+        {
+            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
+
+            IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc).Result;
+
+            IPackageFile file = packageFile.GetFiles().FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+            if (file == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            var result = new ContentResult
+            {
+                ContentEncoding = System.Text.Encoding.UTF8,
+                ContentType = "text/plain"
+            };
+
+            if (FileHelper.IsBinaryFile(file.Path))
+            {
+                result.Content = "The requested file is a binary file.";
+            }
+            else
+            {
+                using (var reader = new StreamReader(file.GetStream()))
+                {
+                    result.Content = reader.ReadToEnd();
+                }
+            }
+
+            return result;
+        }
+
         // This is the page that explains why there's no download link.
         public virtual ActionResult Download()
         {
