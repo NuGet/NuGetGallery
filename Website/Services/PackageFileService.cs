@@ -80,7 +80,6 @@ namespace NuGetGallery
                 CultureInfo.InvariantCulture, Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
         }
 
-
         private static string BuildFileName(Package package)
         {
             if (package == null)
