@@ -1,1 +1,1 @@
-TargetFrameWorkVersion=v4.0
+TargetFrameWorkVersion=v4.5
