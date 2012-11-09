@@ -144,7 +144,7 @@ namespace NuGetGallery
         {
             // TODO: Implement proper async read file
             Stream stream = GetFile(folderName, fileName);
-            return TaskEx.FromResult(stream);
+            return Task.FromResult(stream);
         }
 
         private static string BuildPath(
