@@ -2,6 +2,8 @@ bin
 obj
 *.user
 *.suo
+*.psess
+*.Vsp
 App_Data
 *.results.xml
 /packages
