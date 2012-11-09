@@ -277,7 +277,7 @@ if($UseEmulator) {
   $copyOnlySwitch = "/copyOnly"
 }
 
-& "$AzureToolsRoot\.NET SDK\2012-06\bin\cspack.exe" "$csdefPath" /useCtpPackageFormat /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath" $copyOnlySwitch
+& "$AzureToolsRoot\.NET SDK\2012-10\bin\cspack.exe" "$csdefPath" /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath" $copyOnlySwitch
 if ($lastexitcode -ne 0) {
   throw "CSPack Failed with Exit Code: $lastexitcode"
   exit 1 
