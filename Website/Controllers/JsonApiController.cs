@@ -51,6 +51,7 @@ namespace NuGetGallery
             return owners.Union(pending);
         }
 
+        [Authorize]
         public object AddPackageOwner(string id, string username)
         {
             var package = _packageSvc.FindPackageRegistrationById(id);
@@ -78,6 +79,7 @@ namespace NuGetGallery
             return new { success = true, name = user.Username, pending = true };
         }
 
+        [Authorize]
         public object RemovePackageOwner(string id, string username)
         {
             var package = _packageSvc.FindPackageRegistrationById(id);
