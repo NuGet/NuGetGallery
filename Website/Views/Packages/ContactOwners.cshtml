@@ -1,6 +1,7 @@
 ﻿@model ContactOwnersViewModel
 @{
     ViewBag.Tab = "Packages";
+    var owners = Model.Owners.Flatten(@<text>@item.Username</text>);
 }
 
 <h1 class="page-heading">Contact the Owners of "@Model.PackageId"</h1>
@@ -17,7 +18,7 @@
             @Html.AntiForgeryToken()
             <div class="form-field">
                 <label for="NotUsed">To</label>
-                <input name="NotUsed" type="text" value="@Model.Owners.Flatten(@<text>@item.Username</text>)" disabled="disabled" />
+                <input name="NotUsed" type="text" value="@owners" disabled="disabled" />
             </div>
             <div class="form-field">
                 @Html.LabelFor(m => m.Message)
