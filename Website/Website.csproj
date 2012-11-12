@@ -92,11 +92,6 @@
     <Reference Include="Microsoft.Data.OData.Contrib">
       <HintPath>..\packages\Microsoft.Data.OData.Contrib.5.0.1.50822\lib\net40\Microsoft.Data.OData.Contrib.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Web.Helpers">
-      <HintPath>..\packages\microsoft-web-helpers.1.15\lib\Microsoft.Web.Helpers.dll</HintPath>
-    <Reference Include="Microsoft.Web.DistributedCache, Version=101.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.Caching.1.7.0.0\lib\net35-full\Microsoft.Web.DistributedCache.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Web.Helpers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.AspNet.Web.Helpers.Mvc.2.0.20710.0\lib\net40\Microsoft.Web.Helpers.dll</HintPath>
@@ -121,7 +116,7 @@
     </Reference>
     <Reference Include="MvcHaack.Ajax, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\MvcHaack.Ajax.MVC4bugfixfork.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
+      <HintPath>..\packages\MvcHaack.Ajax.MVC4.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.4.5.6\lib\net40\Newtonsoft.Json.dll</HintPath>
