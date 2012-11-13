@@ -68,6 +68,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
     <Reference Include="System.Data.Services" />
@@ -121,6 +122,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="Commands\CreatedCuratedPackageCommandFacts.cs" />
     <Compile Include="Commands\DeleteCuratedPackageCommandFacts.cs" />
@@ -157,6 +159,7 @@
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
