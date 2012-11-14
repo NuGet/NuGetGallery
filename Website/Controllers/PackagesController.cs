@@ -8,6 +8,8 @@ using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+using NuGetGallery.Helpers;
+using NuGetGallery.ViewModels.PackagePart;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -19,9 +21,12 @@ namespace NuGetGallery
         // TODO: improve validation summary emphasis
 
         private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
+        private readonly ICacheService _cacheSvc;
+        private readonly IConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly INuGetExeDownloaderService _nugetExeDownloaderSvc;
         private readonly IPackageService _packageSvc;
+        private readonly IPackageFileService _packageFileSvc;
         private readonly ISearchService _searchSvc;
         private readonly IUploadFileService _uploadFileSvc;
         private readonly IUserService _userSvc;
@@ -32,8 +37,11 @@ namespace NuGetGallery
             IUserService userSvc,
             IMessageService messageService,
             ISearchService searchSvc,
+            ICacheService cacheSvc,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
-            INuGetExeDownloaderService nugetExeDownloaderSvc)
+            INuGetExeDownloaderService nugetExeDownloaderSvc,
+            IConfiguration config,
+            IPackageFileService packageFileSvc)
         {
             _packageSvc = packageSvc;
             _uploadFileSvc = uploadFileSvc;
@@ -42,6 +50,9 @@ namespace NuGetGallery
             _searchSvc = searchSvc;
             _autoCuratedPackageCmd = autoCuratedPackageCmd;
             _nugetExeDownloaderSvc = nugetExeDownloaderSvc;
+            _packageFileSvc = packageFileSvc;
+            _cacheSvc = cacheSvc;
+            _config = config;
         }
 
         [Authorize]
@@ -136,6 +147,7 @@ namespace NuGetGallery
                 return PackageNotFound(id, version);
             }
             var model = new DisplayPackageViewModel(package);
+            ViewBag.FacebookAppID = _config.FacebookAppID;
             return View(model);
         }
 
@@ -253,10 +265,10 @@ namespace NuGetGallery
             }
 
             var model = new ContactOwnersViewModel
-                {
-                    PackageId = package.Id,
-                    Owners = package.Owners.Where(u => u.EmailAllowed)
-                };
+            {
+                PackageId = package.Id,
+                Owners = package.Owners.Where(u => u.EmailAllowed)
+            };
 
             return View(model);
         }
@@ -285,6 +297,61 @@ namespace NuGetGallery
             string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
             return RedirectToAction(MVC.Packages.DisplayPackage(id, null));
+        }
+
+        public virtual ActionResult Contents(string id, string version)
+        {
+            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc).Result;
+            PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
+
+            var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
+            return View(viewModel);
+        }
+
+        [ActionName("file")]
+        public virtual ActionResult FileContent(string id, string version, string filePath)
+        {
+            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
+
+            IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc).Result;
+
+            IPackageFile file = packageFile.GetFiles().FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+            if (file == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            var result = new ContentResult
+            {
+                ContentEncoding = System.Text.Encoding.UTF8,
+                ContentType = "text/plain"
+            };
+
+            if (FileHelper.IsBinaryFile(file.Path))
+            {
+                result.Content = "The requested file is a binary file.";
+            }
+            else
+            {
+                using (var reader = new StreamReader(file.GetStream()))
+                {
+                    result.Content = reader.ReadToEnd();
+                }
+            }
+
+            return result;
         }
 
         // This is the page that explains why there's no download link.
@@ -550,12 +617,12 @@ namespace NuGetGallery
         private SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)
         {
             var searchFilter = new SearchFilter
-                {
-                    SearchTerm = q,
-                    Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
-                    Take = Constants.DefaultPackageListPageSize,
-                    IncludePrerelease = includePrerelease
-                };
+            {
+                SearchTerm = q,
+                Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
+                Take = Constants.DefaultPackageListPageSize,
+                IncludePrerelease = includePrerelease
+            };
 
             switch (sortOrder)
             {
@@ -575,5 +642,19 @@ namespace NuGetGallery
             }
             return searchFilter;
         }
+
+        private static string GetSortExpression(string sortOrder)
+        {
+            switch (sortOrder)
+            {
+                case Constants.AlphabeticSortOrder:
+                    return "PackageRegistration.Id";
+                case Constants.RecentSortOrder:
+                    return "Published desc";
+                case Constants.PopularitySortOrder:
+                default:
+                    return "PackageRegistration.DownloadCount desc";
+            }
+        }		
     }
 }

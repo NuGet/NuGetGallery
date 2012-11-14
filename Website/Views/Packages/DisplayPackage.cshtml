@@ -4,6 +4,36 @@
     ViewBag.Title = Model.Title + " " + Model.Version;
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
+}
+@section OpenGraph {
+    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
+        <meta property="fb:app_id" content="@ViewBag.FacebookAppID" /> 
+    }
+    <meta property="og:title"       content="@Model.Title" />
+    <meta property="og:type"        content="nugetgallery:package" /> 
+    <meta property="og:url"         content="@absolutePackageUrl" /> 
+    <meta property="og:description" content="@Model.Description" /> 
+    <meta property="og:determiner"  content="a" />
+    <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute(Links.Content.Images.packageDefaultIcon_png))" />
+}
+@section BottomScripts {
+    @* Facebook SDK *@
+    <div id="fb-root"></div>
+    <script>(function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
+        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
+    } else {
+        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+    }
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+    @* Twitter SDK *@
+    <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = "//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "twitter-wjs");</script>
 }
 @section SideColumn {
     <img class="logo" src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src = '@Content.Images.packageDefaultIcon_png';" />
@@ -52,6 +82,7 @@
                 <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
                 <li><a href="@Url.DeletePackage(Model)" class="delete">Delete Package</a></li>
             }
+            <li><a href="@Url.ViewPackageContents(Model)">View Package Contents</a></li>
         </ul>
     </nav>
 }
@@ -102,6 +133,9 @@
                     <text> -Pre </text>
                 }</code></p>
     </div>
+ 
+    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out this cool #nuget package!" data-via="nuget">Tweet</a></div>
+    <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -18,6 +19,10 @@ namespace NuGetGallery
             string fileName);
 
         Stream GetFile(
+            string folderName,
+            string fileName);
+
+        Task<Stream> GetFileAsync(
             string folderName,
             string fileName);
 

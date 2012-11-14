@@ -8,6 +8,7 @@ using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Microsoft.WindowsAzure;
+using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.StorageClient;
 using Ninject;
 using Ninject.Modules;
@@ -37,6 +38,21 @@ namespace NuGetGallery
             Bind<ISearchService>()
                 .To<LuceneSearchService>()
                 .InRequestScope();
+            
+            if (CanBindCache())
+            {
+                // when running on Windows Azure, use the Azure Cache service
+                Bind<ICacheService>()
+                    .To<CloudCacheService>()
+                    .InSingletonScope();
+            }
+            else
+            {
+                // when running locally on dev box, use the built-in ASP.NET Http Cache
+                Bind<ICacheService>()
+                    .To<HttpCacheService>()
+                    .InSingletonScope();
+            }
 
             Bind<IEntitiesContext>()
                 .ToMethod(context => new EntitiesContext())
@@ -226,6 +242,23 @@ namespace NuGetGallery
             Bind<IPackageVersionsQuery>()
                 .To<PackageVersionsQuery>()
                 .InRequestScope();
+        }
+
+        private bool CanBindCache()
+        {
+            try
+            {
+                if (RoleEnvironment.IsAvailable)
+                {
+                    return true;
+                }
+            }
+            catch (TypeInitializationException)
+            {
+                // Catch 'Could not load file or assembly 'msshrtmi' from not having Azure SDK installed.
+            }
+
+            return false;
         }
     }
 }

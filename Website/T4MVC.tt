@@ -15,7 +15,7 @@ Related blog posts: http://blogs.msdn.com/davidebb/archive/tags/T4MVC/default.as
 Please use in accordance to the MvcContrib license (http://mvccontrib.codeplex.com/license)
 */
 #>
-<#@ template language="C#v3.5" debug="true" hostspecific="true" #>
+<#@ template language="C#" debug="true" hostspecific="true" #>
 <#@ assembly name="System.Core" #>
 <#@ assembly name="Microsoft.VisualStudio.Shell.Interop.8.0" #>
 <#@ assembly name="EnvDTE" #>

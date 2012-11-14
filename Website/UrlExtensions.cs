@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System;
+using System.Web.Mvc;
 
 namespace NuGetGallery
 {
@@ -8,6 +9,13 @@ namespace NuGetGallery
         public static string Current(this UrlHelper url)
         {
             return url.RequestContext.HttpContext.Request.RawUrl;
+        }
+
+        public static string Absolute(this UrlHelper url, string path)
+        {
+            UriBuilder builder = GetCanonicalUrl(url);
+            builder.Path = path;
+            return builder.Uri.AbsoluteUri;
         }
 
         public static string Home(this UrlHelper url)
@@ -87,6 +95,21 @@ namespace NuGetGallery
             return url.Action(MVC.Packages.Delete(package.Id, package.Version));
         }
 
+        public static string ViewPackageContents(this UrlHelper url, IPackageVersionModel package)
+        {
+            return url.RouteUrl(RouteName.PackageFileContentsAction, new { id = package.Id, version = package.Version });
+        }
+
+        public static string ViewPackageFile(this UrlHelper url, string id, string version)
+        {
+            return url.RouteUrl(RouteName.PackageFilePathAction, new { id = id, version = version, action="View" });
+        }
+
+        public static string DownloadPackageFile(this UrlHelper url, string id, string version)
+        {
+            return url.RouteUrl(RouteName.PackageFilePathAction, new { id = id, version = version, action = "Download" });
+        }
+
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)
         {
             return url.Action(MVC.Packages.ManagePackageOwners(package.Id, package.Version));
@@ -100,6 +123,17 @@ namespace NuGetGallery
         public static string VerifyPackage(this UrlHelper url)
         {
             return url.Action(MVC.Packages.VerifyPackage());
+        }
+
+        private static UriBuilder GetCanonicalUrl(UrlHelper url)
+        {
+            UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
+            builder.Query = String.Empty;
+            if (builder.Host.StartsWith("www."))
+            {
+                builder.Host = builder.Host.Substring(4);
+            }
+            return builder;
         }
     }
 }
