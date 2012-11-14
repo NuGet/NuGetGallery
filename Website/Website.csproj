@@ -114,8 +114,7 @@
     <Reference Include="MiniProfiler.EntityFramework">
       <HintPath>..\packages\MiniProfiler.EF.2.0.1-rc1\lib\net40\MiniProfiler.EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="MvcHaack.Ajax, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="MvcHaack.Ajax">
       <HintPath>..\packages\MvcHaack.Ajax.MVC4.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
