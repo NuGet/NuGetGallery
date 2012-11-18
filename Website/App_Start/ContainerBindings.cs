@@ -9,9 +9,11 @@ using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Ninject;
 using Ninject.Modules;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 
 namespace NuGetGallery
 {
@@ -170,7 +172,7 @@ namespace NuGetGallery
                                                new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
                                                configuration.UseEmulator
                                                    ? CloudStorageAccount.DevelopmentStorageAccount.Credentials
-                                                   : new StorageCredentialsAccountAndKey(
+                                                   : new StorageCredentials(
                                                          configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
                         .InSingletonScope();
                     Bind<IFileStorageService>()

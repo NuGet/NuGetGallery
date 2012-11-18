@@ -4,7 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 
 namespace NuGetGallery
 {
@@ -80,7 +81,8 @@ namespace NuGetGallery
             catch (TestableStorageClientException ex)
             {
                 stream.Dispose();
-                if (ex.ErrorCode == StorageErrorCode.BlobNotFound)
+
+                if (ex.ErrorCode == StorageErrorCodeStrings.ResourceNotFound)
                 {
                     return null;
                 }

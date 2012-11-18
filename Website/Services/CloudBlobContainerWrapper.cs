@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAzure.StorageClient;
+﻿using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
 {
@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         public void CreateIfNotExist()
         {
-            _blobContainer.CreateIfNotExist();
+            _blobContainer.CreateIfNotExists();
         }
 
         public void SetPermissions(BlobContainerPermissions permissions)
@@ -21,9 +21,9 @@ namespace NuGetGallery
             _blobContainer.SetPermissions(permissions);
         }
 
-        public ICloudBlob GetBlobReference(string blobAddressUri)
+        public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
         {
-            return new CloudBlobWrapper(_blobContainer.GetBlobReference(blobAddressUri));
+            return new CloudBlobWrapper(_blobContainer.GetBlobReferenceFromServer(blobAddressUri));
         }
     }
 }
