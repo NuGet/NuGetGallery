@@ -1,14 +1,16 @@
 ﻿using System;
 using System.IO;
-using Microsoft.WindowsAzure.StorageClient;
+using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
 {
-    public class CloudBlobWrapper : ICloudBlob
+    public class CloudBlobWrapper : ISimpleCloudBlob
     {
-        private readonly CloudBlob _blob;
+        private readonly ICloudBlob _blob;
 
-        public CloudBlobWrapper(CloudBlob blob)
+        public CloudBlobWrapper(ICloudBlob blob)
         {
             _blob = blob;
         }
@@ -34,7 +36,19 @@ namespace NuGetGallery
             {
                 _blob.DownloadToStream(target);
             }
-            catch (StorageClientException ex)
+            catch (StorageException ex)
+            {
+                throw new TestableStorageClientException(ex);
+            }
+        }
+
+        public Task DownloadToStreamAsync(Stream target)
+        {
+            try
+            {
+                return Task.Factory.FromAsync(_blob.BeginDownloadToStream(target, null, null), _blob.EndDownloadToStream);
+            }
+            catch (StorageException ex)
             {
                 throw new TestableStorageClientException(ex);
             }
@@ -47,13 +61,15 @@ namespace NuGetGallery
                 _blob.FetchAttributes();
                 return true;
             }
-            catch (StorageClientException e)
+            catch (StorageException)
             {
-                if (e.ErrorCode == StorageErrorCode.ResourceNotFound)
-                {
-                    return false;
-                }
-                else
+                // TOFIX
+
+                //if (e.ErrorCode == StorageErrorCode.ResourceNotFound)
+                //{
+                //    return false;
+                //}
+                //else
                 {
                     throw;
                 }

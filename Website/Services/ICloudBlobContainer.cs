@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAzure.StorageClient;
+﻿using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
 {
@@ -6,6 +6,6 @@ namespace NuGetGallery
     {
         void CreateIfNotExist();
         void SetPermissions(BlobContainerPermissions permissions);
-        ICloudBlob GetBlobReference(string blobAddressUri);
+        ISimpleCloudBlob GetBlobReference(string blobAddressUri);
     }
 }
