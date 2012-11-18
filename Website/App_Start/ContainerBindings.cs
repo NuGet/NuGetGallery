@@ -7,13 +7,12 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
-using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Ninject;
 using Ninject.Modules;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
 
 namespace NuGetGallery
 {
