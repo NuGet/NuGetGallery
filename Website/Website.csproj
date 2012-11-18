@@ -441,6 +441,8 @@
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
     <Compile Include="Services\ICloudBlob.cs" />
+    <Compile Include="Services\ICacheService.cs" />
+    <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
