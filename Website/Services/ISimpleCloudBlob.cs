@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
 {
-    public interface ICloudBlob
+    public interface ISimpleCloudBlob
     {
         BlobProperties Properties { get; }
         Uri Uri { get; }

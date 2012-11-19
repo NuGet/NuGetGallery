@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using Microsoft.WindowsAzure.StorageClient;
-using Elmah;
 using System.Collections;
-using Microsoft.WindowsAzure;
+using System.Linq;
+using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Table.DataServices;
 
 namespace NuGetGallery
 {
@@ -36,7 +34,7 @@ namespace NuGetGallery
                     ErrorXml.DecodeString(
                         CloudStorageAccount.Parse(connectionString)
                                            .CreateCloudTableClient()
-                                           .GetDataServiceContext()
+                                           .GetTableServiceContext()
                                            .CreateQuery<ErrorEntity>(TableName)
                                            .Where(e => e.PartitionKey == string.Empty && e.RowKey == id)
                                            .Single()
@@ -48,9 +46,8 @@ namespace NuGetGallery
                 var count = 0;
                 var errors = CloudStorageAccount.Parse(connectionString)
                                                 .CreateCloudTableClient()
-                                                .GetDataServiceContext()
+                                                .GetTableServiceContext()
                                                 .CreateQuery<ErrorEntity>(TableName).Where(e => e.PartitionKey == string.Empty)
-                                                .AsTableServiceQuery()
                                                 .Take((pageIndex + 1) * pageSize)
                                                 .ToList()
                                                 .Skip(pageIndex * pageSize);
@@ -67,7 +64,7 @@ namespace NuGetGallery
                 var entity = new ErrorEntity(error);
                 var context = CloudStorageAccount.Parse(connectionString)
                                                  .CreateCloudTableClient()
-                                                 .GetDataServiceContext();
+                                                 .GetTableServiceContext();
                 context.AddObject(TableName, entity);
                 context.SaveChangesWithRetries();
                 return entity.RowKey;
@@ -89,7 +86,8 @@ namespace NuGetGallery
             {
                 CloudStorageAccount.Parse(connectionString)
                                    .CreateCloudTableClient()
-                                   .CreateTableIfNotExist(TableName);
+                                   .GetTableReference(TableName)
+                                   .CreateIfNotExists();
             }
         }
 
