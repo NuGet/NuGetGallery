@@ -93,7 +93,7 @@
     </Reference>
     <Reference Include="Microsoft.Data.OData.Contrib, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.Data.OData.Contrib.5.1.0.51114\lib\net40\Microsoft.Data.OData.Contrib.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Data.OData.Contrib.5.1.0.51119\lib\net40\Microsoft.Data.OData.Contrib.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.Helpers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -440,8 +440,6 @@
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
-    <Compile Include="Services\ICloudBlob.cs" />
-    <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
