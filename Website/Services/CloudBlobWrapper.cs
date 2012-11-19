@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 
 namespace NuGetGallery
 {
@@ -61,15 +62,13 @@ namespace NuGetGallery
                 _blob.FetchAttributes();
                 return true;
             }
-            catch (StorageException)
+            catch (StorageException e)
             {
-                // TOFIX
-
-                //if (e.ErrorCode == StorageErrorCode.ResourceNotFound)
-                //{
-                //    return false;
-                //}
-                //else
+                if (e.RequestInformation.ExtendedErrorInformation.ErrorCode == StorageErrorCodeStrings.ResourceNotFound)
+                {
+                    return false;
+                }
+                else
                 {
                     throw;
                 }
