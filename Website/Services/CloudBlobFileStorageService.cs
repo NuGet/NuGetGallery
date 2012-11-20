@@ -54,28 +54,44 @@ namespace NuGetGallery
             return blob.Exists();
         }
 
-        ICloudBlobContainer GetContainer(string folderName)
+        // TODO: Delete this method and update all callers to use the GetFileAsync() method.
+        public Stream GetFile(string folderName, string fileName)
         {
-            return containers[folderName];
-        }
-
-        static string GetContentType(string folderName)
-        {
-            switch (folderName)
+            if (String.IsNullOrWhiteSpace(folderName))
             {
-                case Constants.PackagesFolderName:
-                case Constants.UploadsFolderName:
-                    return Constants.PackageContentType;
-                case Constants.DownloadsFolderName:
-                    return Constants.OctetStreamContentType;
-                default:
-                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+                throw new ArgumentNullException("folderName");
             }
+
+            if (String.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException("fileName");
+            }
+
+            var container = GetContainer(folderName);
+            var blob = container.GetBlobReference(fileName);
+            var stream = new MemoryStream();
+            try
+            {
+                blob.DownloadToStream(stream);
+            }
+            catch (TestableStorageClientException ex)
+            {
+                stream.Dispose();
+                if (ex.ErrorCode == StorageErrorCodeStrings.ResourceNotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            stream.Position = 0;
+            return stream;
         }
 
-        public Stream GetFile(
-            string folderName,
-            string fileName)
+        public async Task<Stream> GetFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
                 throw new ArgumentNullException("folderName");
