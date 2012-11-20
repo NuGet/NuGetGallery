@@ -200,7 +200,7 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var ex = TaskAssert.ThrowsAggregate<ArgumentNullException>(() => { service.GetFile("theFolderName", fileName); });
+                var ex = Assert.Throws<ArgumentNullException>(() => { service.GetFile("theFolderName", fileName); });
 
                 Assert.Equal("fileName", ex.ParamName);
             }
@@ -216,7 +216,7 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var ex = TaskAssert.ThrowsAggregate<ArgumentNullException>(() => { service.GetFile(folderName, "theFileName"); });
+                var ex = Assert.Throws<ArgumentNullException>(() => { service.GetFile(folderName, "theFileName"); });
 
                 Assert.Equal("folderName", ex.ParamName);
             }
@@ -243,12 +243,12 @@ namespace NuGetGallery
                                 }
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Verifiable();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 service.GetFile(folderName, "theFileName");
 
-                fakeBlob.Verify(x => x.DownloadToStreamAsync(It.IsAny<Stream>()));
+                fakeBlob.Verify();
             }
 
             [Theory]
@@ -272,7 +272,7 @@ namespace NuGetGallery
                                 }
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Callback<Stream>(x => { x.WriteByte(42); }).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Callback<Stream>(x => { x.WriteByte(42); });
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 var stream = service.GetFile(folderName, "theFileName");
@@ -301,7 +301,7 @@ namespace NuGetGallery
                                 }
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Throws(
+                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Throws(
                     new TestableStorageClientException { ErrorCode = StorageErrorCode.BlobNotFound });
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
