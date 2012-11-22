@@ -34,17 +34,17 @@ namespace NuGetGallery
             var uploadPackageRoute = routes.MapRoute(
                 RouteName.UploadPackage,
                 "packages/upload",
-                MVC.Packages.UploadPackage());
+                new { controller = MVC.Packages.Name, action = "UploadPackage" });
 
             routes.MapRoute(
                 RouteName.VerifyPackage,
                 "packages/verify-upload",
-                MVC.Packages.VerifyPackage());
+                new { controller = MVC.Packages.Name, action = "VerifyPackage" });
 
             routes.MapRoute(
                 RouteName.CancelUpload,
                 "packages/cancel-upload",
-                MVC.Packages.CancelUpload());
+                new { controller = MVC.Packages.Name, action = "CancelUpload"});
 
             routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
@@ -156,14 +156,14 @@ namespace NuGetGallery
             var downloadRoute = routes.MapRoute(
                 "v1" + RouteName.DownloadPackage,
                 "api/v1/package/{id}/{version}",
-                MVC.Api.GetPackage(),
-                defaults: new { version = UrlParameter.Optional },
+                defaults: new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v1" + RouteName.PushPackageApi,
                 "v1/PackageFiles/{apiKey}/nupkg",
-                MVC.Api.CreatePackagePost());
+                defaults: new { controller = MVC.Api.Name, action = "PushPackageApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 "v1" + RouteName.DeletePackageApi,
@@ -190,22 +190,19 @@ namespace NuGetGallery
             routes.MapRoute(
                 "v2CuratedFeeds" + RouteName.DownloadPackage,
                 "api/v2/curated-feeds/package/{id}/{version}",
-                MVC.Api.GetPackage(),
-                defaults: new { version = UrlParameter.Optional },
+                defaults: new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
                 "api/v2/package/{id}/{version}",
-                MVC.Api.GetPackage(),
-                defaults: new { version = UrlParameter.Optional },
+                defaults: new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v2" + RouteName.PushPackageApi,
                 "api/v2/package",
-                MVC.Api.CreatePackagePut(),
-                defaults: null,
+                defaults: new { controller = MVC.Api.Name, action = "PushPackageApi" },
                 constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
@@ -245,7 +242,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
-                new { controller = MVC.Api.Name, action = MVC.Api.ActionNames.GetNuGetExe });
+                new { controller = MVC.Api.Name, action = "GetNuGetExeApi" });
 
             // Redirected Legacy Routes
 
@@ -294,14 +291,14 @@ namespace NuGetGallery
                 r => r.MapRoute(
                     RouteName.NewSubmission,
                     "Contribute/NewSubmission",
-                    MVC.Packages.UploadPackage()),
+                    new { controller = MVC.Packages.Name, action = "UploadPackage" }),
                 permanent: true).To(uploadPackageRoute);
 
             routes.Redirect(
                 r => r.MapRoute(
                     "LegacyDownloadRoute",
                     "v1/Package/Download/{id}/{version}",
-                    MVC.Api.GetPackage().AddRouteValue("version", UrlParameter.Optional)),
+                    new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional }),
                 permanent: true).To(downloadRoute);
         }
     }

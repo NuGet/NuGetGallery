@@ -26,21 +26,9 @@ namespace NuGetGallery
             get { return _blob.Uri; }
         }
 
-        public void DeleteIfExists()
+        public Task DeleteIfExistsAsync()
         {
-            _blob.DeleteIfExists();
-        }
-
-        public void DownloadToStream(Stream target)
-        {
-            try
-            {
-                _blob.DownloadToStream(target);
-            }
-            catch (StorageException ex)
-            {
-                throw new TestableStorageClientException(ex);
-            }
+            return Task.Factory.FromAsync<bool>(_blob.BeginDeleteIfExists(null, null), _blob.EndDeleteIfExists);
         }
 
         public Task DownloadToStreamAsync(Stream target)
@@ -55,11 +43,11 @@ namespace NuGetGallery
             }
         }
 
-        public bool Exists()
+        public async Task<bool> ExistsAsync()
         {
             try
             {
-                _blob.FetchAttributes();
+                await Task.Factory.FromAsync(_blob.BeginFetchAttributes(null, null), _blob.EndFetchAttributes);
                 return true;
             }
             catch (StorageException e)
@@ -75,14 +63,14 @@ namespace NuGetGallery
             }
         }
 
-        public void SetProperties()
+        public Task SetPropertiesAsync()
         {
-            _blob.SetProperties();
+            return Task.Factory.FromAsync(_blob.BeginSetProperties(null, null), _blob.EndSetProperties);
         }
 
-        public void UploadFromStream(Stream packageFile)
+        public Task UploadFromStreamAsync(Stream packageFile)
         {
-            _blob.UploadFromStream(packageFile);
+            return Task.Factory.FromAsync(_blob.BeginUploadFromStream(packageFile, null, null), _blob.EndUploadFromStream);
         }
     }
 }

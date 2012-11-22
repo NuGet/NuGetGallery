@@ -33,23 +33,8 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult GetPackage() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.GetPackage);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult VerifyPackageKey() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.VerifyPackageKey);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult CreatePackagePut() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePut);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult CreatePackagePost() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePost);
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -84,11 +69,7 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string GetPackage = "GetPackageApi";
-            public readonly string GetNuGetExe = "GetNuGetExeApi";
             public readonly string VerifyPackageKey = "VerifyPackageKeyApi";
-            public readonly string CreatePackagePut = "PushPackageApi";
-            public readonly string CreatePackagePost = "PushPackageApi";
             public readonly string DeletePackage = "DeletePackageApi";
             public readonly string PublishPackage = "PublishPackageApi";
             public readonly string GetPackageIds = "PackageIDs";
@@ -108,35 +89,11 @@ namespace NuGetGallery {
     public class T4MVC_ApiController: NuGetGallery.ApiController {
         public T4MVC_ApiController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult GetPackage(string id, string version) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GetPackage);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult GetNuGetExe() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GetNuGetExe);
-            return callInfo;
-        }
-
         public override System.Web.Mvc.ActionResult VerifyPackageKey(string apiKey, string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.VerifyPackageKey);
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult CreatePackagePut(string apiKey) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePut);
-            callInfo.RouteValueDictionary.Add("apiKey", apiKey);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult CreatePackagePost(string apiKey) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CreatePackagePost);
-            callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             return callInfo;
         }
 

@@ -82,7 +82,7 @@ namespace NuGetGallery
 
         public static string UploadPackage(this UrlHelper url)
         {
-            return url.Action(MVC.Packages.UploadPackage());
+            return url.Action(actionName: "UploadPackage", controllerName: MVC.Packages.Name);
         }
 
         public static string EditPackage(this UrlHelper url, IPackageVersionModel package)
@@ -122,7 +122,12 @@ namespace NuGetGallery
 
         public static string VerifyPackage(this UrlHelper url)
         {
-            return url.Action(MVC.Packages.VerifyPackage());
+            return url.Action(actionName: "VerifyPackage", controllerName:  MVC.Packages.Name);
+        }
+
+        public static string CancelUpload(this UrlHelper url)
+        {
+            return url.Action(actionName: "CancelUpload", controllerName: MVC.Packages.Name);
         }
 
         private static UriBuilder GetCanonicalUrl(UrlHelper url)
