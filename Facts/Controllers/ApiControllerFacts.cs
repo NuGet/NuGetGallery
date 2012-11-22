@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -44,14 +45,14 @@ namespace NuGetGallery
         public class TheCreatePackageAction
         {
             [Fact]
-            public void WillReturnAn401IfTheApiKeyDoesNotExist()
+            public async Task WillReturnAn401IfTheApiKeyDoesNotExist()
             {
                 var userSvc = new Mock<IUserService>();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns((User)null);
                 var controller = CreateController(userSvc: userSvc);
 
                 // Act
-                var result = controller.CreatePackagePut(Guid.NewGuid().ToString());
+                var result = await controller.CreatePackagePut(Guid.NewGuid().ToString());
 
                 // Assert
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
@@ -63,12 +64,12 @@ namespace NuGetGallery
             [InlineData(null)]
             [InlineData("")]
             [InlineData("this-is-bad-guid")]
-            public void WillReturnAn401IfTheApiKeyIsNotAValidGuid(string guid)
+            public async Task WillReturnAn401IfTheApiKeyIsNotAValidGuid(string guid)
             {
                 var controller = CreateController();
 
                 // Act
-                var result = controller.CreatePackagePut(guid);
+                var result = await controller.CreatePackagePut(guid);
 
                 // Assert
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
@@ -77,7 +78,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillReturnConflictIfAPackageWithTheIdAndSemanticVersionAlreadyExists()
+            public async Task WillReturnConflictIfAPackageWithTheIdAndSemanticVersionAlreadyExists()
             {
                 var version = new SemanticVersion("1.0.42");
                 var nuGetPackage = new Mock<IPackage>();
@@ -99,7 +100,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc, packageFromInputStream: nuGetPackage.Object);
 
                 // Act
-                var result = controller.CreatePackagePut(Guid.NewGuid().ToString());
+                var result = await controller.CreatePackagePut(Guid.NewGuid().ToString());
 
                 // Assert
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
@@ -138,7 +139,7 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
-                packageSvc.Verify(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>()));
+                packageSvc.Verify(x => x.CreatePackageAsync(nuGetPackage.Object, It.IsAny<User>()));
             }
 
             [Fact]
@@ -155,7 +156,7 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
-                packageSvc.Verify(x => x.CreatePackage(It.IsAny<IPackage>(), matchingUser));
+                packageSvc.Verify(x => x.CreatePackageAsync(It.IsAny<IPackage>(), matchingUser));
             }
 
             [Fact]
@@ -166,10 +167,11 @@ namespace NuGetGallery
                 nuGetPackage.Setup(x => x.Id).Returns("NuGet.CommandLine");
                 nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>())).Returns(new Package { IsLatestStable = true });
+                packageSvc.Setup(p => p.CreatePackageAsync(nuGetPackage.Object, It.IsAny<User>()))
+                          .Returns(Task.FromResult(new Package { IsLatestStable = true }));
                 var userSvc = new Mock<IUserService>();
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
-                nugetExeDownloader.Setup(s => s.UpdateExecutable(nuGetPackage.Object)).Verifiable();
+                nugetExeDownloader.Setup(s => s.UpdateExecutableAsync(nuGetPackage.Object)).Verifiable();
                 var matchingUser = new User();
                 userSvc.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
                 var controller = CreateController(
@@ -190,8 +192,8 @@ namespace NuGetGallery
                 nuGetPackage.Setup(x => x.Id).Returns("NuGet.CommandLine");
                 nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("2.0.0-alpha"));
                 var packageSvc = new Mock<IPackageService>();
-                packageSvc.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>())).Returns(
-                    new Package { IsLatest = true, IsLatestStable = false });
+                packageSvc.Setup(p => p.CreatePackageAsync(nuGetPackage.Object, It.IsAny<User>()))
+                          .Returns(Task.FromResult(new Package { IsLatest = true, IsLatestStable = false }));
                 var userSvc = new Mock<IUserService>();
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var matchingUser = new User();
@@ -203,7 +205,7 @@ namespace NuGetGallery
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
                 // Assert
-                nugetExeDownloader.Verify(s => s.UpdateExecutable(It.IsAny<IPackage>()), Times.Never());
+                nugetExeDownloader.Verify(s => s.UpdateExecutableAsync(It.IsAny<IPackage>()), Times.Never());
             }
         }
 
@@ -325,7 +327,7 @@ namespace NuGetGallery
         public class TheGetPackageAction
         {
             [Fact]
-            public void GetPackageReturns404IfPackageIsNotFound()
+            public async Task GetPackageReturns404IfPackageIsNotFound()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
@@ -336,7 +338,7 @@ namespace NuGetGallery
                 var controller = CreateController(userSvc: userSvc, packageSvc: packageSvc);
 
                 // Act
-                var result = controller.GetPackage("Baz", "1.0.1");
+                var result = await controller.GetPackage("Baz", "1.0.1");
 
                 // Assert
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
@@ -346,7 +348,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void GetPackageReturnsPackageIfItExists()
+            public async Task GetPackageReturnsPackageIfItExists()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
@@ -357,7 +359,9 @@ namespace NuGetGallery
                 packageSvc.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux")).Verifiable();
 
                 var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
-                packageFileSvc.Setup(s => s.CreateDownloadPackageActionResult(package)).Returns(actionResult).Verifiable();
+                packageFileSvc.Setup(s => s.CreateDownloadPackageActionResultAsync(package))
+                              .Returns(Task.FromResult<ActionResult>(actionResult))
+                              .Verifiable();
                 var userSvc = new Mock<IUserService>(MockBehavior.Strict);
                 userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
@@ -372,7 +376,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = controller.GetPackage("Baz", "1.0.1");
+                var result = await controller.GetPackage("Baz", "1.0.1");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -381,7 +385,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void GetPackageReturnsLatestPackageIfNoVersionIsProvided()
+            public async Task GetPackageReturnsLatestPackageIfNoVersionIsProvided()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
@@ -392,7 +396,9 @@ namespace NuGetGallery
                 packageSvc.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux")).Verifiable();
 
                 var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
-                packageFileSvc.Setup(s => s.CreateDownloadPackageActionResult(package)).Returns(actionResult).Verifiable();
+                packageFileSvc.Setup(s => s.CreateDownloadPackageActionResultAsync(package))
+                              .Returns(Task.FromResult<ActionResult>(actionResult))
+                              .Verifiable();
                 var userSvc = new Mock<IUserService>(MockBehavior.Strict);
                 userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
@@ -407,7 +413,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = controller.GetPackage("Baz", "");
+                var result = await controller.GetPackage("Baz", "");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -416,7 +422,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void GetPackageReturnsRedirectResultWhenExternalPackageUrlIsNotNull()
+            public async Task GetPackageReturnsRedirectResultWhenExternalPackageUrlIsNotNull()
             {
                 var package = new Package { ExternalPackageUrl = "http://theUrl" };
                 var packageSvc = new Mock<IPackageService>();
@@ -430,7 +436,7 @@ namespace NuGetGallery
                 var controllerContext = new ControllerContext(new RequestContext(httpContext.Object, new RouteData()), controller);
                 controller.ControllerContext = controllerContext;
 
-                var result = controller.GetPackage("thePackage", "42.1066") as RedirectResult;
+                var result = await controller.GetPackage("thePackage", "42.1066") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal("http://theUrl", result.Url);

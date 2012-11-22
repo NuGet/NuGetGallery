@@ -10,61 +10,36 @@ using NuGetGallery.ViewModels.PackagePart;
 
 namespace NuGetGallery.Controllers
 {
-    public partial class PackageFilesController : AsyncController
+    public partial class PackageFilesController : Controller
     {
         private const long MaximumAllowedPackageFileSize = 3L * 1024 * 1024;		// maximum package size = 3MB
+        private const int MaximumPackageContentFileSize = 16 * 1024;                // maximum package content file to return before trimming = 16K
 
-        private readonly IPackageService packageSvc;
-        private readonly IPackageFileService packageFileSvc;
-        private readonly ICacheService cacheSvc;
+        private readonly IPackageService _packageSvc;
+        private readonly IPackageFileService _packageFileSvc;
+        private readonly ICacheService _cacheSvc;
 
         public PackageFilesController(IPackageService packageSvc, IPackageFileService packageFileSvc, ICacheService cacheSvc)
         {
-            this.packageSvc = packageSvc;
-            this.packageFileSvc = packageFileSvc;
-            this.cacheSvc = cacheSvc;
+            _packageSvc = packageSvc;
+            _packageFileSvc = packageFileSvc;
+            _cacheSvc = cacheSvc;
         }
 
-        public void ContentsAsync(string id, string version)
+        public async Task<ActionResult> Contents(string id, string version)
         {
-            Package package = packageSvc.FindPackageByIdAndVersion(id, version);
+            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                AsyncManager.Parameters["packageFile"] = null;
-                return;
+                return HttpNotFound();
             }
 
             if (package.PackageFileSize > MaximumAllowedPackageFileSize)
             {
-                AsyncManager.Parameters["fileTooBig"] = true;
-                return;
-            }
-
-            AsyncManager.OutstandingOperations.Increment();
-            Task<IPackage> downloadTask = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
-            downloadTask.ContinueWith(
-                task =>
-                {
-                    if (!task.IsFaulted && !task.IsCanceled)
-                    {
-                        AsyncManager.Parameters["packageFile"] = task.Result;
-                    }
-
-                    AsyncManager.OutstandingOperations.Decrement();
-                });
-        }
-
-        public ActionResult ContentsCompleted(bool fileTooBig, IPackage packageFile)
-        {
-            if (fileTooBig)
-            {
                 return View("PackageTooBig");
             }
 
-            if (packageFile == null)
-            {
-                return HttpNotFound();
-            }
+            IPackage packageFile = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc);
 
             PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
             var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
@@ -74,24 +49,10 @@ namespace NuGetGallery.Controllers
         [ActionName("View")]
         [CompressFilter]
         [CacheFilter(Duration = 60 * 60 * 24)]      // cache one day
-        public void ShowFileContentAsync(string id, string version, string filePath)
+        public async Task<ActionResult> ShowFileContent(string id, string version, string filePath)
         {
-            AsyncManager.OutstandingOperations.Increment();
-            TryGetPackageFile(id, version, filePath).ContinueWith(
-                task =>
-                {
-                    if (!task.IsFaulted && !task.IsCanceled)
-                    {
-                        AsyncManager.Parameters["packageFile"] = task.Result;
-                    }
-
-                    AsyncManager.OutstandingOperations.Decrement();
-                });
-        }
-
-        public ActionResult ShowFileContentCompleted(IPackageFile packageFile)
-        {
-            if (packageFile == null)
+            IPackageFile packageFile = await GetPackageFile(id, version, filePath);
+            if (packageFile == null) 
             {
                 return HttpNotFound();
             }
@@ -116,7 +77,7 @@ namespace NuGetGallery.Controllers
             {
                 using (var stream = packageFile.GetStream())
                 {
-                    result.Content = FileHelper.ReadTextTruncated(stream, maxLength: 8 * 1024);     // read maximum 8K
+                    result.Content = FileHelper.ReadTextTruncated(stream, maxLength: MaximumPackageContentFileSize);
                 }
             }
 
@@ -124,34 +85,25 @@ namespace NuGetGallery.Controllers
         }
 
         [ActionName("Download")]
-        public void DownloadFileContentAsync(string id, string version, string filePath)
+        public async Task<ActionResult> DownloadFileContent(string id, string version, string filePath)
         {
-            AsyncManager.OutstandingOperations.Increment();
-            TryGetPackageFile(id, version, filePath).ContinueWith(
-                task =>
-                {
-                    if (!task.IsFaulted && !task.IsCanceled)
-                    {
-                        AsyncManager.Parameters["packageFile"] = task.Result;
-                    }
+            IPackageFile packageFile = await GetPackageFile(id, version, filePath);
+            if (packageFile == null)
+            {
+                return HttpNotFound();
+            }
 
-                    AsyncManager.OutstandingOperations.Decrement();
-                });
-        }
-
-        public ActionResult DownloadFileContentCompleted(IPackageFile packageFile)
-        {
             return File(packageFile.GetStream(), "application/octet-stream", Path.GetFileName(packageFile.Path));
         }
 
-        private async Task<IPackageFile> TryGetPackageFile(string id, string version, string filePath)
+        private async Task<IPackageFile> GetPackageFile(string id, string version, string filePath)
         {
             if (String.IsNullOrEmpty(filePath))
             {
                 return null;
             }
 
-            Package package = packageSvc.FindPackageByIdAndVersion(id, version);
+            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
             if (package == null || package.PackageFileSize > MaximumAllowedPackageFileSize)
             {
                 return null;
@@ -159,7 +111,7 @@ namespace NuGetGallery.Controllers
 
             filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
 
-            IPackage packageWithContents = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, cacheSvc, packageFileSvc);
+            IPackage packageWithContents = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc);
 
             IPackageFile packageFile = packageWithContents.GetFiles()
                                                           .FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));

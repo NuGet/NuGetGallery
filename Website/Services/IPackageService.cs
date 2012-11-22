@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet;
 
 namespace NuGetGallery
 {
     public interface IPackageService
     {
-        Package CreatePackage(IPackage nugetPackage, User currentUser);
+        Task<Package> CreatePackageAsync(IPackage nugetPackage, User currentUser);
 
-        void DeletePackage(string id, string version);
+        Task DeletePackageAsync(string id, string version);
 
         PackageRegistration FindPackageRegistrationById(string id);
 

@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGet;
 
 namespace NuGetGallery
 {
@@ -10,25 +9,20 @@ namespace NuGetGallery
         /// <summary>
         ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
-        ActionResult CreateDownloadPackageActionResult(Package package);
+        Task<ActionResult> CreateDownloadPackageActionResultAsync(Package package);
 
         /// <summary>
         ///     Deletes the nupkg from the file storage.
         /// </summary>
-        void DeletePackageFile(string id, string version);
+        Task DeletePackageFileAsync(string id, string version);
 
         /// <summary>
         ///     Saves the contents of the package represented by the stream into the file storage.
         /// </summary>
-        void SavePackageFile(Package package, Stream packageFile);
+        Task SavePackageFileAsync(Package package, Stream packageFile);
 
         /// <summary>
-        ///     Downloads the package from the file storage and reads it into a Stream.
-        /// </summary>
-        Stream DownloadPackageFile(Package package);
-
-        /// <summary>
-        /// Downloads the package from the file storage and reads it into a Stream asynchronously.
+        ///     Downloads the package from the file storage and reads it into a Stream asynchronously.
         /// </summary>
         Task<Stream> DownloadPackageFileAsync(Package packge);
     }

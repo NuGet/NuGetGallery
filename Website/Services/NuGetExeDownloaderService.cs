@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet;
 
@@ -23,52 +24,49 @@ namespace NuGetGallery
             _fileStorageSvc = fileStorageSvc;
         }
 
-        public ActionResult CreateNuGetExeDownloadActionResult()
+        public async Task<ActionResult> CreateNuGetExeDownloadActionResultAsync()
         {
-            EnsureNuGetExe();
-            return _fileStorageSvc.CreateDownloadFileActionResult(Constants.DownloadsFolderName, "nuget.exe");
+            await EnsureNuGetExe();
+            return await _fileStorageSvc.CreateDownloadFileActionResultAsync(Constants.DownloadsFolderName, "nuget.exe");
         }
 
-        public void UpdateExecutable(IPackage zipPackage)
+        public Task UpdateExecutableAsync(IPackage zipPackage)
         {
-            lock (fileLock)
-            {
-                ExtractNuGetExe(zipPackage);
-            }
+            return ExtractNuGetExe(zipPackage);
         }
 
-        private void EnsureNuGetExe()
+        private async Task EnsureNuGetExe()
         {
-            if (_fileStorageSvc.FileExists(Constants.DownloadsFolderName, "nuget.exe"))
+            if (await _fileStorageSvc.FileExistsAsync(Constants.DownloadsFolderName, "nuget.exe"))
             {
                 // Ensure the file exists on blob storage.
                 return;
             }
 
-            lock (fileLock)
+            var package = _packageSvc.FindPackageByIdAndVersion("NuGet.CommandLine", version: null, allowPrerelease: false);
+            if (package == null)
             {
-                var package = _packageSvc.FindPackageByIdAndVersion("NuGet.CommandLine", version: null, allowPrerelease: false);
-                if (package == null)
-                {
-                    throw new InvalidOperationException("Unable to find NuGet.CommandLine.");
-                }
+                throw new InvalidOperationException("Unable to find NuGet.CommandLine.");
+            }
 
-                using (var packageStream = _packageFileSvc.DownloadPackageFile(package))
-                {
-                    var zipPackage = new ZipPackage(packageStream);
-                    ExtractNuGetExe(zipPackage);
-                }
+            using (Stream packageStream = await _packageFileSvc.DownloadPackageFileAsync(package))
+            {
+                var zipPackage = new ZipPackage(packageStream);
+                await ExtractNuGetExe(zipPackage);
             }
         }
 
-        private void ExtractNuGetExe(IPackage package)
+        private Task ExtractNuGetExe(IPackage package)
         {
-            var executable = package.GetFiles("tools")
-                .First(f => f.Path.Equals(@"tools\NuGet.exe", StringComparison.OrdinalIgnoreCase));
-
-            using (Stream packageFileStream = executable.GetStream())
+            lock (fileLock)
             {
-                _fileStorageSvc.SaveFile(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
+                var executable = package.GetFiles("tools")
+                                        .First(f => f.Path.Equals(@"tools\NuGet.exe", StringComparison.OrdinalIgnoreCase));
+
+                using (Stream packageFileStream = executable.GetStream())
+                {
+                    return _fileStorageSvc.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
+                }
             }
         }
     }

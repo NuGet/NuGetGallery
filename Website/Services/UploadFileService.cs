@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -13,7 +14,7 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService;
         }
 
-        public void DeleteUploadFile(int userKey)
+        public Task DeleteUploadFileAsync(int userKey)
         {
             if (userKey < 1)
             {
@@ -22,10 +23,10 @@ namespace NuGetGallery
 
             var uploadFileName = BuildFileName(userKey);
 
-            _fileStorageService.DeleteFile(Constants.UploadsFolderName, uploadFileName);
+            return _fileStorageService.DeleteFileAsync(Constants.UploadsFolderName, uploadFileName);
         }
 
-        public Stream GetUploadFile(int userKey)
+        public Task<Stream> GetUploadFileAsync(int userKey)
         {
             if (userKey < 1)
             {
@@ -34,17 +35,16 @@ namespace NuGetGallery
 
             var uploadFileName = BuildFileName(userKey);
 
-            return _fileStorageService.GetFile(Constants.UploadsFolderName, uploadFileName);
+            return _fileStorageService.GetFileAsync(Constants.UploadsFolderName, uploadFileName);
         }
 
-        public void SaveUploadFile(
-            int userKey,
-            Stream packageFileStream)
+        public Task SaveUploadFileAsync(int userKey, Stream packageFileStream)
         {
             if (userKey < 1)
             {
                 throw new ArgumentException("A user key is required.", "userKey");
             }
+
             if (packageFileStream == null)
             {
                 throw new ArgumentNullException("packageFileStream");
@@ -52,7 +52,7 @@ namespace NuGetGallery
 
             var uploadFileName = BuildFileName(userKey);
 
-            _fileStorageService.SaveFile(Constants.UploadsFolderName, uploadFileName, packageFileStream);
+            return _fileStorageService.SaveFileAsync(Constants.UploadsFolderName, uploadFileName, packageFileStream);
         }
 
         private static string BuildFileName(int userKey)
