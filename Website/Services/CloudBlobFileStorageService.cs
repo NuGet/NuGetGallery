@@ -67,11 +67,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            var container = GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
             var stream = new MemoryStream();
             try
             {
+                var container = GetContainer(folderName);
+                var blob = container.GetBlobReference(fileName);
                 blob.DownloadToStream(stream);
             }
             catch (TestableStorageClientException ex)
