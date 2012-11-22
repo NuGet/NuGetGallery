@@ -1,15 +1,14 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
     public interface IUploadFileService
     {
-        void DeleteUploadFile(int userKey);
+        Task DeleteUploadFileAsync(int userKey);
 
-        Stream GetUploadFile(int userKey);
+        Task<Stream> GetUploadFileAsync(int userKey);
 
-        void SaveUploadFile(
-            int userKey,
-            Stream packageFileStream);
+        Task SaveUploadFileAsync(int userKey, Stream packageFileStream);
     }
 }

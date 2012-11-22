@@ -15,16 +15,13 @@ namespace NuGetGallery
             _fileStorageSvc = fileStorageSvc;
         }
 
-        public ActionResult CreateDownloadPackageActionResult(Package package)
+        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Package package)
         {
             var fileName = BuildFileName(package);
-
-            return _fileStorageSvc.CreateDownloadFileActionResult(
-                Constants.PackagesFolderName,
-                fileName);
+            return _fileStorageSvc.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, fileName);
         }
 
-        public void DeletePackageFile(string id, string version)
+        public Task DeletePackageFileAsync(string id, string version)
         {
             if (String.IsNullOrWhiteSpace(id))
             {
@@ -37,13 +34,10 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(id, version);
-
-            _fileStorageSvc.DeleteFile(
-                Constants.PackagesFolderName,
-                fileName);
+            return _fileStorageSvc.DeleteFileAsync(Constants.PackagesFolderName, fileName);
         }
 
-        public void SavePackageFile(Package package, Stream packageFile)
+        public Task SavePackageFileAsync(Package package, Stream packageFile)
         {
             if (packageFile == null)
             {
@@ -51,20 +45,13 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(package);
-
-            _fileStorageSvc.SaveFile(
-                Constants.PackagesFolderName,
-                fileName,
-                packageFile);
+            return _fileStorageSvc.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile);
         }
 
-        public Stream DownloadPackageFile(Package package)
+        public Task<Stream> DownloadPackageFile(Package package)
         {
             var fileName = BuildFileName(package);
-
-            return _fileStorageSvc.GetFile(
-                Constants.PackagesFolderName,
-                fileName);
+            return _fileStorageSvc.GetFileAsync(Constants.PackagesFolderName, fileName);
         }
 
         public Task<Stream> DownloadPackageFileAsync(Package package)
@@ -90,9 +77,9 @@ namespace NuGetGallery
                 throw new ArgumentNullException("package");
             }
 
-            if (package.PackageRegistration == null
-                || String.IsNullOrWhiteSpace(package.PackageRegistration.Id)
-                || String.IsNullOrWhiteSpace(package.Version))
+            if (package.PackageRegistration == null || 
+                String.IsNullOrWhiteSpace(package.PackageRegistration.Id) || 
+                String.IsNullOrWhiteSpace(package.Version))
             {
                 throw new ArgumentException("The package is missing required data.", "package");
             }

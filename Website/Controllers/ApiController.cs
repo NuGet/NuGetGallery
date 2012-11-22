@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
 using NuGet;
@@ -30,7 +31,7 @@ namespace NuGetGallery
 
         [ActionName("GetPackageApi")]
         [HttpGet]
-        public virtual ActionResult GetPackage(string id, string version)
+        public virtual async Task<ActionResult> GetPackage(string id, string version)
         {
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
             // The allow prerelease flag is ignored if both partialId and version are specified.
@@ -53,16 +54,16 @@ namespace NuGetGallery
             }
             else
             {
-                return _packageFileSvc.CreateDownloadPackageActionResult(package);
+                return await _packageFileSvc.CreateDownloadPackageActionResultAsync(package);
             }
         }
 
         [ActionName("GetNuGetExeApi")]
         [HttpGet]
         [OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
-        public virtual ActionResult GetNuGetExe()
+        public virtual Task<ActionResult> GetNuGetExe()
         {
-            return _nugetExeDownloaderSvc.CreateNuGetExeDownloadActionResult();
+            return _nugetExeDownloaderSvc.CreateNuGetExeDownloadActionResultAsync();
         }
 
         [ActionName("VerifyPackageKeyApi")]
@@ -105,19 +106,19 @@ namespace NuGetGallery
 
         [ActionName("PushPackageApi")]
         [HttpPut]
-        public virtual ActionResult CreatePackagePut(string apiKey)
+        public virtual Task<ActionResult> CreatePackagePut(string apiKey)
         {
             return CreatePackageInternal(apiKey);
         }
 
         [ActionName("PushPackageApi")]
         [HttpPost]
-        public virtual ActionResult CreatePackagePost(string apiKey)
+        public virtual Task<ActionResult> CreatePackagePost(string apiKey)
         {
             return CreatePackageInternal(apiKey);
         }
 
-        private ActionResult CreatePackageInternal(string apiKey)
+        private async Task<ActionResult> CreatePackageInternal(string apiKey)
         {
             Guid parsedApiKey;
             if (!Guid.TryParse(apiKey, out parsedApiKey))
@@ -156,11 +157,11 @@ namespace NuGetGallery
                 }
             }
 
-            var package = _packageSvc.CreatePackage(packageToPush, user);
+            var package = await _packageSvc.CreatePackageAsync(packageToPush, user);
             if (packageToPush.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
             {
                 // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
-                _nugetExeDownloaderSvc.UpdateExecutable(packageToPush);
+                await _nugetExeDownloaderSvc.UpdateExecutableAsync(packageToPush);
             }
 
             return new HttpStatusCodeResult(201);

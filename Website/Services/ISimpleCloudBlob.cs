@@ -10,12 +10,11 @@ namespace NuGetGallery
         BlobProperties Properties { get; }
         Uri Uri { get; }
 
-        void DeleteIfExists();
-        void DownloadToStream(Stream target);
+        Task DeleteIfExistsAsync();
         Task DownloadToStreamAsync(Stream target);
 
-        bool Exists();
-        void SetProperties();
-        void UploadFromStream(Stream packageFile);
+        Task<bool> ExistsAsync();
+        Task SetPropertiesAsync();
+        Task UploadFromStreamAsync(Stream packageFile);
     }
 }
