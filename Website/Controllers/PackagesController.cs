@@ -4,12 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
-using NuGetGallery.Helpers;
-using NuGetGallery.ViewModels.PackagePart;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -56,11 +55,11 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public virtual ActionResult UploadPackage()
+        public async virtual Task<ActionResult> UploadPackage()
         {
             var currentUser = _userSvc.FindByUsername(GetIdentity().Name);
 
-            using (var existingUploadFile = _uploadFileSvc.GetUploadFile(currentUser.Key))
+            using (var existingUploadFile = await _uploadFileSvc.GetUploadFileAsync(currentUser.Key))
             {
                 if (existingUploadFile != null)
                 {
@@ -74,11 +73,11 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult UploadPackage(HttpPostedFileBase uploadFile)
+        public virtual async Task<ActionResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
             var currentUser = _userSvc.FindByUsername(GetIdentity().Name);
 
-            using (var existingUploadFile = _uploadFileSvc.GetUploadFile(currentUser.Key))
+            using (var existingUploadFile = await _uploadFileSvc.GetUploadFileAsync(currentUser.Key))
             {
                 if (existingUploadFile != null)
                 {
@@ -103,7 +102,7 @@ namespace NuGetGallery
             {
                 using (var uploadStream = uploadFile.InputStream)
                 {
-                    nuGetPackage = ReadNuGetPackage(uploadStream);
+                    nuGetPackage = CreatePackage(uploadStream);
                 }
             }
             catch
@@ -132,7 +131,7 @@ namespace NuGetGallery
 
             using (var fileStream = nuGetPackage.GetStream())
             {
-                _uploadFileSvc.SaveUploadFile(currentUser.Key, fileStream);
+                await _uploadFileSvc.SaveUploadFileAsync(currentUser.Key, fileStream);
             }
 
             return RedirectToRoute(RouteName.VerifyPackage);
@@ -299,61 +298,6 @@ namespace NuGetGallery
             return RedirectToAction(MVC.Packages.DisplayPackage(id, null));
         }
 
-        public virtual ActionResult Contents(string id, string version)
-        {
-            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-
-            IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc).Result;
-            PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
-
-            var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
-            return View(viewModel);
-        }
-
-        [ActionName("file")]
-        public virtual ActionResult FileContent(string id, string version, string filePath)
-        {
-            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return PackageNotFound(id, version);
-            }
-
-            filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
-
-            IPackage packageFile = NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc).Result;
-
-            IPackageFile file = packageFile.GetFiles().FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
-            if (file == null)
-            {
-                return PackageNotFound(id, version);
-            }
-
-            var result = new ContentResult
-            {
-                ContentEncoding = System.Text.Encoding.UTF8,
-                ContentType = "text/plain"
-            };
-
-            if (FileHelper.IsBinaryFile(file.Path))
-            {
-                result.Content = "The requested file is a binary file.";
-            }
-            else
-            {
-                using (var reader = new StreamReader(file.GetStream()))
-                {
-                    result.Content = reader.ReadToEnd();
-                }
-            }
-
-            return result;
-        }
-
         // This is the page that explains why there's no download link.
         public virtual ActionResult Download()
         {
@@ -515,19 +459,19 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public virtual ActionResult VerifyPackage()
+        public virtual async Task<ActionResult> VerifyPackage()
         {
             var currentUser = _userSvc.FindByUsername(GetIdentity().Name);
 
             IPackage package;
-            using (var uploadFile = _uploadFileSvc.GetUploadFile(currentUser.Key))
+            using (Stream uploadFile = await _uploadFileSvc.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
                 {
                     return RedirectToRoute(RouteName.UploadPackage);
                 }
 
-                package = ReadNuGetPackage(uploadFile);
+                package = CreatePackage(uploadFile);
             }
 
             return View(
@@ -550,31 +494,31 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult VerifyPackage(bool? listed)
+        public virtual async Task<ActionResult> VerifyPackage(bool? listed)
         {
             var currentUser = _userSvc.FindByUsername(GetIdentity().Name);
 
             IPackage nugetPackage;
-            using (var uploadFile = _uploadFileSvc.GetUploadFile(currentUser.Key))
+            using (Stream uploadFile = await _uploadFileSvc.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
                 {
                     return HttpNotFound();
                 }
 
-                nugetPackage = ReadNuGetPackage(uploadFile);
+                nugetPackage = CreatePackage(uploadFile);
             }
 
             Package package;
             using (var tx = new TransactionScope())
             {
-                package = _packageSvc.CreatePackage(nugetPackage, currentUser);
+                package = await _packageSvc.CreatePackageAsync(nugetPackage, currentUser);
                 _packageSvc.PublishPackage(package.PackageRegistration.Id, package.Version);
                 if (listed.HasValue && listed.Value == false)
                 {
                     _packageSvc.MarkPackageUnlisted(package);
                 }
-                _uploadFileSvc.DeleteUploadFile(currentUser.Key);
+                await _uploadFileSvc.DeleteUploadFileAsync(currentUser.Key);
                 _autoCuratedPackageCmd.Execute(package, nugetPackage);
                 tx.Complete();
             }
@@ -583,23 +527,24 @@ namespace NuGetGallery
                 package.IsLatestStable)
             {
                 // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
-                _nugetExeDownloaderSvc.UpdateExecutable(nugetPackage);
+                await _nugetExeDownloaderSvc.UpdateExecutableAsync(nugetPackage);
             }
 
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
+
             return RedirectToRoute(RouteName.DisplayPackage, new { package.PackageRegistration.Id, package.Version });
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult CancelUpload()
+        public virtual async Task<ActionResult> CancelUpload()
         {
             var currentUser = _userSvc.FindByUsername(GetIdentity().Name);
-            _uploadFileSvc.DeleteUploadFile(currentUser.Key);
+            await _uploadFileSvc.DeleteUploadFileAsync(currentUser.Key);
 
-            return RedirectToAction(MVC.Packages.UploadPackage());
+            return RedirectToAction("UploadPackage");
         }
 
         // this methods exist to make unit testing easier
@@ -609,7 +554,7 @@ namespace NuGetGallery
         }
 
         // this methods exist to make unit testing easier
-        protected internal virtual IPackage ReadNuGetPackage(Stream stream)
+        protected internal virtual IPackage CreatePackage(Stream stream)
         {
             return new ZipPackage(stream);
         }
@@ -630,12 +575,15 @@ namespace NuGetGallery
                     searchFilter.SortProperty = SortProperty.DisplayName;
                     searchFilter.SortDirection = SortDirection.Ascending;
                     break;
+
                 case Constants.RecentSortOrder:
                     searchFilter.SortProperty = SortProperty.Recent;
                     break;
+
                 case Constants.PopularitySortOrder:
                     searchFilter.SortProperty = SortProperty.DownloadCount;
                     break;
+
                 default:
                     searchFilter.SortProperty = SortProperty.Relevance;
                     break;
@@ -649,9 +597,10 @@ namespace NuGetGallery
             {
                 case Constants.AlphabeticSortOrder:
                     return "PackageRegistration.Id";
+
                 case Constants.RecentSortOrder:
                     return "Published desc";
-                case Constants.PopularitySortOrder:
+
                 default:
                     return "PackageRegistration.DownloadCount desc";
             }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Moq;
 using Xunit;
 
@@ -24,7 +25,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentException>(() => { service.DeleteUploadFile(0); });
+                var ex = Assert.Throws<ArgumentException>(() => { service.DeleteUploadFileAsync(0); });
 
                 Assert.Equal("userKey", ex.ParamName);
             }
@@ -35,9 +36,9 @@ namespace NuGetGallery
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
-                service.DeleteUploadFile(1);
+                service.DeleteUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.DeleteFile(Constants.UploadsFolderName, It.IsAny<string>()));
+                fakeFileStorageService.Verify(x => x.DeleteFileAsync(Constants.UploadsFolderName, It.IsAny<string>()));
             }
 
             [Fact]
@@ -47,9 +48,9 @@ namespace NuGetGallery
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
                 var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
 
-                service.DeleteUploadFile(1);
+                service.DeleteUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.DeleteFile(It.IsAny<string>(), expectedFileName));
+                fakeFileStorageService.Verify(x => x.DeleteFileAsync(It.IsAny<string>(), expectedFileName));
             }
         }
 
@@ -60,7 +61,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentException>(() => { service.GetUploadFile(0); });
+                var ex = Assert.Throws<ArgumentException>(() => { service.GetUploadFileAsync(0); });
 
                 Assert.Equal("userKey", ex.ParamName);
             }
@@ -71,9 +72,9 @@ namespace NuGetGallery
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
-                service.GetUploadFile(1);
+                service.GetUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.GetFile(Constants.UploadsFolderName, It.IsAny<string>()));
+                fakeFileStorageService.Verify(x => x.GetFileAsync(Constants.UploadsFolderName, It.IsAny<string>()));
             }
 
             [Fact]
@@ -83,21 +84,22 @@ namespace NuGetGallery
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
                 var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
 
-                service.GetUploadFile(1);
+                service.GetUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.GetFile(It.IsAny<string>(), expectedFileName));
+                fakeFileStorageService.Verify(x => x.GetFileAsync(It.IsAny<string>(), expectedFileName));
             }
 
             [Fact]
-            public void WillReturnTheUploadFileStream()
+            public async Task WillReturnTheUploadFileStream()
             {
                 var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var fakeFileStream = new MemoryStream();
-                fakeFileStorageService.Setup(x => x.GetFile(Constants.UploadsFolderName, expectedFileName)).Returns(fakeFileStream);
+                fakeFileStorageService.Setup(x => x.GetFileAsync(Constants.UploadsFolderName, expectedFileName))
+                                      .Returns(Task.FromResult<Stream>(fakeFileStream));
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
-                var fileStream = service.GetUploadFile(1);
+                var fileStream = await service.GetUploadFileAsync(1);
 
                 Assert.Same(fakeFileStream, fileStream);
             }
@@ -110,7 +112,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentException>(() => { service.SaveUploadFile(0, new MemoryStream()); });
+                var ex = Assert.Throws<ArgumentException>(() => { service.SaveUploadFileAsync(0, new MemoryStream()); });
 
                 Assert.Equal("userKey", ex.ParamName);
             }
@@ -120,7 +122,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = Assert.Throws<ArgumentNullException>(() => { service.SaveUploadFile(1, null); });
+                var ex = Assert.Throws<ArgumentNullException>(() => { service.SaveUploadFileAsync(1, null); });
 
                 Assert.Equal("packageFileStream", ex.ParamName);
             }
@@ -131,9 +133,9 @@ namespace NuGetGallery
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
-                service.SaveUploadFile(1, new MemoryStream());
+                service.SaveUploadFileAsync(1, new MemoryStream());
 
-                fakeFileStorageService.Verify(x => x.SaveFile(Constants.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>()));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(Constants.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>()));
             }
 
             [Fact]
@@ -143,9 +145,9 @@ namespace NuGetGallery
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
                 var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
 
-                service.SaveUploadFile(1, new MemoryStream());
+                service.SaveUploadFileAsync(1, new MemoryStream());
 
-                fakeFileStorageService.Verify(x => x.SaveFile(It.IsAny<string>(), expectedFileName, It.IsAny<Stream>()));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), expectedFileName, It.IsAny<Stream>()));
             }
 
             [Fact]
@@ -155,9 +157,9 @@ namespace NuGetGallery
                 var fakeUploadFileStream = new MemoryStream();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
-                service.SaveUploadFile(1, fakeUploadFileStream);
+                service.SaveUploadFileAsync(1, fakeUploadFileStream);
 
-                fakeFileStorageService.Verify(x => x.SaveFile(It.IsAny<string>(), It.IsAny<string>(), fakeUploadFileStream));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeUploadFileStream));
             }
         }
     }
