@@ -2,6 +2,7 @@
 using System.Web;
 using Lucene.Net.Util;
 using System.Web.Hosting;
+using Lucene.Net.Store;
 
 namespace NuGetGallery
 {
@@ -13,10 +14,26 @@ namespace NuGetGallery
 
         static LuceneCommon()
         {
-            // Fall back to a temp folder when run with no HostingEnvironment i.e. in context of unit tests.
-            IndexDirectory = HostingEnvironment.MapPath("~/AppData/Lucene") ??
-                Path.Combine(Path.GetTempPath(), "AppData", "Lucene");
-            IndexMetadataPath = Path.Combine(IndexDirectory, "index.metadata");
+            IndexDirectory = HostingEnvironment.MapPath("~/AppData/Lucene");
+            IndexMetadataPath = Path.Combine(IndexDirectory ?? ".", "index.metadata");
+        }
+
+        // Factory method for DI/IOC that creates the directory the index is stored in.
+        // Used by real website. Bypassed for unit tests.
+        internal static Lucene.Net.Store.Directory GetDirectory()
+        {
+            if (!System.IO.Directory.Exists(IndexDirectory))
+            {
+                System.IO.Directory.CreateDirectory(IndexDirectory);
+            }
+
+            var directoryInfo = new DirectoryInfo(IndexDirectory);
+            return new SimpleFSDirectory(directoryInfo);
+        }
+
+        public static Lucene.Net.Store.Directory GetRAMDirectory()
+        {
+            return new RAMDirectory();
         }
     }
 }
