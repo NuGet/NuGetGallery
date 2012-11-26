@@ -7,11 +7,19 @@ using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
+using System.Diagnostics;
 
 namespace NuGetGallery
 {
     public class LuceneSearchService : ISearchService
     {
+        private Lucene.Net.Store.Directory _directory;
+
+        public LuceneSearchService(Lucene.Net.Store.Directory directory)
+        {
+            _directory = directory;
+        }
+
         public IQueryable<Package> Search(IQueryable<Package> packages, SearchFilter searchFilter, out int totalHits)
         {
             if (packages == null)
@@ -60,36 +68,36 @@ namespace NuGetGallery
             return package;
         }
 
-        private static IList<int> SearchCore(SearchFilter searchFilter, out int totalHits)
+        private IList<int> SearchCore(SearchFilter searchFilter, out int totalHits)
         {
-            if (!Directory.Exists(LuceneCommon.IndexDirectory))
-            {
-                totalHits = 0;
-                return new int[0];
-            }
-
             SortField sortField = GetSortField(searchFilter);
             int numRecords = searchFilter.Skip + searchFilter.Take;
 
-            using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
+            IndexSearcher searcher;
+            try
             {
-                var searcher = new IndexSearcher(directory, readOnly: true);
-                var query = ParseQuery(searchFilter);
-
-                var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
-                var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
-                Filter filter = new QueryWrapperFilter(termQuery);
-
-
-                var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(sortField));
-                var keys = results.scoreDocs.Skip(searchFilter.Skip)
-                    .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
-                    .ToList();
-
-                totalHits = results.totalHits;
-                searcher.Close();
-                return keys;
+                searcher = new IndexSearcher(_directory, readOnly: true);
             }
+            catch (FileNotFoundException)
+            {
+                totalHits = 0;
+                return new List<int>();
+            }
+
+            var query = ParseQuery(searchFilter);
+
+            var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
+            var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
+            Filter filter = new QueryWrapperFilter(termQuery);
+
+            var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(sortField));
+            var keys = results.scoreDocs.Skip(searchFilter.Skip)
+                .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
+                .ToList();
+
+            totalHits = results.totalHits;
+            searcher.Close();
+            return keys;
         }
 
         private static Query ParseQuery(SearchFilter searchFilter)

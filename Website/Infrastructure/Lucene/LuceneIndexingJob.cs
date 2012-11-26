@@ -13,7 +13,8 @@ namespace NuGetGallery
             : base("Lucene", frequence, timeout)
         {
             _indexingService = new LuceneIndexingService(
-                new PackageSource(new EntitiesContext()));
+                new PackageSource(new EntitiesContext()),
+                LuceneCommon.GetDirectory());
             _indexingService.UpdateIndex();
         }
 

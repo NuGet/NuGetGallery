@@ -21,24 +21,30 @@ namespace NuGetGallery
         private static readonly object IndexWriterLock = new object();
         private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromDays(3);
         private static readonly char[] IdSeparators = new[] { '.', '-' };
+        private static Lucene.Net.Store.Directory _directory;
         private static IndexWriter _indexWriter;
         private readonly IPackageSource _packageSource;
 
-        [Inject]
-        public LuceneIndexingService(IPackageSource packageSource)
+        public LuceneIndexingService(
+            IPackageSource packageSource,
+            Lucene.Net.Store.Directory directory)
         {
             _packageSource = packageSource;
+            _directory = directory;
         }
 
         public void UpdateIndex()
         {
+            UpdateIndex(forceRefresh: false);
+        }
+
+        internal void UpdateIndex(bool forceRefresh)
+        {
             DateTime? lastWriteTime = GetLastWriteTime();
-            bool creatingIndex = lastWriteTime == null;
 
-            EnsureIndexWriter(creatingIndex);
-
-            if (IndexRequiresRefresh())
+            if ((lastWriteTime == null) || IndexRequiresRefresh() || forceRefresh)
             {
+                EnsureIndexWriter(creatingIndex: true);
                 _indexWriter.DeleteAll();
                 _indexWriter.Commit();
 
@@ -48,10 +54,11 @@ namespace NuGetGallery
                 // Set the index create time to now. This would tell us when we last rebuilt the index.
                 UpdateIndexRefreshTime();
             }
-            
+
             var packages = GetPackages(lastWriteTime);
             if (packages.Count > 0)
             {
+                EnsureIndexWriter(creatingIndex: lastWriteTime == null);
                 AddPackages(packages, creatingIndex: lastWriteTime == null);
             }
 
@@ -177,15 +184,8 @@ namespace NuGetGallery
 
         private static void EnsureIndexWriterCore(bool creatingIndex)
         {
-            if (!Directory.Exists(LuceneCommon.IndexDirectory))
-            {
-                Directory.CreateDirectory(LuceneCommon.IndexDirectory);
-            }
-
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-            var directoryInfo = new DirectoryInfo(LuceneCommon.IndexDirectory);
-            var directory = new SimpleFSDirectory(directoryInfo);
-            _indexWriter = new IndexWriter(directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
+            _indexWriter = new IndexWriter(_directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
         }
 
         protected internal bool IndexRequiresRefresh()
@@ -195,6 +195,7 @@ namespace NuGetGallery
                 var creationTime = File.GetCreationTimeUtc(LuceneCommon.IndexMetadataPath);
                 return (DateTime.UtcNow - creationTime) > IndexRecreateInterval;
             }
+
             // If we've never created the index, it needs to be refreshed.
             return true;
         }
