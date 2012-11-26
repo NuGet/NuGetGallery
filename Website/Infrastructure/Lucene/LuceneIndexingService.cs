@@ -12,6 +12,7 @@ using Lucene.Net.Index;
 using Lucene.Net.Store;
 using Ninject;
 using Directory = System.IO.Directory;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -21,16 +22,12 @@ namespace NuGetGallery
         private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromDays(3);
         private static readonly char[] IdSeparators = new[] { '.', '-' };
         private static IndexWriter _indexWriter;
-        private readonly DbContext _entitiesContext;
-
-        public LuceneIndexingService() : this(new EntitiesContext())
-        {
-        }
+        private readonly IPackageSource _packageSource;
 
         [Inject]
-        public LuceneIndexingService(IEntitiesContext entitiesContext)
+        public LuceneIndexingService(IPackageSource packageSource)
         {
-            _entitiesContext = (DbContext)entitiesContext;
+            _packageSource = packageSource;
         }
 
         public void UpdateIndex()
@@ -51,41 +48,41 @@ namespace NuGetGallery
                 // Set the index create time to now. This would tell us when we last rebuilt the index.
                 UpdateIndexRefreshTime();
             }
-            if (_entitiesContext != null)
+            
+            var packages = GetPackages(lastWriteTime);
+            if (packages.Count > 0)
             {
-                var packages = GetPackages(_entitiesContext, lastWriteTime);
-                if (packages.Count > 0)
-                {
-                    AddPackages(packages, creatingIndex: lastWriteTime == null);
-                }
+                AddPackages(packages, creatingIndex: lastWriteTime == null);
             }
+
             UpdateLastWriteTime();
         }
 
-        protected internal virtual List<PackageIndexEntity> GetPackages(DbContext context, DateTime? lastIndexTime)
+        private List<PackageIndexEntity> GetPackages(DateTime? lastIndexTime)
         {
-            string sql =
-                @"SELECT p.[Key], p.PackageRegistrationKey, pr.Id, p.Title, p.Description, p.Tags, p.FlattenedAuthors as Authors, pr.DownloadCount,
-                                  p.IsLatestStable, p.IsLatest, p.Published
-                              FROM Packages p JOIN PackageRegistrations pr on p.PackageRegistrationKey = pr.[Key]
-                              WHERE ((p.IsLatest = 1) or (p.IsLatestStable = 1)) ";
+            // Retrieve the Latest and LatestStable version of packages if any package for that registration changed since we last updated the index.
+            // We need to do this because some attributes that we index such as DownloadCount are values in the PackageRegistration table that may
+            // update independent of the package.
 
-            object[] parameters;
-            if (lastIndexTime == null)
-            {
-                // First time creation. Pull latest packages without filtering
-                parameters = new object[0];
-            }
-            else
-            {
-                // Retrieve the Latest and LatestStable version of packages if any package for that registration changed since we last updated the index.
-                // We need to do this because some attributes that we index such as DownloadCount are values in the PackageRegistration table that may
-                // update independent of the package.
-                sql +=
-                    " AND Exists (Select 1 from dbo.Packages iP where iP.LastUpdated > @UpdatedDate and iP.PackageRegistrationKey = p.PackageRegistrationKey) ";
-                parameters = new[] { new SqlParameter("UpdatedDate", lastIndexTime.Value) };
-            }
-            return context.Database.SqlQuery<PackageIndexEntity>(sql, parameters).ToList();
+            IQueryable<Package> packagesForIndexing = _packageSource.GetPackagesForIndexing(lastIndexTime);
+
+            var query = packagesForIndexing.Select(p =>
+                new PackageIndexEntity
+                {
+                    Key = p.Key,
+                    PackageRegistrationKey = p.PackageRegistrationKey,
+                    Id = p.PackageRegistration.Id,
+                    Title = p.Title,
+                    Description = p.Description,
+                    Tags = p.Tags,
+                    Authors = p.FlattenedAuthors,
+                    DownloadCount = p.DownloadCount,
+                    IsLatest = p.IsLatest,
+                    IsLatestStable = p.IsLatestStable,
+                    Published = p.Published,
+                });
+
+            return query.ToList();
         }
 
         private static void AddPackages(List<PackageIndexEntity> packages, bool creatingIndex)

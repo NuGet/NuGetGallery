@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NuGetGallery.Services;
+using System;
 using System.Threading.Tasks;
 using WebBackgrounder;
 
@@ -11,7 +12,8 @@ namespace NuGetGallery
         public LuceneIndexingJob(TimeSpan frequence, TimeSpan timeout)
             : base("Lucene", frequence, timeout)
         {
-            _indexingService = new LuceneIndexingService();
+            _indexingService = new LuceneIndexingService(
+                new PackageSource(new EntitiesContext()));
             _indexingService.UpdateIndex();
         }
 
