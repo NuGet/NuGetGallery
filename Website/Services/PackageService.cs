@@ -200,7 +200,7 @@ namespace NuGetGallery
             _packageRepo.CommitChanges();
         }
 
-        public void AddDownloadStatistics(Package package, string userHostAddress, string userAgent)
+        public void AddDownloadStatistics(Package package, string userHostAddress, string userAgent, string operation)
         {
             using (MiniProfiler.Current.Step("Updating package stats"))
             {
@@ -213,7 +213,8 @@ namespace NuGetGallery
                             // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
                             IPAddress = "unknown",
                             UserAgent = userAgent,
-                            Package = package
+                            Package = package,
+                            Operation = operation
                         });
 
                 _packageStatsRepo.CommitChanges();
