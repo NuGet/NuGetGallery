@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Lucene.Net.Analysis.Standard;
+﻿using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
-using System.Diagnostics;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -74,15 +72,7 @@ namespace NuGetGallery
             int numRecords = searchFilter.Skip + searchFilter.Take;
 
             IndexSearcher searcher;
-            try
-            {
-                searcher = new IndexSearcher(_directory, readOnly: true);
-            }
-            catch (FileNotFoundException)
-            {
-                totalHits = 0;
-                return new List<int>();
-            }
+            searcher = new IndexSearcher(_directory, readOnly: true);
 
             var query = ParseQuery(searchFilter);
 

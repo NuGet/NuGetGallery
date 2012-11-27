@@ -1,18 +1,19 @@
 ﻿using Lucene.Net.Store;
 using Moq;
 using NuGetGallery.Services;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using Xunit.Extensions;
 
 namespace NuGetGallery.Infrastructure
 {
     public class LuceneSearchServiceFacts
     {
+        private Directory _d;
+
+        // This works because we index the description
         [Fact]
-        public void IndexAndSearchAPackage()
+        public void IndexAndSearchAPackageByDescription()
         {
             var packageSource = new Mock<IPackageSource>();
             packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
@@ -37,28 +38,14 @@ namespace NuGetGallery.Infrastructure
                     }
                 }.AsQueryable());
 
-            var luceneIndexingService = CreateIndexingService(packageSource);
-            luceneIndexingService.UpdateIndex(forceRefresh: true);
-
-            var luceneSearchService = CreateSearchService(packageSource);
-            int totalHits = 0;
-            var searchFilter = new SearchFilter
-            {
-                Skip = 0,
-                Take = 10,
-                SearchTerm = "awesome",
-            };
-
-            var results = luceneSearchService.Search(
-                packageSource.Object.GetPackagesForIndexing(null), 
-                searchFilter, 
-                out totalHits).ToList();
+            var results = IndexAndSearch(packageSource, "awesome");
 
             Assert.Single(results);
             Assert.Equal(3, results[0].Key);
             Assert.Equal(1, results[0].PackageRegistrationKey);
         }
 
+        // This works because we do some wildcard magic in our searches.
         [Fact]
         public void IndexAndSearchDavid123For12()
         {
@@ -69,31 +56,126 @@ namespace NuGetGallery.Infrastructure
                     new Package
                     {
                         Key = 49246,
-                        PackageRegistrationKey = 12500,
+                        PackageRegistrationKey = 11500,
                         PackageRegistration = new PackageRegistration
                         {
                             Id = "DavidTest123",
-                            Key = 12500,
+                            Key = 11500,
                             DownloadCount = 495
                         },
-                        Created = DateTime.Parse("2011-07-18 22:29:46.893"),
-                        Title = "DavidTest123",
                         Description = "Description",
-                        DownloadCount = 469,
-                        HashAlgorithm = "SHA512",
-                        Hash = "1unECLYoz4z1C5DiIkdnptHvodvNkbLUIev28Y6wOG8EohgPLNp1w7Qa7H1M6upa4tXYlbsenDjFgQIpNHhU3w==",
-                        LastUpdated = DateTime.Parse("2012-11-26 04:17:21.723"),
                         Listed = true,
                         IsLatest = true,
                         IsLatestStable = true,
-                        Published = DateTime.Parse("1900-01-01 00:00:00.000"),
-                        FlattenedAuthors = "",
-                        PackageFileSize = 4429,
+                        FlattenedAuthors = "DavidX",
+                        Title = "DavidTest123",
+                        Version = "1.1",
+                        //Created = DateTime.Parse("2011-07-18 22:29:46.893"),
+                        //DownloadCount = 469,
+                        //HashAlgorithm = "SHA512",
+                        //Hash = "1unECLYoz4z1C5DiIkdnptHvodvNkbLUIev28Y6wOG8EohgPLNp1w7Qa7H1M6upa4tXYlbsenDjFgQIpNHhU3w==",
+                        //LastUpdated = DateTime.Parse("2012-11-26 04:17:21.723"),
+                        //Published = DateTime.Parse("1900-01-01 00:00:00.000"),
+                        //PackageFileSize = 4429,
                     }
                 }.AsQueryable());
 
+            var results = IndexAndSearch(packageSource, "12");
+
+            Assert.Single(results);
+            Assert.Equal("DavidTest123", results[0].Title);
+        }
+
+        [Fact]
+        public void IndexAndSearchWithWordStemming()
+        {
+            var packageSource = new Mock<IPackageSource>();
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
+                new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "SuperzipLib",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "Library for compressing your filez",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Eric",
+                        Title = "SuperzipLib",
+                        Version = "1.1.2",
+                    }
+                }.AsQueryable());
+
+            var results = IndexAndSearch(packageSource, "compressed");
+
+            Assert.Empty(results); // currently stemming is not working
+            //Assert.Equal("SuperzipLib", results[0].Title);
+        }
+
+        [Fact]
+        public void SearchForNuGetCoreWithExactId()
+        {
+            var packageSource = new Mock<IPackageSource>();
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
+                new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "NuGet.Core",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "M S C",
+                        LicenseUrl = "http://nuget.codeplex.com/license",
+                        Title = "NuGet.Core",
+                        Version = "1.5.20902.9026",
+                    },
+                    new Package
+                    {
+                        Key = 145,
+                        PackageRegistrationKey = 13,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                            Key = 13,
+                            DownloadCount = 2,
+                        },
+                        Description = "This isn't really NuGet.Core. Sorry for the confusing name - But its needed for a test case!",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Laugh",
+                        LicenseUrl = "http://nuget.codeplex.com/license",
+                        Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                        Version = "1.5.20902.9026",
+                    }
+                }.AsQueryable());
+
+            var results = IndexAndSearch(packageSource, "id:NuGet.Core");
+            Assert.Single(results);
+            Assert.Equal("NuGet.Core", results[0].Title);
+            Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
+        }
+
+        private IList<Package> IndexAndSearch(Mock<IPackageSource> packageSource, string searchTerm)
+        {
             var luceneIndexingService = CreateIndexingService(packageSource);
-            luceneIndexingService.UpdateIndex();
+            luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = CreateSearchService(packageSource);
             int totalHits = 0;
@@ -101,7 +183,7 @@ namespace NuGetGallery.Infrastructure
             {
                 Skip = 0,
                 Take = 10,
-                SearchTerm = "12",
+                SearchTerm = searchTerm,
             };
 
             var results = luceneSearchService.Search(
@@ -109,23 +191,21 @@ namespace NuGetGallery.Infrastructure
                 searchFilter,
                 out totalHits).ToList();
 
-            Assert.Empty(results);
+            return results;
         }
-
-        static Directory d = LuceneCommon.GetRAMDirectory();
 
         private LuceneIndexingService CreateIndexingService(Mock<IPackageSource> packageSource)
         {
-            d = LuceneCommon.GetRAMDirectory();
+            _d = LuceneCommon.GetRAMDirectory();
             return new LuceneIndexingService(
                    packageSource.Object,
-                   d);
+                   _d);
         }
-        
+
         private LuceneSearchService CreateSearchService(Mock<IPackageSource> packageSource)
         {
             return new LuceneSearchService(
-                   d);
+                   _d);
         }
     }
 }

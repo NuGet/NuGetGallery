@@ -1,18 +1,15 @@
-﻿using System;
+﻿using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Documents;
+using Lucene.Net.Index;
+using NuGetGallery.Services;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Documents;
-using Lucene.Net.Index;
-using Lucene.Net.Store;
-using Ninject;
-using Directory = System.IO.Directory;
-using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -21,9 +18,13 @@ namespace NuGetGallery
         private static readonly object IndexWriterLock = new object();
         private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromDays(3);
         private static readonly char[] IdSeparators = new[] { '.', '-' };
-        private static Lucene.Net.Store.Directory _directory;
-        private static IndexWriter _indexWriter;
-        private readonly IPackageSource _packageSource;
+
+        private Lucene.Net.Store.Directory _directory;
+        private IndexWriter _indexWriter;
+        private IPackageSource _packageSource;
+
+        static readonly ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter> WriterCache = 
+            new ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter>();
 
         public LuceneIndexingService(
             IPackageSource packageSource,
@@ -92,7 +93,7 @@ namespace NuGetGallery
             return query.ToList();
         }
 
-        private static void AddPackages(List<PackageIndexEntity> packages, bool creatingIndex)
+        private void AddPackages(List<PackageIndexEntity> packages, bool creatingIndex)
         {
             if (!creatingIndex)
             {
@@ -109,7 +110,7 @@ namespace NuGetGallery
             _indexWriter.Commit();
         }
 
-        private static void AddPackage(PackageIndexEntity package)
+        private void AddPackage(PackageIndexEntity package)
         {
             var document = new Document();
 
@@ -168,24 +169,37 @@ namespace NuGetGallery
             _indexWriter.AddDocument(document);
         }
 
-        protected static void EnsureIndexWriter(bool creatingIndex)
+        protected void EnsureIndexWriter(bool creatingIndex)
         {
             if (_indexWriter == null)
             {
+                if (WriterCache.TryGetValue(_directory, out _indexWriter))
+                {
+                    Debug.Assert(_indexWriter != null);
+                    return;
+                }
+
                 lock (IndexWriterLock)
                 {
-                    if (_indexWriter == null)
+                    if (WriterCache.TryGetValue(_directory, out _indexWriter))
                     {
-                        EnsureIndexWriterCore(creatingIndex);
+                        Debug.Assert(_indexWriter != null);
+                        return;
                     }
+
+                    EnsureIndexWriterCore(creatingIndex);
                 }
             }
         }
 
-        private static void EnsureIndexWriterCore(bool creatingIndex)
+        private void EnsureIndexWriterCore(bool creatingIndex)
         {
             var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
             _indexWriter = new IndexWriter(_directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
+
+            // Should always be add, due to locking
+            var got = WriterCache.GetOrAdd(_directory, _indexWriter);
+            Debug.Assert(got == _indexWriter);
         }
 
         protected internal bool IndexRequiresRefresh()
