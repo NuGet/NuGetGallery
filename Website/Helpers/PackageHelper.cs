@@ -22,7 +22,7 @@ namespace NuGetGallery.Helpers
             Debug.Assert(packageFileService != null);
 
             string cacheKey = CreateCacheKey(package.PackageRegistration.Id, package.Version);
-            var buffer = cacheService.GetItem(cacheKey) as byte[];
+            byte[] buffer = cacheService.GetItem(cacheKey);
             if (buffer == null)
             {
                 using (Stream stream = await packageFileService.DownloadPackageFileAsync(package))
@@ -33,7 +33,7 @@ namespace NuGetGallery.Helpers
                     }
 
                     buffer = stream.ReadAllBytes();
-                    cacheService.SetItem(cacheKey, buffer, TimeSpan.FromMinutes(5));
+                    cacheService.SetItem(cacheKey, buffer);
                 }
             }
 

@@ -20,6 +20,7 @@
     </Endpoints>
     <LocalResources>
       <LocalStorage name="IISLogs" sizeInMB="128" cleanOnRoleRecycle="false" />
+      <LocalStorage name="PackageCache" sizeInMB="200" cleanOnRoleRecycle="true" />
     </LocalResources>
     <Imports>
       <Import moduleName="Diagnostics" />
