@@ -141,7 +141,14 @@ namespace NuGetGallery.Controllers
 
         public ActionResult DownloadFileContentCompleted(IPackageFile packageFile)
         {
-            return File(packageFile.GetStream(), "application/octet-stream", Path.GetFileName(packageFile.Path));
+            if (packageFile == null) 
+            {
+                return HttpNotFound();
+            }
+            else 
+            {
+                return File(packageFile.GetStream(), "application/octet-stream", Path.GetFileName(packageFile.Path));
+            }
         }
 
         private async Task<IPackageFile> TryGetPackageFile(string id, string version, string filePath)

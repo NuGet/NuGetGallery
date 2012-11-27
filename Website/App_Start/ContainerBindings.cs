@@ -51,7 +51,7 @@ namespace NuGetGallery
             {
                 // when running locally on dev box, use the built-in ASP.NET Http Cache
                 Bind<ICacheService>()
-                    .To<HttpCacheService>()
+                    .To<NullCacheService>()
                     .InSingletonScope();
             }
 

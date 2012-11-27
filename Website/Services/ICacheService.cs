@@ -4,7 +4,7 @@ namespace NuGetGallery
 {
     public interface ICacheService
     {
-        object GetItem(string key);
-        void SetItem(string key, object item, TimeSpan timeout);
+        byte[] GetItem(string key);
+        void SetItem(string key, byte[] data);
     }
 }
