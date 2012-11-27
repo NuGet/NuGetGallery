@@ -45,7 +45,8 @@ namespace NuGetGallery
             _packageSvc.AddDownloadStatistics(
                 package,
                 Request.UserHostAddress,
-                Request.UserAgent);
+                Request.UserAgent,
+                Request.Headers["NuGet-Operation"]);
 
             if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
             {
