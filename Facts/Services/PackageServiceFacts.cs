@@ -127,7 +127,7 @@ namespace NuGetGallery
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
 
-                service.AddDownloadStatistics(package, "::1", "Unit Test");
+                service.AddDownloadStatistics(package, "::1", "Unit Test", null);
 
                 packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package && p.UserAgent == "Unit Test")));
                 packageStatsRepo.Verify(x => x.CommitChanges());
@@ -143,7 +143,7 @@ namespace NuGetGallery
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
 
-                service.AddDownloadStatistics(package, "::1", "Unit Test");
+                service.AddDownloadStatistics(package, "::1", "Unit Test", null);
 
                 packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.IPAddress == "unknown")));
                 packageStatsRepo.Verify(x => x.CommitChanges());
@@ -156,7 +156,7 @@ namespace NuGetGallery
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
 
-                service.AddDownloadStatistics(package, null, null);
+                service.AddDownloadStatistics(package, null, null, null);
 
                 packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package)));
                 packageStatsRepo.Verify(x => x.CommitChanges());

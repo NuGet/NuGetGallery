@@ -434,6 +434,10 @@
     <Compile Include="Migrations\201210312150156_AggregateStatistics_TotalDownloadCount.Designer.cs">
       <DependentUpon>201210312150156_AggregateStatistics_TotalDownloadCount.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201211271813001_AddNuGetOperation.cs" />
+    <Compile Include="Migrations\201211271813001_AddNuGetOperation.Designer.cs">
+      <DependentUpon>201211271813001_AddNuGetOperation.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />

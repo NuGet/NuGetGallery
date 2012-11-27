@@ -1,4 +1,7 @@
-﻿namespace NuGetGallery
+﻿
+using System.ComponentModel.DataAnnotations;
+
+namespace NuGetGallery
 {
     // IMPORTANT:   Removed the TimeStamp column from this class because 
     //              it's completely tracked by the database layer. Don't
@@ -10,5 +13,7 @@
         public string IPAddress { get; set; }
         public string UserAgent { get; set; }
         public int Key { get; set; }
+        [StringLength(16)]
+        public string Operation { get; set; }
     }
 }
