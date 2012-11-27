@@ -1,24 +1,100 @@
 using System;
-using Microsoft.ApplicationServer.Caching;
+using System.IO;
+using System.Security;
+using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery
 {
     public class CloudCacheService : ICacheService
     {
-        // The DataCacheFactory object is expensive.
-        // It should be created only once per app domain.
-        private static readonly DataCacheFactory _cacheFactory = new DataCacheFactory();
+        private readonly string _rootPath;
 
-        public object GetItem(string key)
+        public CloudCacheService()
         {
-            DataCache dataCache = _cacheFactory.GetDefaultCache();
-            return dataCache.Get(key);
+            try
+            {
+                LocalResource localResource = RoleEnvironment.GetLocalResource("PackageCache");
+                _rootPath = localResource.RootPath;
+            }
+            catch (RoleEnvironmentException exception)
+            {
+                throw new InvalidOperationException("The local resource isn't defined.", exception);
+            }
         }
 
-        public void SetItem(string key, object item, TimeSpan timeout)
+        public byte[] GetItem(string key)
         {
-            DataCache dataCache = _cacheFactory.GetDefaultCache();
-            dataCache.Put(key, item, timeout);
+            if (String.IsNullOrEmpty(key))
+            {
+                throw new ArgumentException("'key' cannot be null or empty.", "key");
+            }
+
+            string filePath = Path.Combine(_rootPath, key);
+            if (!File.Exists(filePath))
+            {
+                return null;
+            }
+
+            return File.ReadAllBytes(filePath);
+        }
+
+        public void SetItem(string key, byte[] item)
+        {
+            if (String.IsNullOrEmpty(key))
+            {
+                throw new ArgumentException("'key' cannot be null or empty.", "key");
+            }
+
+            string filePath = Path.Combine(_rootPath, key);
+
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
+            try
+            {
+                File.WriteAllBytes(filePath, item);
+            }
+            catch (Exception)
+            {
+                // One of the possible reasons for this exception is that we exceed the quota of local resource.
+                // In that case, delete all files and try again.
+                DeleteAllFiles();
+
+                try
+                {
+                    File.WriteAllBytes(filePath, item);
+                }
+                catch (Exception)
+                {
+                    // if the second attempt still fails, move on
+                }
+            }
+        }
+
+        private void DeleteAllFiles()
+        {
+            foreach (var file in Directory.EnumerateFiles(_rootPath))
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (IOException)
+                {
+                }
+                catch (SecurityException)
+                {
+                }
+            }
         }
     }
 }
