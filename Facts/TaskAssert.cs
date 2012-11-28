@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace NuGetGallery
@@ -16,6 +17,11 @@ namespace NuGetGallery
             Assert.Equal(1, exception.InnerExceptions.Count);
             Assert.IsType<TException>(exception.InnerException);
             return (TException)(exception.InnerException);
+        }
+
+        public static TException ThrowsAsync<TException>(Func<Task> testCode) where TException : Exception
+        {
+            return Assert.Throws<TException>(() => testCode().GetAwaiter().GetResult());
         }
     }
 }

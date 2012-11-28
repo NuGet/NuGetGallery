@@ -6,29 +6,14 @@ namespace NuGetGallery
 {
     public interface IFileStorageService
     {
-        ActionResult CreateDownloadFileActionResult(
-            string folderName,
-            string fileName);
+        Task<ActionResult> CreateDownloadFileActionResultAsync(string folderName, string fileName);
 
-        void DeleteFile(
-            string folderName,
-            string fileName);
+        Task DeleteFileAsync(string folderName, string fileName);
 
-        bool FileExists(
-            string folderName,
-            string fileName);
+        Task<bool> FileExistsAsync(string folderName, string fileName);
 
-        Stream GetFile(
-            string folderName,
-            string fileName);
+        Task<Stream> GetFileAsync(string folderName, string fileName);
 
-        Task<Stream> GetFileAsync(
-            string folderName,
-            string fileName);
-
-        void SaveFile(
-            string folderName,
-            string fileName,
-            Stream packageFile);
+        Task SaveFileAsync(string folderName, string fileName, Stream packageFile);
     }
 }

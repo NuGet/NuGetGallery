@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Versioning;
+using System.Threading.Tasks;
 using System.Transactions;
 using NuGet;
 using StackExchange.Profiling;
@@ -37,7 +38,7 @@ namespace NuGetGallery
             _indexingSvc = indexingSvc;
         }
 
-        public Package CreatePackage(IPackage nugetPackage, User currentUser)
+        public async Task<Package> CreatePackageAsync(IPackage nugetPackage, User currentUser)
         {
             ValidateNuGetPackage(nugetPackage);
 
@@ -52,7 +53,7 @@ namespace NuGetGallery
                 {
                     UpdateIsLatest(packageRegistration);
                     _packageRegistrationRepo.CommitChanges();
-                    _packageFileSvc.SavePackageFile(package, stream);
+                    await _packageFileSvc.SavePackageFileAsync(package, stream);
                     tx.Complete();
                 }
             }
@@ -62,7 +63,7 @@ namespace NuGetGallery
             return package;
         }
 
-        public void DeletePackage(string id, string version)
+        public async Task DeletePackageAsync(string id, string version)
         {
             var package = FindPackageByIdAndVersion(id, version);
 
@@ -75,7 +76,7 @@ namespace NuGetGallery
             {
                 var packageRegistration = package.PackageRegistration;
                 _packageRepo.DeleteOnCommit(package);
-                _packageFileSvc.DeletePackageFile(id, version);
+                await _packageFileSvc.DeletePackageFileAsync(id, version);
                 UpdateIsLatest(packageRegistration);
                 _packageRepo.CommitChanges();
                 if (packageRegistration.Packages.Count == 0)
