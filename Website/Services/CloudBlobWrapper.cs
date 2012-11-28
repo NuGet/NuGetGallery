@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 
 namespace NuGetGallery
 {
@@ -33,34 +31,12 @@ namespace NuGetGallery
 
         public Task DownloadToStreamAsync(Stream target)
         {
-            try
-            {
-                return Task.Factory.FromAsync(_blob.BeginDownloadToStream(target, null, null), _blob.EndDownloadToStream);
-            }
-            catch (StorageException ex)
-            {
-                throw new TestableStorageClientException(ex);
-            }
+            return Task.Factory.FromAsync(_blob.BeginDownloadToStream(target, null, null), _blob.EndDownloadToStream);
         }
 
-        public async Task<bool> ExistsAsync()
+        public Task<bool> ExistsAsync()
         {
-            try
-            {
-                await Task.Factory.FromAsync(_blob.BeginFetchAttributes(null, null), _blob.EndFetchAttributes);
-                return true;
-            }
-            catch (StorageException e)
-            {
-                if (e.RequestInformation.ExtendedErrorInformation.ErrorCode == StorageErrorCodeStrings.ResourceNotFound)
-                {
-                    return false;
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return Task.Factory.FromAsync<bool>(_blob.BeginExists(null, null), _blob.EndExists);
         }
 
         public Task SetPropertiesAsync()

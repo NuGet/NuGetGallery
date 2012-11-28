@@ -7,6 +7,6 @@ namespace NuGetGallery
     {
         Task CreateIfNotExistAsync();
         Task SetPermissionsAsync(BlobContainerPermissions permissions);
-        Task<ISimpleCloudBlob> GetBlobReferenceAsync(string blobAddressUri);
+        ISimpleCloudBlob GetBlobReference(string blobAddressUri);
     }
 }
