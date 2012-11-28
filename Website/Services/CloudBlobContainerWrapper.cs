@@ -26,13 +26,9 @@ namespace NuGetGallery
                 _blobContainer.EndSetPermissions);
         }
 
-        public async Task<ISimpleCloudBlob> GetBlobReferenceAsync(string blobAddressUri)
+        public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
         {
-            Task<ICloudBlob> task = Task.Factory.FromAsync<ICloudBlob>(
-                _blobContainer.BeginGetBlobReferenceFromServer(blobAddressUri, null, null),
-                _blobContainer.EndGetBlobReferenceFromServer);
-
-            return new CloudBlobWrapper(await task);
+            return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobAddressUri));
         }
     }
 }
