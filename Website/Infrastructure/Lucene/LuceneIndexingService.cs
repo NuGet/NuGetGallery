@@ -131,13 +131,13 @@ namespace NuGetGallery
 
             // If an element does not have a Title, then add all the tokenized Id components as Title.
             // Lucene's StandardTokenizer does not tokenize items of the format a.b.c which does not play well with things like "xunit.net". 
-            // We will feed it values that are already tokenized.
-            var titleTokens = String.IsNullOrEmpty(package.Title)
+            // We fix this by overriding the Standard Tokenizer using a custom Analyzer
+            var workingTitle = String.IsNullOrEmpty(package.Title)
                                   ? string.Join(" ", tokenizedId)
                                   : package.Title;
             
-            field = new Field("Title", titleTokens, Field.Store.NO, Field.Index.ANALYZED);
-            field.SetBoost(0.9f);
+            field = new Field("Title", workingTitle, Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(1.3f);
             document.Add(field);
 
             if (!String.IsNullOrEmpty(package.Tags))

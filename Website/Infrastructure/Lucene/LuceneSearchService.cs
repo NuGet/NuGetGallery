@@ -99,6 +99,11 @@ namespace NuGetGallery
                 return new MatchAllDocsQuery();
             }
 
+            foreach (var field in Fields)
+            {
+                searchFilter.SearchTerm = StandardizeCase(searchFilter.SearchTerm, field + ":");
+            }
+
             var analyzer = new PerFieldAnalyzer();
             var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, Fields, analyzer);
 
@@ -174,6 +179,18 @@ namespace NuGetGallery
             {
                 return executionQuery;
             }
+        }
+
+        private static string StandardizeCase(string s, string desiredText)
+        {
+            int i = s.IndexOf(desiredText, StringComparison.InvariantCultureIgnoreCase);
+            while (i >= 0)
+            {
+                s = s.Substring(0, i) + desiredText + s.Substring(i + desiredText.Length);
+                i = s.IndexOf(desiredText, i+1, StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            return s;
         }
 
         // Strip out LUCENE search syntax-isms.
