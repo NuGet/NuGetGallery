@@ -1,9 +1,9 @@
 ﻿using Lucene.Net.Store;
 using Moq;
-using NuGetGallery.Services;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using Xunit.Extensions;
 
 namespace NuGetGallery.Infrastructure
 {
@@ -120,7 +120,7 @@ namespace NuGetGallery.Infrastructure
         }
 
         [Fact]
-        public void SearchForNuGetCoreWithExactId()
+        public void SearchUsingExactPackageId()
         {
             var packageSource = new Mock<IPackageSource>();
             packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
@@ -166,10 +166,108 @@ namespace NuGetGallery.Infrastructure
                     }
                 }.AsQueryable());
 
-            var results = IndexAndSearch(packageSource, "id:NuGet.Core");
-            Assert.Single(results);
+            // simple query
+            var results = IndexAndSearch(packageSource, "NuGet.Core");
+            Assert.NotEmpty(results);
             Assert.Equal("NuGet.Core", results[0].Title);
             Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
+        }
+
+        [Theory]
+        [InlineData("Id", "NuGet.Core")]
+        [InlineData("id", "NuGet.Core")]
+        [InlineData("title", "NuGet.Core")]
+        [InlineData("TITLE", "NuGet.Core")]
+        [InlineData("Author", "Alpha")]
+        [InlineData("author", "\"Alpha Beta Gamma\"")]
+        [InlineData("Description", "core framework")]
+        [InlineData("Tags", "dotnet")]
+        public void SearchForNuGetCoreWithExactField(string field, string term)
+        {
+            var packageSource = new Mock<IPackageSource>();
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
+                new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "NuGet.Core",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Alpha Beta Gamma",
+                        LicenseUrl = "http://nuget.codeplex.com/license",
+                        Title = "NuGet.Core",
+                        Version = "1.5.20902.9026",
+                        Tags = "dotnet",
+                    },
+                    new Package
+                    {
+                        Key = 145,
+                        PackageRegistrationKey = 13,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                            Key = 13,
+                            DownloadCount = 2,
+                        },
+                        Description = "This isn't really NuGet.Core. Sorry for the confusing name - But its needed for a test case!",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Laugh",
+                        LicenseUrl = "http://nuget.codeplex.com/license",
+                        Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                        Version = "1.5.20902.9026",
+                        Tags = "javascript"
+                    }
+                }.AsQueryable());
+
+            // query targeted specifically against id field should work equally well
+            var results = IndexAndSearch(packageSource, field + ":" + term);
+            Assert.NotEmpty(results);
+            Assert.Equal("NuGet.Core", results[0].Title);
+            Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
+        }
+
+        // See issue https://github.com/NuGet/NuGetGallery/issues/406
+        [Fact]
+        public void SearchWorksAroundLuceneQuerySyntaxExceptions()
+        {
+            var packageSource = new Mock<IPackageSource>();
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
+                new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "NuGet.Core",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Alpha Beta Gamma",
+                        LicenseUrl = "http://nuget.codeplex.com/license",
+                        Title = "NuGet.Core",
+                        Version = "1.5.20902.9026",
+                    },
+                }.AsQueryable());
+
+            var results = IndexAndSearch(packageSource, "*Core"); // Lucene parser throws for leading asterisk in searches
+            Assert.NotEmpty(results);
         }
 
         private IList<Package> IndexAndSearch(Mock<IPackageSource> packageSource, string searchTerm)

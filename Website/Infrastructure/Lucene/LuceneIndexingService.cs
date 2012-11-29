@@ -1,7 +1,6 @@
 ﻿using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using NuGetGallery.Services;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
