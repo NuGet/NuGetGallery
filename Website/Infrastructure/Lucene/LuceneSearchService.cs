@@ -13,6 +13,8 @@ namespace NuGetGallery
     {
         private Lucene.Net.Store.Directory _directory;
 
+        private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Author" };
+
         public LuceneSearchService(Lucene.Net.Store.Directory directory)
         {
             _directory = directory;
@@ -97,9 +99,8 @@ namespace NuGetGallery
                 return new MatchAllDocsQuery();
             }
 
-            var fields = new[] { "Id", "Title", "Tags", "Description", "Author" };
-            var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-            var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields, analyzer);
+            var analyzer = new PerFieldAnalyzer();
+            var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, Fields, analyzer);
 
             // All terms in the multi-term query appear in at least one of the fields.
             var conjuctionQuery = new BooleanQuery();
@@ -113,37 +114,110 @@ namespace NuGetGallery
             var wildCardQuery = new BooleanQuery();
             wildCardQuery.SetBoost(0.5f);
 
-            // Escape the entire term we use for exact searches.
-            var escapedSearchTerm = Escape(searchFilter.SearchTerm);
-            var exactIdQuery = new TermQuery(new Term("Id-Exact", escapedSearchTerm));
-            exactIdQuery.SetBoost(2.5f);
-            var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedSearchTerm + "*"));
+            // Cleanup the search terms, and analyze the user intent - is this an ID search?
+            bool specificallySearchingNonIdFields = false;
+            var sanitizedTerms = GetSanitizedTerms(searchFilter.SearchTerm, out specificallySearchingNonIdFields);
 
-            foreach (var term in GetSearchTerms(searchFilter.SearchTerm))
+            Query executionQuery = null;
+            if (specificallySearchingNonIdFields)
             {
-                var termQuery = queryParser.Parse(term);
-                conjuctionQuery.Add(termQuery, BooleanClause.Occur.MUST);
-                disjunctionQuery.Add(termQuery, BooleanClause.Occur.SHOULD);
-
-                foreach (var field in fields)
-                {
-                    var wildCardTermQuery = new WildcardQuery(new Term(field, term + "*"));
-                    wildCardTermQuery.SetBoost(0.7f);
-                    wildCardQuery.Add(wildCardTermQuery, BooleanClause.Occur.SHOULD);
-                }
+                // Don't do exact ID search or wildcard ID search
+                // Don't do our fancy optimizations
+                // Just rely on Lucene Query parser to do the right thing
+                executionQuery = queryParser.Parse(searchFilter.SearchTerm);
             }
+            else 
+            {
+                // Escape the final term for exact ID search
+                string exactId = string.Join(" ", sanitizedTerms);
+                string escapedExactId = Escape(exactId);
 
-            // Create an OR of all the queries that we have
-            var combinedQuery =
-                conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+                var exactIdQuery = new TermQuery(new Term("Id-Exact", escapedExactId));
+                exactIdQuery.SetBoost(2.5f);
+
+                var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedExactId + "*"));
+
+                foreach (var term in GetSearchTerms(searchFilter.SearchTerm))
+                {
+                    var termQuery = queryParser.Parse(term);
+                    conjuctionQuery.Add(termQuery, BooleanClause.Occur.MUST);
+                    disjunctionQuery.Add(termQuery, BooleanClause.Occur.SHOULD);
+
+                    // It might have been a field specific query?
+                    string justOneField = null;
+                    if (termQuery is TermQuery)
+                    {
+                        justOneField = (termQuery as TermQuery).GetTerm().Field();
+                    }
+
+                    // Or it might not.
+                    foreach (var field in (justOneField == null ? Fields : new[] { justOneField }))
+                    {
+                        var wildCardTermQuery = new WildcardQuery(new Term(field, term + "*"));
+                        wildCardTermQuery.SetBoost(0.7f);
+                        wildCardQuery.Add(wildCardTermQuery, BooleanClause.Occur.SHOULD);
+                    }
+                }
+
+                // Create an OR of all the queries that we have
+                executionQuery = 
+                    conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+            }
 
             if (searchFilter.SortProperty == SortProperty.Relevance)
             {
                 // If searching by relevance, boost scores by download count.
                 var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
-                return new CustomScoreQuery(combinedQuery, downloadCountBooster);
+                return new CustomScoreQuery(executionQuery, downloadCountBooster);
             }
-            return combinedQuery;
+            else
+            {
+                return executionQuery;
+            }
+        }
+
+        // Strip out LUCENE search syntax-isms.
+        // 'OR, 'AND', and '-[term]' get dropped
+        // '+[term]' and '[field]:[term]' get returned as 'term'
+        private static IEnumerable<string> GetSanitizedTerms(string searchTerm, out bool searchesNonIdFields)
+        {
+            List<String> ret = new List<string>();
+            searchesNonIdFields = false;
+            var parts = searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var part in parts)
+            {
+                if (string.Equals(part, "OR", StringComparison.InvariantCultureIgnoreCase)
+                    || string.Equals(part, "AND", StringComparison.InvariantCultureIgnoreCase)
+                    || part.StartsWith("-", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                string p = part;
+                if (p.StartsWith("+"))
+                {
+                    p = p.Substring(1);
+                }
+
+                foreach (var field in Fields)
+                {
+                    if (p.StartsWith(field, StringComparison.InvariantCultureIgnoreCase) 
+                        && p[field.Length] == ':')
+                    {
+                        if (field != "Id")
+                        {
+                            searchesNonIdFields = true;
+                        }
+
+                        p = p.Substring(field.Length + 1);
+                        break;
+                    }
+                }
+
+                ret.Add(p);
+            }
+
+            return ret;
         }
 
         private static IEnumerable<string> GetSearchTerms(string searchTerm)
