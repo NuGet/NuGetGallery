@@ -16,7 +16,8 @@ namespace NuGetGallery
     {
         private static readonly object IndexWriterLock = new object();
         private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromDays(3);
-        private static readonly char[] IdSeparators = new[] { '.', '-' };
+
+        internal static readonly char[] IdSeparators = new[] { '.', '-' };
 
         private Lucene.Net.Store.Directory _directory;
         private IndexWriter _indexWriter;
@@ -132,14 +133,12 @@ namespace NuGetGallery
             // Lucene's StandardTokenizer does not tokenize items of the format a.b.c which does not play well with things like "xunit.net". 
             // We will feed it values that are already tokenized.
             var titleTokens = String.IsNullOrEmpty(package.Title)
-                                  ? tokenizedId
-                                  : package.Title.Split(IdSeparators, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var idToken in titleTokens)
-            {
-                field = new Field("Title", idToken, Field.Store.NO, Field.Index.ANALYZED);
-                field.SetBoost(0.9f);
-                document.Add(field);
-            }
+                                  ? string.Join(" ", tokenizedId)
+                                  : package.Title;
+            
+            field = new Field("Title", titleTokens, Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.9f);
+            document.Add(field);
 
             if (!String.IsNullOrEmpty(package.Tags))
             {
@@ -193,7 +192,7 @@ namespace NuGetGallery
 
         private void EnsureIndexWriterCore(bool creatingIndex)
         {
-            var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
+            var analyzer = new PerFieldAnalyzer();
             _indexWriter = new IndexWriter(_directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
 
             // Should always be add, due to locking
