@@ -4,7 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web;
 
-namespace NuGetGallery.Services
+namespace NuGetGallery
 {
     public class PackageSource : IPackageSource
     {

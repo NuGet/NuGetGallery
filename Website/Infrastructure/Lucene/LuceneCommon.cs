@@ -14,7 +14,7 @@ namespace NuGetGallery
 
         static LuceneCommon()
         {
-            IndexDirectory = HostingEnvironment.MapPath("~/AppData/Lucene");
+            IndexDirectory = HostingEnvironment.MapPath("~/App_Data/Lucene");
             IndexMetadataPath = Path.Combine(IndexDirectory ?? ".", "index.metadata");
         }
 

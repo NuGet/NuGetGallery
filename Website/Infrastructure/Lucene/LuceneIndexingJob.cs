@@ -1,5 +1,4 @@
-﻿using NuGetGallery.Services;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using WebBackgrounder;
 
