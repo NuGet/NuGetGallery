@@ -6,70 +6,70 @@ namespace NuGetGallery.Infrastructure
     public class NuGetQueryParserFacts
     {
         [Theory]
-        [InlineData("hello", new[] { null, "hello", null })]
-        [InlineData("\"hello\"", new[] { null, null, "hello" })]
-        [InlineData("Id:hello", new[] { "Id", "hello", null })]
-        [InlineData("Id:\"hello\"", new[] { "Id", null, "hello" })]
-        [InlineData("\"Id:hello\"", new[] { null, null, "Id:hello" })]
+        [InlineData("hello", new[] { null, "hello" })]
+        [InlineData("\"hello\"", new[] { null, "hello" })]
+        [InlineData("Id:hello", new[] { "Id", "hello" })]
+        [InlineData("Id:\"hello\"", new[] { "Id", "hello" })]
+        [InlineData("\"Id:hello\"", new[] { null, "Id:hello" })]
         public void SingleResult(string input, string[] expectedResults)
         {
-            var results = new NuGetQueryParser().Parse(input).list;
+            var results = new NuGetQueryParser().Parse(input);
             Assert.Single(results);
-            Assert.Equal(results[0], expectedResults);
+            Assert.Equal(expectedResults, results[0]);
         }
 
         [Fact]
         public void MultipleResult()
         {
-            var results = new NuGetQueryParser().Parse("\"hello you\" id:beautiful little:\"creatures\"").list;
-            Assert.Equal(results[0], new [] { null, null, "hello you" });
-            Assert.Equal(results[1], new [] { "id", "beautiful", null });
-            Assert.Equal(results[2], new[] { "little", null, "creatures" });
+            var results = new NuGetQueryParser().Parse("\"hello you\" id:beautiful little:\"creatures\"");
+            Assert.Equal(new [] { null, "hello you" }, results[0]);
+            Assert.Equal(new [] { "id", "beautiful" }, results[1]);
+            Assert.Equal(new[] { "little", "creatures" }, results[2]);
         }
 
         [Fact]
         public void EmptyString()
         {
-            var results = new NuGetQueryParser().Parse("").list;
+            var results = new NuGetQueryParser().Parse("");
             Assert.Empty(results);
         }
 
         [Fact]
         public void SingleQuote()
         {
-            var results = new NuGetQueryParser().Parse("\"").list;
+            var results = new NuGetQueryParser().Parse("\"");
             Assert.Single(results);
-            Assert.Equal(results[0], new[] { null, null, "" });
+            Assert.Equal(new[] { null, "" }, results[0]);
         }
 
         [Fact]
         public void EmptyPhrase()
         {
-            var results = new NuGetQueryParser().Parse("\"\"").list;
+            var results = new NuGetQueryParser().Parse("\"\"");
             Assert.Single(results);
-            Assert.Equal(results[0], new[] { null, null, "" });
+            Assert.Equal(new[] { null, "" }, results[0]);
         }
 
         [Fact]
         public void LeadingColon()
         {
-            var results = new NuGetQueryParser().Parse(":Foo").list;
+            var results = new NuGetQueryParser().Parse(":Foo");
             Assert.Single(results);
-            Assert.Equal(results[0], new[] { null, "Foo", null});
+            Assert.Equal(new[] { null, "Foo" }, results[0]);
         }
 
         [Fact]
         public void ExtraColon()
         {
-            var results = new NuGetQueryParser().Parse("ID::Foo").list;
+            var results = new NuGetQueryParser().Parse("ID::Foo");
             Assert.Single(results);
-            Assert.Equal(results[0], new[] { "ID", "Foo", null });
+            Assert.Equal(new[] { "ID", "Foo" }, results[0]);
         }
 
         [Fact]
         public void TermlessField()
         {
-            var results = new NuGetQueryParser().Parse("Id:").list;
+            var results = new NuGetQueryParser().Parse("Id:");
             Assert.Empty(results);
         }
     }
