@@ -99,13 +99,28 @@ namespace NuGetGallery
                 return new MatchAllDocsQuery();
             }
 
+            // note: Lucene's query parser treats these as special characters: \, +, -, !, (, ), :, ^, ], {, }, ~, *, ? 
+
+            // 1. build a temp Lucene parser and parse the query
+            var analyzer = new PerFieldAnalyzer();
+            
+            // TODO: custom parser
+            var queryParser = new QueryParser(LuceneCommon.LuceneVersion, "Unspecified", analyzer);
+
+            // Make field specifiers right case - 'id:' -> 'Id:' and so on.
             foreach (var field in Fields)
             {
                 searchFilter.SearchTerm = StandardizeCase(searchFilter.SearchTerm, field + ":");
             }
 
-            var analyzer = new PerFieldAnalyzer();
-            var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, Fields, analyzer);
+            
+
+            // Pull out all field-specific query terms, and whether they appear in a POSITIVE OR NEGATIVE sense
+            // And take them as
+
+            // Try to pull out all the 'filtery' terms that the parser gave us, which should be MUST
+            //var luceneInterpretation = queryParser.Parse(GetSearchTerms);
+            //var filterTerms = GetFilterTerms(luceneInterpretation, 'Id');
 
             // All terms in the multi-term query appear in at least one of the fields.
             var conjuctionQuery = new BooleanQuery();
@@ -180,6 +195,48 @@ namespace NuGetGallery
                 return executionQuery;
             }
         }
+
+        //private static IEnumerable<BooleanClause> GetFilterTerms(Query luceneInterpretation)
+        //{
+        //    // Use dynamic dispatch to call the correct visitor methods
+        //    return GetFilterVisit((dynamic)luceneInterpretation);
+        //}
+
+        //private static IEnumerable<BooleanClause> GetFilterVisit(BooleanQuery b)
+        //{
+        //    return b.Clauses().Cast<BooleanClause>().Where
+        //        ((clause).
+        //}
+
+        //private static IEnumerable<BooleanClause> GetFilterVisit(TermQuery)
+        //{
+
+        //}
+
+        //private static IEnumerable<BooleanClause> GetFilterVisit(PhraseQuery)
+        //{
+
+        //}
+
+        //private static IEnumerable<BooleanClause> GetFilterVisit(PrefixQuery)
+        //{
+
+        //}
+
+        //private static IEnumerable<BooleanClause> GetFilterVisit(WildcardQuery)
+        //{
+
+        //}
+
+        //private static IEnumerable<BooleanClause> GetFilterVisit(FuzzyQuery)
+        //{
+
+        //}
+
+        //private static IEnumerable<BooleanClause> GetFilterVisit(FuzzyQuery)
+        //{
+
+        //}
 
         private static string StandardizeCase(string s, string desiredText)
         {
