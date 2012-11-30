@@ -297,6 +297,7 @@
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResult.cs" />
     <Compile Include="Infrastructure\JsonNetResult.cs" />
+    <Compile Include="Infrastructure\Lucene\AnalysisHelper.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneCommon.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneIndexingJob.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneIndexingService.cs" />

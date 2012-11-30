@@ -21,10 +21,10 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void MultipleResult()
         {
-            var results = new NuGetQueryParser().Parse("\"hello you\" id:beautiful funky:\"creatures\"").list;
+            var results = new NuGetQueryParser().Parse("\"hello you\" id:beautiful little:\"creatures\"").list;
             Assert.Equal(results[0], new [] { null, null, "hello you" });
             Assert.Equal(results[1], new [] { "id", "beautiful", null });
-            Assert.Equal(results[2], new [] { "funky", null, "creatures" });
+            Assert.Equal(results[2], new[] { "little", null, "creatures" });
         }
 
         [Fact]
