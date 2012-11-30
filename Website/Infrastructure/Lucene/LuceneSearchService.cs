@@ -1,11 +1,10 @@
-﻿using Lucene.Net.Analysis.Standard;
+﻿using Lucene.Net.Analysis;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace NuGetGallery
@@ -105,23 +104,72 @@ namespace NuGetGallery
             var queryParser = new NuGetQueryParser();
             
             // for field names that aren't actually searchable fields treat them as general terms
-            Func<string[],string[]> standardizeFields = (string[] s) =>
+            Func<string[], string[]> standardizeFields = (input) =>
             {
-                string t = Fields.Where((f) => f.Equals(s[0], StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
-                return new[] { t, s[1], s[2] };
+                string t = Fields
+                    .Where((f) => f.Equals(input[0], StringComparison.InvariantCultureIgnoreCase))
+                    .FirstOrDefault();
+
+                return new[] { t, input[1] };
             };
 
-            var clauses = queryParser.Parse(searchFilter.SearchTerm).list.Select(standardizeFields);
-            var fieldSpecificClauses = clauses.Where((a) => a[0] != null);
+            var clauses = queryParser.Parse(searchFilter.SearchTerm).Select(standardizeFields);
+
+            var idSpecificTerms = clauses.Where((a) => string.Equals(a[0], "Id", StringComparison.InvariantCultureIgnoreCase));
+            var fieldSpecificTerms = clauses.Where((a) => a[0] != null);
             var generalTerms = clauses.Where((a) => a[0] == null);
+            
             var analyzer = new PerFieldAnalyzer();
 
-            var fieldSpecificQueries = fieldSpecificClauses.Select(
-                (c) => AnalysisHelper.GetFieldQuery(analyzer, c[0], c[1] ?? c[2]));
-
+            var idSpecificQueries = idSpecificTerms.Select(
+                (c) => AnalysisHelper.GetFieldQuery(analyzer, c[0], c[1]));
+            var fieldSpecificQueries = fieldSpecificTerms.Select(
+                (c) => AnalysisHelper.GetFieldQuery(analyzer, c[0], c[1]));
             var generalQueries = generalTerms.Select(
-                (c) => AnalysisHelper.GetMultiFieldQuery(analyzer, Fields, c[1] ?? c[2]));
+                (c) => AnalysisHelper.GetMultiFieldQuery(analyzer, Fields, c[1]));
 
+            // At this point we wonder...
+            // What is the user intent?
+            // General search? [foo bar]
+            // Partially Id-targeted search? [id:Foo bar]
+            // Other Field-targeted search? [author:Foo bar]
+            // If field targeting is done, we should basically want to AND that with all other queries
+
+            bool doExactId = !fieldSpecificQueries.Any();
+            Query generalQuery = BuildGeneralQuery(doExactId, searchFilter.SearchTerm, analyzer, generalTerms, generalQueries);
+            if (fieldSpecificQueries.Any())
+            {
+                BooleanQuery filteredQuery = new BooleanQuery();
+                if (generalQueries.Any())
+                {
+                    filteredQuery.Add(generalQuery, BooleanClause.Occur.MUST);
+                }
+
+                foreach (var fieldQuery in fieldSpecificQueries)
+                {
+                    filteredQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                }
+
+                generalQuery = filteredQuery;
+            }
+
+            if (searchFilter.SortProperty == SortProperty.Relevance)
+            {
+                // If searching by relevance, boost scores by download count.
+                var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
+                generalQuery = new CustomScoreQuery(generalQuery, downloadCountBooster);
+            }
+
+            return generalQuery;
+        }
+
+        private static Query BuildGeneralQuery(
+            bool doExactId,
+            string originalSearchText,
+            Analyzer analyzer,
+            IEnumerable<string[]> generalTerms, 
+            IEnumerable<Query> generalQueries)
+        {
             // All terms in the multi-term query appear in at least one of the target fields.
             var conjuctionQuery = new BooleanQuery();
             conjuctionQuery.SetBoost(2.0f);
@@ -134,25 +182,33 @@ namespace NuGetGallery
             var wildCardQuery = new BooleanQuery();
             wildCardQuery.SetBoost(0.5f);
 
-            var sanitizedTerms = generalTerms.Select((c) => (c[1] ?? c[2]).ToLowerInvariant());
+            //var sanitizedTerms = GetSearchTerms(originalSearchText);
 
-            Query executionQuery = null;
-
-            // Escape the final term for exact ID search
-            string exactId = string.Join(" ", sanitizedTerms);
-            string escapedExactId = Escape(exactId);
+            //// Escape the final term for exact ID search
+            //string exactId = string.Join(" ", sanitizedTerms);
+            string escapedExactId = Escape(originalSearchText);
 
             var exactIdQuery = new TermQuery(new Term("Id-Exact", escapedExactId));
             exactIdQuery.SetBoost(2.5f);
 
+            bool doNearlyExactId = generalTerms.Any();
+            Query nearlyExactIdQuery = null;
+            if (doNearlyExactId)
+            {
+                string escapedApproximateId = string.Join(" ", generalTerms.Select((c) => c[1]));
+                nearlyExactIdQuery = AnalysisHelper.GetFieldQuery(analyzer, "Id", escapedApproximateId);
+                nearlyExactIdQuery.SetBoost(2.0f);
+            }
+
             var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedExactId + "*"));
 
-            foreach (var termQuery in generalQueries.Concat(fieldSpecificQueries))
+            foreach (var termQuery in generalQueries)
             {
                 conjuctionQuery.Add(termQuery, BooleanClause.Occur.MUST);
                 disjunctionQuery.Add(termQuery, BooleanClause.Occur.SHOULD);
             }
 
+            var sanitizedTerms = generalTerms.Select((c) => c[1].ToLowerInvariant());
             foreach (var sanitizedTerm in sanitizedTerms)
             {
                 foreach (var field in Fields)
@@ -163,20 +219,21 @@ namespace NuGetGallery
                 }
             }
 
-            // Create an OR of all the queries that we have
-            executionQuery = 
-                conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
+            // OR of all the applicable queries
+            List<Query> queriesToCombine = new List<Query>();
+            if (doExactId)
+            {
+                queriesToCombine.AddRange(new Query[] { exactIdQuery, wildCardIdQuery });
+            }
 
-            if (searchFilter.SortProperty == SortProperty.Relevance)
+            if (doNearlyExactId)
             {
-                // If searching by relevance, boost scores by download count.
-                var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
-                return new CustomScoreQuery(executionQuery, downloadCountBooster);
+                queriesToCombine.Add(nearlyExactIdQuery);
             }
-            else
-            {
-                return executionQuery;
-            }
+
+            queriesToCombine.AddRange(new Query[] { conjuctionQuery, disjunctionQuery, wildCardQuery });
+            var query = conjuctionQuery.Combine(queriesToCombine.ToArray());
+            return query;
         }
 
         private static IEnumerable<string> GetSearchTerms(string searchTerm)

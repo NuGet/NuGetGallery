@@ -13,51 +13,51 @@ namespace NuGetGallery
     {
         Tokenizer _tokenizer;
 
-        public ParseResults Parse(string searchTerm)
+        // Returns list of 2-element arrays, element 0 is field name (or null), element 1 is term/phrase
+        public List<string[]> Parse(string searchTerm)
         {
+            List<string[]> ret = new List<string[]>();
             _tokenizer = new Tokenizer(searchTerm);
-            var results = new ParseResults();
             while (_tokenizer.Peek() != Tok.Eof)
             {
+                string[] term = new string[2];
                 if (_tokenizer.Peek() == Tok.Field)
                 {
-                    results.Add(ParseField());
+                    if (ParseField(term)) { ret.Add(term); }
                 }
                 else
                 {
-                    results.Add(ParseTermOrPhrase());
+                    if (ParseTermOrPhrase(term)) { ret.Add(term); }
                 }
             }
 
-            return results;
+            return ret;
         }
 
-        public string[] ParseField()
+        public bool ParseField(string[] result)
         {
             // ignore extra leading fields - just accept the last one
-            string field;
             do
             {
-                field = _tokenizer.Field();
+                result[0] = _tokenizer.Field();
                 _tokenizer.Pop();
             } while (_tokenizer.Peek() == Tok.Field);
 
             // Eof, Term, or Phrase....
             if (_tokenizer.Peek() != Tok.Eof)
             {
-                string[] t = ParseTermOrPhrase();
-                return new[] { field, t[1], t[2] };
+                return ParseTermOrPhrase(result);
             }
 
-            return new string[] { null, null, null };
+            return false;
         }
 
-        public string[] ParseTermOrPhrase()
+        public bool ParseTermOrPhrase(string[] result)
         {
             Debug.Assert(_tokenizer.Peek() == Tok.Term || _tokenizer.Peek() == Tok.Phrase);
-            var ret = new[] { null, _tokenizer.Term(), _tokenizer.Phrase() };
+            result[1] = _tokenizer.Term() ?? _tokenizer.Phrase();
             _tokenizer.Pop();
-            return ret;
+            return true;
         }
 
         enum Tok
@@ -183,19 +183,6 @@ namespace NuGetGallery
                         _tok = Tok.Eof;
                         _next = null;
                     }
-                }
-            }
-        }
-
-        public class ParseResults
-        {
-            public List<string[]> list = new List<string[]>();
-
-            internal void Add(string[] fieldTermPhrase)
-            {
-                if (fieldTermPhrase[1] != null || fieldTermPhrase[2] != null)
-                {
-                    list.Add(fieldTermPhrase);
                 }
             }
         }
