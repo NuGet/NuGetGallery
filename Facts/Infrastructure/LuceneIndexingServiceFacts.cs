@@ -29,5 +29,33 @@ namespace NuGetGallery.Infrastructure
             // Assert
             Assert.Equal(tokens.OrderBy(p => p), result.OrderBy(p => p));
         }
+
+        [Theory]
+        [InlineData("", "")]
+        [InlineData(".", "")]
+        [InlineData("JQuery", "JQuery")]
+        [InlineData("JQuery-UI", "JQuery UI")]
+        [InlineData("JQuery.UI.Combined", "JQuery UI Combined")]
+        public void IdSplitter(string term, string tokens)
+        {
+            var result = LuceneIndexingService.SplitId(term);
+            Assert.Equal(result, tokens);
+        }
+
+        [InlineData("Sys-netFX", "Sys netFX")]
+        [InlineData("xUnit", "xUnit")]
+        [InlineData("jQueryUI", "jQueryUI")]
+        [InlineData("jQuery-UI", "jQuery UI")]
+        [InlineData("NuGetPowerTools", "NuGet Power Tools")]
+        [InlineData("microsoft-web-helpers", "microsoft web helpers" )]
+        [InlineData("EntityFramework.sample", "Entity Framework sample" )]
+        [InlineData("SignalR.MicroSliver", "SignalR Micro Sliver")]
+        [InlineData("ABCMicroFramework", "ABC Micro Framework")]
+        [InlineData("SignalR.Hosting.AspNet", "SignalR Hosting Asp Net")]
+        public void CamelIdSplitter(string term, string tokens)
+        {
+            var result = LuceneIndexingService.CamelSplitId(term);
+            Assert.Equal(result, tokens);
+        }
     }
 }

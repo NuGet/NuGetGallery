@@ -104,11 +104,17 @@ namespace NuGetGallery
             var queryParser = new NuGetQueryParser();
             
             // for field names that aren't actually searchable fields treat them as general terms
+            // fix-up - split Id search terms such as "Foo.Bar" and "Foo-Bar" into a phrase "Foo Bar"
             Func<string[], string[]> standardizeFields = (input) =>
             {
                 string t = Fields
                     .Where((f) => f.Equals(input[0], StringComparison.InvariantCultureIgnoreCase))
                     .FirstOrDefault();
+
+                if (t == "Id")
+                {
+                    input[1] = LuceneIndexingService.SplitId(input[1]);
+                }
 
                 return new[] { t, input[1] };
             };
@@ -182,25 +188,25 @@ namespace NuGetGallery
             var wildCardQuery = new BooleanQuery();
             wildCardQuery.SetBoost(0.5f);
 
-            //var sanitizedTerms = GetSearchTerms(originalSearchText);
+            string escapedExactId = originalSearchText.ToLowerInvariant();
 
-            //// Escape the final term for exact ID search
-            //string exactId = string.Join(" ", sanitizedTerms);
-            string escapedExactId = Escape(originalSearchText);
+            Query exactIdQuery = null;
+            Query wildCardIdQuery = null;
+            if (doExactId)
+            {
+                exactIdQuery = new TermQuery(new Term("Id-Exact", escapedExactId));
+                exactIdQuery.SetBoost(2.5f);
 
-            var exactIdQuery = new TermQuery(new Term("Id-Exact", escapedExactId));
-            exactIdQuery.SetBoost(2.5f);
+                wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedExactId + "*"));
+            }
 
-            bool doNearlyExactId = generalTerms.Any();
             Query nearlyExactIdQuery = null;
-            if (doNearlyExactId)
+            if (generalTerms.Any())
             {
                 string escapedApproximateId = string.Join(" ", generalTerms.Select((c) => c[1]));
                 nearlyExactIdQuery = AnalysisHelper.GetFieldQuery(analyzer, "Id", escapedApproximateId);
                 nearlyExactIdQuery.SetBoost(2.0f);
             }
-
-            var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedExactId + "*"));
 
             foreach (var termQuery in generalQueries)
             {
@@ -220,18 +226,15 @@ namespace NuGetGallery
             }
 
             // OR of all the applicable queries
-            List<Query> queriesToCombine = new List<Query>();
-            if (doExactId)
+            var queries = new Query[]
             {
-                queriesToCombine.AddRange(new Query[] { exactIdQuery, wildCardIdQuery });
-            }
+                exactIdQuery, wildCardIdQuery, nearlyExactIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery
+            };
 
-            if (doNearlyExactId)
-            {
-                queriesToCombine.Add(nearlyExactIdQuery);
-            }
+            var queriesToCombine = queries
+                .Where((q) => q != null)
+                .Where((q) => !(q is BooleanQuery) || (q as BooleanQuery).GetClauses().Any());
 
-            queriesToCombine.AddRange(new Query[] { conjuctionQuery, disjunctionQuery, wildCardQuery });
             var query = conjuctionQuery.Combine(queriesToCombine.ToArray());
             return query;
         }

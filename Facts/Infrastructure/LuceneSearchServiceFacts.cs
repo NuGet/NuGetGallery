@@ -141,7 +141,6 @@ namespace NuGetGallery.Infrastructure
                         IsLatest = true,
                         IsLatestStable = true,
                         FlattenedAuthors = "M S C",
-                        LicenseUrl = "http://nuget.codeplex.com/license",
                         Title = "NuGet.Core",
                         Version = "1.5.20902.9026",
                     },
@@ -160,7 +159,6 @@ namespace NuGetGallery.Infrastructure
                         IsLatest = true,
                         IsLatestStable = true,
                         FlattenedAuthors = "Laugh",
-                        LicenseUrl = "http://nuget.codeplex.com/license",
                         Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
                         Version = "1.5.20902.9026",
                     }
@@ -203,7 +201,6 @@ namespace NuGetGallery.Infrastructure
                         IsLatest = true,
                         IsLatestStable = true,
                         FlattenedAuthors = "Alpha Beta Gamma",
-                        LicenseUrl = "http://nuget.codeplex.com/license",
                         Title = "NuGet.Core",
                         Version = "1.5.20902.9026",
                         Tags = "dotnet",
@@ -223,7 +220,6 @@ namespace NuGetGallery.Infrastructure
                         IsLatest = true,
                         IsLatestStable = true,
                         FlattenedAuthors = "Laugh",
-                        LicenseUrl = "http://nuget.codeplex.com/license",
                         Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
                         Version = "1.5.20902.9026",
                         Tags = "javascript"
@@ -235,6 +231,38 @@ namespace NuGetGallery.Infrastructure
             Assert.NotEmpty(results);
             Assert.Equal("NuGet.Core", results[0].Title);
             Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
+        }
+
+        [Fact]
+        public void SearchForJQueryUICombinedWithPartialId()
+        {
+            var packageSource = new Mock<IPackageSource>();
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
+                new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "JQuery.UI.Combined",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "jQuery UI is etc etc and many more important things",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Alpha Beta Gamma",
+                        Title = "JQuery UI (Combined Blobbary)",
+                        Tags = "web javascript",
+                    },
+                }.AsQueryable());
+
+            var results = IndexAndSearch(packageSource, "id:JQuery.ui");
+            Assert.NotEmpty(results);
+            Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
         }
 
         // See issue https://github.com/NuGet/NuGetGallery/issues/406
