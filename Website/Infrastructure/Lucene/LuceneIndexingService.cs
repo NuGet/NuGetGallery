@@ -1,5 +1,4 @@
-﻿using Lucene.Net.Analysis.Standard;
-using Lucene.Net.Documents;
+﻿using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using System;
 using System.Collections.Concurrent;
@@ -122,8 +121,8 @@ namespace NuGetGallery
             field.SetBoost(0.1f);
             document.Add(field);
 
-            // We store the Id field in multiple ways, so that it's possible to match using multiple
-            // styles of search on the Id field.
+            // We store the Id/Title field in multiple ways, so that it's possible to match using multiple
+            // styles of search
             // Note: no matter which way we store it, it will also be processed by the Analyzer later.
 
             // Style 1: As-Is Id, no tokenizing (so you can search using dot or dash-joined terms)
@@ -142,15 +141,24 @@ namespace NuGetGallery
             field.SetBoost(0.25f);
             document.Add(field);
 
-            // If an element does not have a Title, then add all the tokenized Id components as Title.
-            // Lucene's StandardTokenizer does not tokenize items of the format a.b.c which does not play well with things like "xunit.net". 
-            // We fix this by overriding the Standard Tokenizer using a custom Analyzer
-            var workingTitle = String.IsNullOrEmpty(package.Title)
-                                  ? CamelSplitId(package.Id)
+            // If an element does not have a Title, fall back to Id, same as the website.
+            var workingTitle = String.IsNullOrEmpty(package.Title) 
+                                  ? package.Id
                                   : package.Title;
-            
+
+            // As-Is
             field = new Field("Title", workingTitle, Field.Store.NO, Field.Index.ANALYZED);
             field.SetBoost(0.9f);
+            document.Add(field);
+
+            // no need to store dot+dash tokenized - we'll handle this in the analyzer
+            field = new Field("Title", SplitId(workingTitle), Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.8f);
+            document.Add(field);
+
+            // camel-case tokenized
+            field = new Field("Title", CamelSplitId(workingTitle), Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.5f);
             document.Add(field);
 
             if (!String.IsNullOrEmpty(package.Tags))
