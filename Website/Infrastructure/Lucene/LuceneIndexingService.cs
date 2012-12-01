@@ -122,22 +122,35 @@ namespace NuGetGallery
             field.SetBoost(0.1f);
             document.Add(field);
 
-            var tokenizedId = TokenizeId(package.Id);
-            foreach (var idToken in tokenizedId)
-            {
-                field = new Field("Id", idToken, Field.Store.NO, Field.Index.ANALYZED);
-                document.Add(field);
-            }
+            // We store the Id field in multiple ways, so that it's possible to match using multiple
+            // styles of search on the Id field.
+            // Note: no matter which way we store it, it will also be processed by the Analyzer later.
+
+            // Style 1: As-Is Id, no tokenizing (so you can search using dot or dash-joined terms)
+            // Boost this one
+            field = new Field("Id", package.Id, Field.Store.NO, Field.Index.ANALYZED);
+            document.Add(field);
+
+            // Style 2: dot+dash tokenized (so you can search using undotted terms)
+            field = new Field("Id", SplitId(package.Id), Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.8f);
+            document.Add(field);
+
+            // Style 3: camel-case tokenized (so you can search using parts of the camelCasedWord). 
+            // De-boosted since matches are less likely to be meaningful
+            field = new Field("Id", CamelSplitId(package.Id), Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.25f);
+            document.Add(field);
 
             // If an element does not have a Title, then add all the tokenized Id components as Title.
             // Lucene's StandardTokenizer does not tokenize items of the format a.b.c which does not play well with things like "xunit.net". 
             // We fix this by overriding the Standard Tokenizer using a custom Analyzer
             var workingTitle = String.IsNullOrEmpty(package.Title)
-                                  ? string.Join(" ", tokenizedId)
+                                  ? CamelSplitId(package.Id)
                                   : package.Title;
             
             field = new Field("Title", workingTitle, Field.Store.NO, Field.Index.ANALYZED);
-            field.SetBoost(1.3f);
+            field.SetBoost(0.9f);
             document.Add(field);
 
             if (!String.IsNullOrEmpty(package.Tags))
@@ -240,6 +253,20 @@ namespace NuGetGallery
             {
                 File.SetCreationTimeUtc(LuceneCommon.IndexMetadataPath, DateTime.UtcNow);
             }
+        }
+
+        // Split up the id by - and . then join it back into one string (tokens in the same order).
+        internal static string SplitId(string term)
+        {
+            var split = term.Split(IdSeparators, StringSplitOptions.RemoveEmptyEntries);
+            return split.Any() ? string.Join(" ", split) : "";
+        }
+
+        internal static string CamelSplitId(string term)
+        {
+            var split = term.Split(IdSeparators, StringSplitOptions.RemoveEmptyEntries);
+            var tokenized = split.SelectMany(CamelCaseTokenize);
+            return tokenized.Any() ? string.Join(" ", tokenized) : "";
         }
 
         internal static IEnumerable<string> TokenizeId(string term)

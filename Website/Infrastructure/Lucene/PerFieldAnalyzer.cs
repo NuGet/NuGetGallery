@@ -31,7 +31,6 @@ namespace NuGetGallery
             public override TokenStream TokenStream(string fieldName, TextReader reader)
             {
                 // Split the title based on IdSeparators, then run it through the standardAnalyzer
-                Debug.Assert(fieldName == "Title");
                 string title = reader.ReadToEnd();
                 string partiallyTokenized = string.Join(" ", title.Split(LuceneIndexingService.IdSeparators, StringSplitOptions.RemoveEmptyEntries));
                 return innerAnalyzer.TokenStream(fieldName, new StringReader(partiallyTokenized));
