@@ -24,7 +24,7 @@ namespace NuGetGallery
             Func<string> getText = () => attr1 != null ? attr1.Term() : null;
             Func<int> getPositionIncrement = () => attr2 != null ? attr2.GetPositionIncrement() : 1;
 
-            // 0 tokens?
+            // 0 tokens
             if (!filter.IncrementToken())
             {
                 return null;
@@ -56,12 +56,22 @@ namespace NuGetGallery
 
         public static Lucene.Net.Search.Query GetMultiFieldQuery(Analyzer analyzer, IEnumerable<string> fields, string queryText)
         {
-            BooleanQuery ret = new BooleanQuery();
+            // Return null if no clauses are generated
+            BooleanQuery ret = null;
+
             foreach (var field in fields)
             {
                 var q = GetFieldQuery(analyzer, field, queryText);
-                ret.Add(new BooleanClause(q, BooleanClause.Occur.SHOULD));
+                if (q != null)
+                {
+                    if (ret == null)
+                    {
+                        ret = new BooleanQuery();
+                    }
+                    ret.Add(new BooleanClause(q, BooleanClause.Occur.SHOULD));
+                }
             }
+
             return ret;
         }
     }
