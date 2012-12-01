@@ -127,12 +127,17 @@ namespace NuGetGallery
             
             var analyzer = new PerFieldAnalyzer();
 
-            var idSpecificQueries = idSpecificTerms.Select(
-                (c) => AnalysisHelper.GetFieldQuery(analyzer, c[0], c[1]));
-            var fieldSpecificQueries = fieldSpecificTerms.Select(
-                (c) => AnalysisHelper.GetFieldQuery(analyzer, c[0], c[1]));
-            var generalQueries = generalTerms.Select(
-                (c) => AnalysisHelper.GetMultiFieldQuery(analyzer, Fields, c[1]));
+            var idSpecificQueries = idSpecificTerms
+                .Select((c) => AnalysisHelper.GetFieldQuery(analyzer, c[0], c[1]))
+                .Where((q) => q != null);
+
+            var fieldSpecificQueries = fieldSpecificTerms
+                .Select((c) => AnalysisHelper.GetFieldQuery(analyzer, c[0], c[1]))
+                .Where((q) => q != null);
+
+            var generalQueries = generalTerms
+                .Select((c) => AnalysisHelper.GetMultiFieldQuery(analyzer, Fields, c[1]))
+                .Where((q) => q != null);
 
             // At this point we wonder...
             // What is the user intent?

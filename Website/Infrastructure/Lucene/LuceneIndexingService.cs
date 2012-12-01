@@ -167,7 +167,9 @@ namespace NuGetGallery
                 field.SetBoost(0.8f);
                 document.Add(field);
             }
+
             document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
+            field.SetBoost(0.1f);
 
             // Fields meant for filtering and sorting
             document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
