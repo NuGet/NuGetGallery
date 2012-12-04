@@ -509,6 +509,8 @@ namespace NuGetGallery
                 nugetPackage = CreatePackage(uploadFile);
             }
 
+            bool transactionCompleted = false;
+
             Package package;
             using (var tx = new TransactionScope())
             {
@@ -518,9 +520,15 @@ namespace NuGetGallery
                 {
                     _packageSvc.MarkPackageUnlisted(package);
                 }
-                await _uploadFileSvc.DeleteUploadFileAsync(currentUser.Key);
+                
                 _autoCuratedPackageCmd.Execute(package, nugetPackage);
                 tx.Complete();
+                transactionCompleted = true;
+            }
+
+            if (transactionCompleted)
+            {
+                await _uploadFileSvc.DeleteUploadFileAsync(currentUser.Key);
             }
 
             if (package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) &&
