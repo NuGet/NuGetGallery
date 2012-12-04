@@ -9,7 +9,7 @@
 <hgroup class="search">
     @if (!String.IsNullOrEmpty(Model.SearchTerm))
     {
-        <h1>Search for "@Model.SearchTerm" returned @Model.TotalCount @if (Model.TotalCount == 1)
+        <h1>Search for <i>@Model.SearchTerm</i> returned @Model.TotalCount @if (Model.TotalCount == 1)
                                                                       {
                                                                           <text>package</text>
                                                                       }
