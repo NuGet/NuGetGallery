@@ -71,7 +71,6 @@ namespace NuGetGallery
                 throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
             }
 
-            bool transactionCompleted = false;
             using (var tx = new TransactionScope())
             {
                 var packageRegistration = package.PackageRegistration;
@@ -85,14 +84,10 @@ namespace NuGetGallery
                     _packageRegistrationRepo.CommitChanges();
                 }
                 tx.Complete();
-                transactionCompleted = true;
             }
 
-            if (transactionCompleted)
-            {
-                await _packageFileSvc.DeletePackageFileAsync(id, version);
-                NotifyIndexingService();
-            }
+            await _packageFileSvc.DeletePackageFileAsync(id, version);
+            NotifyIndexingService();
         }
 
         public virtual PackageRegistration FindPackageRegistrationById(string id)
