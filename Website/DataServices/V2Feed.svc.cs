@@ -71,7 +71,7 @@ namespace NuGetGallery
             var versionValues = versions.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             var targetFrameworkValues = String.IsNullOrEmpty(targetFrameworks)
                                             ? null
-                                            : targetFrameworks.Split('|').Select(VersionUtility.ParseFrameworkName).ToList();
+                                            : targetFrameworks.Split(new[]{ ' ', '|'}).Select(VersionUtility.ParseFrameworkName).ToList();
 
             if ((idValues.Length == 0) || (idValues.Length != versionValues.Length))
             {
