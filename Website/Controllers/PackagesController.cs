@@ -509,19 +509,20 @@ namespace NuGetGallery
                 nugetPackage = CreatePackage(uploadFile);
             }
 
-            Package package;
+            Package package = await _packageSvc.CreatePackageAsync(nugetPackage, currentUser);
             using (var tx = new TransactionScope())
             {
-                package = await _packageSvc.CreatePackageAsync(nugetPackage, currentUser);
                 _packageSvc.PublishPackage(package.PackageRegistration.Id, package.Version);
                 if (listed.HasValue && listed.Value == false)
                 {
                     _packageSvc.MarkPackageUnlisted(package);
                 }
-                await _uploadFileSvc.DeleteUploadFileAsync(currentUser.Key);
+                
                 _autoCuratedPackageCmd.Execute(package, nugetPackage);
                 tx.Complete();
             }
+
+            await _uploadFileSvc.DeleteUploadFileAsync(currentUser.Key);
 
             if (package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) &&
                 package.IsLatestStable)

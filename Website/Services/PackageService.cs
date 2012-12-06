@@ -47,16 +47,15 @@ namespace NuGetGallery
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
             packageRegistration.Packages.Add(package);
 
-            using (var tx = new TransactionScope())
+            // save the .nupkg file to blob storage
+            using (var stream = nugetPackage.GetStream())
             {
-                using (var stream = nugetPackage.GetStream())
-                {
-                    UpdateIsLatest(packageRegistration);
-                    _packageRegistrationRepo.CommitChanges();
-                    await _packageFileSvc.SavePackageFileAsync(package, stream);
-                    tx.Complete();
-                }
+                await _packageFileSvc.SavePackageFileAsync(package, stream);
             }
+
+            // update database record
+            UpdateIsLatest(packageRegistration);
+            _packageRegistrationRepo.CommitChanges();
 
             NotifyIndexingService();
 
@@ -76,7 +75,7 @@ namespace NuGetGallery
             {
                 var packageRegistration = package.PackageRegistration;
                 _packageRepo.DeleteOnCommit(package);
-                await _packageFileSvc.DeletePackageFileAsync(id, version);
+                
                 UpdateIsLatest(packageRegistration);
                 _packageRepo.CommitChanges();
                 if (packageRegistration.Packages.Count == 0)
@@ -87,6 +86,7 @@ namespace NuGetGallery
                 tx.Complete();
             }
 
+            await _packageFileSvc.DeletePackageFileAsync(id, version);
             NotifyIndexingService();
         }
 
