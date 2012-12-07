@@ -19,8 +19,7 @@ namespace NuGetGallery
 
         public void DeleteOnCommit(T entity)
         {
-            _entities.Set<T>()
-                .Remove(entity);
+            _entities.Set<T>().Remove(entity);
         }
 
         public T Get(int key)
@@ -35,8 +34,7 @@ namespace NuGetGallery
 
         public int InsertOnCommit(T entity)
         {
-            _entities.Set<T>()
-                .Add(entity);
+            _entities.Set<T>().Add(entity);
 
             return entity.Key;
         }

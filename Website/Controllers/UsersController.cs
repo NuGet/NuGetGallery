@@ -15,13 +15,13 @@ namespace NuGetGallery
         private readonly IUserService _userService;
 
         public UsersController(
-            IUserService userSvc,
+            IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
             GallerySetting settings,
             IPrincipal currentUser)
         {
-            _userService = userSvc;
+            _userService = userService;
             _packageService = packageService;
             _messageService = messageService;
             _settings = settings;

@@ -12,30 +12,30 @@ namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
-        private readonly ICryptographyService _cryptoSvc;
-        private readonly IIndexingService _indexingSvc;
-        private readonly IPackageFileService _packageFileSvc;
+        private readonly ICryptographyService _cryptoService;
+        private readonly IIndexingService _indexingService;
+        private readonly IPackageFileService _packageFileService;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepo;
         private readonly IEntityRepository<Package> _packageRepo;
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepo;
 
         public PackageService(
-            ICryptographyService cryptoSvc,
+            ICryptographyService cryptoService,
             IEntityRepository<PackageRegistration> packageRegistrationRepo,
             IEntityRepository<Package> packageRepo,
             IEntityRepository<PackageStatistics> packageStatsRepo,
-            IPackageFileService packageFileSvc,
+            IPackageFileService packageFileService,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
-            IIndexingService indexingSvc)
+            IIndexingService indexingService)
         {
-            _cryptoSvc = cryptoSvc;
+            _cryptoService = cryptoService;
             _packageRegistrationRepo = packageRegistrationRepo;
             _packageRepo = packageRepo;
             _packageStatsRepo = packageStatsRepo;
-            _packageFileSvc = packageFileSvc;
+            _packageFileService = packageFileService;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
-            _indexingSvc = indexingSvc;
+            _indexingService = indexingService;
         }
 
         public async Task<Package> CreatePackageAsync(IPackage nugetPackage, User currentUser)
@@ -53,7 +53,7 @@ namespace NuGetGallery
                 {
                     UpdateIsLatest(packageRegistration);
                     _packageRegistrationRepo.CommitChanges();
-                    await _packageFileSvc.SavePackageFileAsync(package, stream);
+                    await _packageFileService.SavePackageFileAsync(package, stream);
                     tx.Complete();
                 }
             }
@@ -76,7 +76,7 @@ namespace NuGetGallery
             {
                 var packageRegistration = package.PackageRegistration;
                 _packageRepo.DeleteOnCommit(package);
-                await _packageFileSvc.DeletePackageFileAsync(id, version);
+                await _packageFileService.DeletePackageFileAsync(id, version);
                 UpdateIsLatest(packageRegistration);
                 _packageRepo.CommitChanges();
                 if (packageRegistration.Packages.Count == 0)
@@ -310,7 +310,7 @@ namespace NuGetGallery
                     PackageRegistrationKey = package.Key,
                     RequestingOwnerKey = currentOwner.Key,
                     NewOwnerKey = newOwner.Key,
-                    ConfirmationCode = _cryptoSvc.GenerateToken(),
+                    ConfirmationCode = _cryptoService.GenerateToken(),
                     RequestDate = DateTime.UtcNow
                 };
 
@@ -395,7 +395,7 @@ namespace NuGetGallery
                     ReleaseNotes = nugetPackage.ReleaseNotes,
                     RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
                     HashAlgorithm = Constants.Sha512HashAlgorithmId,
-                    Hash = _cryptoSvc.GenerateHash(packageFileStream.ReadAllBytes()),
+                    Hash = _cryptoService.GenerateHash(packageFileStream.ReadAllBytes()),
                     PackageFileSize = packageFileStream.Length,
                     Created = now,
                     Language = nugetPackage.Language,
@@ -623,7 +623,7 @@ namespace NuGetGallery
 
         private void NotifyIndexingService()
         {
-            _indexingSvc.UpdateIndex();
+            _indexingService.UpdateIndex();
         }
     }
 }

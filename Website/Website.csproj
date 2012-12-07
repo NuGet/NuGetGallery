@@ -284,6 +284,7 @@
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
+    <Compile Include="Entities\IEntitiesContext.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />

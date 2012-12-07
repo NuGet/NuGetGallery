@@ -8,17 +8,17 @@ namespace NuGetGallery
 {
     public class PackageFileService : IPackageFileService
     {
-        private readonly IFileStorageService _fileStorageSvc;
+        private readonly IFileStorageService _fileStorageService;
 
-        public PackageFileService(IFileStorageService fileStorageSvc)
+        public PackageFileService(IFileStorageService fileStorageService)
         {
-            _fileStorageSvc = fileStorageSvc;
+            _fileStorageService = fileStorageService;
         }
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Package package)
         {
             var fileName = BuildFileName(package);
-            return _fileStorageSvc.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, fileName);
+            return _fileStorageService.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, fileName);
         }
 
         public Task DeletePackageFileAsync(string id, string version)
@@ -34,7 +34,7 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(id, version);
-            return _fileStorageSvc.DeleteFileAsync(Constants.PackagesFolderName, fileName);
+            return _fileStorageService.DeleteFileAsync(Constants.PackagesFolderName, fileName);
         }
 
         public Task SavePackageFileAsync(Package package, Stream packageFile)
@@ -45,19 +45,19 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(package);
-            return _fileStorageSvc.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile);
+            return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile);
         }
 
         public Task<Stream> DownloadPackageFile(Package package)
         {
             var fileName = BuildFileName(package);
-            return _fileStorageSvc.GetFileAsync(Constants.PackagesFolderName, fileName);
+            return _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName);
         }
 
         public Task<Stream> DownloadPackageFileAsync(Package package)
         {
             var fileName = BuildFileName(package);
-            return _fileStorageSvc.GetFileAsync(Constants.PackagesFolderName, fileName);
+            return _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName);
         }
 
         private static string BuildFileName(string id, string version)
