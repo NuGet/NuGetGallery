@@ -23,8 +23,8 @@ namespace NuGetGallery.Services
                 .Verifiable();
 
             // Act
-            var downloaderSvc = GetDownloaderService(fileStorageSvc: fileStorage);
-            await downloaderSvc.CreateNuGetExeDownloadActionResultAsync();
+            var downloaderService = GetDownloaderService(fileStorageService: fileStorage);
+            await downloaderService.CreateNuGetExeDownloadActionResultAsync();
 
             // Assert
             fileStorage.Verify();
@@ -48,17 +48,17 @@ namespace NuGetGallery.Services
             packageService.Setup(s => s.FindPackageByIdAndVersion("NuGet.CommandLine", null, false))
                 .Returns(package)
                 .Verifiable();
-            var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
-            packageFileSvc.Setup(s => s.DownloadPackageFileAsync(package))
+            var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
+            packageFileService.Setup(s => s.DownloadPackageFileAsync(package))
                 .Returns(Task.FromResult(CreateCommandLinePackage()))
                 .Verifiable();
 
             // Act
-            var downloaderSvc = GetDownloaderService(packageService, packageFileSvc, fileStorage);
-            await downloaderSvc.CreateNuGetExeDownloadActionResultAsync();
+            var downloaderService = GetDownloaderService(packageService, packageFileService, fileStorage);
+            await downloaderService.CreateNuGetExeDownloadActionResultAsync();
 
             // Assert
-            packageFileSvc.Verify();
+            packageFileService.Verify();
             packageService.Verify();
         }
 
@@ -75,8 +75,8 @@ namespace NuGetGallery.Services
             nugetPackage.Setup(s => s.GetFiles()).Returns(new[] { CreateExePackageFile() }.AsQueryable());
 
             // Act
-            var downloaderSvc = GetDownloaderService(fileStorageSvc: fileStorage);
-            await downloaderSvc.UpdateExecutableAsync(nugetPackage.Object);
+            var downloaderService = GetDownloaderService(fileStorageService: fileStorage);
+            await downloaderService.UpdateExecutableAsync(nugetPackage.Object);
 
             // Assert
             fileStorage.Verify();
@@ -110,15 +110,15 @@ namespace NuGetGallery.Services
         }
 
         private static NuGetExeDownloaderService GetDownloaderService(
-            Mock<IPackageService> packageSvc = null,
-            Mock<IPackageFileService> packageFileSvc = null,
-            Mock<IFileStorageService> fileStorageSvc = null)
+            Mock<IPackageService> packageService = null,
+            Mock<IPackageFileService> packageFileService = null,
+            Mock<IFileStorageService> fileStorageService = null)
         {
-            packageSvc = packageSvc ?? new Mock<IPackageService>(MockBehavior.Strict);
-            packageFileSvc = packageFileSvc ?? new Mock<IPackageFileService>(MockBehavior.Strict);
-            fileStorageSvc = fileStorageSvc ?? new Mock<IFileStorageService>(MockBehavior.Strict);
+            packageService = packageService ?? new Mock<IPackageService>(MockBehavior.Strict);
+            packageFileService = packageFileService ?? new Mock<IPackageFileService>(MockBehavior.Strict);
+            fileStorageService = fileStorageService ?? new Mock<IFileStorageService>(MockBehavior.Strict);
 
-            return new NuGetExeDownloaderService(packageSvc.Object, packageFileSvc.Object, fileStorageSvc.Object);
+            return new NuGetExeDownloaderService(packageService.Object, packageFileService.Object, fileStorageService.Object);
         }
     }
 }

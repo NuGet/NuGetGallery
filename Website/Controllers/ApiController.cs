@@ -12,21 +12,21 @@ namespace NuGetGallery
 {
     public partial class ApiController : AppController
     {
-        private readonly INuGetExeDownloaderService _nugetExeDownloaderSvc;
-        private readonly IPackageFileService _packageFileSvc;
-        private readonly IPackageService _packageSvc;
-        private readonly IUserService _userSvc;
+        private readonly INuGetExeDownloaderService _nugetExeDownloaderService;
+        private readonly IPackageFileService _packageFileService;
+        private readonly IPackageService _packageService;
+        private readonly IUserService _userService;
 
         public ApiController(
-            IPackageService packageSvc,
-            IPackageFileService packageFileSvc,
-            IUserService userSvc,
-            INuGetExeDownloaderService nugetExeDownloaderSvc)
+            IPackageService packageService,
+            IPackageFileService packageFileService,
+            IUserService userService,
+            INuGetExeDownloaderService nugetExeDownloaderService)
         {
-            _packageSvc = packageSvc;
-            _packageFileSvc = packageFileSvc;
-            _userSvc = userSvc;
-            _nugetExeDownloaderSvc = nugetExeDownloaderSvc;
+            _packageService = packageService;
+            _packageFileService = packageFileService;
+            _userService = userService;
+            _nugetExeDownloaderService = nugetExeDownloaderService;
         }
 
         [ActionName("GetPackageApi")]
@@ -35,7 +35,7 @@ namespace NuGetGallery
         {
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
             // The allow prerelease flag is ignored if both partialId and version are specified.
-            var package = _packageSvc.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+            var package = _packageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
             
             if (package == null)
             {
@@ -43,7 +43,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            _packageSvc.AddDownloadStatistics(
+            _packageService.AddDownloadStatistics(
                 package,
                 Request.UserHostAddress,
                 Request.UserAgent,
@@ -55,7 +55,7 @@ namespace NuGetGallery
             }
             else
             {
-                return await _packageFileSvc.CreateDownloadPackageActionResultAsync(package);
+                return await _packageFileService.CreateDownloadPackageActionResultAsync(package);
             }
         }
 
@@ -64,7 +64,7 @@ namespace NuGetGallery
         [OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
         public virtual Task<ActionResult> GetNuGetExe()
         {
-            return _nugetExeDownloaderSvc.CreateNuGetExeDownloadActionResultAsync();
+            return _nugetExeDownloaderService.CreateNuGetExeDownloadActionResultAsync();
         }
 
         [ActionName("VerifyPackageKeyApi")]
@@ -78,7 +78,7 @@ namespace NuGetGallery
                     HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
-            var user = _userSvc.FindByApiKey(parsedApiKey);
+            var user = _userService.FindByApiKey(parsedApiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -88,7 +88,7 @@ namespace NuGetGallery
             if (!String.IsNullOrEmpty(id))
             {
                 // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
-                var package = _packageSvc.FindPackageByIdAndVersion(id, version);
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
                 if (package == null)
                 {
                     return new HttpStatusCodeWithBodyResult(
@@ -128,7 +128,7 @@ namespace NuGetGallery
                     HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
-            var user = _userSvc.FindByApiKey(parsedApiKey);
+            var user = _userService.FindByApiKey(parsedApiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -138,7 +138,7 @@ namespace NuGetGallery
             var packageToPush = ReadPackageFromRequest();
 
             // Ensure that the user can push packages for this partialId.
-            var packageRegistration = _packageSvc.FindPackageRegistrationById(packageToPush.Id);
+            var packageRegistration = _packageService.FindPackageRegistrationById(packageToPush.Id);
             if (packageRegistration != null)
             {
                 if (!packageRegistration.IsOwner(user))
@@ -158,11 +158,11 @@ namespace NuGetGallery
                 }
             }
 
-            var package = await _packageSvc.CreatePackageAsync(packageToPush, user);
+            var package = await _packageService.CreatePackageAsync(packageToPush, user);
             if (packageToPush.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
             {
                 // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
-                await _nugetExeDownloaderSvc.UpdateExecutableAsync(packageToPush);
+                await _nugetExeDownloaderService.UpdateExecutableAsync(packageToPush);
             }
 
             return new HttpStatusCodeResult(201);
@@ -179,14 +179,14 @@ namespace NuGetGallery
                     HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
-            var user = _userSvc.FindByApiKey(parsedApiKey);
+            var user = _userService.FindByApiKey(parsedApiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
                     HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
             }
 
-            var package = _packageSvc.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -199,7 +199,7 @@ namespace NuGetGallery
                     HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
             }
 
-            _packageSvc.MarkPackageUnlisted(package);
+            _packageService.MarkPackageUnlisted(package);
             return new EmptyResult();
         }
 
@@ -214,14 +214,14 @@ namespace NuGetGallery
                     HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
-            var user = _userSvc.FindByApiKey(parsedApiKey);
+            var user = _userService.FindByApiKey(parsedApiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
                     HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
             }
 
-            var package = _packageSvc.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -234,7 +234,7 @@ namespace NuGetGallery
                     HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
             }
 
-            _packageSvc.MarkPackageListed(package);
+            _packageService.MarkPackageListed(package);
             return new EmptyResult();
         }
 

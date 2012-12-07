@@ -5,11 +5,11 @@ namespace NuGetGallery
 {
     public partial class PagesController : Controller
     {
-        private readonly IAggregateStatsService _statsSvc;
+        private readonly IAggregateStatsService _statsService;
 
-        public PagesController(IAggregateStatsService statsSvc)
+        public PagesController(IAggregateStatsService statsService)
         {
-            _statsSvc = statsSvc;
+            _statsService = statsService;
         }
 
         public virtual ActionResult Home()
@@ -31,7 +31,7 @@ namespace NuGetGallery
         [OutputCache(VaryByParam = "None", Duration = 120, Location = OutputCacheLocation.Server)]
         public virtual JsonResult Stats()
         {
-            var stats = _statsSvc.GetAggregateStats();
+            var stats = _statsService.GetAggregateStats();
             return Json(
                 new
                     {

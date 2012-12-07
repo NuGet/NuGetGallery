@@ -7,15 +7,15 @@ namespace NuGetGallery
 {
     public partial class AuthenticationController : Controller
     {
-        private readonly IFormsAuthenticationService _formsAuthSvc;
-        private readonly IUserService _userSvc;
+        private readonly IFormsAuthenticationService _formsAuthService;
+        private readonly IUserService _userService;
 
         public AuthenticationController(
-            IFormsAuthenticationService formsAuthSvc,
-            IUserService userSvc)
+            IFormsAuthenticationService formsAuthService,
+            IUserService userService)
         {
-            _formsAuthSvc = formsAuthSvc;
-            _userSvc = userSvc;
+            _formsAuthService = formsAuthService;
+            _userService = userService;
         }
 
         [RequireRemoteHttps]
@@ -36,7 +36,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            var user = _userSvc.FindByUsernameOrEmailAddressAndPassword(
+            var user = _userService.FindByUsernameOrEmailAddressAndPassword(
                 request.UserNameOrEmail,
                 request.Password);
 
@@ -61,7 +61,7 @@ namespace NuGetGallery
                 roles = user.Roles.Select(r => r.Name);
             }
 
-            _formsAuthSvc.SetAuthCookie(
+            _formsAuthService.SetAuthCookie(
                 user.Username,
                 true,
                 roles);
@@ -73,7 +73,7 @@ namespace NuGetGallery
         {
             // TODO: this should really be a POST
 
-            _formsAuthSvc.SignOut();
+            _formsAuthService.SignOut();
 
             return SafeRedirect(returnUrl);
         }

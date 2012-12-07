@@ -15,20 +15,20 @@ namespace NuGetGallery.Controllers
         private const long MaximumAllowedPackageFileSize = 3L * 1024 * 1024;		// maximum package size = 3MB
         private const int MaximumPackageContentFileSize = 16 * 1024;                // maximum package content file to return before trimming = 16K
 
-        private readonly IPackageService _packageSvc;
-        private readonly IPackageFileService _packageFileSvc;
-        private readonly ICacheService _cacheSvc;
+        private readonly IPackageService _packageService;
+        private readonly IPackageFileService _packageFileService;
+        private readonly ICacheService _cacheService;
 
-        public PackageFilesController(IPackageService packageSvc, IPackageFileService packageFileSvc, ICacheService cacheSvc)
+        public PackageFilesController(IPackageService packageService, IPackageFileService packageFileService, ICacheService cacheService)
         {
-            _packageSvc = packageSvc;
-            _packageFileSvc = packageFileSvc;
-            _cacheSvc = cacheSvc;
+            _packageService = packageService;
+            _packageFileService = packageFileService;
+            _cacheService = cacheService;
         }
 
         public async Task<ActionResult> Contents(string id, string version)
         {
-            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
+            Package package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
                 return HttpNotFound();
@@ -39,7 +39,7 @@ namespace NuGetGallery.Controllers
                 return View("PackageTooBig");
             }
 
-            IPackage packageFile = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc);
+            IPackage packageFile = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheService, _packageFileService);
 
             PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
             var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
@@ -103,7 +103,7 @@ namespace NuGetGallery.Controllers
                 return null;
             }
 
-            Package package = _packageSvc.FindPackageByIdAndVersion(id, version);
+            Package package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null || package.PackageFileSize > MaximumAllowedPackageFileSize)
             {
                 return null;
@@ -111,7 +111,7 @@ namespace NuGetGallery.Controllers
 
             filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
 
-            IPackage packageWithContents = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheSvc, _packageFileSvc);
+            IPackage packageWithContents = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheService, _packageFileService);
 
             IPackageFile packageFile = packageWithContents.GetFiles()
                                                           .FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));

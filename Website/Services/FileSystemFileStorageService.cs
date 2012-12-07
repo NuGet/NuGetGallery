@@ -9,12 +9,12 @@ namespace NuGetGallery
     public class FileSystemFileStorageService : IFileStorageService
     {
         private readonly IConfiguration _configuration;
-        private readonly IFileSystemService _fileSystemSvc;
+        private readonly IFileSystemService _fileSystemService;
 
-        public FileSystemFileStorageService(IConfiguration configuration, IFileSystemService fileSystemSvc)
+        public FileSystemFileStorageService(IConfiguration configuration, IFileSystemService fileSystemService)
         {
             _configuration = configuration;
-            _fileSystemSvc = fileSystemSvc;
+            _fileSystemService = fileSystemService;
         }
 
         public Task<ActionResult> CreateDownloadFileActionResultAsync(string folderName, string fileName)
@@ -30,7 +30,7 @@ namespace NuGetGallery
             }
 
             var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            if (!_fileSystemSvc.FileExists(path))
+            if (!_fileSystemService.FileExists(path))
             {
                 return Task.FromResult<ActionResult>(new HttpNotFoundResult());
             }
@@ -55,9 +55,9 @@ namespace NuGetGallery
             }
 
             var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            if (_fileSystemSvc.FileExists(path))
+            if (_fileSystemService.FileExists(path))
             {
-                _fileSystemSvc.DeleteFile(path);
+                _fileSystemService.DeleteFile(path);
             }
 
             return Task.FromResult(0);
@@ -75,7 +75,7 @@ namespace NuGetGallery
             }
 
             var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            bool fileExists = _fileSystemSvc.FileExists(path);
+            bool fileExists = _fileSystemService.FileExists(path);
 
             return Task.FromResult(fileExists);
         }
@@ -93,7 +93,7 @@ namespace NuGetGallery
 
             var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
 
-            Stream fileStream = _fileSystemSvc.FileExists(path) ? _fileSystemSvc.OpenRead(path) : null;
+            Stream fileStream = _fileSystemService.FileExists(path) ? _fileSystemService.OpenRead(path) : null;
             return Task.FromResult(fileStream);
         }
 
@@ -114,19 +114,19 @@ namespace NuGetGallery
                 throw new ArgumentNullException("packageFile");
             }
 
-            if (!_fileSystemSvc.DirectoryExists(_configuration.FileStorageDirectory))
+            if (!_fileSystemService.DirectoryExists(_configuration.FileStorageDirectory))
             {
-                _fileSystemSvc.CreateDirectory(_configuration.FileStorageDirectory);
+                _fileSystemService.CreateDirectory(_configuration.FileStorageDirectory);
             }
 
             var folderPath = Path.Combine(_configuration.FileStorageDirectory, folderName);
-            if (!_fileSystemSvc.DirectoryExists(folderPath))
+            if (!_fileSystemService.DirectoryExists(folderPath))
             {
-                _fileSystemSvc.CreateDirectory(folderPath);
+                _fileSystemService.CreateDirectory(folderPath);
             }
 
             var filePath = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            using (var file = _fileSystemSvc.OpenWrite(filePath))
+            using (var file = _fileSystemService.OpenWrite(filePath))
             {
                 packageFile.CopyTo(file);
             }

@@ -6,17 +6,17 @@ namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        private readonly ICryptographyService _cryptoSvc;
+        private readonly ICryptographyService _cryptoService;
         private readonly GallerySetting _settings;
         private readonly IEntityRepository<User> _userRepo;
 
         public UserService(
             GallerySetting settings,
-            ICryptographyService cryptoSvc,
+            ICryptographyService cryptoService,
             IEntityRepository<User> userRepo)
         {
             _settings = settings;
-            _cryptoSvc = cryptoSvc;
+            _cryptoService = cryptoService;
             _userRepo = userRepo;
         }
 
@@ -40,7 +40,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
             }
 
-            var hashedPassword = _cryptoSvc.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = _cryptoService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
             var newUser = new User(
                 username,
@@ -49,7 +49,7 @@ namespace NuGetGallery
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
                     UnconfirmedEmailAddress = emailAddress,
-                    EmailConfirmationToken = _cryptoSvc.GenerateToken(),
+                    EmailConfirmationToken = _cryptoService.GenerateToken(),
                     PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 };
 
@@ -79,7 +79,7 @@ namespace NuGetGallery
                     throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
                 }
                 user.UnconfirmedEmailAddress = emailAddress;
-                user.EmailConfirmationToken = _cryptoSvc.GenerateToken();
+                user.EmailConfirmationToken = _cryptoService.GenerateToken();
             }
 
             user.EmailAllowed = emailAllowed;
@@ -125,7 +125,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (!_cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!_cryptoService.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
             {
                 return null;
             }
@@ -145,7 +145,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (!_cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!_cryptoService.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
             {
                 return null;
             }
@@ -238,7 +238,7 @@ namespace NuGetGallery
                 return user;
             }
 
-            user.PasswordResetToken = _cryptoSvc.GenerateToken();
+            user.PasswordResetToken = _cryptoService.GenerateToken();
             user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(tokenExpirationMinutes);
 
             _userRepo.CommitChanges();
@@ -275,7 +275,7 @@ namespace NuGetGallery
 
         private void ChangePasswordInternal(User user, string newPassword)
         {
-            var hashedPassword = _cryptoSvc.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = _cryptoService.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
             user.HashedPassword = hashedPassword;
         }
