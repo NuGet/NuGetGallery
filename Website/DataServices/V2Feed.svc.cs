@@ -28,7 +28,7 @@ namespace NuGetGallery
         {
             return new FeedContext<V2FeedPackage>
                 {
-                    Packages = PackageRepo.GetAll()
+                    Packages = PackageRepository.GetAll()
                         .WithoutVersionSort()
                         .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
                 };
@@ -43,7 +43,7 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
-            var packages = PackageRepo.GetAll()
+            var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
@@ -53,7 +53,7 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> FindPackagesById(string id)
         {
-            return PackageRepo.GetAll().Include(p => p.PackageRegistration)
+            return PackageRepository.GetAll().Include(p => p.PackageRegistration)
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
                 .ToV2FeedPackageQuery(GetSiteRoot());
         }
@@ -94,7 +94,7 @@ namespace NuGetGallery
                 }
             }
 
-            var packages = PackageRepo.GetAll()
+            var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.SupportedFrameworks)
                 .Where(p => p.Listed && (includePrerelease || !p.IsPrerelease) && idValues.Contains(p.PackageRegistration.Id))
