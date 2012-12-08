@@ -158,7 +158,9 @@ namespace NuGetGallery
                 }
             }
 
-            var package = await _packageService.CreatePackageAsync(packageToPush, user);
+            var package = _packageService.CreatePackage(packageToPush, user, commitChanges: true);
+            await _packageFileService.SavePackageFileAsync(package, packageToPush);
+
             if (packageToPush.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
             {
                 // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.

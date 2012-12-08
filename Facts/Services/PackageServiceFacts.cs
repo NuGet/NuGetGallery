@@ -110,8 +110,8 @@ namespace NuGetGallery
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageStatsRepo.Object,
-                packageFileService.Object,
                 packageOwnerRequestRepo.Object,
+                packageFileService.Object,
                 indexingService.Object);
 
             packageService.CallBase = true;
@@ -307,7 +307,7 @@ namespace NuGetGallery
         public class TheCreatePackageMethod
         {
             [Fact]
-            public async Task WillCreateANewPackageRegistrationUsingTheNugetPackIdWhenOneDoesNotAlreadyExist()
+            public void WillCreateANewPackageRegistrationUsingTheNugetPackIdWhenOneDoesNotAlreadyExist()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
@@ -320,14 +320,14 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                await service.CreatePackageAsync(nugetPackage.Object, currentUser);
+                service.CreatePackage(nugetPackage.Object, currentUser);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Id == "theId")));
                 packageRegistrationRepository.Verify(x => x.CommitChanges());
             }
 
             [Fact]
-            public async Task WillMakeTheCurrentUserTheOwnerWhenCreatingANewPackageRegistration()
+            public void WillMakeTheCurrentUserTheOwnerWhenCreatingANewPackageRegistration()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
@@ -337,13 +337,13 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                await service.CreatePackageAsync(nugetPackage.Object, currentUser);
+                service.CreatePackage(nugetPackage.Object, currentUser);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Owners.Contains(currentUser))));
             }
 
             [Fact]
-            public async Task WillReadThePropertiesFromTheNuGetPackageWhenCreatingANewPackage()
+            public void WillReadThePropertiesFromTheNuGetPackageWhenCreatingANewPackage()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
@@ -353,7 +353,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = await service.CreatePackageAsync(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 // Yes, I know this is a lot of asserts. Yes, I know I broke the golden, one assert per test rule. 
                 // That said, it's still asserting one "thing": that the package data was read. 
@@ -386,7 +386,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillReadTheLanguagePropertyFromThePackage()
+            public void WillReadTheLanguagePropertyFromThePackage()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
@@ -396,16 +396,14 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage(p => p.Setup(s => s.Language).Returns("fr"));
                 var currentUser = new User();
 
-                var package = await service.CreatePackageAsync(
-                    nugetPackage.Object,
-                    currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 // Assert
                 Assert.Equal("fr", package.Language);
             }
 
             [Fact]
-            public async Task WillReadPrereleaseFlagFromNuGetPackage()
+            public void WillReadPrereleaseFlagFromNuGetPackage()
             {
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
@@ -419,9 +417,7 @@ namespace NuGetGallery
                 var currentUser = new User();
 
                 // Act
-                var package = await service.CreatePackageAsync(
-                    nugetPackage.Object,
-                    currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 // Assert
                 Assert.True(package.IsPrerelease);
@@ -429,7 +425,48 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillGenerateAHashForTheCreatedPackage()
+            public void DoNotCommitChangesIfCommitChangesIsFalse()
+            {
+                // Arrange
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
+                var service = CreateService(
+                    packageRegistrationRepository: packageRegistrationRepository,
+                    setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+                var nugetPackage = CreateNuGetPackage(p => p.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
+                var currentUser = new User();
+
+                // Act
+                var package = service.CreatePackage(nugetPackage.Object, currentUser, commitChanges: false);
+
+                // Assert
+                packageRegistrationRepository.Verify();
+            }
+
+            [Fact]
+            public void CommitChangesIfCommitChangesIsTrue()
+            {
+                // Arrange
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
+                packageRegistrationRepository.Setup(r => r.CommitChanges()).Verifiable();
+                var service = CreateService(
+                    packageRegistrationRepository: packageRegistrationRepository,
+                    setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+                var nugetPackage = CreateNuGetPackage(p => p.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
+                var currentUser = new User();
+
+                // Act
+                var package = service.CreatePackage(nugetPackage.Object, currentUser, commitChanges: true);
+
+                // Assert
+                packageRegistrationRepository.Verify();
+            }
+
+            [Fact]
+            public void WillGenerateAHashForTheCreatedPackage()
             {
                 var service = CreateService(
                     setup:
@@ -437,16 +474,14 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = await service.CreatePackageAsync(
-                    nugetPackage.Object,
-                    currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 Assert.Equal("theHash", package.Hash);
                 Assert.Equal(Constants.Sha512HashAlgorithmId, package.HashAlgorithm);
             }
 
             [Fact]
-            public async Task WillNotCreateThePackageInAnUnpublishedState()
+            public void WillNotCreateThePackageInAnUnpublishedState()
             {
                 var service = CreateService(
                     setup:
@@ -454,15 +489,13 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = await service.CreatePackageAsync(
-                    nugetPackage.Object,
-                    currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 Assert.NotNull(package.Published);
             }
 
             [Fact]
-            public async Task WillSetTheNewPackagesCreatedAndLastUpdatedTimes()
+            public void WillSetTheNewPackagesCreatedAndLastUpdatedTimes()
             {
                 var service = CreateService(
                     setup:
@@ -470,38 +503,28 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = await service.CreatePackageAsync(
-                    nugetPackage.Object,
-                    currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 Assert.NotEqual(DateTime.MinValue, package.Created);
                 Assert.NotEqual(DateTime.MinValue, package.LastUpdated);
             }
 
             [Fact]
-            public async Task WillSaveThePackageFileAndSetThePackageFileSize()
+            public void WillSaveThePackageFileAndSetThePackageFileSize()
             {
-                var packageFileService = new Mock<IPackageFileService>();
-                
-
                 var service = CreateService(
-                    packageFileService: packageFileService,
-                    setup:
+                    setup: 
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                packageFileService.Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), nugetPackage.Object.GetStream())).Returns(Task.FromResult(0)).Verifiable();
-                var package = await service.CreatePackageAsync(
-                    nugetPackage.Object,
-                    currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
-                packageFileService.Verify();
                 Assert.Equal(8, package.PackageFileSize);
             }
 
             [Fact]
-            private async Task WillSaveTheCreatedPackageWhenANewPackageRegistrationIsCreated()
+            private void WillSaveTheCreatedPackageWhenANewPackageRegistrationIsCreated()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
@@ -511,16 +534,14 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = await service.CreatePackageAsync(
-                    nugetPackage.Object,
-                    currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Packages.ElementAt(0) == package)));
                 packageRegistrationRepository.Verify(x => x.CommitChanges());
             }
 
             [Fact]
-            private async Task WillSaveTheCreatedPackageWhenThePackageRegistrationAlreadyExisted()
+            private void WillSaveTheCreatedPackageWhenThePackageRegistrationAlreadyExisted()
             {
                 var currentUser = new User();
                 var packageRegistration = new PackageRegistration
@@ -535,9 +556,7 @@ namespace NuGetGallery
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
                 var nugetPackage = CreateNuGetPackage();
 
-                var package = await service.CreatePackageAsync(
-                    nugetPackage.Object,
-                    currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 Assert.Same(packageRegistration.Packages.ElementAt(0), package);
                 packageRegistrationRepository.Verify(x => x.CommitChanges());
@@ -559,7 +578,7 @@ namespace NuGetGallery
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
                 var nugetPackage = CreateNuGetPackage();
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, currentUser));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, currentUser, true));
 
                 Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), ex.Message);
             }
@@ -571,7 +590,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Id).Returns("theId".PadRight(129, '_'));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", "128"), ex.Message);
             }
@@ -583,7 +602,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Authors).Returns(new[] { "theFirstAuthor".PadRight(2001, '_'), "theSecondAuthor".PadRight(2001, '_') });
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Authors", "4000"), ex.Message);
             }
@@ -595,7 +614,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Copyright).Returns("theCopyright".PadRight(4001, '_'));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Copyright", "4000"), ex.Message);
             }
@@ -608,7 +627,7 @@ namespace NuGetGallery
                 var versionString = "1.0.0-".PadRight(65, 'a');
                 nugetPackage.Setup(x => x.Version).Returns(SemanticVersion.Parse(versionString));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Version", "64"), ex.Message);
             }
@@ -627,7 +646,7 @@ namespace NuGetGallery
                                 Enumerable.Repeat(new NuGet.PackageDependency("theFirstDependency", versionSpec), 5000))
                         });
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue), ex.Message);
             }
@@ -657,7 +676,7 @@ namespace NuGetGallery
                                     })
                         });
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", 128), ex.Message);
             }
@@ -687,7 +706,7 @@ namespace NuGetGallery
                                     })
                         });
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.VersionSpec", 256), ex.Message);
             }
@@ -699,7 +718,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Description).Returns("theDescription".PadRight(4001, '_'));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Description", "4000"), ex.Message);
             }
@@ -711,7 +730,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.IconUrl).Returns(new Uri("http://theIconUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "IconUrl", "4000"), ex.Message);
             }
@@ -723,7 +742,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.LicenseUrl).Returns(new Uri("http://theLicenseUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "LicenseUrl", "4000"), ex.Message);
             }
@@ -735,7 +754,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.ProjectUrl).Returns(new Uri("http://theProjectUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "ProjectUrl", "4000"), ex.Message);
             }
@@ -747,7 +766,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Summary).Returns("theSummary".PadRight(4001, '_'));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Summary", "4000"), ex.Message);
             }
@@ -759,7 +778,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Tags).Returns("theTags".PadRight(4001, '_'));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Tags", "4000"), ex.Message);
             }
@@ -771,7 +790,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 nugetPackage.Setup(x => x.Title).Returns("theTitle".PadRight(4001, '_'));
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Title", "256"), ex.Message);
             }
@@ -785,14 +804,14 @@ namespace NuGetGallery
                 nugetPackage.Setup(x => x.Language).Returns(new string('a', 21));
 
                 // Act
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.CreatePackageAsync(nugetPackage.Object, null));
+                var ex = Assert.Throws<EntityException>(() => service.CreatePackage(nugetPackage.Object, null));
 
                 // Assert
                 Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Language", "20"), ex.Message);
             }
 
             [Fact]
-            private async Task WillSaveSupportedFrameworks()
+            private void WillSaveSupportedFrameworks()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
@@ -810,14 +829,14 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = await service.CreatePackageAsync(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 Assert.Equal("net40", package.SupportedFrameworks.First().TargetFramework);
                 Assert.Equal("net35", package.SupportedFrameworks.ElementAt(1).TargetFramework);
             }
 
             [Fact]
-            private async Task WillNotSaveAnySuuportedFrameworksWhenThereIsANullTargetFramework()
+            private void WillNotSaveAnySuuportedFrameworksWhenThereIsANullTargetFramework()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(
@@ -835,7 +854,7 @@ namespace NuGetGallery
                 var nugetPackage = CreateNuGetPackage();
                 var currentUser = new User();
 
-                var package = await service.CreatePackageAsync(nugetPackage.Object, currentUser);
+                var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 Assert.Empty(package.SupportedFrameworks);
             }
@@ -888,7 +907,47 @@ namespace NuGetGallery
         public class TheDeletePackageMethod
         {
             [Fact]
-            public async Task WillDeleteThePackage()
+            public void DoNotCommitIfCommitChangesIsFalse()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    setup:
+                        mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+
+                // Act
+                service.DeletePackage("hot", "1.0", commitChanges: false);
+
+                // Assert
+                packageRepository.Verify(r => r.CommitChanges(), Times.Never());
+            }
+
+            [Fact]
+            public void CommitIfCommitChangesIsTrue()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    setup:
+                        mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+
+                // Act
+                service.DeletePackage("hot", "1.0", commitChanges: true);
+
+                // Assert
+                packageRepository.Verify(r => r.CommitChanges(), Times.Once());
+            }
+
+            [Fact]
+            public void WillDeleteThePackage()
             {
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { PackageRegistration = packageRegistration };
@@ -898,31 +957,14 @@ namespace NuGetGallery
                     setup:
                         mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
 
-                await service.DeletePackageAsync("theId", "1.0.42");
+                service.DeletePackage("theId", "1.0.42");
 
                 packageRepository.Verify(x => x.DeleteOnCommit(package));
                 packageRepository.Verify(x => x.CommitChanges());
             }
 
             [Fact]
-            public async Task WillDeleteThePackageFile()
-            {
-                var packageRegistration = new PackageRegistration();
-                var package = new Package { PackageRegistration = packageRegistration };
-                var packageFileService = new Mock<IPackageFileService>();
-                packageFileService.Setup(x => x.DeletePackageFileAsync("theId", "1.0.42")).Returns(Task.FromResult(0)).Verifiable();
-                var service = CreateService(
-                    packageFileService: packageFileService,
-                    setup:
-                        mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
-
-                await service.DeletePackageAsync("theId", "1.0.42");
-
-                packageFileService.Verify();
-            }
-
-            [Fact]
-            public async Task WillDeleteThePackageRegistrationIfThereAreNoOtherPackages()
+            public void WillDeleteThePackageRegistrationIfThereAreNoOtherPackages()
             {
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { PackageRegistration = packageRegistration, Version = "1.0" };
@@ -937,13 +979,13 @@ namespace NuGetGallery
                     setup:
                         mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
 
-                await service.DeletePackageAsync("theId", "1.0.42");
+                service.DeletePackage("theId", "1.0.42");
 
                 packageRegistrationRepository.Verify(x => x.DeleteOnCommit(packageRegistration));
             }
 
             [Fact]
-            public async Task WillNotDeleteThePackageRegistrationIfThereAreOtherPackages()
+            public void WillNotDeleteThePackageRegistrationIfThereAreOtherPackages()
             {
                 var packageRegistration = new PackageRegistration { Packages = new HashSet<Package>() };
                 var package = new Package { PackageRegistration = packageRegistration, Version = "1.0" };
@@ -959,13 +1001,13 @@ namespace NuGetGallery
                     setup:
                         mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
 
-                await service.DeletePackageAsync("theId", "1.0.42");
+                service.DeletePackage("theId", "1.0.42");
 
                 packageRegistrationRepository.Verify(x => x.DeleteOnCommit(packageRegistration), Times.Never());
             }
 
             [Fact]
-            public async Task WillUpdateIsLatest()
+            public void WillUpdateIsLatest()
             {
                 // Arrange
                 var packages = new HashSet<Package>();
@@ -985,7 +1027,7 @@ namespace NuGetGallery
                         mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package100); });
 
                 // Act
-                await service.DeletePackageAsync("A", "1.0.0");
+                service.DeletePackage("A", "1.0.0");
 
                 // Assert
                 Assert.True(package10A.IsLatest);
@@ -1002,7 +1044,7 @@ namespace NuGetGallery
                     setup:
                         mockService => { mockService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), false)).Returns((Package)null); });
 
-                var ex = TaskAssert.ThrowsAsync<EntityException>(() => service.DeletePackageAsync("theId", "1.0.42"));
+                var ex = Assert.Throws<EntityException>(() => service.DeletePackage("theId", "1.0.42"));
 
                 Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
             }
@@ -1133,6 +1175,38 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void DoNotCommitIfCommitChangesIsFalse()
+            {
+                // Assert
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(packageRepository: packageRepository);
+
+                // Act
+                service.MarkPackageListed(package, commitChanges: false);
+
+                // Assert
+                packageRepository.Verify(p => p.CommitChanges(), Times.Never());
+            }
+
+            [Fact]
+            public void CommitIfCommitChangesIsTrue()
+            {
+                // Assert
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(packageRepository: packageRepository);
+
+                // Act
+                service.MarkPackageListed(package, commitChanges: true);
+
+                // Assert
+                packageRepository.Verify(p => p.CommitChanges(), Times.Once());
+            }
+
+            [Fact]
             public void OnPackageVersionHigherThanLatestSetsItToLatestVersion()
             {
                 var packageRegistration = new PackageRegistration { Id = "theId" };
@@ -1181,6 +1255,38 @@ namespace NuGetGallery
                 service.MarkPackageUnlisted(package);
 
                 Assert.False(package.Listed);
+            }
+
+            [Fact]
+            public void CommitIfCommitChangesIfTrue()
+            {
+                // Act
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(packageRepository: packageRepository);
+
+                // Act
+                service.MarkPackageUnlisted(package, commitChanges: true);
+
+                // Assert
+                packageRepository.Verify(p => p.CommitChanges(), Times.Once());
+            }
+
+            [Fact]
+            public void DoNotCommitIfCommitChangesIfFalse()
+            {
+                // Act
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(packageRepository: packageRepository);
+
+                // Act
+                service.MarkPackageUnlisted(package, commitChanges: false);
+
+                // Assert
+                packageRepository.Verify(p => p.CommitChanges(), Times.Never());
             }
 
             [Fact]

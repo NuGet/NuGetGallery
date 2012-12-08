@@ -16,15 +16,11 @@ namespace NuGetGallery
         {
         }
 
-        public void Execute(
-            Package galleryPackage,
-            IPackage nugetPackage)
+        public void Execute(Package galleryPackage, IPackage nugetPackage)
         {
             foreach (var curator in GetServices<IAutomaticPackageCurator>())
             {
-                curator.Curate(
-                    galleryPackage,
-                    nugetPackage);
+                curator.Curate(galleryPackage, nugetPackage);
             }
         }
     }
