@@ -9,6 +9,7 @@ using NuGet;
 using Xunit;
 using Xunit.Extensions;
 using System.Collections.Specialized;
+using System.IO;
 
 namespace NuGetGallery
 {
@@ -31,7 +32,11 @@ namespace NuGetGallery
         {
             packageService = packageService ?? new Mock<IPackageService>();
             userService = userService ?? new Mock<IUserService>();
-            fileService = fileService ?? new Mock<IPackageFileService>(MockBehavior.Strict);
+            if (fileService == null)
+            {
+                fileService = new Mock<IPackageFileService>(MockBehavior.Strict);
+                fileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
+            }
             nugetExeDownloader = nugetExeDownloader ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
 
             var controller = new Mock<ApiController>(packageService.Object, fileService.Object, userService.Object, nugetExeDownloader.Object);
@@ -45,6 +50,42 @@ namespace NuGetGallery
 
         public class TheCreatePackageAction
         {
+            [Fact]
+            public async Task CreatePackageWillSavePackageFileToFileStorage()
+            {
+                // Arrange
+                var guid = Guid.NewGuid().ToString();
+
+                var fakeUser = new User();
+                var userService = new Mock<IUserService>();
+                userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(fakeUser);
+
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(fakeUser);
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
+
+                var packageFileService = new Mock<IPackageFileService>();
+                packageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0)).Verifiable();
+
+                var nuGetPackage = new Mock<IPackage>();
+                nuGetPackage.Setup(x => x.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
+
+                var controller = CreateController(
+                    fileService: packageFileService,
+                    userService: userService,
+                    packageService: packageService,
+                    packageFromInputStream: nuGetPackage.Object);
+
+                // Act
+                await controller.CreatePackagePut(guid);
+
+                // Assert
+                packageFileService.Verify();
+            }
+
             [Fact]
             public async Task WillReturnAn401IfTheApiKeyDoesNotExist()
             {
@@ -140,7 +181,7 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
-                packageService.Verify(x => x.CreatePackageAsync(nuGetPackage.Object, It.IsAny<User>()));
+                packageService.Verify(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true));
             }
 
             [Fact]
@@ -157,7 +198,7 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
-                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<IPackage>(), matchingUser));
+                packageService.Verify(x => x.CreatePackage(It.IsAny<IPackage>(), matchingUser, true));
             }
 
             [Fact]
@@ -168,8 +209,8 @@ namespace NuGetGallery
                 nuGetPackage.Setup(x => x.Id).Returns("NuGet.CommandLine");
                 nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.CreatePackageAsync(nuGetPackage.Object, It.IsAny<User>()))
-                          .Returns(Task.FromResult(new Package { IsLatestStable = true }));
+                packageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
+                          .Returns(new Package { IsLatestStable = true });
                 var userService = new Mock<IUserService>();
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 nugetExeDownloader.Setup(s => s.UpdateExecutableAsync(nuGetPackage.Object)).Verifiable();
@@ -193,8 +234,8 @@ namespace NuGetGallery
                 nuGetPackage.Setup(x => x.Id).Returns("NuGet.CommandLine");
                 nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("2.0.0-alpha"));
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.CreatePackageAsync(nuGetPackage.Object, It.IsAny<User>()))
-                          .Returns(Task.FromResult(new Package { IsLatest = true, IsLatestStable = false }));
+                packageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
+                          .Returns(new Package { IsLatest = true, IsLatestStable = false });
                 var userService = new Mock<IUserService>();
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var matchingUser = new User();
@@ -290,7 +331,7 @@ namespace NuGetGallery
                     };
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
-                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>())).Throws(
+                packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>(), true)).Throws(
                     new InvalidOperationException("Should not have unlisted the package!"));
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
@@ -321,7 +362,7 @@ namespace NuGetGallery
 
                 controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42");
 
-                packageService.Verify(x => x.MarkPackageUnlisted(package));
+                packageService.Verify(x => x.MarkPackageUnlisted(package, true));
             }
         }
 
@@ -535,7 +576,7 @@ namespace NuGetGallery
                     };
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
-                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>())).Throws(
+                packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>(), It.IsAny<bool>())).Throws(
                     new InvalidOperationException("Should not have listed the package!"));
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
@@ -566,7 +607,7 @@ namespace NuGetGallery
 
                 controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
 
-                packageService.Verify(x => x.MarkPackageListed(package));
+                packageService.Verify(x => x.MarkPackageListed(package, It.IsAny<bool>()));
             }
         }
 
