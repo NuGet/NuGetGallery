@@ -10,24 +10,24 @@ namespace NuGetGallery
     public class NuGetExeDownloaderService : INuGetExeDownloaderService
     {
         private static readonly object fileLock = new object();
-        private readonly IFileStorageService _fileStorageSvc;
-        private readonly IPackageFileService _packageFileSvc;
-        private readonly IPackageService _packageSvc;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly IPackageFileService _packageFileService;
+        private readonly IPackageService _packageService;
 
         public NuGetExeDownloaderService(
-            IPackageService packageSvc,
-            IPackageFileService packageFileSvc,
-            IFileStorageService fileStorageSvc)
+            IPackageService packageService,
+            IPackageFileService packageFileService,
+            IFileStorageService fileStorageService)
         {
-            _packageSvc = packageSvc;
-            _packageFileSvc = packageFileSvc;
-            _fileStorageSvc = fileStorageSvc;
+            _packageService = packageService;
+            _packageFileService = packageFileService;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<ActionResult> CreateNuGetExeDownloadActionResultAsync()
         {
             await EnsureNuGetExe();
-            return await _fileStorageSvc.CreateDownloadFileActionResultAsync(Constants.DownloadsFolderName, "nuget.exe");
+            return await _fileStorageService.CreateDownloadFileActionResultAsync(Constants.DownloadsFolderName, "nuget.exe");
         }
 
         public Task UpdateExecutableAsync(IPackage zipPackage)
@@ -37,19 +37,19 @@ namespace NuGetGallery
 
         private async Task EnsureNuGetExe()
         {
-            if (await _fileStorageSvc.FileExistsAsync(Constants.DownloadsFolderName, "nuget.exe"))
+            if (await _fileStorageService.FileExistsAsync(Constants.DownloadsFolderName, "nuget.exe"))
             {
                 // Ensure the file exists on blob storage.
                 return;
             }
 
-            var package = _packageSvc.FindPackageByIdAndVersion("NuGet.CommandLine", version: null, allowPrerelease: false);
+            var package = _packageService.FindPackageByIdAndVersion("NuGet.CommandLine", version: null, allowPrerelease: false);
             if (package == null)
             {
                 throw new InvalidOperationException("Unable to find NuGet.CommandLine.");
             }
 
-            using (Stream packageStream = await _packageFileSvc.DownloadPackageFileAsync(package))
+            using (Stream packageStream = await _packageFileService.DownloadPackageFileAsync(package))
             {
                 var zipPackage = new ZipPackage(packageStream);
                 await ExtractNuGetExe(zipPackage);
@@ -65,7 +65,7 @@ namespace NuGetGallery
 
                 using (Stream packageFileStream = executable.GetStream())
                 {
-                    return _fileStorageSvc.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
+                    return _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
                 }
             }
         }

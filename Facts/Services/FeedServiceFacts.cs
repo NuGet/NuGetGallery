@@ -17,7 +17,7 @@ namespace NuGetGallery
             // Arrange
             var config = new Mock<IConfiguration>();
             config.Setup(s => s.GetSiteRoot(false)).Returns(siteRoot);
-            var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchSvc: null);
+            var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchService: null);
             feed.HttpContext = GetContext();
 
             // Act
@@ -33,7 +33,7 @@ namespace NuGetGallery
             // Arrange
             var config = new Mock<IConfiguration>();
             config.Setup(s => s.GetSiteRoot(true)).Returns("https://nuget.org").Verifiable();
-            var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchSvc: null);
+            var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchService: null);
             feed.HttpContext = GetContext(isSecure: true);
 
             // Act
@@ -461,8 +461,8 @@ namespace NuGetGallery
             public TestableV1Feed(
                 IEntityRepository<Package> repo,
                 IConfiguration configuration,
-                ISearchService searchSvc)
-                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchSvc)
+                ISearchService searchService)
+                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchService)
             {
             }
 
@@ -477,8 +477,8 @@ namespace NuGetGallery
             public TestableV2Feed(
                 IEntityRepository<Package> repo,
                 IConfiguration configuration,
-                ISearchService searchSvc)
-                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchSvc)
+                ISearchService searchService)
+                : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchService)
             {
             }
 

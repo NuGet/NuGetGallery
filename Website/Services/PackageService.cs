@@ -12,30 +12,30 @@ namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
-        private readonly ICryptographyService _cryptoSvc;
-        private readonly IIndexingService _indexingSvc;
-        private readonly IPackageFileService _packageFileSvc;
+        private readonly ICryptographyService _cryptoService;
+        private readonly IIndexingService _indexingService;
+        private readonly IPackageFileService _packageFileService;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
-        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepo;
-        private readonly IEntityRepository<Package> _packageRepo;
-        private readonly IEntityRepository<PackageStatistics> _packageStatsRepo;
+        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
+        private readonly IEntityRepository<Package> _packageRepository;
+        private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
 
         public PackageService(
-            ICryptographyService cryptoSvc,
-            IEntityRepository<PackageRegistration> packageRegistrationRepo,
-            IEntityRepository<Package> packageRepo,
-            IEntityRepository<PackageStatistics> packageStatsRepo,
-            IPackageFileService packageFileSvc,
+            ICryptographyService cryptoService,
+            IEntityRepository<PackageRegistration> packageRegistrationRepository,
+            IEntityRepository<Package> packageRepository,
+            IEntityRepository<PackageStatistics> packageStatsRepository,
+            IPackageFileService packageFileService,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
-            IIndexingService indexingSvc)
+            IIndexingService indexingService)
         {
-            _cryptoSvc = cryptoSvc;
-            _packageRegistrationRepo = packageRegistrationRepo;
-            _packageRepo = packageRepo;
-            _packageStatsRepo = packageStatsRepo;
-            _packageFileSvc = packageFileSvc;
+            _cryptoService = cryptoService;
+            _packageRegistrationRepository = packageRegistrationRepository;
+            _packageRepository = packageRepository;
+            _packageStatsRepository = packageStatsRepository;
+            _packageFileService = packageFileService;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
-            _indexingSvc = indexingSvc;
+            _indexingService = indexingService;
         }
 
         public async Task<Package> CreatePackageAsync(IPackage nugetPackage, User currentUser)
@@ -52,8 +52,8 @@ namespace NuGetGallery
                 using (var stream = nugetPackage.GetStream())
                 {
                     UpdateIsLatest(packageRegistration);
-                    _packageRegistrationRepo.CommitChanges();
-                    await _packageFileSvc.SavePackageFileAsync(package, stream);
+                    _packageRegistrationRepository.CommitChanges();
+                    await _packageFileService.SavePackageFileAsync(package, stream);
                     tx.Complete();
                 }
             }
@@ -75,14 +75,14 @@ namespace NuGetGallery
             using (var tx = new TransactionScope())
             {
                 var packageRegistration = package.PackageRegistration;
-                _packageRepo.DeleteOnCommit(package);
-                await _packageFileSvc.DeletePackageFileAsync(id, version);
+                _packageRepository.DeleteOnCommit(package);
+                await _packageFileService.DeletePackageFileAsync(id, version);
                 UpdateIsLatest(packageRegistration);
-                _packageRepo.CommitChanges();
+                _packageRepository.CommitChanges();
                 if (packageRegistration.Packages.Count == 0)
                 {
-                    _packageRegistrationRepo.DeleteOnCommit(packageRegistration);
-                    _packageRegistrationRepo.CommitChanges();
+                    _packageRegistrationRepository.DeleteOnCommit(packageRegistration);
+                    _packageRegistrationRepository.CommitChanges();
                 }
                 tx.Complete();
             }
@@ -92,7 +92,7 @@ namespace NuGetGallery
 
         public virtual PackageRegistration FindPackageRegistrationById(string id)
         {
-            return _packageRegistrationRepo.GetAll()
+            return _packageRegistrationRepository.GetAll()
                 .Include(pr => pr.Owners)
                 .SingleOrDefault(pr => pr.Id == id);
         }
@@ -108,7 +108,7 @@ namespace NuGetGallery
             // all the other packages with the same ID via the PackageRegistration property. 
             // This resulted in a gnarly query. 
             // Instead, we can always query for all packages with the ID.
-            IEnumerable<Package> packagesQuery = _packageRepo.GetAll()
+            IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
                 .Include(p => p.Authors)
                 .Include(p => p.PackageRegistration)
                 .Where(p => (p.PackageRegistration.Id == id));
@@ -149,7 +149,7 @@ namespace NuGetGallery
 
         public IQueryable<Package> GetPackagesForListing(bool includePrerelease)
         {
-            var packages = _packageRepo.GetAll()
+            var packages = _packageRepository.GetAll()
                 .Include(x => x.PackageRegistration)
                 .Include(x => x.PackageRegistration.Owners)
                 .Where(p => p.Listed);
@@ -161,7 +161,7 @@ namespace NuGetGallery
 
         public IEnumerable<Package> FindPackagesByOwner(User user)
         {
-            return (from pr in _packageRegistrationRepo.GetAll()
+            return (from pr in _packageRegistrationRepository.GetAll()
                     from u in pr.Owners
                     where u.Username == user.Username
                     from p in pr.Packages
@@ -171,7 +171,7 @@ namespace NuGetGallery
         public IEnumerable<Package> FindDependentPackages(Package package)
         {
             // Grab all candidates
-            var candidateDependents = (from p in _packageRepo.GetAll()
+            var candidateDependents = (from p in _packageRepository.GetAll()
                                        from d in p.Dependencies
                                        where d.Id == package.PackageRegistration.Id
                                        select d).Include(pk => pk.Package.PackageRegistration).ToList();
@@ -198,14 +198,14 @@ namespace NuGetGallery
 
             UpdateIsLatest(package.PackageRegistration);
 
-            _packageRepo.CommitChanges();
+            _packageRepository.CommitChanges();
         }
 
         public void AddDownloadStatistics(Package package, string userHostAddress, string userAgent, string operation)
         {
             using (MiniProfiler.Current.Step("Updating package stats"))
             {
-                _packageStatsRepo.InsertOnCommit(
+                _packageStatsRepository.InsertOnCommit(
                     new PackageStatistics
                         {
                             // IMPORTANT: Timestamp is managed by the database.
@@ -218,14 +218,14 @@ namespace NuGetGallery
                             Operation = operation
                         });
 
-                _packageStatsRepo.CommitChanges();
+                _packageStatsRepository.CommitChanges();
             }
         }
 
         public void AddPackageOwner(PackageRegistration package, User user)
         {
             package.Owners.Add(user);
-            _packageRepo.CommitChanges();
+            _packageRepository.CommitChanges();
 
             var request = FindExistingPackageOwnerRequest(package, user);
             if (request != null)
@@ -246,7 +246,7 @@ namespace NuGetGallery
             }
 
             package.Owners.Remove(user);
-            _packageRepo.CommitChanges();
+            _packageRepository.CommitChanges();
         }
 
         // TODO: Should probably be run in a transaction
@@ -272,7 +272,7 @@ namespace NuGetGallery
 
             UpdateIsLatest(package.PackageRegistration);
 
-            _packageRepo.CommitChanges();
+            _packageRepository.CommitChanges();
         }
 
         // TODO: Should probably be run in a transaction
@@ -294,7 +294,7 @@ namespace NuGetGallery
             {
                 UpdateIsLatest(package.PackageRegistration);
             }
-            _packageRepo.CommitChanges();
+            _packageRepository.CommitChanges();
         }
 
         public PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner)
@@ -310,7 +310,7 @@ namespace NuGetGallery
                     PackageRegistrationKey = package.Key,
                     RequestingOwnerKey = currentOwner.Key,
                     NewOwnerKey = newOwner.Key,
-                    ConfirmationCode = _cryptoSvc.GenerateToken(),
+                    ConfirmationCode = _cryptoService.GenerateToken(),
                     RequestDate = DateTime.UtcNow
                 };
 
@@ -369,7 +369,7 @@ namespace NuGetGallery
 
                 packageRegistration.Owners.Add(currentUser);
 
-                _packageRegistrationRepo.InsertOnCommit(packageRegistration);
+                _packageRegistrationRepository.InsertOnCommit(packageRegistration);
             }
 
             return packageRegistration;
@@ -395,7 +395,7 @@ namespace NuGetGallery
                     ReleaseNotes = nugetPackage.ReleaseNotes,
                     RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
                     HashAlgorithm = Constants.Sha512HashAlgorithmId,
-                    Hash = _cryptoSvc.GenerateHash(packageFileStream.ReadAllBytes()),
+                    Hash = _cryptoService.GenerateHash(packageFileStream.ReadAllBytes()),
                     PackageFileSize = packageFileStream.Length,
                     Created = now,
                     Language = nugetPackage.Language,
@@ -623,7 +623,7 @@ namespace NuGetGallery
 
         private void NotifyIndexingService()
         {
-            _indexingSvc.UpdateIndex();
+            _indexingService.UpdateIndex();
         }
     }
 }

@@ -3,16 +3,6 @@ using WebBackgrounder;
 
 namespace NuGetGallery
 {
-    public interface IEntitiesContext
-    {
-        IDbSet<CuratedFeed> CuratedFeeds { get; set; }
-        IDbSet<CuratedPackage> CuratedPackages { get; set; }
-        IDbSet<PackageRegistration> PackageRegistrations { get; set; }
-        IDbSet<User> Users { get; set; }
-        int SaveChanges();
-        DbSet<T> Set<T>() where T : class;
-    }
-
     public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
     {
         public EntitiesContext()
@@ -39,11 +29,9 @@ namespace NuGetGallery
             modelBuilder.Entity<User>()
                 .HasMany<Role>(u => u.Roles)
                 .WithMany(r => r.Users)
-                .Map(
-                    c => c
-                             .ToTable("UserRoles")
-                             .MapLeftKey("UserKey")
-                             .MapRightKey("RoleKey"));
+                .Map(c => c.ToTable("UserRoles")
+                           .MapLeftKey("UserKey")
+                           .MapRightKey("RoleKey"));
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
@@ -67,11 +55,9 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageRegistration>()
                 .HasMany<User>(pr => pr.Owners)
                 .WithMany()
-                .Map(
-                    c => c
-                             .ToTable("PackageRegistrationOwners")
-                             .MapLeftKey("PackageRegistrationKey")
-                             .MapRightKey("UserKey"));
+                .Map(c => c.ToTable("PackageRegistrationOwners")
+                           .MapLeftKey("PackageRegistrationKey")
+                           .MapRightKey("UserKey"));
 
             modelBuilder.Entity<Package>()
                 .HasKey(p => p.Key);
@@ -122,11 +108,9 @@ namespace NuGetGallery
             modelBuilder.Entity<CuratedFeed>()
                 .HasMany<User>(cf => cf.Managers)
                 .WithMany()
-                .Map(
-                    c => c
-                             .ToTable("CuratedFeedManagers")
-                             .MapLeftKey("CuratedFeedKey")
-                             .MapRightKey("UserKey"));
+                .Map(c => c.ToTable("CuratedFeedManagers")
+                           .MapLeftKey("CuratedFeedKey")
+                           .MapRightKey("UserKey"));
 
             modelBuilder.Entity<CuratedPackage>()
                 .HasKey(cp => cp.Key);

@@ -19,7 +19,7 @@ namespace NuGetGallery
 
         private static FileSystemFileStorageService CreateService(
             Mock<IConfiguration> configuration = null,
-            Mock<IFileSystemService> fileSystemSvc = null)
+            Mock<IFileSystemService> fileSystemService = null)
         {
             if (configuration == null)
             {
@@ -27,15 +27,15 @@ namespace NuGetGallery
                 configuration.Setup(x => x.FileStorageDirectory).Returns(FakeConfiguredFileStorageDirectory);
             }
 
-            if (fileSystemSvc == null)
+            if (fileSystemService == null)
             {
-                fileSystemSvc = new Mock<IFileSystemService>();
-                fileSystemSvc.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+                fileSystemService = new Mock<IFileSystemService>();
+                fileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
             }
 
             return new FileSystemFileStorageService(
                 configuration.Object,
-                fileSystemSvc.Object);
+                fileSystemService.Object);
         }
 
         public class TheCreateDownloadFileActionResultMethod
@@ -86,9 +86,9 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnAnHttpNotFoundResultWhenTheFileDoesNotExist()
             {
-                var fakeFileSystemSvc = new Mock<IFileSystemService>();
-                fakeFileSystemSvc.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
-                var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
+                var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 var result = await service.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, "theFileName") as HttpNotFoundResult;
 
@@ -155,13 +155,13 @@ namespace NuGetGallery
             [Fact]
             public void WillDeleteTheFileIfItExists()
             {
-                var fakeFileSystemSvc = new Mock<IFileSystemService>();
-                fakeFileSystemSvc.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
-                var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
+                var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 service.DeleteFileAsync(Constants.PackagesFolderName, "theFileName");
 
-                fakeFileSystemSvc.Verify(
+                fakeFileSystemService.Verify(
                     x => x.DeleteFile(
                         Path.Combine(FakeConfiguredFileStorageDirectory, Constants.PackagesFolderName, "theFileName")));
             }
@@ -170,10 +170,10 @@ namespace NuGetGallery
             public void WillNotDeleteTheFileIfItDoesNotExist()
             {
                 var deleteWasInvoked = false;
-                var fakeFileSystemSvc = new Mock<IFileSystemService>();
-                fakeFileSystemSvc.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
-                fakeFileSystemSvc.Setup(x => x.DeleteFile(It.IsAny<string>())).Callback(() => deleteWasInvoked = true);
-                var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
+                fakeFileSystemService.Setup(x => x.DeleteFile(It.IsAny<string>())).Callback(() => deleteWasInvoked = true);
+                var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 service.DeleteFileAsync(Constants.PackagesFolderName, "theFileName");
 
@@ -218,7 +218,7 @@ namespace NuGetGallery
             {
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
-                var service = CreateService(fileSystemSvc: fakeFileSystemService);
+                var service = CreateService(fileSystemService: fakeFileSystemService);
                 var expectedPath = Path.Combine(
                     FakeConfiguredFileStorageDirectory,
                     "theFolderName",
@@ -234,7 +234,7 @@ namespace NuGetGallery
             {
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
-                var service = CreateService(fileSystemSvc: fakeFileSystemService);
+                var service = CreateService(fileSystemService: fakeFileSystemService);
                 var expectedPath = Path.Combine(
                     FakeConfiguredFileStorageDirectory,
                     "theFolderName",
@@ -256,7 +256,7 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
                 var fakeFileStream = new MemoryStream();
                 fakeFileSystemService.Setup(x => x.OpenRead(expectedPath)).Returns(fakeFileStream);
-                var service = CreateService(fileSystemSvc: fakeFileSystemService);
+                var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 var fileStream = await service.GetFileAsync("theFolderName", "theFileName");
 
@@ -268,7 +268,7 @@ namespace NuGetGallery
             {
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
-                var service = CreateService(fileSystemSvc: fakeFileSystemService);
+                var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 var fileStream = await service.GetFileAsync("theFolderName", "theFileName");
 
@@ -315,40 +315,40 @@ namespace NuGetGallery
             [Fact]
             public async Task WillCreateTheConfiguredFileStorageDirectoryIfItDoesNotExist()
             {
-                var fakeFileSystemSvc = new Mock<IFileSystemService>();
-                fakeFileSystemSvc.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(false);
-                fakeFileSystemSvc.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
-                var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(false);
+                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
+                var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
 
-                fakeFileSystemSvc.Verify(x => x.CreateDirectory(FakeConfiguredFileStorageDirectory));
+                fakeFileSystemService.Verify(x => x.CreateDirectory(FakeConfiguredFileStorageDirectory));
             }
 
             [Fact]
             public async Task WillCreateTheFolderPathIfItDoesNotExist()
             {
-                var fakeFileSystemSvc = new Mock<IFileSystemService>();
-                fakeFileSystemSvc.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(false);
-                fakeFileSystemSvc.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
-                var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(false);
+                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
+                var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
 
-                fakeFileSystemSvc.Verify(x => x.CreateDirectory(Path.Combine(FakeConfiguredFileStorageDirectory, "theFolderName")));
+                fakeFileSystemService.Verify(x => x.CreateDirectory(Path.Combine(FakeConfiguredFileStorageDirectory, "theFolderName")));
             }
 
             [Fact]
             public async Task WillSaveThePackageFileToTheSpecifiedFolder()
             {
-                var fakeFileSystemSvc = new Mock<IFileSystemService>();
-                fakeFileSystemSvc.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
-                fakeFileSystemSvc.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
-                var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
+                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(new MemoryStream(new byte[8]));
+                var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
 
-                fakeFileSystemSvc.Verify(
+                fakeFileSystemService.Verify(
                     x =>
                     x.OpenWrite(
                         Path.Combine(
@@ -362,10 +362,10 @@ namespace NuGetGallery
             {
                 var fakePackageFile = CreateFileStream();
                 var fakeFileStream = new MemoryStream(new byte[8], 0, 8, true, true);
-                var fakeFileSystemSvc = new Mock<IFileSystemService>();
-                fakeFileSystemSvc.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
-                fakeFileSystemSvc.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeFileStream);
-                var service = CreateService(fileSystemSvc: fakeFileSystemSvc);
+                var fakeFileSystemService = new Mock<IFileSystemService>();
+                fakeFileSystemService.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(true);
+                fakeFileSystemService.Setup(x => x.OpenWrite(It.IsAny<string>())).Returns(fakeFileStream);
+                var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 await service.SaveFileAsync("theFolderName", "theFileName", CreateFileStream());
 
