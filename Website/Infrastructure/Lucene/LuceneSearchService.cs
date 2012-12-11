@@ -1,6 +1,8 @@
-﻿using Lucene.Net.Analysis;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
+using Lucene.Net.Analysis;
+using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
 using System;
@@ -42,54 +44,71 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException("searchFilter");
             }
 
-            // For the given search term, find the keys that match.
-            var keys = SearchCore(searchFilter, out totalHits);
-            if (keys.Count == 0 || searchFilter.CountOnly)
+            return SearchCore(searchFilter, out totalHits);
+        }
+
+        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits)
+        {
+            int numRecords = searchFilter.Skip + searchFilter.Take;
+
+            var searcher = new IndexSearcher(_directory, readOnly: true);
+            var query = ParseQuery(searchFilter);
+            var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
+            var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
+            var filter = new QueryWrapperFilter(termQuery);
+            var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
+            totalHits = results.totalHits;
+
+            if (results.totalHits == 0 || searchFilter.CountOnly)
             {
                 return Enumerable.Empty<Package>().AsQueryable();
             }
 
-            // Query the source for each of the keys that need to be taken.
-            var results = packages.Where(p => keys.Contains(p.Key));
-
-            // When querying the database, these keys are returned in no particular order. We use the original order of queries
-            // and retrieve each of the packages from the result in the same order.
-            var lookup = results.ToDictionary(p => p.Key, p => p);
-
-            return keys.Select(key => LookupPackage(lookup, key))
-                .Where(p => p != null)
-                .AsQueryable();
+            var packages = results.scoreDocs
+                                  .Skip(searchFilter.Skip)
+                                  .Select(sd => PackageFromDoc(searcher.Doc(sd.doc)))
+                                  .ToList();
+            return packages.AsQueryable();
         }
 
-        private static Package LookupPackage(Dictionary<int, Package> dict, int key)
+        private static Package PackageFromDoc(Document doc)
         {
-            Package package;
-            dict.TryGetValue(key, out package);
-            return package;
-        }
-
-        private IList<int> SearchCore(SearchFilter searchFilter, out int totalHits)
-        {
-            SortField sortField = GetSortField(searchFilter);
-            int numRecords = searchFilter.Skip + searchFilter.Take;
-
-            IndexSearcher searcher;
-            searcher = new IndexSearcher(_directory, readOnly: true);
-
-            var query = ParseQuery(searchFilter);
-
-            var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
-            var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
-            Filter filter = new QueryWrapperFilter(termQuery);
-
-            var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(sortField));
-            var keys = results.scoreDocs.Skip(searchFilter.Skip)
-                .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
-                .ToList();
-
-            totalHits = results.totalHits;
-            searcher.Close();
-            return keys;
+            int dlc = Int32.Parse(doc.Get("DownloadCount"));
+            int prdlc = Int32.Parse(doc.Get("PackageRegistrationDownloadCount"));
+            int key = Int32.Parse(doc.Get("Key"));
+            int prk = Int32.Parse(doc.Get("PackageRegistrationKey"));
+            bool isLatest = Boolean.Parse(doc.Get("IsLatest"));
+            bool isLatestStable = Boolean.Parse(doc.Get("IsLatestStable"));
+            string owners = doc.Get("Owners");
+            string[] ownersSplit;
+            if (owners != null)
+            {
+                ownersSplit = owners.Split(';');
+            }
+            else
+            {
+                ownersSplit = new string[]{};
+            }
+            return new Package
+            {
+                Description = doc.Get("Description"),
+                DownloadCount = dlc,
+                FlattenedAuthors = doc.Get("Authors"),
+                IconUrl = doc.Get("IconUrl"),
+                IsLatest = isLatest,
+                IsLatestStable = isLatestStable,
+                Key = key,
+                Title = doc.Get("Title"),
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = doc.Get("Id-Original"),
+                    DownloadCount = prdlc,
+                    Key = prk,
+                    Owners = ownersSplit.Select(o => new User { Username = o }).ToList()
+                },
+                PackageRegistrationKey = prk,
+                Tags = doc.Get("Tags"),
+            };
         }
 
         private static Query ParseQuery(SearchFilter searchFilter)
@@ -102,42 +121,20 @@ namespace NuGetGallery
             // 1. parse the query into field clauses and general terms
             // we imagine that mostly, field clauses are meant to 'filter' results found searching for general terms
             var queryParser = new NuGetQueryParser();
-            
-            // for field names that aren't actually searchable fields treat them as general terms
-            // fix-up - split Id search terms such as "Foo.Bar" and "Foo-Bar" into a phrase "Foo Bar"
-            Func<string[], string[]> standardizeFields = (input) =>
-            {
-                string t = Fields
-                    .Where((f) => f.Equals(input[0], StringComparison.InvariantCultureIgnoreCase))
-                    .FirstOrDefault();
 
-                if (t == "Id")
-                {
-                    input[1] = LuceneIndexingService.SplitId(input[1]);
-                }
+            var clauses = queryParser.Parse(searchFilter.SearchTerm).Select(StandardizeSearchTerms).ToList();
 
-                return new[] { t, input[1] };
-            };
-
-            var clauses = queryParser.Parse(searchFilter.SearchTerm).Select(standardizeFields);
-
-            var idSpecificTerms = clauses.Where((a) => string.Equals(a[0], "Id", StringComparison.InvariantCultureIgnoreCase));
-            var fieldSpecificTerms = clauses.Where((a) => a[0] != null);
-            var generalTerms = clauses.Where((a) => a[0] == null);
-            
+            var fieldSpecificTerms = clauses.Where(a => a.Field != null);
+            var generalTerms = clauses.Where(a => a.Field == null);
             var analyzer = new PerFieldAnalyzer();
 
-            var idSpecificQueries = idSpecificTerms
-                .Select((c) => AnalysisHelper.GetFieldQuery(analyzer, c[0], c[1]))
-                .Where((q) => q != null);
-
             var fieldSpecificQueries = fieldSpecificTerms
-                .Select((c) => AnalysisHelper.GetFieldQuery(analyzer, c[0], c[1]))
-                .Where((q) => q != null);
+                .Select(c => AnalysisHelper.GetFieldQuery(analyzer, c.Field, c.TermOrPhrase))
+                .Where(q => q != null);
 
             var generalQueries = generalTerms
-                .Select((c) => AnalysisHelper.GetMultiFieldQuery(analyzer, Fields, c[1]))
-                .Where((q) => q != null);
+                .Select(c => AnalysisHelper.GetMultiFieldQuery(analyzer, Fields, c.TermOrPhrase))
+                .Where(q => q != null);
 
             // At this point we wonder...
             // What is the user intent?
@@ -178,7 +175,7 @@ namespace NuGetGallery
             bool doExactId,
             string originalSearchText,
             Analyzer analyzer,
-            IEnumerable<string[]> generalTerms, 
+            IEnumerable<NuGetSearchTerm> generalTerms, 
             IEnumerable<Query> generalQueries)
         {
             // All terms in the multi-term query appear in at least one of the target fields.
@@ -200,7 +197,7 @@ namespace NuGetGallery
             if (doExactId)
             {
                 exactIdQuery = new TermQuery(new Term("Id-Exact", escapedExactId));
-                exactIdQuery.SetBoost(2.5f);
+                exactIdQuery.SetBoost(7.5f);
 
                 wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedExactId + "*"));
             }
@@ -208,7 +205,7 @@ namespace NuGetGallery
             Query nearlyExactIdQuery = null;
             if (generalTerms.Any())
             {
-                string escapedApproximateId = string.Join(" ", generalTerms.Select((c) => c[1]));
+                string escapedApproximateId = string.Join(" ", generalTerms.Select(c => c.TermOrPhrase));
                 nearlyExactIdQuery = AnalysisHelper.GetFieldQuery(analyzer, "Id", escapedApproximateId);
                 nearlyExactIdQuery.SetBoost(2.0f);
             }
@@ -219,7 +216,7 @@ namespace NuGetGallery
                 disjunctionQuery.Add(termQuery, BooleanClause.Occur.SHOULD);
             }
 
-            var sanitizedTerms = generalTerms.Select((c) => c[1].ToLowerInvariant());
+            var sanitizedTerms = generalTerms.Select(c => c.TermOrPhrase.ToLowerInvariant());
             foreach (var sanitizedTerm in sanitizedTerms)
             {
                 foreach (var field in Fields)
@@ -237,19 +234,30 @@ namespace NuGetGallery
             };
 
             var queriesToCombine = queries
-                .Where((q) => q != null)
-                .Where((q) => !(q is BooleanQuery) || (q as BooleanQuery).GetClauses().Any());
+                .Where(q => q != null)
+                .Where(q => !(q is BooleanQuery) || (q as BooleanQuery).GetClauses().Any());
 
             var query = conjuctionQuery.Combine(queriesToCombine.ToArray());
             return query;
         }
-
-        private static IEnumerable<string> GetSearchTerms(string searchTerm)
+        
+        // Helper function 
+        // 1) fix cases of field names: ID -> Id
+        // 2) null out field names that we don't understand (so we will search them as non-field-specific terms)
+        // 3) For ID search, split search terms such as Id:"Foo.Bar" and "Foo-Bar" into a phrase "Foo Bar" which will work better for analyzed field search
+        private static NuGetSearchTerm StandardizeSearchTerms(NuGetSearchTerm input)
         {
-            return searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                .Concat(new[] { searchTerm })
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .Select(Escape);
+            var fieldName = Fields
+                .FirstOrDefault(f => f.Equals(input.Field, StringComparison.InvariantCultureIgnoreCase));
+
+            var searchTerm = new NuGetSearchTerm { Field = fieldName, TermOrPhrase = input.TermOrPhrase };
+
+            if (fieldName == "Id")
+            {
+                searchTerm.TermOrPhrase = LuceneIndexingService.SplitId(searchTerm.TermOrPhrase);
+            }
+
+            return searchTerm;
         }
 
         private static SortField GetSortField(SearchFilter searchFilter)
@@ -264,17 +272,6 @@ namespace NuGetGallery
                     return new SortField("PublishedDate", SortField.LONG, reverse: true);
             }
             return SortField.FIELD_SCORE;
-        }
-
-        private static string Escape(string term)
-        {
-            return QueryParser.Escape(term).ToLowerInvariant();
-        }
-
-        private static int ParseKey(string value)
-        {
-            int key;
-            return Int32.TryParse(value, out key) ? key : 0;
         }
     }
 }

@@ -14,34 +14,41 @@ namespace NuGetGallery
         Tokenizer _tokenizer;
 
         // Returns list of 2-element arrays, element 0 is field name (or null), element 1 is term/phrase
-        public List<string[]> Parse(string searchTerm)
+        public List<NuGetSearchTerm> Parse(string searchTerm)
         {
-            List<string[]> ret = new List<string[]>();
+            var terms = new List<NuGetSearchTerm>();
             _tokenizer = new Tokenizer(searchTerm);
             while (_tokenizer.Peek() != Tok.Eof)
             {
-                string[] term = new string[2];
+                var term = new NuGetSearchTerm();
                 if (_tokenizer.Peek() == Tok.Field)
                 {
-                    if (ParseField(term)) { ret.Add(term); }
+                    if (ParseField(term))
+                    {
+                        terms.Add(term);
+                    }
                 }
                 else
                 {
-                    if (ParseTermOrPhrase(term)) { ret.Add(term); }
+                    if (ParseTermOrPhrase(term))
+                    {
+                        terms.Add(term);
+                    }
                 }
             }
 
-            return ret;
+            return terms;
         }
 
-        public bool ParseField(string[] result)
+        public bool ParseField(NuGetSearchTerm result)
         {
             // ignore extra leading fields - just accept the last one
             do
             {
-                result[0] = _tokenizer.Field();
+                result.Field = _tokenizer.Field();
                 _tokenizer.Pop();
-            } while (_tokenizer.Peek() == Tok.Field);
+            }
+            while (_tokenizer.Peek() == Tok.Field);
 
             // Eof, Term, or Phrase....
             if (_tokenizer.Peek() != Tok.Eof)
@@ -52,10 +59,10 @@ namespace NuGetGallery
             return false;
         }
 
-        public bool ParseTermOrPhrase(string[] result)
+        public bool ParseTermOrPhrase(NuGetSearchTerm result)
         {
             Debug.Assert(_tokenizer.Peek() == Tok.Term || _tokenizer.Peek() == Tok.Phrase);
-            result[1] = _tokenizer.Term() ?? _tokenizer.Phrase();
+            result.TermOrPhrase = _tokenizer.Term() ?? _tokenizer.Phrase();
             _tokenizer.Pop();
             return true;
         }
@@ -71,10 +78,10 @@ namespace NuGetGallery
 
         class Tokenizer
         {
-            string _s;
-            int _p;
-            Tok _tok;
-            string _next;
+            private readonly string _s;
+            private int _p;
+            private Tok _tok;
+            private string _next;
 
             public Tokenizer(string s)
             {
@@ -122,66 +129,65 @@ namespace NuGetGallery
                 // -Quoted phrase
                 // -Unquoted term
 
-                try
+                // START
+                // Skip whitespace
+                // Skip syntax error of leading colons
+                while (i < s.Length && (Char.IsWhiteSpace(s[i]) || s[i] == ':'))
                 {
-                    // Skip whitespace
-                    // Skip syntax error of leading colons
-                    while (Char.IsWhiteSpace(s[i]) || s[i] == ':') { i += 1; }
-
-                    if (s[i] == '"')
-                    {
-                        // phrase
-                        int j = i + 1;
-                        while (s[j] != '"') { j += 1; }
-
-                        _tok = Tok.Phrase;
-                        _next = s.Substring(i + 1, j - i - 1);
-                        _p = j + 1;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            // field, or unquoted term, look ahead to see what comes first - colon, whitespace, or eof
-                            int k;
-                            for (k = i; k <= s.Length; k++)
-                            {
-                                if (k == s.Length || Char.IsWhiteSpace(s[k]))
-                                {
-                                    _tok = Tok.Term;
-                                    _next = s.Substring(i, k - i);
-                                    _p = k;
-                                    break;
-                                }
-                                else if (s[k] == ':')
-                                {
-                                    _tok = Tok.Field;
-                                    _next = s.Substring(i, k - i);
-                                    _p = k + 1;
-                                    break;
-                                }
-                            }
-                        }
-                        catch (IndexOutOfRangeException)
-                        {
-                            Debug.Assert(false, "should never get index out of range exception in this loop");
-                        }
-                    }
+                    i += 1;
                 }
-                catch (IndexOutOfRangeException)
+                
+                if (i >= s.Length)
                 {
-                    // Eof - were we iterating with j in a string? Just test i.
-                    if (i < s.Length)
+                    // Eof while reading s[i]
+                    _tok = Tok.Eof;
+                    _next = null;
+                    return;
+                }
+
+                if (s[i] == '"')
+                {
+                    // phrase
+                    int j = i + 1;
+                    while (j < s.Length && s[j] != '"')
+                    {
+                        j += 1;
+                    }
+
+                    // Eof while reading s[j]
+                    if (i >= s.Length)
                     {
                         _tok = Tok.Phrase;
                         _next = s.Substring(i + 1);
                         _p = s.Length;
+                        return;
                     }
-                    else
+
+                    _tok = Tok.Phrase;
+                    _next = s.Substring(i + 1, j - i - 1);
+                    _p = j + 1;
+                    return;
+                }
+                else
+                {
+                    // field, or unquoted term, look ahead to see what comes first - colon, whitespace, or eof
+                    int k;
+                    for (k = i; k <= s.Length; k++)
                     {
-                        // Eof while reading s[i]
-                        _tok = Tok.Eof;
-                        _next = null;
+                        if (k == s.Length || Char.IsWhiteSpace(s[k]))
+                        {
+                            _tok = Tok.Term;
+                            _next = s.Substring(i, k - i);
+                            _p = k;
+                            return;
+                        }
+                        else if (s[k] == ':')
+                        {
+                            _tok = Tok.Field;
+                            _next = s.Substring(i, k - i);
+                            _p = k + 1;
+                            return;
+                        }
                     }
                 }
             }

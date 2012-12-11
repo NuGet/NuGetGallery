@@ -1,11 +1,9 @@
-﻿using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
 
 namespace NuGetGallery
 {
@@ -18,7 +16,7 @@ namespace NuGetGallery
 
         private static IDictionary CreateFieldAnalyzers()
         {
-            return new Dictionary<string, Analyzer>
+            return new Dictionary<string, Analyzer>(StringComparer.InvariantCulture)
             {
                 { "Title", new TitleAnalyzer() }
             };
@@ -26,13 +24,13 @@ namespace NuGetGallery
 
         class TitleAnalyzer : Analyzer
         {
-            private Analyzer innerAnalyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
+            private readonly Analyzer innerAnalyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
 
             public override TokenStream TokenStream(string fieldName, TextReader reader)
             {
                 // Split the title based on IdSeparators, then run it through the standardAnalyzer
                 string title = reader.ReadToEnd();
-                string partiallyTokenized = string.Join(" ", title.Split(LuceneIndexingService.IdSeparators, StringSplitOptions.RemoveEmptyEntries));
+                string partiallyTokenized = String.Join(" ", title.Split(LuceneIndexingService.IdSeparators, StringSplitOptions.RemoveEmptyEntries));
                 return innerAnalyzer.TokenStream(fieldName, new StringReader(partiallyTokenized));
             }
         }

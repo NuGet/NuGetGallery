@@ -15,16 +15,21 @@ namespace NuGetGallery.Infrastructure
         {
             var results = new NuGetQueryParser().Parse(input);
             Assert.Single(results);
-            Assert.Equal(expectedResults, results[0]);
+            var expected = new NuGetSearchTerm
+            {
+                Field = expectedResults[0],
+                TermOrPhrase = expectedResults[1]
+            };
+            Assert.Equal(expected, results[0]);
         }
 
         [Fact]
         public void MultipleResult()
         {
             var results = new NuGetQueryParser().Parse("\"hello you\" id:beautiful little:\"creatures\"");
-            Assert.Equal(new [] { null, "hello you" }, results[0]);
-            Assert.Equal(new [] { "id", "beautiful" }, results[1]);
-            Assert.Equal(new[] { "little", "creatures" }, results[2]);
+            Assert.Equal(new NuGetSearchTerm { Field = null, TermOrPhrase = "hello you" }, results[0]);
+            Assert.Equal(new NuGetSearchTerm { Field = "id", TermOrPhrase = "beautiful" }, results[1]);
+            Assert.Equal(new NuGetSearchTerm { Field = "little", TermOrPhrase = "creatures" }, results[2]);
         }
 
         [Fact]
@@ -39,7 +44,7 @@ namespace NuGetGallery.Infrastructure
         {
             var results = new NuGetQueryParser().Parse("\"");
             Assert.Single(results);
-            Assert.Equal(new[] { null, "" }, results[0]);
+            Assert.Equal(new NuGetSearchTerm { TermOrPhrase = "" }, results[0]);
         }
 
         [Fact]
@@ -47,7 +52,7 @@ namespace NuGetGallery.Infrastructure
         {
             var results = new NuGetQueryParser().Parse("\"\"");
             Assert.Single(results);
-            Assert.Equal(new[] { null, "" }, results[0]);
+            Assert.Equal(new NuGetSearchTerm { TermOrPhrase = "" }, results[0]);
         }
 
         [Fact]
@@ -55,7 +60,7 @@ namespace NuGetGallery.Infrastructure
         {
             var results = new NuGetQueryParser().Parse(":Foo");
             Assert.Single(results);
-            Assert.Equal(new[] { null, "Foo" }, results[0]);
+            Assert.Equal(new NuGetSearchTerm { TermOrPhrase = "Foo" }, results[0]);
         }
 
         [Fact]
@@ -63,7 +68,7 @@ namespace NuGetGallery.Infrastructure
         {
             var results = new NuGetQueryParser().Parse("ID::Foo");
             Assert.Single(results);
-            Assert.Equal(new[] { "ID", "Foo" }, results[0]);
+            Assert.Equal(new NuGetSearchTerm { Field = "ID", TermOrPhrase = "Foo" }, results[0]);
         }
 
         [Fact]

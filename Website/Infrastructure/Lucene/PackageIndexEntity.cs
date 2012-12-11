@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace NuGetGallery
 {
@@ -7,6 +9,10 @@ namespace NuGetGallery
         public int Key { get; set; }
 
         public int PackageRegistrationKey { get; set; }
+
+        public int PackageRegistrationDownloadCount { get; set; }
+
+        public string IconUrl { get; set; }
 
         public string Id { get; set; }
 
@@ -23,6 +29,8 @@ namespace NuGetGallery
         public bool IsLatest { get; set; }
 
         public bool IsLatestStable { get; set; }
+
+        public IEnumerable<string> Owners { get; set; }
 
         public DateTime Published { get; set; }
     }

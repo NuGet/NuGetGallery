@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Web;
 using Lucene.Net.Util;
 using System.Web.Hosting;
 using Lucene.Net.Store;
@@ -29,11 +28,6 @@ namespace NuGetGallery
 
             var directoryInfo = new DirectoryInfo(IndexDirectory);
             return new SimpleFSDirectory(directoryInfo);
-        }
-
-        public static Lucene.Net.Store.Directory GetRAMDirectory()
-        {
-            return new RAMDirectory();
         }
     }
 }

@@ -23,7 +23,7 @@ namespace NuGetGallery
 
         public IQueryable<Package> GetPackagesForIndexing(DateTime? newerThan)
         {
-            var collection = _packageSet.GetAll()
+            IQueryable<Package> collection = _packageSet.GetAll()
                 .Where(x => x.IsLatest || x.IsLatestStable); // which implies that x.IsListed by the way!
 
             if (newerThan.HasValue)

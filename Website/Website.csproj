@@ -305,6 +305,7 @@
     <Compile Include="Infrastructure\Jobs\UpdateStatisticsJob.cs" />
     <Compile Include="Infrastructure\Lucene\PerFieldAnalyzer.cs" />
     <Compile Include="Infrastructure\Lucene\PackageIndexEntity.cs" />
+    <Compile Include="Infrastructure\NuGetSearchTerm.cs" />
     <Compile Include="JsonApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>

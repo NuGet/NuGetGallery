@@ -1,7 +1,7 @@
-﻿using Lucene.Net.Store;
-using Moq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Lucene.Net.Store;
+using Moq;
 using Xunit;
 using Xunit.Extensions;
 
@@ -9,8 +9,6 @@ namespace NuGetGallery.Infrastructure
 {
     public class LuceneSearchServiceFacts
     {
-        private Directory _d;
-
         // This works because we index the description
         [Fact]
         public void IndexAndSearchAPackageByDescription()
@@ -70,13 +68,6 @@ namespace NuGetGallery.Infrastructure
                         FlattenedAuthors = "DavidX",
                         Title = "DavidTest123",
                         Version = "1.1",
-                        //Created = DateTime.Parse("2011-07-18 22:29:46.893"),
-                        //DownloadCount = 469,
-                        //HashAlgorithm = "SHA512",
-                        //Hash = "1unECLYoz4z1C5DiIkdnptHvodvNkbLUIev28Y6wOG8EohgPLNp1w7Qa7H1M6upa4tXYlbsenDjFgQIpNHhU3w==",
-                        //LastUpdated = DateTime.Parse("2012-11-26 04:17:21.723"),
-                        //Published = DateTime.Parse("1900-01-01 00:00:00.000"),
-                        //PackageFileSize = 4429,
                     }
                 }.AsQueryable());
 
@@ -125,50 +116,61 @@ namespace NuGetGallery.Infrastructure
             var packageSource = new Mock<IPackageSource>();
             packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
                 new List<Package>
-                {
-                    new Package
                     {
-                        Key = 144,
-                        PackageRegistrationKey = 12,
-                        PackageRegistration = new PackageRegistration
+                        new Package
                         {
-                            Id = "NuGet.Core",
-                            Key = 12,
-                            DownloadCount = 41
+                            Key = 144,
+                            PackageRegistrationKey = 12,
+                            PackageRegistration = new PackageRegistration
+                            {
+                                Id = "NuGet.Core",
+                                Key = 12,
+                                DownloadCount = 3
+                            },
+                            Description = "NuGet.Core is the core framework assembly for NuGet",
+                            DownloadCount = 3,
+                            Listed = true,
+                            IsLatest = true,
+                            IsLatestStable = true,
+                            FlattenedAuthors = "M S C",
+                            Tags = "NuGetTag",
+                            Title = "NuGet.Core",
+                            Version = "1.5.20902.9026",
                         },
-                        Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "M S C",
-                        Title = "NuGet.Core",
-                        Version = "1.5.20902.9026",
-                    },
-                    new Package
-                    {
-                        Key = 145,
-                        PackageRegistrationKey = 13,
-                        PackageRegistration = new PackageRegistration
+                        new Package
                         {
-                            Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
-                            Key = 13,
-                            DownloadCount = 2,
-                        },
-                        Description = "This isn't really NuGet.Core. Sorry for the confusing name - But its needed for a test case!",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "Laugh",
-                        Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
-                        Version = "1.5.20902.9026",
-                    }
-                }.AsQueryable());
+                            Key = 145,
+                            PackageRegistrationKey = 13,
+                            PackageRegistration = new PackageRegistration
+                            {
+                                Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                                Key = 13,
+                                DownloadCount = 25,
+                            },
+                            Description =
+                                "This isn't really NuGet.Core. The confusing package ID is the test!",
+                            DownloadCount = 30,
+                            Listed = true,
+                            IsLatest = true,
+                            IsLatestStable = true,
+                            FlattenedAuthors = "Laugh",
+                            Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                            Version = "1.5.20902.9026",
+                        }
+                    }.AsQueryable());
 
             // simple query
             var results = IndexAndSearch(packageSource, "NuGet.Core");
-            Assert.NotEmpty(results);
+            Assert.Equal(2, results.Count);
             Assert.Equal("NuGet.Core", results[0].Title);
+            Assert.Equal(144, results[0].Key);
             Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
+            Assert.Equal(12, results[0].PackageRegistrationKey);
+            Assert.Equal(12, results[0].PackageRegistration.Key);
+            Assert.Equal("NuGet.Core is the core framework assembly for NuGet", results[0].Description);
+            Assert.True(results[0].IsLatest);
+            Assert.True(results[0].IsLatestStable);
+            Assert.Equal("NuGetTag", results[0].Tags);
         }
 
         [Theory]
@@ -300,10 +302,11 @@ namespace NuGetGallery.Infrastructure
 
         private IList<Package> IndexAndSearch(Mock<IPackageSource> packageSource, string searchTerm)
         {
-            var luceneIndexingService = CreateIndexingService(packageSource);
+            Directory d = new RAMDirectory();
+            var luceneIndexingService = new LuceneIndexingService(packageSource.Object, d);
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
-            var luceneSearchService = CreateSearchService(packageSource);
+            var luceneSearchService = new LuceneSearchService(d);
             int totalHits = 0;
             var searchFilter = new SearchFilter
             {
@@ -318,20 +321,6 @@ namespace NuGetGallery.Infrastructure
                 out totalHits).ToList();
 
             return results;
-        }
-
-        private LuceneIndexingService CreateIndexingService(Mock<IPackageSource> packageSource)
-        {
-            _d = LuceneCommon.GetRAMDirectory();
-            return new LuceneIndexingService(
-                   packageSource.Object,
-                   _d);
-        }
-
-        private LuceneSearchService CreateSearchService(Mock<IPackageSource> packageSource)
-        {
-            return new LuceneSearchService(
-                   _d);
         }
     }
 }

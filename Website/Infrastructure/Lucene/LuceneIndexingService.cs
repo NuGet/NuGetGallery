@@ -1,6 +1,4 @@
-﻿using Lucene.Net.Documents;
-using Lucene.Net.Index;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,22 +6,25 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Lucene.Net.Documents;
+using Lucene.Net.Index;
 
 namespace NuGetGallery
 {
     public class LuceneIndexingService : IIndexingService
     {
+        internal static readonly char[] IdSeparators = new[] { '.', '-' };
+
         private static readonly object IndexWriterLock = new object();
+
         private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromDays(3);
 
-        internal static readonly char[] IdSeparators = new[] { '.', '-' };
+        private static ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter> WriterCache =
+            new ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter>();
 
         private Lucene.Net.Store.Directory _directory;
         private IndexWriter _indexWriter;
         private IPackageSource _packageSource;
-
-        static readonly ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter> WriterCache = 
-            new ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter>();
 
         public LuceneIndexingService(
             IPackageSource packageSource,
@@ -78,14 +79,17 @@ namespace NuGetGallery
                 {
                     Key = p.Key,
                     PackageRegistrationKey = p.PackageRegistrationKey,
+                    PackageRegistrationDownloadCount = p.PackageRegistration.DownloadCount,
                     Id = p.PackageRegistration.Id,
                     Title = p.Title,
                     Description = p.Description,
                     Tags = p.Tags,
                     Authors = p.FlattenedAuthors,
                     DownloadCount = p.DownloadCount,
+                    IconUrl = p.IconUrl,
                     IsLatest = p.IsLatest,
                     IsLatestStable = p.IsLatestStable,
+                    Owners = p.PackageRegistration.Owners.Select(o => o.Username),
                     Published = p.Published,
                 });
 
@@ -117,7 +121,8 @@ namespace NuGetGallery
             field.SetBoost(2.5f);
             document.Add(field);
 
-            field = new Field("Description", package.Description, Field.Store.NO, Field.Index.ANALYZED);
+            // Store description so we can show them in search results
+            field = new Field("Description", package.Description, Field.Store.YES, Field.Index.ANALYZED);
             field.SetBoost(0.1f);
             document.Add(field);
 
@@ -142,12 +147,12 @@ namespace NuGetGallery
             document.Add(field);
 
             // If an element does not have a Title, fall back to Id, same as the website.
-            var workingTitle = String.IsNullOrEmpty(package.Title) 
-                                  ? package.Id
-                                  : package.Title;
+            var workingTitle = String.IsNullOrEmpty(package.Title)
+                                   ? package.Id
+                                   : package.Title;
 
-            // As-Is
-            field = new Field("Title", workingTitle, Field.Store.NO, Field.Index.ANALYZED);
+            // As-Is (stored for search results)
+            field = new Field("Title", workingTitle, Field.Store.YES, Field.Index.ANALYZED);
             field.SetBoost(0.9f);
             document.Add(field);
 
@@ -163,7 +168,8 @@ namespace NuGetGallery
 
             if (!String.IsNullOrEmpty(package.Tags))
             {
-                field = new Field("Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED);
+                // Store tags so we can show them in search results
+                field = new Field("Tags", package.Tags, Field.Store.YES, Field.Index.ANALYZED);
                 field.SetBoost(0.8f);
                 document.Add(field);
             }
@@ -171,19 +177,38 @@ namespace NuGetGallery
             document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
             field.SetBoost(0.1f);
 
-            // Fields meant for filtering and sorting
+            // Fields for storing data to avoid hitting SQL while doing searches
+            if (!String.IsNullOrEmpty(package.IconUrl))
+            {
+                document.Add(new Field("IconUrl", package.IconUrl, Field.Store.YES, Field.Index.NO));
+            }
+
+            if (package.Owners.Any())
+            {
+                string owners = String.Join(";", package.Owners);
+                document.Add(new Field("Owners", owners, Field.Store.YES, Field.Index.NO));
+            }
+
+            document.Add(new Field("Id-Original", package.Id, Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(
-                new Field(
-                    "PackageRegistrationKey",
+                new Field("PackageRegistrationDownloadCount", package.PackageRegistrationDownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
+
+            // Fields meant for filtering, also storing data to avoid hitting SQL while doing searches
+            document.Add(new Field("IsLatest", package.IsLatest.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("IsLatestStable", package.IsLatestStable.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+            // Note: Used to identify index records for updates
+            document.Add(new Field("PackageRegistrationKey",
                     package.PackageRegistrationKey.ToString(CultureInfo.InvariantCulture),
-                    Field.Store.NO,
+                    Field.Store.YES,
                     Field.Index.NOT_ANALYZED));
-            document.Add(new Field("IsLatest", package.IsLatest.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-            document.Add(new Field("IsLatestStable", package.IsLatestStable.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-            document.Add(new Field("PublishedDate", package.Published.Ticks.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-            document.Add(
-                new Field("DownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
+
+            // Fields meant for filtering, sorting
+           document.Add(new Field("PublishedDate", package.Published.Ticks.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
+           document.Add(
+                new Field("DownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
+
             string displayName = String.IsNullOrEmpty(package.Title) ? package.Id : package.Title;
             document.Add(new Field("DisplayName", displayName.ToLower(CultureInfo.CurrentCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
 
