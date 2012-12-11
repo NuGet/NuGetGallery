@@ -5,7 +5,7 @@ using Moq;
 using Xunit;
 using Xunit.Extensions;
 
-namespace NuGetGallery.Services
+namespace NuGetGallery
 {
     public class FeedServiceFacts
     {

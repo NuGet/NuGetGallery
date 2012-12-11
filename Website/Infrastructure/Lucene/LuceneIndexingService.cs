@@ -1,47 +1,51 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Lucene.Net.Analysis.Standard;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.Store;
-using Ninject;
-using Directory = System.IO.Directory;
 
 namespace NuGetGallery
 {
     public class LuceneIndexingService : IIndexingService
     {
+        internal static readonly char[] IdSeparators = new[] { '.', '-' };
+
         private static readonly object IndexWriterLock = new object();
+
         private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromDays(3);
-        private static readonly char[] IdSeparators = new[] { '.', '-' };
-        private static IndexWriter _indexWriter;
-        private readonly DbContext _entitiesContext;
 
-        public LuceneIndexingService() : this(new EntitiesContext())
-        {
-        }
+        private static ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter> WriterCache =
+            new ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter>();
 
-        [Inject]
-        public LuceneIndexingService(IEntitiesContext entitiesContext)
+        private Lucene.Net.Store.Directory _directory;
+        private IndexWriter _indexWriter;
+        private IPackageSource _packageSource;
+
+        public LuceneIndexingService(
+            IPackageSource packageSource,
+            Lucene.Net.Store.Directory directory)
         {
-            _entitiesContext = (DbContext)entitiesContext;
+            _packageSource = packageSource;
+            _directory = directory;
         }
 
         public void UpdateIndex()
         {
+            UpdateIndex(forceRefresh: false);
+        }
+
+        internal void UpdateIndex(bool forceRefresh)
+        {
             DateTime? lastWriteTime = GetLastWriteTime();
-            bool creatingIndex = lastWriteTime == null;
 
-            EnsureIndexWriter(creatingIndex);
-
-            if (IndexRequiresRefresh())
+            if ((lastWriteTime == null) || IndexRequiresRefresh() || forceRefresh)
             {
+                EnsureIndexWriter(creatingIndex: true);
                 _indexWriter.DeleteAll();
                 _indexWriter.Commit();
 
@@ -51,44 +55,48 @@ namespace NuGetGallery
                 // Set the index create time to now. This would tell us when we last rebuilt the index.
                 UpdateIndexRefreshTime();
             }
-            if (_entitiesContext != null)
+
+            var packages = GetPackages(lastWriteTime);
+            if (packages.Count > 0)
             {
-                var packages = GetPackages(_entitiesContext, lastWriteTime);
-                if (packages.Count > 0)
-                {
-                    AddPackages(packages, creatingIndex: lastWriteTime == null);
-                }
+                EnsureIndexWriter(creatingIndex: lastWriteTime == null);
+                AddPackages(packages, creatingIndex: lastWriteTime == null);
             }
+
             UpdateLastWriteTime();
         }
 
-        protected internal virtual List<PackageIndexEntity> GetPackages(DbContext context, DateTime? lastIndexTime)
+        private List<PackageIndexEntity> GetPackages(DateTime? lastIndexTime)
         {
-            string sql =
-                @"SELECT p.[Key], p.PackageRegistrationKey, pr.Id, p.Title, p.Description, p.Tags, p.FlattenedAuthors as Authors, pr.DownloadCount,
-                                  p.IsLatestStable, p.IsLatest, p.Published
-                              FROM Packages p JOIN PackageRegistrations pr on p.PackageRegistrationKey = pr.[Key]
-                              WHERE ((p.IsLatest = 1) or (p.IsLatestStable = 1)) ";
+            // Retrieve the Latest and LatestStable version of packages if any package for that registration changed since we last updated the index.
+            // We need to do this because some attributes that we index such as DownloadCount are values in the PackageRegistration table that may
+            // update independent of the package.
 
-            object[] parameters;
-            if (lastIndexTime == null)
-            {
-                // First time creation. Pull latest packages without filtering
-                parameters = new object[0];
-            }
-            else
-            {
-                // Retrieve the Latest and LatestStable version of packages if any package for that registration changed since we last updated the index.
-                // We need to do this because some attributes that we index such as DownloadCount are values in the PackageRegistration table that may
-                // update independent of the package.
-                sql +=
-                    " AND Exists (Select 1 from dbo.Packages iP where iP.LastUpdated > @UpdatedDate and iP.PackageRegistrationKey = p.PackageRegistrationKey) ";
-                parameters = new[] { new SqlParameter("UpdatedDate", lastIndexTime.Value) };
-            }
-            return context.Database.SqlQuery<PackageIndexEntity>(sql, parameters).ToList();
+            IQueryable<Package> packagesForIndexing = _packageSource.GetPackagesForIndexing(lastIndexTime);
+
+            var query = packagesForIndexing.Select(p =>
+                new PackageIndexEntity
+                {
+                    Key = p.Key,
+                    PackageRegistrationKey = p.PackageRegistrationKey,
+                    PackageRegistrationDownloadCount = p.PackageRegistration.DownloadCount,
+                    Id = p.PackageRegistration.Id,
+                    Title = p.Title,
+                    Description = p.Description,
+                    Tags = p.Tags,
+                    Authors = p.FlattenedAuthors,
+                    DownloadCount = p.DownloadCount,
+                    IconUrl = p.IconUrl,
+                    IsLatest = p.IsLatest,
+                    IsLatestStable = p.IsLatestStable,
+                    Owners = p.PackageRegistration.Owners.Select(o => o.Username),
+                    Published = p.Published,
+                });
+
+            return query.ToList();
         }
 
-        private static void AddPackages(List<PackageIndexEntity> packages, bool creatingIndex)
+        private void AddPackages(List<PackageIndexEntity> packages, bool creatingIndex)
         {
             if (!creatingIndex)
             {
@@ -105,7 +113,7 @@ namespace NuGetGallery
             _indexWriter.Commit();
         }
 
-        private static void AddPackage(PackageIndexEntity package)
+        private void AddPackage(PackageIndexEntity package)
         {
             var document = new Document();
 
@@ -113,82 +121,131 @@ namespace NuGetGallery
             field.SetBoost(2.5f);
             document.Add(field);
 
-            field = new Field("Description", package.Description, Field.Store.NO, Field.Index.ANALYZED);
+            // Store description so we can show them in search results
+            field = new Field("Description", package.Description, Field.Store.YES, Field.Index.ANALYZED);
             field.SetBoost(0.1f);
             document.Add(field);
 
-            var tokenizedId = TokenizeId(package.Id);
-            foreach (var idToken in tokenizedId)
-            {
-                field = new Field("Id", idToken, Field.Store.NO, Field.Index.ANALYZED);
-                document.Add(field);
-            }
+            // We store the Id/Title field in multiple ways, so that it's possible to match using multiple
+            // styles of search
+            // Note: no matter which way we store it, it will also be processed by the Analyzer later.
 
-            // If an element does not have a Title, then add all the tokenized Id components as Title.
-            // Lucene's StandardTokenizer does not tokenize items of the format a.b.c which does not play well with things like "xunit.net". 
-            // We will feed it values that are already tokenized.
-            var titleTokens = String.IsNullOrEmpty(package.Title)
-                                  ? tokenizedId
-                                  : package.Title.Split(IdSeparators, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var idToken in titleTokens)
-            {
-                field = new Field("Title", idToken, Field.Store.NO, Field.Index.ANALYZED);
-                field.SetBoost(0.9f);
-                document.Add(field);
-            }
+            // Style 1: As-Is Id, no tokenizing (so you can search using dot or dash-joined terms)
+            // Boost this one
+            field = new Field("Id", package.Id, Field.Store.NO, Field.Index.ANALYZED);
+            document.Add(field);
+
+            // Style 2: dot+dash tokenized (so you can search using undotted terms)
+            field = new Field("Id", SplitId(package.Id), Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.8f);
+            document.Add(field);
+
+            // Style 3: camel-case tokenized (so you can search using parts of the camelCasedWord). 
+            // De-boosted since matches are less likely to be meaningful
+            field = new Field("Id", CamelSplitId(package.Id), Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.25f);
+            document.Add(field);
+
+            // If an element does not have a Title, fall back to Id, same as the website.
+            var workingTitle = String.IsNullOrEmpty(package.Title)
+                                   ? package.Id
+                                   : package.Title;
+
+            // As-Is (stored for search results)
+            field = new Field("Title", workingTitle, Field.Store.YES, Field.Index.ANALYZED);
+            field.SetBoost(0.9f);
+            document.Add(field);
+
+            // no need to store dot+dash tokenized - we'll handle this in the analyzer
+            field = new Field("Title", SplitId(workingTitle), Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.8f);
+            document.Add(field);
+
+            // camel-case tokenized
+            field = new Field("Title", CamelSplitId(workingTitle), Field.Store.NO, Field.Index.ANALYZED);
+            field.SetBoost(0.5f);
+            document.Add(field);
 
             if (!String.IsNullOrEmpty(package.Tags))
             {
-                field = new Field("Tags", package.Tags, Field.Store.NO, Field.Index.ANALYZED);
+                // Store tags so we can show them in search results
+                field = new Field("Tags", package.Tags, Field.Store.YES, Field.Index.ANALYZED);
                 field.SetBoost(0.8f);
                 document.Add(field);
             }
-            document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
 
-            // Fields meant for filtering and sorting
+            document.Add(new Field("Author", package.Authors, Field.Store.NO, Field.Index.ANALYZED));
+            field.SetBoost(0.1f);
+
+            // Fields for storing data to avoid hitting SQL while doing searches
+            if (!String.IsNullOrEmpty(package.IconUrl))
+            {
+                document.Add(new Field("IconUrl", package.IconUrl, Field.Store.YES, Field.Index.NO));
+            }
+
+            if (package.Owners.Any())
+            {
+                string owners = String.Join(";", package.Owners);
+                document.Add(new Field("Owners", owners, Field.Store.YES, Field.Index.NO));
+            }
+
+            document.Add(new Field("Id-Original", package.Id, Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(
-                new Field(
-                    "PackageRegistrationKey",
+                new Field("PackageRegistrationDownloadCount", package.PackageRegistrationDownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
+
+            // Fields meant for filtering, also storing data to avoid hitting SQL while doing searches
+            document.Add(new Field("IsLatest", package.IsLatest.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("IsLatestStable", package.IsLatestStable.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+            // Note: Used to identify index records for updates
+            document.Add(new Field("PackageRegistrationKey",
                     package.PackageRegistrationKey.ToString(CultureInfo.InvariantCulture),
-                    Field.Store.NO,
+                    Field.Store.YES,
                     Field.Index.NOT_ANALYZED));
-            document.Add(new Field("IsLatest", package.IsLatest.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-            document.Add(new Field("IsLatestStable", package.IsLatestStable.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-            document.Add(new Field("PublishedDate", package.Published.Ticks.ToString(), Field.Store.NO, Field.Index.NOT_ANALYZED));
-            document.Add(
-                new Field("DownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
+
+            // Fields meant for filtering, sorting
+           document.Add(new Field("PublishedDate", package.Published.Ticks.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
+           document.Add(
+                new Field("DownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
+
             string displayName = String.IsNullOrEmpty(package.Title) ? package.Id : package.Title;
             document.Add(new Field("DisplayName", displayName.ToLower(CultureInfo.CurrentCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
 
             _indexWriter.AddDocument(document);
         }
 
-        protected static void EnsureIndexWriter(bool creatingIndex)
+        protected void EnsureIndexWriter(bool creatingIndex)
         {
             if (_indexWriter == null)
             {
+                if (WriterCache.TryGetValue(_directory, out _indexWriter))
+                {
+                    Debug.Assert(_indexWriter != null);
+                    return;
+                }
+
                 lock (IndexWriterLock)
                 {
-                    if (_indexWriter == null)
+                    if (WriterCache.TryGetValue(_directory, out _indexWriter))
                     {
-                        EnsureIndexWriterCore(creatingIndex);
+                        Debug.Assert(_indexWriter != null);
+                        return;
                     }
+
+                    EnsureIndexWriterCore(creatingIndex);
                 }
             }
         }
 
-        private static void EnsureIndexWriterCore(bool creatingIndex)
+        private void EnsureIndexWriterCore(bool creatingIndex)
         {
-            if (!Directory.Exists(LuceneCommon.IndexDirectory))
-            {
-                Directory.CreateDirectory(LuceneCommon.IndexDirectory);
-            }
+            var analyzer = new PerFieldAnalyzer();
+            _indexWriter = new IndexWriter(_directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
 
-            var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-            var directoryInfo = new DirectoryInfo(LuceneCommon.IndexDirectory);
-            var directory = new SimpleFSDirectory(directoryInfo);
-            _indexWriter = new IndexWriter(directory, analyzer, create: creatingIndex, mfl: IndexWriter.MaxFieldLength.UNLIMITED);
+            // Should always be add, due to locking
+            var got = WriterCache.GetOrAdd(_directory, _indexWriter);
+            Debug.Assert(got == _indexWriter);
         }
 
         protected internal bool IndexRequiresRefresh()
@@ -198,6 +255,7 @@ namespace NuGetGallery
                 var creationTime = File.GetCreationTimeUtc(LuceneCommon.IndexMetadataPath);
                 return (DateTime.UtcNow - creationTime) > IndexRecreateInterval;
             }
+
             // If we've never created the index, it needs to be refreshed.
             return true;
         }
@@ -230,6 +288,20 @@ namespace NuGetGallery
             {
                 File.SetCreationTimeUtc(LuceneCommon.IndexMetadataPath, DateTime.UtcNow);
             }
+        }
+
+        // Split up the id by - and . then join it back into one string (tokens in the same order).
+        internal static string SplitId(string term)
+        {
+            var split = term.Split(IdSeparators, StringSplitOptions.RemoveEmptyEntries);
+            return split.Any() ? string.Join(" ", split) : "";
+        }
+
+        internal static string CamelSplitId(string term)
+        {
+            var split = term.Split(IdSeparators, StringSplitOptions.RemoveEmptyEntries);
+            var tokenized = split.SelectMany(CamelCaseTokenize);
+            return tokenized.Any() ? string.Join(" ", tokenized) : "";
         }
 
         internal static IEnumerable<string> TokenizeId(string term)
