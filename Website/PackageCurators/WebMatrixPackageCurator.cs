@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using NuGet;
 
 namespace NuGetGallery
@@ -36,7 +37,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (shouldBeIncluded)
+            if (shouldBeIncluded && DependenciesAreCurated(galleryPackage, curatedFeed))
             {
                 GetService<ICreateCuratedPackageCommand>().Execute(
                     curatedFeed.Key,

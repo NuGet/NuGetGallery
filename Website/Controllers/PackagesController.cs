@@ -20,7 +20,6 @@ namespace NuGetGallery
         // TODO: improve validation summary emphasis
 
         private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
-        private readonly ICacheService _cacheService;
         private readonly IConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly INuGetExeDownloaderService _nugetExeDownloaderService;
@@ -29,6 +28,7 @@ namespace NuGetGallery
         private readonly ISearchService _searchService;
         private readonly IUploadFileService _uploadFileService;
         private readonly IUserService _userService;
+        private readonly IEntitiesContext _entitiesContext;
 
         public PackagesController(
             IPackageService packageService,
@@ -36,11 +36,11 @@ namespace NuGetGallery
             IUserService userService,
             IMessageService messageService,
             ISearchService searchService,
-            ICacheService cacheService,
             IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
             INuGetExeDownloaderService nugetExeDownloaderService,
-            IConfiguration config,
-            IPackageFileService packageFileService)
+            IPackageFileService packageFileService,
+            IEntitiesContext entitiesContext,
+            IConfiguration config)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -50,7 +50,7 @@ namespace NuGetGallery
             _autoCuratedPackageCmd = autoCuratedPackageCmd;
             _nugetExeDownloaderService = nugetExeDownloaderService;
             _packageFileService = packageFileService;
-            _cacheService = cacheService;
+            _entitiesContext = entitiesContext;
             _config = config;
         }
 
@@ -129,10 +129,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            using (var fileStream = nuGetPackage.GetStream())
-            {
-                await _uploadFileService.SaveUploadFileAsync(currentUser.Key, fileStream);
-            }
+            await _uploadFileService.SaveUploadFileAsync(currentUser.Key, nuGetPackage);
 
             return RedirectToRoute(RouteName.VerifyPackage);
         }
@@ -509,25 +506,29 @@ namespace NuGetGallery
                 nugetPackage = CreatePackage(uploadFile);
             }
 
-            Package package;
-            using (var tx = new TransactionScope())
+            // update relevant database tables
+            Package package = _packageService.CreatePackage(nugetPackage, currentUser, commitChanges: false);
+            _packageService.PublishPackage(package.PackageRegistration.Id, package.Version, commitChanges: false);
+
+            if (listed == false)
             {
-                package = await _packageService.CreatePackageAsync(nugetPackage, currentUser);
-                _packageService.PublishPackage(package.PackageRegistration.Id, package.Version);
-                if (listed.HasValue && listed.Value == false)
-                {
-                    _packageService.MarkPackageUnlisted(package);
-                }
-
-                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
-                _autoCuratedPackageCmd.Execute(package, nugetPackage);
-                tx.Complete();
+                _packageService.MarkPackageUnlisted(package, commitChanges: false);
             }
+            _autoCuratedPackageCmd.Execute(package, nugetPackage);
 
+            // commit all changes to database as an atomic transaction
+            _entitiesContext.SaveChanges();            
+
+            // save package to blob storage
+            await _packageFileService.SavePackageFileAsync(package, nugetPackage);
+
+            // delete the uploaded binary in the Uploads container
+            await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+
+            // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
             if (package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) &&
                 package.IsLatestStable)
             {
-                // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
                 await _nugetExeDownloaderService.UpdateExecutableAsync(nugetPackage);
             }
 
@@ -589,6 +590,7 @@ namespace NuGetGallery
                     searchFilter.SortProperty = SortProperty.Relevance;
                     break;
             }
+
             return searchFilter;
         }
 

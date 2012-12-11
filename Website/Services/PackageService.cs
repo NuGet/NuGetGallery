@@ -21,12 +21,12 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
 
         public PackageService(
-            ICryptographyService cryptoService,
-            IEntityRepository<PackageRegistration> packageRegistrationRepository,
-            IEntityRepository<Package> packageRepository,
-            IEntityRepository<PackageStatistics> packageStatsRepository,
-            IPackageFileService packageFileService,
-            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
+            ICryptographyService cryptoService, 
+            IEntityRepository<PackageRegistration> packageRegistrationRepository, 
+            IEntityRepository<Package> packageRepository, 
+            IEntityRepository<PackageStatistics> packageStatsRepository, 
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository, 
+            IPackageFileService packageFileService, 
             IIndexingService indexingService)
         {
             _cryptoService = cryptoService;
@@ -38,24 +38,19 @@ namespace NuGetGallery
             _indexingService = indexingService;
         }
 
-        public async Task<Package> CreatePackageAsync(IPackage nugetPackage, User currentUser)
+        public Package CreatePackage(IPackage nugetPackage, User user, bool commitChanges = true)
         {
             ValidateNuGetPackage(nugetPackage);
 
-            var packageRegistration = CreateOrGetPackageRegistration(currentUser, nugetPackage);
+            var packageRegistration = CreateOrGetPackageRegistration(user, nugetPackage);
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
             packageRegistration.Packages.Add(package);
+            UpdateIsLatest(packageRegistration);
 
-            using (var tx = new TransactionScope())
+            if (commitChanges)
             {
-                using (var stream = nugetPackage.GetStream())
-                {
-                    UpdateIsLatest(packageRegistration);
-                    _packageRegistrationRepository.CommitChanges();
-                    await _packageFileService.SavePackageFileAsync(package, stream);
-                    tx.Complete();
-                }
+                _packageRegistrationRepository.CommitChanges();
             }
 
             NotifyIndexingService();
@@ -63,7 +58,7 @@ namespace NuGetGallery
             return package;
         }
 
-        public async Task DeletePackageAsync(string id, string version)
+        public void DeletePackage(string id, string version, bool commitChanges = true)
         {
             var package = FindPackageByIdAndVersion(id, version);
 
@@ -72,19 +67,21 @@ namespace NuGetGallery
                 throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
             }
 
-            using (var tx = new TransactionScope())
+            var packageRegistration = package.PackageRegistration;
+            _packageRepository.DeleteOnCommit(package);
+                
+            UpdateIsLatest(packageRegistration);
+
+            if (packageRegistration.Packages.Count == 0)
             {
-                var packageRegistration = package.PackageRegistration;
-                _packageRepository.DeleteOnCommit(package);
-                await _packageFileService.DeletePackageFileAsync(id, version);
-                UpdateIsLatest(packageRegistration);
+                _packageRegistrationRepository.DeleteOnCommit(packageRegistration);
+            }
+
+            if (commitChanges)
+            {
+                // we don't need to call _packageRegistrationRepository.CommitChanges() here because 
+                // it shares the same EntityContext as _packageRepository.
                 _packageRepository.CommitChanges();
-                if (packageRegistration.Packages.Count == 0)
-                {
-                    _packageRegistrationRepository.DeleteOnCommit(packageRegistration);
-                    _packageRegistrationRepository.CommitChanges();
-                }
-                tx.Complete();
             }
 
             NotifyIndexingService();
@@ -184,7 +181,7 @@ namespace NuGetGallery
             return dependents.Select(d => d.Package);
         }
 
-        public void PublishPackage(string id, string version)
+        public void PublishPackage(string id, string version, bool commitChanges = true)
         {
             var package = FindPackageByIdAndVersion(id, version);
 
@@ -198,7 +195,10 @@ namespace NuGetGallery
 
             UpdateIsLatest(package.PackageRegistration);
 
-            _packageRepository.CommitChanges();
+            if (commitChanges)
+            {
+                _packageRepository.CommitChanges();
+            }
         }
 
         public void AddDownloadStatistics(Package package, string userHostAddress, string userAgent, string operation)
@@ -249,8 +249,7 @@ namespace NuGetGallery
             _packageRepository.CommitChanges();
         }
 
-        // TODO: Should probably be run in a transaction
-        public void MarkPackageListed(Package package)
+        public void MarkPackageListed(Package package, bool commitChanges = true)
         {
             if (package == null)
             {
@@ -272,11 +271,13 @@ namespace NuGetGallery
 
             UpdateIsLatest(package.PackageRegistration);
 
-            _packageRepository.CommitChanges();
+            if (commitChanges)
+            {
+                _packageRepository.CommitChanges();
+            }
         }
 
-        // TODO: Should probably be run in a transaction
-        public void MarkPackageUnlisted(Package package)
+        public void MarkPackageUnlisted(Package package, bool commitChanges = true)
         {
             if (package == null)
             {
@@ -294,7 +295,11 @@ namespace NuGetGallery
             {
                 UpdateIsLatest(package.PackageRegistration);
             }
-            _packageRepository.CommitChanges();
+
+            if (commitChanges)
+            {
+                _packageRepository.CommitChanges();
+            }
         }
 
         public PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner)
