@@ -1129,7 +1129,7 @@ namespace NuGetGallery
                 var fakePackageService = new Mock<IPackageService>(MockBehavior.Strict);
                 var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
                 fakePackageService.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>(), false)).Returns(fakePackage);
-                fakePackageService.Setup(x => x.PublishPackage("theId", "theVersion", false));
+                fakePackageService.Setup(x => x.PublishPackage(fakePackage, false));
                 fakePackageService.Setup(x => x.MarkPackageUnlisted(fakePackage, false));
                 var fakeNuGetPackage = new Mock<IPackage>();
 
@@ -1161,9 +1161,9 @@ namespace NuGetGallery
                 var fakeFileStream = new MemoryStream();
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(fakeFileStream));
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(42)).Returns(Task.FromResult(0));
+                var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
                 var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" });
+                fakePackageService.Setup(x => x.CreatePackage(It.IsAny<IPackage>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(fakePackage);
                 var fakeNuGetPackage = new Mock<IPackage>();
                 var controller = CreateController(
                     packageService: fakePackageService,
@@ -1174,7 +1174,7 @@ namespace NuGetGallery
 
                 await controller.VerifyPackage(null);
 
-                fakePackageService.Verify(x => x.PublishPackage("theId", "theVersion", It.IsAny<bool>()));
+                fakePackageService.Verify(x => x.PublishPackage(fakePackage, false), Times.Once());
                 fakeFileStream.Dispose();
             }
 

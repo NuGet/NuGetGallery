@@ -37,6 +37,7 @@ namespace NuGetGallery
         void DeletePackage(string id, string version, bool commitChanges = true);
 
         void PublishPackage(string id, string version, bool commitChanges = true);
+        void PublishPackage(Package package, bool commitChanges = true);
 
         void MarkPackageUnlisted(Package package, bool commitChanges = true);
         void MarkPackageListed(Package package, bool commitChanges = true);
