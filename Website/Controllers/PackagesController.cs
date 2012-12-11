@@ -511,7 +511,7 @@ namespace NuGetGallery
 
             // update relevant database tables
             Package package = _packageService.CreatePackage(nugetPackage, currentUser, commitChanges: false);
-            _packageService.PublishPackage(package.PackageRegistration.Id, package.Version, commitChanges: false);
+            _packageService.PublishPackage(package, commitChanges: false);
 
             if (listed == false)
             {
