@@ -18,10 +18,10 @@ namespace NuGetGallery
         {
             var terms = new List<NuGetSearchTerm>();
             _tokenizer = new Tokenizer(searchTerm);
-            while (_tokenizer.Peek() != Tok.Eof)
+            while (_tokenizer.Peek() != TokenType.Eof)
             {
                 var term = new NuGetSearchTerm();
-                if (_tokenizer.Peek() == Tok.Field)
+                if (_tokenizer.Peek() == TokenType.Field)
                 {
                     if (ParseField(term))
                     {
@@ -48,10 +48,10 @@ namespace NuGetGallery
                 result.Field = _tokenizer.Field();
                 _tokenizer.Pop();
             }
-            while (_tokenizer.Peek() == Tok.Field);
+            while (_tokenizer.Peek() == TokenType.Field);
 
             // Eof, Term, or Phrase....
-            if (_tokenizer.Peek() != Tok.Eof)
+            if (_tokenizer.Peek() != TokenType.Eof)
             {
                 return ParseTermOrPhrase(result);
             }
@@ -61,13 +61,13 @@ namespace NuGetGallery
 
         public bool ParseTermOrPhrase(NuGetSearchTerm result)
         {
-            Debug.Assert(_tokenizer.Peek() == Tok.Term || _tokenizer.Peek() == Tok.Phrase);
+            Debug.Assert(_tokenizer.Peek() == TokenType.Term || _tokenizer.Peek() == TokenType.Phrase);
             result.TermOrPhrase = _tokenizer.Term() ?? _tokenizer.Phrase();
             _tokenizer.Pop();
             return true;
         }
 
-        enum Tok
+        enum TokenType
         {
             Null = 0,
             Field = 1,
@@ -80,35 +80,35 @@ namespace NuGetGallery
         {
             private readonly string _s;
             private int _p;
-            private Tok _tok;
+            private TokenType _tokenType;
             private string _next;
 
             public Tokenizer(string s)
             {
                 _s = s;
                 _p = 0;
-                _tok = Tok.Null;
+                _tokenType = TokenType.Null;
                 Scan();
             }
 
-            public Tok Peek()
+            public TokenType Peek()
             {
-                return _tok;
+                return _tokenType;
             }
 
             public string Field()
             {
-                return _tok == Tok.Field ? _next : null;
+                return _tokenType == TokenType.Field ? _next : null;
             }
 
             public string Term()
             {
-                return _tok == Tok.Term ? _next : null;
+                return _tokenType == TokenType.Term ? _next : null;
             }
 
             public string Phrase()
             {
-                return _tok == Tok.Phrase ? _next : null;
+                return _tokenType == TokenType.Phrase ? _next : null;
             }
 
             public Tokenizer Pop()
@@ -140,7 +140,7 @@ namespace NuGetGallery
                 if (i >= s.Length)
                 {
                     // Eof while reading s[i]
-                    _tok = Tok.Eof;
+                    _tokenType = TokenType.Eof;
                     _next = null;
                     return;
                 }
@@ -157,13 +157,13 @@ namespace NuGetGallery
                     // Eof while reading s[j]
                     if (i >= s.Length)
                     {
-                        _tok = Tok.Phrase;
+                        _tokenType = TokenType.Phrase;
                         _next = s.Substring(i + 1);
                         _p = s.Length;
                         return;
                     }
 
-                    _tok = Tok.Phrase;
+                    _tokenType = TokenType.Phrase;
                     _next = s.Substring(i + 1, j - i - 1);
                     _p = j + 1;
                     return;
@@ -176,14 +176,14 @@ namespace NuGetGallery
                     {
                         if (k == s.Length || Char.IsWhiteSpace(s[k]))
                         {
-                            _tok = Tok.Term;
+                            _tokenType = TokenType.Term;
                             _next = s.Substring(i, k - i);
                             _p = k;
                             return;
                         }
                         else if (s[k] == ':')
                         {
-                            _tok = Tok.Field;
+                            _tokenType = TokenType.Field;
                             _next = s.Substring(i, k - i);
                             _p = k + 1;
                             return;
