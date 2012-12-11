@@ -129,7 +129,10 @@ namespace NuGetGallery
                 return View();
             }
 
-            await _uploadFileService.SaveUploadFileAsync(currentUser.Key, nuGetPackage);
+            using (Stream stream = nuGetPackage.GetStream())
+            {
+                await _uploadFileService.SaveUploadFileAsync(currentUser.Key, stream);
+            }
 
             return RedirectToRoute(RouteName.VerifyPackage);
         }
@@ -520,7 +523,10 @@ namespace NuGetGallery
             _entitiesContext.SaveChanges();            
 
             // save package to blob storage
-            await _packageFileService.SavePackageFileAsync(package, nugetPackage);
+            using (Stream stream = nugetPackage.GetStream())
+            {
+                await _packageFileService.SavePackageFileAsync(package, stream);
+            }
 
             // delete the uploaded binary in the Uploads container
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);

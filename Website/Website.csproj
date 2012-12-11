@@ -294,7 +294,6 @@
     <Compile Include="Entities\IEntitiesContext.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="ErrorEntity.cs" />
-    <Compile Include="Extensions\FileServiceExtensions.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\FileHelper.cs" />

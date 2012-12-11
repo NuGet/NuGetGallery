@@ -159,7 +159,10 @@ namespace NuGetGallery
             }
 
             var package = _packageService.CreatePackage(packageToPush, user, commitChanges: true);
-            await _packageFileService.SavePackageFileAsync(package, packageToPush);
+            using (Stream stream = packageToPush.GetStream())
+            {
+                await _packageFileService.SavePackageFileAsync(package, stream);
+            }
 
             if (packageToPush.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
             {
