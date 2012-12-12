@@ -32,6 +32,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("id");
             }
+
             if (String.IsNullOrWhiteSpace(version))
             {
                 throw new ArgumentNullException("version");
@@ -78,7 +79,6 @@ namespace NuGetGallery
             return String.Format(
                 CultureInfo.InvariantCulture, Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
         }
-
 
         private static string BuildFileName(Package package)
         {

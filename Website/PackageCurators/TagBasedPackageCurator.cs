@@ -29,9 +29,13 @@ namespace NuGetGallery
                 // Check if this package should be curated
                 if (tags.Any(tag => RequiredTags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
                 {
-                    // It should! Add it to the curated feed
-                    GetService<ICreateCuratedPackageCommand>().Execute(
-                        feed.Key, galleryPackage.PackageRegistration.Key, automaticallyCurated: true);
+                    // It should!
+                    // But now we need to ensure that the package's dependencies are also curated
+                    if (DependenciesAreCurated(galleryPackage, feed))
+                    {
+                        GetService<ICreateCuratedPackageCommand>().Execute(
+                            feed.Key, galleryPackage.PackageRegistration.Key, automaticallyCurated: true);
+                    }
                 }
             }
         }

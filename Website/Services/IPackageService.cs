@@ -30,7 +30,7 @@ namespace NuGetGallery
 
         void RemovePackageOwner(PackageRegistration package, User user);
 
-        void AddDownloadStatistics(Package package, string userHostAddress, string userAgent);
+        void AddDownloadStatistics(Package package, string userHostAddress, string userAgent, string operation);
 
         void MarkPackageUnlisted(Package package);
 

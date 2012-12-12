@@ -4,7 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Extensions;
@@ -60,7 +61,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>
@@ -88,7 +89,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
@@ -146,7 +147,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>
@@ -174,7 +175,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
@@ -226,7 +227,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>
@@ -254,7 +255,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>
@@ -283,7 +284,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>
@@ -299,7 +300,7 @@ namespace NuGetGallery
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Throws(
-                    new TestableStorageClientException { ErrorCode = StorageErrorCode.BlobNotFound });
+                    new TestableStorageClientException { ErrorCode = StorageErrorCodeStrings.ResourceNotFound });
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 var stream = service.GetFile(folderName, "theFileName");
@@ -313,7 +314,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>
@@ -345,7 +346,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>
@@ -374,7 +375,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
@@ -391,7 +392,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
@@ -410,7 +411,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
-                var fakeBlob = new Mock<ICloudBlob>();
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>

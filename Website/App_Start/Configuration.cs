@@ -95,6 +95,14 @@ namespace NuGetGallery
             return (T)ConfigThunks[key].Value;
         }
 
+        public string FacebookAppID
+        {
+            get
+            {
+                return ReadAppSettings("FacebookAppId");
+            }
+        }
+
         protected virtual string GetConfiguredSiteRoot()
         {
             return ReadAppSettings("SiteRoot");

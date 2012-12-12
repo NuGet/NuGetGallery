@@ -129,6 +129,46 @@ namespace NuGetGallery.PackageCurators
             }
 
             [Fact]
+            public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsNotIncluded()
+            {
+                var curator = new TestableWindows8PackageCurator();
+                var stubNuGetPackage = CreateStubNuGetPackage();
+
+                var stubGalleryPackage = CreateStubGalleryPackage();
+                stubGalleryPackage.Tags = "win8";
+                stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "NotACuratedPackage" });
+
+                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object);
+
+                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
+            public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsExcludedInTheFeed()
+            {
+                var curator = new TestableWindows8PackageCurator();
+                curator.StubCuratedFeed.Packages.Add(new CuratedPackage { AutomaticallyCurated = false, Included = false, PackageRegistration = new PackageRegistration { Id = "ManuallyExcludedPackage" } });
+
+                var stubGalleryPackage = CreateStubGalleryPackage();
+                stubGalleryPackage.Tags = "win8";
+                stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "ManuallyExcludedPackage" });
+
+                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object);
+
+                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
+                    It.IsAny<int>(),
+                    It.IsAny<int>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
             public void WillIncludeThePackageUsingTheCuratedFeedKey()
             {
                 var curator = new TestableWindows8PackageCurator();

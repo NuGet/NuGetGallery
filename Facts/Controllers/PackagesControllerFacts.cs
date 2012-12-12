@@ -26,7 +26,8 @@ namespace NuGetGallery
             Mock<ISearchService> searchService = null,
             Exception readPackageException = null,
             Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
-            Mock<INuGetExeDownloaderService> downloaderSvc = null)
+            Mock<INuGetExeDownloaderService> downloaderSvc = null,
+            Mock<IConfiguration> configuration = null)
         {
             packageSvc = packageSvc ?? new Mock<IPackageService>();
             uploadFileSvc = uploadFileSvc ?? new Mock<IUploadFileService>();
@@ -35,6 +36,7 @@ namespace NuGetGallery
             searchService = searchService ?? CreateSearchService();
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
             downloaderSvc = downloaderSvc ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
+            configuration = configuration ?? new Mock<IConfiguration>();
 
             var controller = new Mock<PackagesController>(
                 packageSvc.Object,
@@ -43,7 +45,8 @@ namespace NuGetGallery
                 messageSvc.Object,
                 searchService.Object,
                 autoCuratePackageCmd.Object,
-                downloaderSvc.Object);
+                downloaderSvc.Object,
+                configuration.Object);
             controller.CallBase = true;
 
             if (httpContext != null)

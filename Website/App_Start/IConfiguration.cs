@@ -10,6 +10,8 @@
         PackageStoreType PackageStoreType { get; }
         bool UseEmulator { get; }
 
+        string FacebookAppID { get; }
+
         string GetSiteRoot(bool useHttps);
     }
 }

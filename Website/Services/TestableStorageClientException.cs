@@ -1,5 +1,5 @@
 ﻿using System;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage;
 
 namespace NuGetGallery
 {
@@ -9,11 +9,11 @@ namespace NuGetGallery
         {
         }
 
-        public TestableStorageClientException(StorageClientException ex)
+        public TestableStorageClientException(StorageException ex)
         {
-            ErrorCode = ex.ErrorCode;
+            ErrorCode = ex.RequestInformation.ExtendedErrorInformation.ErrorCode;
         }
 
-        public StorageErrorCode ErrorCode { get; set; }
+        public string ErrorCode { get; set; }
     }
 }
