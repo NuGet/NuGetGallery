@@ -7,6 +7,7 @@ using Moq;
 using NuGet;
 using Xunit;
 using Xunit.Extensions;
+using System.Collections.Specialized;
 
 namespace NuGetGallery
 {
@@ -354,16 +355,20 @@ namespace NuGetGallery
                 var actionResult = new EmptyResult();
                 var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.1", false)).Returns(package);
-                packageSvc.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux")).Verifiable();
+                packageSvc.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux", "Install")).Verifiable();
 
                 var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
                 packageFileSvc.Setup(s => s.CreateDownloadPackageActionResult(package)).Returns(actionResult).Verifiable();
                 var userSvc = new Mock<IUserService>(MockBehavior.Strict);
                 userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
+                NameValueCollection headers = new NameValueCollection();
+                headers.Add("NuGet-Operation", "Install");
+
                 var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
                 httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
                 httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
+                httpRequest.SetupGet(r => r.Headers).Returns(headers);
                 var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
                 httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
 
@@ -389,16 +394,20 @@ namespace NuGetGallery
                 var actionResult = new EmptyResult();
                 var packageSvc = new Mock<IPackageService>(MockBehavior.Strict);
                 packageSvc.Setup(x => x.FindPackageByIdAndVersion("Baz", "", false)).Returns(package);
-                packageSvc.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux")).Verifiable();
+                packageSvc.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux", "Install")).Verifiable();
 
                 var packageFileSvc = new Mock<IPackageFileService>(MockBehavior.Strict);
                 packageFileSvc.Setup(s => s.CreateDownloadPackageActionResult(package)).Returns(actionResult).Verifiable();
                 var userSvc = new Mock<IUserService>(MockBehavior.Strict);
                 userSvc.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
+                NameValueCollection headers = new NameValueCollection();
+                headers.Add("NuGet-Operation", "Install");
+
                 var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
                 httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
                 httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
+                httpRequest.SetupGet(r => r.Headers).Returns(headers);
                 var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
                 httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
 
@@ -424,6 +433,9 @@ namespace NuGetGallery
                 var httpRequest = new Mock<HttpRequestBase>();
                 httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
                 httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
+                NameValueCollection headers = new NameValueCollection();
+                headers.Add("NuGet-Operation", "Install");
+                httpRequest.SetupGet(r => r.Headers).Returns(headers);
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
                 var controller = CreateController(packageSvc);

@@ -15,7 +15,7 @@ if($LastExitCode -ne 0) {
         print-error("=================================================")
     } else {
         print-success("=================================================")
-        print-success("                All Done, Son.                   ")
+        print-success("                All Done.                        ")
         print-success("=================================================")
     }
 }

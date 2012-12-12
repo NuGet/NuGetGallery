@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Web.Mvc;
-using Microsoft.WindowsAzure.StorageClient;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 
 namespace NuGetGallery
 {
@@ -60,22 +61,24 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("folderName");
             }
+
             if (String.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException("fileName");
             }
 
-            var container = GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
             var stream = new MemoryStream();
             try
             {
+                var container = GetContainer(folderName);
+                var blob = container.GetBlobReference(fileName);
                 blob.DownloadToStream(stream);
             }
             catch (TestableStorageClientException ex)
             {
                 stream.Dispose();
-                if (ex.ErrorCode == StorageErrorCode.BlobNotFound)
+
+                if (ex.ErrorCode == StorageErrorCodeStrings.ResourceNotFound)
                 {
                     return null;
                 }
