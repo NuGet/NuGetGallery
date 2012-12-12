@@ -207,7 +207,10 @@ namespace NuGetGallery
             {
                 string escapedApproximateId = string.Join(" ", generalTerms.Select(c => c.TermOrPhrase));
                 nearlyExactIdQuery = AnalysisHelper.GetFieldQuery(analyzer, "Id", escapedApproximateId);
-                nearlyExactIdQuery.SetBoost(2.0f);
+                if (nearlyExactIdQuery != null)
+                {
+                    nearlyExactIdQuery.SetBoost(2.0f);
+                }
             }
 
             foreach (var termQuery in generalQueries)
