@@ -13,7 +13,7 @@ namespace NuGetGallery.Controllers
     public partial class PackageFilesController : Controller
     {
         private const long MaximumAllowedPackageFileSize = 3L * 1024 * 1024;		// maximum package size = 3MB
-        private const int MaximumPackageContentFileSize = 16 * 1024;                // maximum package content file to return before trimming = 16K
+        private const int MaximumPackageContentFileSize = 25 * 1024;                // maximum package content file to return before trimming = 25K
 
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
@@ -71,7 +71,7 @@ namespace NuGetGallery.Controllers
 
             if (FileHelper.IsBinaryFile(packageFile.Path))
             {
-                result.Content = "The requested file is a binary file.";
+                result.Content = "*** The requested file is a binary file. ***";
             }
             else
             {

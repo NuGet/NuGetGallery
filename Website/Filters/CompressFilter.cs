@@ -6,18 +6,24 @@ namespace NuGetGallery.Filters
 {
     public class CompressFilter : ActionFilterAttribute
     {
-        public override void OnActionExecuting(ActionExecutingContext filterContext)
+        public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
+            if (filterContext.Result is ImageResult)
+            {
+                // do not compress images
+                return;
+            }
+
             HttpRequestBase request = filterContext.HttpContext.Request;
             string acceptEncoding = request.Headers["Accept-Encoding"];
             if (string.IsNullOrEmpty(acceptEncoding))
             {
                 return;
             }
-            
+
             acceptEncoding = acceptEncoding.ToUpperInvariant();
- 
-            HttpResponseBase response = filterContext.HttpContext.Response; 
+
+            HttpResponseBase response = filterContext.HttpContext.Response;
             if (acceptEncoding.Contains("GZIP"))
             {
                 response.AppendHeader("Content-encoding", "gzip");

@@ -19,8 +19,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException("contentType");
             }
 
-            this.ImageStream = imageStream;
-            this.ContentType = contentType;
+            ImageStream = imageStream;
+            ContentType = contentType;
         }
 
         public Stream ImageStream { get; private set; }
@@ -34,21 +34,9 @@ namespace NuGetGallery
             }
 
             HttpResponseBase response = context.HttpContext.Response;
-
-            response.ContentType = this.ContentType;
-
-            byte[] buffer = new byte[4096];
-            while (true)
-            {
-                int read = this.ImageStream.Read(buffer, 0, buffer.Length);
-                if (read == 0)
-                {
-                    break;
-                }
-
-                response.OutputStream.Write(buffer, 0, read);
-            }
-
+            response.ContentType = ContentType;
+            
+            ImageStream.CopyTo(response.OutputStream);
             response.End();
         }
     }

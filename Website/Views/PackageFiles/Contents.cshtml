@@ -8,8 +8,26 @@
 
 @section TopScripts
 {
+    <meta name="msApplication-ID" content="50582LuanNguyen.NuGetPackageExplorer" />
+    <meta name="msApplication-PackageFamilyName" content="50582LuanNguyen.NuGetPackageExplorer_w6y2tyx5bpzwa" />
+    <meta name="msApplication-Arguments" content="@Model.GetNpeActivationArgument(Url)" />
+
     <link rel="stylesheet" href="@Url.Content("~/Content/jquery.treeview.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/SyntaxHighlighter/shCore.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/SyntaxHighlighter/shThemeDefault.css")" />
     <script src="@Url.Content("~/Scripts/jquery.treeview.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shCore.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushXml.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushPowerShell.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushCss.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushPlain.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushCSharp.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushVb.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushCpp.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushJava.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushPhp.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushSql.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushJScript.js")"></script>
 }
 
 <hgroup class="page-heading">
@@ -18,28 +36,36 @@
     <h2>@Model.PackageMetadata.Version</h2>
 </hgroup>
 
-<div id="contentsNav">
-    <h3>Contents</h3>
+@if (Request.UserAgent.IndexOf("Windows NT 6.2") > -1)
+{ 
+<div id="upsellMessage">
+    It looks like you are browsing from Windows 8. You can open this package in <a href="@Model.GetNpeProtocolUrl(Url)">NuGet Package Explorer</a> for a richer experience.
+</div>
+}
 
+<div id="contentsNav">
     <div><a id="metadataLabel" href="#">Metadata</a></div>
 
     <ul id="packageView" class="filetree treeview-black">
         @Html.TreeView(Model.RootFolder.Children).EmptyContent("This package doesn't contain any file.").Children(p => p.Children).ItemTemplate(
-            @<text>
-                @if (item.IsFile)
-                {
-                    <a><span class="file" data-path="@item.Path.Replace('\\', '/')">@item.Name</span></a>
-                }
-                else 
-                {
-                    <span class="folder">@item.Name</span>
-                }
-            </text>
+        @<text>
+            @if (item.IsFile)
+            {
+                <a><span class="file" data-path="@item.Path.Replace('\\', '/')">@item.Name</span></a>
+            }
+            else
+            {
+                <span class="folder">@item.Name</span>
+            }
+        </text>
         )
     </ul>
 </div>
 
 <div id="contents">
+    <div>
+        <strong><span id="contentsHeader" class="header"></span></strong>
+    </div>
 
     <div id="metadata">
         <table>
@@ -121,20 +147,26 @@
                 {
                     <tr>
                         <td class="toplabel"><strong>Summary:</strong></td>
-                        <td><p>@Model.PackageMetadata.Summary</p></td>
+                        <td>
+                            <p>@Model.PackageMetadata.Summary</p>
+                        </td>
                     </tr>
                 }
 
                 <tr>
                     <td class="toplabel"><strong>Description:</strong></td>
-                    <td><p>@Model.PackageMetadata.Description</p></td>
+                    <td>
+                        <p>@Model.PackageMetadata.Description</p>
+                    </td>
                 </tr>
 
                 @if (!Model.PackageMetadata.ReleaseNotes.IsEmpty())
                 {
                     <tr>
                         <td class="toplabel"><strong>Release notes:</strong></td>
-                        <td><p>@Model.PackageMetadata.ReleaseNotes</p></td>
+                        <td>
+                            <p>@Model.PackageMetadata.ReleaseNotes</p>
+                        </td>
                     </tr>
                 }
 
@@ -151,10 +183,10 @@
                                         @if (dependencySet.Dependencies.Any())
                                         {
                                             <ul>
-                                            @foreach (var dependency in dependencySet.Dependencies)
-                                            {
-                                                <li>@dependency.ToString()</li>
-                                            }
+                                                @foreach (var dependency in dependencySet.Dependencies)
+                                                {
+                                                    <li>@dependency.ToString()</li>
+                                                }
                                             </ul>
                                         }
                                     </li>                          
@@ -183,83 +215,183 @@
     </div>
 
     <div id="fileContentContainer">
-        <div>
-            <strong><span id="fileName"></span></strong>
-            <a id="downloadFileLink">Download this file</a>
-        </div>
-        <textarea id="fileContentArea" contenteditable="false"></textarea>
-    
-        <div id="fileImageBorder">
-            <img id="fileImage" />
-        </div>
     </div>
 
+    <img id="fileImage" />
+
+    <div id="progressMessage">
+    </div>
 </div>
 
 @section BottomScripts
 {
     <script type="text/javascript">
+
+        var contentsHeaderElement, metadataElement, fileContentContainer, fileImageElement, progressElement;
+        var requestIsPending = false;
+
+        function getEffectiveExtension(path) {
+            var index = path.lastIndexOf('.');
+            if (index == -1 || index == path.length - 1) {
+                return null;
+            }
+
+            var extension = path.substr(index + 1).toLowerCase();
+
+            if (index > 0 && (extension == 'transform' || extension == 'pp')) {
+                var index2 = path.lastIndexOf('.', index - 1);
+                if (index2 > -1 && index2 + 1 < index) {
+                    extension = path.substr(index2 + 1, index - index2 - 1);
+                }
+            }
+
+            return extension;
+        }
+
         function isImage(path) {
-            path = path.toLowerCase().substr(path.length - 3, 3);
-            return path == 'jpg' || path == 'gif' || path == 'png';
+            var extension = getEffectiveExtension(path);
+            return extension == 'jpg' || path == 'gif' || extension == 'png' || extension == 'bmp' || extension == 'jpeg';
+        }
+
+        function determineBrush(path) {
+            var extension = getEffectiveExtension(path);
+            if (!extension || extension == 'txt') {
+                return 'brush: text';
+            }
+            
+            if (extension == 'js' || extension == 'jscript' || extension == 'javascript') {
+                return 'brush: js';
+            }
+
+            if (extension == 'xml' || extension == 'config' || extension == 'html' || extension == 'htm') {
+                return 'brush: xml';
+            }
+
+            if (extension == 'cshtml') {
+                return 'brush: csharp; html-script: true';
+            }
+
+            if (extension == 'vbhtml') {
+                return 'brush: vb; html-script: true';
+            }
+
+            if (extension == 'ps1' || extension == 'psm1') {
+                return 'brush: ps';
+            }
+
+            if (extension == 'css') {
+                return 'brush: css';
+            }
+
+            if (extension == 'cs') {
+                return 'brush: csharp';
+            }
+
+            if (extension == 'vb') {
+                return 'brush: vbnet';
+            }
+
+            if (extension == 'cpp') {
+                return 'brush: cpp';
+            }
+
+            if (extension == 'java') {
+                return 'brush: java';
+            }
+
+            if (extension == 'php') {
+                return 'brush: php';
+            }
+
+            if (extension == 'sql') {
+                return 'brush: sql';
+            }
+
+            return 'brush: text';
         }
 
         function showMetadata() {
-            $('#metadata').show();
-            $('#fileContentContainer').hide();
+            contentsHeaderElement.hide();
+            fileContentContainer.hide();
+            fileImageElement.hide();
+            progressElement.hide();
+
+            metadataElement.show();
         }
 
         function showContentFile(filePath) {
-            $('#fileContentContainer').show();
-            $('#metadata').hide();
-
-            if (filePath == $('#fileName').text()) {
-                // already showing this file, return
-                return;
-            }
-
+            metadataElement.hide();
+            contentsHeaderElement.show();
+            
             var viewUrl = '@Url.ViewPackageFile(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString())' + '?filePath=' + filePath;
-            var downloadUrl = '@Url.DownloadPackageFile(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString())' + '?filePath=' + filePath;
 
-            $('#downloadFileLink').attr('href', downloadUrl);
-            $('#fileName').text(filePath);
+            // for Debugging ONLY: uncomment to avoid browsers caching the file content
+            // viewUrl = viewUrl + '&q=' + Math.random().toString();
+
+            contentsHeaderElement.text(filePath);
 
             if (isImage(filePath)) {
-                $('#fileContentArea').hide();
-                $('#fileImageBorder').show();
-                $('#fileImage').attr('src', viewUrl);
+                fileContentContainer.hide();
+                progressElement.hide();
+                fileImageElement.attr('src', viewUrl).show();
             }
             else {
-                $('#fileImageBorder').hide();
-                $('#fileContentArea').show();
-                $('#fileContentArea').text('Loading...');
+                requestIsPending = true;
 
-                var errorMessage = '*** An error occurred while loading this file\'s contents. ***';
+                fileImageElement.hide();
+                fileContentContainer.empty().hide();
+                progressElement.show().text('Loading content...');
+
                 $.ajax(viewUrl,
                     {
                         success: function (data, status) {
-                            if (status == 'success') {
-                                $('#fileContentArea').text(data);
+                            var preElement = document.createElement('pre');
+                            var brush = determineBrush(filePath)
+                            $(preElement).html(data).attr('class', brush);
+
+                            fileContentContainer.append(preElement);
+
+                            if (data.length < 1000) {
+                                // if the data is small (less than 1000 characters), don't bother to show progress message
+                                showContentAfterParsing(preElement);
                             }
                             else {
-                                $('#fileContentArea').text(errorMessage);
+                                progressElement.text('Parsing content...');
+                                window.setTimeout(function () { showContentAfterParsing(preElement) }, 10);
                             }
                         },
 
                         error: function (jqXHR, textStatus, errorThrown) {
-                            $('#fileContentArea').text(errorMessage);
+                            progressElement.text("*** An error occurred while loading this file's contents. ***");
+                            requestIsPending = false;
                         }
-
                     });
             }
         }
 
+        function showContentAfterParsing(preElement) {
+            SyntaxHighlighter.highlight(preElement);
+            progressElement.hide();
+            fileContentContainer.show();
+            requestIsPending = false;
+        }
+
         $(function () {
-            $('#packageView').treeview({ collapsed: true });
+            contentsHeaderElement = $('#contentsHeader');
+            metadataElement = $('#metadata');
+            fileContentContainer = $('#fileContentContainer');
+            fileImageElement = $('#fileImage');
+            progressElement = $('#progressMessage');
+
+            $('#packageView').treeview({ collapsed: false });
             showMetadata();
 
             $('span.file').click(function (e) {
                 e.preventDefault();
+
+                if (requestIsPending) {
+                    return;
+                }
 
                 var filePath = this.attributes['data-path'].value;
                 showContentFile(filePath);
@@ -270,6 +402,10 @@
 
                 showMetadata();
             });
+
+            SyntaxHighlighter.defaults["auto-links"] = false;
+            SyntaxHighlighter.defaults["toolbar"] = false;
+            SyntaxHighlighter.defaults["gutter"] = false;
         });
     </script>
 }
