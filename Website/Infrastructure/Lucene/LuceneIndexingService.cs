@@ -79,18 +79,17 @@ namespace NuGetGallery
                 {
                     Key = p.Key,
                     PackageRegistrationKey = p.PackageRegistrationKey,
-                    PackageRegistrationDownloadCount = p.PackageRegistration.DownloadCount,
                     Id = p.PackageRegistration.Id,
                     Title = p.Title,
                     Description = p.Description,
                     Tags = p.Tags,
                     Authors = p.FlattenedAuthors,
-                    DownloadCount = p.DownloadCount,
                     IconUrl = p.IconUrl,
                     IsLatest = p.IsLatest,
                     IsLatestStable = p.IsLatestStable,
                     Owners = p.PackageRegistration.Owners.Select(o => o.Username),
                     Published = p.Published,
+                    TotalDownloadCount = p.PackageRegistration.DownloadCount,
                 });
 
             return query.ToList();
@@ -191,8 +190,6 @@ namespace NuGetGallery
 
             document.Add(new Field("Id-Original", package.Id, Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-            document.Add(
-                new Field("PackageRegistrationDownloadCount", package.PackageRegistrationDownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
 
             // Fields meant for filtering, also storing data to avoid hitting SQL while doing searches
             document.Add(new Field("IsLatest", package.IsLatest.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
@@ -207,7 +204,7 @@ namespace NuGetGallery
             // Fields meant for filtering, sorting
            document.Add(new Field("PublishedDate", package.Published.Ticks.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
            document.Add(
-                new Field("DownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
+                new Field("DownloadCount", package.TotalDownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
 
             string displayName = String.IsNullOrEmpty(package.Title) ? package.Id : package.Title;
             document.Add(new Field("DisplayName", displayName.ToLower(CultureInfo.CurrentCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));

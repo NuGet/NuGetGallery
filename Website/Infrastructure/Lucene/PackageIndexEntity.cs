@@ -10,7 +10,7 @@ namespace NuGetGallery
 
         public int PackageRegistrationKey { get; set; }
 
-        public int PackageRegistrationDownloadCount { get; set; }
+        public int TotalDownloadCount { get; set; }
 
         public string IconUrl { get; set; }
 
@@ -23,8 +23,6 @@ namespace NuGetGallery
         public string Tags { get; set; }
 
         public string Authors { get; set; }
-
-        public int DownloadCount { get; set; }
 
         public bool IsLatest { get; set; }
 

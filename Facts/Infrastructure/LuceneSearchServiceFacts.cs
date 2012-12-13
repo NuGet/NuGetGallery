@@ -125,7 +125,7 @@ namespace NuGetGallery.Infrastructure
                             {
                                 Id = "NuGet.Core",
                                 Key = 12,
-                                DownloadCount = 3
+                                DownloadCount = 25
                             },
                             Description = "NuGet.Core is the core framework assembly for NuGet",
                             DownloadCount = 3,
@@ -149,7 +149,7 @@ namespace NuGetGallery.Infrastructure
                             },
                             Description =
                                 "This isn't really NuGet.Core. The confusing package ID is the test!",
-                            DownloadCount = 30,
+                            DownloadCount = 3,
                             Listed = true,
                             IsLatest = true,
                             IsLatestStable = true,
@@ -265,6 +265,91 @@ namespace NuGetGallery.Infrastructure
             var results = IndexAndSearch(packageSource, "id:JQuery.ui");
             Assert.NotEmpty(results);
             Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
+        }
+
+        [Fact]
+        public void SearchForDegenerateSingleQuoteQuery()
+        {
+            var packageSource = new Mock<IPackageSource>();
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
+                new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "JQuery.UI.Combined",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "jQuery UI is etc etc and many more important things",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Alpha Beta Gamma",
+                        Title = "JQuery UI (Combined Blobbary)",
+                        Tags = "web javascript",
+                    },
+                }.AsQueryable());
+
+            var results = IndexAndSearch(packageSource, "\"");
+            Assert.NotEmpty(results);
+            Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
+        }
+
+        [Fact]
+        public void SearchUsesPackageRegistrationDownloadCountsToPrioritize()
+        {
+            var packageSource = new Mock<IPackageSource>();
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
+                new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 145,
+                        PackageRegistrationKey = 13,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "FooQuery",
+                            Key = 13,
+                            DownloadCount = 21
+                        },
+                        Description = "FooQuery is overall much less popular than JQuery UI",
+                        DownloadCount = 5,
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Alpha Beta Gamma",
+                        Title = "FooQuery",
+                        Tags = "web javascript",
+                    },
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "JQuery.UI.Combined",
+                            Key = 12,
+                            DownloadCount = 42
+                        },
+                        DownloadCount = 3,
+                        Description = "jQuery UI has only a few downloads of its latest and greatest version, but many total downloads",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Alpha Beta Gamma",
+                        Title = "JQuery UI (Combined Blobbary)",
+                        Tags = "web javascript",
+                    },
+                }.AsQueryable());
+
+            var results = IndexAndSearch(packageSource, "");
+            Assert.NotEmpty(results);
+            Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
+            Assert.Equal("FooQuery", results[1].PackageRegistration.Id);
         }
 
         // See issue https://github.com/NuGet/NuGetGallery/issues/406

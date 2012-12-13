@@ -53,6 +53,14 @@ namespace NuGetGallery
 
             var searcher = new IndexSearcher(_directory, readOnly: true);
             var query = ParseQuery(searchFilter);
+
+            // IF searching by relevance, boost scores by download count.
+            if (searchFilter.SortProperty == SortProperty.Relevance)
+            {
+                var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
+                query = new CustomScoreQuery(query, downloadCountBooster);
+            }
+
             var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
             var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
             var filter = new QueryWrapperFilter(termQuery);
@@ -74,7 +82,6 @@ namespace NuGetGallery
         private static Package PackageFromDoc(Document doc)
         {
             int dlc = Int32.Parse(doc.Get("DownloadCount"));
-            int prdlc = Int32.Parse(doc.Get("PackageRegistrationDownloadCount"));
             int key = Int32.Parse(doc.Get("Key"));
             int prk = Int32.Parse(doc.Get("PackageRegistrationKey"));
             bool isLatest = Boolean.Parse(doc.Get("IsLatest"));
@@ -92,7 +99,6 @@ namespace NuGetGallery
             return new Package
             {
                 Description = doc.Get("Description"),
-                DownloadCount = dlc,
                 FlattenedAuthors = doc.Get("Authors"),
                 IconUrl = doc.Get("IconUrl"),
                 IsLatest = isLatest,
@@ -102,7 +108,7 @@ namespace NuGetGallery
                 PackageRegistration = new PackageRegistration
                 {
                     Id = doc.Get("Id-Original"),
-                    DownloadCount = prdlc,
+                    DownloadCount = dlc,
                     Key = prk,
                     Owners = ownersSplit.Select(o => new User { Username = o }).ToList()
                 },
@@ -113,59 +119,55 @@ namespace NuGetGallery
 
         private static Query ParseQuery(SearchFilter searchFilter)
         {
-            if (String.IsNullOrWhiteSpace(searchFilter.SearchTerm))
+            // 1. parse the query into field clauses and general terms
+            // We imagine that mostly, field clauses are meant to 'filter' results found searching for general terms.
+            // The resulting clause collections may be empty.
+            var queryParser = new NuGetQueryParser();
+            var clauses = queryParser.Parse(searchFilter.SearchTerm).Select(StandardizeSearchTerms).ToList();
+            var fieldSpecificTerms = clauses.Where(a => a.Field != null);
+            var generalTerms = clauses.Where(a => a.Field == null);
+
+            // Convert terms to appropriate Lucene Query objects
+            var analyzer = new PerFieldAnalyzer();
+            var fieldSpecificQueries = fieldSpecificTerms
+                .Select(c => AnalysisHelper.GetFieldQuery(analyzer, c.Field, c.TermOrPhrase))
+                .Where(q => !IsDegenerateQuery(q))
+                .ToList();
+
+            var generalQueries = generalTerms
+                .Select(c => AnalysisHelper.GetMultiFieldQuery(analyzer, Fields, c.TermOrPhrase))
+                .Where(q => !IsDegenerateQuery(q))
+                .ToList();
+
+            if (fieldSpecificQueries.Count == 0 &&
+                generalQueries.Count == 0)
             {
                 return new MatchAllDocsQuery();
             }
 
-            // 1. parse the query into field clauses and general terms
-            // we imagine that mostly, field clauses are meant to 'filter' results found searching for general terms
-            var queryParser = new NuGetQueryParser();
-
-            var clauses = queryParser.Parse(searchFilter.SearchTerm).Select(StandardizeSearchTerms).ToList();
-
-            var fieldSpecificTerms = clauses.Where(a => a.Field != null);
-            var generalTerms = clauses.Where(a => a.Field == null);
-            var analyzer = new PerFieldAnalyzer();
-
-            var fieldSpecificQueries = fieldSpecificTerms
-                .Select(c => AnalysisHelper.GetFieldQuery(analyzer, c.Field, c.TermOrPhrase))
-                .Where(q => q != null);
-
-            var generalQueries = generalTerms
-                .Select(c => AnalysisHelper.GetMultiFieldQuery(analyzer, Fields, c.TermOrPhrase))
-                .Where(q => q != null);
-
-            // At this point we wonder...
-            // What is the user intent?
-            // General search? [foo bar]
-            // Partially Id-targeted search? [id:Foo bar]
-            // Other Field-targeted search? [author:Foo bar]
-            // If field targeting is done, we should basically want to AND that with all other queries
-
+            // At this point we try to detect user intent...
+            // a) General search? [foo bar]
+            // b) Id-targeted search? [id:Foo bar]
+            // c)  Other Field-targeted search? [author:Foo bar]
             bool doExactId = !fieldSpecificQueries.Any();
             Query generalQuery = BuildGeneralQuery(doExactId, searchFilter.SearchTerm, analyzer, generalTerms, generalQueries);
+
+            // IF  field targeting is done, we should basically want to AND their field specific queries with all other query terms
             if (fieldSpecificQueries.Any())
             {
-                BooleanQuery filteredQuery = new BooleanQuery();
-                if (generalQueries.Any())
+                var combinedQuery = new BooleanQuery();
+
+                if (!IsDegenerateQuery(combinedQuery))
                 {
-                    filteredQuery.Add(generalQuery, BooleanClause.Occur.MUST);
+                    combinedQuery.Add(generalQuery, BooleanClause.Occur.MUST);
                 }
 
                 foreach (var fieldQuery in fieldSpecificQueries)
                 {
-                    filteredQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                    combinedQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
                 }
 
-                generalQuery = filteredQuery;
-            }
-
-            if (searchFilter.SortProperty == SortProperty.Relevance)
-            {
-                // If searching by relevance, boost scores by download count.
-                var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
-                generalQuery = new CustomScoreQuery(generalQuery, downloadCountBooster);
+                generalQuery = combinedQuery;
             }
 
             return generalQuery;
@@ -207,10 +209,7 @@ namespace NuGetGallery
             {
                 string escapedApproximateId = string.Join(" ", generalTerms.Select(c => c.TermOrPhrase));
                 nearlyExactIdQuery = AnalysisHelper.GetFieldQuery(analyzer, "Id", escapedApproximateId);
-                if (nearlyExactIdQuery != null)
-                {
-                    nearlyExactIdQuery.SetBoost(2.0f);
-                }
+                nearlyExactIdQuery.SetBoost(2.0f);
             }
 
             foreach (var termQuery in generalQueries)
@@ -236,10 +235,7 @@ namespace NuGetGallery
                 exactIdQuery, wildCardIdQuery, nearlyExactIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery
             };
 
-            var queriesToCombine = queries
-                .Where(q => q != null)
-                .Where(q => !(q is BooleanQuery) || (q as BooleanQuery).GetClauses().Any());
-
+            var queriesToCombine = queries.Where(q => !IsDegenerateQuery(q));
             var query = conjuctionQuery.Combine(queriesToCombine.ToArray());
             return query;
         }
@@ -263,6 +259,11 @@ namespace NuGetGallery
             return searchTerm;
         }
 
+        private static bool IsDegenerateQuery(Query q)
+        {
+            return q == null || (q is MatchAllDocsQuery) || ((q is BooleanQuery) && (q as BooleanQuery).Clauses().Count == 0);
+        }
+
         private static SortField GetSortField(SearchFilter searchFilter)
         {
             switch (searchFilter.SortProperty)
@@ -274,6 +275,7 @@ namespace NuGetGallery
                 case SortProperty.Recent:
                     return new SortField("PublishedDate", SortField.LONG, reverse: true);
             }
+
             return SortField.FIELD_SCORE;
         }
     }
