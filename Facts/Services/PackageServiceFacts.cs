@@ -1356,7 +1356,32 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillSetUpdateIsLatestStableOnThePackageWhenItIsTheLatestVersion()
+            public void WillSetThePublishedDateOnThePackageBeingPublishedWithOverload()
+            {
+                var package = new Package
+                {
+                    Version = "1.0.42",
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
+                package.PackageRegistration.Packages.Add(package);
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+
+                service.PublishPackage(package, commitChanges: false);
+
+                Assert.NotNull(package.Published);
+                packageRepository.Verify(x => x.CommitChanges(), Times.Never());
+            }
+
+            [Fact]
+            public void WillSetUpdateIsLatestStableOnThePackageWhenItIsTheLatestVersionWithOverload()
             {
                 var package = new Package
                     {
@@ -1367,6 +1392,31 @@ namespace NuGetGallery
                                 Packages = new HashSet<Package>()
                             }
                     };
+
+                package.PackageRegistration.Packages.Add(package);
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+
+                service.PublishPackage(package);
+
+                Assert.True(package.IsLatestStable);
+            }
+
+            [Fact]
+            public void WillSetUpdateIsLatestStableOnThePackageWhenItIsTheLatestVersion()
+            {
+                var package = new Package
+                {
+                    Version = "1.0.42",
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
                 package.PackageRegistration.Packages.Add(package);
                 package.PackageRegistration.Packages.Add(new Package { Version = "1.0", PackageRegistration = package.PackageRegistration });
                 var packageRepository = new Mock<IEntityRepository<Package>>();
@@ -1381,7 +1431,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillNotSetUpdateIsLatestStableOnThePackageWhenItIsNotTheLatestVersion()
+            public void WillNotSetUpdateIsLatestStableOnThePackageWhenItIsNotTheLatestVersionWithOverload()
             {
                 var package = new Package
                     {
@@ -1406,7 +1456,7 @@ namespace NuGetGallery
                     setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
 
-                service.PublishPackage("theId", "1.0.42");
+                service.PublishPackage(package);
 
                 Assert.False(package.IsLatestStable);
             }
@@ -1440,6 +1490,42 @@ namespace NuGetGallery
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
 
                 service.PublishPackage("theId", "1.0.42-alpha");
+                Assert.True(package39.IsLatestStable);
+                Assert.False(package39.IsLatest);
+                Assert.False(package.IsLatestStable);
+                Assert.True(package.IsLatest);
+            }
+
+            [Fact]
+            public void SetUpdateUpdatesIsAbsoluteLatestForPrereleasePackageWithOverload()
+            {
+                var package = new Package
+                {
+                    Version = "1.0.42-alpha",
+                    Published = DateTime.Now,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    },
+                    IsPrerelease = true,
+                };
+                package.PackageRegistration.Packages.Add(package);
+                var package39 = new Package
+                {
+                    Version = "1.0.39",
+                    PackageRegistration = package.PackageRegistration,
+                    Published = DateTime.Now.AddDays(-1)
+                };
+                package.PackageRegistration.Packages.Add(package39);
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+
+                service.PublishPackage(package);
+
                 Assert.True(package39.IsLatestStable);
                 Assert.False(package39.IsLatest);
                 Assert.False(package.IsLatestStable);
@@ -1483,6 +1569,42 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void SetUpdateDoesNotSetIsLatestStableForAnyIfAllPackagesArePrereleaseWithOverload()
+            {
+                var package = new Package
+                {
+                    Version = "1.0.42-alpha",
+                    Published = DateTime.Now,
+                    IsPrerelease = true,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "theId",
+                        Packages = new HashSet<Package>()
+                    }
+                };
+                package.PackageRegistration.Packages.Add(package);
+                var package39 = new Package
+                {
+                    Version = "1.0.39-beta",
+                    PackageRegistration = package.PackageRegistration,
+                    Published = DateTime.Now.AddDays(-1),
+                    IsPrerelease = true
+                };
+                package.PackageRegistration.Packages.Add(package39);
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package); });
+
+                service.PublishPackage(package);
+                Assert.False(package39.IsLatestStable);
+                Assert.False(package39.IsLatest);
+                Assert.False(package.IsLatestStable);
+                Assert.True(package.IsLatest);
+            }
+
+            [Fact]
             public void WillThrowIfThePackageDoesNotExist()
             {
                 var service = CreateService(
@@ -1496,6 +1618,14 @@ namespace NuGetGallery
                 var ex = Assert.Throws<EntityException>(() => service.PublishPackage("theId", "1.0.42"));
 
                 Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, "theId", "1.0.42"), ex.Message);
+            }
+
+            [Fact]
+            public void WillThrowIfThePackageIsNull()
+            {
+                var service = CreateService();
+
+                Assert.Throws<ArgumentNullException>(() => service.PublishPackage(null));
             }
         }
 

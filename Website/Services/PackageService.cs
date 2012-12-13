@@ -190,6 +190,16 @@ namespace NuGetGallery
                 throw new EntityException(Strings.PackageWithIdAndVersionNotFound, id, version);
             }
 
+            PublishPackage(package, commitChanges);
+        }
+
+        public void PublishPackage(Package package, bool commitChanges = true)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+
             package.Published = DateTime.UtcNow;
             package.Listed = true;
 
@@ -409,6 +419,7 @@ namespace NuGetGallery
                     Copyright = nugetPackage.Copyright,
                     IsPrerelease = !nugetPackage.IsReleaseVersion(),
                     Listed = true,
+                    PackageRegistration = packageRegistration
                 };
 
             if (nugetPackage.IconUrl != null)
