@@ -51,9 +51,8 @@ namespace NuGetGallery
             if (commitChanges)
             {
                 _packageRegistrationRepository.CommitChanges();
+                NotifyIndexingService();
             }
-
-            NotifyIndexingService();
 
             return package;
         }
@@ -82,9 +81,9 @@ namespace NuGetGallery
                 // we don't need to call _packageRegistrationRepository.CommitChanges() here because 
                 // it shares the same EntityContext as _packageRepository.
                 _packageRepository.CommitChanges();
-            }
 
-            NotifyIndexingService();
+                NotifyIndexingService();
+            }
         }
 
         public virtual PackageRegistration FindPackageRegistrationById(string id)
