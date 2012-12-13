@@ -41,6 +41,50 @@ namespace NuGetGallery
 
         internal void UpdateIndex(bool forceRefresh)
         {
+            UpdateIndexCore(GetPackages, forceRefresh);
+        }
+
+        public void UpdateIndex(Package package)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+
+            if (package.PackageRegistration == null)
+            {
+                throw new ArgumentException("The package.PackageRegistration property is null.");
+            }
+
+            if (!package.IsLatest && !package.IsLatestStable)
+            {
+                // we only index package with either IsLatest = true or IsLatestStable = true
+                return;
+            }
+
+            var pie = new PackageIndexEntity
+            {
+                Authors = package.FlattenedAuthors,
+                Description = package.Description,
+                DownloadCount = package.DownloadCount,
+                IconUrl = package.IconUrl,                
+                Id = package.PackageRegistration.Id,
+                IsLatest = package.IsLatest,
+                IsLatestStable = package.IsLatestStable,
+                Key = package.Key,
+                Owners = package.PackageRegistration.Owners.Select(u => u.Username),
+                PackageRegistrationDownloadCount = package.PackageRegistration.DownloadCount,
+                PackageRegistrationKey = package.PackageRegistrationKey,
+                Published = package.Published,
+                Tags = package.Tags,
+                Title = package.Title,
+            };
+
+            UpdateIndexCore(_ => new[] { pie }, forceRefresh: false);
+        }
+
+        private void UpdateIndexCore(Func<DateTime?, IList<PackageIndexEntity>> getPackagesToIndex, bool forceRefresh)
+        {
             DateTime? lastWriteTime = GetLastWriteTime();
 
             if ((lastWriteTime == null) || IndexRequiresRefresh() || forceRefresh)
@@ -56,7 +100,7 @@ namespace NuGetGallery
                 UpdateIndexRefreshTime();
             }
 
-            var packages = GetPackages(lastWriteTime);
+            var packages = getPackagesToIndex(lastWriteTime);
             if (packages.Count > 0)
             {
                 EnsureIndexWriter(creatingIndex: lastWriteTime == null);
@@ -96,7 +140,7 @@ namespace NuGetGallery
             return query.ToList();
         }
 
-        private void AddPackages(List<PackageIndexEntity> packages, bool creatingIndex)
+        private void AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
         {
             if (!creatingIndex)
             {
