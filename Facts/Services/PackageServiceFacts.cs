@@ -1462,7 +1462,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void SetUpdateUpdatesIsAbsoluteLatestForPrereleasePackage()
+            public void PublishPackageUpdatesIsAbsoluteLatestForPrereleasePackage()
             {
                 var package = new Package
                     {
@@ -1497,7 +1497,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void SetUpdateUpdatesIsAbsoluteLatestForPrereleasePackageWithOverload()
+            public void PublishPackageUpdatesIsAbsoluteLatestForPrereleasePackageWithOverload()
             {
                 var package = new Package
                 {
