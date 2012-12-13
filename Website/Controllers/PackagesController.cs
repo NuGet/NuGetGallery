@@ -29,6 +29,7 @@ namespace NuGetGallery
         private readonly IUploadFileService _uploadFileService;
         private readonly IUserService _userService;
         private readonly IEntitiesContext _entitiesContext;
+        private readonly IIndexingService _indexingService;
 
         public PackagesController(
             IPackageService packageService,
@@ -40,7 +41,8 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
-            IConfiguration config)
+            IConfiguration config,
+            IIndexingService indexingService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -52,6 +54,7 @@ namespace NuGetGallery
             _packageFileService = packageFileService;
             _entitiesContext = entitiesContext;
             _config = config;
+            _indexingService = indexingService;
         }
 
         [Authorize]
@@ -520,13 +523,16 @@ namespace NuGetGallery
             _autoCuratedPackageCmd.Execute(package, nugetPackage);
 
             // commit all changes to database as an atomic transaction
-            _entitiesContext.SaveChanges();            
+            _entitiesContext.SaveChanges();
 
             // save package to blob storage
             using (Stream stream = nugetPackage.GetStream())
             {
                 await _packageFileService.SavePackageFileAsync(package, stream);
             }
+
+            // tell Lucene to update index for the new package
+            _indexingService.UpdateIndex(package);
 
             // delete the uploaded binary in the Uploads container
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
