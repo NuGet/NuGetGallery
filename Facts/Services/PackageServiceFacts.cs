@@ -445,6 +445,50 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void DoNotUpdateIndexIfCommitChangesIsFalse()
+            {
+                // Arrange
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
+                var indexingService = new Mock<IIndexingService>(MockBehavior.Strict);
+                var service = CreateService(
+                    indexingService: indexingService,
+                    packageRegistrationRepository: packageRegistrationRepository,
+                    setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+
+                var nugetPackage = CreateNuGetPackage(p => p.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
+                var currentUser = new User();
+
+                // Act
+                var package = service.CreatePackage(nugetPackage.Object, currentUser, commitChanges: false);
+            }
+
+            [Fact]
+            public void UpdateIndexIfCommitChangesIsTrue()
+            {
+                // Arrange
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
+                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
+                packageRegistrationRepository.Setup(r => r.CommitChanges()).Verifiable();
+                var indexingService = new Mock<IIndexingService>(MockBehavior.Strict);
+                indexingService.Setup(s => s.UpdateIndex()).Verifiable();
+                var service = CreateService(
+                    indexingService: indexingService,
+                    packageRegistrationRepository: packageRegistrationRepository,
+                    setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+                var nugetPackage = CreateNuGetPackage(p => p.Setup(x => x.Version).Returns(new SemanticVersion("2.14.0-a")));
+                var currentUser = new User();
+
+                // Act
+                var package = service.CreatePackage(nugetPackage.Object, currentUser, commitChanges: true);
+
+                // Assert
+                indexingService.Verify();
+            }
+
+            [Fact]
             public void CommitChangesIfCommitChangesIsTrue()
             {
                 // Arrange
