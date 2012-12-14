@@ -465,7 +465,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void CommitChangesIfCommitChangesIsTrue()
+            public void UpdateIndexIfCommitChangesIsTrue()
             {
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
@@ -489,7 +489,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void UpdateIndexIfCommitChangesIsTrue()
+            public void CommitChangesIfCommitChangesIsTrue()
             {
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
