@@ -532,7 +532,7 @@ namespace NuGetGallery
             }
 
             // tell Lucene to update index for the new package
-            _indexingService.UpdateIndex(package);
+            _indexingService.UpdateIndex();
 
             // delete the uploaded binary in the Uploads container
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
