@@ -96,7 +96,7 @@ namespace NuGetGallery
             return query.ToList();
         }
 
-        private void AddPackages(List<PackageIndexEntity> packages, bool creatingIndex)
+        private void AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
         {
             if (!creatingIndex)
             {
