@@ -14,11 +14,7 @@
     <Exec Command="rd $(PackagedWebsiteDir) /s /q" />
   </Target>
   
-  <Target Name="RestoreSolutionPackages">
-     <MsBuild Projects="..\.nuget\NuGet.targets" Targets="RestorePackages" Properties="PackagesConfig=$(MsBuildThisFileDirectory)..\.nuget\packages.config" />
-  </Target>
-  
-  <Target Name="Build" DependsOnTargets="Clean;RestoreSolutionPackages">
+  <Target Name="Build" DependsOnTargets="Clean">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);OutDir=$(OutDir)" />
     <Exec Command="xcopy.exe $(OutDir)_PublishedWebsites\Website $(PackagedWebsiteDir)\ /ey" />
     <Exec Command="rd $(OutDir)_PublishedWebsites /s /q" />
