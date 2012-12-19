@@ -186,6 +186,54 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void DoesntSendAccountChangedEmailsWhenNoOldConfirmedAddress()
+            {
+                var userService = new Mock<IUserService>(MockBehavior.Strict);
+                var user = new User
+                {
+                    EmailAddress = null,
+                    UnconfirmedEmailAddress = "new@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
+                userService.Setup(u => u.FindByUsername("username")).Returns(user);
+                userService.Setup(u => u.ConfirmEmailAddress(user, "the-token")).Returns(true);
+                var messageService = new Mock<IMessageService>(MockBehavior.Strict); // will not be called
+                var controller = CreateController(messageService: messageService, userService: userService);
+
+                // act:
+                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
+
+                // verify:
+                Assert.True(model.SuccessfulConfirmation);
+                Assert.True(model.ConfirmingNewAccount);
+                Assert.Equal(messageService.Behavior, MockBehavior.Strict);
+            }
+
+            [Fact]
+            public void DoesntSendAccountChangedEmailsIfConfirmationTokenDoesntMatch()
+            {
+                var userService = new Mock<IUserService>(MockBehavior.Strict);
+                var user = new User
+                {
+                    EmailAddress = "old@example.com",
+                    UnconfirmedEmailAddress = "new@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
+                userService.Setup(u => u.FindByUsername("username")).Returns(user);
+                userService.Setup(u => u.ConfirmEmailAddress(user, "faketoken")).Returns(false);
+                var messageService = new Mock<IMessageService>(MockBehavior.Strict); // will not be called
+                var controller = CreateController(messageService: messageService, userService: userService);
+
+                // act:
+                var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as EmailConfirmationModel;
+
+                // verify:
+                Assert.False(model.SuccessfulConfirmation);
+                Assert.False(model.ConfirmingNewAccount);
+                Assert.Equal(messageService.Behavior, MockBehavior.Strict);
+            }
+
+            [Fact]
             public void ReturnsFalseWhenTokenDoesNotMatchUser()
             {
                 var user = new User
