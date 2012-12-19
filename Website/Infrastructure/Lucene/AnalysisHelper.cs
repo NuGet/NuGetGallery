@@ -1,10 +1,12 @@
-﻿using Lucene.Net.Analysis;
+﻿using System.Linq;
+using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Tokenattributes;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -27,7 +29,7 @@ namespace NuGetGallery
             // 0 tokens
             if (!filter.IncrementToken())
             {
-                return null;
+                return new BooleanQuery();
             }
 
             // 1 token?
@@ -56,18 +58,22 @@ namespace NuGetGallery
 
         public static Lucene.Net.Search.Query GetMultiFieldQuery(Analyzer analyzer, IEnumerable<string> fields, string queryText)
         {
-            // Return null if no clauses are generated
-            BooleanQuery ret = null;
+            // Return empty BooleanQuery if no clauses are generated
+            BooleanQuery ret = new BooleanQuery();
 
+            // Do a full loop per-field to allow for different fields using different analyzers
             foreach (var field in fields)
             {
                 var q = GetFieldQuery(analyzer, field, queryText);
-                if (q != null)
+                if (q is BooleanQuery)
                 {
-                    if (ret == null)
-                    {
-                        ret = new BooleanQuery();
-                    }
+                    Debug.Assert((q as BooleanQuery).Clauses().Count == 0,
+                                 "Only *empty* boolean queries should be returned by GetFieldQuery");
+                    continue;
+                }
+                else
+                {
+                    Debug.Assert(q != null, "GetFieldQuery should not return null");
                     ret.Add(new BooleanClause(q, BooleanClause.Occur.SHOULD));
                 }
             }
