@@ -40,7 +40,16 @@ namespace NuGetGallery
 
         public static string Package(this UrlHelper url, string id, string version)
         {
-            return url.RouteUrl(RouteName.DisplayPackage, new { id, version });
+            string result = url.RouteUrl(RouteName.DisplayPackage, new { id, version });
+
+            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
+            // https://github.com/NuGet/NuGetGallery/issues/657
+            if (version == null && result != null && !result.EndsWith("/"))
+            {
+                return result + "/";
+            }
+
+            return result;
         }
 
         public static string Package(this UrlHelper url, Package package)
