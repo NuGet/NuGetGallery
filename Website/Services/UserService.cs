@@ -98,7 +98,7 @@ namespace NuGetGallery
             return _userRepository.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
         }
 
-        public virtual User FindByUnconfimedEmailAddress(string unconfirmedEmailAddress)
+        public virtual User FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress)
         {
             // TODO: validate input
 
@@ -194,6 +194,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("user");
             }
+
             if (String.IsNullOrEmpty(token))
             {
                 throw new ArgumentNullException("token");
