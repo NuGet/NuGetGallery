@@ -205,6 +205,7 @@ function enable-azureElmah {
 }
 
 #Do Work Brah
+$script:WarningPreference = "Inquire"
 $scriptPath = split-path $MyInvocation.MyCommand.Path
 $rootPath = resolve-path(join-path $scriptPath "..")
 $websitePath = join-path $rootPath "Website"
@@ -219,6 +220,20 @@ $cscfgPath = join-path $scriptPath "NuGetGallery.cscfg"
 $cscfgBakPath = join-path $scriptPath "NuGetGallery.cscfg.bak"
 $gitPath = (get-command git)
 $binPath = join-path $websitePath "bin"
+
+Write-Host "Checking the Git repository status is clean"
+if ($commitRevision -eq $null) { $gitStatus = (& "$gitPath" status --short) }
+if ($gitStatus)
+{
+   Write-Warning "Your git repository status is not clean. If you're actually deploying, it is recommended that you 'Halt Command' now and use 'git commit', 'git reset' or update your .gitignore to get to a clean state before you continue deployment."
+}
+
+$appDataPath = (join-path $websitePath App_Data)
+if (test-path $appDataPath) {
+    Write-Host "Wiping out the App_Data folder contents"
+    rmdir $appDataPath
+    mkdir $appDataPath
+}
 
 # Startup Scripts
 $startupScripts = @("EnableDynamicHttpCompression.cmd", "ConfigureIISLogging.cmd")
