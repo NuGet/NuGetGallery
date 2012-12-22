@@ -14,6 +14,8 @@ namespace NuGetGallery
 
         Task<Stream> GetFileAsync(string folderName, string fileName);
 
+        Task CopyFileAsync(string sourceFolderName, string sourceFileName, string targetFolderName);
+
         Task SaveFileAsync(string folderName, string fileName, Stream packageFile);
     }
 }

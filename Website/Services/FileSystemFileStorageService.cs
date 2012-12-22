@@ -97,6 +97,36 @@ namespace NuGetGallery
             return Task.FromResult(fileStream);
         }
 
+        public Task CopyFileAsync(string sourceFolderName, string sourceFileName, string targetFolderName)
+        {
+            if (sourceFolderName == null)
+            {
+                throw new ArgumentNullException("sourceFolderName");
+            }
+
+            if (targetFolderName == null)
+            {
+                throw new ArgumentNullException("targetFolderName");
+            }
+
+            if (String.IsNullOrEmpty(sourceFileName))
+            {
+                throw new ArgumentException("'sourceFileName' must not be null or empty.", "sourceFileName");
+            }
+
+            if (sourceFileName.Equals(targetFolderName, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("Cannot copy file within the same container.");
+            }
+
+            string sourcePath = BuildPath(_configuration.FileStorageDirectory, sourceFolderName, sourceFileName);
+            string targetPath = BuildPath(_configuration.FileStorageDirectory, targetFolderName, sourceFileName);
+
+            File.Copy(sourcePath, targetPath, overwrite: true);
+
+            return Task.FromResult(0);
+        }
+
         public Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
             if (String.IsNullOrWhiteSpace(folderName))
@@ -154,5 +184,6 @@ namespace NuGetGallery
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
             }
         }
+
     }
 }

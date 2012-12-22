@@ -118,5 +118,10 @@ namespace NuGetGallery
             modelBuilder.Entity<CuratedPackage>()
                 .HasRequired(cp => cp.PackageRegistration);
         }
+
+        public void ExecuteSql(string sql, params object[] parameters)
+        {
+            Database.ExecuteSqlCommand(sql, parameters);
+        }
     }
 }

@@ -4,9 +4,13 @@
 }
 
 <h1 class="page-heading"><em>@Model.Title @Model.Version</em> Listing</h1>
-<p class="message">
-    Permanently deleting packages is not supported, but you can control how they are listed.
-</p>
+
+@if (!User.IsInRole(Constants.AdminRoleName)) 
+{
+    <p class="message">
+        Permanently deleting packages is not supported, but you can control how they are listed.
+    </p>
+}
 <p>
     Unlisting a package hides the package from search results and all NuGet commands, but packages 
     are still available for download. For example, they can still be downloaded as dependencies to 
@@ -33,6 +37,19 @@
         <input type="submit" value="Save" title="Save Changes" />
         <a class="cancel" href="@Url.Action("DisplayPackage")" title="Cancel Changes and go back to package page.">Cancel</a>
     </fieldset>
+}
+
+@if (User.IsInRole(Constants.AdminRoleName))
+{
+    using (Html.BeginForm(RouteName.ObliteratePackage, MVC.Packages.Name, new { id = Model.Id, version = Model.Version }))
+    { 
+        <fieldset id="delete-form" class="form">
+            <legend>Delete Package</legend>
+            @Html.AntiForgeryToken()
+            <p class="warning">As an admin, you have the option to permanently delete packages. Use it with care. This is a non-reversible action.</p>
+            <input type="submit" value="Delete" title="Obliterate the package" />
+        </fieldset>
+    }
 }
 
 <h2>Why can&#8217;t I delete my package?</h2>

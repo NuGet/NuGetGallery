@@ -945,6 +945,12 @@ ul.pager li.next { padding-left: 10px; }
     padding: 10px;
 }
 
+#delete-form {
+    border: solid 1px #ccc;
+    margin: 20px;
+    padding: 10px;
+}
+
 fieldset.form {
     border: none;
     clear: both;

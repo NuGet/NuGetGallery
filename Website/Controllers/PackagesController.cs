@@ -339,6 +339,24 @@ namespace NuGetGallery
             return Delete(id, version, listed, Url.Package);
         }
 
+        [Authorize(Roles = Constants.AdminRoleName)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> Obliterate(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return PackageNotFound(id, version);
+            }
+
+            _packageService.DeletePackage(id, version, commitChanges: true);
+
+            await _packageFileService.DeletePackageFileAsync(id, version, backupBeforeDeleting: true);
+
+            return View();
+        }
+
         internal virtual ActionResult Delete(string id, string version, bool? listed, Func<Package, string> urlFactory)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);

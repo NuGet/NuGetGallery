@@ -99,7 +99,7 @@ namespace NuGetGallery
             {
                 packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
-                packageFileService.Setup(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult(0));
+                packageFileService.Setup(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>())).Returns(Task.FromResult(0));
             }
             packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();

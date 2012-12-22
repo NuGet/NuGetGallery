@@ -14,7 +14,7 @@ namespace NuGetGallery
         /// <summary>
         ///     Deletes the nupkg from the file storage.
         /// </summary>
-        Task DeletePackageFileAsync(string id, string version);
+        Task DeletePackageFileAsync(string id, string version, bool backupBeforeDeleting);
 
         /// <summary>
         ///     Saves the contents of the package represented by the stream into the file storage.

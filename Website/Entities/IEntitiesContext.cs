@@ -10,5 +10,6 @@ namespace NuGetGallery
         IDbSet<User> Users { get; set; }
         int SaveChanges();
         DbSet<T> Set<T>() where T : class;
+        void ExecuteSql(string sql, params object[] parameters);
     }
 }

@@ -19,6 +19,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
+        private readonly IEntitiesContext _entitiesContext;
 
         public PackageService(
             ICryptographyService cryptoService, 
@@ -27,7 +28,8 @@ namespace NuGetGallery
             IEntityRepository<PackageStatistics> packageStatsRepository, 
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository, 
             IPackageFileService packageFileService, 
-            IIndexingService indexingService)
+            IIndexingService indexingService,
+            IEntitiesContext entitiesContext)
         {
             _cryptoService = cryptoService;
             _packageRegistrationRepository = packageRegistrationRepository;
@@ -36,6 +38,7 @@ namespace NuGetGallery
             _packageFileService = packageFileService;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _indexingService = indexingService;
+            _entitiesContext = entitiesContext;
         }
 
         public Package CreatePackage(IPackage nugetPackage, User user, bool commitChanges = true)
@@ -68,13 +71,15 @@ namespace NuGetGallery
 
             var packageRegistration = package.PackageRegistration;
             _packageRepository.DeleteOnCommit(package);
-                
+
             UpdateIsLatest(packageRegistration);
 
             if (packageRegistration.Packages.Count == 0)
             {
                 _packageRegistrationRepository.DeleteOnCommit(packageRegistration);
             }
+
+            RemoveDownloadStatistics(package);
 
             if (commitChanges)
             {
@@ -228,6 +233,17 @@ namespace NuGetGallery
                         });
 
                 _packageStatsRepository.CommitChanges();
+            }
+        }
+
+        public void RemoveDownloadStatistics(Package package)
+        {
+            var statistics = _packageStatsRepository.GetAll()
+                                                    .Where(p => p.PackageKey == package.Key)
+                                                    .ToList();
+            foreach (var stat in statistics)
+            {
+                _packageStatsRepository.DeleteOnCommit(stat);
             }
         }
 

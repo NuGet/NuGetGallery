@@ -21,7 +21,7 @@ namespace NuGetGallery
             return _fileStorageService.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, fileName);
         }
 
-        public Task DeletePackageFileAsync(string id, string version)
+        public async Task DeletePackageFileAsync(string id, string version, bool backupBeforeDeleting)
         {
             if (String.IsNullOrWhiteSpace(id))
             {
@@ -34,7 +34,14 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(id, version);
-            return _fileStorageService.DeleteFileAsync(Constants.PackagesFolderName, fileName);
+
+            if (backupBeforeDeleting)
+            {
+                // back up the file by copying it into the Deleted container
+                await _fileStorageService.CopyFileAsync(Constants.PackagesFolderName, fileName, Constants.DeletedFolderName);
+            }
+
+            await _fileStorageService.DeleteFileAsync(Constants.PackagesFolderName, fileName);
         }
 
         public Task SavePackageFileAsync(Package package, Stream packageFile)

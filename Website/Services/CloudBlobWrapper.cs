@@ -48,5 +48,10 @@ namespace NuGetGallery
         {
             return Task.Factory.FromAsync(_blob.BeginUploadFromStream(packageFile, null, null), _blob.EndUploadFromStream);
         }
+
+        public Task CopyFromAsync(ISimpleCloudBlob source)
+        {
+            return Task.Factory.FromAsync(_blob.BeginStartCopyFromBlob(source.Uri, null, null), (Func<IAsyncResult, string>)_blob.EndStartCopyFromBlob);
+        }
     }
 }

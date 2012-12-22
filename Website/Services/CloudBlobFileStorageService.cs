@@ -101,6 +101,37 @@ namespace NuGetGallery
             return stream;
         }
 
+        public async Task CopyFileAsync(string sourceFolderName, string sourceFileName, string targetFolderName)
+        {
+            if (sourceFolderName == null) 
+            {
+                throw new ArgumentNullException("sourceFolderName");
+            }
+
+            if (targetFolderName == null) 
+            {
+                throw new ArgumentNullException("targetFolderName");
+            }
+
+            if (String.IsNullOrEmpty(sourceFileName)) 
+            {
+                throw new ArgumentException("'sourceFileName' must not be null or empty.", "sourceFileName");
+            }
+
+            if (sourceFileName.Equals(targetFolderName, StringComparison.OrdinalIgnoreCase)) 
+            {
+                throw new ArgumentException("Cannot copy file within the same container.");
+            }
+
+            ICloudBlobContainer sourceContainer = await GetContainer(sourceFolderName);
+            ISimpleCloudBlob sourceFile = sourceContainer.GetBlobReference(sourceFileName);
+
+            ICloudBlobContainer targetContainer = await GetContainer(targetFolderName);
+            ISimpleCloudBlob targetFile = targetContainer.GetBlobReference(sourceFileName);
+
+            await targetFile.CopyFromAsync(sourceFile);
+        }
+
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
             ICloudBlobContainer container = await GetContainer(folderName);
@@ -120,10 +151,11 @@ namespace NuGetGallery
                 Task packagesTask = PrepareContainer(Constants.PackagesFolderName, isPublic: true);
                 Task downloadsTask = PrepareContainer(Constants.DownloadsFolderName, isPublic: true);
                 Task uploadsTask = PrepareContainer(Constants.UploadsFolderName, isPublic: false);
+                Task deletedTask = PrepareContainer(Constants.DeletedFolderName, isPublic: false);
 
-                await Task.WhenAll(packagesTask, downloadsTask, uploadsTask);
+                await Task.WhenAll(packagesTask, downloadsTask, uploadsTask, deletedTask);
             }
-            
+
             return _containers[folderName];
         }
 
@@ -133,6 +165,7 @@ namespace NuGetGallery
             {
                 case Constants.PackagesFolderName:
                 case Constants.UploadsFolderName:
+                case Constants.DeletedFolderName:
                     return Constants.PackageContentType;
 
                 case Constants.DownloadsFolderName:
@@ -149,7 +182,8 @@ namespace NuGetGallery
             var container = _client.GetContainerReference(folderName);
             await container.CreateIfNotExistAsync();
             await container.SetPermissionsAsync(
-                new BlobContainerPermissions { 
+                new BlobContainerPermissions
+                {
                     PublicAccess = isPublic ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off
                 });
 

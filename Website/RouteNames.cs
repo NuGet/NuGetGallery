@@ -31,6 +31,7 @@
         public const string NewSubmission = "NewSubmission";
         public const string VerifyPackage = "VerifyPackage";
         public const string VerifyPackageKey = "VerifyPackageKey";
+        public const string ObliteratePackage = "Obliterate";
         public const string CancelUpload = "CancelUpload";
         public const string CuratedFeed = "CuratedFeed";
         public const string CreateCuratedPackageForm = "CreateCuratedPackageForm";
