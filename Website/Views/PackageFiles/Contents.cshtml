@@ -36,7 +36,7 @@
     <h2>@Model.PackageMetadata.Version</h2>
 </hgroup>
 
-@if (Request.UserAgent.IndexOf("Windows NT 6.2") > -1)
+@if (Request.UserAgent.IndexOf("Windows NT 6.2") > -1 && Request.UserAgent.IndexOf("Chrome") == -1)
 { 
 <div id="upsellMessage">
     It looks like you are browsing from Windows 8. You can open this package in <a href="@Model.GetNpeProtocolUrl(Url)">NuGet Package Explorer</a> for a richer experience.
@@ -311,7 +311,7 @@
         }
 
         function showMetadata() {
-            contentsHeaderElement.hide();
+            contentsHeaderElement.text('').hide();
             fileContentContainer.hide();
             fileImageElement.hide();
             progressElement.hide();
@@ -320,6 +320,10 @@
         }
 
         function showContentFile(filePath) {
+            if (filePath == contentsHeaderElement.text()) {
+                return;
+            }
+
             metadataElement.hide();
             contentsHeaderElement.show();
             

@@ -36,7 +36,7 @@ namespace NuGetGallery.Controllers
 
             if (package.PackageFileSize > MaximumAllowedPackageFileSize)
             {
-                return View("PackageTooBig");
+                return View("PackageTooBig", package);
             }
 
             IPackage packageFile = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheService, _packageFileService);

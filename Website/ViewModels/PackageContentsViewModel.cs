@@ -70,11 +70,7 @@ namespace NuGetGallery
 
         public string GetNpeProtocolUrl(UrlHelper urlHelper)
         {
-            return String.Format(
-                "npe://none?id={0}&version={1}&url={2}",
-                PackageMetadata.Id,
-                PackageMetadata.Version.ToString(),
-                urlHelper.PackageDownload(2, PackageMetadata.Id, PackageMetadata.Version.ToString()));
+            return GetNpeProtocolUrl(urlHelper, PackageMetadata.Id, PackageMetadata.Version.ToString());
         }
 
         public string GetNpeActivationArgument(UrlHelper urlHelper)
@@ -82,6 +78,15 @@ namespace NuGetGallery
             return PackageMetadata.Id + "|" + 
                 PackageMetadata.Version.ToString() + "|" +
                 urlHelper.PackageDownload(2, PackageMetadata.Id, PackageMetadata.Version.ToString());
+        }
+
+        public static string GetNpeProtocolUrl(UrlHelper urlHelper, string id, string version)
+        {
+            return String.Format(
+                "npe://none?id={0}&version={1}&url={2}",
+                id,
+                version,
+                urlHelper.PackageDownload(2, id, version));
         }
     }
 }
