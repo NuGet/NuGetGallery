@@ -42,7 +42,7 @@ namespace NuGetGallery.Controllers
             IPackage packageFile = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheService, _packageFileService);
 
             PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
-            var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
+            var viewModel = new PackageContentsViewModel(packageFile, package.PackageRegistration.Owners, rootFolder);
             return View(viewModel);
         }
 
