@@ -63,8 +63,21 @@
 </div>
 
 <div id="contents">
-    <div>
-        <strong><span id="contentsHeader" class="header"></span></strong>
+    <div id="contentsHeader">
+        <strong><span id="contentsHeaderFileName" class="header"></span></strong>
+        <select id="syntaxScheme">
+            <option value="brush: text">Text</option>
+            <option value="brush: xml">Xml</option>
+            <option value="brush: js">Javascript</option>
+            <option value="brush: css">Css</option>
+            <option value="brush: csharp">C#</option>
+            <option value="brush: vbnet">VB.NET</option>
+            <option value="brush: ps">PowerShell</option>
+            <option value="brush: cpp">C++</option>
+            <option value="brush: java">Java</option>
+            <option value="brush: php">Php</option>
+            <option value="brush: sql">Sql</option>
+        </select>
     </div>
 
     <div id="metadata">
@@ -227,8 +240,9 @@
 {
     <script type="text/javascript">
 
-        var contentsHeaderElement, metadataElement, fileContentContainer, fileImageElement, progressElement;
+        var contentsHeaderElement, contentsFileNameElement, metadataElement, fileContentContainer, fileImageElement, progressElement, syntaxSelector;
         var requestIsPending = false;
+        var currentData;
 
         function getEffectiveExtension(path) {
             var index = path.lastIndexOf('.');
@@ -268,11 +282,11 @@
             }
 
             if (extension == 'cshtml') {
-                return 'brush: csharp; html-script: true';
+                return 'brush: csharp';
             }
 
             if (extension == 'vbhtml') {
-                return 'brush: vb; html-script: true';
+                return 'brush: vbnet';
             }
 
             if (extension == 'ps1' || extension == 'psm1') {
@@ -311,58 +325,52 @@
         }
 
         function showMetadata() {
-            contentsHeaderElement.text('').hide();
+            contentsHeaderElement.hide();
+            contentsFileNameElement.text('');
             fileContentContainer.hide();
             fileImageElement.hide();
             progressElement.hide();
-
+            currentData = null;
             metadataElement.show();
         }
 
         function showContentFile(filePath) {
-            if (filePath == contentsHeaderElement.text()) {
+            if (filePath == contentsFileNameElement.text()) {
                 return;
             }
 
             metadataElement.hide();
             contentsHeaderElement.show();
             
+            
             var viewUrl = '@Url.ViewPackageFile(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString())' + '?filePath=' + filePath;
 
             // for Debugging ONLY: uncomment to avoid browsers caching the file content
             // viewUrl = viewUrl + '&q=' + Math.random().toString();
 
-            contentsHeaderElement.text(filePath);
+            contentsFileNameElement.text(filePath);
 
             if (isImage(filePath)) {
                 fileContentContainer.hide();
                 progressElement.hide();
                 fileImageElement.attr('src', viewUrl).show();
+                currentData = null;
+                syntaxSelector.hide();
             }
             else {
                 requestIsPending = true;
 
                 fileImageElement.hide();
                 fileContentContainer.empty().hide();
+                syntaxSelector.show().attr('disabled', 'disabled');
                 progressElement.show().text('Loading content...');
 
                 $.ajax(viewUrl,
                     {
                         success: function (data, status) {
-                            var preElement = document.createElement('pre');
-                            var brush = determineBrush(filePath)
-                            $(preElement).html(data).attr('class', brush);
-
-                            fileContentContainer.append(preElement);
-
-                            if (data.length < 1000) {
-                                // if the data is small (less than 1000 characters), don't bother to show progress message
-                                showContentAfterParsing(preElement);
-                            }
-                            else {
-                                progressElement.text('Parsing content...');
-                                window.setTimeout(function () { showContentAfterParsing(preElement) }, 10);
-                            }
+                            currentData = data;
+                            var brush = determineBrush(filePath);
+                            showContentForCurrentFile(brush);
                         },
 
                         error: function (jqXHR, textStatus, errorThrown) {
@@ -373,19 +381,41 @@
             }
         }
 
+        function showContentForCurrentFile(brush) {
+            // update the syntax scheme dropdown
+            syntaxSelector.val(brush);
+
+            var preElement = document.createElement('pre');
+            $(preElement).html(currentData).attr('class', brush);
+
+            fileContentContainer.append(preElement);
+
+            if (currentData.length < 1000) {
+                // if the data is small (less than 1000 characters), don't bother to show progress message
+                showContentAfterParsing(preElement);
+            }
+            else {
+                progressElement.show().text('Parsing content...');
+                window.setTimeout(function () { showContentAfterParsing(preElement) }, 10);
+            }
+        }
+
         function showContentAfterParsing(preElement) {
             SyntaxHighlighter.highlight(preElement);
             progressElement.hide();
             fileContentContainer.show();
+            syntaxSelector.removeAttr('disabled');
             requestIsPending = false;
         }
 
         $(function () {
             contentsHeaderElement = $('#contentsHeader');
+            contentsFileNameElement = $('#contentsHeaderFileName');
             metadataElement = $('#metadata');
             fileContentContainer = $('#fileContentContainer');
             fileImageElement = $('#fileImage');
             progressElement = $('#progressMessage');
+            syntaxSelector = $('#syntaxScheme');
 
             $('#packageView').treeview({ collapsed: false });
             showMetadata();
@@ -405,6 +435,12 @@
                 e.preventDefault();
 
                 showMetadata();
+            });
+
+            syntaxSelector.change(function (e) {
+                fileContentContainer.empty().hide();
+                syntaxSelector.attr('disabled', 'disabled');
+                showContentForCurrentFile(this.value);
             });
 
             SyntaxHighlighter.defaults["auto-links"] = false;

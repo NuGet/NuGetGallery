@@ -847,6 +847,7 @@ section.package .side img {
 #contents .header 
 {
     font-size: 1.1em;
+    margin: 0px 10px 0px 0px;
 }
 
 img.packageicon { 

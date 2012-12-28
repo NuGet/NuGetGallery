@@ -12,13 +12,13 @@ namespace NuGetGallery
         private readonly PackageItem _rootFolder;
         private readonly IPackage _packageMetadata;
 
-        public PackageContentsViewModel(IPackage packageMetadata, PackageItem rootFolder)
+        public PackageContentsViewModel(IPackage packageMetadata, ICollection<User> owners, PackageItem rootFolder)
         {
             _packageMetadata = packageMetadata;
             _rootFolder = rootFolder;
 
             FlattenedAuthors = String.Join(", ", packageMetadata.Authors);
-            FlattenedOwners = String.Join(", ", packageMetadata.Owners);
+            FlattenedOwners = String.Join(", ", owners.Select(o => o.Username));
             IconUrl = packageMetadata.IconUrl == null ? null : packageMetadata.IconUrl.AbsoluteUri;
             FrameworkAssemblies = packageMetadata.FrameworkAssemblies.Select(
                 f => 
