@@ -8,7 +8,7 @@ using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.ViewModels.PackagePart;
 
-namespace NuGetGallery.Controllers
+namespace NuGetGallery
 {
     public partial class PackageFilesController : Controller
     {

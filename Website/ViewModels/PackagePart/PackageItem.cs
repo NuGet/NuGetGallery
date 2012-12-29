@@ -29,10 +29,10 @@ namespace NuGetGallery.ViewModels.PackagePart
             _name = name;
             _isFile = isFile;
 
-			if (parent != null)
-			{
-				Path = String.IsNullOrEmpty(parent.Path) ? Name : (parent.Path + '\\' + name);
-			}
+            if (parent != null)
+            {
+                Path = String.IsNullOrEmpty(parent.Path) ? Name : (parent.Path + '\\' + name);
+            }
             Children = new SortedSet<PackageItem>();
         }
 
@@ -41,11 +41,11 @@ namespace NuGetGallery.ViewModels.PackagePart
             get { return _name; }
         }
 
-		public string Path
-		{
-			get;
-			private set;
-		}
+        public string Path
+        {
+            get;
+            private set;
+        }
 
         public bool IsFile
         {
