@@ -14,7 +14,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         public static async Task<IPackage> GetPackageFromCacheOrDownloadIt(
             Package package,
-            ICacheService cacheService,
+            IPackageCacheService cacheService,
             IPackageFileService packageFileService)
         {
             Debug.Assert(package != null);
@@ -22,7 +22,7 @@ namespace NuGetGallery.Helpers
             Debug.Assert(packageFileService != null);
 
             string cacheKey = CreateCacheKey(package.PackageRegistration.Id, package.Version);
-            byte[] buffer = cacheService.GetItem(cacheKey);
+            byte[] buffer = cacheService.GetBytes(cacheKey);
             if (buffer == null)
             {
                 using (Stream stream = await packageFileService.DownloadPackageFileAsync(package))
@@ -33,7 +33,7 @@ namespace NuGetGallery.Helpers
                     }
 
                     buffer = stream.ReadAllBytes();
-                    cacheService.SetItem(cacheKey, buffer);
+                    cacheService.SetBytes(cacheKey, buffer);
                 }
             }
 

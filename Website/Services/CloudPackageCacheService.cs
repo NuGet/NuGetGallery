@@ -5,11 +5,11 @@ using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery
 {
-    public class CloudCacheService : ICacheService
+    public class CloudPackageCacheService : IPackageCacheService
     {
         private readonly string _rootPath;
 
-        public CloudCacheService()
+        public CloudPackageCacheService()
         {
             try
             {
@@ -22,7 +22,7 @@ namespace NuGetGallery
             }
         }
 
-        public byte[] GetItem(string key)
+        public byte[] GetBytes(string key)
         {
             if (String.IsNullOrEmpty(key))
             {
@@ -38,7 +38,7 @@ namespace NuGetGallery
             return File.ReadAllBytes(filePath);
         }
 
-        public void SetItem(string key, byte[] item)
+        public void SetBytes(string key, byte[] item)
         {
             if (String.IsNullOrEmpty(key))
             {

@@ -47,15 +47,15 @@ namespace NuGetGallery
             if (CanBindCache())
             {
                 // when running on Windows Azure, use the Azure Cache service
-                Bind<ICacheService>()
-                    .To<CloudCacheService>()
+                Bind<IPackageCacheService>()
+                    .To<CloudPackageCacheService>()
                     .InSingletonScope();
             }
             else
             {
                 // when running locally on dev box, use the built-in ASP.NET Http Cache
-                Bind<ICacheService>()
-                    .To<NullCacheService>()
+                Bind<IPackageCacheService>()
+                    .To<NullPackageCacheService>()
                     .InSingletonScope();
             }
 

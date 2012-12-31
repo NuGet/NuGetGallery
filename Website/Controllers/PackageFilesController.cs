@@ -17,9 +17,9 @@ namespace NuGetGallery.Controllers
 
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
-        private readonly ICacheService _cacheService;
+        private readonly IPackageCacheService _cacheService;
 
-        public PackageFilesController(IPackageService packageService, IPackageFileService packageFileService, ICacheService cacheService)
+        public PackageFilesController(IPackageService packageService, IPackageFileService packageFileService, IPackageCacheService cacheService)
         {
             _packageService = packageService;
             _packageFileService = packageFileService;
