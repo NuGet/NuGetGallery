@@ -475,6 +475,9 @@
     <Compile Include="Queries\UserByUsernameQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
+    <Compile Include="Services\CloudCacheService.cs" />
+    <Compile Include="Services\HttpContextCacheService.cs" />
+    <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\NullPackageCacheService.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
