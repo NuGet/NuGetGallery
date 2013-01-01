@@ -294,7 +294,7 @@
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="ErrorEntity.cs" />
-    <Compile Include="AsyncFileUpload\AsyncFileUploadManager.cs" />
+    <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadModule.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadProgress.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadRequestParser.cs" />

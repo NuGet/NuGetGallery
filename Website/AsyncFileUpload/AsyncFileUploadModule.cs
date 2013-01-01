@@ -2,17 +2,22 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Web;
+using Ninject;
 
 namespace NuGetGallery.AsyncFileUpload
 {
     public class AsyncFileUploadModule : IHttpModule
     {
+        private ICacheService _cacheService;
+
         public void Dispose()
         {
         }
 
         public void Init(HttpApplication application)
         {
+            _cacheService = Container.Kernel.Get<ICacheService>();
+
             application.PostAuthenticateRequest += PostAuthorizeRequest;
         }
 
@@ -43,7 +48,7 @@ namespace NuGetGallery.AsyncFileUpload
             var requestParser = new AsyncFileUploadRequestParser(boundary, request.ContentEncoding);
 
             var progress = new AsyncFileUploadProgress(request.ContentLength);
-            AsyncFileUploadManager.SetProgressDetails(username, progress);
+            _cacheService.SetProgress(username, progress);
 
             if (request.ReadEntityBodyMode != ReadEntityBodyMode.None)
             {
@@ -53,10 +58,10 @@ namespace NuGetGallery.AsyncFileUpload
             Stream uploadStream = request.GetBufferedInputStream();
             Debug.Assert(uploadStream != null);
 
-            ReadStream(uploadStream, progress, requestParser);
+            ReadStream(uploadStream, username, progress, requestParser);
         }
 
-        private void ReadStream(Stream stream, AsyncFileUploadProgress progress, AsyncFileUploadRequestParser parser)
+        private void ReadStream(Stream stream, string username, AsyncFileUploadProgress progress, AsyncFileUploadRequestParser parser)
         {
             const int bufferSize = 1024 * 4; // in bytes
 
@@ -74,9 +79,10 @@ namespace NuGetGallery.AsyncFileUpload
                     progress.FileName = parser.CurrentFileName;
                 }
 
+                _cacheService.SetProgress(username, progress);
 #if DEBUG
                 // for demo purpose only
-                System.Threading.Thread.Sleep(500);
+                System.Threading.Thread.Sleep(300);
 #endif
             }
         }
@@ -96,7 +102,7 @@ namespace NuGetGallery.AsyncFileUpload
                 return false;
             }
 
-            if (contentType.IndexOf("boundary=") < 0)
+            if (contentType.IndexOf("boundary=", StringComparison.OrdinalIgnoreCase) < 0)
             {
                 return false;
             }

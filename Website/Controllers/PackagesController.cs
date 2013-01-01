@@ -31,6 +31,7 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
+        private readonly ICacheService _cacheService;
 
         public PackagesController(
             IPackageService packageService,
@@ -43,7 +44,8 @@ namespace NuGetGallery
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
             IConfiguration config,
-            IIndexingService indexingService)
+            IIndexingService indexingService,
+            ICacheService cacheService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -56,6 +58,7 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext;
             _config = config;
             _indexingService = indexingService;
+            _cacheService = cacheService;
         }
 
         [Authorize]
@@ -64,7 +67,7 @@ namespace NuGetGallery
         {
             string username = GetIdentity().Name;
 
-            AsyncFileUploadProgress progress = AsyncFileUploadManager.GetProgressDetails(username);
+            AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
             {
                 progress = new AsyncFileUploadProgress(100) { FileName = "none", TotalBytesRead = 0 };
@@ -131,7 +134,7 @@ namespace NuGetGallery
             }
             finally
             {
-                AsyncFileUploadManager.RemoveProgressDetails(currentUser.Username);
+                _cacheService.RemoveProgress(currentUser.Username);
             }
 
             var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Id);

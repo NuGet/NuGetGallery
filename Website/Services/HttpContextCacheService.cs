@@ -27,5 +27,15 @@ namespace NuGetGallery
             HttpContext.Current.Cache.Insert(
                 key, item, dependencies: null, absoluteExpiration: Cache.NoAbsoluteExpiration, slidingExpiration: timeout);
         }
+
+        public void RemoveItem(string key)
+        {
+            if (HttpContext.Current == null)
+            {
+                throw new InvalidOperationException("An HttpContext object is not available.");
+            }
+
+            HttpContext.Current.Cache.Remove(key);
+        }
     }
 }

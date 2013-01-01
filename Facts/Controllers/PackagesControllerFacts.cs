@@ -31,7 +31,8 @@ namespace NuGetGallery
             Mock<IConfiguration> config = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<IEntitiesContext> entitiesContext = null,
-            Mock<IIndexingService> indexingService = null)
+            Mock<IIndexingService> indexingService = null,
+            Mock<ICacheService> cacheService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -58,6 +59,8 @@ namespace NuGetGallery
 
             indexingService = indexingService ?? new Mock<IIndexingService>();
 
+            cacheService = cacheService ?? new Mock<ICacheService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -69,7 +72,8 @@ namespace NuGetGallery
                 packageFileService.Object,
                 entitiesContext.Object,
                 config.Object,
-                indexingService.Object);
+                indexingService.Object,
+                cacheService.Object);
             controller.CallBase = true;
 
             if (httpContext != null)

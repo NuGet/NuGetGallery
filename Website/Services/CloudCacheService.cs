@@ -20,5 +20,11 @@ namespace NuGetGallery
             DataCache dataCache = _cacheFactory.GetDefaultCache();
             dataCache.Put(key, item, timeout);
         }
+
+        public void RemoveItem(string key)
+        {
+            DataCache dataCache = _cacheFactory.GetDefaultCache();
+            dataCache.Remove(key);
+        }
     }
 }
