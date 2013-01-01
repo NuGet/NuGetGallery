@@ -3,8 +3,10 @@
     var _iframeId = '__fileUploadFrame';
     var _pollingInterval = 200;
     var _pingUrl;
+    var _failureCount;
+    var _isUploadInProgress;
     
-    this.init = function (pingUrl, formId) {
+    this.init = function (pingUrl, formId, jQueryUrl) {
         _pingUrl = pingUrl;
 
         // attach the sumbit event to the form
@@ -14,11 +16,15 @@
         });
 
         if (_isWebkitBrowser) {
-            constructIframe();
+            constructIframe(jQueryUrl);
         }
     }
 
     function submitForm(form) {
+        if (_isUploadInProgress) {
+            return;
+        }
+
         if (!form.action) {
             form.submit();
             return;
@@ -32,10 +38,13 @@
 
         // only show progress indicator if the form actually uploads some files
         if (totalFile > 0) {
-            setProgressIndicator(0, 0, null);
+            _isUploadInProgress = true;
+            _failureCount = 0;
+
+            setProgressIndicator(0, '');
 
             if (_isWebkitBrowser) {
-                document.getElementById(_iframeId).contentWindow.Start(_pingUrl, setProgressIndicator);
+                document.getElementById(_iframeId).contentWindow.start(_pingUrl, setProgressIndicator, onGetProgressError);
             }
             else {
                 setTimeout(getProgress, 100);
@@ -59,15 +68,24 @@
         }
 
         var percent = result.Progress;
+
+        if (!result.FileName) {
+            return;
+        }
         
         setProgressIndicator(percent, result.FileName);
         if (percent < 100) {
             setTimeout(getProgress, _pollingInterval);
         }
+        else {
+            _isUploadInProgress = false;
+        }
     }
 
     function onGetProgressError(result) {
-        // TODO: what to do with error?
+        if (++_failureCount < 3) {
+            setTimeout(getProgress, _pollingInterval);
+        }
     }
 
     function setProgressIndicator(percentComplete, fileName) {
@@ -75,12 +93,19 @@
 
         percentComplete = Math.min(percentComplete, 100);
         $('#asyncUploadProgressAdvance').width(percentComplete + '%');
-        if (fileName) {
-            $('#asyncUploadFileName').html('Uploading ' + fileName + '...');
+
+        var status;
+        if (percentComplete == 0) {
+            status = 'Start uploading...';
         }
+        else {
+            status = 'Uploading ' + fileName + '...' + percentComplete + '%';
+        }
+
+        $('#asyncUploadFileName').html(status);
     }
 
-    function constructIframe() {
+    function constructIframe(jQueryUrl) {
         var iframe = document.getElementById(_iframeId);
         if (iframe) {
             return;
@@ -92,13 +117,13 @@
 
         $(iframe).load(function () {
             var scriptRef = document.createElement('script');
-            scriptRef.setAttribute("src", "http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.4.4.min.js");
+            scriptRef.setAttribute("src", jQueryUrl);
             scriptRef.setAttribute("type", "text/javascript");
             iframe.contentDocument.body.appendChild(scriptRef);
 
             var scriptContent = document.createElement('script');
             scriptContent.setAttribute("type", "text/javascript");
-            scriptContent.innerHTML = "var _pollingInterval=200;var _callback;var _key;var _pingUrl;function Start(b,c){_callback=c;_pingUrl=b;setTimeout(getProgress,_pollingInterval)}function getProgress(){$.ajax({type:'GET',dataType:'json',url:_pingUrl,success:onGetProgressSuccess,error:onGetProgressError})}function onGetProgressSuccess(a){if(!a){return}var b=a.Progress;var d=a.FileName;_callback(b,d);if(b<100){setTimeout(getProgress,_pollingInterval)}}function onGetProgressError(a){}";
+            scriptContent.innerHTML = "var _callback,_error, _key, _pingUrl, _fcount;function start(b,c,e){_callback=c;_pingUrl=b;_error=e;_fcount=0;setTimeout(getProgress,200)}function getProgress(){$.ajax({type:'GET',dataType:'json',url:_pingUrl,success:onSuccess,error:_error})}function onSuccess(a){if(!a){return}var b=a.Progress;var d=a.FileName;if(!d){return}_callback(b,d);if(b<100){setTimeout(getProgress,200)}}function onError(a){if(++_fcount<3){setTimeout(getProgress,200)}}";
             iframe.contentDocument.body.appendChild(scriptContent);
         });
 

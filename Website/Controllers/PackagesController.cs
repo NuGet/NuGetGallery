@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Threading.Tasks;
-using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
@@ -70,9 +69,8 @@ namespace NuGetGallery
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
             {
-                progress = new AsyncFileUploadProgress(100) { FileName = "none", TotalBytesRead = 0 };
+                return HttpNotFound();
             }
-
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
 

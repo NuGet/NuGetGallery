@@ -12,6 +12,7 @@ namespace NuGetGallery.AsyncFileUpload
         }
 
         [ScriptIgnore]
+        [DataMember]
         public int ContentLength
         {
             get;
@@ -19,6 +20,7 @@ namespace NuGetGallery.AsyncFileUpload
         }
 
         [ScriptIgnore]
+        [DataMember]
         public int TotalBytesRead
         {
             get;
@@ -26,23 +28,23 @@ namespace NuGetGallery.AsyncFileUpload
         }
 
         [DataMember]
-        public int Progress
-        {
-            get
-            {
-                return (int)((long)TotalBytesRead * 100 / ContentLength);
-            }
-            set
-            {
-                // [DataMember] requires a setter
-            }
-        }
-
-        [DataMember]
         public string FileName
         {
             get;
             set;
+        }
+
+        public int Progress
+        {
+            get
+            {
+                if (ContentLength == 0)
+                {
+                    return 0;
+                }
+
+                return (int)((long)TotalBytesRead * 100 / ContentLength);
+            }
         }
 
         [ScriptIgnore]

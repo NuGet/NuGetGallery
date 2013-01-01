@@ -58,10 +58,10 @@ namespace NuGetGallery.AsyncFileUpload
             Stream uploadStream = request.GetBufferedInputStream();
             Debug.Assert(uploadStream != null);
 
-            ReadStream(uploadStream, username, progress, requestParser);
+            ReadStream(uploadStream, request, username, progress, requestParser);
         }
 
-        private void ReadStream(Stream stream, string username, AsyncFileUploadProgress progress, AsyncFileUploadRequestParser parser)
+        private void ReadStream(Stream stream, HttpRequest request, string username, AsyncFileUploadProgress progress, AsyncFileUploadRequestParser parser)
         {
             const int bufferSize = 1024 * 4; // in bytes
 
@@ -80,9 +80,14 @@ namespace NuGetGallery.AsyncFileUpload
                 }
 
                 _cacheService.SetProgress(username, progress);
+
 #if DEBUG
-                // for demo purpose only
-                System.Threading.Thread.Sleep(300);
+                if (request.IsLocal)
+                {
+                    // If the request is from local machine, the upload will be too fast to see the progress.
+                    // Slow it down a bit.
+                    System.Threading.Thread.Sleep(300);
+                }
 #endif
             }
         }
