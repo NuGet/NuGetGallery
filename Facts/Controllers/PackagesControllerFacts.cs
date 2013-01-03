@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using NuGet;
+using NuGetGallery.AsyncFileUpload;
 using Xunit;
 using Xunit.Extensions;
 
@@ -1509,6 +1510,54 @@ namespace NuGetGallery
 
                 // Assert
                 nugetExeDownloader.Verify(d => d.UpdateExecutableAsync(It.IsAny<IPackage>()), Times.Never());
+            }
+        }
+
+        public class TheUploadProgressAction
+        {
+            [Fact]
+            public void WillReturnHttpNotFoundForUnknownUser()
+            {
+                // Arrange
+                var user = new Mock<IIdentity>();
+                user.Setup(u => u.Name).Returns("dotnetjunky");
+
+                var cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+                cacheService.Setup(c => c.GetItem("upload-dotnetjunky")).Returns(null);
+
+                var controller = CreateController(fakeIdentity: user, cacheService: cacheService);
+                
+                // Act
+                var result = controller.UploadPackageProgress();
+
+                // Assert
+                Assert.True(result is HttpNotFoundResult);
+            }
+
+            [Fact]
+            public void WillReturnCorrectResultForKnownUser()
+            {
+                // Arrange
+                var user = new Mock<IIdentity>();
+                user.Setup(u => u.Name).Returns("dotnetjunky");
+
+                var cacheService = new Mock<ICacheService>(MockBehavior.Strict);
+                cacheService.Setup(c => c.GetItem("upload-dotnetjunky"))
+                            .Returns(new AsyncFileUploadProgress(100) { FileName = "haha", TotalBytesRead = 80 });
+
+                var controller = CreateController(fakeIdentity: user, cacheService: cacheService);
+
+                // Act
+                var result = controller.UploadPackageProgress() as JsonResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(JsonRequestBehavior.AllowGet, result.JsonRequestBehavior);
+                Assert.True(result.Data is AsyncFileUploadProgress);
+                var progress = (AsyncFileUploadProgress)result.Data;
+                Assert.Equal(80, progress.TotalBytesRead);
+                Assert.Equal(100, progress.ContentLength);
+                Assert.Equal("haha", progress.FileName);
             }
         }
     }
