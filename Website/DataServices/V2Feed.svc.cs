@@ -70,7 +70,10 @@ namespace NuGetGallery
             // Workaround https://github.com/NuGet/NuGetGallery/issues/674 for NuGet 2.1 client. Can probably eventually be retired (when nobody uses 2.1 anymore...)
             // Note - it was URI un-escaping converting + to ' ', undoing that is actually a pretty conservative substitution because
             // space characters are never acepted as valid by VersionUtility.ParseFrameworkName.
-            targetFrameworks = targetFrameworks.Replace(' ', '+');
+            if (!string.IsNullOrEmpty(targetFrameworks))
+            {
+                targetFrameworks = targetFrameworks.Replace(' ', '+');
+            }
 
             var idValues = packageIds.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             var versionValues = versions.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
