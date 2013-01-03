@@ -1,1 +1,16 @@
-﻿<p>The package that you requested is too big. Please use <a href="http://nuget.codeplex.com/releases/view/59864" target="_blank">NuGet Package Explorer</a> to view the contents of it.</p>
+﻿@model Package
+
+@{
+    string npeUrl;
+
+    if (Request.UserAgent.IndexOf("Windows NT 6.2") > -1 && Request.UserAgent.IndexOf("Chrome") == -1)
+    {
+        npeUrl = PackageContentsViewModel.GetNpeProtocolUrl(Url, Model.PackageRegistration.Id, Model.Version);
+    }
+    else 
+    {
+        npeUrl = "http://nuget.codeplex.com/releases/view/59864";
+    }
+}
+
+<p>The package that you requested is too big. Please use <a href="@npeUrl" target="_blank">NuGet Package Explorer</a> to view the contents of it.</p>

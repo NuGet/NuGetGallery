@@ -8,15 +8,15 @@ namespace NuGetGallery.Helpers
 {
     public static class FileHelper
     {
-        private static readonly string[] BinaryFileExtensions = new[]
+        internal static readonly string[] BinaryFileExtensions = new[]
                                                                 {
                                                                     ".DLL", ".EXE", ".WINMD", ".CHM", ".PDF",
-                                                                    ".DOCX", ".DOC", ".JPG", ".PNG", ".GIF",
-                                                                    ".RTF", ".PDB", ".ZIP", ".RAR", ".XAP",
-                                                                    ".VSIX", ".NUPKG", ".SNK", ".PFX", ".ICO"
+                                                                    ".DOCX", ".DOC", ".RTF", ".PDB", ".ZIP", 
+                                                                    ".RAR", ".XAP", ".VSIX", ".NUPKG", ".SNK", 
+                                                                    ".PFX", ".ICO"
                                                                 };
 
-        private static readonly string[] ImageFileExtensions = new[]
+        internal static readonly string[] ImageFileExtensions = new[]
                                                                 {
                                                                     ".PNG", ".GIF", ".JPG", ".BMP", ".JPEG"
                                                                 };
@@ -54,7 +54,7 @@ namespace NuGetGallery.Helpers
             {
                 while (sb.Length < maxLength)
                 {
-                    int bytesRead = reader.Read(buffer, 0, BufferSize);
+                    int bytesRead = reader.Read(buffer, 0, Math.Min(BufferSize, maxLength - sb.Length));
                     if (bytesRead == 0)
                     {
                         break;

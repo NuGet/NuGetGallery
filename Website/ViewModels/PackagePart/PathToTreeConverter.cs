@@ -14,7 +14,7 @@ namespace NuGetGallery.ViewModels.PackagePart
                 throw new ArgumentNullException("files");
             }
 
-			List<IPackageFile> paths = files.ToList();
+            List<IPackageFile> paths = files.ToList();
             paths.Sort((p1, p2) => String.Compare(p1.Path, p2.Path, StringComparison.OrdinalIgnoreCase));
 
             var root = new PackageItem("");

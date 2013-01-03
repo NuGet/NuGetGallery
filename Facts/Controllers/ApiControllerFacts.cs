@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -8,8 +10,6 @@ using Moq;
 using NuGet;
 using Xunit;
 using Xunit.Extensions;
-using System.Collections.Specialized;
-using System.IO;
 
 namespace NuGetGallery
 {

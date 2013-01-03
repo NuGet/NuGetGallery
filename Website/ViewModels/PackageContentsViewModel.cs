@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.ViewModels.PackagePart;
 
@@ -11,13 +12,13 @@ namespace NuGetGallery
         private readonly PackageItem _rootFolder;
         private readonly IPackage _packageMetadata;
 
-        public PackageContentsViewModel(IPackage packageMetadata, PackageItem rootFolder)
+        public PackageContentsViewModel(IPackage packageMetadata, ICollection<User> owners, PackageItem rootFolder)
         {
             _packageMetadata = packageMetadata;
             _rootFolder = rootFolder;
 
             FlattenedAuthors = String.Join(", ", packageMetadata.Authors);
-            FlattenedOwners = String.Join(", ", packageMetadata.Owners);
+            FlattenedOwners = String.Join(", ", owners.Select(o => o.Username));
             IconUrl = packageMetadata.IconUrl == null ? null : packageMetadata.IconUrl.AbsoluteUri;
             FrameworkAssemblies = packageMetadata.FrameworkAssemblies.Select(
                 f => 
@@ -65,6 +66,27 @@ namespace NuGetGallery
         {
             get;
             private set;
+        }
+
+        public string GetNpeProtocolUrl(UrlHelper urlHelper)
+        {
+            return GetNpeProtocolUrl(urlHelper, PackageMetadata.Id, PackageMetadata.Version.ToString());
+        }
+
+        public string GetNpeActivationArgument(UrlHelper urlHelper)
+        {
+            return PackageMetadata.Id + "|" + 
+                PackageMetadata.Version.ToString() + "|" +
+                urlHelper.PackageDownload(2, PackageMetadata.Id, PackageMetadata.Version.ToString());
+        }
+
+        public static string GetNpeProtocolUrl(UrlHelper urlHelper, string id, string version)
+        {
+            return String.Format(
+                "npe://none?id={0}&version={1}&url={2}",
+                id,
+                version,
+                urlHelper.PackageDownload(2, id, version));
         }
     }
 }

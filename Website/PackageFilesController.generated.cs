@@ -20,7 +20,7 @@ using System.Web.Mvc.Ajax;
 using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
-namespace NuGetGallery.Controllers {
+namespace NuGetGallery {
     public partial class PackageFilesController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected PackageFilesController(Dummy d) { }
@@ -58,7 +58,7 @@ namespace NuGetGallery.Controllers {
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_PackageFilesController: NuGetGallery.Controllers.PackageFilesController {
+    public class T4MVC_PackageFilesController: NuGetGallery.PackageFilesController {
         public T4MVC_PackageFilesController() : base(Dummy.Instance) { }
 
     }

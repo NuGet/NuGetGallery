@@ -8,12 +8,12 @@ using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.ViewModels.PackagePart;
 
-namespace NuGetGallery.Controllers
+namespace NuGetGallery
 {
     public partial class PackageFilesController : Controller
     {
         private const long MaximumAllowedPackageFileSize = 3L * 1024 * 1024;		// maximum package size = 3MB
-        private const int MaximumPackageContentFileSize = 16 * 1024;                // maximum package content file to return before trimming = 16K
+        private const int MaximumPackageContentFileSize = 25 * 1024;                // maximum package content file to return before trimming = 25K
 
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
@@ -36,13 +36,13 @@ namespace NuGetGallery.Controllers
 
             if (package.PackageFileSize > MaximumAllowedPackageFileSize)
             {
-                return View("PackageTooBig");
+                return View("PackageTooBig", package);
             }
 
             IPackage packageFile = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheService, _packageFileService);
 
             PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
-            var viewModel = new PackageContentsViewModel(packageFile, rootFolder);
+            var viewModel = new PackageContentsViewModel(packageFile, package.PackageRegistration.Owners, rootFolder);
             return View(viewModel);
         }
 
@@ -71,7 +71,7 @@ namespace NuGetGallery.Controllers
 
             if (FileHelper.IsBinaryFile(packageFile.Path))
             {
-                result.Content = "The requested file is a binary file.";
+                result.Content = "*** The requested file is a binary file. ***";
             }
             else
             {
