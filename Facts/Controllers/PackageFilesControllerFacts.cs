@@ -114,8 +114,8 @@ namespace NuGetGallery
 
                 var buffer = packageStream.ToArray();
 
-                var cacheService = new Mock<ICacheService>(MockBehavior.Strict);
-                cacheService.Setup(p => p.GetItem("a.1.0")).Returns(buffer);
+                var cacheService = new Mock<IPackageCacheService>(MockBehavior.Strict);
+                cacheService.Setup(p => p.GetBytes("a.1.0")).Returns(buffer);
 
                 var packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(s => s.DownloadPackageFileAsync(package)).Throws(new InvalidOperationException());
@@ -391,15 +391,15 @@ namespace NuGetGallery
         private static PackageFilesController CreateController(
             Mock<IPackageService> packageService = null,
             Mock<IPackageFileService> packageFileService = null,
-            Mock<ICacheService> cacheService = null)
+            Mock<IPackageCacheService> cacheService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             packageFileService = packageFileService ?? new Mock<IPackageFileService>();
 
             if (cacheService == null) 
             {
-                cacheService = new Mock<ICacheService>();
-                cacheService.Setup(c => c.GetItem(It.IsAny<string>())).Returns((byte[])null);
+                cacheService = new Mock<IPackageCacheService>();
+                cacheService.Setup(c => c.GetBytes(It.IsAny<string>())).Returns((byte[])null);
             }
 
             return new PackageFilesController(packageService.Object, packageFileService.Object, cacheService.Object);
