@@ -823,6 +823,7 @@ section.package .side img {
     margin-bottom: 50px;
     border: 1px solid darkgray;
     overflow: auto;
+    white-space: nowrap;
 }
 
 #metadataLabel {

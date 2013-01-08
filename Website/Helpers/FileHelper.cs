@@ -23,20 +23,20 @@ namespace NuGetGallery.Helpers
 
         public static bool IsBinaryFile(string path)
         {
-            string extension = Path.GetExtension(path).ToUpper(CultureInfo.InvariantCulture);
-            return String.IsNullOrEmpty(extension) || BinaryFileExtensions.Any(p => p.Equals(extension));
+            string extension = Path.GetExtension(path);
+            return String.IsNullOrEmpty(extension) || BinaryFileExtensions.Any(p => p.Equals(extension, StringComparison.OrdinalIgnoreCase));
         }
 
         public static bool IsImageFile(string path)
         {
-            string extension = Path.GetExtension(path).ToUpper(CultureInfo.InvariantCulture);
-            return String.IsNullOrEmpty(extension) || ImageFileExtensions.Any(p => p.Equals(extension));
+            string extension = Path.GetExtension(path);
+            return String.IsNullOrEmpty(extension) || ImageFileExtensions.Any(p => p.Equals(extension, StringComparison.OrdinalIgnoreCase));
         }
 
         public static string GetImageMimeType(string filePath)
         {
-            string extension = Path.GetExtension(filePath).ToUpperInvariant();
-            if (ImageFileExtensions.Contains(extension))
+            string extension = Path.GetExtension(filePath).ToLowerInvariant();
+            if (ImageFileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
             {
                 return "image/" + extension.Substring(1);	// omit the dot in front of extension
             }

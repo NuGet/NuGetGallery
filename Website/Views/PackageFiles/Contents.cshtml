@@ -67,7 +67,7 @@
         <strong><span id="contentsHeaderFileName" class="header"></span></strong>
         <select id="syntaxScheme">
             <option value="brush: text">Text</option>
-            <option value="brush: xml">Xml</option>
+            <option value="brush: xml">Html/Xml</option>
             <option value="brush: js">Javascript</option>
             <option value="brush: css">Css</option>
             <option value="brush: csharp">C#</option>
@@ -274,6 +274,10 @@
             }
             
             if (extension == 'js' || extension == 'jscript' || extension == 'javascript') {
+                if (path.indexOf('.min', path.length - extension.length - 5) !== -1) {
+                    return 'brush: text';
+                }
+
                 return 'brush: js';
             }
 
