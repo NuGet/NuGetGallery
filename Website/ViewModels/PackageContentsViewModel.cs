@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Web.Mvc;
 using NuGet;
@@ -25,7 +26,7 @@ namespace NuGetGallery
                     {
                         if (f.SupportedFrameworks.Any())
                         {
-                            return String.Format("{0} ({1})", f.AssemblyName, String.Join("; ", f.SupportedFrameworks));
+                            return String.Format(CultureInfo.InvariantCulture, "{0} ({1})", f.AssemblyName, String.Join("; ", f.SupportedFrameworks));
                         }
                         else
                         {
@@ -83,6 +84,7 @@ namespace NuGetGallery
         public static string GetNpeProtocolUrl(UrlHelper urlHelper, string id, string version)
         {
             return String.Format(
+                CultureInfo.InvariantCulture,
                 "npe://none?id={0}&version={1}&url={2}",
                 id,
                 version,

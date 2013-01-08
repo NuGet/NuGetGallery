@@ -11,6 +11,7 @@ namespace DynamicDataEFCodeFirst
     {
         private const string NullValueString = "[null]";
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2222:DoNotDecreaseInheritedMemberVisibility")]
         private new MetaForeignKeyColumn Column
         {
             get { return (MetaForeignKeyColumn)base.Column; }

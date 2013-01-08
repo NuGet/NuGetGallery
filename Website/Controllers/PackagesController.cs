@@ -146,7 +146,7 @@ namespace NuGetGallery
 
             if (package == null)
             {
-                return PackageNotFound(id, version);
+                return HttpNotFound();
             }
             var model = new DisplayPackageViewModel(package);
             ViewBag.FacebookAppID = _config.FacebookAppID;
@@ -202,7 +202,7 @@ namespace NuGetGallery
 
             if (package == null)
             {
-                return PackageNotFound(id, version);
+                return HttpNotFound();
             }
 
             var model = new ReportAbuseViewModel
@@ -236,7 +236,7 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return PackageNotFound(id, version);
+                return HttpNotFound();
             }
 
             MailAddress from;
@@ -263,7 +263,7 @@ namespace NuGetGallery
 
             if (package == null)
             {
-                return PackageNotFound(id);
+                return HttpNotFound();
             }
 
             var model = new ContactOwnersViewModel
@@ -288,7 +288,7 @@ namespace NuGetGallery
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {
-                return PackageNotFound(id);
+                return HttpNotFound();
             }
 
             var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
@@ -313,7 +313,7 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return PackageNotFound(id, version);
+                return HttpNotFound();
             }
             if (!package.IsOwner(HttpContext.User))
             {
@@ -344,7 +344,7 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return PackageNotFound(id, version);
+                return HttpNotFound();
             }
             if (!package.IsOwner(HttpContext.User))
             {
@@ -416,7 +416,7 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return PackageNotFound(id, version);
+                return HttpNotFound();
             }
             if (!package.IsOwner(HttpContext.User))
             {
@@ -439,7 +439,7 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return PackageNotFound(id, version);
+                return HttpNotFound();
             }
             if (!package.IsOwner(HttpContext.User))
             {
@@ -448,17 +448,6 @@ namespace NuGetGallery
 
             var model = new DisplayPackageViewModel(package);
             return View(model);
-        }
-
-        // We may want to have a specific behavior for package not found
-        private ActionResult PackageNotFound(string id)
-        {
-            return PackageNotFound(id, version: null);
-        }
-
-        private ActionResult PackageNotFound(string id, string version)
-        {
-            return HttpNotFound();
         }
 
         [Authorize]
@@ -573,7 +562,7 @@ namespace NuGetGallery
             return new ZipPackage(stream);
         }
 
-        private SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)
+        private static SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)
         {
             var searchFilter = new SearchFilter
             {

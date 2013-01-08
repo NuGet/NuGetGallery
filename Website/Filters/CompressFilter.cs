@@ -4,7 +4,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery.Filters
 {
-    public class CompressFilter : ActionFilterAttribute
+    public sealed class CompressFilter : ActionFilterAttribute
     {
         public override void OnActionExecuted(ActionExecutedContext filterContext)
         {

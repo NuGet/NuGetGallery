@@ -17,7 +17,7 @@ namespace NuGetGallery
             return base.VisitMethodCall(node);
         }
 
-        private bool IsSortingOnVersion(MethodCallExpression expression)
+        private static bool IsSortingOnVersion(MethodCallExpression expression)
         {
             var methodsToIgnore = new[] { "ThenBy", "ThenByDescending" };
             var method = expression.Method;
@@ -30,7 +30,7 @@ namespace NuGetGallery
             return false;
         }
 
-        private bool IsVersionArgument(MethodCallExpression expression)
+        private static bool IsVersionArgument(MethodCallExpression expression)
         {
             if (expression.Arguments.Count == 2)
             {

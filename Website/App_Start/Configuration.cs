@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.Web;
 
 namespace NuGetGallery
@@ -83,7 +84,7 @@ namespace NuGetGallery
                     new Lazy<object>(
                         () =>
                             {
-                                var value = ConfigurationManager.AppSettings[String.Format("Gallery:{0}", key)];
+                                var value = ConfigurationManager.AppSettings[String.Format(CultureInfo.InvariantCulture, "Gallery:{0}", key)];
                                 if (String.IsNullOrWhiteSpace(value))
                                 {
                                     value = null;

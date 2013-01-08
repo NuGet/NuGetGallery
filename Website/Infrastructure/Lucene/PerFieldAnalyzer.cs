@@ -16,7 +16,7 @@ namespace NuGetGallery
 
         private static IDictionary CreateFieldAnalyzers()
         {
-            return new Dictionary<string, Analyzer>(StringComparer.InvariantCulture)
+            return new Dictionary<string, Analyzer>(StringComparer.OrdinalIgnoreCase)
             {
                 { "Title", new TitleAnalyzer() }
             };

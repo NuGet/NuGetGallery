@@ -22,7 +22,7 @@ namespace NuGetGallery
             _entities.Set<T>().Remove(entity);
         }
 
-        public T Get(int key)
+        public T GetEntity(int key)
         {
             return _entities.Set<T>().Find(key);
         }
