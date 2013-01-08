@@ -10,21 +10,19 @@ namespace NuGetGallery.Migrations
 
         public override void Up()
         {
-            using (var stream = typeof(ExecuteELMAHSql).Assembly.GetManifestResourceStream("NuGetGallery.Infrastructure.Elmah.SqlServer.sql"))
+            Stream stream = typeof(ExecuteELMAHSql).Assembly.GetManifestResourceStream("NuGetGallery.Infrastructure.Elmah.SqlServer.sql");
+            using (var streamReader = new StreamReader(stream))
             {
-                using (var streamReader = new StreamReader(stream))
+                var statements = streamReader.ReadToEnd().Split(Go, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var statement in statements)
                 {
-                    var statements = streamReader.ReadToEnd().Split(Go, StringSplitOptions.RemoveEmptyEntries);
-
-                    foreach (var statement in statements)
+                    if (String.IsNullOrWhiteSpace(statement))
                     {
-                        if (String.IsNullOrWhiteSpace(statement))
-                        {
-                            continue;
-                        }
-
-                        Sql(statement);
+                        continue;
                     }
+
+                    Sql(statement);
                 }
             }
         }

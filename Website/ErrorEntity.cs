@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Globalization;
 using System.Linq;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -14,7 +15,7 @@ namespace NuGetGallery
 
             public ErrorEntity() { }
             public ErrorEntity(Error error)
-                : base(string.Empty, (DateTime.MaxValue.Ticks - DateTime.UtcNow.Ticks).ToString("d19"))
+                : base(string.Empty, (DateTime.MaxValue.Ticks - DateTime.UtcNow.Ticks).ToString("d19", CultureInfo.InvariantCulture))
             {
                 this.SerializedError = ErrorXml.EncodeString(error);
             }

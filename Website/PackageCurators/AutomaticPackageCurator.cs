@@ -15,7 +15,7 @@ namespace NuGetGallery
             return DependencyResolver.Current.GetService<T>();
         }
 
-        protected bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)
+        protected static bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)
         {
             if (galleryPackage != null && galleryPackage.Dependencies.AnySafe())
             {

@@ -114,6 +114,7 @@ namespace NuGetGallery
             FixUpDataServiceUrisForCuratedFeedName(args.OperationContext, GetCuratedFeedName());
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "targetFramework", Justification = "We can't change it because it's now part of the contract of this service method.")]
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 
 namespace NuGetGallery
 {
@@ -15,15 +16,15 @@ namespace NuGetGallery
     {
         private const string PartialIdSqlFormat = @"SELECT TOP 30 pr.ID
 FROM Packages p
-	JOIN PackageRegistrations pr on pr.[Key] = p.PackageRegistrationKey
+    JOIN PackageRegistrations pr on pr.[Key] = p.PackageRegistrationKey
 WHERE pr.ID LIKE {{0}}
-	{0}
+    {0}
 GROUP BY pr.ID
 ORDER BY pr.ID";
 
         private const string NoPartialIdSql = @"SELECT TOP 30 pr.ID
 FROM Packages p
-	JOIN PackageRegistrations pr on pr.[Key] = p.PackageRegistrationKey
+    JOIN PackageRegistrations pr on pr.[Key] = p.PackageRegistrationKey
 GROUP BY pr.ID
 ORDER BY MAX(pr.DownloadCount) DESC";
 
@@ -51,7 +52,7 @@ ORDER BY MAX(pr.DownloadCount) DESC";
                 prereleaseFilter = "AND p.IsPrerelease = {1}";
             }
             return dbContext.Database.SqlQuery<string>(
-                String.Format(PartialIdSqlFormat, prereleaseFilter), partialId + "%", includePrerelease ?? false);
+                String.Format(CultureInfo.InvariantCulture, PartialIdSqlFormat, prereleaseFilter), partialId + "%", includePrerelease ?? false);
         }
     }
 }

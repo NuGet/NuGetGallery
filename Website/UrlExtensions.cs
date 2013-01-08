@@ -44,7 +44,7 @@ namespace NuGetGallery
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
             // https://github.com/NuGet/NuGetGallery/issues/657
-            if (version == null && result != null && !result.EndsWith("/"))
+            if (version == null && result != null && !result.EndsWith("/", StringComparison.OrdinalIgnoreCase))
             {
                 return result + "/";
             }
@@ -143,7 +143,7 @@ namespace NuGetGallery
         {
             UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
             builder.Query = String.Empty;
-            if (builder.Host.StartsWith("www."))
+            if (builder.Host.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
             {
                 builder.Host = builder.Host.Substring(4);
             }

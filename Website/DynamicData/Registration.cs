@@ -7,6 +7,7 @@ namespace DynamicDataEFCodeFirst
 {
     public class Registration
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification="Although this type is mutable, we use it as immutable in our code.")]
         public static readonly MetaModel DefaultModel = new MetaModel();
 
         public static void Register(RouteCollection routes)
