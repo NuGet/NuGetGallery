@@ -13,12 +13,12 @@ namespace NuGetGallery.Helpers
                                                                     ".DLL", ".EXE", ".WINMD", ".CHM", ".PDF",
                                                                     ".DOCX", ".DOC", ".RTF", ".PDB", ".ZIP", 
                                                                     ".RAR", ".XAP", ".VSIX", ".NUPKG", ".SNK", 
-                                                                    ".PFX", ".ICO"
+                                                                    ".PFX"
                                                                 };
 
         internal static readonly string[] ImageFileExtensions = new[]
                                                                 {
-                                                                    ".PNG", ".GIF", ".JPG", ".BMP", ".JPEG"
+                                                                    ".PNG", ".GIF", ".JPG", ".BMP", ".JPEG", ".ICO"
                                                                 };
 
         public static bool IsBinaryFile(string path)
@@ -38,6 +38,12 @@ namespace NuGetGallery.Helpers
             string extension = Path.GetExtension(filePath).ToLowerInvariant();
             if (ImageFileExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
             {
+                if (extension == ".ico")
+                {
+                    // IE will only render .ico file if the mime type is "image/x-icon"
+                    return "image/x-icon";
+                }
+
                 return "image/" + extension.Substring(1);	// omit the dot in front of extension
             }
 
