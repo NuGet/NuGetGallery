@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="CodeAnalysis" ToolsVersion="10.0">
+<RuleSet Name="CodeAnalysis" ToolsVersion="11.0">
   <Include Path="basiccorrectnessrules.ruleset" Action="Default" />
   <Include Path="basicdesignguidelinerules.ruleset" Action="Default" />
   <Include Path="extendedcorrectnessrules.ruleset" Action="Default" />
@@ -63,6 +63,8 @@
     <Rule Id="CA1063" Action="None" />
     <Rule Id="CA1064" Action="None" />
     <Rule Id="CA1065" Action="None" />
+    <Rule Id="CA1303" Action="None" />
+    <Rule Id="CA1308" Action="None" />
     <Rule Id="CA1400" Action="None" />
     <Rule Id="CA1401" Action="None" />
     <Rule Id="CA1402" Action="None" />
@@ -82,5 +84,6 @@
     <Rule Id="CA2210" Action="None" />
     <Rule Id="CA2214" Action="None" />
     <Rule Id="CA2227" Action="None" />
+    <Rule Id="CA2233" Action="None" />
   </Rules>
 </RuleSet>

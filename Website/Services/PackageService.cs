@@ -14,7 +14,6 @@ namespace NuGetGallery
     {
         private readonly ICryptographyService _cryptoService;
         private readonly IIndexingService _indexingService;
-        private readonly IPackageFileService _packageFileService;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
@@ -26,14 +25,12 @@ namespace NuGetGallery
             IEntityRepository<Package> packageRepository, 
             IEntityRepository<PackageStatistics> packageStatsRepository, 
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository, 
-            IPackageFileService packageFileService, 
             IIndexingService indexingService)
         {
             _cryptoService = cryptoService;
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
             _packageStatsRepository = packageStatsRepository;
-            _packageFileService = packageFileService;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _indexingService = indexingService;
         }
@@ -498,6 +495,7 @@ namespace NuGetGallery
             return package.GetSupportedFrameworks();
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         private static void ValidateNuGetPackage(IPackage nugetPackage)
         {
             // TODO: Change this to use DataAnnotations

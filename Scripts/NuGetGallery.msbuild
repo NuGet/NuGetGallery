@@ -28,7 +28,7 @@
     <MsBuild Projects="NuGetGallery.Xunit.msbuild" Properties="OutDir=$(OutDir)" Targets="RunFacts" />
   </Target>
   
-   <Target Name="BuildViews" DependsOnTargets="Build">
+  <Target Name="BuildViews" DependsOnTargets="Build">
     <MSBuild Projects="..\Website\Website.csproj" Targets="MvcBuildViews" Properties="MvcBuildViews=true" />
   </Target>
   

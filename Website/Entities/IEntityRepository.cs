@@ -7,7 +7,7 @@ namespace NuGetGallery
     {
         void CommitChanges();
         void DeleteOnCommit(T entity);
-        T Get(int key);
+        T GetEntity(int key);
         IQueryable<T> GetAll();
         int InsertOnCommit(T entity);
     }

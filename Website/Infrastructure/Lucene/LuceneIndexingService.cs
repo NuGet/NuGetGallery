@@ -245,7 +245,7 @@ namespace NuGetGallery
             Debug.Assert(got == _indexWriter);
         }
 
-        protected internal bool IndexRequiresRefresh()
+        protected internal static bool IndexRequiresRefresh()
         {
             if (File.Exists(LuceneCommon.IndexMetadataPath))
             {
@@ -279,7 +279,7 @@ namespace NuGetGallery
             }
         }
 
-        protected void UpdateIndexRefreshTime()
+        protected static void UpdateIndexRefreshTime()
         {
             if (File.Exists(LuceneCommon.IndexMetadataPath))
             {

@@ -40,12 +40,14 @@ namespace NuGetGallery
         public string Title { get; set; }
         public int VersionDownloadCount { get; set; }
 
-        // Deprecated properties
+        // Deprecated properties        
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This must be an instance property for serialization.")]
         public int RatingsCount
         {
             get { return 0; }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This must be an instance property for serialization.")]
         public int VersionRatingsCount
         {
             get { return 0; }
@@ -53,26 +55,31 @@ namespace NuGetGallery
 
         public double Rating { get; set; }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This must be an instance property for serialization.")]
         public double VersionRating
         {
             get { return 0.0; }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This must be an instance property for serialization.")]
         public string Categories
         {
             get { return String.Empty; }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This must be an instance property for serialization.")]
         public string PackageType
         {
             get { return "Package"; }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This must be an instance property for serialization.")]
         public decimal Price
         {
             get { return 0; }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This must be an instance property for serialization.")]
         public bool Prerelease
         {
             get { return false; }

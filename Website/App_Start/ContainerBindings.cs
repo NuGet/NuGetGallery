@@ -253,7 +253,7 @@ namespace NuGetGallery
                 .InRequestScope();
         }
 
-        private bool CanBindCache()
+        private static bool CanBindCache()
         {
             try
             {
