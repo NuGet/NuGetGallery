@@ -26,10 +26,12 @@
                         var homeClass = ViewBag.Tab == "Home" ? "current" : "";
                         var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
                         var uploadClass = ViewBag.Tab == "Upload" ? "current" : "";
+                        var statisticsClass = ViewBag.Tab == "Statistics" ? "current" : "";
                     }
                     <li class="@homeClass"><a href="@Url.Home()">Home</a></li>
                     <li class="@packagesClass"><a href="@Url.PackageList()">Packages</a></li>
                     <li class="@uploadClass"><a href="@Url.UploadPackage()" class="upload">Upload Package</a></li>
+                    <li class="@statisticsClass"><a href="@Url.Statistics()">Statistics</a></li>
                     <li><a href="http://docs.nuget.org">Documentation</a></li>
                     <li><a href="http://blog.nuget.org">Blog</a></li>
                 </ul>

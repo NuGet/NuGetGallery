@@ -1,0 +1,46 @@
+﻿@model StatisticsPackagesViewModel
+@{
+    ViewBag.Title = "Statistics";
+}
+
+<div class="statistics-layout" >
+    <h3>Most Downloaded Packages</h3>
+    <table class="sexy-table">
+        <thead>
+            <tr>
+                <th class="first">Package</th><th>Downloads</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.DownloadPackagesSummary)
+        {
+            <tr>
+                <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@item.Downloads</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <span class="statistics-more"><a href="@Url.StatisticsAllPackageDownloads()">More...</a></span>
+</div>
+<div class="statistics-layout" >
+    <h3>Most Downloaded Package Versions</h3>
+    <table class="sexy-table">
+        <thead>
+            <tr>
+                <th class="first">Package</th><th>Version</th><th>Downloads</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.DownloadPackageVersionsSummary)
+        {
+            <tr>
+                <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                <td>@item.Downloads</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <span class="statistics-more"><a href="@Url.StatisticsAllPackageVersionDownloads()">More...</a></span>
+</div>
