@@ -3,11 +3,16 @@
     ViewBag.Tab = "Upload Your Package";
 }
 
+@section TopScripts
+{
+    <script type="text/javascript" src="@Url.Content("~/Scripts/async-file-upload.js")"></script>
+}
+
 <h1 class="page-heading">Upload Your Package</h1>
 
 @ViewHelpers.UploadSequence(1)
 
-@using (Html.BeginForm("UploadPackage", "Packages", FormMethod.Post, new { enctype = "multipart/form-data" }))
+@using (Html.BeginForm("UploadPackage", "Packages", FormMethod.Post, new { id = "uploadForm", enctype = "multipart/form-data" }))
 {
     <fieldset class="form">
         <legend>Upload a Package</legend>
@@ -20,5 +25,24 @@
         </div>
 
         <input type="submit" value="Upload" title="Upload the package." />
+
+        <div id="asyncUploadPanel" class="async-upload-panel">
+            <div id="asyncUploadProgressInitial" class="async-upload-progress-initial">
+                <span id="asyncUploadProgressAdvance" class="async-upload-progress-advance"></span>
+            </div>
+            <div id="asyncUploadFileName" class="async-upload-file-name"></div>
+        </div>
     </fieldset>
+}
+
+@section BottomScripts
+{
+    <script type="text/javascript">
+        $(function () {
+            AsyncFileUploadManager.init(
+                '@Url.Action(MVC.Packages.UploadPackageProgress())',
+                'uploadForm',
+                '@Url.Content("~/Scripts/jquery-1.6.2.min.js")');
+        });
+    </script>
 }

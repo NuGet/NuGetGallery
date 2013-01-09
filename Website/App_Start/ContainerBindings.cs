@@ -44,19 +44,28 @@ namespace NuGetGallery
                 .To<LuceneSearchService>()
                 .InRequestScope();
             
-            if (CanBindCache())
+            if (IsDeployedToCloud)
             {
-                // when running on Windows Azure, use the Azure Cache service
+                // when running on Windows Azure, use the Azure Cache local storage
                 Bind<IPackageCacheService>()
                     .To<CloudPackageCacheService>()
+                    .InSingletonScope();
+
+                // when running on Windows Azure, use the Azure Cache service
+                Bind<ICacheService>()
+                    .To<CloudCacheService>()
                     .InSingletonScope();
             }
             else
             {
-                // when running locally on dev box, use the built-in ASP.NET Http Cache
                 Bind<IPackageCacheService>()
                     .To<NullPackageCacheService>()
                     .InSingletonScope();
+
+                // when running locally on dev box, use the built-in ASP.NET Http Cache
+                Bind<ICacheService>()
+                    .To<HttpContextCacheService>()
+                    .InRequestScope();
             }
 
             Bind<IEntitiesContext>()
@@ -253,21 +262,24 @@ namespace NuGetGallery
                 .InRequestScope();
         }
 
-        private bool CanBindCache()
+        private bool IsDeployedToCloud
         {
-            try
+            get
             {
-                if (RoleEnvironment.IsAvailable)
+                try
                 {
-                    return true;
+                    if (RoleEnvironment.IsAvailable)
+                    {
+                        return true;
+                    }
                 }
-            }
-            catch (TypeInitializationException)
-            {
-                // Catch 'Could not load file or assembly 'msshrtmi' from not having Azure SDK installed.
-            }
+                catch (TypeInitializationException)
+                {
+                    // Catch 'Could not load file or assembly 'msshrtmi' from not having Azure SDK installed.
+                }
 
-            return false;
+                return false;
+            }
         }
     }
 }
