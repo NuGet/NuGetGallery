@@ -22,7 +22,7 @@ namespace NuGetGallery
         }
 
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary 
-        { 
+        {
             get
             {
                 if (_downloadPackagesSummary == null)
@@ -34,7 +34,7 @@ namespace NuGetGallery
         }
 
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary
-        { 
+        {
             get
             {
                 if (_downloadPackageVersionsSummary == null)
@@ -58,7 +58,7 @@ namespace NuGetGallery
         }
 
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll
-        { 
+        {
             get
             {
                 if (_downloadPackageVersionsAll == null)
