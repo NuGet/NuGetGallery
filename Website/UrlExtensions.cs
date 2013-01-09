@@ -23,6 +23,26 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.Home);
         }
 
+        public static string Statistics(this UrlHelper url)
+        {
+            return url.RouteUrl(RouteName.Statistics);
+        }
+
+        public static string StatisticsAllPackageDownloads(this UrlHelper url)
+        {
+            return url.RouteUrl(RouteName.StatisticsPackages);
+        }
+
+        public static string StatisticsAllPackageVersionDownloads(this UrlHelper url)
+        {
+            return url.RouteUrl(RouteName.StatisticsPackageVersions);
+        }
+
+        public static string StatisticsPackageDownloadByVersion(this UrlHelper url, string id)
+        {
+            return url.RouteUrl(RouteName.StatisticsPackageDownloadsByVersion, new { id });
+        }
+
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm, bool prerelease)
         {
             return url.Action(MVC.Packages.ListPackages(searchTerm, sortOrder, page, prerelease));
