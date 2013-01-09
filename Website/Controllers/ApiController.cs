@@ -270,22 +270,26 @@ namespace NuGetGallery
 
         [ActionName("PackageIDs")]
         [HttpGet]
-        public virtual ActionResult GetPackageIds(
-            string partialId,
-            bool? includePrerelease)
+        public virtual ActionResult GetPackageIds(string partialId, bool? includePrerelease)
         {
-            var qry = GetService<IPackageIdsQuery>();
-            return new JsonNetResult(qry.Execute(partialId, includePrerelease).ToArray());
+            var query = GetService<IPackageIdsQuery>();
+            return new JsonResult
+                {
+                    Data = (query.Execute(partialId, includePrerelease).ToArray()),
+                    JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                };
         }
 
         [ActionName("PackageVersions")]
         [HttpGet]
-        public virtual ActionResult GetPackageVersions(
-            string id,
-            bool? includePrerelease)
+        public virtual ActionResult GetPackageVersions(string id, bool? includePrerelease)
         {
-            var qry = GetService<IPackageVersionsQuery>();
-            return new JsonNetResult(qry.Execute(id, includePrerelease).ToArray());
+            var query = GetService<IPackageVersionsQuery>();
+            return new JsonResult
+                {
+                    Data = query.Execute(id, includePrerelease).ToArray(),
+                    JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                };
         }
     }
 }
