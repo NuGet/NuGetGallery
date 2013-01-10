@@ -262,7 +262,7 @@ namespace NuGetGallery
                 .InRequestScope();
         }
 
-        private bool IsDeployedToCloud
+        private static bool IsDeployedToCloud
         {
             get
             {

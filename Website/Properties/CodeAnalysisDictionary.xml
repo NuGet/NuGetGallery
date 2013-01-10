@@ -8,6 +8,7 @@
             <Word>nuget</Word>
             <Word>Asax</Word>
             <Word>api</Word>
+            <Word>HttpContext</Word>
         </Recognized>
         <Deprecated>
             <Term PreferredAlternate=""></Term>
