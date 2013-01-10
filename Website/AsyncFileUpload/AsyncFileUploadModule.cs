@@ -61,6 +61,7 @@ namespace NuGetGallery.AsyncFileUpload
             ReadStream(uploadStream, request, username, progress, requestParser);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "request", Justification="'request' parameter is used in debug build.")]
         private void ReadStream(Stream stream, HttpRequest request, string username, AsyncFileUploadProgress progress, AsyncFileUploadRequestParser parser)
         {
             const int bufferSize = 1024 * 4; // in bytes
