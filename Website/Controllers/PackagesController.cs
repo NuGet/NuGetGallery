@@ -5,10 +5,10 @@ using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Threading.Tasks;
-using System.Transactions;
 using System.Web;
 using System.Web.Mvc;
 using NuGet;
+using NuGetGallery.AsyncFileUpload;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -30,6 +30,7 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
+        private readonly ICacheService _cacheService;
 
         public PackagesController(
             IPackageService packageService,
@@ -42,7 +43,8 @@ namespace NuGetGallery
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
             IConfiguration config,
-            IIndexingService indexingService)
+            IIndexingService indexingService,
+            ICacheService cacheService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -55,6 +57,21 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext;
             _config = config;
             _indexingService = indexingService;
+            _cacheService = cacheService;
+        }
+
+        [Authorize]
+        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
+        public virtual ActionResult UploadPackageProgress()
+        {
+            string username = GetIdentity().Name;
+
+            AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
+            if (progress == null)
+            {
+                return HttpNotFound();
+            }
+            return Json(progress, JsonRequestBehavior.AllowGet);
         }
 
         [Authorize]
@@ -112,6 +129,10 @@ namespace NuGetGallery
             {
                 ModelState.AddModelError(String.Empty, Strings.FailedToReadUploadFile);
                 return View();
+            }
+            finally
+            {
+                _cacheService.RemoveProgress(currentUser.Username);
             }
 
             var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Id);

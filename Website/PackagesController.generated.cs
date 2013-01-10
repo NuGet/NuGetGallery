@@ -84,6 +84,7 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+            public readonly string UploadPackageProgress = "UploadPackageProgress";
             public readonly string DisplayPackage = "DisplayPackage";
             public readonly string ListPackages = "ListPackages";
             public readonly string ReportAbuse = "ReportAbuse";
@@ -120,6 +121,11 @@ namespace NuGetGallery {
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_PackagesController: NuGetGallery.PackagesController {
         public T4MVC_PackagesController() : base(Dummy.Instance) { }
+
+        public override System.Web.Mvc.ActionResult UploadPackageProgress() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UploadPackageProgress);
+            return callInfo;
+        }
 
         public override System.Web.Mvc.ActionResult DisplayPackage(string id, string version) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DisplayPackage);
