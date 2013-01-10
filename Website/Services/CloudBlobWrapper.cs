@@ -64,7 +64,7 @@ namespace NuGetGallery
             }
             catch (StorageException e)
             {
-                if (e.RequestInformation.ExtendedErrorInformation.ErrorCode == StorageErrorCodeStrings.ResourceNotFound)
+                if (e.RequestInformation.HttpStatusCode == 404)
                 {
                     return false;
                 }

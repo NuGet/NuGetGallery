@@ -21,9 +21,9 @@ namespace NuGetGallery
             _blobContainer.SetPermissions(permissions);
         }
 
-        public ISimpleCloudBlob GetBlobReference(string blobAddressUri)
+        public ISimpleCloudBlob GetBlobReference(string blobName)
         {
-            return new CloudBlobWrapper(_blobContainer.GetBlobReferenceFromServer(blobAddressUri));
+            return new CloudBlobWrapper(_blobContainer.GetBlockBlobReference(blobName));
         }
     }
 }

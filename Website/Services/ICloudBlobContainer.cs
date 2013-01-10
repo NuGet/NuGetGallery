@@ -6,6 +6,6 @@ namespace NuGetGallery
     {
         void CreateIfNotExist();
         void SetPermissions(BlobContainerPermissions permissions);
-        ISimpleCloudBlob GetBlobReference(string blobAddressUri);
+        ISimpleCloudBlob GetBlobReference(string blobName);
     }
 }

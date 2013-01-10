@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -300,7 +301,7 @@ namespace NuGetGallery
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Throws(
-                    new TestableStorageClientException { ErrorCode = StorageErrorCodeStrings.ResourceNotFound });
+                    new TestableStorageClientException { HttpStatusCode = HttpStatusCode.NotFound });
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 var stream = service.GetFile(folderName, "theFileName");

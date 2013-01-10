@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
@@ -78,14 +79,12 @@ namespace NuGetGallery
             {
                 stream.Dispose();
 
-                if (ex.ErrorCode == StorageErrorCodeStrings.ResourceNotFound)
+                if (ex.HttpStatusCode == HttpStatusCode.NotFound)
                 {
                     return null;
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             stream.Position = 0;

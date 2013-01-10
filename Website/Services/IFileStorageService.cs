@@ -17,6 +17,7 @@ namespace NuGetGallery
             string folderName,
             string fileName);
 
+        /// <returns>the filestream, or null if the file does not exist.</returns>
         Stream GetFile(
             string folderName,
             string fileName);
