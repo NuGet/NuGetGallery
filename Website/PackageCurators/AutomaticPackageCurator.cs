@@ -17,12 +17,16 @@ namespace NuGetGallery
 
         protected bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)
         {
-            if (galleryPackage != null && galleryPackage.Dependencies.AnySafe())
+            Argument.Isset(galleryPackage, "galleryPackage");
+            Argument.Isset(curatedFeed, "curatedFeed");
+            Argument.Isset(curatedFeed.Packages, "curatedFeed.Packages");
+
+            if (!galleryPackage.Dependencies.AnySafe())
             {
-                return galleryPackage.Dependencies.All(d => curatedFeed.Packages.Where(p => p.Included).Select(p => p.PackageRegistration.Id).Contains(d.Id));
+                return true;
             }
 
-            return true;
+            return galleryPackage.Dependencies.All(d => curatedFeed.Packages.Where(p => p.Included).Select(p => p.PackageRegistration.Id).Contains(d.Id));
         }
     }
 }
