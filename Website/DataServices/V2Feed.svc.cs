@@ -97,20 +97,23 @@ namespace NuGetGallery
 
                 if (versionLookup.ContainsKey(id))
                 {
-                    // REVIEW: Should we throw here or return empty value? 
-                    throw new ArgumentException("The parameter 'packageIds' contain duplicated id: " + id);
+                    // Exit early if the request contains duplicate ids
+                    return Enumerable.Empty<V2FeedPackage>().AsQueryable();
                 }
 
                 SemanticVersion currentVersion = null;
-                IVersionSpec versionConstraint = null;
-                
-                SemanticVersion.TryParse(versionValues[i], out currentVersion);
-
-                if (versionConstraintValues[i] != null)
+                if (SemanticVersion.TryParse(versionValues[i], out currentVersion))
                 {
-                    VersionUtility.TryParseVersionSpec(versionConstraintValues[i], out versionConstraint);
+                    IVersionSpec versionConstraint = null;
+                    if (versionConstraintValues[i] != null)
+                    {
+                        if (!VersionUtility.TryParseVersionSpec(versionConstraintValues[i], out versionConstraint))
+                        {
+                            versionConstraint = null;
+                        }
+                    }
+                    versionLookup.Add(id, Tuple.Create(currentVersion, versionConstraint));
                 }
-                versionLookup.Add(id, Tuple.Create(currentVersion, versionConstraint));
             }
 
             var packages = PackageRepository.GetAll()
