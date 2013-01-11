@@ -10,7 +10,7 @@ namespace NuGetGallery
             Package galleryPackage,
             IPackage nugetPackage)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute("webmatrix");
+            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute("webmatrix", includePackages: true);
             if (curatedFeed == null)
             {
                 return;
