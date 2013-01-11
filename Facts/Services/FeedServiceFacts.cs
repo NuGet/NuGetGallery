@@ -188,7 +188,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo, configuration, null);
 
             // Act
-            var result = v2Service.GetUpdates(id, version, includePrerelease: false, includeAllVersions: true, targetFrameworks: null)
+            var result = v2Service.GetUpdates(id, version, includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -216,7 +216,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|abcd", includePrerelease: false, includeAllVersions: false, targetFrameworks: null)
+            var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|abcd", includePrerelease: false, includeAllVersions: false, targetFrameworks: null, versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -245,7 +245,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|0.9", includePrerelease: false, includeAllVersions: true, targetFrameworks: null)
+            var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|0.9", includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -253,6 +253,193 @@ namespace NuGetGallery
             AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[0]);
             AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[1]);
             AssertPackage(new { Id = "Qux", Version = "2.0" }, result[2]);
+        }
+
+        [Theory]
+        [InlineData("2.3|3.5|(1.0,2.3)")]
+        [InlineData("2.3")]
+        [InlineData("1.0||2.0")]
+        [InlineData("||")]
+        [InlineData("|1.0|")]
+        public void V2FeedGetUpdatesReturnsEmptyIfVersionConstraintsContainWrongNumberOfElements(string constraintString)
+        {
+            // Arrange
+            var packageRegistrationA = new PackageRegistration { Id = "Foo" };
+            var packageRegistrationB = new PackageRegistration { Id = "Qux" };
+            var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+            var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+
+            // Act
+            var result = v2Service.GetUpdates(
+                "Foo|Qux",
+                "1.0.0|0.9",
+                includePrerelease: false,
+                includeAllVersions: true,
+                targetFrameworks: null,
+                versionConstraints: constraintString)
+                .ToList();
+
+            // Assert
+            Assert.Equal(0, result.Count);
+        }
+
+        [Fact]
+        public void V2FeedGetUpdatesReturnsVersionsConformingToConstraints()
+        {
+            // Arrange
+            var packageRegistrationA = new PackageRegistration { Id = "Foo" };
+            var packageRegistrationB = new PackageRegistration { Id = "Qux" };
+            var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+            var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+
+            // Act
+            var result = v2Service.GetUpdates(
+                "Foo|Qux", 
+                "1.0.0|0.9", 
+                includePrerelease: false, 
+                includeAllVersions: true, 
+                targetFrameworks: null, 
+                versionConstraints: "(,1.2.0)|[2.0,2.3]")
+                .ToList();
+
+            // Assert
+            Assert.Equal(2, result.Count);
+            AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[0]);
+            AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
+        }
+
+        [Fact]
+        public void V2FeedGetUpdatesIgnoreInvalidVersionConstraints()
+        {
+            // Arrange
+            var packageRegistrationA = new PackageRegistration { Id = "Foo" };
+            var packageRegistrationB = new PackageRegistration { Id = "Qux" };
+            var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+            var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+
+            // Act
+            var result = v2Service.GetUpdates(
+                "Foo|Qux",
+                "1.0.0|0.9",
+                includePrerelease: false,
+                includeAllVersions: true,
+                targetFrameworks: null,
+                versionConstraints: "(,1.2.0)|abdfsdf")
+                .ToList();
+
+            // Assert
+            Assert.Equal(3, result.Count);
+            AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[0]);
+            AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
+            AssertPackage(new { Id = "Qux", Version = "3.0" }, result[2]);
+        }
+
+        [Fact]
+        public void V2FeedGetUpdatesReturnsVersionsConformingToConstraintsWithMissingConstraintsForSomePackges()
+        {
+            // Arrange
+            var packageRegistrationA = new PackageRegistration { Id = "Foo" };
+            var packageRegistrationB = new PackageRegistration { Id = "Qux" };
+            var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+            var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+
+            // Act
+            var result = v2Service.GetUpdates(
+                "Foo|Qux",
+                "1.0.0|0.9",
+                includePrerelease: false,
+                includeAllVersions: false,
+                targetFrameworks: null,
+                versionConstraints: "|(1.2,2.8)")
+                .ToList();
+
+            // Assert
+            Assert.Equal(2, result.Count);
+            AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[0]);
+            AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
+        }
+
+        [Fact]
+        public void V2FeedGetUpdatesReturnsEmptyPackagesIfNoPackageSatisfiesConstraints()
+        {
+            // Arrange
+            var packageRegistrationA = new PackageRegistration { Id = "Foo" };
+            var packageRegistrationB = new PackageRegistration { Id = "Qux" };
+            var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
+            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+            var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+
+            // Act
+            var result = v2Service.GetUpdates(
+                "Foo|Qux",
+                "1.0.0|0.9",
+                includePrerelease: false,
+                includeAllVersions: false,
+                targetFrameworks: null,
+                versionConstraints: "3.4|4.0")
+                .ToList();
+
+            // Assert
+            Assert.Equal(0, result.Count);
         }
 
         [Fact]
@@ -276,7 +463,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdates("Foo|Qux", "1.1.0|0.9", includePrerelease: true, includeAllVersions: true, targetFrameworks: null)
+            var result = v2Service.GetUpdates("Foo|Qux", "1.1.0|0.9", includePrerelease: true, includeAllVersions: true, targetFrameworks: null, versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -287,7 +474,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void V2FeedGetUpdatesIgnoresDuplicatesInPackageList()
+        public void V2FeedGetUpdatesReturnsEmptyResultsIfDuplicatesInPackageList()
         {
             // Arrange
             var packageRegistrationA = new PackageRegistration { Id = "Foo" };
@@ -308,13 +495,11 @@ namespace NuGetGallery
 
             // Act
             var result =
-                v2Service.GetUpdates("Foo|Qux|Foo", "0.9|1.5|1.1.2", includePrerelease: false, includeAllVersions: true, targetFrameworks: null)
+                v2Service.GetUpdates("Foo|Qux|Foo", "0.9|1.5|1.1.2", includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null)
                     .ToList();
 
             // Assert
-            Assert.Equal(2, result.Count);
-            AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[0]);
-            AssertPackage(new { Id = "Qux", Version = "2.0" }, result[1]);
+            Assert.Equal(0, result.Count);
         }
 
         [Fact]
@@ -364,7 +549,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: false, includeAllVersions: true, targetFrameworks: "net40")
+            var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: false, includeAllVersions: true, targetFrameworks: "net40", versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -430,7 +615,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: true, includeAllVersions: false, targetFrameworks: "net40")
+            var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: true, includeAllVersions: false, targetFrameworks: "net40", versionConstraints: null)
                 .ToList();
 
             // Assert
