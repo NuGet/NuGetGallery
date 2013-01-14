@@ -23,7 +23,7 @@ namespace NuGetGallery
             int key,
             bool includePackages)
         {
-            var qry = _entities.CuratedFeeds.AsQueryable();
+            IQueryable<CuratedFeed>  qry = _entities.CuratedFeeds;
 
             if (includePackages)
             {

@@ -23,7 +23,7 @@ namespace NuGetGallery
             int key,
             bool includeOwners = true)
         {
-            var qry = _entities.PackageRegistrations.AsQueryable();
+            IQueryable<PackageRegistration> qry = _entities.PackageRegistrations;
 
             if (includeOwners)
             {
