@@ -7,7 +7,7 @@ namespace NuGetGallery
     {
         PackageRegistration Execute(
             string id,
-            bool includePackages = false,
+            bool includePackages,
             bool includeOwners = true);
     }
 
@@ -22,7 +22,7 @@ namespace NuGetGallery
 
         public PackageRegistration Execute(
             string id,
-            bool includePackages = false,
+            bool includePackages,
             bool includeOwners = true)
         {
             var qry = _entities.PackageRegistrations.AsQueryable();

@@ -7,7 +7,7 @@ namespace NuGetGallery
     {
         CuratedFeed Execute(
             int key,
-            bool includePackages = false);
+            bool includePackages);
     }
 
     public class CuratedFeedByKeyQuery : ICuratedFeedByKeyQuery
@@ -21,7 +21,7 @@ namespace NuGetGallery
 
         public CuratedFeed Execute(
             int key,
-            bool includePackages = false)
+            bool includePackages)
         {
             var qry = _entities.CuratedFeeds.AsQueryable();
 

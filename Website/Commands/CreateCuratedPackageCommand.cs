@@ -26,13 +26,13 @@ namespace NuGetGallery
             bool automaticallyCurated = false,
             string notes = null)
         {
-            var curatedFeed = GetService<ICuratedFeedByKeyQuery>().Execute(curatedFeedKey);
+            var curatedFeed = GetService<ICuratedFeedByKeyQuery>().Execute(curatedFeedKey, includePackages: false);
             if (curatedFeed == null)
             {
                 throw new InvalidOperationException("The curated feed does not exist.");
             }
 
-            var packageRegistration = GetService<IPackageRegistrationByKeyQuery>().Execute(packageRegistrationKey);
+            var packageRegistration = GetService<IPackageRegistrationByKeyQuery>().Execute(packageRegistrationKey, includeOwners: false);
             if (packageRegistration == null)
             {
                 throw new InvalidOperationException("The package ID to curate does not exist.");

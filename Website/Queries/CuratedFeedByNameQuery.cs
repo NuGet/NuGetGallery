@@ -7,7 +7,7 @@ namespace NuGetGallery
     {
         CuratedFeed Execute(
             string name,
-            bool includePackages = false);
+            bool includePackages);
     }
 
     public class CuratedFeedByNameQuery : ICuratedFeedByNameQuery
@@ -21,7 +21,7 @@ namespace NuGetGallery
 
         public CuratedFeed Execute(
             string name,
-            bool includePackages = false)
+            bool includePackages)
         {
             var qry = _entities.CuratedFeeds.AsQueryable();
 
