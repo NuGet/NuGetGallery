@@ -25,19 +25,19 @@ namespace NuGetGallery
             bool includePackages,
             bool includeOwners = true)
         {
-            IQueryable<PackageRegistration> qry = _entities.PackageRegistrations;
+            IQueryable<PackageRegistration> query = _entities.PackageRegistrations;
 
             if (includePackages)
             {
-                qry = qry.Include(packageRegistration => packageRegistration.Packages);
+                query = query.Include(packageRegistration => packageRegistration.Packages);
             }
 
             if (includeOwners)
             {
-                qry = qry.Include(packageRegistration => packageRegistration.Owners);
+                query = query.Include(packageRegistration => packageRegistration.Owners);
             }
 
-            return qry.SingleOrDefault(pr => pr.Id == id);
+            return query.SingleOrDefault(pr => pr.Id == id);
         }
     }
 }

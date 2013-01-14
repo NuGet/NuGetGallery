@@ -17,11 +17,11 @@ namespace NuGetGallery
 
         protected bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)
         {
-            Argument.Isset(galleryPackage, "galleryPackage");
-            Argument.Isset(curatedFeed, "curatedFeed");
-            Argument.Isset(curatedFeed.Packages, "curatedFeed.Packages");
+            Argument.IsSet(galleryPackage, "galleryPackage");
+            Argument.IsSet(curatedFeed, "curatedFeed");
+            Argument.IsSet(curatedFeed.Packages, "curatedFeed.Packages");
 
-            if (!galleryPackage.Dependencies.AnySafe())
+            if (galleryPackage.Dependencies.IsEmpty())
             {
                 return true;
             }

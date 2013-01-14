@@ -268,8 +268,8 @@ namespace NuGetGallery
             string partialId,
             bool? includePrerelease)
         {
-            var qry = GetService<IPackageIdsQuery>();
-            return new JsonNetResult(qry.Execute(partialId, includePrerelease).ToArray());
+            var query = GetService<IPackageIdsQuery>();
+            return new JsonNetResult(query.Execute(partialId, includePrerelease).ToArray());
         }
 
         [ActionName("PackageVersions")]
@@ -278,8 +278,8 @@ namespace NuGetGallery
             string id,
             bool? includePrerelease)
         {
-            var qry = GetService<IPackageVersionsQuery>();
-            return new JsonNetResult(qry.Execute(id, includePrerelease).ToArray());
+            var query = GetService<IPackageVersionsQuery>();
+            return new JsonNetResult(query.Execute(id, includePrerelease).ToArray());
         }
     }
 }
