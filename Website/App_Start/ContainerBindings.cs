@@ -18,6 +18,7 @@ namespace NuGetGallery
 {
     public class ContainerBindings : NinjectModule
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         public override void Load()
         {
             IConfiguration configuration = new Configuration();

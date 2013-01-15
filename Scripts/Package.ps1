@@ -8,7 +8,7 @@
   $remoteDesktopEnctyptedPassword     = $env:NUGET_GALLERY_REMOTE_DESKTOP_ENCRYPTED_PASSWORD,
   $remoteDesktopUsername              = $env:NUGET_GALLERY_REMOTE_DESKTOP_USERNAME,
   $sqlAzureConnectionString           = $env:NUGET_GALLERY_SQL_AZURE_CONNECTION_STRING,
-  $azureStatisticsConnectionString    = $env:NUGET_GALLERY_REPORTS_STORAGE,
+  $azureStatisticsConnectionString    = $env:NUGET_WAREHOUSE_REPORTS_STORAGE,
   $sslCertificateThumbprint           = $env:NUGET_GALLERY_SSL_CERTIFICATE_THUMBPRINT,
   $validationKey                      = $env:NUGET_GALLERY_VALIDATION_KEY,
   $decryptionKey                      = $env:NUGET_GALLERY_DECRYPTION_KEY,
