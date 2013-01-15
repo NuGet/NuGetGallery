@@ -8,12 +8,19 @@ namespace NuGetGallery
 {
     public partial class StatisticsController : Controller
     {
+        private readonly IStatisticsService _statisticsService;
+
+        public StatisticsController(IStatisticsService statisticsService)
+        {
+            _statisticsService = statisticsService;
+        }
+
         //
         // GET: /Statistics/
 
         public virtual ActionResult Index()
         {
-            var model = new StatisticsPackagesViewModel();
+            var model = new StatisticsPackagesViewModel(_statisticsService);
             model.LoadDownloadPackages();
             model.LoadDownloadPackageVersions();
 
@@ -25,7 +32,7 @@ namespace NuGetGallery
 
         public virtual ActionResult Packages()
         {
-            var model = new StatisticsPackagesViewModel();
+            var model = new StatisticsPackagesViewModel(_statisticsService);
             model.LoadDownloadPackages();
 
             return View(model);
@@ -36,7 +43,7 @@ namespace NuGetGallery
 
         public virtual ActionResult PackageVersions()
         {
-            var model = new StatisticsPackagesViewModel();
+            var model = new StatisticsPackagesViewModel(_statisticsService);
             model.LoadDownloadPackageVersions();
 
             return View(model);
@@ -47,7 +54,7 @@ namespace NuGetGallery
 
         public virtual ActionResult PackageDownloadsByVersion(string id)
         {
-            var model = new StatisticsPackagesViewModel();
+            var model = new StatisticsPackagesViewModel(_statisticsService);
             model.LoadPackageDownloadsByVersion(id);
 
             return View(model);

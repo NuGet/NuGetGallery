@@ -137,6 +137,9 @@
     <Reference Include="MvcHaack.Ajax">
       <HintPath>..\packages\MvcHaack.Ajax.MVC4.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.2.2.1.4\lib\net40-Full\Ninject.dll</HintPath>
     </Reference>
@@ -474,8 +477,11 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
+    <Compile Include="Services\CloudStatisticsService.cs" />
     <Compile Include="Services\HttpContextCacheService.cs" />
     <Compile Include="Services\ICacheService.cs" />
+    <Compile Include="Services\IStatisticsService.cs" />
+    <Compile Include="Services\LocalStatisticsService.cs" />
     <Compile Include="Services\NullPackageCacheService.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />

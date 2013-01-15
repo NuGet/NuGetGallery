@@ -8,6 +8,7 @@
   $remoteDesktopEnctyptedPassword     = $env:NUGET_GALLERY_REMOTE_DESKTOP_ENCRYPTED_PASSWORD,
   $remoteDesktopUsername              = $env:NUGET_GALLERY_REMOTE_DESKTOP_USERNAME,
   $sqlAzureConnectionString           = $env:NUGET_GALLERY_SQL_AZURE_CONNECTION_STRING,
+  $azureStatisticsConnectionString    = $env:NUGET_GALLERY_REPORTS_STORAGE,
   $sslCertificateThumbprint           = $env:NUGET_GALLERY_SSL_CERTIFICATE_THUMBPRINT,
   $validationKey                      = $env:NUGET_GALLERY_VALIDATION_KEY,
   $decryptionKey                      = $env:NUGET_GALLERY_DECRYPTION_KEY,
@@ -38,6 +39,7 @@ if(!$UseEmulator) {
   require-param -value $remoteDesktopEnctyptedPassword -paramName "remoteDesktopEnctyptedPassword"
   require-param -value $remoteDesktopUsername -paramName "remoteDesktopUsername"
   require-param -value $sqlAzureConnectionString -paramName "sqlAzureConnectionString"
+  require-param -value $azureStatisticsConnectionString -paramName "azureStatisticsConnectionString"
   require-param -value $sslCertificateThumbprint -paramName "sslCertificateThumbprint"
   require-param -value $validationKey -paramName "validationKey"
   require-param -value $decryptionKey -paramName "decryptionKey"
@@ -296,6 +298,7 @@ if(!$UseEmulator) {
     set-configurationsetting -path $cscfgPath -name "Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" -value "DefaultEndpointsProtocol=https;AccountName=$azureDiagStorageAccountName;AccountKey=$azureDiagStorageAccessKey"
   }
   set-connectionstring -path $webConfigPath -name "NuGetGallery" -value $sqlAzureConnectionString
+  set-connectionstring -path $webConfigPath -name "AzureStatistics" -value $azureStatisticsConnectionString
   set-certificatethumbprint -path $cscfgPath -name "nuget.org" -value $sslCertificateThumbprint
 } else {
   remove-startuptask -path $csdefPath -commandLine "EnableDynamicHttpCompression.cmd"
