@@ -11,15 +11,20 @@ namespace NuGetGallery
 {
     public class StatisticsPackagesViewModel
     {
-        List<StatisticsPackagesItemViewModel> _downloadPackagesSummary;
-        List<StatisticsPackagesItemViewModel> _downloadPackageVersionsSummary;
-        List<StatisticsPackagesItemViewModel> _downloadPackagesAll;
-        List<StatisticsPackagesItemViewModel> _downloadPackageVersionsAll;
-        List<StatisticsPackagesItemViewModel> _packageDownloadsByVersion;
+        private IStatisticsService _statisticsService;
+        private List<StatisticsPackagesItemViewModel> _downloadPackagesSummary;
+        private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsSummary;
+        private List<StatisticsPackagesItemViewModel> _downloadPackagesAll;
+        private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsAll;
+        private List<StatisticsPackagesItemViewModel> _packageDownloadsByVersion;
 
-        public StatisticsPackagesViewModel()
+        public StatisticsPackagesViewModel(IStatisticsService statisticsService)
         {
+            _statisticsService = statisticsService;
         }
+
+        public bool IsDownloadPackageAvailable { get; private set; }
+        public bool IsDownloadPackageDetailAvailable { get; private set; }
 
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary 
         {
@@ -86,7 +91,13 @@ namespace NuGetGallery
 
         public void LoadDownloadPackages()
         {
-            JArray array = LoadReport("RecentPopularity.json");
+            JArray array = _statisticsService.LoadReport("RecentPopularity.json");
+
+            if (array == null)
+            {
+                IsDownloadPackageAvailable = false;
+                return;
+            }
 
             foreach (JObject item in array)
             {
@@ -101,11 +112,19 @@ namespace NuGetGallery
             {
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackagesSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll)[i]);
             }
+
+            IsDownloadPackageAvailable = true;
         }
 
         public void LoadDownloadPackageVersions()
         {
-            JArray array = LoadReport("RecentPopularityDetail.json");
+            JArray array = _statisticsService.LoadReport("RecentPopularityDetail.json");
+
+            if (array == null)
+            {
+                IsDownloadPackageDetailAvailable = false;
+                return;
+            }
 
             foreach (JObject item in array)
             {
@@ -121,6 +140,8 @@ namespace NuGetGallery
             {
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll)[i]);
             }
+
+            IsDownloadPackageDetailAvailable = true;
         }
 
         public void LoadPackageDownloadsByVersion(string id)
@@ -130,7 +151,12 @@ namespace NuGetGallery
                 return;
             }
 
-            JArray array = LoadReport(string.Format("RecentPopularity_{0}.json", id));
+            JArray array = _statisticsService.LoadReport(string.Format("RecentPopularity_{0}.json", id));
+
+            if (array == null)
+            {
+                return;
+            }
 
             this.TotalPackageDownloads = 0;
 
@@ -148,30 +174,6 @@ namespace NuGetGallery
             }
 
             this.PackageId = id;
-        }
-
-        private JArray LoadReport(string name)
-        {
-            //DEBUG
-            string accountName = "nugetstatspreview";
-            string accountKey = "RQysIkEqC37AfwaZRtJHFRPBVGnI1I2cV7k/DSvr6S9l2nv1yCbMAXHCb0qhSWa+OQblqOkCWVbaHDo+pYBKbA==";
-            string connectionString = string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", accountName, accountKey);
-            //
-
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("popularity");
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
-
-            //TODO: async OpenRead
-
-            string content;
-            using (TextReader reader = new StreamReader(blob.OpenRead()))
-            {
-                content = reader.ReadToEnd();
-            }
-
-            return JArray.Parse(content);
         }
     }
 }

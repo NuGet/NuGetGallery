@@ -79,6 +79,11 @@ namespace NuGetGallery
                         .To<HttpContextCacheService>()
                         .InRequestScope();
                 }
+
+                // when running on Windows Azure, get the statistics from Azure blob storage
+                Bind<IStatisticsService>()
+                    .ToMethod(context => new CloudStatisticsService(configuration.AzureStatisticsConnectionString))
+                    .InSingletonScope();
             }
             else
             {
@@ -90,6 +95,12 @@ namespace NuGetGallery
                 Bind<ICacheService>()
                     .To<HttpContextCacheService>()
                     .InRequestScope();
+
+                // when running locally on dev box, get the local statistics (a more limited sets of stats are available)
+                Bind<IStatisticsService>()
+                    //.To<LocalStatisticsService>()
+                    .ToMethod(context => new CloudStatisticsService(configuration.AzureStatisticsConnectionString))
+                    .InSingletonScope();
             }
 
             Bind<IEntitiesContext>()
