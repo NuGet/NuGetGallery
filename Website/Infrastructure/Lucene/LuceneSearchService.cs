@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -82,39 +83,79 @@ namespace NuGetGallery
 
         private static Package PackageFromDoc(Document doc)
         {
-            int dlc = Int32.Parse(doc.Get("DownloadCount"), CultureInfo.InvariantCulture);
+            int downloadCount = Int32.Parse(doc.Get("DownloadCount"), CultureInfo.InvariantCulture);
             int key = Int32.Parse(doc.Get("Key"), CultureInfo.InvariantCulture);
-            int prk = Int32.Parse(doc.Get("PackageRegistrationKey"), CultureInfo.InvariantCulture);
+            int packageRegistrationKey = Int32.Parse(doc.Get("PackageRegistrationKey"), CultureInfo.InvariantCulture);
+            int packageSize = Int32.Parse(doc.Get("PackageFileSize"), CultureInfo.InvariantCulture);
             bool isLatest = Boolean.Parse(doc.Get("IsLatest"));
             bool isLatestStable = Boolean.Parse(doc.Get("IsLatestStable"));
-            string owners = doc.Get("Owners");
-            string[] ownersSplit;
-            if (owners != null)
-            {
-                ownersSplit = owners.Split(';');
-            }
-            else
-            {
-                ownersSplit = new string[]{};
-            }
+            bool requiresLicenseAcceptance = Boolean.Parse(doc.Get("RequiresLicenseAcceptance"));
+            DateTime created = DateTime.Parse(doc.Get("Created"), CultureInfo.InvariantCulture);
+            DateTime published = DateTime.Parse(doc.Get("Published"), CultureInfo.InvariantCulture);
+            DateTime lastUpdated = DateTime.Parse(doc.Get("LastUpdated"), CultureInfo.InvariantCulture);
+
+            var owners = doc.Get("Owners")
+                            .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(o => new User {Username = o})
+                            .ToArray();
+            var authors = doc.Get("Authors")
+                             .SplitSafe(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                             .Select(a => new PackageAuthor {Name = a.Trim()})
+                             .ToArray();
+            var frameworks =
+                doc.Get("JoinedSupportedFrameworks")
+                   .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
+                   .Select(s => new PackageFramework {TargetFramework = s})
+                   .ToArray();
+            var dependencies =
+                doc.Get("FlattenedDependencies")
+                   .SplitSafe(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries)
+                   .Select(s => CreateDependency(s))
+                   .ToArray();
+
             return new Package
             {
+                Authors = authors,
+                Copyright = doc.Get("Copyright"),
+                Created = created,
                 Description = doc.Get("Description"),
+                Dependencies = dependencies,
                 FlattenedAuthors = doc.Get("Authors"),
+                FlattenedDependencies = doc.Get("FlattenedDependencies"),
                 IconUrl = doc.Get("IconUrl"),
                 IsLatest = isLatest,
                 IsLatestStable = isLatestStable,
                 Key = key,
                 Title = doc.Get("Title"),
+                Hash = doc.Get("Hash"),
+                HashAlgorithm = doc.Get("HashAlgorithm"),
+                LastUpdated = lastUpdated,
                 PackageRegistration = new PackageRegistration
                 {
                     Id = doc.Get("Id-Original"),
-                    DownloadCount = dlc,
-                    Key = prk,
-                    Owners = ownersSplit.Select(o => new User { Username = o }).ToList()
+                    DownloadCount = downloadCount,
+                    Key = packageRegistrationKey,
+                    Owners = owners
                 },
-                PackageRegistrationKey = prk,
+                PackageRegistrationKey = packageRegistrationKey,
+                PackageFileSize = packageSize,
+                ProjectUrl = doc.Get("ProjectUrl"),
+                Published = published,
+                RequiresLicenseAcceptance = requiresLicenseAcceptance,
+                Summary = doc.Get("Summary"),
                 Tags = doc.Get("Tags"),
+                Version = doc.Get("Version"),
+                SupportedFrameworks = frameworks,
+            };
+        }
+
+        private static PackageDependency CreateDependency(string s)
+        {
+            string[] parts = s.SplitSafe(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
+            return new PackageDependency
+            {
+                Id = parts[0],
+                VersionSpec = parts.Length <= 1 ? null : parts[1],
             };
         }
 

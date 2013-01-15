@@ -33,6 +33,10 @@ namespace NuGetGallery.Infrastructure
                         IsPrerelease = true,
                         DownloadCount = 100,
                         FlattenedAuthors = "",
+                        SupportedFrameworks =
+                        {
+                            new PackageFramework { TargetFramework = "net45" },
+                        }
                     }
                 }.AsQueryable());
 

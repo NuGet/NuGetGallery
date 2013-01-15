@@ -8,6 +8,7 @@ using System.ServiceModel.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGet;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -77,9 +78,8 @@ namespace NuGetGallery
 
             var idValues = packageIds.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             var versionValues = versions.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-            var targetFrameworkValues = String.IsNullOrEmpty(targetFrameworks)
-                                            ? null
-                                            : targetFrameworks.Split('|').Select(VersionUtility.ParseFrameworkName).ToList();
+            var targetFrameworkValues = targetFrameworks.SplitSafe(new [] {'|'}, StringSplitOptions.RemoveEmptyEntries)
+                .Select(VersionUtility.ParseFrameworkName).ToArray();
 
             if ((idValues.Length == 0) || (idValues.Length != versionValues.Length))
             {
