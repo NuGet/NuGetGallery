@@ -3,6 +3,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -104,7 +105,7 @@ namespace NuGetGallery
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Add(new StatisticsPackagesItemViewModel
                 {
                     PackageId = item["PackageId"].ToString(),
-                    Downloads = int.Parse(item["Downloads"].ToString())
+                    Downloads = int.Parse(item["Downloads"].ToString(), CultureInfo.CurrentCulture)
                 });
             }
 
@@ -132,7 +133,7 @@ namespace NuGetGallery
                 {
                     PackageId = item["PackageId"].ToString(),
                     PackageVersion = item["PackageVersion"].ToString(),
-                    Downloads = int.Parse(item["Downloads"].ToString())
+                    Downloads = int.Parse(item["Downloads"].ToString(), CultureInfo.CurrentCulture)
                 });
             }
 
@@ -146,12 +147,12 @@ namespace NuGetGallery
 
         public void LoadPackageDownloadsByVersion(string id)
         {
-            if (id == string.Empty)
+            if (string.IsNullOrEmpty(id))
             {
                 return;
             }
 
-            JArray array = _statisticsService.LoadReport(string.Format("RecentPopularity_{0}.json", id));
+            JArray array = _statisticsService.LoadReport(string.Format(CultureInfo.CurrentCulture, "RecentPopularity_{0}.json", id));
 
             if (array == null)
             {
@@ -162,7 +163,7 @@ namespace NuGetGallery
 
             foreach (JObject item in array)
             {
-                int downloads = int.Parse(item["Downloads"].ToString());
+                int downloads = int.Parse(item["Downloads"].ToString(), CultureInfo.CurrentCulture);
 
                 ((List<StatisticsPackagesItemViewModel>)PackageDownloadsByVersion).Add(new StatisticsPackagesItemViewModel
                 {
