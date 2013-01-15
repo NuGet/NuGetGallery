@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Web.Mvc;
 using NuGet;
 
@@ -17,10 +18,6 @@ namespace NuGetGallery
 
         protected bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)
         {
-            Argument.IsSet(galleryPackage, "galleryPackage");
-            Argument.IsSet(curatedFeed, "curatedFeed");
-            Argument.IsSet(curatedFeed.Packages, "curatedFeed.Packages");
-
             if (galleryPackage.Dependencies.IsEmpty())
             {
                 return true;
