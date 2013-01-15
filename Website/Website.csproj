@@ -287,6 +287,7 @@
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
+    <Compile Include="Helpers\StringHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="ErrorEntity.cs" />
@@ -305,7 +306,6 @@
     <Compile Include="Infrastructure\Jobs\WorkItemCleanupJob.cs" />
     <Compile Include="Infrastructure\Jobs\UpdateStatisticsJob.cs" />
     <Compile Include="Infrastructure\Lucene\PerFieldAnalyzer.cs" />
-    <Compile Include="Infrastructure\Lucene\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\Lucene\NuGetSearchTerm.cs" />
     <Compile Include="JsonApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
