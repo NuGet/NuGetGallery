@@ -23,14 +23,14 @@ namespace NuGetGallery
             string username,
             bool includeRoles = true)
         {
-            var qry = _entities.Users.AsQueryable();
+            IQueryable<User> query = _entities.Users;
 
             if (includeRoles)
             {
-                qry = qry.Include(u => u.Roles);
+                query = query.Include(u => u.Roles);
             }
 
-            return qry.SingleOrDefault(u => u.Username == username);
+            return query.SingleOrDefault(u => u.Username == username);
         }
     }
 }
