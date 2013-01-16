@@ -1,11 +1,8 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Versioning;
-using System.Threading.Tasks;
-using System.Transactions;
 using NuGet;
 using StackExchange.Profiling;
 
