@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Lucene.Net.Store;
 using Moq;
@@ -33,6 +34,10 @@ namespace NuGetGallery.Infrastructure
                         IsPrerelease = true,
                         DownloadCount = 100,
                         FlattenedAuthors = "",
+                        SupportedFrameworks =
+                        {
+                            new PackageFramework { TargetFramework = "net45" },
+                        }
                     }
                 }.AsQueryable());
 
@@ -350,6 +355,87 @@ namespace NuGetGallery.Infrastructure
             Assert.NotEmpty(results);
             Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
             Assert.Equal("FooQuery", results[1].PackageRegistration.Id);
+        }
+
+        [Fact]
+        public void IndexAndSearchRetrievesCanDriveV2Feed()
+        {
+            var packageSource = new Mock<IPackageSource>();
+            Package p = new Package
+            {
+                Copyright = "Copyright 2013 by Oldies and Newies",
+                FlattenedAuthors = "Oldies, Newies",
+                Key = 123,
+                PackageRegistrationKey = 456,
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "Pride",
+                    Key = 456,
+                    DownloadCount = 123456
+                },
+                Created = new DateTime(2019, 2, 28, 0, 5, 59, DateTimeKind.Utc),
+                Description = "DescriptionText",
+                DownloadCount = 12345,
+                FlattenedDependencies = "adjunct-System.FluentCast:1.0.0.4|xunit:1.8.0.1545|adjunct-XUnit.Assertions:1.0.0.5|adjunct-XUnit.Assertions.Linq2Xml:1.0.0.3",
+                HashAlgorithm = "SHA512",
+                Hash = "Ii4+Gr44RAClAno38k5MYAkcBE6yn2LE2xO+/ViKco45+hoxtwKAytmPWEMCJWhH8FyitjebvS5Fsf+ixI5xIg==",
+                IsLatest = true,
+                IsLatestStable = true,
+                IsPrerelease = false,
+                Language = "en",
+                LastUpdated = DateTime.UtcNow,
+                LicenseUrl = "nuget.org/license.txt",
+                Listed = true,
+                PackageFileSize = 234567,
+                ProjectUrl = "http://projecturl.com",
+                Published = DateTime.UtcNow,
+                ReleaseNotes = "ReleaseNotesText",
+                RequiresLicenseAcceptance = true,
+                SupportedFrameworks = new PackageFramework[]
+                {
+                    new PackageFramework
+                    {
+                        Key = 890,
+                        TargetFramework = "net45",
+                    }
+                },
+                Summary = "SummaryText",
+                Tags = "Tag1 Tag2 Tag3",
+                Title = "TitleText",
+                Version = "3.4 RC",
+            };
+
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(new Package[] {p}.AsQueryable());
+            var results = IndexAndSearch(packageSource, "");
+            var r = results.First().ToV2FeedPackage("http://www.nuget.org/");
+
+            Assert.Equal("Pride", r.Id);
+            Assert.Equal("3.4 RC", r.Version);
+            Assert.Equal("Oldies, Newies", r.Authors);
+            Assert.Equal("Copyright 2013 by Oldies and Newies", r.Copyright);
+            Assert.Equal(p.FlattenedDependencies, r.Dependencies);
+            Assert.Equal("DescriptionText", r.Description);
+            Assert.Equal(123456, r.DownloadCount);
+            Assert.NotEmpty(r.GalleryDetailsUrl);
+            Assert.True(r.IsLatestVersion);
+            Assert.True(r.IsAbsoluteLatestVersion);
+            Assert.False(r.IsPrerelease);
+            Assert.Equal(p.Created, r.Created);
+            Assert.True(r.LastUpdated > DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(20)));
+            Assert.Equal("nuget.org/license.txt", r.LicenseUrl);
+            Assert.Equal("en", r.Language);
+            Assert.Equal(234567, r.PackageSize);
+            Assert.Equal("SHA512", r.PackageHashAlgorithm);
+            Assert.Equal(p.Hash, r.PackageHash);
+            Assert.True(r.Published > DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(20)));
+            Assert.Equal("http://projecturl.com", r.ProjectUrl);
+            Assert.NotEmpty(r.ReportAbuseUrl);
+            Assert.True(r.RequireLicenseAcceptance);
+            Assert.Equal("ReleaseNotesText", r.ReleaseNotes);
+            Assert.Equal("SummaryText", r.Summary);
+            Assert.Equal("TitleText", r.Title);
+            Assert.Equal("Tag1 Tag2 Tag3", r.Tags);
+            Assert.Equal(12345, r.VersionDownloadCount);
         }
 
         // See issue https://github.com/NuGet/NuGetGallery/issues/406
