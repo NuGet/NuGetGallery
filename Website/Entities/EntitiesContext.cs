@@ -5,6 +5,9 @@ using Ninject;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// Used by EF Migrations to load the Entity Context via the Ninject container.
+    /// </summary>
     public class EntitiesContextFactory : IDbContextFactory<EntitiesContext>
     {
         public EntitiesContext Create()
