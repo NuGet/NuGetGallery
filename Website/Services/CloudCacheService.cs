@@ -8,7 +8,7 @@ namespace NuGetGallery
     {
         // The DataCacheFactory object is expensive.
         // It should be created only once per app domain.
-        private DataCacheFactory _cacheFactory;
+        private readonly DataCacheFactory _cacheFactory;
 
         public CloudCacheService(IConfiguration configuration)
         {
