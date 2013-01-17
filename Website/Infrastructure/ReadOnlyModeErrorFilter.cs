@@ -2,7 +2,7 @@
 
 namespace NuGetGallery.Infrastructure
 {
-    public class ReadOnlyModeErrorFilter : FilterAttribute, IExceptionFilter
+    internal sealed class ReadOnlyModeErrorFilter : FilterAttribute, IExceptionFilter
     {
         public void OnException(ExceptionContext context)
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Web;
@@ -12,6 +13,7 @@ using Ninject;
 using Ninject.Web.Mvc;
 using NuGetGallery;
 using NuGetGallery.Infrastructure;
+using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
 using NuGetGallery.Migrations;
 using StackExchange.Profiling;
@@ -79,7 +81,7 @@ namespace NuGetGallery
                     new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), timeout: TimeSpan.FromDays(4)),
                     new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), timeout: TimeSpan.FromMinutes(2))
                 };
-            var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext(configuration.SqlConnectionString, readOnly: false)));
+            var jobCoordinator = new NuGetJobCoordinator();
             _jobManager = new JobManager(jobs, jobCoordinator)
                 {
                     RestartSchedulerOnFailure = true
@@ -95,11 +97,13 @@ namespace NuGetGallery
 
         private static void DbMigratorPostStart()
         {
-            var dbMigrator = new DbMigrator(new MigrationsConfiguration());
             // After upgrading to EF 4.3 and MiniProfile 1.9, there is a bug that causes several 
             // 'Invalid object name 'dbo.__MigrationHistory' to be thrown when the database is first created; 
             // it seems these can safely be ignored, and the database will still be created.
-            dbMigrator.Update();
+
+            // To make app startup not directly depend on the database,
+            // we set the migrations to run when the database is first used, instead of doing it up-front.
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext,MigrationsConfiguration>());
         }
 
         private static void DynamicDataPostStart(IConfiguration configuration)

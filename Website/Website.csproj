@@ -303,6 +303,7 @@
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResult.cs" />
+    <Compile Include="Infrastructure\Jobs\NuGetJobCoordinator.cs" />
     <Compile Include="Infrastructure\Lucene\AnalysisHelper.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneCommon.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneIndexingJob.cs" />
