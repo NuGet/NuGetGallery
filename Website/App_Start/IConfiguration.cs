@@ -11,6 +11,7 @@
         bool UseEmulator { get; }
 
         string FacebookAppID { get; }
+        string SqlConnectionString { get; }
 
         string GetSiteRoot(bool useHttps);
     }

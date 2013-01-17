@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.Web;
+using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery
 {
@@ -58,6 +59,14 @@ namespace NuGetGallery
             }
         }
 
+        public string SqlConnectionString
+        {
+            get
+            {
+                return ReadConnectionString("NuGetGallery");
+            }
+        }
+
         public string AzureCdnHost
         {
             get { return ReadAppSettings("AzureCdnHost"); }
@@ -73,6 +82,13 @@ namespace NuGetGallery
             return ReadAppSettings(key, value => value);
         }
 
+        public string ReadConnectionString(string connectionStringName)
+        {
+            // Read from connection strings and app settings, with app settings winning (to allow us to put the CS in azure config)
+            string value = ReadAppSettings(connectionStringName);
+            return String.IsNullOrEmpty(value) ? ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString : value;
+        }
+
         public static T ReadAppSettings<T>(
             string key,
             Func<string, T> valueThunk)
@@ -84,11 +100,27 @@ namespace NuGetGallery
                     new Lazy<object>(
                         () =>
                             {
-                                var value = ConfigurationManager.AppSettings[String.Format(CultureInfo.InvariantCulture, "Gallery:{0}", key)];
+                                // Load from config
+                                var keyName = String.Format("Gallery:{0}", key);
+                                var value = ConfigurationManager.AppSettings[keyName];
+
+                                // Overwrite from Azure if present
+                                if (RoleEnvironment.IsAvailable)
+                                {
+                                    string azureVal = RoleEnvironment.GetConfigurationSettingValue(keyName);
+                                    if (!String.IsNullOrEmpty(azureVal))
+                                    {
+                                        value = azureVal;
+                                    }
+                                }
+
+                                // Coalesce empty values to null
                                 if (String.IsNullOrWhiteSpace(value))
                                 {
                                     value = null;
                                 }
+
+                                // Pass the value through the "thunk" which parses the string
                                 return valueThunk(value);
                             }));
             }
