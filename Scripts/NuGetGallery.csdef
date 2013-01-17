@@ -7,6 +7,7 @@
     </Startup>
     <ConfigurationSettings>
       <Setting name="Gallery.AzureStorageConnectionString" />
+      <Setting name="Gallery.AzureDiagnosticsConnectionString" />
       <Setting name="Gallery.AzureCdnHost" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
       <Setting name="Gallery.PackageStoreType" />

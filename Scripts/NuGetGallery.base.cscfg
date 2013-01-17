@@ -11,13 +11,14 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
 
       <!-- NuGet Gallery Settings -->
-      <Setting name="Gallery.AzureStorageConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Gallery.AzureStorageConnectionString" value="" />
+      <Setting name="Gallery.AzureDiagnosticsConnectionString" value="" />
       <Setting name="Gallery.AzureCdnHost" value="" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
       <Setting name="Gallery.PackageStoreType" value="" />
       <Setting name="Gallery.SiteRoot" value="http://nuget.org/" />
-      <Setting name="Gallery.ValidationKey" value="123" />
-      <Setting name="Gallery.DecryptionKey" value="123" />
+      <Setting name="Gallery.ValidationKey" value="" />
+      <Setting name="Gallery.DecryptionKey" value="" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />

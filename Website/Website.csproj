@@ -290,7 +290,7 @@
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
-    <Compile Include="ErrorEntity.cs" />
+    <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadModule.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadProgress.cs" />
