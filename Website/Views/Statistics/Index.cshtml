@@ -3,10 +3,18 @@
     ViewBag.Title = "Statistics";
 }
 
+<section class="release">
+    <p>
+        <strong>NOTE: </strong>Download statistics displayed on this page reflect the actual package downloads from the NuGet.org site. This is an indicator of usage, however,
+        many package installs, particular those of widely depended upon packages, will actually be done from a client machine's local NuGet cache, as a result these numbers should
+        not be taken as exact usage. 
+    </p>
+</section>
+
 @if (Model.IsDownloadPackageAvailable)
 {
     <div class="statistics-layout" >
-        <h3>Most Downloaded Packages</h3>
+        <h3>Downloaded&nbsp;Packages&nbsp;(Last&nbsp;6&nbsp;Weeks)</h3>
         <table class="sexy-table">
             <thead>
                 <tr>
@@ -29,7 +37,7 @@
 @if (Model.IsDownloadPackageDetailAvailable)
 {
     <div class="statistics-layout" >
-        <h3>Most Downloaded Package Versions</h3>
+        <h3>Downloaded&nbsp;Package&nbsp;Versions&nbsp;(Last&nbsp;6&nbsp;Weeks)</h3>
         <table class="sexy-table">
             <thead>
                 <tr>

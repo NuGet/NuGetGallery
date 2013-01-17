@@ -18,7 +18,7 @@ namespace NuGetGallery
             _connectionString = connectionString;
         }
 
-        public JArray LoadReport(string name)
+        public string LoadReport(string name)
         {
             string connectionString = _connectionString;
 
@@ -35,7 +35,7 @@ namespace NuGetGallery
                 content = reader.ReadToEnd();
             }
 
-            return JArray.Parse(content);
+            return content;
         }
     }
 }
