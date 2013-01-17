@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System;
 using System.Linq;
 using System.Web.Mvc;
 using NuGet;
@@ -23,7 +23,10 @@ namespace NuGetGallery
                 return true;
             }
 
-            return galleryPackage.Dependencies.All(d => curatedFeed.Packages.Where(p => p.Included).Select(p => p.PackageRegistration.Id).Contains(d.Id));
+            return galleryPackage.Dependencies.All(
+                d => curatedFeed.Packages
+                    .Where(p => p.Included)
+                    .Any(p => p.PackageRegistration.Id.Equals(d.Id, StringComparison.InvariantCultureIgnoreCase)));
         }
     }
 }
