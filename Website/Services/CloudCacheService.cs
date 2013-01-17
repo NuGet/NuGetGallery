@@ -16,13 +16,7 @@ namespace NuGetGallery
             cacheConfig.Servers = new[] {
                 new DataCacheServerEndpoint(configuration.AzureCacheEndpoint, 22233)
             };
-            string keyRaw = configuration.AzureCacheKey;
-            SecureString key = new SecureString();
-            foreach (char c in keyRaw)
-            {
-                key.AppendChar(c);
-            }
-            key.MakeReadOnly();
+            SecureString key = configuration.AzureCacheKey.ToSecureString();
             DataCacheSecurity security = new DataCacheSecurity(key);
             cacheConfig.SecurityProperties = security;
 

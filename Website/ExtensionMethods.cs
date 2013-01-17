@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Mail;
 using System.Runtime.Versioning;
+using System.Security;
 using System.Security.Principal;
 using System.ServiceModel.Activation;
 using System.Text;
@@ -18,6 +19,17 @@ namespace NuGetGallery
 {
     public static class ExtensionMethods
     {
+        public static SecureString ToSecureString(this string str)
+        {
+            SecureString output = new SecureString();
+            foreach (char c in str)
+            {
+                output.AppendChar(c);
+            }
+            output.MakeReadOnly();
+            return output;
+        }
+
         public static void MapServiceRoute(
             this RouteCollection routes,
             string routeName,
