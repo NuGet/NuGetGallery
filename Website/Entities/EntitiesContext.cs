@@ -1,8 +1,18 @@
 ﻿using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using WebBackgrounder;
+using Ninject;
 
 namespace NuGetGallery
 {
+    public class EntitiesContextFactory : IDbContextFactory<EntitiesContext>
+    {
+        public EntitiesContext Create()
+        {
+            return new EntitiesContext(Container.Kernel.Get<IConfiguration>());
+        }
+    }
+
     public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
     {
         public EntitiesContext(IConfiguration configuration)
