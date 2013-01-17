@@ -1,19 +1,20 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public class CloudStatisticsService : IStatisticsService
+    public class CloudReportService : IReportService
     {
         private string _connectionString;
 
-        public CloudStatisticsService(string connectionString)
+        public CloudReportService(string connectionString)
         {
             _connectionString = connectionString;
         }
 
-        public string LoadReport(string name)
+        public async Task<string> Load(string name)
         {
             string connectionString = _connectionString;
 
@@ -24,8 +25,14 @@ namespace NuGetGallery
 
             //TODO: async OpenRead
 
+            MemoryStream stream = new MemoryStream();
+
+            await Task.Factory.FromAsync(blob.BeginDownloadToStream(stream, null, null), blob.EndDownloadToStream);
+
+            stream.Seek(0, SeekOrigin.Begin);
+
             string content;
-            using (TextReader reader = new StreamReader(blob.OpenRead()))
+            using (TextReader reader = new StreamReader(stream))
             {
                 content = reader.ReadToEnd();
             }

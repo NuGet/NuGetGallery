@@ -23,9 +23,6 @@ using T4MVC;
 namespace NuGetGallery {
     public partial class StatisticsController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public StatisticsController() { }
-
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected StatisticsController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -47,9 +44,6 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string Index = "Index";
-            public readonly string Packages = "Packages";
-            public readonly string PackageVersions = "PackageVersions";
         }
 
 
@@ -59,6 +53,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string Index = "~/Views/Statistics/Index.cshtml";
+            public readonly string PackageDownloadsByVersion = "~/Views/Statistics/PackageDownloadsByVersion.cshtml";
             public readonly string Packages = "~/Views/Statistics/Packages.cshtml";
             public readonly string PackageVersions = "~/Views/Statistics/PackageVersions.cshtml";
         }
@@ -67,21 +62,6 @@ namespace NuGetGallery {
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_StatisticsController: NuGetGallery.StatisticsController {
         public T4MVC_StatisticsController() : base(Dummy.Instance) { }
-
-        public override System.Web.Mvc.ActionResult Index() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Index);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Packages() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Packages);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult PackageVersions() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PackageVersions);
-            return callInfo;
-        }
 
     }
 }
