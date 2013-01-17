@@ -29,7 +29,7 @@ namespace NuGetGallery
             var gallerySetting = new Lazy<GallerySetting>(
                 () =>
                     {
-                        using (var entitiesContext = new EntitiesContext(configuration))
+                        using (var entitiesContext = new EntitiesContext(configuration.SqlConnectionString))
                         {
                             var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
                             return settingsRepo.GetAll().FirstOrDefault();
@@ -93,7 +93,7 @@ namespace NuGetGallery
             }
 
             Bind<IEntitiesContext>()
-                .ToMethod(context => new EntitiesContext(configuration))
+                .ToMethod(context => new EntitiesContext(configuration.SqlConnectionString))
                 .InRequestScope();
 
             Bind<IEntityRepository<User>>()
