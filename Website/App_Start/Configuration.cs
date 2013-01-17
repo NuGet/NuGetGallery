@@ -62,6 +62,16 @@ namespace NuGetGallery
             get { return ReadAppSettings("AzureCdnHost"); }
         }
 
+        public string AzureCacheEndpoint
+        {
+            get { return ReadAppSettings("AzureCacheEndpoint"); }
+        }
+
+        public string AzureCacheKey
+        {
+            get { return ReadAppSettings("AzureCacheKey"); }
+        }
+
         public string GetSiteRoot(bool useHttps)
         {
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
@@ -91,13 +101,22 @@ namespace NuGetGallery
                         () =>
                             {
                                 // Load from config
-                                var keyName = String.Format("Gallery:{0}", key);
+                                var keyName = String.Format("Gallery.{0}", key);
                                 var value = ConfigurationManager.AppSettings[keyName];
 
                                 // Overwrite from Azure if present
                                 if (RoleEnvironment.IsAvailable)
                                 {
-                                    string azureVal = RoleEnvironment.GetConfigurationSettingValue(keyName);
+                                    string azureVal;
+                                    try
+                                    {
+                                        azureVal = RoleEnvironment.GetConfigurationSettingValue(keyName);
+                                    }
+                                    catch (RoleEnvironmentException)
+                                    {
+                                        // Setting does not exist
+                                        azureVal = null;
+                                    }
                                     if (!String.IsNullOrEmpty(azureVal))
                                     {
                                         value = azureVal;

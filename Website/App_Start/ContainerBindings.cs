@@ -51,10 +51,19 @@ namespace NuGetGallery
                     .To<CloudPackageCacheService>()
                     .InSingletonScope();
 
-                // when running on Windows Azure, use the Azure Cache service
-                Bind<ICacheService>()
-                    .To<CloudCacheService>()
-                    .InSingletonScope();
+                // when running on Windows Azure, use the Azure Cache service if available
+                if (!String.IsNullOrEmpty(configuration.AzureCacheEndpoint))
+                {
+                    Bind<ICacheService>()
+                        .To<CloudCacheService>()
+                        .InSingletonScope();
+                }
+                else
+                {
+                    Bind<ICacheService>()
+                        .To<HttpContextCacheService>()
+                        .InRequestScope();
+                }
             }
             else
             {

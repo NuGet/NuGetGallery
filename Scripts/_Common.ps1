@@ -53,5 +53,5 @@ function is64bit() {
     return ([IntPtr]::Size -eq 8)
 }
 
-$AzureToolsRoot = "C:\Program Files\Microsoft SDKs\Windows Azure\"
+$AzureToolsRoot = "$env:ProgramFiles\Microsoft SDKs\Windows Azure\"
 $UseEmulator = $env:NUGET_GALLERY_USE_EMULATOR -eq $true

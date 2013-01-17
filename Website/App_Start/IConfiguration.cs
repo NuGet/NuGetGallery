@@ -8,6 +8,9 @@
         PackageStoreType PackageStoreType { get; }
         bool UseEmulator { get; }
 
+        string AzureCacheEndpoint { get; }
+        string AzureCacheKey { get; }
+
         string FacebookAppID { get; }
         string SqlConnectionString { get; }
 
