@@ -22,7 +22,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Statistics,
                 "statistics",
-                MVC.Statistics.Index());
+                new { controller = MVC.Statistics.Name, action = "Index" });
 
             routes.MapRoute(
                 RouteName.StatisticsPackages,
@@ -36,7 +36,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.StatisticsPackageDownloadsByVersion,
-                "statistics/package/{id}",
+                "statistics/packages/{id}",
                 new { controller = MVC.Statistics.Name, action = "PackageDownloadsByVersion" });
             
             routes.Add(new JsonRoute("json/{controller}"));

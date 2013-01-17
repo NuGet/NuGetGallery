@@ -478,7 +478,9 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
-    <Compile Include="Services\CloudStatisticsService.cs" />
+    <Compile Include="Services\JsonStatisticsService.cs" />
+    <Compile Include="Services\CloudReportService.cs" />
+    <Compile Include="Services\IReportService.cs" />
     <Compile Include="Services\HttpContextCacheService.cs" />
     <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\IStatisticsService.cs" />

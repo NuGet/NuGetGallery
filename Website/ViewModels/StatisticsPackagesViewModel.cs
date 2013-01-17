@@ -2,35 +2,24 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
     public class StatisticsPackagesViewModel
     {
-        private IStatisticsService _statisticsService;
-        private List<StatisticsPackagesItemViewModel> _downloadPackagesSummary;
-        private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsSummary;
-        private List<StatisticsPackagesItemViewModel> _downloadPackagesAll;
-        private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsAll;
-        private List<StatisticsPackagesItemViewModel> _packageDownloadsByVersion;
+        IStatisticsService _statisticsService;
 
         public StatisticsPackagesViewModel(IStatisticsService statisticsService)
         {
             _statisticsService = statisticsService;
         }
 
-        public bool IsDownloadPackageAvailable { get; private set; }
-        public bool IsDownloadPackageDetailAvailable { get; private set; }
-
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary 
         {
             get
             {
-                if (_downloadPackagesSummary == null)
-                {
-                    _downloadPackagesSummary = new List<StatisticsPackagesItemViewModel>();
-                }
-                return _downloadPackagesSummary;
+                return _statisticsService.DownloadPackagesSummary;
             }
         }
 
@@ -38,11 +27,7 @@ namespace NuGetGallery
         {
             get
             {
-                if (_downloadPackageVersionsSummary == null)
-                {
-                    _downloadPackageVersionsSummary = new List<StatisticsPackagesItemViewModel>();
-                }
-                return _downloadPackageVersionsSummary;
+                return _statisticsService.DownloadPackageVersionsSummary;
             }
         }
 
@@ -50,11 +35,7 @@ namespace NuGetGallery
         {
             get
             {
-                if (_downloadPackagesAll == null)
-                {
-                    _downloadPackagesAll = new List<StatisticsPackagesItemViewModel>();
-                }
-                return _downloadPackagesAll;
+                return _statisticsService.DownloadPackagesAll;
             }
         }
 
@@ -62,11 +43,7 @@ namespace NuGetGallery
         {
             get
             {
-                if (_downloadPackageVersionsAll == null)
-                {
-                    _downloadPackageVersionsAll = new List<StatisticsPackagesItemViewModel>();
-                }
-                return _downloadPackageVersionsAll;
+                return _statisticsService.DownloadPackageVersionsAll;
             }
         }
 
@@ -74,112 +51,35 @@ namespace NuGetGallery
         {
             get
             {
-                if (_packageDownloadsByVersion == null)
-                {
-                    _packageDownloadsByVersion = new List<StatisticsPackagesItemViewModel>();
-                }
-                return _packageDownloadsByVersion;
+                return _statisticsService.PackageDownloadsByVersion;
             }
         }
 
+        public bool IsDownloadPackageAvailable { get; private set; }
+        public bool IsDownloadPackageDetailAvailable { get; private set; }
         public string PackageId { get; private set; }
         public int TotalPackageDownloads { get; private set; }
 
-        public void LoadDownloadPackages()
+        public async Task LoadDownloadPackages()
         {
-            string json = _statisticsService.LoadReport("RecentPopularity.json");
-
-            if (json == null)
-            {
-                IsDownloadPackageAvailable = false;
-                return;
-            }
-
-            JArray array = JArray.Parse(json);
-
-            foreach (JObject item in array)
-            {
-                ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Add(new StatisticsPackagesItemViewModel
-                {
-                    PackageId = item["PackageId"].ToString(),
-                    Downloads = item["Downloads"].Value<int>()
-                });
-            }
-
-            int count = ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Count;
-
-            for (int i = 0; i < Math.Min(10, count); i++)
-            {
-                ((List<StatisticsPackagesItemViewModel>)DownloadPackagesSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll)[i]);
-            }
-
-            IsDownloadPackageAvailable = true;
+            IsDownloadPackageAvailable = await _statisticsService.LoadDownloadPackages();
         }
 
-        public void LoadDownloadPackageVersions()
+        public async Task LoadDownloadPackageVersions()
         {
-            string json = _statisticsService.LoadReport("RecentPopularityDetail.json");
-
-            if (json == null)
-            {
-                IsDownloadPackageDetailAvailable = false;
-                return;
-            }
-
-            JArray array = JArray.Parse(json);
-
-            foreach (JObject item in array)
-            {
-                ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Add(new StatisticsPackagesItemViewModel
-                {
-                    PackageId = item["PackageId"].ToString(),
-                    PackageVersion = item["PackageVersion"].ToString(),
-                    Downloads = item["Downloads"].Value<int>()
-                });
-            }
-
-            int count = ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Count;
-
-            for (int i = 0; i < Math.Min(10, count); i++)
-            {
-                ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll)[i]);
-            }
-
-            IsDownloadPackageDetailAvailable = true;
+            IsDownloadPackageDetailAvailable = await _statisticsService.LoadDownloadPackageVersions();
         }
 
-        public void LoadPackageDownloadsByVersion(string id)
+        public async Task LoadPackageDownloadsByVersion(string id)
         {
-            if (string.IsNullOrEmpty(id))
+            await _statisticsService.LoadPackageDownloadsByVersion(id);
+            PackageId = id;
+            TotalPackageDownloads = 0;
+
+            foreach (StatisticsPackagesItemViewModel item in PackageDownloadsByVersion)
             {
-                return;
+                TotalPackageDownloads += item.Downloads;
             }
-
-            string json = _statisticsService.LoadReport(string.Format(CultureInfo.CurrentCulture, "RecentPopularity_{0}.json", id));
-
-            if (json == null)
-            {
-                return;
-            }
-
-            JArray array = JArray.Parse(json);
-
-            this.TotalPackageDownloads = 0;
-
-            foreach (JObject item in array)
-            {
-                int downloads = item["Downloads"].Value<int>();
-
-                ((List<StatisticsPackagesItemViewModel>)PackageDownloadsByVersion).Add(new StatisticsPackagesItemViewModel
-                {
-                    PackageVersion = item["PackageVersion"].ToString(),
-                    Downloads = downloads
-                });
-
-                this.TotalPackageDownloads += downloads;
-            }
-
-            this.PackageId = id;
         }
     }
 }

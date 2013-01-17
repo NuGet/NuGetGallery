@@ -1,4 +1,5 @@
-﻿using System.Web.Mvc;
+﻿using System.Threading.Tasks;
+using System.Web.Mvc;
 
 namespace NuGetGallery
 {
@@ -14,45 +15,40 @@ namespace NuGetGallery
         //
         // GET: /Statistics/
 
-        public virtual ActionResult Index()
+        public virtual async Task<ActionResult> Index()
         {
             var model = new StatisticsPackagesViewModel(_statisticsService);
-            model.LoadDownloadPackages();
-            model.LoadDownloadPackageVersions();
-
+            await Task.WhenAll(model.LoadDownloadPackages(), model.LoadDownloadPackageVersions());
             return View(model);
         }
 
         //
         // GET: /statistics/packages
 
-        public virtual ActionResult Packages()
+        public virtual async Task<ActionResult> Packages()
         {
             var model = new StatisticsPackagesViewModel(_statisticsService);
-            model.LoadDownloadPackages();
-
+            await model.LoadDownloadPackages();
             return View(model);
         }
 
         //
         // GET: /statistics/packageversions
 
-        public virtual ActionResult PackageVersions()
+        public virtual async Task<ActionResult> PackageVersions()
         {
             var model = new StatisticsPackagesViewModel(_statisticsService);
-            model.LoadDownloadPackageVersions();
-
+            await model.LoadDownloadPackageVersions();
             return View(model);
         }
 
         //
         // GET: /statistics/package/{id}
 
-        public virtual ActionResult PackageDownloadsByVersion(string id)
+        public virtual async Task<ActionResult> PackageDownloadsByVersion(string id)
         {
             var model = new StatisticsPackagesViewModel(_statisticsService);
-            model.LoadPackageDownloadsByVersion(id);
-
+            await model.LoadPackageDownloadsByVersion(id);
             return View(model);
         }
     }
