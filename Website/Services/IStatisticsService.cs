@@ -4,6 +4,6 @@ namespace NuGetGallery
 {
     public interface IStatisticsService
     {
-        JArray LoadReport(string name);
+        string LoadReport(string name);
     }
 }

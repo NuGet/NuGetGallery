@@ -92,24 +92,28 @@ namespace NuGetGallery
 
         public void LoadDownloadPackages()
         {
-            JArray array = _statisticsService.LoadReport("RecentPopularity.json");
+            string json = _statisticsService.LoadReport("RecentPopularity.json");
 
-            if (array == null)
+            if (json == null)
             {
                 IsDownloadPackageAvailable = false;
                 return;
             }
+
+            JArray array = JArray.Parse(json);
 
             foreach (JObject item in array)
             {
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Add(new StatisticsPackagesItemViewModel
                 {
                     PackageId = item["PackageId"].ToString(),
-                    Downloads = int.Parse(item["Downloads"].ToString(), CultureInfo.CurrentCulture)
+                    Downloads = item["Downloads"].Value<int>()
                 });
             }
 
-            for (int i = 0; i < 10; i++)
+            int count = ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Count;
+
+            for (int i = 0; i < Math.Min(10, count); i++)
             {
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackagesSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll)[i]);
             }
@@ -119,13 +123,15 @@ namespace NuGetGallery
 
         public void LoadDownloadPackageVersions()
         {
-            JArray array = _statisticsService.LoadReport("RecentPopularityDetail.json");
+            string json = _statisticsService.LoadReport("RecentPopularityDetail.json");
 
-            if (array == null)
+            if (json == null)
             {
                 IsDownloadPackageDetailAvailable = false;
                 return;
             }
+
+            JArray array = JArray.Parse(json);
 
             foreach (JObject item in array)
             {
@@ -133,11 +139,13 @@ namespace NuGetGallery
                 {
                     PackageId = item["PackageId"].ToString(),
                     PackageVersion = item["PackageVersion"].ToString(),
-                    Downloads = int.Parse(item["Downloads"].ToString(), CultureInfo.CurrentCulture)
+                    Downloads = item["Downloads"].Value<int>()
                 });
             }
 
-            for (int i = 0; i < 10; i++)
+            int count = ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Count;
+
+            for (int i = 0; i < Math.Min(10, count); i++)
             {
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll)[i]);
             }
@@ -152,18 +160,20 @@ namespace NuGetGallery
                 return;
             }
 
-            JArray array = _statisticsService.LoadReport(string.Format(CultureInfo.CurrentCulture, "RecentPopularity_{0}.json", id));
+            string json = _statisticsService.LoadReport(string.Format(CultureInfo.CurrentCulture, "RecentPopularity_{0}.json", id));
 
-            if (array == null)
+            if (json == null)
             {
                 return;
             }
+
+            JArray array = JArray.Parse(json);
 
             this.TotalPackageDownloads = 0;
 
             foreach (JObject item in array)
             {
-                int downloads = int.Parse(item["Downloads"].ToString(), CultureInfo.CurrentCulture);
+                int downloads = item["Downloads"].Value<int>();
 
                 ((List<StatisticsPackagesItemViewModel>)PackageDownloadsByVersion).Add(new StatisticsPackagesItemViewModel
                 {
