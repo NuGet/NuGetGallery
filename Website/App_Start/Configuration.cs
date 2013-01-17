@@ -19,19 +19,9 @@ namespace NuGetGallery
             _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
         }
 
-        public string AzureStorageAccessKey
+        public string AzureStorageConnectionString
         {
-            get { return ReadAppSettings("AzureStorageAccessKey"); }
-        }
-
-        public string AzureStorageAccountName
-        {
-            get { return ReadAppSettings("AzureStorageAccountName"); }
-        }
-
-        public string AzureStorageBlobUrl
-        {
-            get { return ReadAppSettings("AzureStorageBlobUrl"); }
+            get { return ReadAppSettings("AzureStorageConnectionString"); }
         }
 
         public bool UseEmulator
