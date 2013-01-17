@@ -12,14 +12,14 @@ namespace NuGetGallery
     {
         public EntitiesContext Create()
         {
-            return new EntitiesContext(Container.Kernel.Get<IConfiguration>());
+            return new EntitiesContext(Container.Kernel.Get<IConfiguration>().SqlConnectionString);
         }
     }
 
     public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
     {
-        public EntitiesContext(IConfiguration configuration)
-            : base(configuration.SqlConnectionString)
+        public EntitiesContext(string connectionString)
+            : base(connectionString)
         {
         }
 

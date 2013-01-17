@@ -74,11 +74,11 @@ namespace NuGetGallery
         {
             var jobs = new IJob[]
                 {
-                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(configuration), timeout: TimeSpan.FromMinutes(5)),
-                    new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(configuration), timeout: TimeSpan.FromDays(4)),
-                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration), timeout: TimeSpan.FromMinutes(2))
+                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(configuration.SqlConnectionString), timeout: TimeSpan.FromMinutes(5)),
+                    new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(configuration.SqlConnectionString), timeout: TimeSpan.FromDays(4)),
+                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString), timeout: TimeSpan.FromMinutes(2))
                 };
-            var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext(configuration)));
+            var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext(configuration.SqlConnectionString)));
             _jobManager = new JobManager(jobs, jobCoordinator)
                 {
                     RestartSchedulerOnFailure = true
