@@ -5,8 +5,8 @@ namespace NuGetGallery
 {
     public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
     {
-        public EntitiesContext()
-            : base("NuGetGallery")
+        public EntitiesContext(IConfiguration configuration)
+            : base(configuration.SqlConnectionString)
         {
         }
 
