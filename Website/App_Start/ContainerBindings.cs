@@ -27,7 +27,7 @@ namespace NuGetGallery
             var gallerySetting = new Lazy<GallerySetting>(
                 () =>
                     {
-                        using (var entitiesContext = new EntitiesContext())
+                        using (var entitiesContext = new EntitiesContext(configuration))
                         {
                             var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
                             return settingsRepo.GetAll().FirstOrDefault();
@@ -69,7 +69,7 @@ namespace NuGetGallery
             }
 
             Bind<IEntitiesContext>()
-                .ToMethod(context => new EntitiesContext())
+                .ToMethod(context => new EntitiesContext(configuration))
                 .InRequestScope();
 
             Bind<IEntityRepository<User>>()
@@ -183,13 +183,7 @@ namespace NuGetGallery
                 case PackageStoreType.AzureStorageBlob:
                     Bind<ICloudBlobClient>()
                         .ToMethod(
-                            context => new CloudBlobClientWrapper(
-                                           new CloudBlobClient(
-                                               new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
-                                               configuration.UseEmulator
-                                                   ? CloudStorageAccount.DevelopmentStorageAccount.Credentials
-                                                   : new StorageCredentials(
-                                                         configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
+                            context => new CloudBlobClientWrapper(CloudStorageAccount.Parse(configuration.AzureStorageConnectionString).CreateCloudBlobClient()))
                         .InSingletonScope();
                     Bind<IFileStorageService>()
                         .To<CloudBlobFileStorageService>()

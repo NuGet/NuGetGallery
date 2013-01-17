@@ -2,9 +2,7 @@
 {
     public interface IConfiguration
     {
-        string AzureStorageAccessKey { get; }
-        string AzureStorageAccountName { get; }
-        string AzureStorageBlobUrl { get; }
+        string AzureStorageConnectionString { get; }
         string FileStorageDirectory { get; }
         string AzureCdnHost { get; }
         PackageStoreType PackageStoreType { get; }
