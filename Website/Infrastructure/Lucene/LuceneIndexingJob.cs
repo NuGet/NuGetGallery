@@ -8,7 +8,7 @@ namespace NuGetGallery
     {
         private readonly LuceneIndexingService _indexingService;
 
-        public LuceneIndexingJob(TimeSpan frequence, Func<IEntitiesContext> contextThunk, TimeSpan timeout)
+        public LuceneIndexingJob(TimeSpan frequence, Func<EntitiesContext> contextThunk, TimeSpan timeout)
             : base("Lucene", frequence, timeout)
         {
             _indexingService = new LuceneIndexingService(
