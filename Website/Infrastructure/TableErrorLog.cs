@@ -7,7 +7,7 @@ using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table.DataServices;
 
-namespace NuGetGallery
+namespace NuGetGallery.Infrastructure
 {
         public class ErrorEntity : TableServiceEntity
         {

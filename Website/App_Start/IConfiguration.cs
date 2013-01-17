@@ -2,6 +2,7 @@
 {
     public interface IConfiguration
     {
+        string AzureDiagnosticsConnectionString { get; }
         string AzureStorageConnectionString { get; }
         string FileStorageDirectory { get; }
         string AzureCdnHost { get; }

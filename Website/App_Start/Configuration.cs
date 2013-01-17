@@ -24,6 +24,11 @@ namespace NuGetGallery
             get { return ReadAppSettings("AzureStorageConnectionString"); }
         }
 
+        public string AzureDiagnosticsConnectionString
+        {
+            get { return ReadAppSettings("AzureDiagnosticsConnectionString"); }
+        }
+        
         public bool UseEmulator
         {
             get { return String.Equals(ReadAppSettings("UseAzureEmulator"), "true", StringComparison.OrdinalIgnoreCase); }
