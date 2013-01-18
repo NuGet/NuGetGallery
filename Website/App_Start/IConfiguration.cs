@@ -16,5 +16,7 @@
         string SqlConnectionString { get; }
 
         string GetSiteRoot(bool useHttps);
+
+        bool ReadOnlyMode { get; }
     }
 }

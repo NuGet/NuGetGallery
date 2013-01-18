@@ -8,8 +8,7 @@ namespace NuGetGallery.Entities
         [Fact]
         public void SaveChangesFailsInReadOnlyMode()
         {
-            var ec = new EntitiesContext();
-            ec.ReadOnlyMode = true;
+            var ec = new EntitiesContext("", readOnly: true);
             Assert.Throws<ReadOnlyException>(() => ec.Users.Add(new User
             {
                 Key = -1,

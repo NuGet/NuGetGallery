@@ -13,7 +13,7 @@ namespace DynamicDataEFCodeFirst
         public static void Register(RouteCollection routes, IConfiguration configuration)
         {
             DefaultModel.RegisterContext(
-                new EFCodeFirstDataModelProvider(() => new EntitiesContext(configuration.SqlConnectionString)),
+                new EFCodeFirstDataModelProvider(() => new EntitiesContext(configuration.SqlConnectionString, false)), // Read-only access should be enough
                 new ContextConfiguration { ScaffoldAllTables = true });
 
             // This route must come first to prevent some other route from the site to take over

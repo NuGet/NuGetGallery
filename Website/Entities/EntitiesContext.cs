@@ -13,20 +13,19 @@ namespace NuGetGallery
     {
         public EntitiesContext Create()
         {
-            return new EntitiesContext(Container.Kernel.Get<IConfiguration>().SqlConnectionString);
+            return new EntitiesContext(Container.Kernel.Get<IConfiguration>().SqlConnectionString, Container.Kernel.Get<IConfiguration>().ReadOnlyMode);
         }
     }
 
     public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
     {
-        public EntitiesContext(string connectionString)
+        public EntitiesContext(string connectionString, bool readOnly)
             : base(connectionString)
         {
+            ReadOnly = readOnly;
         }
 
-        // Causes all events which write back to the database to throw.
-        public bool ReadOnlyMode { get; set; }
-
+        public bool ReadOnly { get; private set; }
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
@@ -35,7 +34,7 @@ namespace NuGetGallery
 
         public override int SaveChanges()
         {
-            if (ReadOnlyMode)
+            if (ReadOnly)
             {
                 throw new ReadOnlyException("SaveChanges() is not allowed: the EntitiesContext is currently in read only mode");
             }

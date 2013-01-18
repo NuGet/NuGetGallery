@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         public AggregateStats GetAggregateStats()
         {
-            using (var dbContext = new EntitiesContext(configuration.SqlConnectionString))
+            using (var dbContext = new EntitiesContext(configuration.SqlConnectionString, readOnly: true)) // aggregate stats never writes to DB anyway
             {
                 var database = dbContext.Database;
                 using (var command = database.Connection.CreateCommand())
