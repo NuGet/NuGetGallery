@@ -17,6 +17,7 @@
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
       <Setting name="Gallery.PackageStoreType" value="AzureStorageBlob" />
       <Setting name="Gallery.SiteRoot" value="http://nuget.org/" />
+      <Setting name="Gallery.Sql.NuGetGallery" value="" />
 
       <!-- Set this to enable use of the Azure Caching Service for Package Explorer in the Cloud -->
       <Setting name="Gallery.AzureCacheEndpoint" value="" />
