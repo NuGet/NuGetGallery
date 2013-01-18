@@ -1,3 +1,7 @@
+param(
+    [Parameter(Mandatory=$false)][string]$Configuration = $null
+)
+
 $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 . $ScriptRoot\_Common.ps1
 
@@ -9,4 +13,8 @@ if(!(Test-Path "$ScriptRoot\NuGetGallery.emulator.cscfg")) {
     throw "Cannot find NuGetGallery.emulator.cscfg in $ScriptRoot"
 }
 
-& "$AzureToolsRoot\Emulator\csrun.exe" /run:"$rootPath\_AzurePackage\NuGetGallery.csx;$ScriptRoot\NuGetGallery.emulator.cscfg" /launchBrowser /useiisexpress
+if(!$Configuration) {
+    $Configuration = "$ScriptRoot\NuGetGallery.emulator.cscfg"
+}
+
+& "$AzureToolsRoot\Emulator\csrun.exe" /run:"$rootPath\_AzurePackage\NuGetGallery.csx;$Configuration" /launchBrowser /useiisexpress
