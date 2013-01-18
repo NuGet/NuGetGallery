@@ -9,7 +9,7 @@ namespace NuGetGallery
 {
     public class Configuration : IConfiguration
     {
-        private static readonly Dictionary<string, Lazy<object>> ConfigThunks = new Dictionary<string, Lazy<object>>();
+        private static readonly Dictionary<string, Func<object>> ConfigThunks = new Dictionary<string, Func<object>>();
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
 
@@ -28,7 +28,7 @@ namespace NuGetGallery
         {
             get { return ReadAppSettings("AzureDiagnosticsConnectionString"); }
         }
-        
+
         public bool UseEmulator
         {
             get { return String.Equals(ReadAppSettings("UseAzureEmulator"), "true", StringComparison.OrdinalIgnoreCase); }
@@ -102,44 +102,44 @@ namespace NuGetGallery
             {
                 ConfigThunks.Add(
                     key,
-                    new Lazy<object>(
-                        () =>
+                    // In order to support in-flight changes to config, these need to be Func<T>'s, not Lazy<T>'s, which will cache the value
+                    () =>
+                    {
+                        // Load from config
+                        var keyName = String.Format("Gallery.{0}", key);
+                        var value = ConfigurationManager.AppSettings[keyName];
+
+                        // Overwrite from Azure if present
+                        if (ContainerBindings.IsDeployedToCloud)
+                        {
+                            string azureVal;
+                            try
                             {
-                                // Load from config
-                                var keyName = String.Format("Gallery.{0}", key);
-                                var value = ConfigurationManager.AppSettings[keyName];
+                                azureVal = RoleEnvironment.GetConfigurationSettingValue(keyName);
+                            }
+                            catch (RoleEnvironmentException)
+                            {
+                                // Setting does not exist. This is the only way we have to know that... :(
+                                azureVal = null;
+                            }
+                            if (!String.IsNullOrEmpty(azureVal))
+                            {
+                                value = azureVal;
+                            }
+                        }
 
-                                // Overwrite from Azure if present
-                                if (RoleEnvironment.IsAvailable)
-                                {
-                                    string azureVal;
-                                    try
-                                    {
-                                        azureVal = RoleEnvironment.GetConfigurationSettingValue(keyName);
-                                    }
-                                    catch (RoleEnvironmentException)
-                                    {
-                                        // Setting does not exist
-                                        azureVal = null;
-                                    }
-                                    if (!String.IsNullOrEmpty(azureVal))
-                                    {
-                                        value = azureVal;
-                                    }
-                                }
+                        // Coalesce empty values to null
+                        if (String.IsNullOrWhiteSpace(value))
+                        {
+                            value = null;
+                        }
 
-                                // Coalesce empty values to null
-                                if (String.IsNullOrWhiteSpace(value))
-                                {
-                                    value = null;
-                                }
-
-                                // Pass the value through the "thunk" which parses the string
-                                return valueThunk(value);
-                            }));
+                        // Pass the value through the "thunk" which parses the string
+                        return valueThunk(value);
+                    });
             }
 
-            return (T)ConfigThunks[key].Value;
+            return (T)ConfigThunks[key]();
         }
 
         public string FacebookAppID

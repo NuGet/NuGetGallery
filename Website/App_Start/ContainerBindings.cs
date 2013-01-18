@@ -280,7 +280,7 @@ namespace NuGetGallery
                 .InRequestScope();
         }
 
-        private static bool IsDeployedToCloud
+        public static bool IsDeployedToCloud
         {
             get
             {
