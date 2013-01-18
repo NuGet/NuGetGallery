@@ -93,7 +93,7 @@ if(!$azureSdkPath) {
   $azureSdkPath = (dir "$AzureToolsRoot\.NET SDK" | sort Name -desc | select -first 1).FullName
 }
 
-& "$azureSdkPath\bin\cspack.exe" "$csdefPath" /useCtpPackageFormat /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath" $copyOnlySwitch
+& "$azureSdkPath\bin\cspack.exe" "$csdefPath" /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath" $copyOnlySwitch
 if ($lastexitcode -ne 0) {
   throw "CSPack Failed with Exit Code: $lastexitcode"
   exit 1 
