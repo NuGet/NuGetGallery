@@ -1,9 +1,8 @@
 ﻿using System.Data.Entity;
-using WebBackgrounder;
 
 namespace NuGetGallery
 {
-    public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
+    public class EntitiesContext : DbContext, IEntitiesContext
     {
         public EntitiesContext()
             : base("NuGetGallery")
@@ -14,7 +13,6 @@ namespace NuGetGallery
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
-        public IDbSet<WorkItem> WorkItems { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -88,9 +86,6 @@ namespace NuGetGallery
 
             modelBuilder.Entity<GallerySetting>()
                 .HasKey(gs => gs.Key);
-
-            modelBuilder.Entity<WorkItem>()
-                .HasKey(wi => wi.Id);
 
             modelBuilder.Entity<PackageOwnerRequest>()
                 .HasKey(por => por.Key);
