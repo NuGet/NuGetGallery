@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2012-10.1.8">
-  <WebRole name="Website" vmsize="Medium">
+  <WebRole name="Website" vmsize="Large">
     <Startup>
       <Task commandLine="Startup.cmd" executionContext="elevated" taskType="simple" />
       <Task commandLine="ConfigureIISLogging.cmd" executionContext="elevated" taskType="background" />

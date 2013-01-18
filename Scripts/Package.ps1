@@ -1,9 +1,18 @@
 ﻿param(
   [Parameter(Mandatory=$false)][string]$ReleaseSha,
   [Parameter(Mandatory=$false)][string]$ReleaseBranch,
+  [Parameter(Mandatory=$false)][string]$VMSize = $null,
   [Parameter(Mandatory=$false)][string]$AzureSDKRoot = $null,
   [Parameter(Mandatory=$false)][switch]$ForEmulator
 )
+
+# If there's a NUGET_GALLERY_VM_SIZE environment variable, use it
+if(Test-Path env:\NUGET_GALLERY_VM_SIZE) {
+  $VMSize = $env:NUGET_GALLERY_VM_SIZE
+} elseif(!$VMSize) {
+  $VMSize = "Small"
+}
+Write-Host "Using VMSize: $VMSize"
 
 # Import common stuff
 $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
@@ -15,6 +24,7 @@ $websitePath = join-path $rootPath "Website"
 $webConfigPath = join-path $websitePath "Web.config"
 $webConfigBakPath = join-path $ScriptRoot "Web.config.bak"
 $csdefPath = Join-Path $ScriptRoot "NuGetGallery.csdef"
+$csdefBakPath = Join-Path $ScriptRoot "NuGetGallery.csdef.bak"
 $rolePropertiesPath = join-path $ScriptRoot "NuGetGallery.RoleProperties.txt"
 
 $cspkgFolder = join-path $rootPath "_AzurePackage"
@@ -24,7 +34,9 @@ $binPath = join-path $websitePath "bin"
 
 # Make a backup of the web.config so we can avoid polluting Git history
 # All we put in web.config is the Release SHA, Branch and Time, so it's not _essential_ that this be restored.
+# Similarly, we only put VMSize in the csdef.
 cp $webConfigPath $webConfigBakPath
+cp $csdefPath $csdefBakPath
 
 # Startup Scripts
 $startupScripts = @("Startup.cmd", "Startup.ps1", "ConfigureIISLogging.cmd")
@@ -47,6 +59,15 @@ mkdir $cspkgFolder | out-null
 
 #Release Tag stuff
 Write-Host "Setting the release tags"
+
+function set-vmsize {
+    param($path, $size)
+
+    $settings = [xml](get-content $path)
+    $settings.ServiceDefinition.WebRole.vmsize = $size;
+    $resolvedPath = resolve-path($path)
+    $settings.save($resolvedPath)
+}
 
 function set-appsetting {
     param($path, $name, $value)
@@ -73,6 +94,7 @@ function disable-debug {
     $settings.Save($resolvedPath);
 }
 
+set-vmsize -path $csdefPath -size $VMSize
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseBranch" -value $ReleaseBranch
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseSha" -value $ReleaseSha
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
@@ -100,7 +122,9 @@ if ($lastexitcode -ne 0) {
 }
 
 cp $webConfigBakPath $webConfigPath
+cp $csdefBakPath $csdefPath
 del $webConfigBakPath
+del $csdefBakPath
 
 $startupScripts | ForEach-Object {
   rm (Join-Path $binPath $_)
