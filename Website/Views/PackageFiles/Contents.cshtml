@@ -186,7 +186,7 @@
                 @if (Model.PackageMetadata.DependencySets.Any())
                 {
                     <tr>
-                        <td><strong>Dependencies:</strong></td>
+                        <td class="toplabel"><strong>Dependencies:</strong></td>
                         <td>
                             <ul>
                                 @foreach (var dependencySet in Model.PackageMetadata.DependencySets)
@@ -202,7 +202,11 @@
                                                 }
                                             </ul>
                                         }
-                                    </li>                          
+                                        else 
+                                        {
+                                            <div class="nodependency"><em>(no dependencies)</em></div>
+                                        }
+                                    </li>
                                 }
                             </ul>
                         </td>
@@ -298,6 +302,10 @@
             }
 
             if (extension == 'css') {
+                if (path.indexOf('.min', path.length - extension.length - 5) !== -1) {
+                    return 'brush: text';
+                }
+
                 return 'brush: css';
             }
 
