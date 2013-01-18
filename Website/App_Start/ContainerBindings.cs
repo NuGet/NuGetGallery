@@ -57,10 +57,14 @@ namespace NuGetGallery
                     .To<CloudCacheService>()
                     .InSingletonScope();
 
-                // when running on Windows Azure, get the statistics from Azure blob storage
-                //Bind<IStatisticsService>()
-                //    .ToMethod(context => new JsonStatisticsService(configuration.AzureStatisticsConnectionString))
-                //    .InSingletonScope();
+                // when running on Windows Azure, pull the statistics from the warehouse via storage
+                Bind<IReportService>()
+                    .ToMethod(context => new CloudReportService(configuration.AzureStatisticsConnectionString))
+                    .InSingletonScope();
+
+                Bind<IStatisticsService>()
+                    .To<JsonStatisticsService>()
+                    .InSingletonScope();
             }
             else
             {
@@ -72,16 +76,6 @@ namespace NuGetGallery
                 Bind<ICacheService>()
                     .To<HttpContextCacheService>()
                     .InRequestScope();
-
-                //TESTING
-                Bind<IReportService>()
-                    .ToMethod(context => new CloudReportService(configuration.AzureStatisticsConnectionString))
-                    .InSingletonScope();
-
-                //TESTING
-                Bind<IStatisticsService>()
-                    .To<JsonStatisticsService>()
-                    .InSingletonScope();
             }
 
             Bind<IEntitiesContext>()
