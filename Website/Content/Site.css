@@ -479,6 +479,24 @@ hgroup.page-heading h2 { padding-left: 7px; }
 
 .aggstats .num > span { position: relative; }
 
+/* Aggregate Stats Error */
+
+.aggstatserr {
+    background: #e8fc14;
+    display: none;
+}
+
+.aggstatserr .err {
+    color: #622020;
+    display: inline-block;
+    font-weight: bold;
+    margin: 0;
+    padding: 0.5em 0;
+    text-align: center;
+    width: 33%;
+    *zoom: 1;
+}
+
 /* Account/Actions */
 
 #actions h1 { font-size: 2em; }
