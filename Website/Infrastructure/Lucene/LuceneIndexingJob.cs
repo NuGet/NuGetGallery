@@ -12,7 +12,7 @@ namespace NuGetGallery
             : base("Lucene", frequence, timeout)
         {
             _indexingService = new LuceneIndexingService(
-                new PackageSource(new EntitiesContext()),
+                new PackageSource(new EntitiesContext(readOnly: true)), // indexing service is always read-only
                 LuceneCommon.GetDirectory());
             _indexingService.UpdateIndex();
         }

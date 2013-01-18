@@ -1,19 +1,25 @@
 ﻿using System.Data;
 using System.Data.Entity;
 using WebBackgrounder;
+using Ninject;
 
 namespace NuGetGallery
 {
     public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
     {
         public EntitiesContext()
-            : base("NuGetGallery")
+            : this(Container.Kernel.Get<IConfiguration>().ReadOnlyMode)
         {
         }
 
-        // Causes all events which write back to the database to throw.
-        public bool ReadOnlyMode { get; set; }
+        // Setting EntitiesContext as readOnly makes SaveChanges(), which would write back to the database, throw instead.
+        public EntitiesContext(bool readOnly)
+            : base("NuGetGallery")
+        {
+            ReadOnly = readOnly;
+        }
 
+        public bool ReadOnly { get; private set; }
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
@@ -22,7 +28,7 @@ namespace NuGetGallery
 
         public override int SaveChanges()
         {
-            if (ReadOnlyMode)
+            if (ReadOnly)
             {
                 throw new ReadOnlyException("SaveChanges() is not allowed: the EntitiesContext is currently in read only mode");
             }

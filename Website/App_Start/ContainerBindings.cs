@@ -27,7 +27,7 @@ namespace NuGetGallery
             var gallerySetting = new Lazy<GallerySetting>(
                 () =>
                     {
-                        using (var entitiesContext = new EntitiesContext())
+                        using (var entitiesContext = new EntitiesContext(readOnly: true)) // gallery settings are read-only
                         {
                             var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
                             return settingsRepo.GetAll().FirstOrDefault();
@@ -69,8 +69,7 @@ namespace NuGetGallery
             }
 
             Bind<IEntitiesContext>()
-                .ToMethod(context => new EntitiesContext())
-                .InRequestScope();
+                .ToMethod(context => new EntitiesContext(readOnly: configuration.ReadOnlyMode)).InRequestScope();
 
             Bind<IEntityRepository<User>>()
                 .To<EntityRepository<User>>()
