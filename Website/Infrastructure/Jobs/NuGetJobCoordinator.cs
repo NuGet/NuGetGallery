@@ -5,7 +5,7 @@ using WebBackgrounder;
 
 namespace NuGetGallery.Infrastructure.Jobs
 {
-    internal class NuGetJobCoordinator : IJobCoordinator
+    internal sealed class NuGetJobCoordinator : IJobCoordinator
     {
         public void Dispose()
         {
@@ -18,38 +18,51 @@ namespace NuGetGallery.Infrastructure.Jobs
             {
                 task = job.Execute();
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                Exception e = exception;
-                task = new Task(delegate
-                {
-                    throw e;
-                });
+                QuietlyLogException(e);
+                return new Task(() => {}); // returning dummy task so the job scheduler doesn't see errors
             }
 
-            var continuation = task.ContinueWith(t =>
+            // wrapping the task inside an outer task which will continue with an error handler.
+            return CreateWrappingContinuingTask(task, t =>
             {
-                if (task.IsCanceled)
+                if (t.IsCanceled)
                 {
-                    Debug.WriteLine("IsCanceled: " + job.GetType());
+                    Debug.WriteLine("Background Task Canceled: " + job.GetType());
                 }
-                else if (task.IsFaulted)
+                else if (t.IsFaulted)
                 {
-                    Debug.WriteLine("IsFaulted: " + job.GetType());
+                    Debug.WriteLine("Background Task Faulted: " + job.GetType());
+                    QuietlyLogException(task.Exception);
                 }
-                else if (task.IsCompleted)
-                {
-                    Debug.WriteLine("IsCompleted: " + job.GetType());
-                }
+                // else happiness
             }, TaskContinuationOptions.ExecuteSynchronously);
+        }
+
+        private static Task CreateWrappingContinuingTask(Task originalTask, Action<Task> continuationTask, TaskContinuationOptions options)
+        {
+            var continuation = originalTask.ContinueWith(continuationTask, options);
 
             var wrapper = new Task(() =>
             {
-                task.Start();
+                originalTask.Start();
                 continuation.Wait();
             });
 
             return wrapper;
+        }
+
+        private static void QuietlyLogException(Exception e)
+        {
+            try
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
         }
     }
 }

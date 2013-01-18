@@ -1,6 +1,5 @@
 ﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using WebBackgrounder;
 using Ninject;
 
 namespace NuGetGallery
@@ -18,7 +17,7 @@ namespace NuGetGallery
         }
     }
 
-    public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
+    public class EntitiesContext : DbContext, IEntitiesContext
     {
         public EntitiesContext(string connectionString, bool readOnly)
             : base(connectionString)
@@ -31,7 +30,6 @@ namespace NuGetGallery
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
-        public IDbSet<WorkItem> WorkItems { get; set; }
 
         public override int SaveChanges()
         {
@@ -115,9 +113,6 @@ namespace NuGetGallery
 
             modelBuilder.Entity<GallerySetting>()
                 .HasKey(gs => gs.Key);
-
-            modelBuilder.Entity<WorkItem>()
-                .HasKey(wi => wi.Id);
 
             modelBuilder.Entity<PackageOwnerRequest>()
                 .HasKey(por => por.Key);

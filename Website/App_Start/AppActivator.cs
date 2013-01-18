@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data.Entity;
-using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -72,13 +71,12 @@ namespace NuGetGallery
 
         private static void BackgroundJobsPostStart(IConfiguration configuration)
         {
-            // readonly: false background jobs and the coordinator should always be able to write to DB just so the job doesn't fail. And we don't care if those updates it writes get lost anyway.
             var jobs = new IJob[]
                 {
+                    // readonly: false workaround - let statistics background job write to DB in read-only mode since we don't care too much about losing that data
                     new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
                         () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), 
                         timeout: TimeSpan.FromMinutes(5)),
-                    new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), timeout: TimeSpan.FromDays(4)),
                     new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), timeout: TimeSpan.FromMinutes(2))
                 };
             var jobCoordinator = new NuGetJobCoordinator();

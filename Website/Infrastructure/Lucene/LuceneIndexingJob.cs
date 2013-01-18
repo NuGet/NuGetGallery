@@ -23,20 +23,31 @@ namespace NuGetGallery
             {
                 _indexingService.UpdateIndex();
             }
-            catch (Exception ex)
+            catch (SqlException e)
             {
-                if (!(ex is SqlException || ex is DataException))
-                {
-                    throw; // unexpected exceptions
-                }
-
-                Elmah.ErrorSignal.FromCurrentContext().Raise(ex);
+                QuietlyLogException(e);
+            }
+            catch (DataException e)
+            {
+                QuietlyLogException(e);
             }
         }
 
         public override Task Execute()
         {
             return new Task(_indexingService.UpdateIndex);
+        }
+
+        private static void QuietlyLogException(Exception e)
+        {
+            try
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
         }
     }
 }
