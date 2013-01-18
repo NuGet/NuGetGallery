@@ -830,6 +830,11 @@ section.package .side img {
     font-size: 1.1em;
 }
 
+#metadata .nodependency {
+    font-size: 0.9em;
+    margin: 0px 0px 4px 25px;
+}
+
 #metadata .toplabel {
     vertical-align: top; 
 }

@@ -1,8 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using NuGet;
+
+using HttpClient = System.Net.Http.HttpClient;
 
 namespace NuGetGallery.Helpers
 {
@@ -25,16 +28,30 @@ namespace NuGetGallery.Helpers
             byte[] buffer = cacheService.GetBytes(cacheKey);
             if (buffer == null)
             {
-                using (Stream stream = await packageFileService.DownloadPackageFileAsync(package))
+                // In the past, some very old packages can specify an external package binary not hosted at nuget.org.
+                // We no longer allow that today.
+                if (!String.IsNullOrEmpty(package.ExternalPackageUrl))
                 {
-                    if (stream == null)
+                    var httpClient = new HttpClient();
+                    using (var responseStream = await httpClient.GetStreamAsync(package.ExternalPackageUrl))
                     {
-                        throw new InvalidOperationException("Couldn't download the package from the storage.");
+                        buffer = responseStream.ReadAllBytes();
                     }
-
-                    buffer = stream.ReadAllBytes();
-                    cacheService.SetBytes(cacheKey, buffer);
                 }
+                else
+                {
+                    using (Stream stream = await packageFileService.DownloadPackageFileAsync(package))
+                    {
+                        if (stream == null)
+                        {
+                            throw new InvalidOperationException("Couldn't download the package from the storage.");
+                        }
+
+                        buffer = stream.ReadAllBytes();
+                    }
+                }
+
+                cacheService.SetBytes(cacheKey, buffer);
             }
 
             return new ZipPackage(new MemoryStream(buffer));
