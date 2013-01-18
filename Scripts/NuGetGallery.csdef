@@ -10,6 +10,7 @@
       <Setting name="Gallery.AzureDiagnosticsConnectionString" />
       <Setting name="Gallery.AzureCacheEndpoint" />
       <Setting name="Gallery.AzureCdnHost" />
+      <Setting name="Gallery.Sql.NuGetGallery" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
       <Setting name="Gallery.PackageStoreType" />
       <Setting name="Gallery.SiteRoot" />

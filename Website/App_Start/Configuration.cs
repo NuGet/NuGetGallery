@@ -90,7 +90,7 @@ namespace NuGetGallery
         public string ReadConnectionString(string connectionStringName)
         {
             // Read from connection strings and app settings, with app settings winning (to allow us to put the CS in azure config)
-            string value = ReadAppSettings(connectionStringName);
+            string value = ReadAppSettings("Sql." + connectionStringName);
             return String.IsNullOrEmpty(value) ? ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString : value;
         }
 
