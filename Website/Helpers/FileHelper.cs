@@ -13,7 +13,7 @@ namespace NuGetGallery.Helpers
                                                                     ".DLL", ".EXE", ".WINMD", ".CHM", ".PDF",
                                                                     ".DOCX", ".DOC", ".RTF", ".PDB", ".ZIP", 
                                                                     ".RAR", ".XAP", ".VSIX", ".NUPKG", ".SNK", 
-                                                                    ".PFX"
+                                                                    ".PFX", ".PRI"
                                                                 };
 
         internal static readonly string[] ImageFileExtensions = new[]
