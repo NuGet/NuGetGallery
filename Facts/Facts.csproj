@@ -155,6 +155,7 @@
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\PagesControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="Entities\EntitiesContextFacts.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Infrastructure\AnalysisHelperFacts.cs" />
     <Compile Include="Infrastructure\CookieTempDataProviderFacts.cs" />
