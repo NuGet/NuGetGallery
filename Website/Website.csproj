@@ -301,11 +301,11 @@
     <Compile Include="Infrastructure\HttpHeaderValueProvider.cs" />
     <Compile Include="Infrastructure\HttpHeaderValueProviderFactory.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResult.cs" />
+    <Compile Include="Infrastructure\Jobs\NuGetJobCoordinator.cs" />
     <Compile Include="Infrastructure\Lucene\AnalysisHelper.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneCommon.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneIndexingJob.cs" />
     <Compile Include="Infrastructure\Lucene\LuceneIndexingService.cs" />
-    <Compile Include="Infrastructure\Jobs\WorkItemCleanupJob.cs" />
     <Compile Include="Infrastructure\Jobs\UpdateStatisticsJob.cs" />
     <Compile Include="Infrastructure\Lucene\PerFieldAnalyzer.cs" />
     <Compile Include="Infrastructure\Lucene\NuGetSearchTerm.cs" />
@@ -443,6 +443,10 @@
     <Compile Include="Migrations\201211271813001_AddNuGetOperation.cs" />
     <Compile Include="Migrations\201211271813001_AddNuGetOperation.Designer.cs">
       <DependentUpon>201211271813001_AddNuGetOperation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201301180132053_RemoveWorkItems.cs" />
+    <Compile Include="Migrations\201301180132053_RemoveWorkItems.Designer.cs">
+      <DependentUpon>201301180132053_RemoveWorkItems.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
