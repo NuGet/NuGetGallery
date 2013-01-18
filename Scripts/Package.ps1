@@ -62,9 +62,21 @@ function set-appsetting {
     $resolvedPath = resolve-path($path) 
     $settings.save($resolvedPath)
 }
+
+function disable-debug {
+    param($path)
+
+    $settings = [xml](get-content $path)
+    $compilNode = $settings.configuration."system.web".compilation;
+    $compilNode.debug = "false";
+    $resolvedPath = resolve-path($path) 
+    $settings.Save($resolvedPath);
+}
+
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseBranch" -value $ReleaseBranch
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseSha" -value $ReleaseSha
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+disable-debug -path $webConfigPath
 
 $startupScripts | ForEach-Object {
   cp (Join-Path $ScriptRoot $_) (Join-Path $binPath $_)
