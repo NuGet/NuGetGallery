@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System.Data;
+using System.Data.Entity;
 using WebBackgrounder;
 
 namespace NuGetGallery
@@ -10,11 +11,24 @@ namespace NuGetGallery
         {
         }
 
+        // Causes all events which write back to the database to throw.
+        public bool ReadOnlyMode { get; set; }
+
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
         public IDbSet<WorkItem> WorkItems { get; set; }
+
+        public override int SaveChanges()
+        {
+            if (ReadOnlyMode)
+            {
+                throw new ReadOnlyException("SaveChanges() is not allowed: the EntitiesContext is currently in read only mode");
+            }
+
+            return base.SaveChanges();
+        }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
