@@ -61,7 +61,7 @@ namespace NuGetGallery
 
             if (model.IsDownloadPackageAvailable)
             {
-                foreach (var item in model.DownloadPackagesAll)
+                foreach (var item in model.DownloadPackagesSummary)
                 {
                     if (item.PackageId == "A" && item.Downloads == 1)
                     {
@@ -77,7 +77,7 @@ namespace NuGetGallery
 
             if (model.IsDownloadPackageDetailAvailable)
             {
-                foreach (var item in model.DownloadPackageVersionsAll)
+                foreach (var item in model.DownloadPackageVersionsSummary)
                 {
                     if (item.PackageId == "A" && item.PackageVersion == "1.0" & item.Downloads == 3)
                     {
