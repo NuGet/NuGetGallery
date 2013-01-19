@@ -35,10 +35,11 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Packages()
         {
-            await _statisticsService.LoadDownloadPackages();
+            bool isAvailable = await _statisticsService.LoadDownloadPackages();
 
             var model = new StatisticsPackagesViewModel
             {
+                IsDownloadPackageAvailable = isAvailable,
                 DownloadPackagesAll = _statisticsService.DownloadPackagesAll
             };
 
@@ -50,10 +51,11 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageVersions()
         {
-            await _statisticsService.LoadDownloadPackageVersions();
+            bool isAvailable = await _statisticsService.LoadDownloadPackageVersions();
 
             var model = new StatisticsPackagesViewModel
             {
+                IsDownloadPackageDetailAvailable = isAvailable,
                 DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll
             };
 

@@ -27,7 +27,7 @@ namespace NuGetGallery
 
             if (model.IsDownloadPackageAvailable)
             {
-                foreach (var item in model.DownloadPackagesAll)
+                foreach (var item in model.DownloadPackagesSummary)
                 {
                     sum += item.Downloads;
                 }
@@ -35,7 +35,7 @@ namespace NuGetGallery
 
             if (model.IsDownloadPackageDetailAvailable)
             {
-                foreach (var item in model.DownloadPackageVersionsAll)
+                foreach (var item in model.DownloadPackageVersionsSummary)
                 {
                     sum += item.Downloads;
                 }
