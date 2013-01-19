@@ -17,8 +17,16 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Index()
         {
-            var model = new StatisticsPackagesViewModel(_statisticsService);
-            await Task.WhenAll(model.LoadDownloadPackages(), model.LoadDownloadPackageVersions());
+            bool[] availablity = await Task.WhenAll(_statisticsService.LoadDownloadPackages(), _statisticsService.LoadDownloadPackageVersions());
+
+            var model = new StatisticsPackagesViewModel
+            {
+                IsDownloadPackageAvailable = availablity[0],
+                DownloadPackagesSummary = _statisticsService.DownloadPackagesSummary,
+                IsDownloadPackageDetailAvailable = availablity[1],
+                DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary
+            };
+
             return View(model);
         }
 
@@ -27,8 +35,13 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Packages()
         {
-            var model = new StatisticsPackagesViewModel(_statisticsService);
-            await model.LoadDownloadPackages();
+            await _statisticsService.LoadDownloadPackages();
+
+            var model = new StatisticsPackagesViewModel
+            {
+                DownloadPackagesAll = _statisticsService.DownloadPackagesAll
+            };
+
             return View(model);
         }
 
@@ -37,8 +50,13 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageVersions()
         {
-            var model = new StatisticsPackagesViewModel(_statisticsService);
-            await model.LoadDownloadPackageVersions();
+            await _statisticsService.LoadDownloadPackageVersions();
+
+            var model = new StatisticsPackagesViewModel
+            {
+                DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll
+            };
+
             return View(model);
         }
 
@@ -47,8 +65,12 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageDownloadsByVersion(string id)
         {
-            var model = new StatisticsPackagesViewModel(_statisticsService);
-            await model.LoadPackageDownloadsByVersion(id);
+            await _statisticsService.LoadPackageDownloadsByVersion(id);
+
+            var model = new StatisticsPackagesViewModel();
+
+            model.SetPackageDownloadsByVersion(id, _statisticsService.PackageDownloadsByVersion);
+
             return View(model);
         }
     }
