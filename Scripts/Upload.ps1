@@ -21,7 +21,7 @@ else {
         $_.Name.Substring("NuGetGallery_".Length, $_.Name.Length - "NuGetGallery_".Length - ".cspkg".Length)
     }
 }
-Write-Host "Pushing $PackageFilePath to $Container on $StorageAccountName"
+Write-Host "Pushing $PackageFilePath to $StorageAccountName"
 
 $AzureSdkPath = Get-AzureSdkPath $AzureSdkPath
 
