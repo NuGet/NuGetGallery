@@ -25,7 +25,7 @@ namespace NuGetGallery
 
         public static string Statistics(this UrlHelper url)
         {
-            return url.RouteUrl(RouteName.Statistics);
+            return url.RouteUrl(RouteName.StatisticsHome);
         }
 
         public static string StatisticsAllPackageDownloads(this UrlHelper url)
