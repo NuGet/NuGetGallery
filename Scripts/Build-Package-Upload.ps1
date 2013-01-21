@@ -8,16 +8,16 @@ if($LastExitCode -ne 0) {
     print-error("            Error building project.              ")
     print-error("=================================================")
 } else {
-    & "$ScriptRoot\Package.ps1"
+    $Package = & "$ScriptRoot\Package.ps1" -PassThru
     if($LastExitCode -ne 0) {
         print-error("=================================================")
         print-error("        Error creating the Azure Packages.       ")
         print-error("=================================================")
     } else {
-        & "$ScriptRoot\Deploy.ps1"
+        & "$ScriptRoot\Upload.ps1" -PackageFile $Package.FullName
         if($LastExitCode -ne 0) {
             print-error("=================================================")
-            print-error("        Error deploying the Azure Packages.      ")
+            print-error("        Error pushing the Azure Packages.      ")
             print-error("=================================================")
         } else {
             print-success("=================================================")

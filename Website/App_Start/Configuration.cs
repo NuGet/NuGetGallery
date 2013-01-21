@@ -87,7 +87,7 @@ namespace NuGetGallery
             return ReadAppSettings(key, value => value);
         }
 
-        public string ReadConnectionString(string connectionStringName)
+        public static string ReadConnectionString(string connectionStringName)
         {
             // Read from connection strings and app settings, with app settings winning (to allow us to put the CS in azure config)
             string value = ReadAppSettings("Sql." + connectionStringName);
@@ -106,7 +106,7 @@ namespace NuGetGallery
                     () =>
                     {
                         // Load from config
-                        var keyName = String.Format("Gallery.{0}", key);
+                        var keyName = String.Format(CultureInfo.InvariantCulture, "Gallery.{0}", key);
                         var value = ConfigurationManager.AppSettings[keyName];
 
                         // Overwrite from Azure if present

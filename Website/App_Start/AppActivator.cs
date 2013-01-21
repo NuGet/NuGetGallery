@@ -33,11 +33,7 @@ namespace NuGetGallery
         {
             NinjectPreStart();
             MiniProfilerPreStart();
-
-            // Get configuration from the kernel
-            var config = Container.Kernel.Get<IConfiguration>();
-
-            ElmahPreStart(config);
+            ElmahPreStart();
         }
 
         public static void PostStart()
@@ -58,7 +54,7 @@ namespace NuGetGallery
             NinjectStop();
         }
 
-        private static void ElmahPreStart(IConfiguration config)
+        private static void ElmahPreStart()
         {
             ServiceCenter.Current = _ => Container.Kernel;
         }
