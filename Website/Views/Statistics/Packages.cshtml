@@ -1,0 +1,22 @@
+﻿@model StatisticsPackagesViewModel
+@{
+    ViewBag.Title = "Package Download Statistics";
+}
+
+<h2>Most Downloaded Packages (Top 100 Over the Last 6 Weeks)</h2>
+<table class="sexy-table">
+    <thead>
+        <tr>
+            <th class="first">Package</th><th>Downloads</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.DownloadPackagesAll)
+    {
+        <tr>
+            <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+            <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@item.Downloads</a></td>
+        </tr>
+    }
+    </tbody>
+</table>

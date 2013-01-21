@@ -16,9 +16,29 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.Stats,
-                "stats",
+                "stats/totals",
                 MVC.Pages.Stats());
 
+            routes.MapRoute(
+                RouteName.StatisticsHome,
+                "stats/home",
+                new { controller = MVC.Statistics.Name, action = "Index" });
+
+            routes.MapRoute(
+                RouteName.StatisticsPackages,
+                "stats/packages",
+                new { controller = MVC.Statistics.Name, action = "Packages" });
+
+            routes.MapRoute(
+                RouteName.StatisticsPackageVersions,
+                "stats/packageversions",
+                new { controller = MVC.Statistics.Name, action = "PackageVersions" });
+
+            routes.MapRoute(
+                RouteName.StatisticsPackageDownloadsByVersion,
+                "stats/packages/{id}",
+                new { controller = MVC.Statistics.Name, action = "PackageDownloadsByVersion" });
+            
             routes.Add(new JsonRoute("json/{controller}"));
 
             routes.MapRoute(

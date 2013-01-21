@@ -5,6 +5,7 @@
         string AzureStorageAccessKey { get; }
         string AzureStorageAccountName { get; }
         string AzureStorageBlobUrl { get; }
+        string AzureStatisticsConnectionString { get; }
         string FileStorageDirectory { get; }
         string AzureCdnHost { get; }
         PackageStoreType PackageStoreType { get; }

@@ -33,6 +33,11 @@ namespace NuGetGallery
             get { return ReadAppSettings("AzureStorageBlobUrl"); }
         }
 
+        public string AzureStatisticsConnectionString
+        {
+            get { return ReadConnectionString("AzureStatistics"); }
+        }
+
         public bool UseEmulator
         {
             get { return String.Equals(ReadAppSettings("UseAzureEmulator"), "true", StringComparison.OrdinalIgnoreCase); }
@@ -94,6 +99,34 @@ namespace NuGetGallery
             }
 
             return (T)ConfigThunks[key].Value;
+        }
+
+        public static string ReadConnectionString(string key)
+        {
+            return ReadConnectionString(key, value => value);
+        }
+
+        public static string ReadConnectionString(string key, Func<string, string> valueThunk)
+        {
+            if (!ConfigThunks.ContainsKey(key))
+            {
+                ConfigThunks.Add(
+                    key,
+                    new Lazy<object>(
+                        () =>
+                        {
+                            foreach (ConnectionStringSettings settings in ConfigurationManager.ConnectionStrings)
+                            {
+                                if (settings.Name == key)
+                                {
+                                    return valueThunk(settings.ConnectionString);
+                                }
+                            }
+                            return valueThunk(null);
+                        }));
+            }
+
+            return (string)ConfigThunks[key].Value;
         }
 
         public string FacebookAppID
