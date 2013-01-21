@@ -33,6 +33,11 @@ namespace NuGetGallery
             get { return ReadAppSettings("AzureStorageBlobUrl"); }
         }
 
+        public bool ReadOnlyMode
+        {
+            get { return String.Equals(ReadAppSettings("ReadOnlyMode"), "true", StringComparison.OrdinalIgnoreCase); }
+        }
+
         public bool UseEmulator
         {
             get { return String.Equals(ReadAppSettings("UseAzureEmulator"), "true", StringComparison.OrdinalIgnoreCase); }

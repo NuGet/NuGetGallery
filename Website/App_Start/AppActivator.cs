@@ -61,7 +61,9 @@ namespace NuGetGallery
         {
             var jobs = new IJob[]
                 {
-                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(), timeout: TimeSpan.FromMinutes(5)),
+                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
+                        () => new EntitiesContext(readOnly: false), // UpdateStats as a background job should always be able to write to DB just so the job doesn't fail. And we don't care if those updates it writes get lost anyway.
+                        timeout: TimeSpan.FromMinutes(5)),
                     new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(), timeout: TimeSpan.FromDays(4)),
                     new LuceneIndexingJob(TimeSpan.FromMinutes(10), timeout: TimeSpan.FromMinutes(2))
                 };
