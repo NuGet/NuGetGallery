@@ -7,12 +7,14 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
+using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Ninject;
 using Ninject.Modules;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
@@ -27,7 +29,7 @@ namespace NuGetGallery
             var gallerySetting = new Lazy<GallerySetting>(
                 () =>
                     {
-                        using (var entitiesContext = new EntitiesContext())
+                        using (var entitiesContext = new EntitiesContext(configuration.SqlConnectionString))
                         {
                             var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
                             return settingsRepo.GetAll().FirstOrDefault();
@@ -43,6 +45,19 @@ namespace NuGetGallery
             Bind<ISearchService>()
                 .To<LuceneSearchService>()
                 .InRequestScope();
+
+            if (!String.IsNullOrEmpty(configuration.AzureDiagnosticsConnectionString))
+            {
+                Bind<ErrorLog>()
+                    .ToMethod(_ => new TableErrorLog(configuration.AzureDiagnosticsConnectionString))
+                    .InSingletonScope();
+            }
+            else
+            {
+                Bind<ErrorLog>()
+                    .ToMethod(_ => new SqlErrorLog(configuration.SqlConnectionString))
+                    .InSingletonScope();
+            }
             
             if (IsDeployedToCloud)
             {
@@ -51,10 +66,19 @@ namespace NuGetGallery
                     .To<CloudPackageCacheService>()
                     .InSingletonScope();
 
-                // when running on Windows Azure, use the Azure Cache service
-                Bind<ICacheService>()
-                    .To<CloudCacheService>()
-                    .InSingletonScope();
+                // when running on Windows Azure, use the Azure Cache service if available
+                if (!String.IsNullOrEmpty(configuration.AzureCacheEndpoint))
+                {
+                    Bind<ICacheService>()
+                        .To<CloudCacheService>()
+                        .InSingletonScope();
+                }
+                else
+                {
+                    Bind<ICacheService>()
+                        .To<HttpContextCacheService>()
+                        .InRequestScope();
+                }
             }
             else
             {
@@ -69,7 +93,7 @@ namespace NuGetGallery
             }
 
             Bind<IEntitiesContext>()
-                .ToMethod(context => new EntitiesContext())
+                .ToMethod(context => new EntitiesContext(configuration.SqlConnectionString))
                 .InRequestScope();
 
             Bind<IEntityRepository<User>>()
@@ -183,13 +207,7 @@ namespace NuGetGallery
                 case PackageStoreType.AzureStorageBlob:
                     Bind<ICloudBlobClient>()
                         .ToMethod(
-                            context => new CloudBlobClientWrapper(
-                                           new CloudBlobClient(
-                                               new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
-                                               configuration.UseEmulator
-                                                   ? CloudStorageAccount.DevelopmentStorageAccount.Credentials
-                                                   : new StorageCredentials(
-                                                         configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
+                            context => new CloudBlobClientWrapper(CloudStorageAccount.Parse(configuration.AzureStorageConnectionString).CreateCloudBlobClient()))
                         .InSingletonScope();
                     Bind<IFileStorageService>()
                         .To<CloudBlobFileStorageService>()
@@ -262,7 +280,7 @@ namespace NuGetGallery
                 .InRequestScope();
         }
 
-        private static bool IsDeployedToCloud
+        public static bool IsDeployedToCloud
         {
             get
             {

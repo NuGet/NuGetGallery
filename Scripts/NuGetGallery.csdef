@@ -1,11 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2012-10.1.8">
-  <WebRole name="Website" vmsize="Medium">
+  <WebRole name="Website" vmsize="Small">
     <Startup>
-      <Task commandLine="EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
-      <!-- Configure IIS Logging as a background task, since it will likely need to wait for the IIS site to be created -->
+      <Task commandLine="Startup.cmd" executionContext="elevated" taskType="simple" />
       <Task commandLine="ConfigureIISLogging.cmd" executionContext="elevated" taskType="background" />
     </Startup>
+    <ConfigurationSettings>
+      <Setting name="Gallery.AzureStorageConnectionString" />
+      <Setting name="Gallery.AzureDiagnosticsConnectionString" />
+      <Setting name="Gallery.AzureCacheEndpoint" />
+      <Setting name="Gallery.AzureCdnHost" />
+      <Setting name="Gallery.Sql.NuGetGallery" />
+      <Setting name="Gallery.GoogleAnalyticsPropertyId" />
+      <Setting name="Gallery.PackageStoreType" />
+      <Setting name="Gallery.SiteRoot" />
+      <Setting name="Gallery.ValidationKey" />
+      <Setting name="Gallery.DecryptionKey" />
+    </ConfigurationSettings>
     <Sites>
       <Site name="Web">
         <Bindings>

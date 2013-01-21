@@ -6,36 +6,32 @@ namespace NuGetGallery
 {
     public class HttpContextCacheService : ICacheService
     {
-        public object GetItem(string key)
+        private readonly HttpContextBase _httpContext;
+
+        public HttpContextCacheService()
         {
             if (HttpContext.Current == null)
             {
                 throw new InvalidOperationException("An HttpContext object is not available.");
             }
+            _httpContext = new HttpContextWrapper(HttpContext.Current);
+        }
 
-            return HttpContext.Current.Cache.Get(key);
+        public object GetItem(string key)
+        {
+            return _httpContext.Cache.Get(key);
         }
 
         public void SetItem(string key, object item, TimeSpan timeout)
         {
-            if (HttpContext.Current == null)
-            {
-                throw new InvalidOperationException("An HttpContext object is not available.");
-            }
-
-            HttpContext.Current.Cache.Remove(key);
-            HttpContext.Current.Cache.Insert(
+            _httpContext.Cache.Remove(key);
+            _httpContext.Cache.Insert(
                 key, item, dependencies: null, absoluteExpiration: Cache.NoAbsoluteExpiration, slidingExpiration: timeout);
         }
 
         public void RemoveItem(string key)
         {
-            if (HttpContext.Current == null)
-            {
-                throw new InvalidOperationException("An HttpContext object is not available.");
-            }
-
-            HttpContext.Current.Cache.Remove(key);
+            _httpContext.Cache.Remove(key);
         }
     }
 }

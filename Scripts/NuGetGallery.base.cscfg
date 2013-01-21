@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*">
+  <Role name="Website">
+    <Instances count="2" />
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
+
+      <!-- NuGet Gallery Settings -->
+      <Setting name="Gallery.AzureStorageConnectionString" value="" />
+      <Setting name="Gallery.AzureDiagnosticsConnectionString" value="" />
+      <Setting name="Gallery.AzureCdnHost" value="" />
+      <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
+      <Setting name="Gallery.PackageStoreType" value="AzureStorageBlob" />
+      <Setting name="Gallery.SiteRoot" value="" />
+      <Setting name="Gallery.Sql.NuGetGallery" value="" />
+
+      <!-- Set this to enable use of the Azure Caching Service for Package Explorer in the Cloud -->
+      <Setting name="Gallery.AzureCacheEndpoint" value="" />
+
+      <!-- Make sure these are unique, secret and remain constant for a particular instance of the gallery! Otherwise cookies will break -->
+      <Setting name="Gallery.ValidationKey" value="" />
+      <Setting name="Gallery.DecryptionKey" value="" />
+    </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />
+      <Certificate name="nuget.org" thumbprint="" thumbprintAlgorithm="sha1" />
+    </Certificates>
+  </Role>
+</ServiceConfiguration>

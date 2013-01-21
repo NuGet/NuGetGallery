@@ -33,21 +33,30 @@ namespace NuGetGallery
         {
             NinjectPreStart();
             MiniProfilerPreStart();
+            ElmahPreStart();
         }
 
         public static void PostStart()
         {
+            // Get configuration from the kernel
+            var config = Container.Kernel.Get<IConfiguration>();
+
             MiniProfilerPostStart();
             DbMigratorPostStart();
-            BackgroundJobsPostStart();
+            BackgroundJobsPostStart(config);
             AppPostStart();
-            DynamicDataPostStart();
+            DynamicDataPostStart(config);
         }
 
         public static void Stop()
         {
             BackgroundJobsStop();
             NinjectStop();
+        }
+
+        private static void ElmahPreStart()
+        {
+            ServiceCenter.Current = _ => Container.Kernel;
         }
 
         private static void AppPostStart()
@@ -57,15 +66,15 @@ namespace NuGetGallery
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
-        private static void BackgroundJobsPostStart()
+        private static void BackgroundJobsPostStart(IConfiguration configuration)
         {
             var jobs = new IJob[]
                 {
-                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(), timeout: TimeSpan.FromMinutes(5)),
-                    new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(), timeout: TimeSpan.FromDays(4)),
-                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), timeout: TimeSpan.FromMinutes(2))
+                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(configuration.SqlConnectionString), timeout: TimeSpan.FromMinutes(5)),
+                    new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(configuration.SqlConnectionString), timeout: TimeSpan.FromDays(4)),
+                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString), timeout: TimeSpan.FromMinutes(2))
                 };
-            var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext()));
+            var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext(configuration.SqlConnectionString)));
             _jobManager = new JobManager(jobs, jobCoordinator)
                 {
                     RestartSchedulerOnFailure = true
@@ -88,9 +97,9 @@ namespace NuGetGallery
             dbMigrator.Update();
         }
 
-        private static void DynamicDataPostStart()
+        private static void DynamicDataPostStart(IConfiguration configuration)
         {
-            Registration.Register(RouteTable.Routes);
+            Registration.Register(RouteTable.Routes, configuration);
         }
 
         private static void MiniProfilerPreStart()
