@@ -71,6 +71,25 @@ function Select-ListItem {
     $items[$selection - 1]
 }
 
+function YesNoPrompt {
+    param($text)
+
+    $result = $false;
+    $loop = $true
+    do {
+        $answer = Read-Host $text
+        if("Yes".StartsWith($answer, "OrdinalIgnoreCase") -or [String]::IsNullOrEmpty($answer)) {
+            $loop = $false
+            $result = $true;
+        } elseif("No".StartsWith($answer, "OrdinalIgnoreCase")) {
+            $loop = $false;
+        }else {
+            Write-Host "Unexpected answer..."
+        }
+    } while($loop)
+    $result
+}
+
 function SelectOrUseProvided {
     param($Provided, $AllItems, [scriptblock]$Condition, $ObjectName, [scriptblock]$GetName)
     $Output = $null;

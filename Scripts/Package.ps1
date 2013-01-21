@@ -3,6 +3,8 @@
   [Parameter(Mandatory=$false)][string]$ReleaseBranch,
   [Parameter(Mandatory=$false)][string]$VMSize = $null,
   [Parameter(Mandatory=$false)][string]$AzureSDKRoot = $null,
+  [Parameter(Mandatory=$false)][string]$SSLCertificateName = $null,
+  [Parameter(Mandatory=$false)][switch]$EnableRDP,
   [Parameter(Mandatory=$false)][switch]$ForEmulator,
   [Parameter(Mandatory=$false)][switch]$PassThru
 )
@@ -93,6 +95,53 @@ function disable-debug {
     $compilNode.debug = "false";
     $resolvedPath = resolve-path($path) 
     $settings.Save($resolvedPath);
+}
+
+function Enable-SSL {
+    param($path, $certName)
+
+    $settings = [xml](get-content $path)
+    $epsNode = $settings.ServiceDefinition.WebRole.Endpoints
+    $newNode = $settings.CreateElement("InputEndpoint");
+    $newNode.name = "SSL"
+    $newNode.protocol ="https"
+    $newNode.port = "443"
+    $newNode.certificate = $certName
+    $epsNode.AppendChild($newNode)
+
+    $bindingsNode = $settings.ServiceDefinition.WebRole.Sites.Site.Bindings
+    $newNode = $settings.CreateElement("Binding")
+    $newNode.name = "SSLBinding"
+    $newNode.endpointName = "SSL";
+    $bindingsNode.AppendChild($newNode)
+
+    $resolvedPath = resolve-path($path) 
+    $settings.Save($resolvedPath);
+}
+
+function Enable-RDP {
+    param($path)
+
+    $settings = [xml](get-content $path)
+    $importsNode = $settings.ServiceDefinition.WebRole.Imports
+    
+    $raNode = $settings.CreateElement("Import");
+    $raNode.moduleName = "RemoteAccess"
+    $importsNode.AppendChild($raNode)
+    
+    $rfNode = $settings.CreateElement("Import");
+    $rfNode.moduleName = "RemoteForwarder"
+    $importsNode.AppendChild($rfNode)
+
+    $resolvedPath = resolve-path($path) 
+    $settings.Save($resolvedPath);
+}
+
+if($SSLCertificateName) {
+  Enable-SSL -path $csdefPath -certName $SSLCertificateName
+}
+if($EnableRDP) {
+  Enable-RDP -path $csdefPath
 }
 
 set-vmsize -path $csdefPath -size $VMSize
