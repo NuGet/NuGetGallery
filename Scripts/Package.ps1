@@ -3,7 +3,8 @@
   [Parameter(Mandatory=$false)][string]$ReleaseBranch,
   [Parameter(Mandatory=$false)][string]$VMSize = $null,
   [Parameter(Mandatory=$false)][string]$AzureSDKRoot = $null,
-  [Parameter(Mandatory=$false)][switch]$ForEmulator
+  [Parameter(Mandatory=$false)][switch]$ForEmulator,
+  [Parameter(Mandatory=$false)][switch]$PassThru
 )
 
 # If there's a NUGET_GALLERY_VM_SIZE environment variable, use it
@@ -28,7 +29,6 @@ $csdefBakPath = Join-Path $ScriptRoot "NuGetGallery.csdef.bak"
 $rolePropertiesPath = join-path $ScriptRoot "NuGetGallery.RoleProperties.txt"
 
 $cspkgFolder = join-path $rootPath "_AzurePackage"
-$cspkgPath = join-path $cspkgFolder "NuGetGallery.cspkg"
 $gitPath = (get-command git)
 $binPath = join-path $websitePath "bin"
 
@@ -51,6 +51,7 @@ if ($commitSha -eq $null) {
 if ($commitBranch -eq $null) {
     $commitBranch = (& "$gitPath" name-rev --name-only HEAD)
 }
+$cspkgPath = join-path $cspkgFolder "NuGetGallery_$commitSha.cspkg"
 
 if(Test-Path $cspkgFolder) {
   del $cspkgFolder -Force -Recurse
@@ -111,9 +112,7 @@ if($ForEmulator) {
 }
 
 # Find the most recent SDK version
-if(!$azureSdkPath) {
-  $azureSdkPath = (dir "$AzureToolsRoot\.NET SDK" | sort Name -desc | select -first 1).FullName
-}
+$azureSdkPath = Get-AzureSdkPath $azureSdkPath
 
 & "$azureSdkPath\bin\cspack.exe" "$csdefPath" /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath" $copyOnlySwitch
 if ($lastexitcode -ne 0) {
@@ -135,5 +134,10 @@ print-success("Azure $env:NUGET_GALLERY_ENV package and configuration dropped to
 print-success("Deployment Name: $packageDateTime ($packageSha on $commitBranch)")
 
 write-host ""
+
+if($PassThru) {
+  # Write out the package file
+  Get-Item $cspkgPath
+}
 
 Exit 0
