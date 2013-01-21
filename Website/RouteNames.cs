@@ -37,7 +37,7 @@
         public const string CreateCuratedPackageForm = "CreateCuratedPackageForm";
         public const string CuratedPackages = "CuratedPackages";
         public const string CuratedPackage = "CuratedPackage";
-        public const string Statistics = "Statistics";
+        public const string StatisticsHome = "StatisticsHome";
         public const string StatisticsPackages = "StatisticsPackages";
         public const string StatisticsPackageVersions = "StatisticsPackageVersions";
         public const string StatisticsPackageDownloadsByVersion = "StatisticsPackageDownloadsByVersion";
