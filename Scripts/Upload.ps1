@@ -1,7 +1,6 @@
 param(
 	[Parameter(Mandatory=$false)][string]$StorageAccountName = "nugetgallerydev",
-	[Parameter(Mandatory=$false)][string]$Container = "deployment-packages",
-    [Parameter(Mandatory=$false)][string]$PackageFile = $null,
+	[Parameter(Mandatory=$false)][string]$PackageFile = $null,
     [Parameter(Mandatory=$false)][string]$AzureSdkPath = $null
 )
 
@@ -31,7 +30,7 @@ $AzureSdkPath = Get-AzureSdkPath $AzureSdkPath
 $StorageConnectionString = Get-StorageAccountConnectionString $StorageAccountName
 $Account = [Microsoft.WindowsAzure.CloudStorageAccount]::Parse($StorageConnectionString)
 $BlobClient = [Microsoft.WindowsAzure.StorageClient.CloudStorageAccountStorageClientExtensions]::CreateCloudBlobClient($Account)
-$ContainerRef = $BlobClient.GetContainerReference($Container);
+$ContainerRef = $BlobClient.GetContainerReference("deployment-packages");
 $ContainerRef.CreateIfNotExist() | Out-Null
 $Blob = $ContainerRef.GetBlockBlobReference($PackageFilePath.Name)
 Write-Host "** Uploading Blob" -ForegroundColor Black -BackgroundColor Green

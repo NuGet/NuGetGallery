@@ -24,20 +24,7 @@ if(!(Get-Module -List Azure -ErrorAction SilentlyContinue)) {
 
 $subs = @(Get-AzureSubscription -ErrorAction SilentlyContinue)
 if(!$subs) {
-    $result = $false;
-    $loop = $true
-    do {
-        Write-Host "You must download and import a publish profile to use this command."
-        $answer = (Read-Host "Would you like do do that now? [Y/n]")
-        if("Yes".StartsWith($answer, "OrdinalIgnoreCase") -or [String]::IsNullOrEmpty($answer)) {
-            $loop = $false
-            $result = $true;
-        } elseif("No".StartsWith($answer, "OrdinalIgnoreCase")) {
-            $loop = $false;
-        }else {
-            Write-Host "Unexpected answer..."
-        }
-    } while($loop)
+    $result = YesNoPrompt "You must download and import a publish profile to use this command.`r`nWould you like do do that now? [Y/n]"
 
     if(!$result) {
         throw "Can't use this command without a publish profile imported..."
@@ -152,6 +139,7 @@ Write-Host "Loading Storage Account Key..."
 $StorageConnectionString = Get-StorageAccountConnectionString $Storage.StorageAccountName
 Set-Setting $settings "Gallery.AzureStorageConnectionString" $StorageConnectionString
 Set-Setting $settings "Gallery.AzureDiagnosticsConnectionString" $StorageConnectionString
+Set-Setting $settings "Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" $StorageConnectionString
 
 # Set simple settings
 Set-Setting $settings "Gallery.GoogleAnalyticsPropertyId" $GoogleAnalyticsPropertyId

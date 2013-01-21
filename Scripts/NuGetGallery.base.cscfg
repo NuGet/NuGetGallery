@@ -1,14 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceConfiguration serviceName="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*">
   <Role name="Website">
-    <Instances count="2" />
+    <Instances count="1" />
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="" />
+
+      <!-- Uncomment and set these if you have enabled RemoteAccess/RemoteForwarder -->
+      <!--
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
+      -->
 
       <!-- NuGet Gallery Settings -->
       <Setting name="Gallery.AzureStorageConnectionString" value="" />
@@ -26,9 +30,12 @@
       <Setting name="Gallery.ValidationKey" value="" />
       <Setting name="Gallery.DecryptionKey" value="" />
     </ConfigurationSettings>
+    <!-- Uncomment and set these if you have enabled RemoteAccess/RemoteForwarder and/or SSL -->
+    <!--
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />
       <Certificate name="nuget.org" thumbprint="" thumbprintAlgorithm="sha1" />
     </Certificates>
+  -->
   </Role>
 </ServiceConfiguration>
