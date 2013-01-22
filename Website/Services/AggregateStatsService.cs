@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         public AggregateStats GetAggregateStats()
         {
-            using (var dbContext = new EntitiesContext(configuration.SqlConnectionString, readOnly: true)) // aggregate stats never writes to DB anyway
+            using (var dbContext = new EntitiesContext(configuration.SqlConnectionString, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
             {
                 var database = dbContext.Database;
                 using (var command = database.Connection.CreateCommand())

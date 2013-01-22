@@ -10,8 +10,6 @@ using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Ninject;
 using Ninject.Modules;
 using NuGetGallery.Infrastructure;
@@ -30,7 +28,7 @@ namespace NuGetGallery
             var gallerySetting = new Lazy<GallerySetting>(
                 () =>
                     {
-                        using (var entitiesContext = new EntitiesContext(configuration.SqlConnectionString, readOnly: true)) // gallery settings are read-only
+                        using (var entitiesContext = new EntitiesContext(configuration.SqlConnectionString, configuration.ReadOnlyMode))
                         {
                             var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
                             return settingsRepo.GetAll().FirstOrDefault();
@@ -40,7 +38,7 @@ namespace NuGetGallery
             Bind<GallerySetting>().ToMethod(c => gallerySetting.Value);
 
             Bind<Lucene.Net.Store.Directory>()
-                .ToMethod((_) => LuceneCommon.GetDirectory())
+                .ToMethod(_ => LuceneCommon.GetDirectory())
                 .InSingletonScope();
 
             Bind<ISearchService>()

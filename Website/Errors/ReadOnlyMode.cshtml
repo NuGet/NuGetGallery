@@ -3,16 +3,6 @@
 @{
     Layout = "~/Errors/ErrorLayout.cshtml";
     Page.Title = "Please try again later! (Read-only)";
-    
-    //var errorPath = Request.QueryString["aspxerrorpath"];
-
-    //if (String.IsNullOrEmpty(errorPath))
-    //{
-    //    errorPath = Request.RawUrl;
-    //}
-
-    //errorPath = Path.GetFileNameWithoutExtension(errorPath);
-    
     Response.StatusCode = 503;
 }
 
