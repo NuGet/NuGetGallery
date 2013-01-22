@@ -20,6 +20,7 @@ namespace NuGetGallery
 {
     public class ContainerBindings : NinjectModule
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         public override void Load()
         {
             IConfiguration configuration = new Configuration();
@@ -79,6 +80,15 @@ namespace NuGetGallery
                         .To<HttpContextCacheService>()
                         .InRequestScope();
                 }
+
+                // when running on Windows Azure, pull the statistics from the warehouse via storage
+                Bind<IReportService>()
+                    .ToMethod(context => new CloudReportService(configuration.AzureStatisticsConnectionString))
+                    .InSingletonScope();
+
+                Bind<IStatisticsService>()
+                    .To<JsonStatisticsService>()
+                    .InSingletonScope();
             }
             else
             {

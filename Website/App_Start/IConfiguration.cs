@@ -4,6 +4,7 @@
     {
         string AzureDiagnosticsConnectionString { get; }
         string AzureStorageConnectionString { get; }
+        string AzureStatisticsConnectionString { get; }
         string FileStorageDirectory { get; }
         string AzureCdnHost { get; }
         PackageStoreType PackageStoreType { get; }

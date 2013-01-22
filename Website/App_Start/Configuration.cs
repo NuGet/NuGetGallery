@@ -29,6 +29,11 @@ namespace NuGetGallery
             get { return ReadAppSettings("AzureDiagnosticsConnectionString"); }
         }
 
+        public string AzureStatisticsConnectionString
+        {
+            get { return ReadAppSettings("AzureStatisticsConnectionString"); }
+        }
+
         public bool ReadOnlyMode
         {
             get { return String.Equals(ReadAppSettings("ReadOnlyMode"), "true", StringComparison.OrdinalIgnoreCase); }

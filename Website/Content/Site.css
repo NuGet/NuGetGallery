@@ -971,6 +971,22 @@ ul.pager li.next { padding-left: 10px; }
 
 .sexy-table tfoot tr { border-top: 2px solid #333; }
 
+    /* statistics */
+
+.statistics-layout {
+    width:400px;
+    float:left;
+    padding:25px
+}
+
+.statistics-more {
+    font-weight:bold;
+}
+
+.statistics-total {
+    font-weight:bold;
+}
+
     /* NuGet Badge */
 
 .nuget-badge code {

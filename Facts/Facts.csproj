@@ -153,7 +153,7 @@
     <Compile Include="Controllers\JsonApiControllerFacts.cs" />
     <Compile Include="Controllers\PackageFilesControllerFacts.cs" />
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
-    <Compile Include="Controllers\PagesControllerFacts.cs" />
+    <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Entities\EntitiesContextFacts.cs" />
     <Compile Include="Entities\PackageFacts.cs" />

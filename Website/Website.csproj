@@ -137,6 +137,9 @@
     <Reference Include="MvcHaack.Ajax">
       <HintPath>..\packages\MvcHaack.Ajax.MVC4.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Ninject">
       <HintPath>..\packages\Ninject.2.2.1.4\lib\net40-Full\Ninject.dll</HintPath>
     </Reference>
@@ -246,6 +249,7 @@
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="Controllers\PackageFilesController.cs" />
+    <Compile Include="Controllers\StatisticsController.cs" />
     <Compile Include="CuratedFeedsController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -291,6 +295,7 @@
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\StringHelper.cs" />
+    <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
@@ -479,8 +484,12 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
+    <Compile Include="Services\JsonStatisticsService.cs" />
+    <Compile Include="Services\CloudReportService.cs" />
+    <Compile Include="Services\IReportService.cs" />
     <Compile Include="Services\HttpContextCacheService.cs" />
     <Compile Include="Services\ICacheService.cs" />
+    <Compile Include="Services\IStatisticsService.cs" />
     <Compile Include="Services\NullPackageCacheService.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
@@ -511,6 +520,9 @@
     <Compile Include="SharedController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="StatisticsController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="T4MVC.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -529,6 +541,8 @@
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
     <Compile Include="ViewModels\PackagePart\PackageItem.cs" />
     <Compile Include="ViewModels\PackagePart\PathToTreeConverter.cs" />
+    <Compile Include="ViewModels\StatisticsPackagesItemViewModel.cs" />
+    <Compile Include="ViewModels\StatisticsPackagesViewModel.cs" />
     <Compile Include="ViewModels\ResendConfirmationEmailViewModel.cs" />
     <Compile Include="App_Start\AuthenticationModule.cs" />
     <Compile Include="App_Start\AppActivator.cs" />
@@ -1079,6 +1093,10 @@
     <Content Include="Web.ForbiddenHandlers.config" />
     <Content Include="Views\PackageFiles\Contents.cshtml" />
     <Content Include="Views\PackageFiles\PackageTooBig.cshtml" />
+    <Content Include="Views\Statistics\Index.cshtml" />
+    <Content Include="Views\Statistics\Packages.cshtml" />
+    <Content Include="Views\Statistics\PackageVersions.cshtml" />
+    <Content Include="Views\Statistics\PackageDownloadsByVersion.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />

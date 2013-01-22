@@ -17,6 +17,7 @@
       <!-- NuGet Gallery Settings -->
       <Setting name="Gallery.AzureStorageConnectionString" value="" />
       <Setting name="Gallery.AzureDiagnosticsConnectionString" value="" />
+      <Setting name="Gallery.AzureStatisticsConnectionString" value="" />
       <Setting name="Gallery.AzureCdnHost" value="" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
       <Setting name="Gallery.PackageStoreType" value="AzureStorageBlob" />

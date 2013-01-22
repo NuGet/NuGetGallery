@@ -21,9 +21,9 @@ using System.Web.Mvc.Html;
 using System.Web.Routing;
 using T4MVC;
 namespace NuGetGallery {
-    public partial class PagesController {
+    public partial class StatisticsController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        protected PagesController(Dummy d) { }
+        protected StatisticsController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected RedirectToRouteResult RedirectToAction(ActionResult result) {
@@ -33,20 +33,18 @@ namespace NuGetGallery {
 
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public PagesController Actions { get { return MVC.Pages; } }
+        public StatisticsController Actions { get { return MVC.Statistics; } }
         [GeneratedCode("T4MVC", "2.0")]
         public readonly string Area = "";
         [GeneratedCode("T4MVC", "2.0")]
-        public readonly string Name = "Pages";
+        public readonly string Name = "Statistics";
 
         static readonly ActionNamesClass s_actions = new ActionNamesClass();
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string Home = "Home";
-            public readonly string Terms = "Terms";
-            public readonly string Privacy = "Privacy";
+            public readonly string Totals = "Totals";
         }
 
 
@@ -55,28 +53,19 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
-            public readonly string Home = "~/Views/Pages/Home.cshtml";
-            public readonly string Privacy = "~/Views/Pages/Privacy.cshtml";
-            public readonly string Terms = "~/Views/Pages/Terms.cshtml";
+            public readonly string Index = "~/Views/Statistics/Index.cshtml";
+            public readonly string PackageDownloadsByVersion = "~/Views/Statistics/PackageDownloadsByVersion.cshtml";
+            public readonly string Packages = "~/Views/Statistics/Packages.cshtml";
+            public readonly string PackageVersions = "~/Views/Statistics/PackageVersions.cshtml";
         }
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-    public class T4MVC_PagesController: NuGetGallery.PagesController {
-        public T4MVC_PagesController() : base(Dummy.Instance) { }
+    public class T4MVC_StatisticsController: NuGetGallery.StatisticsController {
+        public T4MVC_StatisticsController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult Home() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Home);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Terms() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Terms);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Privacy() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Privacy);
+        public override System.Web.Mvc.JsonResult Totals() {
+            var callInfo = new T4MVC_JsonResult(Area, Name, ActionNames.Totals);
             return callInfo;
         }
 

@@ -13,6 +13,7 @@
       <!-- NuGet Gallery Settings -->
       <Setting name="Gallery.AzureStorageConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Gallery.AzureDiagnosticsConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="Gallery.AzureStatisticsConnectionString" value="UseDevelopmentStorage=true" />
       <Setting name="Gallery.AzureCdnHost" value="" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
       <Setting name="Gallery.PackageStoreType" value="AzureStorageBlob" />
