@@ -23,8 +23,6 @@ namespace NuGetGallery
             CloudBlobContainer container = blobClient.GetContainerReference("popularity");
             CloudBlockBlob blob = container.GetBlockBlobReference(name);
 
-            //TODO: async OpenRead
-
             MemoryStream stream = new MemoryStream();
 
             await Task.Factory.FromAsync(blob.BeginDownloadToStream(stream, null, null), blob.EndDownloadToStream);

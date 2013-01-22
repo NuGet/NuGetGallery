@@ -3,6 +3,10 @@ using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Xunit;
+using System.Globalization;
+using System.Web;
+using System.Threading;
+using System.Web.Routing;
 
 namespace NuGetGallery
 {
@@ -19,7 +23,7 @@ namespace NuGetGallery
             fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
             fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object), null);
 
             var model = (StatisticsPackagesViewModel)((ViewResult) await controller.Index()).Model;
 
@@ -55,7 +59,7 @@ namespace NuGetGallery
             fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
             fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object), null);
 
             var model = (StatisticsPackagesViewModel)((ViewResult) await controller.Index()).Model;
 
@@ -105,7 +109,7 @@ namespace NuGetGallery
 
             fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object), null);
 
             var model = (StatisticsPackagesViewModel)((ViewResult) await controller.Packages()).Model;
 
@@ -128,7 +132,7 @@ namespace NuGetGallery
 
             fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object), null);
 
             var model = (StatisticsPackagesViewModel)((ViewResult) await controller.PackageVersions()).Model;
 
@@ -153,7 +157,7 @@ namespace NuGetGallery
 
             fakeReportService.Setup(x => x.Load("RecentPopularity_" + PackageId + ".json")).Returns(Task.FromResult(fakeReport));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object), null);
 
             var model = (StatisticsPackagesViewModel)((ViewResult) await controller.PackageDownloadsByVersion(PackageId)).Model;
 
@@ -177,7 +181,7 @@ namespace NuGetGallery
 
             fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
 
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object), null);
 
             bool hasException = false;
 
@@ -196,6 +200,90 @@ namespace NuGetGallery
             {
                 throw new Exception("this exception thrown because expected exception was not thrown");
             }
+        }
+
+        public class TheStatsAction
+        {
+            [Fact]
+            public void UseServerCultureIfLanguageHeadersIsMissing()
+            {
+                // Arrange
+                var currentCulture = CultureInfo.CurrentCulture;
+
+                try
+                {
+                    Thread.CurrentThread.CurrentCulture = new CultureInfo("en-us");
+
+                    var statsService = new Mock<IAggregateStatsService>(MockBehavior.Strict);
+                    var stats = new AggregateStats
+                    {
+                        Downloads = 2013,
+                        TotalPackages = 1000,
+                        UniquePackages = 500
+                    };
+                    statsService.Setup(s => s.GetAggregateStats()).Returns(stats);
+
+                    var controller = CreateController(statsService);
+
+                    // Act
+                    var result = controller.Totals() as JsonResult;
+
+                    // Asssert
+                    Assert.NotNull(result);
+                    dynamic data = result.Data;
+
+                    Assert.Equal("2,013", (string)data.Downloads);
+                    Assert.Equal("500", (string)data.UniquePackages);
+                    Assert.Equal("1,000", (string)data.TotalPackages);
+                }
+                finally
+                {
+                    Thread.CurrentThread.CurrentCulture = currentCulture;
+                }
+            }
+
+            [Fact]
+            public void UseClientCultureIfLanguageHeadersIsPresent()
+            {
+                // Arrange
+                var statsService = new Mock<IAggregateStatsService>(MockBehavior.Strict);
+                var stats = new AggregateStats
+                {
+                    Downloads = 2013,
+                    TotalPackages = 1000,
+                    UniquePackages = 500
+                };
+                statsService.Setup(s => s.GetAggregateStats()).Returns(stats);
+
+                var request = new Mock<HttpRequestBase>();
+                request.Setup(r => r.UserLanguages).Returns(new string[] { "vi-VN" });
+
+                var controller = CreateController(statsService, request);
+
+                // Act
+                var result = controller.Totals() as JsonResult;
+
+                // Asssert
+                Assert.NotNull(result);
+                dynamic data = result.Data;
+
+                Assert.Equal("2.013", (string)data.Downloads);
+                Assert.Equal("500", (string)data.UniquePackages);
+                Assert.Equal("1.000", (string)data.TotalPackages);
+            }
+        }
+
+        public static StatisticsController CreateController(Mock<IAggregateStatsService> statsService, Mock<HttpRequestBase> request = null)
+        {
+            request = request ?? new Mock<HttpRequestBase>();
+
+            var context = new Mock<HttpContextBase>();
+            context.SetupGet(s => s.Request).Returns(request.Object);
+
+            var controller = new StatisticsController(null, statsService.Object);
+            controller.ControllerContext = new ControllerContext(context.Object, new RouteData(), controller);
+
+            return controller;
         }
     }
 }

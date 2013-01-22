@@ -39,28 +39,6 @@ namespace NuGetGallery
         public string PackageId { get; private set; }
         public int TotalPackageDownloads { get; private set; }
 
-        //public async Task LoadDownloadPackages()
-        //{
-        //    IsDownloadPackageAvailable = await _statisticsService.LoadDownloadPackages();
-        //}
-
-        //public async Task LoadDownloadPackageVersions()
-        //{
-        //    IsDownloadPackageDetailAvailable = await _statisticsService.LoadDownloadPackageVersions();
-        //}
-
-        //public async Task LoadPackageDownloadsByVersion(string id)
-        //{
-        //    await _statisticsService.LoadPackageDownloadsByVersion(id);
-        //    PackageId = id;
-        //    TotalPackageDownloads = 0;
-
-        //    foreach (StatisticsPackagesItemViewModel item in PackageDownloadsByVersion)
-        //    {
-        //        TotalPackageDownloads += item.Downloads;
-        //    }
-        //}
-
         public void SetPackageDownloadsByVersion(string id, IEnumerable<StatisticsPackagesItemViewModel> packageDownloadsByVersion)
         {
             PackageId = id;

@@ -15,14 +15,14 @@ namespace NuGetGallery
                 MVC.Pages.Home());
 
             routes.MapRoute(
-                RouteName.Stats,
-                "stats/totals",
-                MVC.Pages.Stats());
+                RouteName.StatisticsHome,
+                "stats",
+                new { controller = MVC.Statistics.Name, action = "Index" });
 
             routes.MapRoute(
-                RouteName.StatisticsHome,
-                "stats/home",
-                new { controller = MVC.Statistics.Name, action = "Index" });
+                RouteName.Stats,
+                "stats/totals",
+                MVC.Statistics.Totals());
 
             routes.MapRoute(
                 RouteName.StatisticsPackages,

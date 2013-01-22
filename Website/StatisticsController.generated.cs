@@ -44,6 +44,7 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+            public readonly string Totals = "Totals";
         }
 
 
@@ -62,6 +63,11 @@ namespace NuGetGallery {
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_StatisticsController: NuGetGallery.StatisticsController {
         public T4MVC_StatisticsController() : base(Dummy.Instance) { }
+
+        public override System.Web.Mvc.JsonResult Totals() {
+            var callInfo = new T4MVC_JsonResult(Area, Name, ActionNames.Totals);
+            return callInfo;
+        }
 
     }
 }
