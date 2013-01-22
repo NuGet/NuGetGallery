@@ -13,7 +13,14 @@ namespace NuGetGallery
 
         public StatisticsController(IAggregateStatsService aggregateStatsService)
         {
+            _statisticsService = null;
             _aggregateStatsService = aggregateStatsService;
+        }
+
+        public StatisticsController(IStatisticsService statisticsService)
+        {
+            _statisticsService = statisticsService;
+            _aggregateStatsService = null;
         }
 
         public StatisticsController(IStatisticsService statisticsService, IAggregateStatsService aggregateStatsService)
