@@ -5,15 +5,12 @@
     <ConfigurationSettings>
       <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="" />
 
-      <!-- Uncomment and set these if you have enabled RemoteAccess/RemoteForwarder -->
-      <!--
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="" />
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
-      -->
-
+      
       <!-- NuGet Gallery Settings -->
       <Setting name="Gallery.AzureStorageConnectionString" value="" />
       <Setting name="Gallery.AzureDiagnosticsConnectionString" value="" />
@@ -31,12 +28,9 @@
       <Setting name="Gallery.ValidationKey" value="" />
       <Setting name="Gallery.DecryptionKey" value="" />
     </ConfigurationSettings>
-    <!-- Uncomment and set these if you have enabled RemoteAccess/RemoteForwarder and/or SSL -->
-    <!--
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />
-      <Certificate name="nuget.org" thumbprint="" thumbprintAlgorithm="sha1" />
+      <Certificate name="sslcertificate" thumbprint="" thumbprintAlgorithm="sha1" />
     </Certificates>
-  -->
   </Role>
 </ServiceConfiguration>

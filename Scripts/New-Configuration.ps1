@@ -5,7 +5,12 @@ param(
     [Parameter(Mandatory=$false)][string]$TargetStorageAccount = $null,
     [Parameter(Mandatory=$false)][string]$TargetDatabaseServer = $null,
     [Parameter(Mandatory=$false)][string]$TargetDatabaseName = $null,
-    [Parameter(Mandatory=$false)][string]$AzureRealm = $null
+    [Parameter(Mandatory=$false)][string]$RemoteDesktopUserName = $null,
+    [Parameter(Mandatory=$false)][string]$RemoteDesktopPassword = $null,
+    [Parameter(Mandatory=$false)][string]$RemoteDesktopThumbprint = $null,
+    [Parameter(Mandatory=$false)][string]$SslThumbprint = $null,
+    [Parameter(Mandatory=$false)][string]$AzureRealm = $null,
+    [Parameter(Mandatory=$false)][string]$AzureSdkPath = $null
 )
 
 # Import common stuff
@@ -118,6 +123,33 @@ $aes = New-Object System.Security.Cryptography.AesManaged
 $aes.GenerateKey()
 $DecryptionKey = [BitConverter]::ToString($aes.Key).Replace("-", "").ToLowerInvariant()
 
+# Get Certificate data
+$certs = @([Linq.Enumerable]::ToArray((Get-AzureCertificate $Service.ServiceName)) | ForEach-Object { New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 @(,[Convert]::FromBase64String($_.Data)) })
+if($certs.Length -lt 2) {
+    throw "No Certificates are attached to this service. You need a Remote Desktop and SSL certificate."
+}
+
+# Identify Certificates
+$SslCert = SelectOrUseProvided $SslThumbprint $certs { $true } "SSL Certificate" { "$($_.DnsNameList) ($($_.Thumbprint))" }
+Write-Host "** Using SSL Cert: $($SslCert.Subject)" -ForegroundColor Black -BackgroundColor Green
+
+$RdpCert = SelectOrUseProvided $RemoteDesktopThumbprint $certs { $true } "Remote Desktop Certificate" { "$($_.DnsNameList) ($($_.Thumbprint))" }
+$RdpCreds = Get-Credential -Message "Remote Desktop Credentials"
+$RdpPassword = ExtractPassword $RdpCreds
+$RdpExpires = [DateTime]::UtcNow.AddYears(1)
+Write-Host "** Using RDP Cert: $($RdpCert.Subject)" -ForegroundColor Black -BackgroundColor Green
+Write-Host "** Using RDP Creds: $($RdpCreds.UserName)" -ForegroundColor Black -BackgroundColor Green
+Write-Host "** Using RDP Expiry: $($RdpExpires)" -ForegroundColor Black -BackgroundColor Green
+
+# Encrypt the Password
+$AzureSdkPath = Get-AzureSDKPath $AzureSdkPath
+$CsEncryptOut = $RdpPassword | & "$AzureSdkPath\bin\csencrypt.exe" Encrypt-Password -Thumbprint $RdpCert.Thumbprint -SkipComplexityCheck
+
+$i = 0;
+$start = -1;
+$CsEncryptOut | Foreach { if($_ -like "-----------*") { $start = $i + 1 } else { $i += 1 } }
+$RdpEncrypted = [String]::Join("", $CsEncryptOut[$start..$CsEncryptOut.Length])
+
 # Write the file!
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $template = (Join-Path $ScriptRoot "NuGetGallery.base.cscfg")
@@ -131,8 +163,15 @@ function Set-Setting {
     $node.value = $value;
 }
 
+function Set-Certificate {
+    param($certs, $name, [string]$thumbprint)
+    $node = $certs.Certificate | Where-Object { $_.name -eq $name }
+    $node.thumbprint = $thumbprint;   
+}
+
 $outXml = [xml](cat $template)
 $settings = $outXml.ServiceConfiguration.Role.ConfigurationSettings
+$certs = $outXml.ServiceConfiguration.Role.Certificates
 
 # Set Storage Connection Strings
 Write-Host "Loading Storage Account Key..."
@@ -140,6 +179,13 @@ $StorageConnectionString = Get-StorageAccountConnectionString $Storage.StorageAc
 Set-Setting $settings "Gallery.AzureStorageConnectionString" $StorageConnectionString
 Set-Setting $settings "Gallery.AzureDiagnosticsConnectionString" $StorageConnectionString
 Set-Setting $settings "Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" $StorageConnectionString
+
+# Set RDP Settings
+Set-Setting $settings "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" $RdpCreds.UserName
+Set-Setting $settings "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" $RdpEncrypted
+Set-Setting $settings "Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" $RdpExpires.ToString("yyyy-MM-ddTHH:mm:ss.fffffffK")
+Set-Certificate $certs "Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" $RdpCert.Thumbprint
+Set-Certificate $certs "sslcertificate" $SslCert.Thumbprint
 
 # Set simple settings
 Set-Setting $settings "Gallery.GoogleAnalyticsPropertyId" $GoogleAnalyticsPropertyId
@@ -149,15 +195,9 @@ Set-Setting $settings "Gallery.ValidationKey" $ValidationKey
 Set-Setting $settings "Gallery.DecryptionKey" $DecryptionKey
 
 # Set Connection String
-$UserName = $DatabaseCredentials.UserName
-$Password = "";
-try {
-    $unmanagedString = [System.Runtime.InteropServices.Marshal]::SecureStringToGlobalAllocUnicode($DatabaseCredentials.Password)
-    $Password = [System.Runtime.InteropServices.Marshal]::PtrToStringUni($unmanagedString)
-} finally {
-    [System.Runtime.InteropServices.Marshal]::ZeroFreeGlobalAllocUnicode($unmanagedString);
-}
-$ConnectionString = "Server=tcp:$($SqlServer.ServerName).database.windows.net;Database=$Database;User ID=$($UserName)@$($SqlServer.ServerName);Password=$Password;Trusted_Connection=False;Encrypt=True"
+$DbUserName = $DatabaseCredentials.UserName
+$DbPassword = ExtractPassword $DatabaseCredentials
+$ConnectionString = "Server=tcp:$($SqlServer.ServerName).database.windows.net;Database=$Database;User ID=$($DbUserName)@$($SqlServer.ServerName);Password=$DbPassword;Trusted_Connection=False;Encrypt=True"
 Set-Setting $settings "Gallery.Sql.NuGetGallery" $ConnectionString
 
 # Resolve the path to the output file. Can't just use Resolve-Path because that will fail if it does not exist.

@@ -71,6 +71,18 @@ function Select-ListItem {
     $items[$selection - 1]
 }
 
+function ExtractPassword {
+    param($cred)
+    $Password = "";
+    try {
+        $unmanagedString = [System.Runtime.InteropServices.Marshal]::SecureStringToGlobalAllocUnicode($cred.Password)
+        $Password = [System.Runtime.InteropServices.Marshal]::PtrToStringUni($unmanagedString)
+    } finally {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeGlobalAllocUnicode($unmanagedString);
+    }
+    $Password
+}
+
 function YesNoPrompt {
     param($text)
 
