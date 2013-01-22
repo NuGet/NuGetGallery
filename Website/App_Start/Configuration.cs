@@ -31,7 +31,7 @@ namespace NuGetGallery
 
         public string AzureStatisticsConnectionString
         {
-            get { return ReadConnectionString("AzureStatistics"); }
+            get { return ReadAppSettings("AzureStatisticsConnectionString"); }
         }
 
         public bool UseEmulator
@@ -145,34 +145,6 @@ namespace NuGetGallery
             }
 
             return (T)ConfigThunks[key]();
-        }
-
-        public static string ReadConnectionString(string key)
-        {
-            return ReadConnectionString(key, value => value);
-        }
-
-        public static string ReadConnectionString(string key, Func<string, string> valueThunk)
-        {
-            if (!ConfigThunks.ContainsKey(key))
-            {
-                ConfigThunks.Add(
-                    key,
-                    new Lazy<object>(
-                        () =>
-                        {
-                            foreach (ConnectionStringSettings settings in ConfigurationManager.ConnectionStrings)
-                            {
-                                if (settings.Name == key)
-                                {
-                                    return valueThunk(settings.ConnectionString);
-                                }
-                            }
-                            return valueThunk(null);
-                        }));
-            }
-
-            return (string)ConfigThunks[key].Value;
         }
 
         public string FacebookAppID
