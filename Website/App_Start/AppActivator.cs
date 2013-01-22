@@ -11,6 +11,7 @@ using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Ninject;
 using Ninject.Web.Mvc;
 using NuGetGallery;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Jobs;
 using NuGetGallery.Migrations;
 using StackExchange.Profiling;
@@ -63,6 +64,7 @@ namespace NuGetGallery
         {
             Routes.RegisterRoutes(RouteTable.Routes);
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
+            GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 

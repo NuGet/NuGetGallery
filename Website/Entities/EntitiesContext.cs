@@ -1,5 +1,4 @@
-﻿using System.Data;
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using WebBackgrounder;
 using Ninject;
@@ -13,7 +12,9 @@ namespace NuGetGallery
     {
         public EntitiesContext Create()
         {
-            return new EntitiesContext(Container.Kernel.Get<IConfiguration>().SqlConnectionString, Container.Kernel.Get<IConfiguration>().ReadOnlyMode);
+            return new EntitiesContext(
+                Container.Kernel.Get<IConfiguration>().SqlConnectionString, 
+                Container.Kernel.Get<IConfiguration>().ReadOnlyMode);
         }
     }
 
@@ -36,7 +37,7 @@ namespace NuGetGallery
         {
             if (ReadOnly)
             {
-                throw new ReadOnlyException("SaveChanges() is not allowed: the EntitiesContext is currently in read only mode");
+                throw new ReadOnlyModeException("SaveChanges() is not allowed: the EntitiesContext is currently in read only mode");
             }
 
             return base.SaveChanges();
