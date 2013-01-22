@@ -11,6 +11,7 @@ using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Ninject;
 using Ninject.Web.Mvc;
 using NuGetGallery;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Jobs;
 using NuGetGallery.Migrations;
 using StackExchange.Profiling;
@@ -63,18 +64,22 @@ namespace NuGetGallery
         {
             Routes.RegisterRoutes(RouteTable.Routes);
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
+            GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
         private static void BackgroundJobsPostStart(IConfiguration configuration)
         {
+            // readonly: false background jobs and the coordinator should always be able to write to DB just so the job doesn't fail. And we don't care if those updates it writes get lost anyway.
             var jobs = new IJob[]
                 {
-                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), () => new EntitiesContext(configuration.SqlConnectionString), timeout: TimeSpan.FromMinutes(5)),
-                    new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(configuration.SqlConnectionString), timeout: TimeSpan.FromDays(4)),
-                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString), timeout: TimeSpan.FromMinutes(2))
+                    new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
+                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), 
+                        timeout: TimeSpan.FromMinutes(5)),
+                    new WorkItemCleanupJob(TimeSpan.FromDays(1), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), timeout: TimeSpan.FromDays(4)),
+                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), timeout: TimeSpan.FromMinutes(2))
                 };
-            var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext(configuration.SqlConnectionString)));
+            var jobCoordinator = new WebFarmJobCoordinator(new EntityWorkItemRepository(() => new EntitiesContext(configuration.SqlConnectionString, readOnly: false)));
             _jobManager = new JobManager(jobs, jobCoordinator)
                 {
                     RestartSchedulerOnFailure = true

@@ -12,22 +12,36 @@ namespace NuGetGallery
     {
         public EntitiesContext Create()
         {
-            return new EntitiesContext(Container.Kernel.Get<IConfiguration>().SqlConnectionString);
+            return new EntitiesContext(
+                Container.Kernel.Get<IConfiguration>().SqlConnectionString, 
+                Container.Kernel.Get<IConfiguration>().ReadOnlyMode);
         }
     }
 
     public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
     {
-        public EntitiesContext(string connectionString)
+        public EntitiesContext(string connectionString, bool readOnly)
             : base(connectionString)
         {
+            ReadOnly = readOnly;
         }
 
+        public bool ReadOnly { get; private set; }
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
         public IDbSet<WorkItem> WorkItems { get; set; }
+
+        public override int SaveChanges()
+        {
+            if (ReadOnly)
+            {
+                throw new ReadOnlyModeException("SaveChanges() is not allowed: the EntitiesContext is currently in read only mode");
+            }
+
+            return base.SaveChanges();
+        }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
