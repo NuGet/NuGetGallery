@@ -53,10 +53,8 @@ namespace NuGetGallery
             {
                 return Redirect(package.ExternalPackageUrl);
             }
-            else
-            {
-                return await _packageFileService.CreateDownloadPackageActionResultAsync(package);
-            }
+
+            return await _packageFileService.CreateDownloadPackageActionResultAsync(package);
         }
 
         [ActionName("GetNuGetExeApi")]
