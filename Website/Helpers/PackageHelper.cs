@@ -32,11 +32,7 @@ namespace NuGetGallery.Helpers
                 // We no longer allow that today.
                 if (!String.IsNullOrEmpty(package.ExternalPackageUrl))
                 {
-                    var httpClient = new HttpClient();
-                    using (var responseStream = await httpClient.GetStreamAsync(package.ExternalPackageUrl))
-                    {
-                        buffer = responseStream.ReadAllBytes();
-                    }
+                    throw new InvalidOperationException("The requested package is not hosted on blob storage.");
                 }
                 else
                 {

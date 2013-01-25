@@ -34,6 +34,11 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            if (!String.IsNullOrEmpty(package.ExternalPackageUrl))
+            {
+                return View("ExternalPackage", package);
+            }
+
             if (package.PackageFileSize > MaximumAllowedPackageFileSize)
             {
                 return View("PackageTooBig", package);
