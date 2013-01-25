@@ -71,16 +71,10 @@ namespace NuGetGallery.Helpers
                     }
                 }
 
-                // if not reaching the end of the stream yet, append the text "Truncating..."
+                // if not reaching the end of the stream yet, append the text "The rest of..."
                 if (reader.Peek() > -1)
                 {
-                    // continue reading the rest of the current line to avoid dangling line
-                    sb.AppendLine(reader.ReadLine());
-
-                    if (reader.Peek() > -1)
-                    {
-                        sb.AppendLine().AppendLine("*** The rest of the content is truncated. ***");
-                    }
+                    sb.AppendLine().AppendLine("*** The rest of the content is truncated. ***");
                 }
             }
 
