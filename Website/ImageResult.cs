@@ -35,6 +35,7 @@ namespace NuGetGallery
 
             HttpResponseBase response = context.HttpContext.Response;
             response.ContentType = ContentType;
+            response.AddHeader("X-Content-Type-Options", "nosniff");
 
             try
             {

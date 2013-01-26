@@ -13,7 +13,7 @@ namespace NuGetGallery
     public partial class PackageFilesController : Controller
     {
         private const long MaximumAllowedPackageFileSize = 3L * 1024 * 1024;		// maximum package size = 3MB
-        private const int MaximumPackageContentFileSize = 250 * 1024;               // maximum package content file to return before trimming = 250K
+        private const int MaximumPackageContentFileSize = 100 * 1024;               // maximum package content file to return before trimming = 100K
         private const int MaximumImageFileSize = 2 * 1204 * 1024;                   // maximum image size = 2MB
 
         private readonly IPackageService _packageService;
@@ -97,19 +97,8 @@ namespace NuGetGallery
                 }
             }
 
+            HttpContext.Response.AddHeader("X-Content-Type-Options", "nosniff");
             return result;
-        }
-
-        [ActionName("Download")]
-        public async Task<ActionResult> DownloadFileContent(string id, string version, string filePath)
-        {
-            IPackageFile packageFile = await GetPackageFile(id, version, filePath);
-            if (packageFile == null)
-            {
-                return HttpNotFound();
-            }
-
-            return File(packageFile.GetStream(), "application/octet-stream", Path.GetFileName(packageFile.Path));
         }
 
         private async Task<IPackageFile> GetPackageFile(string id, string version, string filePath)
