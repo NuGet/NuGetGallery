@@ -27,6 +27,7 @@ namespace NuGetGallery
             _cacheService = cacheService;
         }
 
+        [RequireRemoteHttps]
         public async Task<ActionResult> Contents(string id, string version)
         {
             Package package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -52,6 +53,7 @@ namespace NuGetGallery
             return View(viewModel);
         }
 
+        [RequireRemoteHttps]
         [ActionName("View")]
         [CompressFilter]
         [CacheFilter(Duration = 60 * 60 * 24)]      // cache one day
@@ -70,7 +72,7 @@ namespace NuGetGallery
                 Stream imageStream = packageFile.GetStream();
                 if (imageStream.Length <= MaximumImageFileSize)
                 {
-                    return new ImageResult(packageFile.GetStream(), FileHelper.GetImageMimeType(packageFile.Path));
+                    return new ImageResult(imageStream, FileHelper.GetImageMimeType(packageFile.Path));
                 }
                 else
                 {
