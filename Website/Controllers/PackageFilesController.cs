@@ -14,6 +14,7 @@ namespace NuGetGallery
     {
         private const long MaximumAllowedPackageFileSize = 3L * 1024 * 1024;		// maximum package size = 3MB
         private const int MaximumPackageContentFileSize = 25 * 1024;                // maximum package content file to return before trimming = 25K
+        private const int MaximumImageFileSize = 2 * 1204 * 1024;                   // maximum image size = 2MB
 
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
@@ -65,7 +66,17 @@ namespace NuGetGallery
             // treat image files specially
             if (FileHelper.IsImageFile(packageFile.Path))
             {
-                return new ImageResult(packageFile.GetStream(), FileHelper.GetImageMimeType(packageFile.Path));
+                // don't allow image file bigger than 2MB
+                Stream imageStream = packageFile.GetStream();
+                if (imageStream.Length <= MaximumImageFileSize)
+                {
+                    return new ImageResult(packageFile.GetStream(), FileHelper.GetImageMimeType(packageFile.Path));
+                }
+                else
+                {
+                    imageStream.Close();
+                    return HttpNotFound();
+                }
             }
 
             var result = new ContentResult
