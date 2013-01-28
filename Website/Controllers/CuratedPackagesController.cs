@@ -12,7 +12,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult GetCreateCuratedPackageForm(string curatedFeedName)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName);
+            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: false);
             if (curatedFeed == null)
             {
                 return HttpNotFound();
@@ -117,7 +117,7 @@ namespace NuGetGallery
                 return View("CreateCuratedPackageForm");
             }
 
-            var packageRegistration = GetService<IPackageRegistrationByIdQuery>().Execute(request.PackageId);
+            var packageRegistration = GetService<IPackageRegistrationByIdQuery>().Execute(request.PackageId, includePackages: false);
             if (packageRegistration == null)
             {
                 ModelState.AddModelError("PackageId", Strings.PackageWithIdDoesNotExist);

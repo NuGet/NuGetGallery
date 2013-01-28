@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Web.Mvc;
 using NuGet;
 
@@ -17,12 +18,15 @@ namespace NuGetGallery
 
         protected static bool DependenciesAreCurated(Package galleryPackage, CuratedFeed curatedFeed)
         {
-            if (galleryPackage != null && galleryPackage.Dependencies.AnySafe())
+            if (galleryPackage.Dependencies.IsEmpty())
             {
-                return galleryPackage.Dependencies.All(d => curatedFeed.Packages.Where(p => p.Included).Select(p => p.PackageRegistration.Id).Contains(d.Id));
+                return true;
             }
 
-            return true;
+            return galleryPackage.Dependencies.All(
+                d => curatedFeed.Packages
+                    .Where(p => p.Included)
+                    .Any(p => p.PackageRegistration.Id.Equals(d.Id, StringComparison.InvariantCultureIgnoreCase)));
         }
     }
 }
