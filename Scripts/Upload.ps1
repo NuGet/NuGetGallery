@@ -1,5 +1,6 @@
 param(
 	[Parameter(Mandatory=$false)][string]$StorageAccountName = "nugetgallerydev",
+    [Parameter(Mandatory=$false)][string]$StorageConnectionString,
 	[Parameter(Mandatory=$false)][string]$PackageFile = $null,
     [Parameter(Mandatory=$false)][string]$AzureSdkPath = $null
 )
@@ -27,7 +28,9 @@ $AzureSdkPath = Get-AzureSdkPath $AzureSdkPath
 
 [System.Reflection.Assembly]::LoadFrom("$AzureSdkPath\bin\Microsoft.WindowsAzure.StorageClient.dll") | Out-Null
 
-$StorageConnectionString = Get-StorageAccountConnectionString $StorageAccountName
+if(!$StorageConnectionString) {
+    $StorageConnectionString = Get-StorageAccountConnectionString $StorageAccountName
+}
 $Account = [Microsoft.WindowsAzure.CloudStorageAccount]::Parse($StorageConnectionString)
 $BlobClient = [Microsoft.WindowsAzure.StorageClient.CloudStorageAccountStorageClientExtensions]::CreateCloudBlobClient($Account)
 $ContainerRef = $BlobClient.GetContainerReference("deployment-packages");
