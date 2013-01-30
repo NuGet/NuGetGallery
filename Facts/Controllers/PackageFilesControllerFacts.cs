@@ -115,7 +115,7 @@ namespace NuGetGallery
                 var buffer = packageStream.ToArray();
 
                 var cacheService = new Mock<IPackageCacheService>(MockBehavior.Strict);
-                cacheService.Setup(p => p.GetBytes("a.1.0")).Returns(buffer);
+                cacheService.Setup(p => p.GetBytes(It.IsAny<string>())).Returns(buffer);
 
                 var packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(s => s.DownloadPackageFileAsync(package)).Throws(new InvalidOperationException());
