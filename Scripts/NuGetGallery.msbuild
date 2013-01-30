@@ -4,10 +4,9 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <SolutionDir Condition="'$(SolutionDir)' == ''">$(MSBuildThisFileDirectory)\..\</SolutionDir>
     <Platform>Any CPU</Platform>
-    <OutDir>$(SolutionDir)..\Website\bin\</OutDir>
-    <PackagedWebsiteDir>$(SolutionDir)..\_PackagedWebsite</PackagedWebsiteDir>
+    <OutDir>$(MSBuildThisFileDirectory)..\Website\bin\</OutDir>
+    <PackagedWebsiteDir>$(MSBuildThisFileDirectory)..\_PackagedWebsite</PackagedWebsiteDir>
   </PropertyGroup>
   
   <Target Name="Clean">
