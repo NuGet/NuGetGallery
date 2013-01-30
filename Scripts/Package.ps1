@@ -4,13 +4,8 @@
   [Parameter(Mandatory=$false)][string]$VMSize = $null,
   [Parameter(Mandatory=$false)][string]$AzureSDKRoot = $null,
   [Parameter(Mandatory=$false)][switch]$ForEmulator,
-  [Parameter(Mandatory=$false)][switch]$PassThru,
-  [Parameter(Mandatory=$false)][switch]$TeamCity
+  [Parameter(Mandatory=$false)][switch]$PassThru
 )
-
-if($TeamCity) {
-  $ErrorActionPreference = "Stop"
-}
 
 # If there's a NUGET_GALLERY_VM_SIZE environment variable, use it
 if(Test-Path env:\NUGET_GALLERY_VM_SIZE) {
@@ -122,10 +117,6 @@ $azureSdkPath = Get-AzureSdkPath $azureSdkPath
 
 & "$azureSdkPath\bin\cspack.exe" "$csdefPath" /out:"$cspkgPath" /role:"Website;$websitePath" /sites:"Website;Web;$websitePath" /rolePropertiesFile:"Website;$rolePropertiesPath" $copyOnlySwitch
 if ($lastexitcode -ne 0) {
-  if($TeamCity) {
-      Write-Host "##teamcity[message text='Packaging Failed' status='ERROR']"
-      Write-Host "##teamcity[buildStatus status='FAILURE']"
-  }
   throw "CSPack Failed with Exit Code: $lastexitcode"
   exit 1 
 }
