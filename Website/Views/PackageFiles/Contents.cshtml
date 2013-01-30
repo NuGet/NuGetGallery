@@ -381,7 +381,7 @@
                 $.ajax(viewUrl,
                     {
                         success: function (data, status) {
-                            currentData = data.replace('<', '&lt;');
+                            currentData = encodeHtml(data);
                             var brush = determineBrush(filePath);
                             showContentForCurrentFile(brush);
                         },
@@ -392,6 +392,10 @@
                         }
                     });
             }
+        }
+
+        function encodeHtml(html) {
+            return $("<div/>").text(html).html();
         }
 
         function showContentForCurrentFile(brush) {

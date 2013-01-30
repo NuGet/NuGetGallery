@@ -1,11 +1,10 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using NuGet;
-
-using HttpClient = System.Net.Http.HttpClient;
 
 namespace NuGetGallery.Helpers
 {
@@ -40,7 +39,7 @@ namespace NuGetGallery.Helpers
                     {
                         if (stream == null)
                         {
-                            throw new InvalidOperationException("Couldn't download the package from the storage.");
+                            return null;
                         }
 
                         buffer = stream.ReadAllBytes();
@@ -55,7 +54,18 @@ namespace NuGetGallery.Helpers
 
         private static string CreateCacheKey(string id, string version)
         {
-            return id.ToLowerInvariant() + "." + version.ToLowerInvariant();
+            string key = id.ToLowerInvariant() + "." + version.ToLowerInvariant();
+
+            byte[] bytes = Encoding.Unicode.GetBytes(key);
+
+            using (var sha1 = SHA256.Create())
+            {
+                byte[] hash = sha1.ComputeHash(bytes);
+                string encodedHash = Convert.ToBase64String(hash);
+
+                // some Base64 characters are invalid for a file name.
+                return encodedHash.Replace('+', '_').Replace('/', '-').Replace("=", "");
+            }
         }
     }
 }

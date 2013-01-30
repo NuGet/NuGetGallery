@@ -47,6 +47,10 @@ namespace NuGetGallery
             }
 
             IPackage packageFile = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheService, _packageFileService);
+            if (packageFile == null)
+            {
+                return View("PackageFileNotFound", package);
+            }
 
             PackageItem rootFolder = PathToTreeConverter.Convert(packageFile.GetFiles());
             var viewModel = new PackageContentsViewModel(packageFile, package.PackageRegistration.Owners, rootFolder);
@@ -99,7 +103,10 @@ namespace NuGetGallery
                 }
             }
 
-            HttpContext.Response.AddHeader("X-Content-Type-Options", "nosniff");
+            if (HttpContext != null)
+            {
+                HttpContext.Response.AddHeader("X-Content-Type-Options", "nosniff");
+            }
             return result;
         }
 
@@ -119,6 +126,10 @@ namespace NuGetGallery
             filePath = filePath.Replace('/', Path.DirectorySeparatorChar);
 
             IPackage packageWithContents = await NuGetGallery.Helpers.PackageHelper.GetPackageFromCacheOrDownloadIt(package, _cacheService, _packageFileService);
+            if (packageWithContents == null)
+            {
+                return null;
+            }
 
             IPackageFile packageFile = packageWithContents.GetFiles()
                                                           .FirstOrDefault(p => p.Path.Equals(filePath, StringComparison.OrdinalIgnoreCase));
