@@ -17,6 +17,7 @@
       <Setting name="Gallery.AzureCdnHost" value="" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
       <Setting name="Gallery.PackageStoreType" value="AzureStorageBlob" />
+      <Setting name="Gallery.ReadOnlyMode" value="" /><!-- set value 'true' to put the gallery in read only mode -->
       <Setting name="Gallery.SiteRoot" value="http://nuget.org/" />
       <Setting name="Gallery.Sql.NuGetGallery" value="" />
 
