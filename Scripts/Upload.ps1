@@ -2,8 +2,13 @@ param(
 	[Parameter(Mandatory=$false)][string]$StorageAccountName = "nugetgallerydev",
     [Parameter(Mandatory=$false)][string]$StorageConnectionString,
 	[Parameter(Mandatory=$false)][string]$PackageFile = $null,
-    [Parameter(Mandatory=$false)][string]$AzureSdkPath = $null
+    [Parameter(Mandatory=$false)][string]$AzureSdkPath = $null,
+    [Parameter(Mandatory=$false)][switch]$TeamCity
 )
+
+if($TeamCity) {
+  $ErrorActionPreference = "Stop"
+}
 
 # Import common stuff
 $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)

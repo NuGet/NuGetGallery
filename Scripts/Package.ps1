@@ -8,6 +8,10 @@
   [Parameter(Mandatory=$false)][switch]$TeamCity
 )
 
+if($TeamCity) {
+  $ErrorActionPreference = "Stop"
+}
+
 # If there's a NUGET_GALLERY_VM_SIZE environment variable, use it
 if(Test-Path env:\NUGET_GALLERY_VM_SIZE) {
   $VMSize = $env:NUGET_GALLERY_VM_SIZE
