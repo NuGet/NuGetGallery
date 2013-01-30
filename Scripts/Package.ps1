@@ -120,6 +120,7 @@ $azureSdkPath = Get-AzureSdkPath $azureSdkPath
 if ($lastexitcode -ne 0) {
   if($TeamCity) {
       Write-Host "##teamcity[message text='Packaging Failed' status='ERROR']"
+      Write-Host "##teamcity[buildStatus status='FAILURE']"
   }
   throw "CSPack Failed with Exit Code: $lastexitcode"
   exit 1 

@@ -9,6 +9,7 @@
 if($LASTEXITCODE -ne 0) {
     if($TeamCity) {
         Write-Host "##teamcity[message text='Build Failed' status='ERROR']"
+        Write-Host "##teamcity[buildStatus status='FAILURE']"
     }
     throw "Build Failed";
     exit 1;
