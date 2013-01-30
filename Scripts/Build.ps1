@@ -5,3 +5,7 @@
 )
 
 & "$(get-content env:windir)\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" $buildFile $buildParams $buildTarget
+if($LASTEXITCODE -ne 0) {
+    throw "Build Failed";
+    exit 1;
+}
