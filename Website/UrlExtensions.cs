@@ -126,17 +126,14 @@ namespace NuGetGallery
 
         public static string ViewPackageContents(this UrlHelper url, IPackageVersionModel package)
         {
-            return url.RouteUrl(RouteName.PackageFileContentsAction, new { id = package.Id, version = package.Version });
+            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            return url.RouteUrl(RouteName.PackageFileContentsAction, new { id = package.Id, version = package.Version }, protocol);
         }
 
         public static string ViewPackageFile(this UrlHelper url, string id, string version)
         {
-            return url.RouteUrl(RouteName.PackageFilePathAction, new { id = id, version = version, action="View" });
-        }
-
-        public static string DownloadPackageFile(this UrlHelper url, string id, string version)
-        {
-            return url.RouteUrl(RouteName.PackageFilePathAction, new { id = id, version = version, action = "Download" });
+            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            return url.RouteUrl(RouteName.PackageFilePathAction, new { id = id, version = version, action="View" }, protocol);
         }
 
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)

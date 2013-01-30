@@ -1097,6 +1097,8 @@
     <Content Include="Views\Statistics\Packages.cshtml" />
     <Content Include="Views\Statistics\PackageVersions.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsByVersion.cshtml" />
+    <Content Include="Views\PackageFiles\PackageFileNotFound.cshtml" />
+    <Content Include="Views\PackageFiles\ExternalPackage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />

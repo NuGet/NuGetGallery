@@ -115,7 +115,7 @@ namespace NuGetGallery
                 var buffer = packageStream.ToArray();
 
                 var cacheService = new Mock<IPackageCacheService>(MockBehavior.Strict);
-                cacheService.Setup(p => p.GetBytes("a.1.0")).Returns(buffer);
+                cacheService.Setup(p => p.GetBytes(It.IsAny<string>())).Returns(buffer);
 
                 var packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(s => s.DownloadPackageFileAsync(package)).Throws(new InvalidOperationException());
@@ -318,73 +318,6 @@ namespace NuGetGallery
                 {
                     return FileHelper.BinaryFileExtensions.Select(s => new string[] { "content\\foo" + s });
                 }
-            }
-        }
-
-        public class TheDownloadFileContentAction
-        {
-            [Theory]
-            [InlineData(null)]
-            [InlineData("")]
-            public async Task WillReturnNotFoundIfFilePathIsNullOrEmpty(string filePath)
-            {
-                // Arrange
-                var controller = CreateController();
-
-                // Act
-                ActionResult result = await controller.DownloadFileContent("B", "1.0.0-alpha", filePath);
-
-                // Arrange
-                Assert.True(result is HttpNotFoundResult);
-            }
-
-            [Fact]
-            public async Task WillReturnNotFoundIfPackageIsNotFound()
-            {
-                // Arrange
-                var controller = CreateController();
-
-                // Act
-                ActionResult result = await controller.DownloadFileContent("B", "1.0.0-alpha", "content\\foo.txt");
-
-                // Arrange
-                Assert.True(result is HttpNotFoundResult);
-            }
-
-            [Fact]
-            public async Task WillReturnFileContentResult()
-            {
-                // Arrange
-                var package = new Package
-                {
-                    Version = "2.0.0-beta",
-                    PackageFileSize = 3L * 1024 * 1024,
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Id = "B"
-                    }
-                };
-
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("B", "2.0.0-beta", It.IsAny<bool>())).Returns(package);
-
-                var file = new Mock<IPackageFile>();
-                file.Setup(f => f.Path).Returns("content\\foo.txt");
-                file.Setup(f => f.GetStream()).Returns(Stream.Null);
-
-                var packageStream = CreatePackageStream("B", "2.0.0-beta", new[] { file.Object });
-                var packageFileService = new Mock<IPackageFileService>();
-                packageFileService.Setup(s => s.DownloadPackageFileAsync(package)).Returns(Task.FromResult(packageStream));
-
-                var controller = CreateController(packageService, packageFileService);
-
-                // Act
-                var result = await controller.DownloadFileContent("B", "2.0.0-beta", "content\\foo.txt") as FileResult;
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal("application/octet-stream", result.ContentType);
-                Assert.Equal("foo.txt", result.FileDownloadName);
             }
         }
 

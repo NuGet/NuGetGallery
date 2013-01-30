@@ -15,11 +15,14 @@ namespace NuGetGallery.ViewModels.PackagePart
             }
 
             List<IPackageFile> paths = files.ToList();
-            paths.Sort((p1, p2) => String.Compare(p1.Path, p2.Path, StringComparison.OrdinalIgnoreCase));
+            paths.Sort(PackageFilePathComparer.Instance);
 
             var root = new PackageItem("");
 
-            List<string[]> parsedPaths = paths.Select(p => p.Path.Split('/', '\\')).ToList();
+            // To avoid malicious package causing stack overflow, we limit to only files that have less than 20 nested folders.
+            List<string[]> parsedPaths = paths.Select(p => p.Path.Split('/', '\\'))
+                                              .Where(parts => parts.Length < 20)
+                                              .ToList();
             Parse(root, parsedPaths, 0, 0, parsedPaths.Count);
 
             return root;
@@ -60,6 +63,16 @@ namespace NuGetGallery.ViewModels.PackagePart
 
                     i = j;
                 }
+            }
+        }
+
+        private class PackageFilePathComparer : IComparer<IPackageFile>
+        {
+            public static readonly PackageFilePathComparer Instance = new PackageFilePathComparer();
+
+            public int Compare(IPackageFile x, IPackageFile y)
+            {
+                return String.Compare(x.Path, y.Path, StringComparison.OrdinalIgnoreCase);
             }
         }
     }

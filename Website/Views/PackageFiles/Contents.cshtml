@@ -285,7 +285,8 @@
                 return 'brush: js';
             }
 
-            if (extension == 'xml' || extension == 'config' || extension == 'html' || extension == 'htm') {
+            if (extension == 'xml' || extension == 'config' || extension == 'html' || extension == 'htm' ||
+                extension == 'props' || extension == 'targets') {
                 return 'brush: xml';
             }
 
@@ -317,7 +318,7 @@
                 return 'brush: vbnet';
             }
 
-            if (extension == 'cpp') {
+            if (extension == 'cpp' || extension == 'h') {
                 return 'brush: cpp';
             }
 
@@ -380,7 +381,7 @@
                 $.ajax(viewUrl,
                     {
                         success: function (data, status) {
-                            currentData = data;
+                            currentData = encodeHtml(data);
                             var brush = determineBrush(filePath);
                             showContentForCurrentFile(brush);
                         },
@@ -391,6 +392,10 @@
                         }
                     });
             }
+        }
+
+        function encodeHtml(html) {
+            return $("<div/>").text(html).html();
         }
 
         function showContentForCurrentFile(brush) {
