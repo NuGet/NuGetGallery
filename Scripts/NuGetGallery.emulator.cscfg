@@ -22,6 +22,7 @@
 
       <!-- Set this to enable use of the Azure Caching Service for Package Explorer in the Cloud -->
       <Setting name="Gallery.AzureCacheEndpoint" value="" />
+      <Setting name="Gallery.AzureCacheKey" value="" />
 
       <!-- Make sure these are unique, secret and remain constant for a particular instance of the gallery! Otherwise cookies will break -->
       <!-- These are just some values for the Emulated environment. Don't use them in production! They are public! -->
