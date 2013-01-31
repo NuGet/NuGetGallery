@@ -15,6 +15,7 @@
       <Setting name="Gallery.Sql.NuGetGallery" />
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
       <Setting name="Gallery.PackageStoreType" />
+      <Setting name="Gallery.ReadOnlyMode" />
       <Setting name="Gallery.SiteRoot" />
       <Setting name="Gallery.ValidationKey" />
       <Setting name="Gallery.DecryptionKey" />
