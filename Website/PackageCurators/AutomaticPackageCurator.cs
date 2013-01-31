@@ -26,7 +26,7 @@ namespace NuGetGallery
             return galleryPackage.Dependencies.All(
                 d => curatedFeed.Packages
                     .Where(p => p.Included)
-                    .Any(p => p.PackageRegistration.Id.Equals(d.Id, StringComparison.InvariantCultureIgnoreCase)));
+                    .Any(p => p.PackageRegistration.Id.Equals(d.Id, StringComparison.OrdinalIgnoreCase)));
         }
     }
 }
