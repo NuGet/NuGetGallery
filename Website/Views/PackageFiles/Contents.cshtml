@@ -1,0 +1,455 @@
+﻿@model PackageContentsViewModel
+
+@using NuGetGallery.Helpers
+
+@{
+    ViewBag.Title = "Package Contents of " + Model.PackageMetadata.Id + " " + Model.PackageMetadata.Version; 
+}
+
+@section TopScripts
+{
+    <meta name="msApplication-ID" content="50582LuanNguyen.NuGetPackageExplorer" />
+    <meta name="msApplication-PackageFamilyName" content="50582LuanNguyen.NuGetPackageExplorer_w6y2tyx5bpzwa" />
+    <meta name="msApplication-Arguments" content="@Model.GetNpeActivationArgument(Url)" />
+
+    <link rel="stylesheet" href="@Url.Content("~/Content/jquery.treeview.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/SyntaxHighlighter/shCore.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/SyntaxHighlighter/shThemeDefault.css")" />
+    <script src="@Url.Content("~/Scripts/jquery.treeview.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shCore.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushXml.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushPowerShell.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushCss.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushPlain.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushCSharp.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushVb.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushCpp.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushJava.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushPhp.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushSql.js")"></script>
+    <script src="@Url.Content("~/Scripts/SyntaxHighlighter/shBrushJScript.js")"></script>
+}
+
+<hgroup class="page-heading">
+    <img class="packageicon" src="@(Model.IconUrl ?? Links.Content.Images.packageDefaultIcon_50x50_png)" alt="@Model.PackageMetadata.Id icon" onerror="this.src='@Links.Content.Images.packageDefaultIcon_50x50_png';" />
+    <h1>@Model.PackageMetadata.Id</h1>
+    <h2>@Model.PackageMetadata.Version</h2>
+</hgroup>
+
+@if (Request.UserAgent.IndexOf("Windows NT 6.2") > -1 && Request.UserAgent.IndexOf("Chrome") == -1)
+{ 
+<div id="upsellMessage">
+    It looks like you are browsing from Windows 8. You can open this package in <a href="@Model.GetNpeProtocolUrl(Url)">NuGet Package Explorer</a> for a richer experience.
+</div>
+}
+
+<div id="contentsNav">
+    <div><a id="metadataLabel" href="#">Metadata</a></div>
+
+    <ul id="packageView" class="filetree treeview-black">
+        @Html.TreeView(Model.RootFolder.Children).EmptyContent("This package doesn't contain any file.").Children(p => p.Children).ItemTemplate(
+        @<text>
+            @if (item.IsFile)
+            {
+                <a><span class="file" data-path="@item.Path.Replace('\\', '/')">@item.Name</span></a>
+            }
+            else
+            {
+                <span class="folder">@item.Name</span>
+            }
+        </text>
+        )
+    </ul>
+</div>
+
+<div id="contents">
+    <div id="contentsHeader">
+        <strong><span id="contentsHeaderFileName" class="header"></span></strong>
+        <select id="syntaxScheme">
+            <option value="brush: text">Text</option>
+            <option value="brush: xml">Html/Xml</option>
+            <option value="brush: js">Javascript</option>
+            <option value="brush: css">Css</option>
+            <option value="brush: csharp">C#</option>
+            <option value="brush: vbnet">VB.NET</option>
+            <option value="brush: ps">PowerShell</option>
+            <option value="brush: cpp">C++</option>
+            <option value="brush: java">Java</option>
+            <option value="brush: php">Php</option>
+            <option value="brush: sql">Sql</option>
+        </select>
+    </div>
+
+    <div id="metadata">
+        <table>
+            <tbody>
+                <tr>
+                    <td><strong>Id:</strong></td>
+                    <td>@Model.PackageMetadata.Id</td>
+                </tr>
+
+                <tr>
+                    <td><strong>Version:</strong></td>
+                    <td>@Model.PackageMetadata.Version</td>
+                </tr>
+
+                @if (!Model.PackageMetadata.Title.IsEmpty())
+                {
+                    <tr>
+                        <td><strong>Title:</strong></td>
+                        <td>@Model.PackageMetadata.Title</td>
+                    </tr>
+                }
+
+                <tr>
+                    <td><strong>Authors:</strong></td>
+                    <td>@Model.FlattenedAuthors</td>
+                </tr>
+
+                @if (!Model.FlattenedOwners.IsEmpty())
+                {
+                    <tr>
+                        <td><strong>Owners:</strong></td>
+                        <td>@Model.FlattenedOwners</td>
+                    </tr>
+                }
+
+                @if (!Model.PackageMetadata.Tags.IsEmpty())
+                {
+                    <tr>
+                        <td><strong>Tags:</strong></td>
+                        <td>@Model.PackageMetadata.Tags</td>
+                    </tr>
+                }
+
+                @if (!Model.PackageMetadata.Language.IsEmpty())
+                {
+                    <tr>
+                        <td><strong>Language:</strong></td>
+                        <td>@Model.PackageMetadata.Language</td>
+                    </tr>
+                }
+
+                <tr>
+                    <td colspan="2"><strong>Requires License Acceptance: </strong><span>@(Model.PackageMetadata.RequireLicenseAcceptance ? "Yes" : "No")</span></td>
+                </tr>
+
+                @if (Model.PackageMetadata.LicenseUrl != null)
+                {
+                    <tr>
+                        <td colspan="2"><a href="@Model.PackageMetadata.LicenseUrl" target="_blank">View License Terms</a></td>
+                    </tr>
+                }
+
+                @if (Model.PackageMetadata.ProjectUrl != null)
+                {
+                    <tr>
+                        <td colspan="2"><a href="@Model.PackageMetadata.ProjectUrl" target="_blank">Package Information</a></td>
+                    </tr>
+                }
+
+                @if (!Model.PackageMetadata.Copyright.IsEmpty())
+                {
+                    <tr>
+                        <td class="toplabel"><strong>Copyright:</strong></td>
+                        <td>@Model.PackageMetadata.Copyright</td>
+                    </tr>
+                }
+
+                @if (!Model.PackageMetadata.Summary.IsEmpty())
+                {
+                    <tr>
+                        <td class="toplabel"><strong>Summary:</strong></td>
+                        <td>
+                            <p>@Model.PackageMetadata.Summary</p>
+                        </td>
+                    </tr>
+                }
+
+                <tr>
+                    <td class="toplabel"><strong>Description:</strong></td>
+                    <td>
+                        <p>@Model.PackageMetadata.Description</p>
+                    </td>
+                </tr>
+
+                @if (!Model.PackageMetadata.ReleaseNotes.IsEmpty())
+                {
+                    <tr>
+                        <td class="toplabel"><strong>Release notes:</strong></td>
+                        <td>
+                            <p>@Model.PackageMetadata.ReleaseNotes</p>
+                        </td>
+                    </tr>
+                }
+
+                @if (Model.PackageMetadata.DependencySets.Any())
+                {
+                    <tr>
+                        <td><strong>Dependencies:</strong></td>
+                        <td>
+                            <ul>
+                                @foreach (var dependencySet in Model.PackageMetadata.DependencySets)
+                                {
+                                    <li>
+                                        <div>@(dependencySet.TargetFramework == null ? "(not framework specific)" : dependencySet.TargetFramework.ToString())</div>
+                                        @if (dependencySet.Dependencies.Any())
+                                        {
+                                            <ul>
+                                                @foreach (var dependency in dependencySet.Dependencies)
+                                                {
+                                                    <li>@dependency.ToString()</li>
+                                                }
+                                            </ul>
+                                        }
+                                    </li>                          
+                                }
+                            </ul>
+                        </td>
+                    </tr>
+                }
+
+                @if (Model.FrameworkAssemblies.Count > 0)
+                {
+                    <tr>
+                        <td colspan="2"><strong>Framework Assembly References:</strong></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            @foreach (var assembly in Model.FrameworkAssemblies)
+                            {
+                                <div>@assembly</div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div id="fileContentContainer">
+    </div>
+
+    <img id="fileImage" />
+
+    <div id="progressMessage">
+    </div>
+</div>
+
+@section BottomScripts
+{
+    <script type="text/javascript">
+
+        var contentsHeaderElement, contentsFileNameElement, metadataElement, fileContentContainer, fileImageElement, progressElement, syntaxSelector;
+        var requestIsPending = false;
+        var currentData;
+
+        function getEffectiveExtension(path) {
+            var index = path.lastIndexOf('.');
+            if (index == -1 || index == path.length - 1) {
+                return null;
+            }
+
+            var extension = path.substr(index + 1).toLowerCase();
+
+            if (index > 0 && (extension == 'transform' || extension == 'pp')) {
+                var index2 = path.lastIndexOf('.', index - 1);
+                if (index2 > -1 && index2 + 1 < index) {
+                    extension = path.substr(index2 + 1, index - index2 - 1);
+                }
+            }
+
+            return extension;
+        }
+
+        function isImage(path) {
+            var extension = getEffectiveExtension(path);
+            return extension == 'jpg' || path == 'gif' || extension == 'png' || extension == 'bmp' || extension == 'jpeg' || extension == 'ico';
+        }
+
+        function determineBrush(path) {
+            var extension = getEffectiveExtension(path);
+            if (!extension || extension == 'txt') {
+                return 'brush: text';
+            }
+            
+            if (extension == 'js' || extension == 'jscript' || extension == 'javascript') {
+                if (path.indexOf('.min', path.length - extension.length - 5) !== -1) {
+                    return 'brush: text';
+                }
+
+                return 'brush: js';
+            }
+
+            if (extension == 'xml' || extension == 'config' || extension == 'html' || extension == 'htm') {
+                return 'brush: xml';
+            }
+
+            if (extension == 'cshtml') {
+                return 'brush: csharp';
+            }
+
+            if (extension == 'vbhtml') {
+                return 'brush: vbnet';
+            }
+
+            if (extension == 'ps1' || extension == 'psm1') {
+                return 'brush: ps';
+            }
+
+            if (extension == 'css') {
+                return 'brush: css';
+            }
+
+            if (extension == 'cs') {
+                return 'brush: csharp';
+            }
+
+            if (extension == 'vb') {
+                return 'brush: vbnet';
+            }
+
+            if (extension == 'cpp') {
+                return 'brush: cpp';
+            }
+
+            if (extension == 'java') {
+                return 'brush: java';
+            }
+
+            if (extension == 'php') {
+                return 'brush: php';
+            }
+
+            if (extension == 'sql') {
+                return 'brush: sql';
+            }
+
+            return 'brush: text';
+        }
+
+        function showMetadata() {
+            contentsHeaderElement.hide();
+            contentsFileNameElement.text('');
+            fileContentContainer.hide();
+            fileImageElement.hide();
+            progressElement.hide();
+            currentData = null;
+            metadataElement.show();
+        }
+
+        function showContentFile(filePath) {
+            if (filePath == contentsFileNameElement.text()) {
+                return;
+            }
+
+            metadataElement.hide();
+            contentsHeaderElement.show();
+            
+            
+            var viewUrl = '@Url.ViewPackageFile(Model.PackageMetadata.Id, Model.PackageMetadata.Version.ToString())' + '?filePath=' + filePath;
+
+            // for Debugging ONLY: uncomment to avoid browsers caching the file content
+            // viewUrl = viewUrl + '&q=' + Math.random().toString();
+
+            contentsFileNameElement.text(filePath);
+
+            if (isImage(filePath)) {
+                fileContentContainer.hide();
+                progressElement.hide();
+                fileImageElement.attr('src', viewUrl).show();
+                currentData = null;
+                syntaxSelector.hide();
+            }
+            else {
+                requestIsPending = true;
+
+                fileImageElement.hide();
+                fileContentContainer.empty().hide();
+                syntaxSelector.show().attr('disabled', 'disabled');
+                progressElement.show().text('Loading content...');
+
+                $.ajax(viewUrl,
+                    {
+                        success: function (data, status) {
+                            currentData = data;
+                            var brush = determineBrush(filePath);
+                            showContentForCurrentFile(brush);
+                        },
+
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            progressElement.text("*** An error occurred while loading this file's contents. ***");
+                            requestIsPending = false;
+                        }
+                    });
+            }
+        }
+
+        function showContentForCurrentFile(brush) {
+            // update the syntax scheme dropdown
+            syntaxSelector.val(brush);
+
+            var preElement = document.createElement('pre');
+            $(preElement).html(currentData).attr('class', brush);
+
+            fileContentContainer.append(preElement);
+
+            if (currentData.length < 1000) {
+                // if the data is small (less than 1000 characters), don't bother to show progress message
+                showContentAfterParsing(preElement);
+            }
+            else {
+                progressElement.show().text('Parsing content...');
+                window.setTimeout(function () { showContentAfterParsing(preElement) }, 10);
+            }
+        }
+
+        function showContentAfterParsing(preElement) {
+            SyntaxHighlighter.highlight(preElement);
+            progressElement.hide();
+            fileContentContainer.show();
+            syntaxSelector.removeAttr('disabled');
+            requestIsPending = false;
+        }
+
+        $(function () {
+            contentsHeaderElement = $('#contentsHeader');
+            contentsFileNameElement = $('#contentsHeaderFileName');
+            metadataElement = $('#metadata');
+            fileContentContainer = $('#fileContentContainer');
+            fileImageElement = $('#fileImage');
+            progressElement = $('#progressMessage');
+            syntaxSelector = $('#syntaxScheme');
+
+            $('#packageView').treeview({ collapsed: false });
+            showMetadata();
+
+            $('span.file').click(function (e) {
+                e.preventDefault();
+
+                if (requestIsPending) {
+                    return;
+                }
+
+                var filePath = this.attributes['data-path'].value;
+                showContentFile(filePath);
+            });
+
+            $('#metadataLabel').click(function (e) {
+                e.preventDefault();
+
+                showMetadata();
+            });
+
+            syntaxSelector.change(function (e) {
+                fileContentContainer.empty().hide();
+                syntaxSelector.attr('disabled', 'disabled');
+                showContentForCurrentFile(this.value);
+            });
+
+            SyntaxHighlighter.defaults["auto-links"] = false;
+            SyntaxHighlighter.defaults["toolbar"] = false;
+            SyntaxHighlighter.defaults["gutter"] = false;
+        });
+    </script>
+}
