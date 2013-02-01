@@ -33,6 +33,8 @@
       <!-- Make sure these are unique, secret and remain constant for a particular instance of the gallery! Otherwise cookies will break -->
       <Setting name="Gallery.ValidationKey" />
       <Setting name="Gallery.DecryptionKey" />
+      <Setting name="reCAPTCHA::PrivateKey" />
+      <Setting name="reCAPTCHA::PublicKey" />
     </ConfigurationSettings>
     <Sites>
       <Site name="Web">
