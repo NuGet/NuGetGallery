@@ -149,8 +149,14 @@ namespace NuGetGallery
                 // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
                 bool packageExists =
                     packageRegistration.Packages.Any(p => p.Version.Equals(packageToPush.Version.ToString(), StringComparison.OrdinalIgnoreCase));
+
                 if (packageExists)
                 {
+                    var configuration= DependencyResolver.Current.GetService<IConfiguration>();
+
+                    if (configuration != null && configuration.IgnoreDuplicateCreate)
+                        return new HttpStatusCodeResult(HttpStatusCode.Created);
+
                     return new HttpStatusCodeWithBodyResult(
                         HttpStatusCode.Conflict,
                         String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version));
@@ -164,7 +170,7 @@ namespace NuGetGallery
                 _nugetExeDownloaderSvc.UpdateExecutable(packageToPush);
             }
 
-            return new HttpStatusCodeResult(201);
+            return new HttpStatusCodeResult(HttpStatusCode.Created);
         }
 
         [ActionName("DeletePackageApi")]

@@ -62,6 +62,11 @@ namespace NuGetGallery
             get { return ReadAppSettings("AzureCdnHost"); }
         }
 
+        public bool IgnoreDuplicateCreate
+        {
+            get { return String.Equals(ReadAppSettings("IgnoreDuplicateCreate"), "true", StringComparison.OrdinalIgnoreCase); }
+        }
+
         public string GetSiteRoot(bool useHttps)
         {
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
