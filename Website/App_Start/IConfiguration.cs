@@ -11,6 +11,7 @@
         bool UseEmulator { get; }
 
         string FacebookAppID { get; }
+        bool IgnoreDuplicateCreate { get; }
 
         string GetSiteRoot(bool useHttps);
     }
