@@ -23,14 +23,14 @@ namespace NuGetGallery
             int key,
             bool includeOwners = true)
         {
-            var qry = _entities.PackageRegistrations.AsQueryable();
+            IQueryable<PackageRegistration> query = _entities.PackageRegistrations;
 
             if (includeOwners)
             {
-                qry = qry.Include(packageRegistration => packageRegistration.Owners);
+                query = query.Include(packageRegistration => packageRegistration.Owners);
             }
 
-            return qry.SingleOrDefault(pr => pr.Key == key);
+            return query.SingleOrDefault(pr => pr.Key == key);
         }
     }
 }

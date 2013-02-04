@@ -7,7 +7,7 @@ namespace NuGetGallery
     {
         PackageRegistration Execute(
             string id,
-            bool includePackages = false,
+            bool includePackages,
             bool includeOwners = true);
     }
 
@@ -22,22 +22,22 @@ namespace NuGetGallery
 
         public PackageRegistration Execute(
             string id,
-            bool includePackages = false,
+            bool includePackages,
             bool includeOwners = true)
         {
-            var qry = _entities.PackageRegistrations.AsQueryable();
+            IQueryable<PackageRegistration> query = _entities.PackageRegistrations;
 
             if (includePackages)
             {
-                qry = qry.Include(packageRegistration => packageRegistration.Packages);
+                query = query.Include(packageRegistration => packageRegistration.Packages);
             }
 
             if (includeOwners)
             {
-                qry = qry.Include(packageRegistration => packageRegistration.Owners);
+                query = query.Include(packageRegistration => packageRegistration.Owners);
             }
 
-            return qry.SingleOrDefault(pr => pr.Id == id);
+            return query.SingleOrDefault(pr => pr.Id == id);
         }
     }
 }
