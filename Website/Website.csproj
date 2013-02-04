@@ -248,7 +248,6 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
-    <Compile Include="Controllers\PackageFilesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
     <Compile Include="CuratedFeedsController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
@@ -1059,8 +1058,6 @@
     <None Include="T4MVC.tt.settings.t4" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
     <Content Include="Web.ForbiddenHandlers.config" />
-    <Content Include="Views\PackageFiles\Contents.cshtml" />
-    <Content Include="Views\PackageFiles\PackageTooBig.cshtml" />
     <Content Include="Views\Statistics\Index.cshtml" />
     <Content Include="Views\Statistics\Packages.cshtml" />
     <Content Include="Views\Statistics\PackageVersions.cshtml" />
