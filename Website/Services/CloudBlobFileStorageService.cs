@@ -158,11 +158,6 @@ namespace NuGetGallery
             _containers[folderName] = container;
         }
 
-        protected virtual HttpContextBase GetContext()
-        {
-            return HttpContext.Current != null ? new HttpContextWrapper(HttpContext.Current) : null;
-        }
-
         internal async Task<ActionResult> CreateDownloadFileActionResult(
             HttpContextBase httpContext,
             string folderName,
