@@ -156,8 +156,9 @@ namespace NuGetGallery
             }
 
             // note Authors and Dependencies have flattened representations in the data model.
-            document.Add(new Field("Author", package.FlattenedAuthors.ToStringSafe(), Field.Store.YES, Field.Index.ANALYZED));
-            
+            document.Add(new Field("Authors", package.FlattenedAuthors.ToStringSafe(), Field.Store.NO, Field.Index.ANALYZED));
+            document.Add(new Field("FlattenedAuthors", package.FlattenedAuthors.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+
             // Fields for storing data to avoid hitting SQL while doing searches
             if (!String.IsNullOrEmpty(package.IconUrl))
             {
@@ -167,7 +168,8 @@ namespace NuGetGallery
             if (package.PackageRegistration.Owners.AnySafe())
             {
                 string flattenedOwners = String.Join(";", package.PackageRegistration.Owners.Select(o => o.Username));
-                document.Add(new Field("Owners", flattenedOwners, Field.Store.YES, Field.Index.NO));
+                document.Add(new Field("Owners", flattenedOwners, Field.Store.NO, Field.Index.ANALYZED));
+                document.Add(new Field("FlattenedOwners", flattenedOwners, Field.Store.YES, Field.Index.NO));
             }
 
             document.Add(new Field("Copyright", package.Copyright.ToStringSafe(), Field.Store.YES, Field.Index.NO));
