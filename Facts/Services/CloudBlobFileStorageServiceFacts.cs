@@ -16,6 +16,12 @@ namespace NuGetGallery
 {
     public class CloudBlobFileStorageServiceFacts
     {
+        private const string HttpRequestUrlString = "http://nuget.org/api/v2/something";
+        private const string HttpsRequestUrlString = "https://nuget.org/api/v2/something";
+
+        private static readonly Uri HttpRequestUrl = new Uri(HttpRequestUrlString);
+        private static readonly Uri HttpsRequestUrl = new Uri(HttpsRequestUrlString);
+
         private static CloudBlobFileStorageService CreateService(
             Mock<ICloudBlobClient> fakeBlobClient = null)
         {
@@ -86,13 +92,15 @@ namespace NuGetGallery
                 var httpContext = GetContext();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await service.CreateDownloadFileActionResultAsync(folderName, "theFileName");
+                await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, folderName, "theFileName");
 
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
 
-            [Fact]
-            public async Task WillReturnARedirectResultToTheBlobUri()
+            [Theory]
+            [InlineData(HttpRequestUrlString, "http://")]
+            [InlineData(HttpsRequestUrlString, "https://")]
+            public async Task WillReturnARedirectResultToTheBlobUri(string requestUrl, string scheme)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -104,7 +112,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), Constants.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(scheme + "theuri/", result.Url);

@@ -25,12 +25,12 @@ namespace NuGetGallery
             _configuration = configuration;
         }
 
-        public async Task<ActionResult> CreateDownloadFileActionResultAsync(string folderName, string fileName)
+        public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
         {
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
 
-            var redirectUri = ConstructRedirectUri(blob.Uri);
+            var redirectUri = GetRedirectUri(requestUrl, blob.Uri);
             return new RedirectResult(redirectUri.OriginalString, false);
         }
 
@@ -124,7 +124,7 @@ namespace NuGetGallery
 
                 await Task.WhenAll(packagesTask, downloadsTask, uploadsTask);
             }
-            
+
             return _containers[folderName];
         }
 
@@ -150,7 +150,8 @@ namespace NuGetGallery
             var container = _client.GetContainerReference(folderName);
             await container.CreateIfNotExistAsync();
             await container.SetPermissionsAsync(
-                new BlobContainerPermissions { 
+                new BlobContainerPermissions
+                {
                     PublicAccess = isPublic ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off
                 });
 
@@ -162,27 +163,26 @@ namespace NuGetGallery
             return HttpContext.Current != null ? new HttpContextWrapper(HttpContext.Current) : null;
         }
 
-        internal ActionResult CreateDownloadFileActionResult(
+        internal async Task<ActionResult> CreateDownloadFileActionResult(
             HttpContextBase httpContext,
             string folderName,
             string fileName)
         {
-            var container = GetContainer(folderName);
+            var container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
 
-            var redirectUri = GetRedirectUri(httpContext, blob.Uri);
+            var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri);
             return new RedirectResult(redirectUri.OriginalString, false);
         }
 
-        internal Uri GetRedirectUri(HttpContextBase httpContext, Uri blobUri)
+        internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri)
         {
-            var requestUrl = httpContext.Request.Url;
-            string host = String.IsNullOrEmpty(configuration.AzureCdnHost) ? blobUri.Host : configuration.AzureCdnHost;
+            string host = String.IsNullOrEmpty(_configuration.AzureCdnHost) ? blobUri.Host : _configuration.AzureCdnHost;
             var urlBuilder = new UriBuilder(requestUrl.Scheme, host)
-                            {
-                                Path = blobUri.LocalPath,
-                                Query = blobUri.Query
-                            };
+            {
+                Path = blobUri.LocalPath,
+                Query = blobUri.Query
+            };
 
             return urlBuilder.Uri;
         }
