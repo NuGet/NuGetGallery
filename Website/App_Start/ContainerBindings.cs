@@ -7,17 +7,18 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
+using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Ninject;
 using Ninject.Modules;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
     public class ContainerBindings : NinjectModule
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         public override void Load()
         {
             IConfiguration configuration = new Configuration();
@@ -27,7 +28,7 @@ namespace NuGetGallery
             var gallerySetting = new Lazy<GallerySetting>(
                 () =>
                     {
-                        using (var entitiesContext = new EntitiesContext())
+                        using (var entitiesContext = new EntitiesContext(configuration.SqlConnectionString, configuration.ReadOnlyMode))
                         {
                             var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
                             return settingsRepo.GetAll().FirstOrDefault();
@@ -37,12 +38,25 @@ namespace NuGetGallery
             Bind<GallerySetting>().ToMethod(c => gallerySetting.Value);
 
             Bind<Lucene.Net.Store.Directory>()
-                .ToMethod((_) => LuceneCommon.GetDirectory())
+                .ToMethod(_ => LuceneCommon.GetDirectory())
                 .InSingletonScope();
 
             Bind<ISearchService>()
                 .To<LuceneSearchService>()
                 .InRequestScope();
+
+            if (!String.IsNullOrEmpty(configuration.AzureDiagnosticsConnectionString))
+            {
+                Bind<ErrorLog>()
+                    .ToMethod(_ => new TableErrorLog(configuration.AzureDiagnosticsConnectionString))
+                    .InSingletonScope();
+            }
+            else
+            {
+                Bind<ErrorLog>()
+                    .ToMethod(_ => new SqlErrorLog(configuration.SqlConnectionString))
+                    .InSingletonScope();
+            }
             
             if (IsDeployedToCloud)
             {
@@ -51,9 +65,27 @@ namespace NuGetGallery
                     .To<CloudPackageCacheService>()
                     .InSingletonScope();
 
-                // when running on Windows Azure, use the Azure Cache service
-                Bind<ICacheService>()
-                    .To<CloudCacheService>()
+                // when running on Windows Azure, use the Azure Cache service if available
+                if (!String.IsNullOrEmpty(configuration.AzureCacheEndpoint))
+                {
+                    Bind<ICacheService>()
+                        .To<CloudCacheService>()
+                        .InSingletonScope();
+                }
+                else
+                {
+                    Bind<ICacheService>()
+                        .To<HttpContextCacheService>()
+                        .InRequestScope();
+                }
+
+                // when running on Windows Azure, pull the statistics from the warehouse via storage
+                Bind<IReportService>()
+                    .ToMethod(context => new CloudReportService(configuration.AzureStatisticsConnectionString))
+                    .InSingletonScope();
+
+                Bind<IStatisticsService>()
+                    .To<JsonStatisticsService>()
                     .InSingletonScope();
             }
             else
@@ -69,7 +101,7 @@ namespace NuGetGallery
             }
 
             Bind<IEntitiesContext>()
-                .ToMethod(context => new EntitiesContext())
+                .ToMethod(context => new EntitiesContext(configuration.SqlConnectionString, readOnly: configuration.ReadOnlyMode))
                 .InRequestScope();
 
             Bind<IEntityRepository<User>>()
@@ -183,13 +215,7 @@ namespace NuGetGallery
                 case PackageStoreType.AzureStorageBlob:
                     Bind<ICloudBlobClient>()
                         .ToMethod(
-                            context => new CloudBlobClientWrapper(
-                                           new CloudBlobClient(
-                                               new Uri(configuration.AzureStorageBlobUrl, UriKind.Absolute),
-                                               configuration.UseEmulator
-                                                   ? CloudStorageAccount.DevelopmentStorageAccount.Credentials
-                                                   : new StorageCredentials(
-                                                         configuration.AzureStorageAccountName, configuration.AzureStorageAccessKey))))
+                            context => new CloudBlobClientWrapper(CloudStorageAccount.Parse(configuration.AzureStorageConnectionString).CreateCloudBlobClient()))
                         .InSingletonScope();
                     Bind<IFileStorageService>()
                         .To<CloudBlobFileStorageService>()
@@ -262,7 +288,7 @@ namespace NuGetGallery
                 .InRequestScope();
         }
 
-        private static bool IsDeployedToCloud
+        public static bool IsDeployedToCloud
         {
             get
             {

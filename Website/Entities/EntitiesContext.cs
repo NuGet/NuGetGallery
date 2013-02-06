@@ -1,20 +1,45 @@
 ﻿using System.Data.Entity;
-using WebBackgrounder;
+using System.Data.Entity.Infrastructure;
+using Ninject;
 
 namespace NuGetGallery
 {
-    public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
+    /// <summary>
+    /// Used by EF Migrations to load the Entity Context via the Ninject container.
+    /// </summary>
+    public class EntitiesContextFactory : IDbContextFactory<EntitiesContext>
     {
-        public EntitiesContext()
-            : base("NuGetGallery")
+        public EntitiesContext Create()
         {
+            return new EntitiesContext(
+                Container.Kernel.Get<IConfiguration>().SqlConnectionString, 
+                Container.Kernel.Get<IConfiguration>().ReadOnlyMode);
+        }
+    }
+
+    public class EntitiesContext : DbContext, IEntitiesContext
+    {
+        public EntitiesContext(string connectionString, bool readOnly)
+            : base(connectionString)
+        {
+            ReadOnly = readOnly;
         }
 
+        public bool ReadOnly { get; private set; }
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
-        public IDbSet<WorkItem> WorkItems { get; set; }
+
+        public override int SaveChanges()
+        {
+            if (ReadOnly)
+            {
+                throw new ReadOnlyModeException("Save changes is not allowed: the entities context is currently in read only mode");
+            }
+
+            return base.SaveChanges();
+        }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -88,9 +113,6 @@ namespace NuGetGallery
 
             modelBuilder.Entity<GallerySetting>()
                 .HasKey(gs => gs.Key);
-
-            modelBuilder.Entity<WorkItem>()
-                .HasKey(wi => wi.Id);
 
             modelBuilder.Entity<PackageOwnerRequest>()
                 .HasKey(por => por.Key);

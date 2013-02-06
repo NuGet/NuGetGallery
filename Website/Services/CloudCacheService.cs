@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security;
 using Microsoft.ApplicationServer.Caching;
 
 namespace NuGetGallery
@@ -7,7 +8,20 @@ namespace NuGetGallery
     {
         // The DataCacheFactory object is expensive.
         // It should be created only once per app domain.
-        private static readonly DataCacheFactory _cacheFactory = new DataCacheFactory();
+        private readonly DataCacheFactory _cacheFactory;
+
+        public CloudCacheService(IConfiguration configuration)
+        {
+            DataCacheFactoryConfiguration cacheConfig = new DataCacheFactoryConfiguration();
+            cacheConfig.Servers = new[] {
+                new DataCacheServerEndpoint(configuration.AzureCacheEndpoint, 22233)
+            };
+            SecureString key = configuration.AzureCacheKey.ToSecureString();
+            DataCacheSecurity security = new DataCacheSecurity(key);
+            cacheConfig.SecurityProperties = security;
+
+            _cacheFactory = new DataCacheFactory(cacheConfig);
+        }
 
         public object GetItem(string key)
         {

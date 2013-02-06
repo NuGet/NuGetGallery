@@ -1,13 +1,17 @@
 ﻿function getStats(currData) {
     currData = currData || {};
-    $.get('/Stats', function(data) {
+    $.get('/stats/totals', function(data) {
         var section = $('section.aggstats');
         section.show();
         update(data, currData, 'UniquePackages');
         update(data, currData, 'Downloads');
         update(data, currData, 'TotalPackages');
-    })
-    setTimeout(function() { getStats(currData) }, 30000);
+    }).error(function () {
+        var section = $('section.aggstatserr');
+        section.show();
+    });
+
+    setTimeout(function () { getStats(currData); }, 30000);
 }
 
 function update(data, currData, key) {
@@ -50,6 +54,6 @@ function animateEl(el, v) {
     v = v || '';
     var parent = el.parent();
     el.stop(true, true).animate({ top: 0.3 * parseInt(parent.height()) }, 350, 'linear', function () {
-        $(this).html(v).css({ top: -0.8 * parseInt(parent.height()) }).animate({ top: 0 }, 350, 'linear')
+        $(this).html(v).css({ top: -0.8 * parseInt(parent.height()) }).animate({ top: 0 }, 350, 'linear');
     });
 }

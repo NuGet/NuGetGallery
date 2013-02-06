@@ -479,6 +479,24 @@ hgroup.page-heading h2 { padding-left: 7px; }
 
 .aggstats .num > span { position: relative; }
 
+/* Aggregate Stats Error */
+
+.aggstatserr {
+    background: #e8fc14;
+    display: none;
+}
+
+.aggstatserr .err {
+    color: #622020;
+    display: inline-block;
+    font-weight: bold;
+    margin: 0;
+    padding: 0.5em 0;
+    text-align: center;
+    width: 33%;
+    *zoom: 1;
+}
+
 /* Account/Actions */
 
 #actions h1 { font-size: 2em; }
@@ -830,6 +848,11 @@ section.package .side img {
     font-size: 1.1em;
 }
 
+#metadata .nodependency {
+    font-size: 0.9em;
+    margin: 0px 0px 4px 25px;
+}
+
 #metadata .toplabel {
     vertical-align: top; 
 }
@@ -947,6 +970,22 @@ ul.pager li.next { padding-left: 10px; }
 .sexy-table tfoot td { padding: 3px 0; }
 
 .sexy-table tfoot tr { border-top: 2px solid #333; }
+
+    /* statistics */
+
+.statistics-layout {
+    width:400px;
+    float:left;
+    padding:25px
+}
+
+.statistics-more {
+    font-weight:bold;
+}
+
+.statistics-total {
+    font-weight:bold;
+}
 
     /* NuGet Badge */
 
