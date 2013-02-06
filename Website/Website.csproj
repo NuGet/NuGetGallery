@@ -843,6 +843,8 @@
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
+    <Content Include="App_Offline-Planned.htm" />
+    <Content Include="App_Offline-Unplanned.htm" />
     <Content Include="Content\Images\changePassword.png" />
     <Content Include="Content\Images\copy.png" />
     <Content Include="Content\Images\errorPage.png" />
@@ -1022,7 +1024,6 @@
     <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
     <Content Include="Views\Shared\TwoColumnLayout.cshtml" />
     <Content Include="api\Web.config" />
-    <Content Include="App_Offline.htm" />
     <Content Include="Views\Users\ResendConfirmation.cshtml">
     </Content>
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
