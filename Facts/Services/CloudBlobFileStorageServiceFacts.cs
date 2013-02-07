@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
@@ -15,6 +16,12 @@ namespace NuGetGallery
 {
     public class CloudBlobFileStorageServiceFacts
     {
+        private const string HttpRequestUrlString = "http://nuget.org/api/v2/something";
+        private const string HttpsRequestUrlString = "https://nuget.org/api/v2/something";
+
+        private static readonly Uri HttpRequestUrl = new Uri(HttpRequestUrlString);
+        private static readonly Uri HttpsRequestUrl = new Uri(HttpsRequestUrlString);
+
         private static CloudBlobFileStorageService CreateService(
             Mock<ICloudBlobClient> fakeBlobClient = null)
         {
@@ -82,15 +89,18 @@ namespace NuGetGallery
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                var httpContext = GetContext();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await service.CreateDownloadFileActionResultAsync(folderName, "theFileName");
+                await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, folderName, "theFileName");
 
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
 
-            [Fact]
-            public async Task WillReturnARedirectResultToTheBlobUri()
+            [Theory]
+            [InlineData(HttpRequestUrlString, "http://")]
+            [InlineData(HttpsRequestUrlString, "https://")]
+            public async Task WillReturnARedirectResultToTheBlobUri(string requestUrl, string scheme)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -102,10 +112,10 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), Constants.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
-                Assert.Equal("http://theUri", result.Url);
+                Assert.Equal(scheme + "theuri/", result.Url);
             }
         }
 
@@ -515,6 +525,17 @@ namespace NuGetGallery
                 Assert.Equal(Constants.PackageContentType, fakeBlob.Object.Properties.ContentType);
                 fakeBlob.Verify(x => x.SetPropertiesAsync());
             }
+        }
+
+        private static HttpContextBase GetContext(string protocol = "http://")
+        {
+            var httpRequest = new Mock<HttpRequestBase>();
+            httpRequest.SetupGet(r => r.Url).Returns(new Uri(protocol + "nuget.org"));
+
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
+
+            return httpContext.Object;
         }
     }
 }

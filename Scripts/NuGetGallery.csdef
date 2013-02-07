@@ -6,15 +6,31 @@
       <Task commandLine="ConfigureIISLogging.cmd" executionContext="elevated" taskType="background" />
     </Startup>
     <ConfigurationSettings>
+      <!-- Core Data Access Setttings -->
       <Setting name="Gallery.AzureStorageConnectionString" />
       <Setting name="Gallery.AzureDiagnosticsConnectionString" />
       <Setting name="Gallery.AzureStatisticsConnectionString" />
-      <Setting name="Gallery.AzureCacheEndpoint" />
-      <Setting name="Gallery.AzureCdnHost" />
       <Setting name="Gallery.Sql.NuGetGallery" />
-      <Setting name="Gallery.GoogleAnalyticsPropertyId" />
+
+      <!-- Basic Site Configuration -->
       <Setting name="Gallery.PackageStoreType" />
+      <Setting name="Gallery.ReadOnlyMode" /><!-- set value 'true' to put the gallery in read only mode -->
       <Setting name="Gallery.SiteRoot" />
+      
+      <!-- Set this to enable Google Analytics -->
+      <Setting name="Gallery.GoogleAnalyticsPropertyId" />
+
+      <!-- Set this to enable Facebook Buttons with a specific App ID -->
+      <Setting name="Gallery.FacebookAppId" />
+            
+      <!-- Set this to enable use of the Azure Caching Service for Package Explorer in the Cloud -->
+      <Setting name="Gallery.AzureCacheEndpoint" />
+      <Setting name="Gallery.AzureCacheKey" />
+
+      <!-- Set this to use the Azure CDN -->
+      <Setting name="Gallery.AzureCdnHost" />
+
+      <!-- Make sure these are unique, secret and remain constant for a particular instance of the gallery! Otherwise cookies will break -->
       <Setting name="Gallery.ValidationKey" />
       <Setting name="Gallery.DecryptionKey" />
     </ConfigurationSettings>

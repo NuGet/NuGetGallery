@@ -248,7 +248,6 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
-    <Compile Include="Controllers\PackageFilesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
     <Compile Include="CuratedFeedsController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
@@ -463,9 +462,6 @@
     <Compile Include="PackageCurators\WebMatrixPackageCurator.cs" />
     <Compile Include="PackageCurators\Windows8PackageCurator.cs" />
     <Compile Include="Helpers\PackageHelper.cs" />
-    <Compile Include="PackageFilesController.generated.cs">
-      <DependentUpon>T4MVC.tt</DependentUpon>
-    </Compile>
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -847,6 +843,8 @@
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
+    <Content Include="App_Offline-Planned.htm" />
+    <Content Include="App_Offline-Unplanned.htm" />
     <Content Include="Content\Images\changePassword.png" />
     <Content Include="Content\Images\copy.png" />
     <Content Include="Content\Images\errorPage.png" />
@@ -975,34 +973,6 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\knockout-latest.js" />
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shAutoloader.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushAppleScript.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushAS3.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushBash.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushColdFusion.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushCpp.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushCSharp.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushCss.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushDelphi.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushDiff.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushErlang.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushGroovy.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushJava.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushJavaFX.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushJScript.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushPerl.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushPhp.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushPlain.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushPowerShell.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushPython.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushRuby.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushSass.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushScala.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushSql.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushVb.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shBrushXml.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shCore.js" />
-    <Content Include="Scripts\SyntaxHighlighter\shLegacy.js" />
     <Content Include="Scripts\ZeroClipboard.js" />
     <Content Include="Scripts\ZeroClipboard.swf" />
     <Content Include="Web.config">
@@ -1054,11 +1024,9 @@
     <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
     <Content Include="Views\Shared\TwoColumnLayout.cshtml" />
     <Content Include="api\Web.config" />
-    <Content Include="_app_offline.htm" />
     <Content Include="Views\Users\ResendConfirmation.cshtml">
     </Content>
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
-    <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
   </ItemGroup>
   <ItemGroup>
@@ -1091,12 +1059,11 @@
     <None Include="T4MVC.tt.settings.t4" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
     <Content Include="Web.ForbiddenHandlers.config" />
-    <Content Include="Views\PackageFiles\Contents.cshtml" />
-    <Content Include="Views\PackageFiles\PackageTooBig.cshtml" />
     <Content Include="Views\Statistics\Index.cshtml" />
     <Content Include="Views\Statistics\Packages.cshtml" />
     <Content Include="Views\Statistics\PackageVersions.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsByVersion.cshtml" />
+    <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />

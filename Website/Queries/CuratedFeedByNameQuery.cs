@@ -7,7 +7,7 @@ namespace NuGetGallery
     {
         CuratedFeed Execute(
             string name,
-            bool includePackages = false);
+            bool includePackages);
     }
 
     public class CuratedFeedByNameQuery : ICuratedFeedByNameQuery
@@ -21,18 +21,18 @@ namespace NuGetGallery
 
         public CuratedFeed Execute(
             string name,
-            bool includePackages = false)
+            bool includePackages)
         {
-            var qry = _entities.CuratedFeeds.AsQueryable();
+            IQueryable<CuratedFeed> query = _entities.CuratedFeeds;
 
             if (includePackages)
             {
-                qry = qry
+                query = query
                     .Include(cf => cf.Packages)
                     .Include(cf => cf.Packages.Select(cp => cp.PackageRegistration));
             }
 
-            return qry
+            return query
                 .SingleOrDefault(cf => cf.Name == name);
         }
     }

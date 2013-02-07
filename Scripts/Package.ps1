@@ -41,17 +41,18 @@ cp $csdefPath $csdefBakPath
 # Startup Scripts
 $startupScripts = @("Startup.cmd", "Startup.ps1", "ConfigureIISLogging.cmd")
 
-if ($commitSha -eq $null) {
+if (!$ReleaseSha) {
     $commitSha = (& "$gitPath" rev-parse HEAD)
     $packageSha = (& "$gitPath" rev-parse --short HEAD)
 } else {
-  $packageSha = $commitSha
+    $commitSha = $ReleaseSha;
+    $packageSha = $commitSha.Substring(0, 10);
 }
 
-if ($commitBranch -eq $null) {
-    $commitBranch = (& "$gitPath" name-rev --name-only HEAD)
+if (!$ReleaseBranch) {
+    $ReleaseBranch = (& "$gitPath" name-rev --name-only HEAD)
 }
-$cspkgPath = join-path $cspkgFolder "NuGetGallery_$commitSha.cspkg"
+$cspkgPath = join-path $cspkgFolder "NuGetGallery_$($packageSha)_$ReleaseBranch.cspkg"
 
 if(Test-Path $cspkgFolder) {
   del $cspkgFolder -Force -Recurse
@@ -131,7 +132,7 @@ $startupScripts | ForEach-Object {
 
 $packageDateTime = (Get-Date -format "MMMdd @ HHmm")
 print-success("Azure $env:NUGET_GALLERY_ENV package and configuration dropped to $cspkgFolder.")
-print-success("Deployment Name: $packageDateTime ($packageSha on $commitBranch)")
+print-success("Deployment Name: $packageDateTime ($packageSha on $ReleaseBranch)")
 
 write-host ""
 
@@ -140,4 +141,4 @@ if($PassThru) {
   Get-Item $cspkgPath
 }
 
-Exit 0
+exit 0
