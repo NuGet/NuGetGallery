@@ -24,20 +24,28 @@ namespace NuGetGallery
                     (SELECT COUNT([Key]) FROM Packages WHERE Listed = 1) AS TotalPackages,
                     (SELECT TotalDownloadCount FROM GallerySettings) AS DownloadCount";
 
+                    command.CommandTimeout = 200;
                     database.Connection.Open();
-                    using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection | CommandBehavior.SingleRow))
+                    try
                     {
-                        bool hasData = reader.Read();
-                        if (!hasData)
+                        using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection | CommandBehavior.SingleRow))
                         {
-                            return new AggregateStats();
-                        }
-                        return new AggregateStats
+                            bool hasData = reader.Read();
+                            if (!hasData)
                             {
-                                UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
-                                TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
-                                Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt64(2),
-                            };
+                                return new AggregateStats();
+                            }
+                            return new AggregateStats
+                                {
+                                    UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
+                                    TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                                    Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt64(2),
+                                };
+                        }
+                    }
+                    catch (System.Exception)
+                    {
+                        throw;
                     }
                 }
             }
