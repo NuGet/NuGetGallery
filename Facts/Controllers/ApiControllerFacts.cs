@@ -15,6 +15,9 @@ namespace NuGetGallery
 {
     public class ApiControllerFacts
     {
+        private static readonly Uri HttpRequestUrl = new Uri("http://nuget.org/api/v2/something");
+        private static readonly Uri HttpsRequestUrl = new Uri("https://nuget.org/api/v2/something");
+
         private static void AssertStatusCodeResult(ActionResult result, int statusCode, string statusDesc)
         {
             Assert.IsType<HttpStatusCodeWithBodyResult>(result);
@@ -401,7 +404,7 @@ namespace NuGetGallery
                 packageService.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux", "Install")).Verifiable();
 
                 var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
-                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(package))
+                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, package))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
                               .Verifiable();
                 var userService = new Mock<IUserService>(MockBehavior.Strict);
@@ -414,6 +417,7 @@ namespace NuGetGallery
                 httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
                 httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
                 httpRequest.SetupGet(r => r.Headers).Returns(headers);
+                httpRequest.SetupGet(r => r.Url).Returns(HttpRequestUrl);
                 var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
                 httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
 
@@ -442,7 +446,7 @@ namespace NuGetGallery
                 packageService.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux", "Install")).Verifiable();
 
                 var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
-                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(package))
+                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, package))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
                               .Verifiable();
                 var userService = new Mock<IUserService>(MockBehavior.Strict);
@@ -455,6 +459,7 @@ namespace NuGetGallery
                 httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
                 httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
                 httpRequest.SetupGet(r => r.Headers).Returns(headers);
+                httpRequest.SetupGet(r => r.Url).Returns(HttpRequestUrl);
                 var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
                 httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
 

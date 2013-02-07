@@ -17,7 +17,7 @@ namespace NuGetGallery
             _fileSystemService = fileSystemService;
         }
 
-        public Task<ActionResult> CreateDownloadFileActionResultAsync(string folderName, string fileName)
+        public Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
