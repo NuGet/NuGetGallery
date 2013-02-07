@@ -24,10 +24,10 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService;
         }
 
-        public async Task<ActionResult> CreateNuGetExeDownloadActionResultAsync()
+        public async Task<ActionResult> CreateNuGetExeDownloadActionResultAsync(Uri requestUrl)
         {
             await EnsureNuGetExe();
-            return await _fileStorageService.CreateDownloadFileActionResultAsync(Constants.DownloadsFolderName, "nuget.exe");
+            return await _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.DownloadsFolderName, "nuget.exe");
         }
 
         public Task UpdateExecutableAsync(IPackage zipPackage)
