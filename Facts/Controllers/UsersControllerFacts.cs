@@ -586,7 +586,7 @@ namespace NuGetGallery
             public void ShowsConfirmViewWithModelWhenConfirmingEmailAddressIsNotRequired()
             {
                 var config = new Mock<IConfiguration>();
-                config.Setup(x => x.ConfirmEmailAddresses).Returns(true);
+                config.Setup(x => x.ConfirmEmailAddresses).Returns(false);
                 var controller = CreateController(config: config);
 
                 var result = controller.Thanks() as ViewResult;
