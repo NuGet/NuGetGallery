@@ -12,7 +12,7 @@ namespace NuGetGallery
     public class UsersControllerFacts
     {
         private static UsersController CreateController(
-            GallerySetting settings = null,
+            Mock<IConfiguration> config = null,
             Mock<IUserService> userService = null,
             Mock<IMessageService> messageService = null,
             Mock<IPrincipal> currentUser = null)
@@ -20,7 +20,7 @@ namespace NuGetGallery
             userService = userService ?? new Mock<IUserService>();
             var packageService = new Mock<IPackageService>();
             messageService = messageService ?? new Mock<IMessageService>();
-            settings = settings ?? new GallerySetting();
+            config = config ?? new Mock<IConfiguration>();
 
             if (currentUser == null)
             {
@@ -32,7 +32,7 @@ namespace NuGetGallery
                 userService.Object,
                 packageService.Object,
                 messageService.Object,
-                settings,
+                config.Object,
                 currentUser.Object);
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), controller);
@@ -509,8 +509,9 @@ namespace NuGetGallery
                                 EmailAddress = "to@example.com",
                                 EmailConfirmationToken = "confirmation"
                             });
-                var settings = new GallerySetting { ConfirmEmailAddresses = true };
-                var controller = CreateController(settings: settings, userService: userService, messageService: messageService);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.ConfirmEmailAddresses).Returns(true);
+                var controller = CreateController(config: config, userService: userService, messageService: messageService);
 
                 controller.Register(
                     new RegisterRequest
@@ -571,8 +572,9 @@ namespace NuGetGallery
             [Fact]
             public void ShowsDefaultThanksViewWhenConfirmingEmailAddressIsRequired()
             {
-                var settings = new GallerySetting { ConfirmEmailAddresses = true };
-                var controller = CreateController(settings: settings);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.ConfirmEmailAddresses).Returns(true);
+                var controller = CreateController(config: config);
 
                 var result = controller.Thanks() as ViewResult;
 
@@ -583,8 +585,9 @@ namespace NuGetGallery
             [Fact]
             public void ShowsConfirmViewWithModelWhenConfirmingEmailAddressIsNotRequired()
             {
-                var settings = new GallerySetting { ConfirmEmailAddresses = false };
-                var controller = CreateController(settings: settings);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.ConfirmEmailAddresses).Returns(true);
+                var controller = CreateController(config: config);
 
                 var result = controller.Thanks() as ViewResult;
 

@@ -2,6 +2,15 @@
 {
     public interface IConfiguration
     {
+        string SmtpHost { get; }
+        string SmtpUsername { get; }
+        string SmtpPassword { get; }
+        int? SmtpPort { get ; }
+        bool UseSmtp { get ; }
+        string GalleryOwnerName { get; }
+        string GalleryOwnerEmail { get; }
+        bool ConfirmEmailAddresses { get; }
+
         string AzureDiagnosticsConnectionString { get; }
         string AzureStorageConnectionString { get; }
         string AzureStatisticsConnectionString { get; }
