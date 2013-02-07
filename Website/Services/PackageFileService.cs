@@ -1,32 +1,27 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace NuGetGallery
 {
     public class PackageFileService : IPackageFileService
     {
-        private readonly IFileStorageService _fileStorageSvc;
+        private readonly IFileStorageService _fileStorageService;
 
-        public PackageFileService(
-            IFileStorageService fileStorageSvc)
+        public PackageFileService(IFileStorageService fileStorageService)
         {
-            _fileStorageSvc = fileStorageSvc;
+            _fileStorageService = fileStorageService;
         }
 
-        public ActionResult CreateDownloadPackageActionResult(Package package)
+        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
         {
             var fileName = BuildFileName(package);
-
-            return _fileStorageSvc.CreateDownloadFileActionResult(
-                Constants.PackagesFolderName,
-                fileName);
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
-        public void DeletePackageFile(
-            string id,
-            string version)
+        public Task DeletePackageFileAsync(string id, string version)
         {
             if (String.IsNullOrWhiteSpace(id))
             {
@@ -39,15 +34,10 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(id, version);
-
-            _fileStorageSvc.DeleteFile(
-                Constants.PackagesFolderName,
-                fileName);
+            return _fileStorageService.DeleteFileAsync(Constants.PackagesFolderName, fileName);
         }
 
-        public void SavePackageFile(
-            Package package,
-            Stream packageFile)
+        public Task SavePackageFileAsync(Package package, Stream packageFile)
         {
             if (packageFile == null)
             {
@@ -55,29 +45,23 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(package);
-
-            _fileStorageSvc.SaveFile(
-                Constants.PackagesFolderName,
-                fileName,
-                packageFile);
+            return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile);
         }
 
-
-        public Stream DownloadPackageFile(Package package)
+        public Task<Stream> DownloadPackageFileAsync(Package package)
         {
             var fileName = BuildFileName(package);
-
-            return _fileStorageSvc.GetFile(
-                Constants.PackagesFolderName,
-                fileName);
+            return _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName);
         }
 
-        private static string BuildFileName(
-            string id,
-            string version)
+        private static string BuildFileName(string id, string version)
         {
             return String.Format(
-                CultureInfo.InvariantCulture, Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
+                CultureInfo.InvariantCulture,
+                Constants.PackageFileSavePathTemplate,
+                id,
+                version,
+                Constants.NuGetPackageFileExtension);
         }
 
         private static string BuildFileName(Package package)
@@ -86,9 +70,10 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("package");
             }
-            if (package.PackageRegistration == null
-                || String.IsNullOrWhiteSpace(package.PackageRegistration.Id)
-                || String.IsNullOrWhiteSpace(package.Version))
+
+            if (package.PackageRegistration == null || 
+                String.IsNullOrWhiteSpace(package.PackageRegistration.Id) || 
+                String.IsNullOrWhiteSpace(package.Version))
             {
                 throw new ArgumentException("The package is missing required data.", "package");
             }

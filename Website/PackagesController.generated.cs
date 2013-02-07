@@ -84,7 +84,7 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
-            public readonly string UploadPackage = "UploadPackage";
+            public readonly string UploadPackageProgress = "UploadPackageProgress";
             public readonly string DisplayPackage = "DisplayPackage";
             public readonly string ListPackages = "ListPackages";
             public readonly string ReportAbuse = "ReportAbuse";
@@ -94,8 +94,6 @@ namespace NuGetGallery {
             public readonly string Delete = "Delete";
             public readonly string Edit = "Edit";
             public readonly string ConfirmOwner = "ConfirmOwner";
-            public readonly string VerifyPackage = "VerifyPackage";
-            public readonly string CancelUpload = "CancelUpload";
         }
 
 
@@ -124,14 +122,8 @@ namespace NuGetGallery {
     public class T4MVC_PackagesController: NuGetGallery.PackagesController {
         public T4MVC_PackagesController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult UploadPackage() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UploadPackage);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult UploadPackage(System.Web.HttpPostedFileBase uploadFile) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UploadPackage);
-            callInfo.RouteValueDictionary.Add("uploadFile", uploadFile);
+        public override System.Web.Mvc.ActionResult UploadPackageProgress() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UploadPackageProgress);
             return callInfo;
         }
 
@@ -226,22 +218,6 @@ namespace NuGetGallery {
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("username", username);
             callInfo.RouteValueDictionary.Add("token", token);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult VerifyPackage() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.VerifyPackage);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult VerifyPackage(bool? listed) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.VerifyPackage);
-            callInfo.RouteValueDictionary.Add("listed", listed);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult CancelUpload() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CancelUpload);
             return callInfo;
         }
 

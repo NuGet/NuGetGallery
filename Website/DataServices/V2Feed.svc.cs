@@ -8,6 +8,7 @@ using System.ServiceModel.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGet;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -19,8 +20,8 @@ namespace NuGetGallery
         {
         }
 
-        public V2Feed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchSvc)
-            : base(entities, repo, configuration, searchSvc)
+        public V2Feed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchService)
+            : base(entities, repo, configuration, searchService)
         {
         }
 
@@ -28,7 +29,7 @@ namespace NuGetGallery
         {
             return new FeedContext<V2FeedPackage>
                 {
-                    Packages = PackageRepo.GetAll()
+                    Packages = PackageRepository.GetAll()
                         .WithoutVersionSort()
                         .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
                 };
@@ -43,7 +44,7 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
-            var packages = PackageRepo.GetAll()
+            var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
@@ -53,18 +54,26 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> FindPackagesById(string id)
         {
-            return PackageRepo.GetAll().Include(p => p.PackageRegistration)
+            return PackageRepository.GetAll().Include(p => p.PackageRegistration)
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
                 .ToV2FeedPackageQuery(GetSiteRoot());
         }
 
         [WebGet]
         public IQueryable<V2FeedPackage> GetUpdates(
-            string packageIds, string versions, bool includePrerelease, bool includeAllVersions, string targetFrameworks)
+            string packageIds, string versions, bool includePrerelease, bool includeAllVersions, string targetFrameworks, string versionConstraints)
         {
             if (String.IsNullOrEmpty(packageIds) || String.IsNullOrEmpty(versions))
             {
                 return Enumerable.Empty<V2FeedPackage>().AsQueryable();
+            }
+
+            // Workaround https://github.com/NuGet/NuGetGallery/issues/674 for NuGet 2.1 client. Can probably eventually be retired (when nobody uses 2.1 anymore...)
+            // Note - it was URI un-escaping converting + to ' ', undoing that is actually a pretty conservative substitution because
+            // space characters are never acepted as valid by VersionUtility.ParseFrameworkName.
+            if (!string.IsNullOrEmpty(targetFrameworks))
+            {
+                targetFrameworks = targetFrameworks.Replace(' ', '+');
             }
 
             var idValues = packageIds.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
@@ -72,29 +81,43 @@ namespace NuGetGallery
             var targetFrameworkValues = String.IsNullOrEmpty(targetFrameworks)
                                             ? null
                                             : targetFrameworks.Split('|').Select(VersionUtility.ParseFrameworkName).ToList();
+            var versionConstraintValues = String.IsNullOrEmpty(versionConstraints)
+                                            ? new string[idValues.Length]
+                                            : versionConstraints.Split('|');
 
-            if ((idValues.Length == 0) || (idValues.Length != versionValues.Length))
+            if (idValues.Length == 0 || idValues.Length != versionValues.Length || idValues.Length != versionConstraintValues.Length)
             {
                 // Exit early if the request looks invalid
                 return Enumerable.Empty<V2FeedPackage>().AsQueryable();
             }
 
-            var versionLookup = new Dictionary<string, SemanticVersion>(idValues.Length, StringComparer.OrdinalIgnoreCase);
+            var versionLookup = new Dictionary<string, Tuple<SemanticVersion, IVersionSpec>>(idValues.Length, StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < idValues.Length; i++)
             {
                 var id = idValues[i];
-                SemanticVersion version;
-                SemanticVersion currentVersion;
 
-                if (SemanticVersion.TryParse(versionValues[i], out currentVersion) &&
-                    (!versionLookup.TryGetValue(id, out version) || (currentVersion > version)))
+                if (versionLookup.ContainsKey(id))
                 {
-                    // If we've never added the package to lookup or we encounter the same id but with a higher version, then choose the higher version.
-                    versionLookup[id] = currentVersion;
+                    // Exit early if the request contains duplicate ids
+                    return Enumerable.Empty<V2FeedPackage>().AsQueryable();
+                }
+
+                SemanticVersion currentVersion = null;
+                if (SemanticVersion.TryParse(versionValues[i], out currentVersion))
+                {
+                    IVersionSpec versionConstraint = null;
+                    if (versionConstraintValues[i] != null)
+                    {
+                        if (!VersionUtility.TryParseVersionSpec(versionConstraintValues[i], out versionConstraint))
+                        {
+                            versionConstraint = null;
+                        }
+                    }
+                    versionLookup.Add(id, Tuple.Create(currentVersion, versionConstraint));
                 }
             }
 
-            var packages = PackageRepo.GetAll()
+            var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.SupportedFrameworks)
                 .Where(p => p.Listed && (includePrerelease || !p.IsPrerelease) && idValues.Contains(p.PackageRegistration.Id))
@@ -105,7 +128,7 @@ namespace NuGetGallery
 
         private static IEnumerable<Package> GetUpdates(
             IEnumerable<Package> packages,
-            Dictionary<string, SemanticVersion> versionLookup,
+            Dictionary<string, Tuple<SemanticVersion, IVersionSpec>> versionLookup,
             IEnumerable<FrameworkName> targetFrameworkValues,
             bool includeAllVersions)
         {
@@ -117,14 +140,19 @@ namespace NuGetGallery
                             // TODO: We could optimize for the includeAllVersions case here by short circuiting the operation once we've encountered the highest version
                             // for a given Id
                             var version = SemanticVersion.Parse(p.Version);
-                            SemanticVersion clientVersion;
-                            if (versionLookup.TryGetValue(p.PackageRegistration.Id, out clientVersion))
+                            Tuple<SemanticVersion, IVersionSpec> versionTuple;
+                            
+                            if (versionLookup.TryGetValue(p.PackageRegistration.Id, out versionTuple))
                             {
+                                SemanticVersion clientVersion = versionTuple.Item1;
                                 var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
 
+                                IVersionSpec versionConstraint = versionTuple.Item2;
+
                                 return (version > clientVersion) &&
-                                       (targetFrameworkValues == null ||
-                                        targetFrameworkValues.Any(s => VersionUtility.IsCompatible(s, supportedPackageFrameworks)));
+                                       (targetFrameworkValues == null || 
+                                        targetFrameworkValues.Any(s => VersionUtility.IsCompatible(s, supportedPackageFrameworks))) &&
+                                        (versionConstraint == null || versionConstraint.Satisfies(version));
                             }
                             return false;
                         });

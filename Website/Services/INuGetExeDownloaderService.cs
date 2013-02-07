@@ -1,12 +1,14 @@
-﻿using System.Web.Mvc;
+﻿using System;
+using System.Threading.Tasks;
+using System.Web.Mvc;
 using NuGet;
 
 namespace NuGetGallery
 {
     public interface INuGetExeDownloaderService
     {
-        ActionResult CreateNuGetExeDownloadActionResult();
+        Task<ActionResult> CreateNuGetExeDownloadActionResultAsync(Uri requestUrl);
 
-        void UpdateExecutable(IPackage package);
+        Task UpdateExecutableAsync(IPackage package);
     }
 }

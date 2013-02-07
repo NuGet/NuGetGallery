@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 
 namespace NuGetGallery
 {
@@ -42,7 +43,8 @@ WHERE pr.ID = {{0}}
             {
                 prereleaseFilter = "AND p.IsPrerelease = 0";
             }
-            return dbContext.Database.SqlQuery<string>(String.Format(SqlFormat, prereleaseFilter), id);
+            return dbContext.Database.SqlQuery<string>(
+                String.Format(CultureInfo.InvariantCulture, SqlFormat, prereleaseFilter), id);
         }
     }
 }

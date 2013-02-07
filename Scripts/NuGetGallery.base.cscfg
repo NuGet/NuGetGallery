@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*">
+  <Role name="Website">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <!-- Used by Diagnostics and Remote Access Plugins -->
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="" />
+      <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
+      
+      <!-- Core Data Access Setttings -->
+      <Setting name="Gallery.AzureStorageConnectionString" value="" />
+      <Setting name="Gallery.AzureDiagnosticsConnectionString" value="" />
+      <Setting name="Gallery.AzureStatisticsConnectionString" value="" />
+      <Setting name="Gallery.Sql.NuGetGallery" value="" />
+
+      <!-- Basic Site Configuration -->
+      <Setting name="Gallery.PackageStoreType" value="AzureStorageBlob" />
+      <Setting name="Gallery.ReadOnlyMode" value="" /><!-- set value 'true' to put the gallery in read only mode -->
+      <Setting name="Gallery.SiteRoot" value="" />
+      
+      <!-- Set this to enable Google Analytics -->
+      <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />
+
+      <!-- Set this to enable Facebook Buttons with a specific App ID -->
+      <Setting name="Gallery.FacebookAppId" value="" />
+            
+      <!-- Set this to enable use of the Azure Caching Service for Package Explorer in the Cloud -->
+      <Setting name="Gallery.AzureCacheEndpoint" value="" />
+      <Setting name="Gallery.AzureCacheKey" value="" />
+
+      <!-- Set this to use the Azure CDN -->
+      <Setting name="Gallery.AzureCdnHost" value="" />
+
+      <!-- Make sure these are unique, secret and remain constant for a particular instance of the gallery! Otherwise cookies will break -->
+      <Setting name="Gallery.ValidationKey" value="" />
+      <Setting name="Gallery.DecryptionKey" value="" />
+    </ConfigurationSettings>
+    <Certificates>
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />
+      <Certificate name="sslcertificate" thumbprint="" thumbprintAlgorithm="sha1" />
+    </Certificates>
+  </Role>
+</ServiceConfiguration>

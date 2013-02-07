@@ -17,8 +17,11 @@
         public const string ListPackages = "ListPackages";
         public const string Authentication = "SignIn";
         public const string UploadPackage = "UploadPackage";
+        public const string UploadPackageProgress = "UploadPackageProgress";
         public const string ManagePackageOwners = "ManagePackageOwners";
         public const string PackageVersionAction = "PackageVersionAction";
+        public const string PackageFilePathAction = "PackageFilePathAction";
+        public const string PackageFileContentsAction = "PackageFileContentsAction";
         public const string PackageOwnerConfirmation = "PackageOwnerConfirmation";
         public const string PackageAction = "PackageAction";
         public const string PushPackageApi = "PushPackageApi";
@@ -34,5 +37,9 @@
         public const string CreateCuratedPackageForm = "CreateCuratedPackageForm";
         public const string CuratedPackages = "CuratedPackages";
         public const string CuratedPackage = "CuratedPackage";
+        public const string StatisticsHome = "StatisticsHome";
+        public const string StatisticsPackages = "StatisticsPackages";
+        public const string StatisticsPackageVersions = "StatisticsPackageVersions";
+        public const string StatisticsPackageDownloadsByVersion = "StatisticsPackageDownloadsByVersion";
     }
 }

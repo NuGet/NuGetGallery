@@ -4,7 +4,7 @@ using AnglicanGeek.MarkdownMailer;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery.Services
+namespace NuGetGallery
 {
     public class MessageServiceFacts
     {

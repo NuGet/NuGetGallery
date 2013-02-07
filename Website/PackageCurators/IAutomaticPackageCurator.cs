@@ -4,8 +4,6 @@ namespace NuGetGallery
 {
     public interface IAutomaticPackageCurator
     {
-        void Curate(
-            Package galleryPackage,
-            IPackage nugetPackage);
+        void Curate(Package galleryPackage, IPackage nugetPackage);
     }
 }

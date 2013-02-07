@@ -1,0 +1,26 @@
+﻿@model StatisticsPackagesViewModel
+@{
+    ViewBag.Title = "Package Downloads for " + Model.PackageId;
+}
+
+<h2>Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (Over the Last 6 Weeks)</h2>
+<table class="sexy-table">
+    <thead>
+        <tr>
+            <th class="first">Version</th><th>Downloads</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.PackageDownloadsByVersion)
+    {
+        <tr>
+            <td><a href="@Url.Package(Model.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+            <td>@item.Downloads</td>
+        </tr>
+    }
+        <tr>
+            <td><span class="statistics-total">Total:</span></td>
+            <td><span class="statistics-total">@Model.TotalPackageDownloads</span></td>
+        </tr>
+    </tbody>
+</table>

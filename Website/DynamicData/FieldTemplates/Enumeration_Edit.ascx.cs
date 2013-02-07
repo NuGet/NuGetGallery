@@ -8,13 +8,6 @@ namespace DynamicDataEFCodeFirst
 {
     public partial class Enumeration_EditField : FieldTemplateUserControl
     {
-        private Type _enumType;
-
-        private Type EnumType
-        {
-            get { return _enumType ?? (_enumType = Column.GetEnumType()); }
-        }
-
         public override Control DataControl
         {
             get { return DropDownList1; }

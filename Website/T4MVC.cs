@@ -30,6 +30,7 @@ public static class MVC {
     public static NuGetGallery.JsonApiController JsonApi = new NuGetGallery.T4MVC_JsonApiController();
     public static NuGetGallery.PackagesController Packages = new NuGetGallery.T4MVC_PackagesController();
     public static NuGetGallery.PagesController Pages = new NuGetGallery.T4MVC_PagesController();
+    public static NuGetGallery.StatisticsController Statistics = new NuGetGallery.T4MVC_StatisticsController();
     public static NuGetGallery.UsersController Users = new NuGetGallery.T4MVC_UsersController();
     public static T4MVC.SharedController Shared = new T4MVC.SharedController();
 }
@@ -321,11 +322,15 @@ namespace Links {
         private const string URLPATH = "~/Scripts";
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+        public static readonly string async_file_upload_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/async-file-upload.min.js") ? Url("async-file-upload.min.js") : Url("async-file-upload.js");
+                      
         public static readonly string jquery_1_6_2_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2-vsdoc.min.js") ? Url("jquery-1.6.2-vsdoc.min.js") : Url("jquery-1.6.2-vsdoc.js");
                       
         public static readonly string jquery_1_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2.min.js") ? Url("jquery-1.6.2.min.js") : Url("jquery-1.6.2.js");
                       
         public static readonly string jquery_1_6_2_min_js = Url("jquery-1.6.2.min.js");
+        public static readonly string jquery_treeview_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.treeview.min.js") ? Url("jquery.treeview.min.js") : Url("jquery.treeview.js");
+                      
         public static readonly string jquery_validate_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate-vsdoc.min.js") ? Url("jquery.validate-vsdoc.min.js") : Url("jquery.validate-vsdoc.js");
                       
         public static readonly string jquery_validate_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate.min.js") ? Url("jquery.validate.min.js") : Url("jquery.validate.js");
@@ -381,6 +386,29 @@ namespace Links {
             public static readonly string searchButton_png = Url("searchButton.png");
             public static readonly string sendMessageGraphic_png = Url("sendMessageGraphic.png");
             public static readonly string trash_png = Url("trash.png");
+            [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+            public static class treeview {
+                private const string URLPATH = "~/Content/Images/treeview";
+                public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                public static readonly string ajax_loader_gif = Url("ajax-loader.gif");
+                public static readonly string file_gif = Url("file.gif");
+                public static readonly string folder_closed_gif = Url("folder-closed.gif");
+                public static readonly string folder_gif = Url("folder.gif");
+                public static readonly string minus_gif = Url("minus.gif");
+                public static readonly string plus_gif = Url("plus.gif");
+                public static readonly string treeview_black_line_gif = Url("treeview-black-line.gif");
+                public static readonly string treeview_black_gif = Url("treeview-black.gif");
+                public static readonly string treeview_default_line_gif = Url("treeview-default-line.gif");
+                public static readonly string treeview_default_gif = Url("treeview-default.gif");
+                public static readonly string treeview_famfamfam_line_gif = Url("treeview-famfamfam-line.gif");
+                public static readonly string treeview_famfamfam_gif = Url("treeview-famfamfam.gif");
+                public static readonly string treeview_gray_line_gif = Url("treeview-gray-line.gif");
+                public static readonly string treeview_gray_gif = Url("treeview-gray.gif");
+                public static readonly string treeview_red_line_gif = Url("treeview-red-line.gif");
+                public static readonly string treeview_red_gif = Url("treeview-red.gif");
+            }
+        
             public static readonly string uploadPackage_png = Url("uploadPackage.png");
             public static readonly string userGraphic_png = Url("userGraphic.png");
             public static readonly string userIcon_png = Url("userIcon.png");
@@ -389,7 +417,32 @@ namespace Links {
             public static readonly string YourPackage_png = Url("YourPackage.png");
         }
     
+        public static readonly string jquery_treeview_css = Url("jquery.treeview.css");
         public static readonly string Site_css = Url("Site.css");
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public static class SyntaxHighlighter {
+            private const string URLPATH = "~/Content/SyntaxHighlighter";
+            public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+            public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+            public static readonly string shCore_css = Url("shCore.css");
+            public static readonly string shCoreDefault_css = Url("shCoreDefault.css");
+            public static readonly string shCoreDjango_css = Url("shCoreDjango.css");
+            public static readonly string shCoreEclipse_css = Url("shCoreEclipse.css");
+            public static readonly string shCoreEmacs_css = Url("shCoreEmacs.css");
+            public static readonly string shCoreFadeToGrey_css = Url("shCoreFadeToGrey.css");
+            public static readonly string shCoreMDUltra_css = Url("shCoreMDUltra.css");
+            public static readonly string shCoreMidnight_css = Url("shCoreMidnight.css");
+            public static readonly string shCoreRDark_css = Url("shCoreRDark.css");
+            public static readonly string shThemeDefault_css = Url("shThemeDefault.css");
+            public static readonly string shThemeDjango_css = Url("shThemeDjango.css");
+            public static readonly string shThemeEclipse_css = Url("shThemeEclipse.css");
+            public static readonly string shThemeEmacs_css = Url("shThemeEmacs.css");
+            public static readonly string shThemeFadeToGrey_css = Url("shThemeFadeToGrey.css");
+            public static readonly string shThemeMDUltra_css = Url("shThemeMDUltra.css");
+            public static readonly string shThemeMidnight_css = Url("shThemeMidnight.css");
+            public static readonly string shThemeRDark_css = Url("shThemeRDark.css");
+        }
+    
     }
 
 }

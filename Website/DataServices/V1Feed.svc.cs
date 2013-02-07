@@ -16,8 +16,8 @@ namespace NuGetGallery
         {
         }
 
-        public V1Feed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchSvc)
-            : base(entities, repo, configuration, searchSvc)
+        public V1Feed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchService)
+            : base(entities, repo, configuration, searchService)
         {
         }
 
@@ -30,7 +30,7 @@ namespace NuGetGallery
         {
             return new FeedContext<V1FeedPackage>
                 {
-                    Packages = PackageRepo.GetAll()
+                    Packages = PackageRepository.GetAll()
                         .Where(p => !p.IsPrerelease)
                         .WithoutVersionSort()
                         .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
@@ -52,7 +52,7 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V1FeedPackage> FindPackagesById(string id)
         {
-            return PackageRepo.GetAll().Include(p => p.PackageRegistration)
+            return PackageRepository.GetAll().Include(p => p.PackageRegistration)
                 .Where(p => !p.IsPrerelease && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
                 .ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
@@ -60,7 +60,7 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V1FeedPackage> Search(string searchTerm, string targetFramework)
         {
-            var packages = PackageRepo.GetAll()
+            var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed && !p.IsPrerelease);
