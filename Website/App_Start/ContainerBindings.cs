@@ -25,18 +25,6 @@ namespace NuGetGallery
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
 
-            var gallerySetting = new Lazy<GallerySetting>(
-                () =>
-                    {
-                        using (var entitiesContext = new EntitiesContext(configuration.SqlConnectionString, configuration.ReadOnlyMode))
-                        {
-                            var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
-                            return settingsRepo.GetAll().FirstOrDefault();
-                        }
-                    });
-
-            Bind<GallerySetting>().ToMethod(c => gallerySetting.Value);
-
             Bind<Lucene.Net.Store.Directory>()
                 .ToMethod(_ => LuceneCommon.GetDirectory())
                 .InSingletonScope();
@@ -163,7 +151,7 @@ namespace NuGetGallery
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                     {
-                        var settings = Kernel.Get<GallerySetting>();
+                        var settings = Kernel.Get<IConfiguration>();
                         if (settings.UseSmtp)
                         {
                             var mailSenderConfiguration = new MailSenderConfiguration

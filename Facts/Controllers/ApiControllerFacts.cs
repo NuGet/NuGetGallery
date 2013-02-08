@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web;
@@ -427,6 +429,45 @@ namespace NuGetGallery
 
                 // Act
                 var result = await controller.GetPackage("Baz", "1.0.1");
+
+                // Assert
+                Assert.Same(actionResult, result);
+                packageFileService.Verify();
+                packageService.Verify();
+            }
+
+            [Fact]
+            public async Task GetPackageReturnsSpecificPackageEvenIfDatabaseIsOffline()
+            {
+                // Arrange
+                var guid = Guid.NewGuid();
+                var package = new Package();
+                var actionResult = new EmptyResult();
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.0", false)).Throws(new DataException("Can't find the database")).Verifiable();
+
+                var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
+                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
+                              .Returns(Task.FromResult<ActionResult>(actionResult))
+                              .Verifiable();
+
+                NameValueCollection headers = new NameValueCollection();
+                headers.Add("NuGet-Operation", "Install");
+
+                var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
+                httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
+                httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
+                httpRequest.SetupGet(r => r.Headers).Returns(headers);
+                httpRequest.SetupGet(r => r.Url).Returns(HttpRequestUrl);
+                var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+                httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
+
+                var controller = CreateController(packageService: packageService, fileService: packageFileService);
+                var controllerContext = new ControllerContext(new RequestContext(httpContext.Object, new RouteData()), controller);
+                controller.ControllerContext = controllerContext;
+
+                // Act
+                var result = await controller.GetPackage("Baz", "1.0.0");
 
                 // Assert
                 Assert.Same(actionResult, result);

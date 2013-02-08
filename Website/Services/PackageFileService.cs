@@ -21,6 +21,13 @@ namespace NuGetGallery
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
+        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion)
+        {
+            // TODO: can users build storage traversal attacks?
+            var fileName = BuildFileName(unsafeId, unsafeVersion);
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
+        }
+
         public Task DeletePackageFileAsync(string id, string version)
         {
             if (String.IsNullOrWhiteSpace(id))

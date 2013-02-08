@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -35,26 +37,38 @@ namespace NuGetGallery
         {
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
             // The allow prerelease flag is ignored if both partialId and version are specified.
-            var package = _packageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
-            
-            if (package == null)
+            try
             {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                Package package = _packageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+                if (package == null)
+                {
+                    return new HttpStatusCodeWithBodyResult(
+                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                }
+
+                _packageService.AddDownloadStatistics(
+                    package,
+                    Request.UserHostAddress,
+                    Request.UserAgent,
+                    Request.Headers["NuGet-Operation"]);
+
+                if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
+                {
+                    return Redirect(package.ExternalPackageUrl);
+                }
+
+                return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
+            }
+            catch (SqlException e)
+            {
+                QuietlyLogException(e);
+            }
+            catch (DataException e)
+            {
+                QuietlyLogException(e);
             }
 
-            _packageService.AddDownloadStatistics(
-                package,
-                Request.UserHostAddress,
-                Request.UserAgent,
-                Request.Headers["NuGet-Operation"]);
-
-            if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
-            {
-                return Redirect(package.ExternalPackageUrl);
-            }
-
-            return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
+            return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, id, version);
         }
 
         [ActionName("GetNuGetExeApi")]
@@ -288,6 +302,18 @@ namespace NuGetGallery
                     Data = query.Execute(id, includePrerelease).ToArray(),
                     JsonRequestBehavior = JsonRequestBehavior.AllowGet
                 };
+        }
+
+        private static void QuietlyLogException(Exception e)
+        {
+            try
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
         }
     }
 }
