@@ -26,26 +26,19 @@ namespace NuGetGallery
 
                     command.CommandTimeout = 200;
                     database.Connection.Open();
-                    try
+                    using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection | CommandBehavior.SingleRow))
                     {
-                        using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection | CommandBehavior.SingleRow))
+                        bool hasData = reader.Read();
+                        if (!hasData)
                         {
-                            bool hasData = reader.Read();
-                            if (!hasData)
-                            {
-                                return new AggregateStats();
-                            }
-                            return new AggregateStats
-                                {
-                                    UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
-                                    TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
-                                    Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt64(2),
-                                };
+                            return new AggregateStats();
                         }
-                    }
-                    catch (System.Exception)
-                    {
-                        throw;
+                        return new AggregateStats
+                            {
+                                UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
+                                TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                                Downloads = reader.IsDBNull(2) ? 0 : reader.GetInt64(2),
+                            };
                     }
                 }
             }

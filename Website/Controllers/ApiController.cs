@@ -52,10 +52,10 @@ namespace NuGetGallery
                     Request.UserAgent,
                     Request.Headers["NuGet-Operation"]);
 
-            if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
-            {
-                return Redirect(package.ExternalPackageUrl);
-            }
+                if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
+                {
+                    return Redirect(package.ExternalPackageUrl);
+                }
 
                 return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
             }

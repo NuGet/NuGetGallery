@@ -106,7 +106,7 @@ namespace NuGetGallery
                     return null;
                 }
 
-                return Int32.Parse(port);
+                return Int32.Parse(port, CultureInfo.InvariantCulture);
             }
         }
 
