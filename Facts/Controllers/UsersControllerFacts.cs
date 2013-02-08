@@ -15,12 +15,14 @@ namespace NuGetGallery
             GallerySetting settings = null,
             Mock<IUserService> userService = null,
             Mock<IMessageService> messageService = null,
+            Mock<ICuratedFeedsByManagerQuery> feedsQuery = null,
             Mock<IPrincipal> currentUser = null)
         {
             userService = userService ?? new Mock<IUserService>();
             var packageService = new Mock<IPackageService>();
             messageService = messageService ?? new Mock<IMessageService>();
             settings = settings ?? new GallerySetting();
+            feedsQuery = feedsQuery ?? new Mock<ICuratedFeedsByManagerQuery>();
 
             if (currentUser == null)
             {
@@ -29,6 +31,7 @@ namespace NuGetGallery
             }
 
             var controller = new UsersController(
+                feedsQuery.Object,
                 userService.Object,
                 packageService.Object,
                 messageService.Object,
@@ -39,95 +42,79 @@ namespace NuGetGallery
             return controller;
         }
 
-        public class TestableUsersController : UsersController
-        {
-            public TestableUsersController()
-                : base(null, null, null, null, null)
-            {
-                StubCuratedFeedsByManagerQry = new Mock<ICuratedFeedsByManagerQuery>();
-                StubIdentity = new Mock<IIdentity>();
-                StubUserByUsernameQry = new Mock<IUserByUsernameQuery>();
-
-                StubIdentity.Setup(stub => stub.IsAuthenticated).Returns(true);
-                StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
-                StubUserByUsernameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns(new User { Key = 0 });
-            }
-
-            public Mock<ICuratedFeedsByManagerQuery> StubCuratedFeedsByManagerQry { get; private set; }
-            public Mock<IIdentity> StubIdentity { get; private set; }
-            public Mock<IUserByUsernameQuery> StubUserByUsernameQry { get; private set; }
-
-            protected override IIdentity Identity
-            {
-                get { return StubIdentity.Object; }
-            }
-
-            protected override T GetService<T>()
-            {
-                if (typeof(T) == typeof(ICuratedFeedsByManagerQuery))
-                {
-                    return (T)StubCuratedFeedsByManagerQry.Object;
-                }
-
-                if (typeof(T) == typeof(IUserByUsernameQuery))
-                {
-                    return (T)StubUserByUsernameQry.Object;
-                }
-
-                throw new Exception("Tried to get an unexpected service.");
-            }
-        }
-
         public class TheAccountAction
         {
             [Fact]
             public void WillGetTheCurrentUserUsingTheRequestIdentityName()
             {
-                var controller = new TestableUsersController();
-                controller.StubIdentity.Setup(stub => stub.Name).Returns("theUsername");
+                var userService = new Mock<IUserService>();
+                var user = new Mock<IPrincipal>();
+                var identityStub = new Mock<IIdentity>();
+                user.Setup(stub => stub.Identity).Returns(identityStub.Object);
+                identityStub.Setup(stub => stub.Name).Returns("theUsername");
+                userService
+                    .Setup(s => s.FindByUsername(It.IsAny<string>()))
+                    .Returns(new User { Key = 42 });
+                var controller = CreateController(userService: userService, currentUser: user);
 
+                //act
                 controller.Account();
 
-                controller.StubUserByUsernameQry.Verify(stub => stub.Execute("theUsername", true));
+                // verify
+                userService.Verify(stub => stub.FindByUsername("theUsername"));
             }
 
             [Fact]
             public void WillGetCuratedFeedsManagedByTheCurrentUser()
             {
-                var controller = new TestableUsersController();
-                controller.StubUserByUsernameQry
-                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                var feedsQuery = new Mock<ICuratedFeedsByManagerQuery>();
+                var userService = new Mock<IUserService>();
+                userService
+                    .Setup(s => s.FindByUsername(It.IsAny<string>()))
                     .Returns(new User { Key = 42 });
+                var controller = CreateController(feedsQuery: feedsQuery, userService: userService);
 
+                // act
                 controller.Account();
 
-                controller.StubCuratedFeedsByManagerQry.Verify(stub => stub.Execute(42));
+                // verify
+                feedsQuery.Verify(query => query.Execute(42));
             }
 
             [Fact]
             public void WillReturnTheAccountViewModelWithTheUserApiKey()
             {
-                var controller = new TestableUsersController();
                 var stubApiKey = Guid.NewGuid();
-                controller.StubUserByUsernameQry
-                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                var userService = new Mock<IUserService>();
+                userService
+                    .Setup(s => s.FindByUsername(It.IsAny<string>()))
                     .Returns(new User { Key = 42, ApiKey = stubApiKey });
+                var controller = CreateController(userService: userService);
 
+                // act
                 var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
 
+                // verify
                 Assert.Equal(stubApiKey.ToString(), model.ApiKey);
             }
 
             [Fact]
             public void WillReturnTheAccountViewModelWithTheCuratedFeeds()
             {
-                var controller = new TestableUsersController();
-                controller.StubCuratedFeedsByManagerQry
+                var feedsQuery = new Mock<ICuratedFeedsByManagerQuery>();
+                var userService = new Mock<IUserService>();
+                userService
+                    .Setup(s => s.FindByUsername(It.IsAny<string>()))
+                    .Returns(new User { Key = 42 });
+                feedsQuery
                     .Setup(stub => stub.Execute(It.IsAny<int>()))
                     .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
+                var controller = CreateController(feedsQuery: feedsQuery, userService: userService);
 
+                // act
                 var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
 
+                // verify
                 Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
             }
         }
