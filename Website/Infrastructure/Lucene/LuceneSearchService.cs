@@ -203,14 +203,17 @@ namespace NuGetGallery
             {
                 var combinedQuery = new BooleanQuery();
 
-                if (!IsDegenerateQuery(combinedQuery))
+                if (!IsDegenerateQuery(generalQuery))
                 {
                     combinedQuery.Add(generalQuery, BooleanClause.Occur.MUST);
                 }
 
                 foreach (var fieldQuery in fieldSpecificQueries)
                 {
-                    combinedQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                    if (!IsDegenerateQuery(fieldQuery))
+                    {
+                        combinedQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                    }
                 }
 
                 generalQuery = combinedQuery;
