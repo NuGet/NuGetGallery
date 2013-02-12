@@ -15,7 +15,8 @@ namespace NuGetGallery
     {
         private Lucene.Net.Store.Directory _directory;
 
-        private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Author" };
+        private static readonly string[] FieldAliases = new[] { "Id", "Title", "Tag", "Tags", "Description", "Author", "Authors", "Owner", "Owners" };
+        private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Authors", "Owners" };
 
         public LuceneSearchService(Lucene.Net.Store.Directory directory)
         {
@@ -93,11 +94,11 @@ namespace NuGetGallery
             DateTime published = DateTime.Parse(doc.Get("Published"), CultureInfo.InvariantCulture);
             DateTime lastUpdated = DateTime.Parse(doc.Get("LastUpdated"), CultureInfo.InvariantCulture);
 
-            var owners = doc.Get("Owners")
+            var owners = doc.Get("FlattenedOwners")
                             .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
                             .Select(o => new User {Username = o})
                             .ToArray();
-            var authors = doc.Get("Authors")
+            var authors = doc.Get("FlattenedAuthors")
                              .SplitSafe(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                              .Select(a => new PackageAuthor {Name = a.Trim()})
                              .ToArray();
@@ -120,7 +121,7 @@ namespace NuGetGallery
                 Description = doc.Get("Description"),
                 Dependencies = dependencies,
                 DownloadCount = versionDownloadCount,
-                FlattenedAuthors = doc.Get("Author"),
+                FlattenedAuthors = doc.Get("FlattenedAuthors"),
                 FlattenedDependencies = doc.Get("FlattenedDependencies"),
                 Hash = doc.Get("Hash"),
                 HashAlgorithm = doc.Get("HashAlgorithm"),
@@ -202,14 +203,17 @@ namespace NuGetGallery
             {
                 var combinedQuery = new BooleanQuery();
 
-                if (!IsDegenerateQuery(combinedQuery))
+                if (!IsDegenerateQuery(generalQuery))
                 {
                     combinedQuery.Add(generalQuery, BooleanClause.Occur.MUST);
                 }
 
                 foreach (var fieldQuery in fieldSpecificQueries)
                 {
-                    combinedQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                    if (!IsDegenerateQuery(fieldQuery))
+                    {
+                        combinedQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                    }
                 }
 
                 generalQuery = combinedQuery;
@@ -292,8 +296,21 @@ namespace NuGetGallery
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1309:UseOrdinalStringComparison", MessageId = "System.String.Equals(System.String,System.StringComparison)")]
         private static NuGetSearchTerm StandardizeSearchTerms(NuGetSearchTerm input)
         {
-            var fieldName = Fields
+            var fieldName = FieldAliases
                 .FirstOrDefault(f => f.Equals(input.Field, StringComparison.InvariantCultureIgnoreCase));
+
+            if (string.Equals(fieldName, "Author", StringComparison.InvariantCultureIgnoreCase))
+            {
+                fieldName = "Authors";
+            }
+            else if (string.Equals(fieldName, "Owner", StringComparison.InvariantCultureIgnoreCase))
+            {
+                fieldName = "Owners";
+            }
+            else if (string.Equals(fieldName, "Tag", StringComparison.InvariantCultureIgnoreCase))
+            {
+                fieldName = "Tags";
+            }
 
             var searchTerm = new NuGetSearchTerm { Field = fieldName, TermOrPhrase = input.TermOrPhrase };
 
