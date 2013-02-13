@@ -1,11 +1,39 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="Azure" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2012-10.1.8">
-  <WebRole name="Website" vmsize="Medium">
+  <WebRole name="Website" vmsize="Small">
     <Startup>
-      <Task commandLine="EnableDynamicHttpCompression.cmd" executionContext="elevated" taskType="simple" />
-      <!-- Configure IIS Logging as a background task, since it will likely need to wait for the IIS site to be created -->
+      <Task commandLine="Startup.cmd" executionContext="elevated" taskType="simple" />
       <Task commandLine="ConfigureIISLogging.cmd" executionContext="elevated" taskType="background" />
     </Startup>
+    <ConfigurationSettings>
+      <!-- Core Data Access Setttings -->
+      <Setting name="Gallery.AzureStorageConnectionString" />
+      <Setting name="Gallery.AzureDiagnosticsConnectionString" />
+      <Setting name="Gallery.AzureStatisticsConnectionString" />
+      <Setting name="Gallery.Sql.NuGetGallery" />
+
+      <!-- Basic Site Configuration -->
+      <Setting name="Gallery.PackageStoreType" />
+      <Setting name="Gallery.ReadOnlyMode" /><!-- set value 'true' to put the gallery in read only mode -->
+      <Setting name="Gallery.SiteRoot" />
+      
+      <!-- Set this to enable Google Analytics -->
+      <Setting name="Gallery.GoogleAnalyticsPropertyId" />
+
+      <!-- Set this to enable Facebook Buttons with a specific App ID -->
+      <Setting name="Gallery.FacebookAppId" />
+            
+      <!-- Set this to enable use of the Azure Caching Service for Package Explorer in the Cloud -->
+      <Setting name="Gallery.AzureCacheEndpoint" />
+      <Setting name="Gallery.AzureCacheKey" />
+
+      <!-- Set this to use the Azure CDN -->
+      <Setting name="Gallery.AzureCdnHost" />
+
+      <!-- Make sure these are unique, secret and remain constant for a particular instance of the gallery! Otherwise cookies will break -->
+      <Setting name="Gallery.ValidationKey" />
+      <Setting name="Gallery.DecryptionKey" />
+    </ConfigurationSettings>
     <Sites>
       <Site name="Web">
         <Bindings>
@@ -16,10 +44,11 @@
     </Sites>
     <Endpoints>
       <InputEndpoint name="Non-SSL" protocol="http" port="80" />
-      <InputEndpoint name="SSL" protocol="https" port="443" certificate="nuget.org" />
+      <InputEndpoint name="SSL" protocol="https" port="443" certificate="sslcertificate" />
     </Endpoints>
     <LocalResources>
       <LocalStorage name="IISLogs" sizeInMB="128" cleanOnRoleRecycle="false" />
+      <LocalStorage name="PackageCache" sizeInMB="200" cleanOnRoleRecycle="true" />
     </LocalResources>
     <Imports>
       <Import moduleName="Diagnostics" />

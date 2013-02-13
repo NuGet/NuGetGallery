@@ -25,7 +25,7 @@ namespace NuGetGallery
         private readonly IConfiguration _configuration;
 
         private readonly IEntitiesContext _entities;
-        private readonly IEntityRepository<Package> _packageRepo;
+        private readonly IEntityRepository<Package> _packageRepository;
         private readonly ISearchService _searchService;
         private HttpContextBase _httpContext;
 
@@ -39,12 +39,12 @@ namespace NuGetGallery
 
         protected FeedServiceBase(
             IEntitiesContext entities,
-            IEntityRepository<Package> packageRepo,
+            IEntityRepository<Package> packageRepository,
             IConfiguration configuration,
             ISearchService searchService)
         {
             _entities = entities;
-            _packageRepo = packageRepo;
+            _packageRepository = packageRepository;
             _configuration = configuration;
             _searchService = searchService;
         }
@@ -54,9 +54,9 @@ namespace NuGetGallery
             get { return _entities; }
         }
 
-        protected IEntityRepository<Package> PackageRepo
+        protected IEntityRepository<Package> PackageRepository
         {
-            get { return _packageRepo; }
+            get { return _packageRepository; }
         }
 
         protected IConfiguration Configuration

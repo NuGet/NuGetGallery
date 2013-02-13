@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Net;
+using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 
 namespace NuGetGallery
 {
@@ -13,50 +15,39 @@ namespace NuGetGallery
     {
         private readonly ICloudBlobClient _client;
         private readonly IConfiguration _configuration;
-        private readonly IDictionary<string, ICloudBlobContainer> _containers = new Dictionary<string, ICloudBlobContainer>();
+        private readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
+        private bool _containersSetup;
 
         public CloudBlobFileStorageService(ICloudBlobClient client, IConfiguration configuration)
         {
             _client = client;
             _configuration = configuration;
-
-            PrepareContainer(Constants.PackagesFolderName, isPublic: true);
-            PrepareContainer(Constants.DownloadsFolderName, isPublic: true);
-            PrepareContainer(Constants.UploadsFolderName, isPublic: false);
         }
 
-        public ActionResult CreateDownloadFileActionResult(
-            string folderName,
-            string fileName)
+        public async Task<ActionResult> CreateDownloadFileActionResultAsync(string folderName, string fileName)
         {
-            var container = GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
 
-            var redirectUri = GetRedirectUri(blob.Uri);
+            var redirectUri = ConstructRedirectUri(blob.Uri);
             return new RedirectResult(redirectUri.OriginalString, false);
         }
 
-        public void DeleteFile(
-            string folderName,
-            string fileName)
+        public async Task DeleteFileAsync(string folderName, string fileName)
         {
-            var container = GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
-            blob.DeleteIfExists();
+            await blob.DeleteIfExistsAsync();
         }
 
-        public bool FileExists(
-            string folderName,
-            string fileName)
+        public async Task<bool> FileExistsAsync(string folderName, string fileName)
         {
-            var container = GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
-            return blob.Exists();
+            return await blob.ExistsAsync();
         }
 
-        public Stream GetFile(
-            string folderName,
-            string fileName)
+        public async Task<Stream> GetFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -68,44 +59,71 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
+            ICloudBlobContainer container = await GetContainer(folderName);
+
+            var blob = container.GetBlobReference(fileName);
+
             var stream = new MemoryStream();
             try
             {
-                var container = GetContainer(folderName);
-                var blob = container.GetBlobReference(fileName);
-                blob.DownloadToStream(stream);
+                await blob.DownloadToStreamAsync(stream);
             }
-            catch (TestableStorageClientException ex)
+            catch (StorageException ex)
             {
                 stream.Dispose();
 
-                if (ex.HttpStatusCode == HttpStatusCode.NotFound)
+                if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
                 {
                     return null;
                 }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (TestableStorageClientException ex)
+            {
+                // This is for unit test only, because we can't construct an 
+                // StorageException object with the required ErrorCode
+                stream.Dispose();
 
-                throw;
+                if (ex.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
             }
 
             stream.Position = 0;
             return stream;
         }
 
-        public void SaveFile(
-            string folderName,
-            string fileName,
-            Stream packageFile)
+        public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
-            var container = GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
-            blob.DeleteIfExists();
-            blob.UploadFromStream(packageFile);
+            await blob.DeleteIfExistsAsync();
+            await blob.UploadFromStreamAsync(packageFile);
             blob.Properties.ContentType = GetContentType(folderName);
-            blob.SetProperties();
+            await blob.SetPropertiesAsync();
         }
 
-        private ICloudBlobContainer GetContainer(string folderName)
+        private async Task<ICloudBlobContainer> GetContainer(string folderName)
         {
+            if (!_containersSetup)
+            {
+                _containersSetup = true;
+
+                Task packagesTask = PrepareContainer(Constants.PackagesFolderName, isPublic: true);
+                Task downloadsTask = PrepareContainer(Constants.DownloadsFolderName, isPublic: true);
+                Task uploadsTask = PrepareContainer(Constants.UploadsFolderName, isPublic: false);
+
+                await Task.WhenAll(packagesTask, downloadsTask, uploadsTask);
+            }
+            
             return _containers[folderName];
         }
 
@@ -116,34 +134,29 @@ namespace NuGetGallery
                 case Constants.PackagesFolderName:
                 case Constants.UploadsFolderName:
                     return Constants.PackageContentType;
+
                 case Constants.DownloadsFolderName:
                     return Constants.OctetStreamContentType;
+
                 default:
                     throw new InvalidOperationException(
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
             }
         }
 
-        private void PrepareContainer(
-            string folderName,
-            bool isPublic)
+        private async Task PrepareContainer(string folderName, bool isPublic)
         {
             var container = _client.GetContainerReference(folderName);
-            container.CreateIfNotExist();
+            await container.CreateIfNotExistAsync();
+            await container.SetPermissionsAsync(
+                new BlobContainerPermissions { 
+                    PublicAccess = isPublic ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off
+                });
 
-            if (isPublic)
-            {
-                container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-            }
-            else
-            {
-                container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Off });
-            }
-
-            _containers.Add(folderName, container);
+            _containers[folderName] = container;
         }
 
-        private Uri GetRedirectUri(Uri blobUri)
+        private Uri ConstructRedirectUri(Uri blobUri)
         {
             if (!String.IsNullOrEmpty(_configuration.AzureCdnHost))
             {
@@ -154,6 +167,7 @@ namespace NuGetGallery
 
                 return builder.Uri;
             }
+
             return blobUri;
         }
     }

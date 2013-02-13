@@ -15,13 +15,13 @@ namespace NuGetGallery
         private readonly IUserService _userService;
 
         public UsersController(
-            IUserService userSvc,
+            IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
             GallerySetting settings,
             IPrincipal currentUser)
         {
-            _userService = userSvc;
+            _userService = userService;
             _packageService = packageService;
             _messageService = messageService;
             _settings = settings;
@@ -220,7 +220,7 @@ namespace NuGetGallery
         {
             if (ModelState.IsValid)
             {
-                var user = _userService.FindByUnconfimedEmailAddress(model.Email);
+                var user = _userService.FindByUnconfirmedEmailAddress(model.Email);
                 if (user != null && !user.Confirmed)
                 {
                     var confirmationUrl = Url.ConfirmationUrl(
@@ -279,7 +279,9 @@ namespace NuGetGallery
                     SuccessfulConfirmation = _userService.ConfirmEmailAddress(user, token)
                 };
 
-            if (!model.ConfirmingNewAccount)
+            // SuccessfulConfirmation is required so that the confirm Action isn't a way to spam people.
+            // Change notice not required for new accounts.
+            if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
             {
                 _messageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
             }

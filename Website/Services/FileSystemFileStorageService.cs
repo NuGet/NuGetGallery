@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -8,19 +9,41 @@ namespace NuGetGallery
     public class FileSystemFileStorageService : IFileStorageService
     {
         private readonly IConfiguration _configuration;
-        private readonly IFileSystemService _fileSystemSvc;
+        private readonly IFileSystemService _fileSystemService;
 
-        public FileSystemFileStorageService(
-            IConfiguration configuration,
-            IFileSystemService fileSystemSvc)
+        public FileSystemFileStorageService(IConfiguration configuration, IFileSystemService fileSystemService)
         {
             _configuration = configuration;
-            _fileSystemSvc = fileSystemSvc;
+            _fileSystemService = fileSystemService;
         }
 
-        public ActionResult CreateDownloadFileActionResult(
-            string folderName,
-            string fileName)
+        public Task<ActionResult> CreateDownloadFileActionResultAsync(string folderName, string fileName)
+        {
+            if (String.IsNullOrWhiteSpace(folderName))
+            {
+                throw new ArgumentNullException("folderName");
+            }
+
+            if (String.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException("fileName");
+            }
+
+            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+            if (!_fileSystemService.FileExists(path))
+            {
+                return Task.FromResult<ActionResult>(new HttpNotFoundResult());
+            }
+
+            var result = new FilePathResult(path, GetContentType(folderName))
+            {
+                FileDownloadName = new FileInfo(fileName).Name
+            };
+
+            return Task.FromResult<ActionResult>(result);
+        }
+
+        public Task DeleteFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -32,19 +55,15 @@ namespace NuGetGallery
             }
 
             var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            if (!_fileSystemSvc.FileExists(path))
+            if (_fileSystemService.FileExists(path))
             {
-                return new HttpNotFoundResult();
+                _fileSystemService.DeleteFile(path);
             }
 
-            var result = new FilePathResult(path, GetContentType(folderName));
-            result.FileDownloadName = new FileInfo(fileName).Name;
-            return result;
+            return Task.FromResult(0);
         }
 
-        public void DeleteFile(
-            string folderName,
-            string fileName)
+        public Task<bool> FileExistsAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -56,15 +75,12 @@ namespace NuGetGallery
             }
 
             var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            if (_fileSystemSvc.FileExists(path))
-            {
-                _fileSystemSvc.DeleteFile(path);
-            }
+            bool fileExists = _fileSystemService.FileExists(path);
+
+            return Task.FromResult(fileExists);
         }
 
-        public bool FileExists(
-            string folderName,
-            string fileName)
+        public Task<Stream> GetFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -76,73 +92,49 @@ namespace NuGetGallery
             }
 
             var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            return _fileSystemSvc.FileExists(path);
+
+            Stream fileStream = _fileSystemService.FileExists(path) ? _fileSystemService.OpenRead(path) : null;
+            return Task.FromResult(fileStream);
         }
 
-        public Stream GetFile(
-            string folderName,
-            string fileName)
+        public Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException("folderName");
             }
+
             if (String.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException("fileName");
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            if (_fileSystemSvc.FileExists(path))
-            {
-                return _fileSystemSvc.OpenRead(path);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public void SaveFile(
-            string folderName,
-            string fileName,
-            Stream packageFile)
-        {
-            if (String.IsNullOrWhiteSpace(folderName))
-            {
-                throw new ArgumentNullException("folderName");
-            }
-            if (String.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException("fileName");
-            }
             if (packageFile == null)
             {
                 throw new ArgumentNullException("packageFile");
             }
 
-            if (!_fileSystemSvc.DirectoryExists(_configuration.FileStorageDirectory))
+            if (!_fileSystemService.DirectoryExists(_configuration.FileStorageDirectory))
             {
-                _fileSystemSvc.CreateDirectory(_configuration.FileStorageDirectory);
+                _fileSystemService.CreateDirectory(_configuration.FileStorageDirectory);
             }
 
             var folderPath = Path.Combine(_configuration.FileStorageDirectory, folderName);
-            if (!_fileSystemSvc.DirectoryExists(folderPath))
+            if (!_fileSystemService.DirectoryExists(folderPath))
             {
-                _fileSystemSvc.CreateDirectory(folderPath);
+                _fileSystemService.CreateDirectory(folderPath);
             }
 
             var filePath = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            using (var file = _fileSystemSvc.OpenWrite(filePath))
+            using (var file = _fileSystemService.OpenWrite(filePath))
             {
                 packageFile.CopyTo(file);
             }
+
+            return Task.FromResult(0);
         }
 
-        private static string BuildPath(
-            string fileStorageDirectory,
-            string folderName,
-            string fileName)
+        private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)
         {
             return Path.Combine(fileStorageDirectory, folderName, fileName);
         }
@@ -153,8 +145,10 @@ namespace NuGetGallery
             {
                 case Constants.PackagesFolderName:
                     return Constants.PackageContentType;
+
                 case Constants.DownloadsFolderName:
                     return Constants.OctetStreamContentType;
+
                 default:
                     throw new InvalidOperationException(
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));

@@ -6,18 +6,18 @@ namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        private readonly ICryptographyService _cryptoSvc;
+        private readonly ICryptographyService _cryptoService;
         private readonly GallerySetting _settings;
-        private readonly IEntityRepository<User> _userRepo;
+        private readonly IEntityRepository<User> _userRepository;
 
         public UserService(
             GallerySetting settings,
-            ICryptographyService cryptoSvc,
-            IEntityRepository<User> userRepo)
+            ICryptographyService cryptoService,
+            IEntityRepository<User> userRepository)
         {
             _settings = settings;
-            _cryptoSvc = cryptoSvc;
-            _userRepo = userRepo;
+            _cryptoService = cryptoService;
+            _userRepository = userRepository;
         }
 
         public virtual User Create(
@@ -40,7 +40,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
             }
 
-            var hashedPassword = _cryptoSvc.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = _cryptoService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
             var newUser = new User(
                 username,
@@ -49,7 +49,7 @@ namespace NuGetGallery
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
                     UnconfirmedEmailAddress = emailAddress,
-                    EmailConfirmationToken = _cryptoSvc.GenerateToken(),
+                    EmailConfirmationToken = _cryptoService.GenerateToken(),
                     PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 };
 
@@ -58,8 +58,8 @@ namespace NuGetGallery
                 newUser.ConfirmEmailAddress();
             }
 
-            _userRepo.InsertOnCommit(newUser);
-            _userRepo.CommitChanges();
+            _userRepository.InsertOnCommit(newUser);
+            _userRepository.CommitChanges();
 
             return newUser;
         }
@@ -79,37 +79,37 @@ namespace NuGetGallery
                     throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
                 }
                 user.UnconfirmedEmailAddress = emailAddress;
-                user.EmailConfirmationToken = _cryptoSvc.GenerateToken();
+                user.EmailConfirmationToken = _cryptoService.GenerateToken();
             }
 
             user.EmailAllowed = emailAllowed;
-            _userRepo.CommitChanges();
+            _userRepository.CommitChanges();
         }
 
         public User FindByApiKey(Guid apiKey)
         {
-            return _userRepo.GetAll().SingleOrDefault(u => u.ApiKey == apiKey);
+            return _userRepository.GetAll().SingleOrDefault(u => u.ApiKey == apiKey);
         }
 
         public virtual User FindByEmailAddress(string emailAddress)
         {
             // TODO: validate input
 
-            return _userRepo.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
+            return _userRepository.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
         }
 
-        public virtual User FindByUnconfimedEmailAddress(string unconfirmedEmailAddress)
+        public virtual User FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress)
         {
             // TODO: validate input
 
-            return _userRepo.GetAll().SingleOrDefault(u => u.UnconfirmedEmailAddress == unconfirmedEmailAddress);
+            return _userRepository.GetAll().SingleOrDefault(u => u.UnconfirmedEmailAddress == unconfirmedEmailAddress);
         }
 
         public virtual User FindByUsername(string username)
         {
             // TODO: validate input
 
-            return _userRepo.GetAll()
+            return _userRepository.GetAll()
                 .Include(u => u.Roles)
                 .SingleOrDefault(u => u.Username == username);
         }
@@ -125,7 +125,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (!_cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!_cryptoService.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
             {
                 return null;
             }
@@ -145,7 +145,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (!_cryptoSvc.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!_cryptoService.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
             {
                 return null;
             }
@@ -153,7 +153,7 @@ namespace NuGetGallery
             {
                 // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
                 ChangePasswordInternal(user, password);
-                _userRepo.CommitChanges();
+                _userRepository.CommitChanges();
             }
 
             return user;
@@ -169,7 +169,7 @@ namespace NuGetGallery
 
             var newApiKey = Guid.NewGuid();
             user.ApiKey = newApiKey;
-            _userRepo.CommitChanges();
+            _userRepository.CommitChanges();
             return newApiKey.ToString();
         }
 
@@ -184,7 +184,7 @@ namespace NuGetGallery
             }
 
             ChangePasswordInternal(user, newPassword);
-            _userRepo.CommitChanges();
+            _userRepository.CommitChanges();
             return true;
         }
 
@@ -194,6 +194,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("user");
             }
+
             if (String.IsNullOrEmpty(token))
             {
                 throw new ArgumentNullException("token");
@@ -206,7 +207,7 @@ namespace NuGetGallery
 
             user.ConfirmEmailAddress();
 
-            _userRepo.CommitChanges();
+            _userRepository.CommitChanges();
             return true;
         }
 
@@ -238,10 +239,10 @@ namespace NuGetGallery
                 return user;
             }
 
-            user.PasswordResetToken = _cryptoSvc.GenerateToken();
+            user.PasswordResetToken = _cryptoService.GenerateToken();
             user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(tokenExpirationMinutes);
 
-            _userRepo.CommitChanges();
+            _userRepository.CommitChanges();
             return user;
         }
 
@@ -252,7 +253,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("newPassword");
             }
 
-            var user = (from u in _userRepo.GetAll()
+            var user = (from u in _userRepository.GetAll()
                         where u.Username == username
                         select u).FirstOrDefault();
 
@@ -266,7 +267,7 @@ namespace NuGetGallery
                 ChangePasswordInternal(user, newPassword);
                 user.PasswordResetToken = null;
                 user.PasswordResetTokenExpirationDate = null;
-                _userRepo.CommitChanges();
+                _userRepository.CommitChanges();
                 return true;
             }
 
@@ -275,7 +276,7 @@ namespace NuGetGallery
 
         private void ChangePasswordInternal(User user, string newPassword)
         {
-            var hashedPassword = _cryptoSvc.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = _cryptoService.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
             user.HashedPassword = hashedPassword;
         }

@@ -1,17 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Lucene.Net.Analysis.Standard;
+﻿using Lucene.Net.Analysis;
+using Lucene.Net.Documents;
 using Lucene.Net.Index;
-using Lucene.Net.QueryParsers;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Globalization;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
     public class LuceneSearchService : ISearchService
     {
+        private Lucene.Net.Store.Directory _directory;
+
+        private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Author" };
+
+        public LuceneSearchService(Lucene.Net.Store.Directory directory)
+        {
+            _directory = directory;
+        }
+
         public IQueryable<Package> Search(IQueryable<Package> packages, SearchFilter searchFilter, out int totalHits)
         {
             if (packages == null)
@@ -34,80 +44,192 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException("searchFilter");
             }
 
-            // For the given search term, find the keys that match.
-            var keys = SearchCore(searchFilter, out totalHits);
-            if (keys.Count == 0 || searchFilter.CountOnly)
+            return SearchCore(searchFilter, out totalHits);
+        }
+
+        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits)
+        {
+            int numRecords = searchFilter.Skip + searchFilter.Take;
+
+            var searcher = new IndexSearcher(_directory, readOnly: true);
+            var query = ParseQuery(searchFilter);
+
+            // IF searching by relevance, boost scores by download count.
+            if (searchFilter.SortProperty == SortProperty.Relevance)
+            {
+                var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
+                query = new CustomScoreQuery(query, downloadCountBooster);
+            }
+
+            var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
+            var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
+            var filter = new QueryWrapperFilter(termQuery);
+            var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
+            totalHits = results.totalHits;
+
+            if (results.totalHits == 0 || searchFilter.CountOnly)
             {
                 return Enumerable.Empty<Package>().AsQueryable();
             }
 
-            // Query the source for each of the keys that need to be taken.
-            var results = packages.Where(p => keys.Contains(p.Key));
-
-            // When querying the database, these keys are returned in no particular order. We use the original order of queries
-            // and retrieve each of the packages from the result in the same order.
-            var lookup = results.ToDictionary(p => p.Key, p => p);
-
-            return keys.Select(key => LookupPackage(lookup, key))
-                .Where(p => p != null)
-                .AsQueryable();
+            var packages = results.scoreDocs
+                                  .Skip(searchFilter.Skip)
+                                  .Select(sd => PackageFromDoc(searcher.Doc(sd.doc)))
+                                  .ToList();
+            return packages.AsQueryable();
         }
 
-        private static Package LookupPackage(Dictionary<int, Package> dict, int key)
+        private static Package PackageFromDoc(Document doc)
         {
-            Package package;
-            dict.TryGetValue(key, out package);
-            return package;
+            int downloadCount = Int32.Parse(doc.Get("DownloadCount"), CultureInfo.InvariantCulture);
+            int versionDownloadCount = Int32.Parse(doc.Get("VersionDownloadCount"), CultureInfo.InvariantCulture);
+            int key = Int32.Parse(doc.Get("Key"), CultureInfo.InvariantCulture);
+            int packageRegistrationKey = Int32.Parse(doc.Get("PackageRegistrationKey"), CultureInfo.InvariantCulture);
+            int packageSize = Int32.Parse(doc.Get("PackageFileSize"), CultureInfo.InvariantCulture);
+            bool isLatest = Boolean.Parse(doc.Get("IsLatest"));
+            bool isLatestStable = Boolean.Parse(doc.Get("IsLatestStable"));
+            bool requiresLicenseAcceptance = Boolean.Parse(doc.Get("RequiresLicenseAcceptance"));
+            DateTime created = DateTime.Parse(doc.Get("Created"), CultureInfo.InvariantCulture);
+            DateTime published = DateTime.Parse(doc.Get("Published"), CultureInfo.InvariantCulture);
+            DateTime lastUpdated = DateTime.Parse(doc.Get("LastUpdated"), CultureInfo.InvariantCulture);
+
+            var owners = doc.Get("Owners")
+                            .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(o => new User {Username = o})
+                            .ToArray();
+            var authors = doc.Get("Authors")
+                             .SplitSafe(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                             .Select(a => new PackageAuthor {Name = a.Trim()})
+                             .ToArray();
+            var frameworks =
+                doc.Get("JoinedSupportedFrameworks")
+                   .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
+                   .Select(s => new PackageFramework {TargetFramework = s})
+                   .ToArray();
+            var dependencies =
+                doc.Get("FlattenedDependencies")
+                   .SplitSafe(new[] {'|'}, StringSplitOptions.RemoveEmptyEntries)
+                   .Select(s => CreateDependency(s))
+                   .ToArray();
+
+            return new Package
+            {
+                Authors = authors,
+                Copyright = doc.Get("Copyright"),
+                Created = created,
+                Description = doc.Get("Description"),
+                Dependencies = dependencies,
+                DownloadCount = versionDownloadCount,
+                FlattenedAuthors = doc.Get("Author"),
+                FlattenedDependencies = doc.Get("FlattenedDependencies"),
+                Hash = doc.Get("Hash"),
+                HashAlgorithm = doc.Get("HashAlgorithm"),
+                IconUrl = doc.Get("IconUrl"),
+                IsLatest = isLatest,
+                IsLatestStable = isLatestStable,
+                Key = key,
+                Language = doc.Get("Language"),
+                LastUpdated = lastUpdated,
+                LicenseUrl = doc.Get("LicenseUrl"),
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = doc.Get("Id-Original"),
+                    DownloadCount = downloadCount,
+                    Key = packageRegistrationKey,
+                    Owners = owners
+                },
+                PackageRegistrationKey = packageRegistrationKey,
+                PackageFileSize = packageSize,
+                ProjectUrl = doc.Get("ProjectUrl"),
+                Published = published,
+                ReleaseNotes = doc.Get("ReleaseNotes"),
+                RequiresLicenseAcceptance = requiresLicenseAcceptance,
+                Summary = doc.Get("Summary"),
+                Tags = doc.Get("Tags"),
+                Title = doc.Get("Title"),
+                Version = doc.Get("Version"),
+                SupportedFrameworks = frameworks,
+            };
         }
 
-        private static IList<int> SearchCore(SearchFilter searchFilter, out int totalHits)
+        private static PackageDependency CreateDependency(string s)
         {
-            if (!Directory.Exists(LuceneCommon.IndexDirectory))
+            string[] parts = s.SplitSafe(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
+            return new PackageDependency
             {
-                totalHits = 0;
-                return new int[0];
-            }
-
-            SortField sortField = GetSortField(searchFilter);
-            int numRecords = searchFilter.Skip + searchFilter.Take;
-
-            using (var directory = new LuceneFileSystem(LuceneCommon.IndexDirectory))
-            {
-                var searcher = new IndexSearcher(directory, readOnly: true);
-                var query = ParseQuery(searchFilter);
-
-                var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
-                var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
-                Filter filter = new QueryWrapperFilter(termQuery);
-
-
-                var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(sortField));
-                var keys = results.scoreDocs.Skip(searchFilter.Skip)
-                    .Select(c => ParseKey(searcher.Doc(c.doc).Get("Key")))
-                    .ToList();
-
-                totalHits = results.totalHits;
-                searcher.Close();
-                return keys;
-            }
+                Id = parts[0],
+                VersionSpec = parts.Length <= 1 ? null : parts[1],
+            };
         }
 
         private static Query ParseQuery(SearchFilter searchFilter)
         {
-            if (String.IsNullOrWhiteSpace(searchFilter.SearchTerm))
+            // 1. parse the query into field clauses and general terms
+            // We imagine that mostly, field clauses are meant to 'filter' results found searching for general terms.
+            // The resulting clause collections may be empty.
+            var queryParser = new NuGetQueryParser();
+            var clauses = queryParser.Parse(searchFilter.SearchTerm).Select(StandardizeSearchTerms).ToList();
+            var fieldSpecificTerms = clauses.Where(a => a.Field != null);
+            var generalTerms = clauses.Where(a => a.Field == null);
+
+            // Convert terms to appropriate Lucene Query objects
+            var analyzer = new PerFieldAnalyzer();
+            var fieldSpecificQueries = fieldSpecificTerms
+                .Select(c => AnalysisHelper.GetFieldQuery(analyzer, c.Field, c.TermOrPhrase))
+                .Where(q => !IsDegenerateQuery(q))
+                .ToList();
+
+            var generalQueries = generalTerms
+                .Select(c => AnalysisHelper.GetMultiFieldQuery(analyzer, Fields, c.TermOrPhrase))
+                .Where(q => !IsDegenerateQuery(q))
+                .ToList();
+
+            if (fieldSpecificQueries.Count == 0 &&
+                generalQueries.Count == 0)
             {
                 return new MatchAllDocsQuery();
             }
 
-            var fields = new[] { "Id", "Title", "Tags", "Description", "Author" };
-            var analyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
-            var queryParser = new MultiFieldQueryParser(LuceneCommon.LuceneVersion, fields, analyzer);
+            // At this point we try to detect user intent...
+            // a) General search? [foo bar]
+            // b) Id-targeted search? [id:Foo bar]
+            // c)  Other Field-targeted search? [author:Foo bar]
+            bool doExactId = !fieldSpecificQueries.Any();
+            Query generalQuery = BuildGeneralQuery(doExactId, searchFilter.SearchTerm, analyzer, generalTerms, generalQueries);
 
-            // All terms in the multi-term query appear in at least one of the fields.
+            // IF  field targeting is done, we should basically want to AND their field specific queries with all other query terms
+            if (fieldSpecificQueries.Any())
+            {
+                var combinedQuery = new BooleanQuery();
+
+                if (!IsDegenerateQuery(combinedQuery))
+                {
+                    combinedQuery.Add(generalQuery, BooleanClause.Occur.MUST);
+                }
+
+                foreach (var fieldQuery in fieldSpecificQueries)
+                {
+                    combinedQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                }
+
+                generalQuery = combinedQuery;
+            }
+
+            return generalQuery;
+        }
+
+        private static Query BuildGeneralQuery(
+            bool doExactId,
+            string originalSearchText,
+            Analyzer analyzer,
+            IEnumerable<NuGetSearchTerm> generalTerms, 
+            IEnumerable<Query> generalQueries)
+        {
+            // All terms in the multi-term query appear in at least one of the target fields.
             var conjuctionQuery = new BooleanQuery();
             conjuctionQuery.SetBoost(2.0f);
 
-            // Some terms in the multi-term query appear in at least one of the fields.
+            // Some terms in the multi-term query appear in at least one of the target fields.
             var disjunctionQuery = new BooleanQuery();
             disjunctionQuery.SetBoost(0.1f);
 
@@ -115,45 +237,77 @@ namespace NuGetGallery
             var wildCardQuery = new BooleanQuery();
             wildCardQuery.SetBoost(0.5f);
 
-            // Escape the entire term we use for exact searches.
-            var escapedSearchTerm = Escape(searchFilter.SearchTerm);
-            var exactIdQuery = new TermQuery(new Term("Id-Exact", escapedSearchTerm));
-            exactIdQuery.SetBoost(2.5f);
-            var wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedSearchTerm + "*"));
+            string escapedExactId = originalSearchText.ToLowerInvariant();
 
-            foreach (var term in GetSearchTerms(searchFilter.SearchTerm))
+            Query exactIdQuery = null;
+            Query wildCardIdQuery = null;
+            if (doExactId)
             {
-                var termQuery = queryParser.Parse(term);
+                exactIdQuery = new TermQuery(new Term("Id-Exact", escapedExactId));
+                exactIdQuery.SetBoost(7.5f);
+
+                wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedExactId + "*"));
+            }
+
+            Query nearlyExactIdQuery = null;
+            if (generalTerms.Any())
+            {
+                string escapedApproximateId = string.Join(" ", generalTerms.Select(c => c.TermOrPhrase));
+                nearlyExactIdQuery = AnalysisHelper.GetFieldQuery(analyzer, "Id", escapedApproximateId);
+                nearlyExactIdQuery.SetBoost(2.0f);
+            }
+
+            foreach (var termQuery in generalQueries)
+            {
                 conjuctionQuery.Add(termQuery, BooleanClause.Occur.MUST);
                 disjunctionQuery.Add(termQuery, BooleanClause.Occur.SHOULD);
+            }
 
-                foreach (var field in fields)
+            var sanitizedTerms = generalTerms.Select(c => c.TermOrPhrase.ToLowerInvariant());
+            foreach (var sanitizedTerm in sanitizedTerms)
+            {
+                foreach (var field in Fields)
                 {
-                    var wildCardTermQuery = new WildcardQuery(new Term(field, term + "*"));
+                    var wildCardTermQuery = new WildcardQuery(new Term(field, sanitizedTerm + "*"));
                     wildCardTermQuery.SetBoost(0.7f);
                     wildCardQuery.Add(wildCardTermQuery, BooleanClause.Occur.SHOULD);
                 }
             }
 
-            // Create an OR of all the queries that we have
-            var combinedQuery =
-                conjuctionQuery.Combine(new Query[] { exactIdQuery, wildCardIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery });
-
-            if (searchFilter.SortProperty == SortProperty.Relevance)
+            // OR of all the applicable queries
+            var queries = new Query[]
             {
-                // If searching by relevance, boost scores by download count.
-                var downloadCountBooster = new FieldScoreQuery("DownloadCount", FieldScoreQuery.Type.INT);
-                return new CustomScoreQuery(combinedQuery, downloadCountBooster);
+                exactIdQuery, wildCardIdQuery, nearlyExactIdQuery, conjuctionQuery, disjunctionQuery, wildCardQuery
+            };
+
+            var queriesToCombine = queries.Where(q => !IsDegenerateQuery(q));
+            var query = conjuctionQuery.Combine(queriesToCombine.ToArray());
+            return query;
+        }
+        
+        // Helper function 
+        // 1) fix cases of field names: ID -> Id
+        // 2) null out field names that we don't understand (so we will search them as non-field-specific terms)
+        // 3) For ID search, split search terms such as Id:"Foo.Bar" and "Foo-Bar" into a phrase "Foo Bar" which will work better for analyzed field search
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1309:UseOrdinalStringComparison", MessageId = "System.String.Equals(System.String,System.StringComparison)")]
+        private static NuGetSearchTerm StandardizeSearchTerms(NuGetSearchTerm input)
+        {
+            var fieldName = Fields
+                .FirstOrDefault(f => f.Equals(input.Field, StringComparison.InvariantCultureIgnoreCase));
+
+            var searchTerm = new NuGetSearchTerm { Field = fieldName, TermOrPhrase = input.TermOrPhrase };
+
+            if (fieldName == "Id")
+            {
+                searchTerm.TermOrPhrase = LuceneIndexingService.SplitId(searchTerm.TermOrPhrase);
             }
-            return combinedQuery;
+
+            return searchTerm;
         }
 
-        private static IEnumerable<string> GetSearchTerms(string searchTerm)
+        private static bool IsDegenerateQuery(Query q)
         {
-            return searchTerm.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                .Concat(new[] { searchTerm })
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .Select(Escape);
+            return q == null || (q is MatchAllDocsQuery) || ((q is BooleanQuery) && (q as BooleanQuery).Clauses().Count == 0);
         }
 
         private static SortField GetSortField(SearchFilter searchFilter)
@@ -167,18 +321,8 @@ namespace NuGetGallery
                 case SortProperty.Recent:
                     return new SortField("PublishedDate", SortField.LONG, reverse: true);
             }
+
             return SortField.FIELD_SCORE;
-        }
-
-        private static string Escape(string term)
-        {
-            return QueryParser.Escape(term).ToLowerInvariant();
-        }
-
-        private static int ParseKey(string value)
-        {
-            int key;
-            return Int32.TryParse(value, out key) ? key : 0;
         }
     }
 }

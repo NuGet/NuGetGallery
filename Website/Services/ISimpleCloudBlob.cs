@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
@@ -9,10 +10,11 @@ namespace NuGetGallery
         BlobProperties Properties { get; }
         Uri Uri { get; }
 
-        void DeleteIfExists();
-        void DownloadToStream(Stream target);
-        bool Exists();
-        void SetProperties();
-        void UploadFromStream(Stream packageFile);
+        Task DeleteIfExistsAsync();
+        Task DownloadToStreamAsync(Stream target);
+
+        Task<bool> ExistsAsync();
+        Task SetPropertiesAsync();
+        Task UploadFromStreamAsync(Stream packageFile);
     }
 }

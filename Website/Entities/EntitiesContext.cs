@@ -1,30 +1,45 @@
 ﻿using System.Data.Entity;
-using WebBackgrounder;
+using System.Data.Entity.Infrastructure;
+using Ninject;
 
 namespace NuGetGallery
 {
-    public interface IEntitiesContext
+    /// <summary>
+    /// Used by EF Migrations to load the Entity Context via the Ninject container.
+    /// </summary>
+    public class EntitiesContextFactory : IDbContextFactory<EntitiesContext>
     {
-        IDbSet<CuratedFeed> CuratedFeeds { get; set; }
-        IDbSet<CuratedPackage> CuratedPackages { get; set; }
-        IDbSet<PackageRegistration> PackageRegistrations { get; set; }
-        IDbSet<User> Users { get; set; }
-        int SaveChanges();
-        DbSet<T> Set<T>() where T : class;
+        public EntitiesContext Create()
+        {
+            return new EntitiesContext(
+                Container.Kernel.Get<IConfiguration>().SqlConnectionString, 
+                Container.Kernel.Get<IConfiguration>().ReadOnlyMode);
+        }
     }
 
-    public class EntitiesContext : DbContext, IWorkItemsContext, IEntitiesContext
+    public class EntitiesContext : DbContext, IEntitiesContext
     {
-        public EntitiesContext()
-            : base("NuGetGallery")
+        public EntitiesContext(string connectionString, bool readOnly)
+            : base(connectionString)
         {
+            ReadOnly = readOnly;
         }
 
+        public bool ReadOnly { get; private set; }
         public IDbSet<CuratedFeed> CuratedFeeds { get; set; }
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
-        public IDbSet<WorkItem> WorkItems { get; set; }
+
+        public override int SaveChanges()
+        {
+            if (ReadOnly)
+            {
+                throw new ReadOnlyModeException("Save changes is not allowed: the entities context is currently in read only mode");
+            }
+
+            return base.SaveChanges();
+        }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -39,11 +54,9 @@ namespace NuGetGallery
             modelBuilder.Entity<User>()
                 .HasMany<Role>(u => u.Roles)
                 .WithMany(r => r.Users)
-                .Map(
-                    c => c
-                             .ToTable("UserRoles")
-                             .MapLeftKey("UserKey")
-                             .MapRightKey("RoleKey"));
+                .Map(c => c.ToTable("UserRoles")
+                           .MapLeftKey("UserKey")
+                           .MapRightKey("RoleKey"));
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
@@ -67,11 +80,9 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageRegistration>()
                 .HasMany<User>(pr => pr.Owners)
                 .WithMany()
-                .Map(
-                    c => c
-                             .ToTable("PackageRegistrationOwners")
-                             .MapLeftKey("PackageRegistrationKey")
-                             .MapRightKey("UserKey"));
+                .Map(c => c.ToTable("PackageRegistrationOwners")
+                           .MapLeftKey("PackageRegistrationKey")
+                           .MapRightKey("UserKey"));
 
             modelBuilder.Entity<Package>()
                 .HasKey(p => p.Key);
@@ -103,9 +114,6 @@ namespace NuGetGallery
             modelBuilder.Entity<GallerySetting>()
                 .HasKey(gs => gs.Key);
 
-            modelBuilder.Entity<WorkItem>()
-                .HasKey(wi => wi.Id);
-
             modelBuilder.Entity<PackageOwnerRequest>()
                 .HasKey(por => por.Key);
 
@@ -122,11 +130,9 @@ namespace NuGetGallery
             modelBuilder.Entity<CuratedFeed>()
                 .HasMany<User>(cf => cf.Managers)
                 .WithMany()
-                .Map(
-                    c => c
-                             .ToTable("CuratedFeedManagers")
-                             .MapLeftKey("CuratedFeedKey")
-                             .MapRightKey("UserKey"));
+                .Map(c => c.ToTable("CuratedFeedManagers")
+                           .MapLeftKey("CuratedFeedKey")
+                           .MapRightKey("UserKey"));
 
             modelBuilder.Entity<CuratedPackage>()
                 .HasKey(cp => cp.Key);

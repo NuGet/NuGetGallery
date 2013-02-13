@@ -1,0 +1,60 @@
+﻿@model StatisticsPackagesViewModel
+@{
+    ViewBag.Title = "Statistics";
+}
+
+<section class="release">
+    <p>
+        <strong>NOTE: </strong>Download statistics displayed on this page reflect the actual package downloads from the NuGet.org site. This is an indicator of usage, however,
+        many package installs, particular those of widely depended upon packages, will actually be done from a client machine's local NuGet cache, as a result these numbers should
+        not be taken as exact usage. 
+    </p>
+</section>
+
+@if (Model.IsDownloadPackageAvailable)
+{
+    <div class="statistics-layout" >
+        <h3>Downloaded&nbsp;Packages&nbsp;(Last&nbsp;6&nbsp;Weeks)</h3>
+        <table class="sexy-table">
+            <thead>
+                <tr>
+                    <th class="first">Package</th><th>Downloads</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.DownloadPackagesSummary)
+            {
+                <tr>
+                    <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                    <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@item.Downloads</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <span class="statistics-more"><a href="@Url.StatisticsAllPackageDownloads()">More...</a></span>
+    </div>
+}
+@if (Model.IsDownloadPackageDetailAvailable)
+{
+    <div class="statistics-layout" >
+        <h3>Downloaded&nbsp;Package&nbsp;Versions&nbsp;(Last&nbsp;6&nbsp;Weeks)</h3>
+        <table class="sexy-table">
+            <thead>
+                <tr>
+                    <th class="first">Package</th><th>Version</th><th>Downloads</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.DownloadPackageVersionsSummary)
+            {
+                <tr>
+                    <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                    <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                    <td>@item.Downloads</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <span class="statistics-more"><a href="@Url.StatisticsAllPackageVersionDownloads()">More...</a></span>
+    </div>
+}

@@ -151,7 +151,7 @@
     <ul class="authors">
         @foreach (var author in Model.Authors)
         {
-            <li><a href="@Url.Search(author.Name)" title="Search for @author.Name">@author.Name</a></li>
+            <li><a href="@Url.Search("Author:\"" + author.Name + "\"")" title="Search for @author.Name">@author.Name</a></li>
         }
     </ul>
     @if (!String.IsNullOrEmpty(Model.Copyright))
@@ -165,7 +165,7 @@
         <ul class="tags">
             @foreach (var tag in Model.Tags)
             {
-                <li><a href="@Url.Search(tag)" title="Search for @tag">@tag</a></li>
+                <li><a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a></li>
             }
         </ul>
     }

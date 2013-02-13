@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Extensions;
@@ -58,7 +58,7 @@ namespace NuGetGallery
         {
             [Theory]
             [FolderNamesData]
-            public void WillGetTheBlobFromTheCorrectFolderContainer(string folderName)
+            public async Task WillGetTheBlobFromTheCorrectFolderContainer(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -67,36 +67,42 @@ namespace NuGetGallery
                     .Returns<string>(
                         container =>
                             {
+                                Mock<ICloudBlobContainer> blobContainer;
                                 if (container == folderName)
                                 {
-                                    return fakeBlobContainer.Object;
+                                    blobContainer = fakeBlobContainer;
                                 }
                                 else
                                 {
-                                    return new Mock<ICloudBlobContainer>().Object;
+                                    blobContainer = new Mock<ICloudBlobContainer>();
                                 }
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.CreateDownloadFileActionResult(folderName, "theFileName");
+                await service.CreateDownloadFileActionResultAsync(folderName, "theFileName");
 
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
 
             [Fact]
-            public void WillReturnARedirectResultToTheBlobUri()
+            public async Task WillReturnARedirectResultToTheBlobUri()
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = service.CreateDownloadFileActionResult(Constants.PackagesFolderName, "theFileName") as RedirectResult;
+                var result = await service.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, "theFileName") as RedirectResult;
 
                 Assert.NotNull(result);
                 Assert.Equal("http://theUri", result.Url);
@@ -107,36 +113,48 @@ namespace NuGetGallery
         {
             [Theory]
             [FolderNamesData]
-            public void WillCreateABlobContainerForAllFoldersIfTheyDoNotExist(string folderName)
+            public async Task WillCreateABlobContainerForAllFoldersIfTheyDoNotExist(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0)).Verifiable();
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                var simpleCloudBlob = new Mock<ISimpleCloudBlob>();
+                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.GetBlobReference("x.txt")).Returns(simpleCloudBlob.Object);
+
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
 
-                CreateService(fakeBlobClient);
+                var service = CreateService(fakeBlobClient);
+                await service.GetFileAsync("packages", "x.txt");
 
                 fakeBlobClient.Verify(x => x.GetContainerReference(folderName));
-                fakeBlobContainer.Verify(x => x.CreateIfNotExist());
+                fakeBlobContainer.Verify();
             }
 
             [Theory]
             [FolderNamesData(includePermissions: true)]
-            public void WillSetPermissionsForAllFolderBlobContainers(
-                string folderName,
-                bool isPublic)
+            public async Task WillSetPermissionsForAllFolderBlobContainers(string folderName, bool isPublic)
             {
-                var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>()))
+                    .Returns(Task.FromResult(0))
+                    .Verifiable();
+
+                var simpleCloudBlob = new Mock<ISimpleCloudBlob>();
+                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.GetBlobReference("x.txt")).Returns(simpleCloudBlob.Object);
+
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
 
-                CreateService(fakeBlobClient);
+                var service = CreateService(fakeBlobClient);
+                await service.GetFileAsync("packages", "x.txt");
 
                 fakeBlobClient.Verify(x => x.GetContainerReference(folderName));
-                fakeBlobContainer.Verify(
-                    x =>
-                    x.SetPermissions(
-                        It.Is<BlobContainerPermissions>(
-                            p => p.PublicAccess == (isPublic ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off))));
+                fakeBlobContainer.Verify();
             }
         }
 
@@ -144,7 +162,7 @@ namespace NuGetGallery
         {
             [Theory]
             [FolderNamesData]
-            public void WillGetTheBlobFromTheCorrectFolderContainer(string folderName)
+            public async Task WillGetTheBlobFromTheCorrectFolderContainer(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -153,38 +171,48 @@ namespace NuGetGallery
                     .Returns<string>(
                         container =>
                             {
+                                Mock<ICloudBlobContainer> blobContainer;
                                 if (container == folderName)
                                 {
-                                    return fakeBlobContainer.Object;
+                                    blobContainer = fakeBlobContainer;
                                 }
                                 else
                                 {
-                                    return new Mock<ICloudBlobContainer>().Object;
+                                    blobContainer = new Mock<ICloudBlobContainer>();
                                 }
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.DeleteFile(folderName, "theFileName");
+                await service.DeleteFileAsync(folderName, "theFileName");
 
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
 
             [Fact]
-            public void WillDeleteTheBlobIfItExists()
+            public async Task WillDeleteTheBlobIfItExists()
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0)).Verifiable();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.DeleteFile(Constants.PackagesFolderName, "theFileName");
+                await service.DeleteFileAsync(Constants.PackagesFolderName, "theFileName");
 
-                fakeBlob.Verify(x => x.DeleteIfExists());
+                fakeBlob.Verify();
             }
         }
 
@@ -201,8 +229,7 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var ex = Assert.Throws<ArgumentNullException>(() => { service.GetFile("theFolderName", fileName); });
-
+                var ex = TaskAssert.ThrowsAsync<ArgumentNullException>(() => service.GetFileAsync("theFolderName", fileName));
                 Assert.Equal("fileName", ex.ParamName);
             }
 
@@ -217,71 +244,89 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var ex = Assert.Throws<ArgumentNullException>(() => { service.GetFile(folderName, "theFileName"); });
+                var ex = TaskAssert.ThrowsAsync<ArgumentNullException>(() => service.GetFileAsync(folderName, "theFileName"));
 
                 Assert.Equal("folderName", ex.ParamName);
             }
 
             [Theory]
             [FolderNamesData]
-            public void WillDownloadTheFile(string folderName)
+            public async Task WillDownloadTheFile(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
+
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>
                             {
+                                Mock<ICloudBlobContainer> containerMock;
                                 if (container == folderName)
                                 {
-                                    return fakeBlobContainer.Object;
+                                    containerMock = fakeBlobContainer;
                                 }
                                 else
                                 {
-                                    return new Mock<ICloudBlobContainer>().Object;
+                                    containerMock = new Mock<ICloudBlobContainer>();
                                 }
+
+                                containerMock.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                                containerMock.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                return containerMock.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0)).Verifiable();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.GetFile(folderName, "theFileName");
+                await service.GetFileAsync(folderName, "theFileName");
 
-                fakeBlob.Verify(x => x.DownloadToStream(It.IsAny<Stream>()));
+                fakeBlob.Verify();
             }
 
             [Theory]
             [FolderNamesData]
-            public void WillReturnTheStreamWhenTheFileExists(string folderName)
+            public async Task WillReturnTheStreamWhenTheFileExists(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
                     .Returns<string>(
                         container =>
                             {
+                                Mock<ICloudBlobContainer> blobContainer;
                                 if (container == folderName)
                                 {
-                                    return fakeBlobContainer.Object;
+                                    blobContainer = fakeBlobContainer;
                                 }
                                 else
                                 {
-                                    return new Mock<ICloudBlobContainer>().Object;
+                                    blobContainer = new Mock<ICloudBlobContainer>();
                                 }
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Callback<Stream>(x => { x.WriteByte(42); });
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>()))
+                    .Callback<Stream>(x => { x.WriteByte(42); })
+                    .Returns(Task.FromResult(0));
+
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var stream = service.GetFile(folderName, "theFileName");
+                var stream = await service.GetFileAsync(folderName, "theFileName");
 
                 Assert.Equal(42, ((MemoryStream)stream).ToArray()[0]);
             }
 
             [Theory]
             [FolderNamesData]
-            public void WillReturnNullIfFileDoesNotExist(string folderName)
+            public async Task WillReturnNullIfFileDoesNotExist(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -290,28 +335,33 @@ namespace NuGetGallery
                     .Returns<string>(
                         container =>
                             {
+                                Mock<ICloudBlobContainer> blobContainer;
                                 if (container == folderName)
                                 {
-                                    return fakeBlobContainer.Object;
+                                    blobContainer = fakeBlobContainer;
                                 }
                                 else
                                 {
-                                    return new Mock<ICloudBlobContainer>().Object;
+                                    blobContainer = new Mock<ICloudBlobContainer>();
                                 }
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Throws(
-                    new TestableStorageClientException { HttpStatusCode = HttpStatusCode.NotFound });
+
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Throws(
+                    new TestableStorageClientException { ErrorCode = BlobErrorCodeStrings.BlobNotFound });
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var stream = service.GetFile(folderName, "theFileName");
+                var stream = await service.GetFileAsync(folderName, "theFileName");
 
                 Assert.Null(stream);
             }
 
             [Theory]
             [FolderNamesData]
-            public void WillSetTheStreamPositionToZero(string folderName)
+            public async Task WillSetTheStreamPositionToZero(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -320,20 +370,24 @@ namespace NuGetGallery
                     .Returns<string>(
                         container =>
                             {
+                                Mock<ICloudBlobContainer> blobContainer;
                                 if (container == folderName)
                                 {
-                                    return fakeBlobContainer.Object;
+                                    blobContainer = fakeBlobContainer;
                                 }
                                 else
                                 {
-                                    return new Mock<ICloudBlobContainer>().Object;
+                                    blobContainer = new Mock<ICloudBlobContainer>();
                                 }
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStream(It.IsAny<Stream>())).Callback<Stream>(x => { x.WriteByte(42); });
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Callback<Stream>(x => { x.WriteByte(42); }).Returns(Task.FromResult(0));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var stream = service.GetFile(folderName, "theFileName");
+                var stream = await service.GetFileAsync(folderName, "theFileName");
 
                 Assert.Equal(0, stream.Position);
             }
@@ -343,7 +397,7 @@ namespace NuGetGallery
         {
             [Theory]
             [FolderNamesData]
-            public void WillGetTheBlobFromTheCorrectFolderContainer(string folderName)
+            public async Task WillGetTheBlobFromTheCorrectFolderContainer(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -352,63 +406,81 @@ namespace NuGetGallery
                     .Returns<string>(
                         container =>
                             {
+                                Mock<ICloudBlobContainer> blobContainer;
                                 if (container == folderName)
                                 {
-                                    return fakeBlobContainer.Object;
+                                    blobContainer = fakeBlobContainer;
                                 }
                                 else
                                 {
-                                    return new Mock<ICloudBlobContainer>().Object;
+                                    blobContainer = new Mock<ICloudBlobContainer>();
                                 }
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
+
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.SaveFile(folderName, "theFileName", new MemoryStream());
+                await service.SaveFileAsync(folderName, "theFileName", new MemoryStream());
 
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
 
             [Fact]
-            public void WillDeleteTheBlobIfItExists()
+            public async Task WillDeleteTheBlobIfItExists()
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0)).Verifiable();
+                fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0)).Verifiable();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
                 fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.SaveFile(Constants.PackagesFolderName, "theFileName", new MemoryStream());
+                await service.SaveFileAsync(Constants.PackagesFolderName, "theFileName", new MemoryStream());
 
-                fakeBlob.Verify(x => x.DeleteIfExists());
+                fakeBlob.Verify();
             }
 
             [Fact]
-            public void WillUploadThePackageFileToTheBlob()
+            public async Task WillUploadThePackageFileToTheBlob()
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
                 var fakePackageFile = new MemoryStream();
+                fakeBlob.Setup(x => x.UploadFromStreamAsync(fakePackageFile)).Returns(Task.FromResult(0)).Verifiable();
 
-                service.SaveFile(Constants.PackagesFolderName, "theFileName", fakePackageFile);
+                await service.SaveFileAsync(Constants.PackagesFolderName, "theFileName", fakePackageFile);
 
-                fakeBlob.Verify(x => x.UploadFromStream(fakePackageFile));
+                fakeBlob.Verify();
             }
 
             [Theory]
             [FolderNamesData]
-            public void WillSetTheBlobContentType(string folderName)
+            public async Task WillSetTheBlobContentType(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -417,24 +489,31 @@ namespace NuGetGallery
                     .Returns<string>(
                         container =>
                             {
+                                Mock<ICloudBlobContainer> blobContainer;
                                 if (container == folderName)
                                 {
-                                    return fakeBlobContainer.Object;
+                                    blobContainer = fakeBlobContainer;
                                 }
                                 else
                                 {
-                                    return new Mock<ICloudBlobContainer>().Object;
+                                    blobContainer = new Mock<ICloudBlobContainer>();
                                 }
+                                blobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                                blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                                return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.UploadFromStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                service.SaveFile(folderName, "theFileName", new MemoryStream());
+                await service.SaveFileAsync(folderName, "theFileName", new MemoryStream());
 
                 Assert.Equal(Constants.PackageContentType, fakeBlob.Object.Properties.ContentType);
-                fakeBlob.Verify(x => x.SetProperties());
+                fakeBlob.Verify(x => x.SetPropertiesAsync());
             }
         }
     }

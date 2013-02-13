@@ -1,110 +1,63 @@
-﻿param(
-    $subscriptionId        = $env:NUGET_GALLERY_AZURE_SUBSCRIPTION_ID,
-    $serviceName           = $env:NUGET_GALLERY_AZURE_SERVICE_NAME,
-    $storageServiceName    = $env:NUGET_GALLERY_AZURE_STORAGE_ACCOUNT_NAME,
-    $certificateThumbprint = $env:NUGET_GALLERY_AZURE_MANAGEMENT_CERTIFICATE_THUMBPRINT,
-    $commitRevision,
-    $commitBranch
-)
-
+param(
+    [Parameter(Mandatory=$false)][string]$StorageAccountName = $null,
+    [Parameter(Mandatory=$false)][string]$TargetSubscription = $null,
+    [Parameter(Mandatory=$false)][string]$SourceBlob = $null,
+    [Parameter(Mandatory=$false)][string]$TargetService = $null,
+    [Parameter(Mandatory=$true)][string]$Configuration = $null,
+    [Parameter(Mandatory=$false)][string]$AzureSdkPath = $null,
+    [Parameter(Mandatory=$true)][string]$Slot = $null,
+    [Parameter(Mandatory=$false)][string]$DeploymentName = "AutoDeployment")
+# Import common stuff
 $ScriptRoot = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 . $ScriptRoot\_Common.ps1
 
-if(!$UseEmulator) {
-    require-param -value $subscriptionId -paramName "subscriptionId"
-    require-param -value $serviceName -paramName "serviceName"
-    require-param -value $storageServiceName -paramName "storageServiceName"
-    require-param -value $certificateThumbprint -paramName "certificateThumbprint"
-    require-module -name "Azure"
-}
-
-function await-operation($operationId)
-{
-	$status = Get-OperationStatus -SubscriptionId $subscriptionId -Certificate $certificate -OperationId $operationId
-	while ([string]::Equals($status, "InProgress"))
-	{
-		sleep -Seconds 1
-		$status = Get-OperationStatus -SubscriptionId $subscriptionId -Certificate $certificate -OperationId $operationId
-	}
-	return $status
-}
-
-function await-status($status)
-{
-	$deployment = Get-Deployment -ServiceName $serviceName -Slot Staging -Certificate $certificate -SubscriptionId $subscriptionId
-	while (-not([string]::Equals($deployment.status, $status)))
-	{
-		sleep -Seconds 1
-		$deployment = Get-Deployment -ServiceName $serviceName -Slot Staging -Certificate $certificate -SubscriptionId $subscriptionId
-	}
-}
-
-function await-start()
-{
-	$deployment = Get-Deployment -ServiceName $serviceName -Slot Staging -Certificate $certificate -SubscriptionId $subscriptionId
-	$roleInstances = Get-RoleInstanceStatus -ServiceName $serviceName -RoleInstanceList $deployment.RoleInstanceList -Certificate $certificate -SubscriptionId $subscriptionId
-	$roleInstancesThatAreNotReady = $roleInstances.RoleInstances | where-object { $_.InstanceStatus -ne "Ready" }
-	while ($roleInstancesThatAreNotReady.Count -gt 0)
-	{
-		sleep -Seconds 1
-		$deployment = Get-Deployment -ServiceName $serviceName -Slot Staging -Certificate $certificate -SubscriptionId $subscriptionId
-		$roleInstances = Get-RoleInstanceStatus -ServiceName $serviceName -RoleInstanceList $deployment.RoleInstanceList -Certificate $certificate -SubscriptionId $subscriptionId
-		$roleInstancesThatAreNotReady = $roleInstances.RoleInstances | where-object { $_.InstanceStatus -ne "Ready" }
-	}
-	
-	$deployment = Get-Deployment -ServiceName $serviceName -Slot Staging -Certificate $certificate -SubscriptionId $subscriptionId
-	while (-not([string]::Equals($deployment.status, "Running")))
-	{
-		sleep -Seconds 1
-		$deployment = Get-Deployment -ServiceName $serviceName -Slot Staging -Certificate $certificate -SubscriptionId $subscriptionId
-	}
-}
-
-"Locating Git"
-$gitCommand = get-command git;
-if ($gitCommand -eq $null) { write-error "Cound not locate path to Git with 'Get-Command git'"; exit 1 }
-$gitPath = $gitCommand.Definition
-
-"Getting commit revision and branch (via '$gitPath')"
-if ($commitRevision -eq $null) { $commitRevision = (& "$gitPath" rev-parse --short HEAD) }
-if ($commitBranch -eq $null) { $commitBranch = (& "$gitPath" name-rev --name-only HEAD) }
-
-if(!$UseEmulator) {
-    "Getting Azure management certificate $certificateThumbprint"
-    $certificate = (get-item cert:\CurrentUser\MY\$certificateThumbprint)
-}
-
-"Building deployment name from date and revision"
-$deploymentLabel = "$((get-date).ToString("MMM dd @ HHmm")) ($commitRevision on $commitBranch; auto-deployed)"
-$deploymentName = "$((get-date).ToString("yyyyMMddHHmmss"))-$commitRevision-$commitBranch-auto"
-
-"Locating Azure package and configuration"
-$packageLocation = join-path (resolve-path(join-path $ScriptRoot "..")) "_AzurePackage"
-$cspkgFile = join-path $packageLocation "NuGetGallery.cspkg"
-$cscfgFile = join-path $packageLocation "NuGetGallery.cscfg"
-
-if(!$UseEmulator) {
-    "Checking for existing staging deployment on $serviceName"
-    $deployment = Get-Deployment -ServiceName $serviceName -Slot Staging -Certificate $certificate -SubscriptionId $subscriptionId
-    if ($deployment -ne $null -and $deployment.Name -ne $null) {
-      "Deleting existing staging deployment $($deployment.Name) on $serviceName"
-      $operationId = (remove-deployment -subscriptionId $subscriptionId -certificate $certificate -slot Staging -serviceName $serviceName ).operationId
-      await-operation($operationId)
+# Set some defaults for microsofities
+if([String]::Equals([Environment]::UserDomainName, "REDMOND", "OrdinalIgnoreCase")) {
+    # These defaults don't give anyone access to our secrets, but they make it easier to deal with our defaults
+    if(!$StorageAccountName) {
+        $StorageAccountName = "nugetgallerydev"
     }
-
-    "Creating new staging deployment $deploymentName on $serviceName"
-    $operationId = (new-deployment -subscriptionId $subscriptionId -certificate $certificate -ServiceName $serviceName -storageServiceName $storageServiceName -slot Staging -Package $cspkgFile -Configuration $cscfgFile -Name $deploymentName -Label $deploymentLabel).operationId
-    await-operation($operationId)
-    await-status("Suspended")
-
-    "Starting staging deployment $deploymentName on $serviceName"
-    $operationId = (set-deploymentstatus -subscriptionId $subscriptionId -serviceName $serviceName -slot Staging -status Running -certificate $certificate).operationId
-    await-operation($operationId)
-    await-start
-
-    "Moving staging deployment $deploymentName to productionon on $serviceName"
-    move-deployment -subscriptionId $subscriptionId -serviceName $serviceName -certificate $certificate -name $deploymentName
-} else {
-    "Starting Emulator"
-    & "$AzureToolsRoot\Emulator\CSRun.exe" "/run:$cspkgFile;$cscfgFile" /launchbrowser /useiisexpress /devfabric /devstore /status
 }
+
+$AzureSdkPath = Get-AzureSdkPath $AzureSdkPath
+
+if(!$SourceBlob) {
+    # Get a list of available packages
+    [System.Reflection.Assembly]::LoadFrom("$AzureSdkPath\bin\Microsoft.WindowsAzure.StorageClient.dll") | Out-Null
+    $StorageConnectionString = Get-StorageAccountConnectionString $StorageAccountName
+    $Account = [Microsoft.WindowsAzure.CloudStorageAccount]::Parse($StorageConnectionString)
+    $BlobClient = [Microsoft.WindowsAzure.StorageClient.CloudStorageAccountStorageClientExtensions]::CreateCloudBlobClient($Account)
+    $ContainerRef = $BlobClient.GetContainerReference("deployment-packages");
+    $BlobRef = SelectOrUseProvided $CommitId ($ContainerRef.ListBlobs()) { ([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$_).Name -like "NuGetGallery_*.cspkg" } "Deployable Packages" {
+        $blob = ([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$_)
+        $blob.Name.Substring("NuGetGallery_".Length, $blob.Name.Length - "NuGetGallery_".Length - ".cspkg".Length);
+    }
+    $SourceBlob = $BlobRef.Uri
+    $hash = $BlobRef.Name.Substring("NuGetGallery_".Length, $BlobRef.Name.Length - "NuGetGallery_".Length - ".cspkg".Length);
+    $DateName = (Get-Date -format "MMMdd @ HHmm")
+    $DeploymentName = "$DateName ($($hash.Substring(0,10)))"
+}
+
+# Select the Subscription
+$Subscription = SelectOrUseProvided $TargetSubscription (Get-AzureSubscription) { $true } "Subscription" { $_.SubscriptionName }
+Write-Host "** Target Subscription: $($Subscription.SubscriptionName)" -ForegroundColor Black -BackgroundColor Green
+Select-AzureSubscription $Subscription.SubscriptionName
+Set-AzureSubscription -SubscriptionName $Subscription.SubscriptionName -CurrentStorageAccount $StorageAccountName
+
+# Select the Cloud Service
+$Service = SelectOrUseProvided $TargetService (Get-AzureService) { !$_.ServiceName.EndsWith("ops", "OrdinalIgnoreCase") } "Service" { $_.ServiceName }
+Write-Host "** Target Service: $($Service.ServiceName)" -ForegroundColor Black -BackgroundColor Green
+
+Write-Host "Deploying with the following parameters: "
+Write-Host "* Target Cloud Service = $($Service.ServiceName)"
+Write-Host "* Target Configuration = $Configuration"
+Write-Host "* Site Package = $SourceBlob"
+Write-Host "* Deployment Name = $DeploymentName"
+$result = YesNoPrompt "Perform Deployment? [Y/n]"
+
+# Final Guard
+if($Service.ServiceName -eq "nugetgallery") {
+    throw "No way dude, you can't auto-deploy Production. Sorry."
+}
+
+New-AzureDeployment -ServiceName $Service.ServiceName -Package $SourceBlob -Configuration $Configuration -Slot $Slot -Label $DeploymentName

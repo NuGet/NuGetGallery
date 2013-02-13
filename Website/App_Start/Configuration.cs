@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.Web;
+using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery
 {
     public class Configuration : IConfiguration
     {
-        private static readonly Dictionary<string, Lazy<object>> ConfigThunks = new Dictionary<string, Lazy<object>>();
+        private static readonly Dictionary<string, Func<object>> ConfigThunks = new Dictionary<string, Func<object>>();
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
 
@@ -17,19 +19,24 @@ namespace NuGetGallery
             _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
         }
 
-        public string AzureStorageAccessKey
+        public string AzureStorageConnectionString
         {
-            get { return ReadAppSettings("AzureStorageAccessKey"); }
+            get { return ReadAppSettings("AzureStorageConnectionString"); }
         }
 
-        public string AzureStorageAccountName
+        public string AzureDiagnosticsConnectionString
         {
-            get { return ReadAppSettings("AzureStorageAccountName"); }
+            get { return ReadAppSettings("AzureDiagnosticsConnectionString"); }
         }
 
-        public string AzureStorageBlobUrl
+        public string AzureStatisticsConnectionString
         {
-            get { return ReadAppSettings("AzureStorageBlobUrl"); }
+            get { return ReadAppSettings("AzureStatisticsConnectionString"); }
+        }
+
+        public bool ReadOnlyMode
+        {
+            get { return String.Equals(ReadAppSettings("ReadOnlyMode"), "true", StringComparison.OrdinalIgnoreCase); }
         }
 
         public bool UseEmulator
@@ -57,9 +64,27 @@ namespace NuGetGallery
             }
         }
 
+        public string SqlConnectionString
+        {
+            get
+            {
+                return ReadConnectionString("NuGetGallery");
+            }
+        }
+
         public string AzureCdnHost
         {
             get { return ReadAppSettings("AzureCdnHost"); }
+        }
+
+        public string AzureCacheEndpoint
+        {
+            get { return ReadAppSettings("AzureCacheEndpoint"); }
+        }
+
+        public string AzureCacheKey
+        {
+            get { return ReadAppSettings("AzureCacheKey"); }
         }
 
         public string GetSiteRoot(bool useHttps)
@@ -72,6 +97,13 @@ namespace NuGetGallery
             return ReadAppSettings(key, value => value);
         }
 
+        public static string ReadConnectionString(string connectionStringName)
+        {
+            // Read from connection strings and app settings, with app settings winning (to allow us to put the CS in azure config)
+            string value = ReadAppSettings("Sql." + connectionStringName);
+            return String.IsNullOrEmpty(value) ? ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString : value;
+        }
+
         public static T ReadAppSettings<T>(
             string key,
             Func<string, T> valueThunk)
@@ -80,19 +112,44 @@ namespace NuGetGallery
             {
                 ConfigThunks.Add(
                     key,
-                    new Lazy<object>(
-                        () =>
+                    // In order to support in-flight changes to config, these need to be Func<T>'s, not Lazy<T>'s, which will cache the value
+                    () =>
+                    {
+                        // Load from config
+                        var keyName = String.Format(CultureInfo.InvariantCulture, "Gallery.{0}", key);
+                        var value = ConfigurationManager.AppSettings[keyName];
+
+                        // Overwrite from Azure if present
+                        if (ContainerBindings.IsDeployedToCloud)
+                        {
+                            string azureVal;
+                            try
                             {
-                                var value = ConfigurationManager.AppSettings[String.Format("Gallery:{0}", key)];
-                                if (String.IsNullOrWhiteSpace(value))
-                                {
-                                    value = null;
-                                }
-                                return valueThunk(value);
-                            }));
+                                azureVal = RoleEnvironment.GetConfigurationSettingValue(keyName);
+                            }
+                            catch (RoleEnvironmentException)
+                            {
+                                // Setting does not exist. This is the only way we have to know that... :(
+                                azureVal = null;
+                            }
+                            if (!String.IsNullOrEmpty(azureVal))
+                            {
+                                value = azureVal;
+                            }
+                        }
+
+                        // Coalesce empty values to null
+                        if (String.IsNullOrWhiteSpace(value))
+                        {
+                            value = null;
+                        }
+
+                        // Pass the value through the "thunk" which parses the string
+                        return valueThunk(value);
+                    });
             }
 
-            return (T)ConfigThunks[key].Value;
+            return (T)ConfigThunks[key]();
         }
 
         public string FacebookAppID
