@@ -252,11 +252,20 @@ namespace NuGetGallery
 
         protected override void OnException(ExceptionContext filterContext)
         {
-            filterContext.ExceptionHandled = true;
             var exception = filterContext.Exception;
-            var request = filterContext.HttpContext.Request;
-            filterContext.Result = new HttpStatusCodeWithBodyResult(
-                HttpStatusCode.InternalServerError, exception.Message, request.IsLocal ? exception.StackTrace : exception.Message);
+            if (exception is ReadOnlyModeException)
+            {
+                filterContext.ExceptionHandled = true;
+                filterContext.Result = new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.ServiceUnavailable, exception.Message);
+            }
+            else
+            {
+                var request = filterContext.HttpContext.Request;
+                filterContext.ExceptionHandled = true;
+                filterContext.Result = new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.InternalServerError, exception.Message, request.IsLocal ? exception.StackTrace : exception.Message);
+            }
         }
 
         protected internal virtual IPackage ReadPackageFromRequest()
