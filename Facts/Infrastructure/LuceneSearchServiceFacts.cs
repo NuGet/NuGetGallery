@@ -116,6 +116,57 @@ namespace NuGetGallery.Infrastructure
         }
 
         [Fact]
+        public void SearchUsingCombinedIdAndGeneralTerms()
+        {
+            var packageSource = new Mock<IPackageSource>();
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
+                new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "RedDeath",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "Yeah",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Eric I",
+                        Title = "Red Death",
+                        Version = "1.1.2",
+                    },
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "RedHerring",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "Library for compressing your filez",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Eric II",
+                        Title = "Red Herring",
+                        Version = "1.1.2",
+                    },
+                }.AsQueryable());
+
+            var results = IndexAndSearch(packageSource, "Id:Red Death");
+
+            Assert.Equal(1, results.Count);
+            Assert.Equal("Red Death", results[0].Title);
+        }
+
+        [Fact]
         public void SearchUsingExactPackageId()
         {
             var packageSource = new Mock<IPackageSource>();
