@@ -38,7 +38,7 @@ namespace NuGetGallery
         {
             if (ReadOnly)
             {
-                throw new ReadOnlyModeException("Save changes is not allowed: the entities context is currently in read only mode");
+                throw new ReadOnlyModeException("SaveChanges unavailable: the gallery is currently in read only mode, with limited service. Please try again later.");
             }
 
             return base.SaveChanges();
