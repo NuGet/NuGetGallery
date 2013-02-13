@@ -64,9 +64,9 @@ namespace NuGetGallery
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public virtual ActionResult UploadPackageProgress()
         {
-            string username = GetIdentity().Name;
+            var currentUser = _userService.FindByUsername(GetIdentity().Name);
 
-            AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
+            AsyncFileUploadProgress progress = _cacheService.GetProgress(currentUser.Username);
             if (progress == null)
             {
                 return HttpNotFound();
