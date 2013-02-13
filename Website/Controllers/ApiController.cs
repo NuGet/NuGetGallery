@@ -43,11 +43,18 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            _packageService.AddDownloadStatistics(
-                package,
-                Request.UserHostAddress,
-                Request.UserAgent,
-                Request.Headers["NuGet-Operation"]);
+            try
+            {
+                _packageService.AddDownloadStatistics(
+                    package,
+                    Request.UserHostAddress,
+                    Request.UserAgent,
+                    Request.Headers["NuGet-Operation"]);
+            }
+            catch (ReadOnlyModeException)
+            {
+                // *gulp* Swallowed. It's OK not to log statistics in read only mode.
+            }
 
             if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
             {
