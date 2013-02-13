@@ -1,0 +1,37 @@
+﻿using System;
+using System.ComponentModel.Composition;
+
+namespace NuGetGallery.Operations.Worker.Jobs
+{
+    [Export(typeof(WorkerJob))]
+    public class BackupPackagesJob : WorkerJob
+    {
+        public override TimeSpan Period
+        {
+            get
+            {
+                return TimeSpan.FromDays(1);
+            }
+        }
+
+        public override TimeSpan Offset
+        {
+            get
+            {
+                return TimeSpan.FromMinutes(30);
+            }
+        }
+
+        public override void RunOnce()
+        {
+            Logger.Info("Starting synchronize package backups task.");
+            new BackupPackagesTask
+            {
+                ConnectionString = Settings.MainConnectionString,
+                StorageAccount = Settings.MainStorage,
+                WhatIf = Settings.WhatIf
+            }.Execute();
+            Logger.Info("Finished synchronize package backups task.");
+        }
+    }
+}

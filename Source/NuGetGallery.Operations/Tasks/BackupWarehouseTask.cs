@@ -1,0 +1,82 @@
+﻿using System;
+using System.Data.SqlClient;
+using AnglicanGeek.DbExecutor;
+using NuGetGallery.Operations.Common;
+
+namespace NuGetGallery.Operations
+{
+    [Command("backupwarehouse", "Backs up the warehouse", AltName = "bwh", MaxArgs = 0)]
+    public class BackupWarehouseTask: OpsTask, IBackupDatabase
+    {
+        [Option("Force a backup, even if there is one less than 24 hours old", AltName="f")]
+        public bool Force { get; set; }
+
+        [Option("Connection string to the warehouse database server", AltName = "wdb")]
+        public string ConnectionString { get; set; }
+
+        public string BackupName { get; private set; }
+
+        public bool SkippingBackup { get; private set; }
+
+        public BackupWarehouseTask() 
+        {
+            // Load defaults from environment
+            ConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+        }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+            ArgCheck.RequiredOrEnv(ConnectionString, "ConnectionString", "NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+        }
+
+        public override void ExecuteCommand()
+        {
+            var dbServer = Util.GetDbServer(ConnectionString);
+            var dbName = Util.GetDbName(ConnectionString);
+            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString);
+
+            Log.Trace("Connecting to server '{0}' to back up database '{1}'.", dbServer, dbName);
+
+            using (var sqlConnection = new SqlConnection(masterConnectionString))
+            {
+                sqlConnection.Open();
+
+                using (var dbExecutor = new SqlExecutor(sqlConnection))
+                {
+                    Log.Trace("Checking for a backup in progress.");
+                    if (Util.BackupIsInProgress(dbExecutor))
+                    {
+                        Log.Trace("Found a backup in progress; exiting.");
+                        return;
+                    }
+
+                    Log.Trace("Found no backup in progress.");
+
+                    if (!Force)
+                    {
+                        Log.Trace("Getting last backup time.");
+                        var lastBackupTime = Util.GetLastBackupTime(dbExecutor);
+                        if (lastBackupTime >= DateTime.UtcNow.Subtract(TimeSpan.FromHours(24)))
+                        {
+                            Log.Info("Skipping Backup. Last Backup was less than 24 hours ago");
+
+                            SkippingBackup = true;
+
+                            return;
+                        }
+                        Log.Trace("Last backup time is more than 24 hours ago. Starting new backup.");
+                    }
+
+                    var timestamp = Util.GetTimestamp();
+
+                    BackupName = string.Format("WarehouseBackup_{0}", timestamp);
+
+                    dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF NuGetWarehouse", BackupName));
+
+                    Log.Info("Starting '{0}'", BackupName);
+                }
+            }
+        }
+    }
+}

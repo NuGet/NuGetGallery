@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NuGetGallery.Operations</RootNamespace>
+    <AssemblyName>NuGetGallery.Operations</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <TargetFrameworkProfile />
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AnglicanGeek.DbExecutor">
+      <HintPath>..\..\packages\AnglicanGeek.DbExecutor.0.1.2\lib\net40\AnglicanGeek.DbExecutor.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Edm, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.Data.Edm.5.1.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Microsoft.Data.OData.5.1.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=1.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.1.8.0.0\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\WindowsAzure.Storage.2.0.1.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NLog">
+      <HintPath>..\..\packages\NLog.2.0.0.2000\lib\net40\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Core, Version=2.1.31022.9038, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Nuget.Core.2.1.1\lib\net40-Client\NuGet.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.Net.Http, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\System.Net.Http.2.0.20126.16343\lib\net40\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\System.Net.Http.2.0.20126.16343\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Spatial, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\System.Spatial.5.1.0\lib\net40\System.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Attributes\CommandAttribute.cs" />
+    <Compile Include="Attributes\OptionAttribute.cs" />
+    <Compile Include="Common\CloudStorageAccountConverter.cs" />
+    <Compile Include="Common\CommandLineConstants.cs" />
+    <Compile Include="Common\ArgCheck.cs" />
+    <Compile Include="Common\ReportHelpers.cs" />
+    <Compile Include="Common\SqlHelper.cs" />
+    <Compile Include="Common\StreamConverter.cs" />
+    <Compile Include="Infrastructure\CommandLineParser.cs" />
+    <Compile Include="Tasks\BackupDatabaseTask.cs" />
+    <Compile Include="Tasks\BackupPackageFileTask.cs" />
+    <Compile Include="Tasks\BackupPackagesTask.cs" />
+    <Compile Include="CloudBlobExtensions.cs" />
+    <Compile Include="Commands\HelpCommand.cs" />
+    <Compile Include="Common\CommandLineException.cs" />
+    <Compile Include="Common\LocalizedResourceManager.cs" />
+    <Compile Include="Common\CommandHelp.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CommandHelp.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Common\TypeHelper.cs" />
+    <Compile Include="Infrastructure\CommandManager.cs" />
+    <Compile Include="Common\CommonResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CommonResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Common\TaskResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Common\ResourceHelper.cs" />
+    <Compile Include="Tasks\BackupWarehouseTask.cs" />
+    <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
+    <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
+    <Compile Include="Tasks\DeleteOldWarehouseBackupsTask.cs" />
+    <Compile Include="Tasks\CreateWarehouseArtifactsTask.cs" />
+    <Compile Include="Tasks\DeleteOldDatabaseBackupsTask.cs" />
+    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Infrastructure\ICommand.cs" />
+    <Compile Include="Infrastructure\ICommandManager.cs" />
+    <Compile Include="Infrastructure\Verbosity.cs" />
+    <Compile Include="Tasks\LowerCaseAllPackageBlobs.cs" />
+    <Compile Include="Tasks\IBackupDatabase.cs" />
+    <Compile Include="Tasks\OpsTask.cs" />
+    <Compile Include="Tasks\PopulatePackageFrameworksTask.cs" />
+    <Compile Include="Tasks\CurateWebmatrixPackagesTask.cs" />
+    <Compile Include="Database.cs" />
+    <Compile Include="Tasks\DeleteBrokenPackageBackupsTask.cs" />
+    <Compile Include="Tasks\DeletePackageFileTask.cs" />
+    <Compile Include="Tasks\DeleteAllPackageVersionsTask.cs" />
+    <Compile Include="Tasks\DeletePackageVersionTask.cs" />
+    <Compile Include="Tasks\FixExternalPackageTask.cs" />
+    <Compile Include="Tasks\FixPackageFilesContentTypeTask.cs" />
+    <Compile Include="Tasks\ListDatabaseBackupsTask.cs" />
+    <Compile Include="Package.cs" />
+    <Compile Include="PackageComparer.cs" />
+    <Compile Include="PackageRegistration.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tasks\PurgePackageStatisticsTask.cs" />
+    <Compile Include="Tasks\ReplacePackageFileTask.cs" />
+    <Compile Include="Tasks\CopyDatabaseBackupTask.cs" />
+    <Compile Include="Tasks\ReplicatePackageStatisticsTask.cs" />
+    <Compile Include="Tasks\RestoreDatabaseTask.cs" />
+    <Compile Include="Tasks\RestorePackagesTask.cs" />
+    <Compile Include="Tasks\TaskBases.cs" />
+    <Compile Include="Tasks\SynchronizePackageBackupsTask.cs" />
+    <Compile Include="Tasks\UploadPackageTask.cs" />
+    <Compile Include="Util.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_AddDownloadFact.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Common\CommonResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommonResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Common\CommandHelp.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommandHelp.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Common\TaskResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TaskResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\NuGetDownloadsCreateTables.sql" />
+    <EmbeddedResource Include="Scripts\NuGetDownloadsDropTables.sql" />
+    <EmbeddedResource Include="Scripts\PopulateDimensions.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\NuGetDownloadsFuncs_UserAgent.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_GetLastOriginalKey.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_GetPackagesForExport.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_ConfirmPackageExported.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityByPackage.sql" />
+    <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityDetail.sql" />
+    <EmbeddedResource Include="Scripts\DownloadReport_PerMonth.sql" />
+    <EmbeddedResource Include="Scripts\DownloadReport_PreviousThreeMonths.sql" />
+    <EmbeddedResource Include="Scripts\DownloadReport_PreviousMonth.sql" />
+    <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularity.sql" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+</Project>
