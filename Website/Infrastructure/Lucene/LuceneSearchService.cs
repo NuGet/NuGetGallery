@@ -293,21 +293,20 @@ namespace NuGetGallery
         // 1) fix cases of field names: ID -> Id
         // 2) null out field names that we don't understand (so we will search them as non-field-specific terms)
         // 3) For ID search, split search terms such as Id:"Foo.Bar" and "Foo-Bar" into a phrase "Foo Bar" which will work better for analyzed field search
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1309:UseOrdinalStringComparison", MessageId = "System.String.Equals(System.String,System.StringComparison)")]
         private static NuGetSearchTerm StandardizeSearchTerms(NuGetSearchTerm input)
         {
             var fieldName = FieldAliases
-                .FirstOrDefault(f => f.Equals(input.Field, StringComparison.InvariantCultureIgnoreCase));
+                .FirstOrDefault(f => f.Equals(input.Field, StringComparison.OrdinalIgnoreCase));
 
-            if (string.Equals(fieldName, "Author", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(fieldName, "Author", StringComparison.OrdinalIgnoreCase))
             {
                 fieldName = "Authors";
             }
-            else if (string.Equals(fieldName, "Owner", StringComparison.InvariantCultureIgnoreCase))
+            else if (string.Equals(fieldName, "Owner", StringComparison.OrdinalIgnoreCase))
             {
                 fieldName = "Owners";
             }
-            else if (string.Equals(fieldName, "Tag", StringComparison.InvariantCultureIgnoreCase))
+            else if (string.Equals(fieldName, "Tag", StringComparison.OrdinalIgnoreCase))
             {
                 fieldName = "Tags";
             }
