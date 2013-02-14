@@ -4,6 +4,7 @@ This is a set of operations tools designed for the official NuGet.org site. It's
 
 ## What's inside
 This repo contains NuGet Gallery Operations tools. These tools include:
+
 1. A PowerShell Console Environment for working with deployed versions of the NuGet Gallery
 2. An Azure Worker Role which performs database backups
 3. An Operations application which can perform ops tasks such as deleting packages, adding them to curated feeds, managing backups, etc.
