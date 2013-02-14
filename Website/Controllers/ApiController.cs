@@ -35,8 +35,24 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> GetPackage(string id, string version)
         {
+            // validate user input: explicitly calling the same validators used when we do new Package Registrations
+            if (id == null || !PackageIdValidator.IsValidPackageId(id))
+            {
+                return new HttpStatusCodeResult("Bad Request", "Invalid package id");
+            }
+
+            if (!string.IsNullOrEmpty(version))
+            {
+                SemanticVersion dummy;
+                if (!SemanticVersion.TryParse(version, out dummy))
+                {
+                    return new HttpStatusCodeResult("Bad Request", "Invalid package version");
+                }
+            }
+
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
             // The allow prerelease flag is ignored if both partialId and version are specified.
+            // In general we want to try to add download statistics for any package regardless of whether a version was specified.
             try
             {
                 Package package = _packageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);

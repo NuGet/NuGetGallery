@@ -21,10 +21,9 @@ namespace NuGetGallery
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
-        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion)
+        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
         {
-            // TODO: can users build storage traversal attacks?
-            var fileName = BuildFileName(unsafeId, unsafeVersion);
+            var fileName = BuildFileName(id, version);
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
@@ -63,6 +62,16 @@ namespace NuGetGallery
 
         private static string BuildFileName(string id, string version)
         {
+            if (id == null)
+            {
+                throw new ArgumentNullException("id");
+            }
+            
+            if (version == null)
+            {
+                throw new ArgumentNullException("version");
+            }
+
             // Note: packages should be saved and retrieved in blob storage using the lower case version of their filename because
             // a) package IDs can and did change case over time
             // b) blob storage is case sensitive
