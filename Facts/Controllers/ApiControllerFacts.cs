@@ -374,6 +374,24 @@ namespace NuGetGallery
         public class TheGetPackageAction
         {
             [Fact]
+            public async Task GetPackageReturns400ForEvilPackageName()
+            {
+                var controller = CreateController();
+                var result = await controller.GetPackage("../..", "1.0.0.0");
+                var badRequestResult = (HttpStatusCodeResult)result;
+                Assert.Equal(badRequestResult.StatusCode, 400);
+            }
+
+            [Fact]
+            public async Task GetPackageReturns400ForEvilPackageVersion()
+            {
+                var controller = CreateController();
+                var result2 = await controller.GetPackage("Foo", "10../..1.0");
+                var badRequestResult2 = (HttpStatusCodeResult)result2;
+                Assert.Equal(badRequestResult2.StatusCode, 400);
+            }
+
+            [Fact]
             public async Task GetPackageReturns404IfPackageIsNotFound()
             {
                 // Arrange
