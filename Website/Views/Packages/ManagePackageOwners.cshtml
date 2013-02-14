@@ -44,8 +44,8 @@
     <script>
         $(function() {
             //TODO Move this to its own script file when we set up QUnit tests
-            var failHandler = function() {
-                alert('An unexpected error occurred!');
+            var failHandler = function(jqXHR, textStatus, errorThrown)  {
+                alert('An unexpected error occurred! "' + errorThrown + '"');
             };
 
             var viewModel = {
