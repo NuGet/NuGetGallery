@@ -37,7 +37,7 @@ group by sys.objects.name";
                 // Source: http://social.msdn.microsoft.com/Forums/en-US/ssdsgetstarted/thread/a234d6e9-a9a4-4be3-9c35-4b9525491f1a
                 decimal dbSizeInMB = (decimal)c.ExecuteScalar(DatabaseSizeQuery);
 
-                QoS("Database Size in KB", (int)Math.Ceiling(dbSizeInMB * 1024));
+                QoS("Database Size in KB", success: true, value: (int)Math.Ceiling(dbSizeInMB * 1024));
                 if (dbSizeInMB > FailureThreshold)
                 {
                     Failure(String.Format("Database Size Extremely High. Size: {0}MB", dbSizeInMB));

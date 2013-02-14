@@ -16,7 +16,7 @@ namespace NuGetGallery.Monitoring
             return Connect(_ =>
             {
                 Success("Connected to the SQL Server");
-                QoS("Server Connection", timeTaken: TimeToConnect);
+                QoS("Connected to the SQL Server", success: true, timeTaken: TimeToConnect);
             });
         }
     }

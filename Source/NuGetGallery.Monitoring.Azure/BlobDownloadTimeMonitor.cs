@@ -25,7 +25,7 @@ namespace NuGetGallery.Monitoring.Azure
                 sw.Stop();
 
                 Success(String.Format("Successfully downloaded {0}", BlobPath));
-                QoS("Download Time", sw.Elapsed);
+                QoS(String.Format("Download {0}", BlobPath), success: true, timeTaken: sw.Elapsed);
             }
             catch (Exception ex)
             {

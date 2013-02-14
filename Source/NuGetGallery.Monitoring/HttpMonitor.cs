@@ -141,7 +141,7 @@ namespace NuGetGallery.Monitoring
                 if (lastResult.IsSuccess && IsSuccessfulResponse(lastResult.Result, ExpectedStatusCode))
                 {
                     Success(String.Format("Successfully reached page in {0} attempts", i + 1));
-                    QoS("Time Taken", lastResult.Time);
+                    QoS(String.Format("Requesting {0}", url.AbsolutePath), success: true, timeTaken: lastResult.Time);
                     return lastResult;
                 }
             }

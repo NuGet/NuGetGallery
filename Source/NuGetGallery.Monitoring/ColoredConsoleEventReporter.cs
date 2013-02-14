@@ -56,7 +56,7 @@ namespace NuGetGallery.Monitoring
         {
             HandleEvent(evt, () =>
             {
-                var qosMessage = FormatQoS(evt);
+                var qosMessage = FormatQoS((MonitoringQoSEvent)evt);
                 if (!String.IsNullOrEmpty(qosMessage))
                 {
                     Console.Write(" ");
@@ -73,22 +73,20 @@ namespace NuGetGallery.Monitoring
         private void HandleEvent(MonitoringEvent evt) { HandleEvent(evt, () => { }); }
         private void HandleEvent(MonitoringEvent evt, Action additionalWriters)
         {
-            Console.Write(" [{0}] {1}", evt.Resource, evt.Message);
+            Console.Write(" [{0}] {1}", evt.Resource, evt.Action);
             additionalWriters();
             Console.WriteLine();
         }
 
-        private string FormatQoS(MonitoringEvent evt)
+        private string FormatQoS(MonitoringQoSEvent evt)
         {
-            MonitoringQoSTimeEvent timeEvent = evt as MonitoringQoSTimeEvent;
-            if (timeEvent != null)
+            if (evt.Value is TimeSpan)
             {
-                return String.Format("Time Taken: {0}", FormatTime(timeEvent.TimeTaken));
+                return String.Format("Time Taken: {0}", FormatTime((TimeSpan)evt.Value));
             }
-            MonitoringQoSNumberEvent numberEvent = evt as MonitoringQoSNumberEvent;
-            if (numberEvent != null)
+            else if (evt.Value is int)
             {
-                return String.Format("Value: {0}", numberEvent.Value);
+                return String.Format("Value: {0}", (int)evt.Value);
             }
             return String.Empty;
         }

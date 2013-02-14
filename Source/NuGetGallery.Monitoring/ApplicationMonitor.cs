@@ -63,21 +63,23 @@ namespace NuGetGallery.Monitoring
                 resource ?? DefaultResourceName));
         }
 
-        protected virtual void QoS(string message, TimeSpan timeTaken, string resource = null)
+        protected virtual void QoS(string action, bool success, TimeSpan timeTaken, string resource = null)
         {
-            Reporter.Report(new MonitoringQoSTimeEvent(
+            Reporter.Report(new MonitoringQoSEvent(
+                success,
                 timeTaken,
                 DateTime.UtcNow,
-                message,
+                action,
                 resource ?? DefaultResourceName));
         }
 
-        protected virtual void QoS(string message, int value, string resource = null)
+        protected virtual void QoS(string action, bool success, int value, string resource = null)
         {
-            Reporter.Report(new MonitoringQoSNumberEvent(
+            Reporter.Report(new MonitoringQoSEvent(
+                success,
                 value,
                 DateTime.UtcNow,
-                message,
+                action,
                 resource ?? DefaultResourceName));
         }
 

@@ -5,6 +5,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{A46FA4
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
 Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "WorkerCloudService", "Source\WorkerCloudService\WorkerCloudService.ccproj", "{E6A5BFAA-EC0C-46F5-95FD-37A8D2527DD4}"
@@ -22,8 +23,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Monitoring", "Source\NuGetGallery.Monitoring\NuGetGallery.Monitoring.csproj", "{DFF0089E-4918-4A12-992B-B9DD2C070B0F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Monitoring.Azure", "Source\NuGetGallery.Monitoring.Azure\NuGetGallery.Monitoring.Azure.csproj", "{6569F5ED-1DB6-433C-8C7F-E96C7B8E54BB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitoringTestApp", "Tests\MonitoringTestApp\MonitoringTestApp.csproj", "{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -95,16 +94,6 @@ Global
 		{6569F5ED-1DB6-433C-8C7F-E96C7B8E54BB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{6569F5ED-1DB6-433C-8C7F-E96C7B8E54BB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{6569F5ED-1DB6-433C-8C7F-E96C7B8E54BB}.Release|x86.ActiveCfg = Release|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,6 +105,5 @@ Global
 		{E6A5BFAA-EC0C-46F5-95FD-37A8D2527DD4} = {5FB428CB-F22D-4C77-961C-3F3C51A36CDE}
 		{DFF0089E-4918-4A12-992B-B9DD2C070B0F} = {3489479A-8A18-4F39-A11A-11562861D167}
 		{6569F5ED-1DB6-433C-8C7F-E96C7B8E54BB} = {3489479A-8A18-4F39-A11A-11562861D167}
-		{9391433F-A926-4F88-A5C6-E0D45FAEBCDC} = {3489479A-8A18-4F39-A11A-11562861D167}
 	EndGlobalSection
 EndGlobal

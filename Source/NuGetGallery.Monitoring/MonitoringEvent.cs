@@ -18,9 +18,9 @@ namespace NuGetGallery.Monitoring
         public DateTime TimestampUtc { get; private set; }
         
         /// <summary>
-        /// Gets a message associated with the status
+        /// Gets a action that occurred to trigger the event.
         /// </summary>
-        public string Message { get; private set; }
+        public string Action { get; private set; }
 
         /// <summary>
         /// Gets the resource that was tested in this event
@@ -31,7 +31,7 @@ namespace NuGetGallery.Monitoring
         {
             Type = type;
             TimestampUtc = timestampUtc;
-            Message = message;
+            Action = message;
             Resource = resource;
         }
     }
@@ -41,29 +41,15 @@ namespace NuGetGallery.Monitoring
             base(type, timestampUtc, message, resource) {}
     }
 
-    public class MonitoringQoSTimeEvent : MonitoringEvent
+    public class MonitoringQoSEvent : MonitoringEvent
     {
-        /// <summary>
-        /// Gets the time taken by the action described by this event
-        /// </summary>
-        public TimeSpan TimeTaken { get; private set; }
+        public bool Success { get; private set; }
+        public object Value { get; private set; }
 
-        public MonitoringQoSTimeEvent(TimeSpan timeTaken, DateTime timestampUtc, string message, string resource)
-            : base(EventType.QualityOfService, timestampUtc, message, resource) {
-                TimeTaken = timeTaken;
-        }
-    }
-
-    public class MonitoringQoSNumberEvent : MonitoringEvent
-    {
-        /// <summary>
-        /// Gets the value used as a quality-of-service indicator for the action described by this event.
-        /// </summary>
-        public int Value { get; private set; }
-
-        public MonitoringQoSNumberEvent(int value, DateTime timestampUtc, string message, string resource)
+        public MonitoringQoSEvent(bool success, object value, DateTime timestampUtc, string message, string resource)
             : base(EventType.QualityOfService, timestampUtc, message, resource)
         {
+            Success = success;
             Value = value;
         }
     }
