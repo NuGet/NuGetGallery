@@ -273,9 +273,6 @@ namespace NuGetGallery
             Bind<IPackageRegistrationByIdQuery>()
                 .To<PackageRegistrationByIdQuery>()
                 .InRequestScope();
-            Bind<IUserByUsernameQuery>()
-                .To<UserByUsernameQuery>()
-                .InRequestScope();
 
             Bind<IAggregateStatsService>()
                 .To<AggregateStatsService>()
