@@ -60,10 +60,8 @@ namespace NuGetGallery
             {
                 return Redirect(package.ExternalPackageUrl);
             }
-            else
-            {
-                return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
-            }
+
+            return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
         }
 
         [ActionName("GetNuGetExeApi")]

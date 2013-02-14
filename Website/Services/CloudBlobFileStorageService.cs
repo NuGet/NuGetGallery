@@ -77,10 +77,8 @@ namespace NuGetGallery
                 {
                     return null;
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
             catch (TestableStorageClientException ex)
             {
@@ -92,10 +90,8 @@ namespace NuGetGallery
                 {
                     return null;
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             stream.Position = 0;
