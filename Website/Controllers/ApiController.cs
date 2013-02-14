@@ -38,7 +38,7 @@ namespace NuGetGallery
             // validate user input: explicitly calling the same validators used when we do new Package Registrations
             if (id == null || !PackageIdValidator.IsValidPackageId(id))
             {
-                return new HttpStatusCodeResult("Bad Request", "Invalid package id");
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Invalid package id");
             }
 
             if (!string.IsNullOrEmpty(version))
@@ -46,7 +46,7 @@ namespace NuGetGallery
                 SemanticVersion dummy;
                 if (!SemanticVersion.TryParse(version, out dummy))
                 {
-                    return new HttpStatusCodeResult("Bad Request", "Invalid package version");
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Invalid package version");
                 }
             }
 
@@ -62,11 +62,18 @@ namespace NuGetGallery
                         HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                 }
 
-                _packageService.AddDownloadStatistics(
-                    package,
-                    Request.UserHostAddress,
-                    Request.UserAgent,
-                    Request.Headers["NuGet-Operation"]);
+                try
+                {
+                    _packageService.AddDownloadStatistics(
+                        package,
+                        Request.UserHostAddress,
+                        Request.UserAgent,
+                        Request.Headers["NuGet-Operation"]);
+                }
+                catch (ReadOnlyModeException)
+                {
+                    // *gulp* Swallowed. It's OK not to log statistics in read only mode.
+                }
 
                 if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
                 {
@@ -273,11 +280,20 @@ namespace NuGetGallery
 
         protected override void OnException(ExceptionContext filterContext)
         {
-            filterContext.ExceptionHandled = true;
             var exception = filterContext.Exception;
-            var request = filterContext.HttpContext.Request;
-            filterContext.Result = new HttpStatusCodeWithBodyResult(
-                HttpStatusCode.InternalServerError, exception.Message, request.IsLocal ? exception.StackTrace : exception.Message);
+            if (exception is ReadOnlyModeException)
+            {
+                filterContext.ExceptionHandled = true;
+                filterContext.Result = new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.ServiceUnavailable, exception.Message);
+            }
+            else
+            {
+                var request = filterContext.HttpContext.Request;
+                filterContext.ExceptionHandled = true;
+                filterContext.Result = new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.InternalServerError, exception.Message, request.IsLocal ? exception.StackTrace : exception.Message);
+            }
         }
 
         protected internal virtual IPackage ReadPackageFromRequest()

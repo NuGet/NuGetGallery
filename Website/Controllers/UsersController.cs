@@ -8,6 +8,7 @@ namespace NuGetGallery
 {
     public partial class UsersController : AppController
     {
+        private readonly ICuratedFeedsByManagerQuery _feedsQuery;
         private readonly IPrincipal _currentUser;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
@@ -15,12 +16,14 @@ namespace NuGetGallery
         private readonly IUserService _userService;
 
         public UsersController(
+            ICuratedFeedsByManagerQuery feedsQuery,
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
             IConfiguration config,
             IPrincipal currentUser)
         {
+            _feedsQuery = feedsQuery;
             _userService = userService;
             _packageService = packageService;
             _messageService = messageService;
@@ -31,8 +34,8 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Account()
         {
-            var user = GetService<IUserByUsernameQuery>().Execute(Identity.Name);
-            var curatedFeeds = GetService<ICuratedFeedsByManagerQuery>().Execute(user.Key);
+            var user = _userService.FindByUsername(_currentUser.Identity.Name);
+            var curatedFeeds = _feedsQuery.Execute(user.Key);
             return View(
                 new AccountViewModel
                     {

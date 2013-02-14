@@ -16,19 +16,31 @@ namespace NuGetGallery
 
         private static IDictionary CreateFieldAnalyzers()
         {
+            // For idAnalyzer we use the 'standard analyzer' but with no stop words (In, Of, The, etc are indexed).
+            var stopWords = new Hashtable();
+            StandardAnalyzer idAnalyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion, stopWords);
+
             return new Dictionary<string, Analyzer>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Title", new TitleAnalyzer() }
+                { "Id", idAnalyzer },
+                { "Title", new TitleAnalyzer() },
             };
         }
 
         class TitleAnalyzer : Analyzer
         {
-            private readonly Analyzer innerAnalyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion);
+            private readonly StandardAnalyzer innerAnalyzer;
+
+            public TitleAnalyzer()
+            {
+                // For innerAnalyzer we use the 'standard analyzer' but with no stop words (In, Of, The, etc are indexed).
+                var stopWords = new Hashtable();
+                innerAnalyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion, stopWords);
+            }
 
             public override TokenStream TokenStream(string fieldName, TextReader reader)
             {
-                // Split the title based on IdSeparators, then run it through the standardAnalyzer
+                // Split the title based on IdSeparators, then run it through the innerAnalyzer
                 string title = reader.ReadToEnd();
                 string partiallyTokenized = String.Join(" ", title.Split(LuceneIndexingService.IdSeparators, StringSplitOptions.RemoveEmptyEntries));
                 return innerAnalyzer.TokenStream(fieldName, new StringReader(partiallyTokenized));
