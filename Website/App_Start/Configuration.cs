@@ -209,5 +209,18 @@ namespace NuGetGallery
 
             return "https://" + siteRoot.Substring(7);
         }
+
+        public PoliteCaptcha.IConfigurationSource GetPoliteCaptchaConfiguration()
+        {
+            return new PoliteCaptchaThunk();
+        }
+
+        class PoliteCaptchaThunk : PoliteCaptcha.IConfigurationSource
+        {
+            string PoliteCaptcha.IConfigurationSource.GetConfigurationValue(string key)
+            {
+                return Configuration.ReadAppSettings(key);
+            }
+        }
     }
 }
