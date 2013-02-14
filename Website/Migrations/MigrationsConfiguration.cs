@@ -43,12 +43,13 @@ namespace NuGetGallery.Migrations
                 if (String.IsNullOrEmpty(gallerySetting.GalleryOwnerEmail))
                 {
                     gallerySetting.GalleryOwnerEmail = GalleryOwnerEmail;
+                    context.SaveChanges();
                 }
                 if (String.IsNullOrEmpty(gallerySetting.GalleryOwnerName))
                 {
                     gallerySetting.GalleryOwnerName = GalleryOwnerName;
+                    context.SaveChanges();
                 }
-                context.SaveChanges();
             }
         }
     }
