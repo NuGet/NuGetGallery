@@ -12,5 +12,8 @@
     <description>$description$</description>
     <releaseNotes>Initial Release.</releaseNotes>
     <copyright>Copyright 2013</copyright>
+    <dependencies>
+      <dependency id="Microsoft.Bcl.Async" version="1.0.14-rc" />
+    </dependencies>
   </metadata>
 </package>

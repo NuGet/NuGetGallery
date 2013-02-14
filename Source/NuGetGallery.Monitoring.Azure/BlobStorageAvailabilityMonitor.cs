@@ -16,8 +16,7 @@ namespace NuGetGallery.Monitoring.Azure
 
         protected override Task Invoke()
         {
-            return Task.WhenAll(
-                new HttpMonitor(BlobUrl) { Method = "HEAD" }.Invoke(Reporter, CancelToken));
+            return new HttpMonitor(BlobUrl) { Method = "HEAD" }.Invoke(Reporter, CancelToken);
         }
     }
 }

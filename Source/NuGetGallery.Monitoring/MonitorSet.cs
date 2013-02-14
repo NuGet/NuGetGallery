@@ -79,7 +79,7 @@ namespace NuGetGallery.Monitoring
                     Period));
 
                 // Wait until the next period
-                await Task.Delay(Period, cancelToken);
+                await TaskEx.Delay(Period, cancelToken);
             }
         }
     }

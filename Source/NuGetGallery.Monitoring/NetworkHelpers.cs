@@ -28,7 +28,7 @@ namespace NuGetGallery.Monitoring
             var pinger = new Ping();
             var options = new PingOptions(ttl, dontFragment: true);
             
-            return await pinger.SendPingAsync(hostNameOrIPAddress, 0x1388, DefaultSendBuffer, options);
+            return await pinger.SendTaskAsync(hostNameOrIPAddress, 0x1388, DefaultSendBuffer, options);
         }
 
         public static async Task<IEnumerable<IPAddress>> TraceRoute(string hostNameOrIPAddress)

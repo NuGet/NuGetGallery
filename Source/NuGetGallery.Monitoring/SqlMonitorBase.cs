@@ -30,7 +30,7 @@ namespace NuGetGallery.Monitoring
             return Connect(c =>
             {
                 onConnect(c);
-                return Task.FromResult(new object());
+                return TaskEx.FromResult(new object());
             });
         }
 
