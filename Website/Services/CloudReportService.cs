@@ -16,6 +16,9 @@ namespace NuGetGallery
 
         public async Task<string> Load(string name)
         {
+            //  In NuGet we always use lowercase names for all blobs in Azure Storage
+            name = name.ToLowerInvariant();
+
             string connectionString = _connectionString;
 
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
