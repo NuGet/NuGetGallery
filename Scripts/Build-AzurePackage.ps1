@@ -43,6 +43,8 @@ cp $BuildOutput\* $StagingFolder
 # Build the name
 if(!$ReleaseSha) {
   $ReleaseSha = (& git rev-parse --short HEAD)
+} elseif($ReleaseSha.Length -gt 10) {
+  $ReleaseSha = $ReleaseSha.Substring(0, 10)
 }
 if(!$ReleaseBranch) {
   $ReleaseBranch = (& git name-rev --name-only HEAD)
