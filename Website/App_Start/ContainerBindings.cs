@@ -25,7 +25,7 @@ namespace NuGetGallery
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
             Bind<PoliteCaptcha.IConfigurationSource>()
-                .ToMethod(context => configuration.GetPoliteCaptchaConfiguration());
+                .ToMethod(context => Configuration.GetPoliteCaptchaConfiguration());
 
             var gallerySetting = new Lazy<GallerySetting>(
                 () =>

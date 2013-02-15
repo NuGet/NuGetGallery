@@ -210,7 +210,7 @@ namespace NuGetGallery
             return "https://" + siteRoot.Substring(7);
         }
 
-        public PoliteCaptcha.IConfigurationSource GetPoliteCaptchaConfiguration()
+        public static PoliteCaptcha.IConfigurationSource GetPoliteCaptchaConfiguration()
         {
             return new PoliteCaptchaThunk();
         }
