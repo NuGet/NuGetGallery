@@ -141,11 +141,11 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            await _statisticsService.LoadPackageDownloadsByVersion(id);
+            bool isAvailable = await _statisticsService.LoadPackageDownloadsByVersion(id);
 
             var model = new StatisticsPackagesViewModel();
 
-            model.SetPackageDownloadsByVersion(id, _statisticsService.PackageDownloadsByVersion);
+            model.SetPackageDownloadsByVersion(id, isAvailable, _statisticsService.PackageDownloadsByVersion);
 
             return View(model);
         }
