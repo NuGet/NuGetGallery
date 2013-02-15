@@ -20,7 +20,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             new CreateWarehouseReportsTask
             {
                 WarehouseConnectionString = Settings.WarehouseConnectionString,
-                ReportsConnectionString = Settings.ReportsConnectionString,
+                ReportStorage = Settings.ReportStorage,
                 WhatIf = Settings.WhatIf
             }.Execute();
             Logger.Info("Finished create warehouse reports task.");

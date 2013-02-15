@@ -24,8 +24,7 @@ namespace NuGetGallery.Operations.Worker
         {
             lock (LockObject)
             {
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(settings.ReportsConnectionString);
-                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                CloudBlobClient blobClient = settings.ReportStorage.CreateCloudBlobClient();
                 CloudBlobContainer blobContainer = blobClient.GetContainerReference("ops");
 
                 CloudBlockBlob jobsReportBlob = blobContainer.GetBlockBlobReference("jobs.json");
@@ -120,8 +119,7 @@ namespace NuGetGallery.Operations.Worker
         {
             lock (LockObject)
             {
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(settings.ReportsConnectionString);
-                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                CloudBlobClient blobClient = settings.ReportStorage.CreateCloudBlobClient();
                 CloudBlobContainer blobContainer = blobClient.GetContainerReference("ops");
 
                 CloudBlockBlob webPageBlob = blobContainer.GetBlockBlobReference("dashboard.html");

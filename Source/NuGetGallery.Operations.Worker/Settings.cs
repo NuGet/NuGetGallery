@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 
 namespace NuGetGallery.Operations.Worker
@@ -13,15 +14,14 @@ namespace NuGetGallery.Operations.Worker
         private CloudStorageAccount _backupSourceStorage;
         private CloudStorageAccount _diagStorage;
 
-        public virtual string EnvironmentName { get { return GetSetting("NUGET_GALLERY_ENV"); } }
-        public virtual string MainConnectionString { get { return GetSetting("NUGET_GALLERY_MAIN_CONNECTION_STRING"); } }
-        public virtual string BackupSourceConnectionString { get { return GetSetting("NUGET_GALLERY_BACKUP_SOURCE_CONNECTION_STRING"); } }
-        public virtual string WarehouseConnectionString { get { return GetSetting("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING"); } }
-        public virtual string ReportsConnectionString { get { return GetSetting("NUGET_WAREHOUSE_REPORTS_STORAGE"); } }
-
+        public virtual string EnvironmentName { get { return GetSetting("EnvironmentName", "NUGET_GALLERY_ENV"); } }
+        public virtual string MainConnectionString { get { return GetSetting("Sql.Primary", "NUGET_GALLERY_MAIN_CONNECTION_STRING"); } }
+        public virtual string BackupSourceConnectionString { get { return GetSetting("Sql.BackupSource", "NUGET_GALLERY_BACKUP_SOURCE_CONNECTION_STRING"); } }
+        public virtual string WarehouseConnectionString { get { return GetSetting("Sql.Warehouse", "NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING"); } }
+        
         public virtual bool WhatIf
         {
-            get { return String.Equals("true", GetSetting("WhatIf"), StringComparison.OrdinalIgnoreCase); }
+            get { return String.Equals("true", GetSetting("WhatIf", "NUGET_GALLERY_WHATIF"), StringComparison.OrdinalIgnoreCase); }
         }
 
         public virtual CloudStorageAccount MainStorage
@@ -29,7 +29,7 @@ namespace NuGetGallery.Operations.Worker
             get
             {
                 return _mainStorage ??
-                    (_mainStorage = GetCloudStorageAccount("NUGET_GALLERY_MAIN_STORAGE"));
+                    (_mainStorage = GetCloudStorageAccount("Storage.Primary", "NUGET_GALLERY_MAIN_STORAGE"));
             }
         }
 
@@ -38,7 +38,7 @@ namespace NuGetGallery.Operations.Worker
             get
             {
                 return _backupSourceStorage ??
-                    (_backupSourceStorage = GetCloudStorageAccount("NUGET_GALLERY_BACKUP_SOURCE_STORAGE"));
+                    (_backupSourceStorage = GetCloudStorageAccount("Storage.BackupSource", "NUGET_GALLERY_BACKUP_SOURCE_STORAGE"));
             }
         }
 
@@ -47,7 +47,16 @@ namespace NuGetGallery.Operations.Worker
             get
             {
                 return _diagStorage ??
-                    (_diagStorage = GetCloudStorageAccount("NUGET_GALLERY_DIAGNOSTICS_STORAGE"));
+                    (_diagStorage = GetCloudStorageAccount("Storage.Diagnostics", "NUGET_GALLERY_DIAGNOSTICS_STORAGE"));
+            }
+        }
+
+        public virtual CloudStorageAccount ReportStorage
+        {
+            get
+            {
+                return _diagStorage ??
+                    (_diagStorage = GetCloudStorageAccount("Storage.Reports", "NUGET_GALLERY_REPORTS_STORAGE"));
             }
         }
 
@@ -57,12 +66,28 @@ namespace NuGetGallery.Operations.Worker
             _overrideSettings = overrideSettings;
         }
 
-        public virtual string GetSetting(string name)
+        public virtual string GetSetting(string name, string environmentVariableName)
         {
             string val;
             if (!_overrideSettings.TryGetValue(name, out val))
             {
-                val = Environment.GetEnvironmentVariable(name);
+                val = Environment.GetEnvironmentVariable(environmentVariableName);
+                name = "Operations." + name;
+                if (String.IsNullOrWhiteSpace(val))
+                {
+                    // Try Azure Config
+                    try
+                    {
+                        if (RoleEnvironment.IsAvailable)
+                        {
+                            val = RoleEnvironment.GetConfigurationSettingValue(name);
+                        }
+                    }
+                    catch
+                    {
+                        val = null;
+                    }
+                }
                 if (String.IsNullOrWhiteSpace(val))
                 {
                     val = ConfigurationManager.AppSettings[name];
@@ -71,9 +96,9 @@ namespace NuGetGallery.Operations.Worker
             return val;
         }
 
-        public virtual CloudStorageAccount GetCloudStorageAccount(string name)
+        public virtual CloudStorageAccount GetCloudStorageAccount(string name, string environmentVariableName)
         {
-            return CloudStorageAccount.Parse(GetSetting(name));
+            return CloudStorageAccount.Parse(GetSetting(name, environmentVariableName));
         }
     }
 }

@@ -14,5 +14,15 @@
         <NetFxEntryPoint assemblyName="NuGetGallery.Operations.Worker.dll" targetFrameworkVersion="4.5" />
       </EntryPoint>
     </Runtime>
+    <ConfigurationSettings>
+      <Setting name="Operations.EnvironmentName" />
+      <Setting name="Operations.Sql.Primary" />
+      <Setting name="Operations.Sql.BackupStorage" />
+      <Setting name="Operations.Sql.Warehouse" />
+      <Setting name="Operations.Storage.Primary" />
+      <Setting name="Operations.Storage.BackupStorage" />
+      <Setting name="Operations.Storage.Diagnostics" />
+      <Setting name="Operations.Storage.Reports" />
+    </ConfigurationSettings>
   </WorkerRole>
 </ServiceDefinition>

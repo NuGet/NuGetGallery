@@ -19,12 +19,16 @@ namespace NuGetGallery.Operations
         public string WarehouseConnectionString { get; set; }
 
         [Option("Connection string to the warehouse reports container", AltName = "wracc")]
-        public string ReportsConnectionString { get; set; }
+        public CloudStorageAccount ReportStorage { get; set; }
 
         public CreateWarehouseReportsTask()
         {
             WarehouseConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
-            ReportsConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_REPORTS_STORAGE");
+            var reportCs = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_REPORTS_STORAGE");
+            if (!String.IsNullOrWhiteSpace(reportCs))
+            {
+                ReportStorage = CloudStorageAccount.Parse(reportCs);
+            }
         }
 
         public override void ExecuteCommand()
@@ -74,8 +78,7 @@ namespace NuGetGallery.Operations
 
         private HashSet<string> FetchListOfCurrentPackageReports()
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(ReportsConnectionString);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("popularity");
 
             HashSet<string> packageReports = new HashSet<string>();
@@ -96,8 +99,7 @@ namespace NuGetGallery.Operations
 
         private void DeleteOldPackageReports(HashSet<string> packageReportsToDelete)
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(ReportsConnectionString);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("popularity");
 
             foreach (string packageId in packageReportsToDelete)
@@ -208,8 +210,7 @@ namespace NuGetGallery.Operations
 
         private Uri CreateBlob(string name, string contentType, Stream content)
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(ReportsConnectionString);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("popularity");
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(name);
 
