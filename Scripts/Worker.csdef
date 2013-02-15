@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceDefinition name="NuGetOperationsWorker" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2012-10.1.8">
+  <WorkerRole name="NuGetGallery.Operations.Worker" vmsize="Small">
+    <Imports>
+      <Import moduleName="Diagnostics" />
+      <Import moduleName="RemoteAccess" />
+      <Import moduleName="RemoteForwarder" />
+    </Imports>
+    <LocalResources>
+      <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="100" />
+    </LocalResources>
+    <Runtime>
+      <EntryPoint>
+        <NetFxEntryPoint assemblyName="NuGetGallery.Operations.Worker.dll" targetFrameworkVersion="4.5" />
+      </EntryPoint>
+    </Runtime>
+  </WorkerRole>
+</ServiceDefinition>

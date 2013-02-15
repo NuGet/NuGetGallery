@@ -4,11 +4,11 @@
   </PropertyGroup>
 
   <Target Name="Clean">
-    <MSBuild Projects="..\NuGetGalleryOps.sln" Targets="Clean" Properties="Configuration=$(Configuration)"/>
+    <MSBuild Projects="..\NuGetOperations.sln" Targets="Clean" Properties="Configuration=$(Configuration)"/>
   </Target>
   
   <Target Name="Build" DependsOnTargets="Clean">
-    <MSBuild Projects="..\NuGetGalleryOps.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
+    <MSBuild Projects="..\NuGetOperations.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
   </Target>
 
 </Project>
