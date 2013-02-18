@@ -209,5 +209,19 @@ namespace NuGetGallery
 
             return "https://" + siteRoot.Substring(7);
         }
+
+        public static PoliteCaptcha.IConfigurationSource GetPoliteCaptchaConfiguration()
+        {
+            return new PoliteCaptchaThunk();
+        }
+
+        class PoliteCaptchaThunk : PoliteCaptcha.IConfigurationSource
+        {
+            string PoliteCaptcha.IConfigurationSource.GetConfigurationValue(string key)
+            {
+                // Fudge the name because Azure cscfg system doesn't allow : in setting names
+                return Configuration.ReadAppSettings(key.Replace("::", "."));
+            }
+        }
     }
 }

@@ -21,9 +21,11 @@ namespace NuGetGallery
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         public override void Load()
         {
-            IConfiguration configuration = new Configuration();
+            var configuration = new Configuration();
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
+            Bind<PoliteCaptcha.IConfigurationSource>()
+                .ToMethod(context => Configuration.GetPoliteCaptchaConfiguration());
 
             var gallerySetting = new Lazy<GallerySetting>(
                 () =>
