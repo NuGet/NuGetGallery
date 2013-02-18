@@ -349,29 +349,10 @@ namespace NuGetGallery.Infrastructure
         {
             public int PlaceHeld { get; set; }
 
-            public string ETag
-            {
-                get;
-                set;
-            }
-
-            public string PartitionKey
-            {
-                get;
-                set;
-            }
-
-            public string RowKey
-            {
-                get;
-                set;
-            }
-
-            public DateTimeOffset Timestamp
-            {
-                get;
-                set;
-            }
+            public string ETag { get; set; }
+            public string PartitionKey { get; set; }
+            public string RowKey{ get; set; }
+            public DateTimeOffset Timestamp { get; set; }
 
             void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, Microsoft.WindowsAzure.Storage.OperationContext operationContext)
             {
@@ -391,29 +372,13 @@ namespace NuGetGallery.Infrastructure
         {
             public long Count { get; set; }
 
-            public string ETag
-            {
-                get;
-                set;
-            }
+            public string ETag { get; set; }
 
-            public string PartitionKey
-            {
-                get;
-                set;
-            }
+            public string PartitionKey { get; set; }
 
-            public string RowKey
-            {
-                get;
-                set;
-            }
+            public string RowKey { get; set; }
 
-            public DateTimeOffset Timestamp
-            {
-                get;
-                set;
-            }
+            public DateTimeOffset Timestamp { get; set; }
 
             void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, Microsoft.WindowsAzure.Storage.OperationContext operationContext)
             {
