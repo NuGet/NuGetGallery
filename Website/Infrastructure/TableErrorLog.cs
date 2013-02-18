@@ -107,7 +107,7 @@ namespace NuGetGallery.Infrastructure
             {
                 // A little math is required since the AzureEntityList is in ascending order
                 // And we want to retrieve entries in descending order
-                long queryOffset = _entityList.Count64 - ((pageIndex+1) * pageSize);
+                long queryOffset = _entityList.LongCount - ((pageIndex+1) * pageSize);
                 if (queryOffset < 0)
                 {
                     pageSize += (int)queryOffset;

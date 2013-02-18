@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Web;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -16,8 +15,8 @@ namespace NuGetGallery.Infrastructure
     /// </summary>
     public class AzureEntityList<T> : IEnumerable<T> where T : ITableEntity, new()
     {
-        string INDEX_PARTITION_KEY = "INDEX";
-        string INDEX_ROW_KEY = "0";
+        private static readonly string INDEX_PARTITION_KEY = "INDEX";
+        private static readonly string INDEX_ROW_KEY = "0";
 
         string _connStr;
         string _tableName;
@@ -70,7 +69,7 @@ namespace NuGetGallery.Infrastructure
             }
         }
 
-        public long Count64
+        public long LongCount
         {
             get
             {
@@ -90,7 +89,7 @@ namespace NuGetGallery.Infrastructure
                     throw new ArgumentOutOfRangeException("index", index, "Negative indexes are invalid.");
                 }
 
-                if (index >= Count64)
+                if (index >= LongCount)
                 {
                     throw new ArgumentOutOfRangeException("index", index, "Index does not exist");
                 }
@@ -117,7 +116,7 @@ namespace NuGetGallery.Infrastructure
                     throw new ArgumentOutOfRangeException("index", index, "Negative indexes are invalid.");
                 }
 
-                if (index >= Count64)
+                if (index >= LongCount)
                 {
                     throw new ArgumentOutOfRangeException("index", index, "Index does not exist");
                 }
@@ -128,33 +127,35 @@ namespace NuGetGallery.Infrastructure
                 value.RowKey = FormatRowKey(row);
 
                 // Retrieve ETAG to allow a conditional update
-            retry:
-                var retrievalResult = _tableRef.Execute(
-                    TableOperation.Retrieve(value.PartitionKey, value.RowKey));
-                ThrowIfErrorStatus(retrievalResult);
+                while (true)
+                {
+                    var retrievalResult = _tableRef.Execute(
+                        TableOperation.Retrieve(value.PartitionKey, value.RowKey));
+                    ThrowIfErrorStatus(retrievalResult);
 
-                value.ETag = retrievalResult.Etag;
-                var storeResult = _tableRef.Execute(TableOperation.Replace(value));
-                if (storeResult.HttpStatusCode == 412)
-                {
-                    goto retry; // ETAG was invalidated.
-                }
-                else
-                {
-                    ThrowIfErrorStatus(storeResult);
+                    value.ETag = retrievalResult.Etag;
+                    var storeResult = _tableRef.Execute(TableOperation.Replace(value));
+                    if (storeResult.HttpStatusCode == 412)
+                    {
+                        continue; // retry - ETAG was invalidated.
+                    }
+                    else
+                    {
+                        ThrowIfErrorStatus(storeResult);
+                        break;
+                    }
                 }
             }
         }
 
         public long Add(T entity)
         {
-            // Steps: 
-            // 1) Conditional set the entry at the current count if it doesn't exist
+            // 1) Conditional set the entry at the current count (condition: if it doesn't already exist)
             // 2) Increment the list count
             long pos;
             do
             {
-                pos = Count64; // retrieve fresh count each retry
+                pos = LongCount; // retrieve fresh count each retry
                 long page = pos / 1000;
                 long row = pos % 1000;
                 entity.PartitionKey = FormatPartitionKey(page);
@@ -163,9 +164,9 @@ namespace NuGetGallery.Infrastructure
             while (!InsertIfNotExists(entity));
 
             // We got an entry in place - now all we need to do is update the count!
-            long oldCount = IncrementCount();
+            long oldCount = AtomicIncrementCount();
             Debug.Assert(oldCount == pos);
-            Debug.Assert(Count64 > oldCount);
+            Debug.Assert(LongCount > oldCount);
             return pos;
         }
 
@@ -243,7 +244,6 @@ namespace NuGetGallery.Infrastructure
         /// </summary>
         private bool InsertIfNotExists<T2>(T2 entity) where T2 : ITableEntity
         {
-            // Steps:
             // 1) Create a dummy entry to ensure an ETAG exists for the given table partition+row key
             // - the dummy MERGES with existing data instead of overwriting it, so no data loss.
             // 2) Use its ETAG to conditionally replace the item
@@ -274,36 +274,40 @@ namespace NuGetGallery.Infrastructure
             return true; // We created it!
         }
 
-        private long IncrementCount()
+        private long AtomicIncrementCount()
         {
-        // 1) find partition with free space
-        // 2) retrieve partition count (with ETAG)
-        retry:
-            var result1 = _tableRef.Execute(
-                TableOperation.Retrieve<Index>(INDEX_PARTITION_KEY, INDEX_ROW_KEY));
-
-            ThrowIfErrorStatus(result1);
-
-            var pos = ((Index)result1.Result).Count;
-
-            // Try to batch update Count and Insert the new item. Either both succeed or both fails.
-            var result2 = _tableRef.Execute(
-                TableOperation.Replace(new Index
-                {
-                    ETag = result1.Etag,
-                    Count = pos + 1,
-                    PartitionKey = INDEX_PARTITION_KEY,
-                    RowKey = INDEX_ROW_KEY,
-                }));
-
-            if (result2.HttpStatusCode == 412)
+            // 1) retrieve count
+            // 2) use ETAG to do a conditional +1 update
+            // 3) retry if that optimistic concurrency attempt failed
+            while (true)
             {
-                goto retry;
+                var result1 = _tableRef.Execute(
+                    TableOperation.Retrieve<Index>(INDEX_PARTITION_KEY, INDEX_ROW_KEY));
+
+                ThrowIfErrorStatus(result1);
+
+                var pos = ((Index)result1.Result).Count;
+
+                // Try to batch update Count and Insert the new item. Either both succeed or both fails.
+                var result2 = _tableRef.Execute(
+                    TableOperation.Replace(new Index
+                    {
+                        ETag = result1.Etag,
+                        Count = pos + 1,
+                        PartitionKey = INDEX_PARTITION_KEY,
+                        RowKey = INDEX_ROW_KEY,
+                    }));
+
+                if (result2.HttpStatusCode == 412)
+                {
+                    continue;
+                }
+                else
+                {
+                    ThrowIfErrorStatus(result2);
+                    return pos; // value before successful increment
+                }
             }
-
-            ThrowIfErrorStatus(result2);
-
-            return pos; // value before successful increment
         }
 
         private Index ReadIndex()
