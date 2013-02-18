@@ -219,7 +219,8 @@ namespace NuGetGallery
         {
             string PoliteCaptcha.IConfigurationSource.GetConfigurationValue(string key)
             {
-                return Configuration.ReadAppSettings(key);
+                // Fudge the name because Azure cscfg system doesn't allow : in setting names
+                return Configuration.ReadAppSettings(key.Replace("::", "."));
             }
         }
     }

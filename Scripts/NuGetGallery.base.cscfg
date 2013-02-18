@@ -40,8 +40,8 @@
       <Setting name="Gallery.DecryptionKey" value="" />
 
       <!-- Provide RECAPTCHA keys for your own domain. https://www.google.com/recaptcha/admin/create -->
-      <Setting name="reCAPTCHA::PrivateKey" value="" />
-      <Setting name="reCAPTCHA::PublicKey" value="" />
+      <Setting name="reCAPTCHA.PrivateKey" value="" />
+      <Setting name="reCAPTCHA.PublicKey" value="" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />
