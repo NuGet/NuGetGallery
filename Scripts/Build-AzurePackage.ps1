@@ -64,7 +64,7 @@ if(!$AzureSdkPath -or !(Test-Path $AzureSdkPath)) {
   throw "Azure SDK not found. Please specify the path to the Azure SDK in the AzureSdkPath parameter."
 }
 $RoleName = "NuGetGallery.Operations.Worker"
-& "$AzureSdkPath\bin\cspack.exe" "$MyPath\Worker.csdef" /out:"$PackageFile" /role:"$RoleName;$StagingFolder" /rolePropertiesFile:"$RoleName;$MyPath\NuGetOperations.RoleProperties.txt" $copyOnlyFlag
+& "$AzureSdkPath\bin\cspack.exe" $copyOnlyFlag "$MyPath\Worker.csdef" /out:"$PackageFile" /role:"$RoleName;$StagingFolder" /rolePropertiesFile:"$RoleName;$MyPath\NuGetOperations.RoleProperties.txt"
 
 write-host "Azure package and configuration dropped to $OutputFolder."
 write-host ""

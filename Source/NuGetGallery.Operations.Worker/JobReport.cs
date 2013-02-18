@@ -26,6 +26,7 @@ namespace NuGetGallery.Operations.Worker
             {
                 CloudBlobClient blobClient = settings.ReportStorage.CreateCloudBlobClient();
                 CloudBlobContainer blobContainer = blobClient.GetContainerReference("ops");
+                blobContainer.CreateIfNotExists();
 
                 CloudBlockBlob jobsReportBlob = blobContainer.GetBlockBlobReference("jobs.json");
 
@@ -121,6 +122,7 @@ namespace NuGetGallery.Operations.Worker
             {
                 CloudBlobClient blobClient = settings.ReportStorage.CreateCloudBlobClient();
                 CloudBlobContainer blobContainer = blobClient.GetContainerReference("ops");
+                blobContainer.CreateIfNotExists();
 
                 CloudBlockBlob webPageBlob = blobContainer.GetBlockBlobReference("dashboard.html");
 
