@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="NuGetOperationsWorker" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2012-10.1.8">
   <WorkerRole name="NuGetGallery.Operations.Worker" vmsize="Small">
+    <ConfigurationSettings>
+      <Setting name="Operations.EnvironmentName" />
+      <Setting name="Operations.Sql.Primary" />
+      <Setting name="Operations.Sql.BackupSource" />
+      <Setting name="Operations.Sql.Warehouse" />
+      <Setting name="Operations.Storage.Primary" />
+      <Setting name="Operations.Storage.BackupSource" />
+      <Setting name="Operations.Storage.Diagnostics" />
+      <Setting name="Operations.Storage.Reports" />
+    </ConfigurationSettings>
     <Imports>
       <Import moduleName="Diagnostics" />
       <Import moduleName="RemoteAccess" />
@@ -14,15 +24,5 @@
         <NetFxEntryPoint assemblyName="NuGetGallery.Operations.Worker.dll" targetFrameworkVersion="4.5" />
       </EntryPoint>
     </Runtime>
-    <ConfigurationSettings>
-      <Setting name="Operations.EnvironmentName" />
-      <Setting name="Operations.Sql.Primary" />
-      <Setting name="Operations.Sql.BackupStorage" />
-      <Setting name="Operations.Sql.Warehouse" />
-      <Setting name="Operations.Storage.Primary" />
-      <Setting name="Operations.Storage.BackupStorage" />
-      <Setting name="Operations.Storage.Diagnostics" />
-      <Setting name="Operations.Storage.Reports" />
-    </ConfigurationSettings>
   </WorkerRole>
 </ServiceDefinition>

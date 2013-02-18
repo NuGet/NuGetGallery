@@ -13,6 +13,7 @@ namespace NuGetGallery.Operations.Worker
         private CloudStorageAccount _mainStorage;
         private CloudStorageAccount _backupSourceStorage;
         private CloudStorageAccount _diagStorage;
+        private CloudStorageAccount _reportStorage;
 
         public virtual string EnvironmentName { get { return GetSetting("EnvironmentName", "NUGET_GALLERY_ENV"); } }
         public virtual string MainConnectionString { get { return GetSetting("Sql.Primary", "NUGET_GALLERY_MAIN_CONNECTION_STRING"); } }
@@ -55,8 +56,8 @@ namespace NuGetGallery.Operations.Worker
         {
             get
             {
-                return _diagStorage ??
-                    (_diagStorage = GetCloudStorageAccount("Storage.Reports", "NUGET_GALLERY_REPORTS_STORAGE"));
+                return _reportStorage ??
+                    (_reportStorage = GetCloudStorageAccount("Storage.Reports", "NUGET_GALLERY_REPORTS_STORAGE"));
             }
         }
 
