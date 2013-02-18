@@ -87,12 +87,12 @@ namespace NuGetGallery.Infrastructure
             {
                 if (index < 0)
                 {
-                    throw new IndexOutOfRangeException("Negative indexes are invalid.");
+                    throw new ArgumentOutOfRangeException("index", index, "Negative indexes are invalid.");
                 }
 
                 if (index >= Count64)
                 {
-                    throw new IndexOutOfRangeException("Index does not exist");
+                    throw new ArgumentOutOfRangeException("index", index, "Index does not exist");
                 }
 
                 long page = index / 1000;
@@ -103,7 +103,7 @@ namespace NuGetGallery.Infrastructure
                 var response = _tableRef.Execute(TableOperation.Retrieve<T>(partitionKey, rowKey));
                 if (response.HttpStatusCode == 404)
                 {
-                    throw new IndexOutOfRangeException("404 - Table Item was Not Found");
+                    throw new ArgumentOutOfRangeException("index", index, "(404) Error - Not Found");
                 }
 
                 ThrowIfErrorStatus(response);
@@ -114,12 +114,12 @@ namespace NuGetGallery.Infrastructure
             {
                 if (index < 0)
                 {
-                    throw new IndexOutOfRangeException("Negative indexes are invalid.");
+                    throw new ArgumentOutOfRangeException("index", index, "Negative indexes are invalid.");
                 }
 
                 if (index >= Count64)
                 {
-                    throw new IndexOutOfRangeException("Index does not exist");
+                    throw new ArgumentOutOfRangeException("index", index, "Index does not exist");
                 }
 
                 long page = index / 1000;
@@ -131,14 +131,7 @@ namespace NuGetGallery.Infrastructure
             retry:
                 var retrievalResult = _tableRef.Execute(
                     TableOperation.Retrieve(value.PartitionKey, value.RowKey));
-                if (retrievalResult.HttpStatusCode == 404)
-                {
-                    throw new IndexOutOfRangeException("404 - Table Item was Not Found");
-                }
-                else
-                {
-                    ThrowIfErrorStatus(retrievalResult);
-                }
+                ThrowIfErrorStatus(retrievalResult);
 
                 value.ETag = retrievalResult.Etag;
                 var storeResult = _tableRef.Execute(TableOperation.Replace(value));
@@ -265,7 +258,7 @@ namespace NuGetGallery.Infrastructure
 
             if (!IsSuccess(dummyResult.HttpStatusCode))
             {
-                throw new Exception("wrong status code");
+                throw new HttpException(dummyResult.HttpStatusCode, "wrong status code");
             }
 
             entity.ETag = dummyResult.Etag;
@@ -281,17 +274,6 @@ namespace NuGetGallery.Infrastructure
             return true; // We created it!
         }
 
-        private string FormatPartitionKey(long page)
-        {
-            return string.Format("Page_" + page.ToString("D19", CultureInfo.InvariantCulture));
-        }
-
-        private string FormatRowKey(long pageRow)
-        {
-            Debug.Assert(pageRow < 1000);
-            return pageRow.ToString("D3", CultureInfo.InvariantCulture);
-        }
-
         private long IncrementCount()
         {
         // 1) find partition with free space
@@ -299,12 +281,9 @@ namespace NuGetGallery.Infrastructure
         retry:
             var result1 = _tableRef.Execute(
                 TableOperation.Retrieve<Index>(INDEX_PARTITION_KEY, INDEX_ROW_KEY));
-            if (result1.HttpStatusCode != 200)
-            {
-                throw new Exception("wrong status code");
-            }
 
-            var etag = result1.Etag;
+            ThrowIfErrorStatus(result1);
+
             var pos = ((Index)result1.Result).Count;
 
             // Try to batch update Count and Insert the new item. Either both succeed or both fails.
@@ -321,17 +300,10 @@ namespace NuGetGallery.Infrastructure
             {
                 goto retry;
             }
-            else if (!IsSuccess(result2.HttpStatusCode))
-            {
-                throw new Exception("wrong status code");
-            }
+
+            ThrowIfErrorStatus(result2);
 
             return pos; // value before successful increment
-        }
-
-        private bool IsSuccess(int statusCode)
-        {
-            return statusCode >= 200 && statusCode < 300;
         }
 
         private Index ReadIndex()
@@ -340,7 +312,23 @@ namespace NuGetGallery.Infrastructure
             return (Index)response.Result;
         }
 
-        private void ThrowIfErrorStatus(TableResult result)
+        private static string FormatPartitionKey(long page)
+        {
+            return "Page_" + page.ToString("D19", CultureInfo.InvariantCulture);
+        }
+
+        private static string FormatRowKey(long pageRow)
+        {
+            Debug.Assert(pageRow < 1000);
+            return pageRow.ToString("D3", CultureInfo.InvariantCulture);
+        }
+
+        private static bool IsSuccess(int statusCode)
+        {
+            return statusCode >= 200 && statusCode < 300;
+        }
+
+        private static void ThrowIfErrorStatus(TableResult result)
         {
             if (!IsSuccess(result.HttpStatusCode))
             {
