@@ -536,14 +536,14 @@ namespace NuGetGallery
 
             _autoCuratedPackageCmd.Execute(package, nugetPackage, commitChanges: false);
 
-            // commit all changes to database as an atomic transaction
-            _entitiesContext.SaveChanges();
-
             // save package to blob storage
             using (Stream stream = nugetPackage.GetStream())
             {
                 await _packageFileService.SavePackageFileAsync(package, stream);
             }
+
+            // commit all changes to database as an atomic transaction
+            _entitiesContext.SaveChanges();
 
             // tell Lucene to update index for the new package
             _indexingService.UpdateIndex();
