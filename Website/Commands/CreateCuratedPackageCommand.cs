@@ -5,11 +5,12 @@ namespace NuGetGallery
     public interface ICreateCuratedPackageCommand
     {
         CuratedPackage Execute(
-            int curatedFeedKey,
-            int packageRegistrationKey,
-            bool included = true,
-            bool automaticallyCurated = false,
-            string notes = null);
+            CuratedFeed curatedFeed, 
+            PackageRegistration packageRegistration, 
+            bool included = true, 
+            bool automaticallyCurated = false, 
+            string notes = null,
+            bool commitChanges = true);
     }
 
     public class CreateCuratedPackageCommand : AppCommand, ICreateCuratedPackageCommand
@@ -24,7 +25,8 @@ namespace NuGetGallery
             int packageRegistrationKey,
             bool included = true,
             bool automaticallyCurated = false,
-            string notes = null)
+            string notes = null,
+            bool commitChanges = true)
         {
             var curatedFeed = GetService<ICuratedFeedByKeyQuery>().Execute(curatedFeedKey, includePackages: false);
             if (curatedFeed == null)
@@ -38,17 +40,37 @@ namespace NuGetGallery
                 throw new InvalidOperationException("The package ID to curate does not exist.");
             }
 
+            return Execute(
+                curatedFeedKey,
+                packageRegistrationKey,
+                included,
+                automaticallyCurated,
+                notes,
+                commitChanges);
+        }
+
+        public CuratedPackage Execute(
+            CuratedFeed curatedFeed, 
+            PackageRegistration packageRegistration, 
+            bool included = false, 
+            bool automaticallyCurated = false,
+            string notes = null,
+            bool commitChanges = true)
+        {
             var curatedPackage = new CuratedPackage
-                {
-                    PackageRegistrationKey = packageRegistration.Key,
-                    Included = included,
-                    AutomaticallyCurated = automaticallyCurated,
-                    Notes = notes,
-                };
+            {
+                PackageRegistrationKey = packageRegistration.Key,
+                Included = included,
+                AutomaticallyCurated = automaticallyCurated,
+                Notes = notes,
+            };
 
             curatedFeed.Packages.Add(curatedPackage);
 
-            Entities.SaveChanges();
+            if (commitChanges)
+            {
+                Entities.SaveChanges();
+            }
 
             return curatedPackage;
         }

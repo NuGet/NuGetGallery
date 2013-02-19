@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -524,13 +525,16 @@ namespace NuGetGallery
 
             // update relevant database tables
             Package package = _packageService.CreatePackage(nugetPackage, currentUser, commitChanges: false);
+            Debug.Assert(package.PackageRegistration != null);
+
             _packageService.PublishPackage(package, commitChanges: false);
 
             if (listed == false)
             {
                 _packageService.MarkPackageUnlisted(package, commitChanges: false);
             }
-            _autoCuratedPackageCmd.Execute(package, nugetPackage);
+
+            _autoCuratedPackageCmd.Execute(package, nugetPackage, commitChanges: false);
 
             // commit all changes to database as an atomic transaction
             _entitiesContext.SaveChanges();
