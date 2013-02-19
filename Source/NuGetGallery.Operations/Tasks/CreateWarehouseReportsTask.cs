@@ -44,6 +44,7 @@ namespace NuGetGallery.Operations
             CreateReport_PerMonth();
             CreateReport_RecentPopularityDetail();
             CreateReport_RecentPopularity();
+            CreateAllPerPackageReports();
 
             Log.Info("Generate reports end");
         }
@@ -75,8 +76,6 @@ namespace NuGetGallery.Operations
             CreateBlob(RecentPopularity + ".json", JsonContentType, ReportHelpers.ToJson(report));
 
             CreatePerPackageReports(report);
-
-            CreateAllPerPackageReports();
         }
 
         private void CreatePerPackageReports(Tuple<string[], List<string[]>> report)
@@ -125,7 +124,7 @@ namespace NuGetGallery.Operations
                 bag.Add(packageId);
             }
 
-            ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 8 };
+            ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
 
             Parallel.ForEach(bag, options, packageId =>
             {
@@ -211,7 +210,7 @@ namespace NuGetGallery.Operations
 
                 SqlCommand command = new SqlCommand(sql, connection);
                 command.CommandType = CommandType.Text;
-                command.CommandTimeout = 180;
+                command.CommandTimeout = 60 * 5;
 
                 foreach (Tuple<string, string> parameter in parameters)
                 {
@@ -257,7 +256,7 @@ namespace NuGetGallery.Operations
 
         private void WithRetry(Action action)
         {
-            int attempts = 5;
+            int attempts = 10;
 
             while (attempts-- > 0)
             {
@@ -274,7 +273,9 @@ namespace NuGetGallery.Operations
                     }
                     else
                     {
-                        Thread.Sleep(30 * 1000);
+                        SqlConnection.ClearAllPools();
+                        Log.Info(string.Format("Retry attempts remaining {0}", attempts));
+                        Thread.Sleep(20 * 1000);
                     }
                 }
             }
