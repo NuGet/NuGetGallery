@@ -44,7 +44,9 @@ namespace NuGetGallery.Operations
             CreateReport_PerMonth();
             CreateReport_RecentPopularityDetail();
             CreateReport_RecentPopularity();
-            CreateAllPerPackageReports();
+
+            //TODO: comment this line back in when we want the "ten thousand reports" live
+            //CreateAllPerPackageReports();
 
             Log.Info("Generate reports end");
         }
