@@ -101,6 +101,7 @@ namespace NuGetGallery
                     // If we've never added the package to lookup or we encounter the same id but with a higher version, then choose the higher version.
                     versionLookup[id] = currentVersion;
                 }
+                versionLookup.Add(id, Tuple.Create(currentVersion, versionConstraint));
             }
 
             var packages = PackageRepository.GetAll()
