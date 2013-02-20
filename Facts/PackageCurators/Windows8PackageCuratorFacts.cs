@@ -168,10 +168,10 @@ namespace NuGetGallery.PackageCurators
                 curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>()), Times.Never());
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()), Times.Never());
             }
 
             [Fact]
