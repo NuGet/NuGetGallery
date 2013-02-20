@@ -1,11 +1,14 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using NuGetGallery.Operations.Common;
-using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations
 {
@@ -13,7 +16,10 @@ namespace NuGetGallery.Operations
     public class CreateWarehouseReportsTask : OpsTask
     {
         private const string JsonContentType = "application/json";
-        private const string PackageReportBaseName = "RecentPopularity_";
+        private const string PackageReportBaseName = "recentpopularity_";
+        private const string PerMonth = "permonth";
+        private const string RecentPopularity = "recentpopularity";
+        private const string RecentPopularityDetail = "recentpopularitydetail";
 
         [Option("Connection string to the warehouse database", AltName = "wdb")]
         public string WarehouseConnectionString { get; set; }
@@ -36,8 +42,11 @@ namespace NuGetGallery.Operations
             Log.Info("Generate reports begin");
 
             CreateReport_PerMonth();
-            CreateReport_RecentPopularity();
             CreateReport_RecentPopularityDetail();
+            CreateReport_RecentPopularity();
+
+            //TODO: comment this line back in when we want the "ten thousand reports" live
+            //CreateAllPerPackageReports();
 
             Log.Info("Generate reports end");
         }
@@ -48,8 +57,16 @@ namespace NuGetGallery.Operations
 
             Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_PerMonth.sql");
 
-            const string Name = "PerMonth";
-            CreateBlob(Name + ".json", JsonContentType, ReportHelpers.ToJson(report));
+            CreateBlob(PerMonth + ".json", JsonContentType, ReportHelpers.ToJson(report));
+        }
+
+        private void CreateReport_RecentPopularityDetail()
+        {
+            Log.Info("CreateReport_RecentPopularityDetail");
+
+            Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetail.sql");
+
+            CreateBlob(RecentPopularityDetail + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
 
         private void CreateReport_RecentPopularity()
@@ -58,62 +75,12 @@ namespace NuGetGallery.Operations
 
             Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularity.sql");
 
-            const string Name = "RecentPopularity";
-            CreateBlob(Name + ".json", JsonContentType, ReportHelpers.ToJson(report));
+            CreateBlob(RecentPopularity + ".json", JsonContentType, ReportHelpers.ToJson(report));
 
-            //  and now generate the per package drill-down reports corresponding to this top level
-
-            //  (1) get the current list because there maybe some to delete
-
-            HashSet<string> currentPackageReports = FetchListOfCurrentPackageReports();
-
-            //  (2) create the new reports, this will overwrite old with new reports
-
-            CreatePerPackageReports(report, currentPackageReports);
-
-            //  (3) clean up any left over old package reports
-
-            DeleteOldPackageReports(currentPackageReports);
+            CreatePerPackageReports(report);
         }
 
-        private HashSet<string> FetchListOfCurrentPackageReports()
-        {
-            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("popularity");
-
-            HashSet<string> packageReports = new HashSet<string>();
-
-            foreach (CloudBlockBlob blockBlob in container.ListBlobs())
-            {
-                if (blockBlob.Name.StartsWith(PackageReportBaseName))
-                {
-                    string packageId = blockBlob.Name.Substring(PackageReportBaseName.Length);
-                    packageId = packageId.Substring(0, packageId.LastIndexOf('.'));
-
-                    packageReports.Add(packageId);
-                }
-            }
-
-            return packageReports;
-        }
-
-        private void DeleteOldPackageReports(HashSet<string> packageReportsToDelete)
-        {
-            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("popularity");
-
-            foreach (string packageId in packageReportsToDelete)
-            {
-                string reportName = PackageReportBaseName + packageId;
-
-                CloudBlockBlob jsonBlockBlob = container.GetBlockBlobReference(reportName + ".json");
-                jsonBlockBlob.DeleteIfExists();
-
-                Log.Info(string.Format("deleted reports for {0}", packageId));
-            }
-        }
-
-        private void CreatePerPackageReports(Tuple<string[], List<string[]>> report, HashSet<string> packageReportsToDelete)
+        private void CreatePerPackageReports(Tuple<string[], List<string[]>> report)
         {
             Log.Info(string.Format("CreatePerPackageReports (count = {0})", report.Item2.Count));
 
@@ -135,32 +102,101 @@ namespace NuGetGallery.Operations
             foreach (string[] row in report.Item2)
             {
                 string packageId = row[indexOfPackageId];
-
-                CreatePackageReport(packageId);
-
-                packageReportsToDelete.Remove(packageId);
+                WithRetry(() =>
+                {
+                    CreatePackageReport(packageId);
+                });
             }
+        }
+
+        private void CreateAllPerPackageReports()
+        {
+            Log.Info("CreateAllPerPackageReports");
+
+            DateTime before = DateTime.Now;
+
+            IList<Tuple<string, int>> packageIds = GetPackageIds();
+
+            Log.Info(string.Format("Creating {0} Reports", packageIds.Count));
+
+            ConcurrentBag<Tuple<string, int>> bag = new ConcurrentBag<Tuple<string, int>>();
+
+            foreach (Tuple<string, int> packageId in packageIds)
+            {
+                bag.Add(packageId);
+            }
+
+            ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
+
+            Parallel.ForEach(bag, options, packageId =>
+            {
+                WithRetry(() =>
+                {
+                    CreatePackageReport(packageId.Item1);
+                    ConfirmExport(packageId);
+                });
+            });
+
+            string msg = string.Format("CreateAllPerPackageReports complete {0} seconds", (DateTime.Now - before).TotalSeconds);
+
+            Log.Info(msg);
+        }
+
+        private IList<Tuple<string, int>> GetPackageIds()
+        {
+            IList<Tuple<string, int>> packageIds = new List<Tuple<string, int>>();
+
+            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            {
+                connection.Open();
+
+                SqlCommand command = new SqlCommand("GetPackagesForExport", connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandTimeout = 60 * 5;
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string packageId = reader.GetValue(0).ToString();
+                    int dirtyCount = (int)reader.GetValue(1);
+
+                    packageIds.Add(new Tuple<string, int>(packageId, dirtyCount));
+                }
+            }
+
+            return packageIds;
         }
 
         private void CreatePackageReport(string packageId)
         {
             Log.Info(string.Format("CreatePackageReport for {0}", packageId));
 
-            string name = PackageReportBaseName + packageId;
+            // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
+
+            string name = PackageReportBaseName + packageId.ToLowerInvariant();
 
             Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityByPackage.sql", new Tuple<string, string>("@packageId", packageId));
 
             CreateBlob(name + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
 
-        private void CreateReport_RecentPopularityDetail()
+        private void ConfirmExport(Tuple<string, int> packageId)
         {
-            Log.Info("CreateReport_RecentPopularityDetail");
+            Log.Info(string.Format("ConfirmPackageExported for {0}", packageId.Item1));
 
-            Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetail.sql");
+            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            {
+                connection.Open();
 
-            const string Name = "RecentPopularityDetail";
-            CreateBlob(Name + ".json", JsonContentType, ReportHelpers.ToJson(report));
+                SqlCommand command = new SqlCommand("ConfirmPackageExported", connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandTimeout = 60 * 5;
+                command.Parameters.AddWithValue("PackageId", packageId.Item1);
+                command.Parameters.AddWithValue("DirtyCount", packageId.Item2);
+
+                command.ExecuteNonQuery();
+            }
         }
 
         private Tuple<string[], List<string[]>> ExecuteSql(string filename, params Tuple<string, string>[] parameters)
@@ -176,7 +212,7 @@ namespace NuGetGallery.Operations
 
                 SqlCommand command = new SqlCommand(sql, connection);
                 command.CommandType = CommandType.Text;
-                command.CommandTimeout = 180;
+                command.CommandTimeout = 60 * 5;
 
                 foreach (Tuple<string, string> parameter in parameters)
                 {
@@ -219,6 +255,32 @@ namespace NuGetGallery.Operations
 
             return blockBlob.Uri;
         }
+
+        private void WithRetry(Action action)
+        {
+            int attempts = 10;
+
+            while (attempts-- > 0)
+            {
+                try
+                {
+                    action();
+                    break;
+                }
+                catch (Exception e)
+                {
+                    if (attempts == 1)
+                    {
+                        throw e;
+                    }
+                    else
+                    {
+                        SqlConnection.ClearAllPools();
+                        Log.Info(string.Format("Retry attempts remaining {0}", attempts));
+                        Thread.Sleep(20 * 1000);
+                    }
+                }
+            }
+        }
     }
 }
-
