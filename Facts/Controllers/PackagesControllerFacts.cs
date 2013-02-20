@@ -1404,7 +1404,7 @@ namespace NuGetGallery
 
                 await controller.VerifyPackage(false);
 
-                fakeAutoCuratePackageCmd.Verify(fake => fake.Execute(fakePackage, fakeNuGetPackage.Object));
+                fakeAutoCuratePackageCmd.Verify(fake => fake.Execute(fakePackage, fakeNuGetPackage.Object, true));
             }
 
             [Fact]
