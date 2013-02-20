@@ -90,10 +90,8 @@ namespace NuGetGallery
             {
                 return Redirect(returnUrl);
             }
-            else
-            {
-                return Redirect(Url.Home());
-            }
+
+            return Redirect(Url.Home());
         }
     }
 }

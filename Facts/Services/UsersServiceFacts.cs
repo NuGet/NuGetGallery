@@ -8,20 +8,21 @@ namespace NuGetGallery
     public class UsersServiceFacts
     {
         private static UserService CreateUsersService(
-            GallerySetting settings = null,
+            Mock<IConfiguration> config = null,
             Mock<ICryptographyService> cryptoService = null,
             Mock<IEntityRepository<User>> userRepo = null,
             Action<Mock<UserService>> setup = null)
         {
-            if (settings == null)
+            if (config == null)
             {
-                settings = new GallerySetting { ConfirmEmailAddresses = true };
+                config = new Mock<IConfiguration>();
+                config.Setup(x => x.ConfirmEmailAddresses).Returns(true);
             }
             cryptoService = cryptoService ?? new Mock<ICryptographyService>();
             userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
 
             var userService = new Mock<UserService>(
-                settings,
+                config.Object,
                 cryptoService.Object,
                 userRepo.Object);
 
@@ -268,9 +269,10 @@ namespace NuGetGallery
                     .Setup(x => x.GenerateSaltedHash(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns("theHashedPassword");
                 var userRepo = new Mock<IEntityRepository<User>>();
-                var settings = new GallerySetting { ConfirmEmailAddresses = false };
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.ConfirmEmailAddresses).Returns(false);
                 var userService = CreateUsersService(
-                    settings: settings,
+                    config: config,
                     cryptoService: cryptoService,
                     userRepo: userRepo);
 
@@ -323,10 +325,11 @@ namespace NuGetGallery
             [Fact]
             public void SetsTheUserToConfirmedWhenEmailConfirmationIsNotEnabled()
             {
-                var settings = new GallerySetting { ConfirmEmailAddresses = false };
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.ConfirmEmailAddresses).Returns(false);
                 var crypto = new Mock<ICryptographyService>();
                 crypto.Setup(c => c.GenerateToken()).Returns("secret!");
-                var userService = CreateUsersService(settings: settings, cryptoService: crypto);
+                var userService = CreateUsersService(config: config, cryptoService: crypto);
 
                 var user = userService.Create(
                     "theUsername",

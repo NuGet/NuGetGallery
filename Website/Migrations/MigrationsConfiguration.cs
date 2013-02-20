@@ -6,9 +6,6 @@ namespace NuGetGallery.Migrations
 {
     public class MigrationsConfiguration : DbMigrationsConfiguration<EntitiesContext>
     {
-        private const string GalleryOwnerEmail = "nugetgallery@outercurve.org";
-        private const string GalleryOwnerName = "NuGet Gallery";
-
         public MigrationsConfiguration()
         {
             AutomaticMigrationsEnabled = false;
@@ -21,35 +18,6 @@ namespace NuGetGallery.Migrations
             {
                 roles.Add(new Role { Name = Constants.AdminRoleName });
                 context.SaveChanges();
-            }
-
-            var gallerySettings = context.Set<GallerySetting>();
-            if (!gallerySettings.Any())
-            {
-                gallerySettings.Add(
-                    new GallerySetting
-                        {
-                            SmtpHost = null,
-                            SmtpPort = null,
-                            GalleryOwnerEmail = GalleryOwnerEmail,
-                            GalleryOwnerName = GalleryOwnerName,
-                            ConfirmEmailAddresses = true
-                        });
-                context.SaveChanges();
-            }
-            else
-            {
-                var gallerySetting = gallerySettings.First();
-                if (String.IsNullOrEmpty(gallerySetting.GalleryOwnerEmail))
-                {
-                    gallerySetting.GalleryOwnerEmail = GalleryOwnerEmail;
-                    context.SaveChanges();
-                }
-                if (String.IsNullOrEmpty(gallerySetting.GalleryOwnerName))
-                {
-                    gallerySetting.GalleryOwnerName = GalleryOwnerName;
-                    context.SaveChanges();
-                }
             }
         }
     }
