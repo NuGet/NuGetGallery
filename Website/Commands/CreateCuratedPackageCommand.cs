@@ -21,35 +21,6 @@ namespace NuGetGallery
         }
 
         public CuratedPackage Execute(
-            int curatedFeedKey,
-            int packageRegistrationKey,
-            bool included = true,
-            bool automaticallyCurated = false,
-            string notes = null,
-            bool commitChanges = true)
-        {
-            var curatedFeed = GetService<ICuratedFeedByKeyQuery>().Execute(curatedFeedKey, includePackages: false);
-            if (curatedFeed == null)
-            {
-                throw new InvalidOperationException("The curated feed does not exist.");
-            }
-
-            var packageRegistration = GetService<IPackageRegistrationByKeyQuery>().Execute(packageRegistrationKey, includeOwners: false);
-            if (packageRegistration == null)
-            {
-                throw new InvalidOperationException("The package ID to curate does not exist.");
-            }
-
-            return Execute(
-                curatedFeedKey,
-                packageRegistrationKey,
-                included,
-                automaticallyCurated,
-                notes,
-                commitChanges);
-        }
-
-        public CuratedPackage Execute(
             CuratedFeed curatedFeed, 
             PackageRegistration packageRegistration, 
             bool included = false, 
@@ -57,6 +28,16 @@ namespace NuGetGallery
             string notes = null,
             bool commitChanges = true)
         {
+            if (curatedFeed == null)
+            {
+                throw new ArgumentNullException("curatedFeed");
+            }
+
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException("packageRegistration");
+            }
+
             var curatedPackage = new CuratedPackage
             {
                 PackageRegistrationKey = packageRegistration.Key,
