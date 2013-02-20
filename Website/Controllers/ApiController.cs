@@ -35,18 +35,20 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> GetPackage(string id, string version)
         {
-            // validate user input: explicitly calling the same validators used when we do new Package Registrations
-            if (id == null || !PackageIdValidator.IsValidPackageId(id))
+            // some security paranoia about URL hacking somehow creating e.g. open redirects
+            // validate user input: explicit calls to the same validators used during Package Registrations
+            // Ideally shouldn't be necessary?
+            if (!PackageIdValidator.IsValidPackageId(id ?? ""))
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Invalid package id");
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
 
-            if (!string.IsNullOrEmpty(version))
+            if (!String.IsNullOrEmpty(version))
             {
                 SemanticVersion dummy;
                 if (!SemanticVersion.TryParse(version, out dummy))
                 {
-                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest, "Invalid package version");
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
                 }
             }
 
@@ -72,7 +74,17 @@ namespace NuGetGallery
                 }
                 catch (ReadOnlyModeException)
                 {
-                    // *gulp* Swallowed. It's OK not to log statistics in read only mode.
+                    // *gulp* Swallowed. It's OK not to add statistics and ok to not log errors in read only mode.
+                }
+                catch (SqlException e)
+                {
+                    // Log the error and continue
+                    QuietlyLogException(e);
+                }
+                catch (DataException e)
+                {
+                    // Log the error and continue
+                    QuietlyLogException(e);
                 }
 
                 if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
@@ -90,6 +102,8 @@ namespace NuGetGallery
             {
                 QuietlyLogException(e);
             }
+
+            // Fall back to constructing the URL based on the package version and ID.
 
             return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, id, version);
         }

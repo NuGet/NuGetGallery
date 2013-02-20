@@ -378,8 +378,8 @@ namespace NuGetGallery
             {
                 var controller = CreateController();
                 var result = await controller.GetPackage("../..", "1.0.0.0");
-                var badRequestResult = (HttpStatusCodeResult)result;
-                Assert.Equal(badRequestResult.StatusCode, 400);
+                var badRequestResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(400, badRequestResult.StatusCode);
             }
 
             [Fact]
@@ -387,8 +387,8 @@ namespace NuGetGallery
             {
                 var controller = CreateController();
                 var result2 = await controller.GetPackage("Foo", "10../..1.0");
-                var badRequestResult2 = (HttpStatusCodeResult)result2;
-                Assert.Equal(badRequestResult2.StatusCode, 400);
+                var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
+                Assert.Equal(400, badRequestResult2.StatusCode);
             }
 
             [Fact]
