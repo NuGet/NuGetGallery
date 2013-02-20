@@ -15,20 +15,15 @@ namespace NuGetGallery.Infrastructure
     /// </summary>
     public class AzureEntityList<T> : IEnumerable<T> where T : ITableEntity, new()
     {
-        private static readonly string INDEX_PARTITION_KEY = "INDEX";
-        private static readonly string INDEX_ROW_KEY = "0";
+        private const string IndexPartitionKey = "INDEX";
+        private const string IndexRowKey = "0";
 
-        string _connStr;
-        string _tableName;
-        CloudTableClient _tableClient;
-        CloudTable _tableRef;
+        private CloudTable _tableRef;
 
         public AzureEntityList(string connStr, string tableName)
         {
-            _connStr = connStr;
-            _tableName = tableName;
-            _tableClient = CloudStorageAccount.Parse(_connStr).CreateCloudTableClient();
-            _tableRef = _tableClient.GetTableReference(_tableName);
+            var tableClient = CloudStorageAccount.Parse(connStr).CreateCloudTableClient();
+            _tableRef = tableClient.GetTableReference(tableName);
 
             // Create the actual Azure Table, if it doesn't yet exist.
             bool newTable = _tableRef.CreateIfNotExists();
@@ -38,7 +33,7 @@ namespace NuGetGallery.Infrastructure
             if (!newTable)
             {
                 var indexResult = _tableRef.Execute(
-                    TableOperation.Retrieve<Index>(INDEX_PARTITION_KEY, INDEX_ROW_KEY));
+                    TableOperation.Retrieve<Index>(IndexPartitionKey, IndexRowKey));
 
                 needsIndex = (indexResult.HttpStatusCode == 404);
             }
@@ -50,8 +45,8 @@ namespace NuGetGallery.Infrastructure
                     TableOperation.Insert(new Index
                     {
                         Count = 0,
-                        PartitionKey = INDEX_PARTITION_KEY,
-                        RowKey = INDEX_ROW_KEY,
+                        PartitionKey = IndexPartitionKey,
+                        RowKey = IndexRowKey,
                     }));
 
                 ThrowIfErrorStatus(result);
@@ -126,42 +121,25 @@ namespace NuGetGallery.Infrastructure
                 value.PartitionKey = FormatPartitionKey(page);
                 value.RowKey = FormatRowKey(row);
 
-                // Retrieve ETAG to allow a conditional update
-                while (true)
-                {
-                    var retrievalResult = _tableRef.Execute(
-                        TableOperation.Retrieve(value.PartitionKey, value.RowKey));
-                    ThrowIfErrorStatus(retrievalResult);
-
-                    value.ETag = retrievalResult.Etag;
-                    var storeResult = _tableRef.Execute(TableOperation.Replace(value));
-                    if (storeResult.HttpStatusCode == 412)
-                    {
-                        continue; // retry - ETAG was invalidated.
-                    }
-                    else
-                    {
-                        ThrowIfErrorStatus(storeResult);
-                        break;
-                    }
-                }
+                // Just do an unconditional update - if you wanted any *real* benefit of atomic update then you would need a more complex method signature that calls you back when optimistic updates fail ETAG checks!
+                _tableRef.Execute(TableOperation.Replace(value));
             }
         }
 
         public long Add(T entity)
         {
-            // 1) Conditional set the entry at the current count (condition: if it doesn't already exist)
+            // 1) Conditionally insert the entry at the current count (condition: if it doesn't already exist)
             // 2) Increment the list count
-            long pos;
-            do
+            long pos = -1; // To avoid compiler warnings, grr - should never be returned
+            InsertIfNotExistsWithRetry(() =>
             {
                 pos = LongCount; // retrieve fresh count each retry
                 long page = pos / 1000;
                 long row = pos % 1000;
                 entity.PartitionKey = FormatPartitionKey(page);
                 entity.RowKey = FormatRowKey(row);
-            }
-            while (!InsertIfNotExists(entity));
+                return entity;
+            });
 
             // We got an entry in place - now all we need to do is update the count!
             long oldCount = AtomicIncrementCount();
@@ -239,80 +217,78 @@ namespace NuGetGallery.Infrastructure
             yield break;
         }
 
-        /// <summary>
-        /// FEEL THE LOVE.
-        /// </summary>
-        private bool InsertIfNotExists<T2>(T2 entity) where T2 : ITableEntity
-        {
-            // 1) Create a dummy entry to ensure an ETAG exists for the given table partition+row key
-            // - the dummy MERGES with existing data instead of overwriting it, so no data loss.
-            // 2) Use its ETAG to conditionally replace the item
-            // 3) return true if success, false to allow retry on failure
-            var dummyResult = _tableRef.Execute(
-                TableOperation.InsertOrMerge(new HazardEntry
-                {
-                    PlaceHeld = 1,
-                    PartitionKey = entity.PartitionKey,
-                    RowKey = entity.RowKey,
-                }));
-
-            if (!IsSuccess(dummyResult.HttpStatusCode))
-            {
-                throw new HttpException(dummyResult.HttpStatusCode, "wrong status code");
-            }
-
-            entity.ETag = dummyResult.Etag;
-            var storeResult = _tableRef.Execute(
-                TableOperation.Replace(entity));
-
-            if (storeResult.HttpStatusCode == 412)
-            {
-                return false; // This entry already exists!
-            }
-
-            ThrowIfErrorStatus(storeResult);
-            return true; // We created it!
-        }
-
         private long AtomicIncrementCount()
         {
             // 1) retrieve count
             // 2) use ETAG to do a conditional +1 update
             // 3) retry if that optimistic concurrency attempt failed
-            while (true)
+            long pos = -1; // To avoid compiler warnings, grr - should never be returned
+            DoReplaceWithRetry(() =>
             {
                 var result1 = _tableRef.Execute(
-                    TableOperation.Retrieve<Index>(INDEX_PARTITION_KEY, INDEX_ROW_KEY));
+                    TableOperation.Retrieve<Index>(IndexPartitionKey, IndexRowKey));
 
                 ThrowIfErrorStatus(result1);
+                pos = ((Index) result1.Result).Count;
+                return new Index
+                {
+                    ETag = result1.Etag,
+                    Count = pos + 1,
+                    PartitionKey = IndexPartitionKey,
+                    RowKey = IndexRowKey,
+                };
+            });
 
-                var pos = ((Index)result1.Result).Count;
+            return pos; // value before successful increment
+        }
 
-                // Try to batch update Count and Insert the new item. Either both succeed or both fails.
-                var result2 = _tableRef.Execute(
-                    TableOperation.Replace(new Index
+        /// <summary>
+        /// FEEL THE LOVE.
+        /// </summary>
+        private void InsertIfNotExistsWithRetry<T2>(Func<T2> valueGenerator) where T2 : ITableEntity
+        {
+            TableResult storeResult;
+            do
+            {
+                var entity = valueGenerator();
+
+                // 1) Create a dummy entry to ensure an ETAG exists for the given table partition+row key
+                // - the dummy MERGES with existing data instead of overwriting it, so no data loss.
+                // 2) Use its ETAG to conditionally replace the item
+                // 3) return true if success, false to allow retry on failure
+                var dummyResult = _tableRef.Execute(
+                    TableOperation.InsertOrMerge(new HazardEntry
                     {
-                        ETag = result1.Etag,
-                        Count = pos + 1,
-                        PartitionKey = INDEX_PARTITION_KEY,
-                        RowKey = INDEX_ROW_KEY,
+                        PartitionKey = entity.PartitionKey,
+                        RowKey = entity.RowKey,
                     }));
 
-                if (result2.HttpStatusCode == 412)
+                if (!IsSuccess(dummyResult.HttpStatusCode))
                 {
-                    continue;
+                    throw new HttpException(dummyResult.HttpStatusCode, "wrong status code");
                 }
-                else
-                {
-                    ThrowIfErrorStatus(result2);
-                    return pos; // value before successful increment
-                }
+
+                entity.ETag = dummyResult.Etag;
+                storeResult = _tableRef.Execute(TableOperation.Replace(entity));
             }
+            while (storeResult.HttpStatusCode == 412);
+            ThrowIfErrorStatus(storeResult);
+        }
+
+        private void DoReplaceWithRetry<T2>(Func<T2> valueGenerator) where T2 : ITableEntity
+        {
+            TableResult storeResult;
+            do
+            {
+                storeResult = _tableRef.Execute(TableOperation.Replace(valueGenerator.Invoke()));
+            }
+            while (storeResult.HttpStatusCode == 412);
+            ThrowIfErrorStatus(storeResult);
         }
 
         private Index ReadIndex()
         {
-            var response = _tableRef.Execute(TableOperation.Retrieve<Index>(INDEX_PARTITION_KEY, INDEX_ROW_KEY));
+            var response = _tableRef.Execute(TableOperation.Retrieve<Index>(IndexPartitionKey, IndexRowKey));
             return (Index)response.Result;
         }
 
@@ -347,7 +323,7 @@ namespace NuGetGallery.Infrastructure
 
         class HazardEntry : ITableEntity
         {
-            public int PlaceHeld { get; set; }
+            private const string PlaceHolderPropertyName = "Place_Held";
 
             public string ETag { get; set; }
             public string PartitionKey { get; set; }
@@ -356,20 +332,22 @@ namespace NuGetGallery.Infrastructure
 
             void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, Microsoft.WindowsAzure.Storage.OperationContext operationContext)
             {
-                this.PlaceHeld = properties["Place_Held!"].Int32Value;
+                // We don't really need to implement this. This entity is write-only.
             }
 
             IDictionary<string, EntityProperty> ITableEntity.WriteEntity(OperationContext operationContext)
             {
                 return new Dictionary<string, EntityProperty>
                 {
-                    { "Place_Held", EntityProperty.GeneratePropertyForInt(this.PlaceHeld) }
+                    { PlaceHolderPropertyName, EntityProperty.GeneratePropertyForInt(1) }
                 };
             }
         }
 
         class Index : ITableEntity
         {
+            private const string CountPropertyName = "Count";
+
             public long Count { get; set; }
 
             public string ETag { get; set; }
@@ -382,14 +360,14 @@ namespace NuGetGallery.Infrastructure
 
             void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, Microsoft.WindowsAzure.Storage.OperationContext operationContext)
             {
-                this.Count = properties["Count"].Int64Value;
+                this.Count = properties[CountPropertyName].Int64Value;
             }
 
             IDictionary<string, EntityProperty> ITableEntity.WriteEntity(OperationContext operationContext)
             {
                 return new Dictionary<string, EntityProperty>
                 {
-                    { "Count", EntityProperty.GeneratePropertyForLong(this.Count) }
+                    { CountPropertyName, EntityProperty.GeneratePropertyForLong(this.Count) }
                 };
             }
         }
