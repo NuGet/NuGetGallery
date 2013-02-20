@@ -298,6 +298,7 @@
     <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
+    <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
