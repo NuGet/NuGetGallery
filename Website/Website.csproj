@@ -456,6 +456,10 @@
     <Compile Include="Migrations\201301180132053_RemoveWorkItems.Designer.cs">
       <DependentUpon>201301180132053_RemoveWorkItems.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.cs" />
+    <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.Designer.cs">
+      <DependentUpon>201302072118537_MovingGallerySettingsToConfiguration.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
