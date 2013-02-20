@@ -10,6 +10,7 @@
         string GalleryOwnerName { get; }
         string GalleryOwnerEmail { get; }
         bool ConfirmEmailAddresses { get; }
+        string EnvironmentName { get; }
 
         string AzureDiagnosticsConnectionString { get; }
         string AzureStorageConnectionString { get; }
