@@ -38,6 +38,10 @@
       <!-- Make sure these are unique, secret and remain constant for a particular instance of the gallery! Otherwise cookies will break -->
       <Setting name="Gallery.ValidationKey" value="" />
       <Setting name="Gallery.DecryptionKey" value="" />
+
+      <!-- Provide RECAPTCHA keys for your own domain. https://www.google.com/recaptcha/admin/create -->
+      <Setting name="reCAPTCHA.PrivateKey" value="" />
+      <Setting name="reCAPTCHA.PublicKey" value="" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="" thumbprintAlgorithm="sha1" />
