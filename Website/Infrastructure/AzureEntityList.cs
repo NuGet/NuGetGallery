@@ -153,13 +153,13 @@ namespace NuGetGallery.Infrastructure
         /// </summary>
         public IEnumerator<T> GetEnumerator()
         {
-            for (long page = 0; true; page++)
+            for (long page = 0;; page++)
             {
                 string partitionKey = FormatPartitionKey(page);
                 var chunkQuery = new TableQuery<T>().Where(
                     TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey));
 
-                var chunk = _tableRef.ExecuteQuery<T>(chunkQuery).ToArray();
+                var chunk = _tableRef.ExecuteQuery(chunkQuery).ToArray();
 
                 foreach (var item in chunk)
                 {
@@ -171,8 +171,6 @@ namespace NuGetGallery.Infrastructure
                     break;
                 }
             }
-
-            yield break;
         }
 
         public IEnumerable<T> GetRange(long pos, int n)
@@ -195,7 +193,7 @@ namespace NuGetGallery.Infrastructure
                         TableOperators.And,
                         TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.GreaterThanOrEqual, rowKey)));
 
-                var chunk = _tableRef.ExecuteQuery<T>(chunkQuery).ToArray();
+                var chunk = _tableRef.ExecuteQuery(chunkQuery).ToArray();
                 if (chunk.Length == 0)
                 {
                     break; // Reached the end of the list
@@ -213,8 +211,6 @@ namespace NuGetGallery.Infrastructure
                 page += 1;
                 offset = 0;
             }
-
-            yield break;
         }
 
         private long AtomicIncrementCount()
@@ -330,7 +326,7 @@ namespace NuGetGallery.Infrastructure
             public string RowKey{ get; set; }
             public DateTimeOffset Timestamp { get; set; }
 
-            void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, Microsoft.WindowsAzure.Storage.OperationContext operationContext)
+            void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
             {
                 // We don't really need to implement this. This entity is write-only.
             }
@@ -358,16 +354,16 @@ namespace NuGetGallery.Infrastructure
 
             public DateTimeOffset Timestamp { get; set; }
 
-            void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, Microsoft.WindowsAzure.Storage.OperationContext operationContext)
+            void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
             {
-                this.Count = properties[CountPropertyName].Int64Value;
+                Count = properties[CountPropertyName].Int64Value;
             }
 
             IDictionary<string, EntityProperty> ITableEntity.WriteEntity(OperationContext operationContext)
             {
                 return new Dictionary<string, EntityProperty>
                 {
-                    { CountPropertyName, EntityProperty.GeneratePropertyForLong(this.Count) }
+                    { CountPropertyName, EntityProperty.GeneratePropertyForLong(Count) }
                 };
             }
         }
