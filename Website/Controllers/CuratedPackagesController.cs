@@ -133,8 +133,8 @@ namespace NuGetGallery
             }
 
             GetService<ICreateCuratedPackageCommand>().Execute(
-                curatedFeed.Key,
-                packageRegistration.Key,
+                curatedFeed,
+                packageRegistration,
                 notes: request.Notes);
 
             return RedirectToRoute(RouteName.CuratedFeed, new { name = curatedFeed.Name });

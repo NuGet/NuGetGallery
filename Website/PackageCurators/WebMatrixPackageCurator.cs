@@ -8,7 +8,8 @@ namespace NuGetGallery
     {
         public override void Curate(
             Package galleryPackage,
-            IPackage nugetPackage)
+            IPackage nugetPackage,
+            bool commitChanges)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute("webmatrix", includePackages: true);
             if (curatedFeed == null)
@@ -40,9 +41,10 @@ namespace NuGetGallery
             if (shouldBeIncluded && DependenciesAreCurated(galleryPackage, curatedFeed))
             {
                 GetService<ICreateCuratedPackageCommand>().Execute(
-                    curatedFeed.Key,
-                    galleryPackage.PackageRegistration.Key,
-                    automaticallyCurated: true);
+                    curatedFeed,
+                    galleryPackage.PackageRegistration,
+                    automaticallyCurated: true,
+                    commitChanges: commitChanges);
             }
         }
     }

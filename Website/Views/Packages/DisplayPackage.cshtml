@@ -82,6 +82,10 @@
                 <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
                 <li><a href="@Url.DeletePackage(Model)" class="delete">Delete Package</a></li>
             }
+            @if (StatisticsHelper.IsStatisticsPageAvailable)
+            {
+                <li><a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">Package Statistics</a></li>
+            }
         </ul>
     </nav>
 }

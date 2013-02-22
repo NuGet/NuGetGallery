@@ -61,7 +61,7 @@ namespace NuGetGallery
 
         [WebGet]
         public IQueryable<V2FeedPackage> GetUpdates(
-            string packageIds, string versions, bool includePrerelease, bool includeAllVersions, string targetFrameworks, string versionConstraints)
+            string packageIds, string versions, bool includePrerelease, bool includeAllVersions, string targetFrameworks)
         {
             if (String.IsNullOrEmpty(packageIds) || String.IsNullOrEmpty(versions))
             {
@@ -81,39 +81,25 @@ namespace NuGetGallery
             var targetFrameworkValues = String.IsNullOrEmpty(targetFrameworks)
                                             ? null
                                             : targetFrameworks.Split('|').Select(VersionUtility.ParseFrameworkName).ToList();
-            var versionConstraintValues = String.IsNullOrEmpty(versionConstraints)
-                                            ? new string[idValues.Length]
-                                            : versionConstraints.Split('|');
 
-            if (idValues.Length == 0 || idValues.Length != versionValues.Length || idValues.Length != versionConstraintValues.Length)
+            if ((idValues.Length == 0) || (idValues.Length != versionValues.Length))
             {
                 // Exit early if the request looks invalid
                 return Enumerable.Empty<V2FeedPackage>().AsQueryable();
             }
 
-            var versionLookup = new Dictionary<string, Tuple<SemanticVersion, IVersionSpec>>(idValues.Length, StringComparer.OrdinalIgnoreCase);
+            var versionLookup = new Dictionary<string, SemanticVersion>(idValues.Length, StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < idValues.Length; i++)
             {
                 var id = idValues[i];
+                SemanticVersion version;
+                SemanticVersion currentVersion;
 
-                if (versionLookup.ContainsKey(id))
+                if (SemanticVersion.TryParse(versionValues[i], out currentVersion) &&
+                    (!versionLookup.TryGetValue(id, out version) || (currentVersion > version)))
                 {
-                    // Exit early if the request contains duplicate ids
-                    return Enumerable.Empty<V2FeedPackage>().AsQueryable();
-                }
-
-                SemanticVersion currentVersion = null;
-                if (SemanticVersion.TryParse(versionValues[i], out currentVersion))
-                {
-                    IVersionSpec versionConstraint = null;
-                    if (versionConstraintValues[i] != null)
-                    {
-                        if (!VersionUtility.TryParseVersionSpec(versionConstraintValues[i], out versionConstraint))
-                        {
-                            versionConstraint = null;
-                        }
-                    }
-                    versionLookup.Add(id, Tuple.Create(currentVersion, versionConstraint));
+                    // If we've never added the package to lookup or we encounter the same id but with a higher version, then choose the higher version.
+                    versionLookup[id] = currentVersion;
                 }
             }
 
@@ -128,7 +114,7 @@ namespace NuGetGallery
 
         private static IEnumerable<Package> GetUpdates(
             IEnumerable<Package> packages,
-            Dictionary<string, Tuple<SemanticVersion, IVersionSpec>> versionLookup,
+            Dictionary<string, SemanticVersion> versionLookup,
             IEnumerable<FrameworkName> targetFrameworkValues,
             bool includeAllVersions)
         {
@@ -140,19 +126,14 @@ namespace NuGetGallery
                             // TODO: We could optimize for the includeAllVersions case here by short circuiting the operation once we've encountered the highest version
                             // for a given Id
                             var version = SemanticVersion.Parse(p.Version);
-                            Tuple<SemanticVersion, IVersionSpec> versionTuple;
-                            
-                            if (versionLookup.TryGetValue(p.PackageRegistration.Id, out versionTuple))
+                            SemanticVersion clientVersion;
+                            if (versionLookup.TryGetValue(p.PackageRegistration.Id, out clientVersion))
                             {
-                                SemanticVersion clientVersion = versionTuple.Item1;
                                 var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
 
-                                IVersionSpec versionConstraint = versionTuple.Item2;
-
                                 return (version > clientVersion) &&
-                                       (targetFrameworkValues == null || 
-                                        targetFrameworkValues.Any(s => VersionUtility.IsCompatible(s, supportedPackageFrameworks))) &&
-                                        (versionConstraint == null || versionConstraint.Satisfies(version));
+                                       (targetFrameworkValues == null ||
+                                        targetFrameworkValues.Any(s => VersionUtility.IsCompatible(s, supportedPackageFrameworks)));
                             }
                             return false;
                         });
