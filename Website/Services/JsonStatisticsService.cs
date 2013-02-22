@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json.Linq;
 
 namespace NuGetGallery
@@ -89,100 +90,123 @@ namespace NuGetGallery
 
         public async Task<bool> LoadDownloadPackages()
         {
-            string json = await _reportService.Load(Reports.RecentPopularity.ToString() + ".json");
+            try
+            {
+                string json = await _reportService.Load(Reports.RecentPopularity.ToString() + ".json");
 
-            if (json == null)
+                if (json == null)
+                {
+                    return false;
+                }
+
+                JArray array = JArray.Parse(json);
+
+                ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Clear();
+
+                foreach (JObject item in array)
+                {
+                    ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Add(new StatisticsPackagesItemViewModel
+                    {
+                        PackageId = item["PackageId"].ToString(),
+                        Downloads = item["Downloads"].Value<int>()
+                    });
+                }
+
+                int count = ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Count;
+
+                ((List<StatisticsPackagesItemViewModel>)DownloadPackagesSummary).Clear();
+
+                for (int i = 0; i < Math.Min(10, count); i++)
+                {
+                    ((List<StatisticsPackagesItemViewModel>)DownloadPackagesSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll)[i]);
+                }
+
+                return true;
+            }
+            catch (StorageException)
             {
                 return false;
             }
-
-            JArray array = JArray.Parse(json);
-
-            ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Clear();
-
-            foreach (JObject item in array)
-            {
-                ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Add(new StatisticsPackagesItemViewModel
-                {
-                    PackageId = item["PackageId"].ToString(),
-                    Downloads = item["Downloads"].Value<int>()
-                });
-            }
-
-            int count = ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Count;
-
-            ((List<StatisticsPackagesItemViewModel>)DownloadPackagesSummary).Clear();
-
-            for (int i = 0; i < Math.Min(10, count); i++)
-            {
-                ((List<StatisticsPackagesItemViewModel>)DownloadPackagesSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll)[i]);
-            }
-
-            return true;
         }
 
         public async Task<bool> LoadDownloadPackageVersions()
         {
-            string json = await _reportService.Load(Reports.RecentPopularityDetail.ToString() + ".json");
+            try
+            {
+                string json = await _reportService.Load(Reports.RecentPopularityDetail.ToString() + ".json");
 
-            if (json == null)
+                if (json == null)
+                {
+                    return false;
+                }
+
+                JArray array = JArray.Parse(json);
+
+                ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Clear();
+
+                foreach (JObject item in array)
+                {
+                    ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Add(new StatisticsPackagesItemViewModel
+                    {
+                        PackageId = item["PackageId"].ToString(),
+                        PackageVersion = item["PackageVersion"].ToString(),
+                        Downloads = item["Downloads"].Value<int>()
+                    });
+                }
+
+                int count = ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Count;
+
+                ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Clear();
+
+                for (int i = 0; i < Math.Min(10, count); i++)
+                {
+                    ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll)[i]);
+                }
+
+                return true;
+            }
+            catch (StorageException)
             {
                 return false;
             }
-
-            JArray array = JArray.Parse(json);
-
-            ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Clear();
-
-            foreach (JObject item in array)
-            {
-                ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Add(new StatisticsPackagesItemViewModel
-                {
-                    PackageId = item["PackageId"].ToString(),
-                    PackageVersion = item["PackageVersion"].ToString(),
-                    Downloads = item["Downloads"].Value<int>()
-                });
-            }
-
-            int count = ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Count;
-
-            ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Clear();
-
-            for (int i = 0; i < Math.Min(10, count); i++)
-            {
-                ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll)[i]);
-            }
-
-            return true;
         }
 
-        public async Task LoadPackageDownloadsByVersion(string id)
+        public async Task<bool> LoadPackageDownloadsByVersion(string id)
         {
-            if (string.IsNullOrEmpty(id))
+            try
             {
-                return;
-            }
-
-            string reportName = string.Format(CultureInfo.CurrentCulture, "{0}{1}.json", Reports.RecentPopularity_, id);
-
-            string json = await _reportService.Load(reportName);
-
-            if (json == null)
-            {
-                return;
-            }
-
-            JArray array = JArray.Parse(json);
-
-            ((List<StatisticsPackagesItemViewModel>)PackageDownloadsByVersion).Clear();
-
-            foreach (JObject item in array)
-            {
-                ((List<StatisticsPackagesItemViewModel>)PackageDownloadsByVersion).Add(new StatisticsPackagesItemViewModel
+                if (string.IsNullOrEmpty(id))
                 {
-                    PackageVersion = item["PackageVersion"].ToString(),
-                    Downloads = item["Downloads"].Value<int>()
-                });
+                    return false;
+                }
+
+                string reportName = string.Format(CultureInfo.CurrentCulture, "{0}{1}.json", Reports.RecentPopularity_, id);
+
+                string json = await _reportService.Load(reportName);
+
+                if (json == null)
+                {
+                    return false;
+                }
+
+                JArray array = JArray.Parse(json);
+
+                ((List<StatisticsPackagesItemViewModel>)PackageDownloadsByVersion).Clear();
+
+                foreach (JObject item in array)
+                {
+                    ((List<StatisticsPackagesItemViewModel>)PackageDownloadsByVersion).Add(new StatisticsPackagesItemViewModel
+                    {
+                        PackageVersion = item["PackageVersion"].ToString(),
+                        Downloads = item["Downloads"].Value<int>()
+                    });
+                }
+
+                return true;
+            }
+            catch (StorageException)
+            {
+                return false;
             }
         }
     }

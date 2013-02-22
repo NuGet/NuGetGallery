@@ -158,8 +158,9 @@ namespace NuGetGallery
             string[] parts = s.SplitSafe(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
             return new PackageDependency
             {
-                Id = parts[0],
-                VersionSpec = parts.Length <= 1 ? null : parts[1],
+                Id = parts.Length > 0 ? parts[0] : null,
+                VersionSpec = parts.Length > 1 ? parts[1] : null,
+                TargetFramework = parts.Length > 2 ? parts[2] : null,
             };
         }
 

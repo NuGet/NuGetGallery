@@ -13,15 +13,22 @@ namespace NuGetGallery
 
         // Factory method for DI/IOC that creates the directory the index is stored in.
         // Used by real website. Bypassed for unit tests.
+        private static SimpleFSDirectory _directorySingleton;
+
         internal static Lucene.Net.Store.Directory GetDirectory()
         {
-            if (!System.IO.Directory.Exists(IndexDirectory))
+            if (_directorySingleton == null)
             {
-                System.IO.Directory.CreateDirectory(IndexDirectory);
+                if (!System.IO.Directory.Exists(IndexDirectory))
+                {
+                    System.IO.Directory.CreateDirectory(IndexDirectory);
+                }
+
+                var directoryInfo = new DirectoryInfo(IndexDirectory);
+                _directorySingleton = new SimpleFSDirectory(directoryInfo);
             }
 
-            var directoryInfo = new DirectoryInfo(IndexDirectory);
-            return new SimpleFSDirectory(directoryInfo);
+            return _directorySingleton;
         }
     }
 }

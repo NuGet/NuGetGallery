@@ -51,15 +51,16 @@ namespace NuGetGallery.PackageCurators
                 var package = CreateStubGalleryPackage();
                 package.Tags = "winrt";
 
-                curator.Curate(package, null);
+                curator.Curate(package, null, commitChanges: true);
 
                 curator.StubCreatedCuratedPackageCmd.Verify(
                     stub => stub.Execute(
-                        It.IsAny<int>(),
-                        It.IsAny<int>(),
+                        It.IsAny<CuratedFeed>(),
+                        It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
                         It.IsAny<bool>(),
-                        It.IsAny<string>()),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()),
                     Times.Never());
             }
 
@@ -78,15 +79,16 @@ namespace NuGetGallery.PackageCurators
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.Tags = "aTag " + tag + " aThirdTag";
 
-                curator.Curate(stubGalleryPackage, null);
+                curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
                 curator.StubCreatedCuratedPackageCmd.Verify(
                     stub => stub.Execute(
-                        It.IsAny<int>(),
-                        It.IsAny<int>(),
+                        It.IsAny<CuratedFeed>(),
+                        It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
                         It.IsAny<bool>(),
-                        It.IsAny<string>()),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()),
                     Times.Once());
             }
 
@@ -97,15 +99,16 @@ namespace NuGetGallery.PackageCurators
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.Tags = "aTag notforwinrt aThirdTag";
 
-                curator.Curate(stubGalleryPackage, null);
+                curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
                 curator.StubCreatedCuratedPackageCmd.Verify(
                     stub => stub.Execute(
-                        It.IsAny<int>(),
-                        It.IsAny<int>(),
+                        It.IsAny<CuratedFeed>(),
+                        It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
                         It.IsAny<bool>(),
-                        It.IsAny<string>()),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()),
                     Times.Never());
             }
 
@@ -116,15 +119,16 @@ namespace NuGetGallery.PackageCurators
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.Tags = null;
 
-                curator.Curate(stubGalleryPackage, null);
+                curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
                 curator.StubCreatedCuratedPackageCmd.Verify(
                     stub => stub.Execute(
-                        It.IsAny<int>(),
-                        It.IsAny<int>(),
+                        It.IsAny<CuratedFeed>(),
+                        It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
                         It.IsAny<bool>(),
-                        It.IsAny<string>()),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()),
                     Times.Never());
             }
 
@@ -138,14 +142,15 @@ namespace NuGetGallery.PackageCurators
                 stubGalleryPackage.Tags = "win8";
                 stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "NotACuratedPackage" });
 
-                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object);
+                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
                 curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
-                    It.IsAny<int>(),
-                    It.IsAny<int>(),
+                    It.IsAny<CuratedFeed>(),
+                    It.IsAny<PackageRegistration>(),
                     It.IsAny<bool>(),
                     It.IsAny<bool>(),
-                    It.IsAny<string>()), Times.Never());
+                    It.IsAny<string>(),
+                    It.IsAny<bool>()), Times.Never());
             }
 
             [Fact]
@@ -158,14 +163,15 @@ namespace NuGetGallery.PackageCurators
                 stubGalleryPackage.Tags = "win8";
                 stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "ManuallyExcludedPackage" });
 
-                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object);
+                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
                 curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
-                    It.IsAny<int>(),
-                    It.IsAny<int>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<string>()), Times.Never());
+                        It.IsAny<CuratedFeed>(),
+                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()), Times.Never());
             }
 
             [Fact]
@@ -176,15 +182,16 @@ namespace NuGetGallery.PackageCurators
                 var package = CreateStubGalleryPackage();
                 package.Tags = "winrt";
 
-                curator.Curate(package, CreateStubNuGetPackage().Object);
+                curator.Curate(package, CreateStubNuGetPackage().Object, commitChanges: true);
 
                 curator.StubCreatedCuratedPackageCmd.Verify(
                     stub => stub.Execute(
-                        42,
-                        It.IsAny<int>(),
+                        curator.StubCuratedFeed,
+                        It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
                         It.IsAny<bool>(),
-                        It.IsAny<string>()));
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()));
             }
 
             [Fact]
@@ -195,15 +202,16 @@ namespace NuGetGallery.PackageCurators
                 stubGalleryPackage.PackageRegistration.Key = 42;
                 stubGalleryPackage.Tags = "winrt";
 
-                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object);
+                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
                 curator.StubCreatedCuratedPackageCmd.Verify(
                     stub => stub.Execute(
-                        It.IsAny<int>(),
-                        42,
+                        It.IsAny<CuratedFeed>(),
+                        stubGalleryPackage.PackageRegistration,
                         It.IsAny<bool>(),
                         It.IsAny<bool>(),
-                        It.IsAny<string>()));
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()));
             }
 
             [Fact]
@@ -213,15 +221,16 @@ namespace NuGetGallery.PackageCurators
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.Tags = "winrt";
 
-                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object);
+                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
                 curator.StubCreatedCuratedPackageCmd.Verify(
                     stub => stub.Execute(
-                        It.IsAny<int>(),
-                        It.IsAny<int>(),
+                        It.IsAny<CuratedFeed>(),
+                        It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
                         true,
-                        It.IsAny<string>()));
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()));
             }
 
             private static Package CreateStubGalleryPackage()

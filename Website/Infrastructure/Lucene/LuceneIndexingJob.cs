@@ -25,29 +25,17 @@ namespace NuGetGallery
             }
             catch (SqlException e)
             {
-                QuietlyLogException(e);
+                QuietLog.LogHandledException(e);
             }
             catch (DataException e)
             {
-                QuietlyLogException(e);
+                QuietLog.LogHandledException(e);
             }
         }
 
         public override Task Execute()
         {
             return new Task(_indexingService.UpdateIndex);
-        }
-
-        private static void QuietlyLogException(Exception e)
-        {
-            try
-            {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
-            }
-            catch
-            {
-                // logging failed, don't allow exception to escape
-            }
         }
     }
 }
