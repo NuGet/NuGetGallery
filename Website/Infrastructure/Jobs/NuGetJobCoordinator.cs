@@ -20,7 +20,7 @@ namespace NuGetGallery.Infrastructure.Jobs
             }
             catch (Exception e)
             {
-                QuietlyLogException(e);
+                QuietLog.LogHandledException(e);
                 return new Task(() => {}); // returning dummy task so the job scheduler doesn't see errors
             }
 
@@ -34,7 +34,7 @@ namespace NuGetGallery.Infrastructure.Jobs
                 else if (t.IsFaulted)
                 {
                     Debug.WriteLine("Background Task Faulted: " + job.GetType());
-                    QuietlyLogException(task.Exception);
+                    QuietLog.LogHandledException(task.Exception);
                 }
                 // else happiness
             }, TaskContinuationOptions.ExecuteSynchronously);
@@ -51,18 +51,6 @@ namespace NuGetGallery.Infrastructure.Jobs
             });
 
             return wrapper;
-        }
-
-        private static void QuietlyLogException(Exception e)
-        {
-            try
-            {
-                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
-            }
-            catch
-            {
-                // logging failed, don't allow exception to escape
-            }
         }
     }
 }
