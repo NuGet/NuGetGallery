@@ -1,5 +1,5 @@
 ﻿
-namespace NuGetGalleryBVTs
+namespace NuGetGallery.FunctionalTests
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +7,7 @@ namespace NuGetGalleryBVTs
     using Microsoft.VisualStudio.TestTools.WebTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
     using System.Web.UI;
-    using NugetClientSDKHelpers;
+    using NuGetGallery.FunctionTests.Helpers;
 
     /// <summary>
     /// Tries to login with a POST request with the credentials retrieved from the data source. Validates that the response has the logged in user name.

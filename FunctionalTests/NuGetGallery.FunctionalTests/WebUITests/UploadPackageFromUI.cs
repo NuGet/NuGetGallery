@@ -8,14 +8,14 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGetGalleryBVTs
+namespace NuGetGallery.FunctionalTests
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
     using Microsoft.VisualStudio.TestTools.WebTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NugetClientSDKHelpers;
+    using NuGetGallery.FunctionTests.Helpers;
 
     [DataSource("LogOn", "Microsoft.VisualStudio.TestTools.DataSource.CSV", "|DataDirectory|\\LogonCredentials.csv", Microsoft.VisualStudio.TestTools.WebTesting.DataBindingAccessMethod.Sequential, Microsoft.VisualStudio.TestTools.WebTesting.DataBindingSelectColumns.SelectOnlyBoundColumns, "LogonCredentials#csv")]
     [DataBinding("LogOn", "LogonCredentials#csv", "ï»¿UserNameOrEmail", "LogOn.LogonCredentials#csv.ï»¿UserNameOrEmail")]
@@ -58,7 +58,7 @@ namespace NuGetGalleryBVTs
 
             // The API key is part of the nuget.config file that is present under the solution dir.
             string packageId = DateTime.Now.Ticks.ToString();
-            string packageFullPath = NugetClientSDKHelpers.CmdLineHelper.CreatePackage(packageId);
+            string packageFullPath = CmdLineHelper.CreatePackage(packageId);
 
             
 

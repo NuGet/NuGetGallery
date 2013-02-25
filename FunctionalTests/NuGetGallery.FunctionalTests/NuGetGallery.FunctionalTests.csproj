@@ -9,8 +9,8 @@
     <ProjectGuid>{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGetGalleryBVTs</RootNamespace>
-    <AssemblyName>NuGetGalleryBVTs</AssemblyName>
+    <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
+    <AssemblyName>NuGetGallery.FunctionalTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -82,7 +82,12 @@
     <Compile Include="WebUITests\UploadPackageWithoutLoginTest.cs" />
     <Compile Include="WebUITests\ValidationRuleHelper.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionTests.Helpers.csproj">
+      <Project>{8fb56455-c688-44ae-95f1-48ffcb199bfe}</Project>
+      <Name>NuGetGallery.FunctionTests.Helpers</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -94,12 +99,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\TestHelpers\TestHelpers.csproj">
-      <Project>{8fb56455-c688-44ae-95f1-48ffcb199bfe}</Project>
-      <Name>TestHelpers</Name>
-    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

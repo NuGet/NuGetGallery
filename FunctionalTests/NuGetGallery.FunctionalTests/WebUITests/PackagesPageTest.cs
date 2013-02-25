@@ -1,12 +1,12 @@
 ﻿
-namespace NuGetGalleryBVTs
+namespace NuGetGallery.FunctionalTests
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
     using Microsoft.VisualStudio.TestTools.WebTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NugetClientSDKHelpers;
+    using NuGetGallery.FunctionTests.Helpers;
     using System.Web.UI;
 
     /// <summary>

@@ -6,7 +6,7 @@ using NuGet;
 using System.Globalization;
 using System.IO;
 
-namespace NugetClientSDKHelpers
+namespace NuGetGallery.FunctionTests.Helpers
 {
     /// <summary>
     /// Provides helper functions to query Gallery with Nuget.Core APIS.
@@ -151,7 +151,7 @@ namespace NugetClientSDKHelpers
         /// </summary>
         public static void ClearLocalPackageFolder(string packageId)
         {
-            string packageVersion = NugetClientSDKHelpers.ClientSDKHelper.GetLatestStableVersion(packageId);
+            string packageVersion = ClientSDKHelper.GetLatestStableVersion(packageId);
             string expectedDownloadedNupkgFileName = packageId + "." + packageVersion;
             if(Directory.Exists(Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName)))
                 Directory.Delete(expectedDownloadedNupkgFileName, true);
@@ -164,7 +164,7 @@ namespace NugetClientSDKHelpers
         /// <returns></returns>
         public static bool CheckIfPackageInstalled(string packageId)
         {
-            string packageVersion = NugetClientSDKHelpers.ClientSDKHelper.GetLatestStableVersion(packageId);
+            string packageVersion = ClientSDKHelper.GetLatestStableVersion(packageId);
             string expectedDownloadedNupkgFileName = packageId + "." + packageVersion;
             //check if the nupkg file exists on the expected path post install
             string expectedNupkgFilePath = Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName, expectedDownloadedNupkgFileName + ".nupkg");

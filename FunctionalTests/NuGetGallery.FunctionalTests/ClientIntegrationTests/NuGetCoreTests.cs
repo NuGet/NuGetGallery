@@ -1,10 +1,10 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NugetClientSDKHelpers;
+using NuGetGallery.FunctionTests.Helpers;
 using NuGet;
-using NuGetGalleryBVTs.TestBase;
+using NuGetGallery.FunctionalTests.TestBase;
 
-namespace NuGetGalleryBVTs
+namespace NuGetGallery.FunctionalTests
 {
     [TestClass]
     public class NuGetCoreTests : GalleryTestBase

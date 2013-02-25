@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.WebTesting;
 using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
 
-namespace NuGetGalleryBVTs
+namespace NuGetGallery.FunctionalTests
 {
     public class ValidationRuleHelper
     {

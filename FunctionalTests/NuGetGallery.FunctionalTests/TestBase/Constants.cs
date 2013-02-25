@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NugetClientSDKHelpers;
+using NuGetGallery.FunctionTests.Helpers;
 
-namespace NuGetGalleryBVTs
+namespace NuGetGallery.FunctionalTests
 {
     internal static class Constants
     {

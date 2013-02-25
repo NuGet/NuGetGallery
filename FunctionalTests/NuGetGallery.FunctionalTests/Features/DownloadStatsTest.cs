@@ -1,11 +1,11 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NugetClientSDKHelpers;
+using NuGetGallery.FunctionTests.Helpers;
 using System.IO;
-using NuGetGalleryBVTs.TestBase;
+using NuGetGallery.FunctionalTests.TestBase;
 
 
-namespace NuGetGalleryBVTs.Features
+namespace NuGetGallery.FunctionalTests.Features
 {
     [TestClass]
     public class DownloadStatsTest : GalleryTestBase
