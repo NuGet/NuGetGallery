@@ -1,8 +1,8 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NugetClientSDKHelpers;
+using NuGetGallery.FunctionTests.Helpers;
 
-namespace NuGetGalleryBVTs.Features
+namespace NuGetGallery.FunctionalTests.Features
 {
     [TestClass]
     public class CuratedFeedTest
@@ -13,8 +13,8 @@ namespace NuGetGalleryBVTs.Features
         public void AddPackageToWindows8CuratedFeed()
         {
             string packageId = DateTime.Now.Ticks.ToString();
-            string packageFullPath = NugetClientSDKHelpers.CmdLineHelper.CreateWindows8CuratedPackage(packageId);
-            int exitCode = NugetClientSDKHelpers.CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedRootUrl + "package/");
+            string packageFullPath = CmdLineHelper.CreateWindows8CuratedPackage(packageId);
+            int exitCode = CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedRootUrl + "package/");
             Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream");
             //check if the package is present in windows 8 feed.
             //TBD : Need to check the exact the url for curated feed.

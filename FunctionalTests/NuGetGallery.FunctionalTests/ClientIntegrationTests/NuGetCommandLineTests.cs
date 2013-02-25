@@ -1,10 +1,10 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NugetClientSDKHelpers;
+using NuGetGallery.FunctionTests.Helpers;
 using System.IO;
-using NuGetGalleryBVTs.TestBase;
+using NuGetGallery.FunctionalTests.TestBase;
 
-namespace NuGetGalleryBVTs.ClientIntegrationTests
+namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
 {
     /// <summary>
     /// Tries to download and upload package from the gallery using NuGet.exe client.

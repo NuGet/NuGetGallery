@@ -1,10 +1,10 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NugetClientSDKHelpers;
+using NuGetGallery.FunctionTests.Helpers;
 using NuGet;
 using System.IO;
 
-namespace NuGetGalleryBVTs.TestBase
+namespace NuGetGallery.FunctionalTests.TestBase
 {
     [TestClass]
     public class GalleryTestBase
@@ -33,8 +33,8 @@ namespace NuGetGalleryBVTs.TestBase
             {
                 packageId = DateTime.Now.Ticks.ToString();
             }
-            string packageFullPath = NugetClientSDKHelpers.CmdLineHelper.CreatePackage(packageId,version);
-            int exitCode = NugetClientSDKHelpers.CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
+            string packageFullPath = CmdLineHelper.CreatePackage(packageId,version);
+            int exitCode = CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
             Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream");
             Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl), "Package {0} is not found in the site {1} after uploading.", packageId, UrlHelper.V2FeedRootUrl);
             

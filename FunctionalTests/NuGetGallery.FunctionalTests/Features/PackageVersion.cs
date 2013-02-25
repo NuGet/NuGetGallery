@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NuGetGalleryBVTs.TestBase;
-using NugetClientSDKHelpers;
+using NuGetGallery.FunctionalTests.TestBase;
+using NuGetGallery.FunctionTests.Helpers;
 
-namespace NuGetGalleryBVTs.Features
+namespace NuGetGallery.FunctionalTests.Features
 {
     [TestClass]
     public class PackageVersion : GalleryTestBase

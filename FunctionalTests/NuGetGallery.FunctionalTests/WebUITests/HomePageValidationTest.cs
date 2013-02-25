@@ -1,11 +1,11 @@
-﻿namespace NuGetGalleryBVTs
+﻿namespace NuGetGallery.FunctionalTests
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
     using Microsoft.VisualStudio.TestTools.WebTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NugetClientSDKHelpers;
+    using NuGetGallery.FunctionTests.Helpers;
 
     /// <summary>
     /// Sends http request to gallery home page checks for the default home page text in the reponse.

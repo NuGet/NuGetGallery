@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGetGalleryBVTs
+namespace NuGetGallery.FunctionalTests
 {
     using System;
     using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace NuGetGalleryBVTs
     using Microsoft.VisualStudio.TestTools.WebTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
     using System.Web.UI;
-    using NugetClientSDKHelpers;
+    using NuGetGallery.FunctionTests.Helpers;
 
     /// <summary>
     /// Sends a http request to the statistics page and tries to validate the default stats page text and the prescene of top package.

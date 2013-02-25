@@ -8,14 +8,14 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGetGalleryBVTs
+namespace NuGetGallery.FunctionalTests
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
     using Microsoft.VisualStudio.TestTools.WebTesting;
     using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using NugetClientSDKHelpers;
+    using NuGetGallery.FunctionTests.Helpers;
 
     /// <summary>
     /// Sends http POST request to register a new user and checks that a pending confirmation page is shown as response.

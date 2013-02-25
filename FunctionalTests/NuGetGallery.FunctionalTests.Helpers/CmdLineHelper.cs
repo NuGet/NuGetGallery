@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.CodeDom.Compiler;
 using Microsoft.CSharp;
 
-namespace NugetClientSDKHelpers
+namespace NuGetGallery.FunctionTests.Helpers
 {
     /// <summary>
     /// Provides helpers functions around NuGet.exe

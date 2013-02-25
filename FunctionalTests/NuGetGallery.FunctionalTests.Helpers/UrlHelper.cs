@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Configuration;
 
-namespace NugetClientSDKHelpers
+namespace NuGetGallery.FunctionTests.Helpers
 {
     public class UrlHelper
     {     

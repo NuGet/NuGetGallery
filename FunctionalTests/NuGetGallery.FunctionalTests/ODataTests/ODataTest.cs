@@ -8,10 +8,10 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NugetClientSDKHelpers;
+using NuGetGallery.FunctionTests.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace NuGetGalleryBVTs.ODataFeedTests
+namespace NuGetGallery.FunctionalTests.ODataFeedTests
 {
     /// <summary>
     /// Checks if the basic operations against OData feed works fine.

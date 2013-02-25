@@ -1,15 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGalleryBVTs", "NuGetGalleryBVTs\NuGetGalleryBVTs.csproj", "{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1831F0B1-3D9B-4743-BE03-833F0CCB369C}"
 	ProjectSection(SolutionItems) = preProject
 		Local.testsettings = Local.testsettings
-		NuGetGalleryBVTs.vsmdi = NuGetGalleryBVTs.vsmdi
+		NuGetGallery.FunctionalTests.vsmdi = NuGetGallery.FunctionalTests.vsmdi
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHelpers", "TestHelpers\TestHelpers.csproj", "{8FB56455-C688-44AE-95F1-48FFCB199BFE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{938DE21D-78DF-4086-A729-3A20191606F9}"
 	ProjectSection(SolutionItems) = preProject
@@ -18,21 +14,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{938DE2
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTests", "NuGetGallery.FunctionalTests\NuGetGallery.FunctionalTests.csproj", "{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionTests.Helpers", "NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionTests.Helpers.csproj", "{8FB56455-C688-44AE-95F1-48FFCB199BFE}"
+EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = http://vstfdevdiv:8080/devdiv2
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = NuGetGalleryBVTs\\NuGetGalleryBVTs.csproj
-		SccProjectName1 = NuGetGalleryBVTs
-		SccLocalPath1 = NuGetGalleryBVTs
-		SccProjectUniqueName2 = TestHelpers\\TestHelpers.csproj
-		SccProjectName2 = TestHelpers
-		SccLocalPath2 = TestHelpers
-	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = NuGetGalleryBVTs.vsmdi
+		CategoryFile = NuGetGallery.FunctionalTests.vsmdi
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

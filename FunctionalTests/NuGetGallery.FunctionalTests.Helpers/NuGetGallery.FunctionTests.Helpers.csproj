@@ -7,8 +7,8 @@
     <ProjectGuid>{8FB56455-C688-44AE-95F1-48FFCB199BFE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>TestHelpers</RootNamespace>
-    <AssemblyName>TestHelpers</AssemblyName>
+    <RootNamespace>NuGetGallery.FunctionTests.Helpers</RootNamespace>
+    <AssemblyName>NuGetGallery.FunctionTests.Helpers</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
