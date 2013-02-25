@@ -22,7 +22,7 @@
 
 @helper NonProductionBanner() {
     string message;
-    if (!String.Equals("production", Configuration.EnvironmentName, StringComparison.OrdinalIgnoreCase) && EnvironmentMessages.TryGetValue(Configuration.EnvironmentName, out message))
+    if (EnvironmentMessages.TryGetValue(Configuration.EnvironmentName, out message))
     {
         <div id="environment-warning-banner">
             @message
