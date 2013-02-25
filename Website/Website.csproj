@@ -153,8 +153,9 @@
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
     </Reference>
-    <Reference Include="PoliteCaptcha, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\PoliteCaptcha.0.3.0.0\lib\net40\PoliteCaptcha.dll</HintPath>
+    <Reference Include="PoliteCaptcha, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\PoliteCaptcha.0.4.0.0\lib\net40\PoliteCaptcha.dll</HintPath>
     </Reference>
     <Reference Include="QueryInterceptor">
       <HintPath>..\packages\QueryInterceptor.0.1.4237.2400\lib\net40\QueryInterceptor.dll</HintPath>
@@ -298,6 +299,7 @@
     <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
+    <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
@@ -454,6 +456,10 @@
     <Compile Include="Migrations\201301180132053_RemoveWorkItems.cs" />
     <Compile Include="Migrations\201301180132053_RemoveWorkItems.Designer.cs">
       <DependentUpon>201301180132053_RemoveWorkItems.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.cs" />
+    <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.Designer.cs">
+      <DependentUpon>201302072118537_MovingGallerySettingsToConfiguration.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />

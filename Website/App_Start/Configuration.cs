@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.Web;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -34,6 +36,11 @@ namespace NuGetGallery
             get { return ReadAppSettings("AzureStatisticsConnectionString"); }
         }
 
+        public bool ConfirmEmailAddresses
+        {
+            get { return String.Equals(ReadAppSettings("ConfirmEmailAddresses"), "true", StringComparison.OrdinalIgnoreCase); }
+        }
+
         public bool ReadOnlyMode
         {
             get { return String.Equals(ReadAppSettings("ReadOnlyMode"), "true", StringComparison.OrdinalIgnoreCase); }
@@ -54,6 +61,16 @@ namespace NuGetGallery
             }
         }
 
+        public string GalleryOwnerName
+        {
+            get { return ReadAppSettings("GalleryOwnerName"); }
+        }
+
+        public string GalleryOwnerEmail
+        {
+            get { return ReadAppSettings("GalleryOwnerEmail"); }
+        }
+
         public PackageStoreType PackageStoreType
         {
             get
@@ -62,6 +79,40 @@ namespace NuGetGallery
                     "PackageStoreType",
                     value => (PackageStoreType)Enum.Parse(typeof(PackageStoreType), value ?? PackageStoreType.NotSpecified.ToString()));
             }
+        }
+
+        public string SmtpHost
+        {
+            get { return ReadAppSettings("SmtpHost"); }
+        }
+
+        public string SmtpUsername
+        {
+            get { return ReadAppSettings("SmtpUsername"); }
+        }
+
+        public string SmtpPassword
+        {
+            get { return ReadAppSettings("SmtpPassword"); }
+        }
+
+        public int? SmtpPort
+        {
+            get
+            {
+                string port =  ReadAppSettings("SmtpPort");
+                if (String.IsNullOrWhiteSpace(port))
+                {
+                    return null;
+                }
+
+                return Int32.Parse(port, CultureInfo.InvariantCulture);
+            }
+        }
+
+        public bool UseSmtp
+        {
+            get { return String.Equals(ReadAppSettings("UseSmtp"), "true", StringComparison.OrdinalIgnoreCase); }
         }
 
         public string SqlConnectionString
@@ -208,6 +259,20 @@ namespace NuGetGallery
             }
 
             return "https://" + siteRoot.Substring(7);
+        }
+
+        public static PoliteCaptcha.IConfigurationSource GetPoliteCaptchaConfiguration()
+        {
+            return new PoliteCaptchaThunk();
+        }
+
+        class PoliteCaptchaThunk : PoliteCaptcha.IConfigurationSource
+        {
+            string PoliteCaptcha.IConfigurationSource.GetConfigurationValue(string key)
+            {
+                // Fudge the name because Azure cscfg system doesn't allow : in setting names
+                return Configuration.ReadAppSettings(key.Replace("::", "."));
+            }
         }
     }
 }

@@ -20,8 +20,10 @@ namespace NuGetGallery
                         Version = "1.42.0.1"
                     };
                 var mailSender = new Mock<IMailSender>();
-                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.GalleryOwnerName).Returns("NuGet Gallery");
+                config.Setup(x => x.GalleryOwnerEmail).Returns("joe@example.com");
+                var messageService = new MessageService(mailSender.Object, config.Object);
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
@@ -47,8 +49,10 @@ namespace NuGetGallery
                         new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
                     };
                 var mailSender = new Mock<IMailSender>();
-                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.GalleryOwnerName).Returns("NuGet Gallery");
+                config.Setup(x => x.GalleryOwnerEmail).Returns("joe@example.com");
+                var messageService = new MessageService(mailSender.Object, config.Object);
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
@@ -74,8 +78,10 @@ namespace NuGetGallery
                         new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
                     };
                 var mailSender = new Mock<IMailSender>();
-                var setting = new GallerySetting { GalleryOwnerName = "Joe Schmoe", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.GalleryOwnerName).Returns("Joe Schmoe");
+                config.Setup(x => x.GalleryOwnerEmail).Returns("joe@example.com");
+                var messageService = new MessageService(mailSender.Object, config.Object);
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
@@ -98,8 +104,10 @@ namespace NuGetGallery
                     };
                 var mailSender = new Mock<IMailSender>();
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Throws(new InvalidOperationException());
-                var setting = new GallerySetting { GalleryOwnerName = "Joe Schmoe", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.GalleryOwnerName).Returns("Joe Schmoe");
+                config.Setup(x => x.GalleryOwnerEmail).Returns("joe@example.com");
+                var messageService = new MessageService(mailSender.Object, config.Object);
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
@@ -117,8 +125,10 @@ namespace NuGetGallery
             {
                 var to = new MailAddress("legit@example.com", "too");
                 var mailSender = new Mock<IMailSender>();
-                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.GalleryOwnerName).Returns("NuGet Gallery");
+                config.Setup(x => x.GalleryOwnerEmail).Returns("joe@example.com");
+                var messageService = new MessageService(mailSender.Object, config.Object);
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
@@ -138,8 +148,10 @@ namespace NuGetGallery
                 var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var mailSender = new Mock<IMailSender>();
-                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.GalleryOwnerName).Returns("NuGet Gallery");
+                config.Setup(x => x.GalleryOwnerEmail).Returns("joe@example.com");
+                var messageService = new MessageService(mailSender.Object, config.Object);
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
                 MailMessage message = null;
@@ -161,8 +173,10 @@ namespace NuGetGallery
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var mailSender = new Mock<IMailSender>();
                 mailSender.Setup(s => s.Send(It.IsAny<MailMessage>())).Throws(new InvalidOperationException("Should not be called"));
-                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.GalleryOwnerName).Returns("NuGet Gallery");
+                config.Setup(x => x.GalleryOwnerEmail).Returns("joe@example.com");
+                var messageService = new MessageService(mailSender.Object, config.Object);
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
                 MailMessage message = null;
@@ -181,8 +195,10 @@ namespace NuGetGallery
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "too" };
                 var mailSender = new Mock<IMailSender>();
-                var setting = new GallerySetting { GalleryOwnerName = "NuGet Gallery", GalleryOwnerEmail = "joe@example.com" };
-                var messageService = new MessageService(mailSender.Object, setting);
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.GalleryOwnerName).Returns("NuGet Gallery");
+                config.Setup(x => x.GalleryOwnerEmail).Returns("joe@example.com");
+                var messageService = new MessageService(mailSender.Object, config.Object);
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
