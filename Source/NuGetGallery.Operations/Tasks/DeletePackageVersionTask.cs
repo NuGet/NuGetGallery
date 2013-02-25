@@ -18,6 +18,12 @@ namespace NuGetGallery.Operations
                     PackageId,
                     PackageVersion);
 
+                if (package == null)
+                {
+                    Log.Error("Package version does not exist: '{0}.{1}'", PackageId, PackageVersion);
+                    return;
+                }
+
                 Log.Info(
                     "Deleting package data for '{0}.{1}'", 
                     package.Id, 

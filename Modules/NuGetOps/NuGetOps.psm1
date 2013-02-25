@@ -1,7 +1,9 @@
 $Global:NuGetOpsVersion = 0.1
 $Global:OpsRoot = (Convert-Path "$PsScriptRoot\..\..")
 $EnvsRoot = $env:NUGET_OPS_ENVIRONMENTS
-if([String]::IsNullOrEmpty($EnvsRoot) -and (Test-Path \\nuget\Environments)) {
+
+# Defaults for Microsoft CorpNet. If you're outside CorpNet, you'll have to VPN in. Of course, if you're hosting your own gallery, you have to build your own scripts :P
+if([String]::IsNullOrEmpty($EnvsRoot) -and (Test-Path "\\nuget\Environments")) {
 	$EnvsRoot = "\\nuget\Environments"
 }
 $emulatorOnly = [String]::IsNullOrEmpty($EnvsRoot);
@@ -12,7 +14,7 @@ function Get-Environment([switch]$ListAvailable) {
 		if(Test-Environment "Emulator") {
 			$Emulator = "* Emulator"
 		}
-		@(dir "$EnvsRoot\*.ps1" | ForEach-Object { 
+		@(dir "$EnvsRoot\*.ps1" | Where-Object { !$_.Name.StartsWith("_") } | ForEach-Object { 
 			$envName = [IO.Path]::GetFileNameWithoutExtension($_.Name) 
 			if(Test-Environment $envName) {
 				"* $envName"
@@ -166,7 +168,8 @@ if(!(Test-Path $galopsExe)) {
 	if([String]::IsNullOrEmpty($answer) -or $answer.Equals("y", "OrdinalIgnoreCase") -or $answer.Equals("yes", "OrdinalIgnoreCase")) {
 		pushd $OpsRoot
 		Write-Host "Building GalOps.exe..."
-		& msbuild NuGetGalleryOps.sln /v:m | Out-Host
+		& "$OpsRoot\Scripts\Restore-Packages.ps1"
+		& msbuild NuGetOperations.sln /v:m | Out-Host
 		popd
 	} else {
 		Write-Host -Background Yellow -Foreground Black "Warning: Do not execute gallery ops tasks until you have built the GalOps.exe executable"
@@ -189,6 +192,7 @@ if(Test-Environment -Exists Preview) {
 } else {
 	Set-Environment Emulator | Out-Null
 }
+Clear-Host
 Write-Host @"
  ______         ______            
 |  ___ \       / _____)      _    
