@@ -62,7 +62,7 @@ namespace NuGetGallery
             }
             else
             {
-                return await _packageFileService.CreateDownloadPackageActionResultAsync(package);
+                return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
             }
         }
 
@@ -71,7 +71,7 @@ namespace NuGetGallery
         [OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
         public virtual Task<ActionResult> GetNuGetExe()
         {
-            return _nugetExeDownloaderService.CreateNuGetExeDownloadActionResultAsync();
+            return _nugetExeDownloaderService.CreateNuGetExeDownloadActionResultAsync(HttpContext.Request.Url);
         }
 
         [ActionName("VerifyPackageKeyApi")]

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
@@ -6,7 +7,7 @@ namespace NuGetGallery
 {
     public interface IFileStorageService
     {
-        Task<ActionResult> CreateDownloadFileActionResultAsync(string folderName, string fileName);
+        Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName);
 
         Task DeleteFileAsync(string folderName, string fileName);
 
