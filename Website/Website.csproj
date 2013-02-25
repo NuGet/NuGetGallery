@@ -146,9 +146,9 @@
     <Reference Include="Ninject.Web.Mvc">
       <HintPath>..\packages\Ninject.MVC3.2.2.2.0\lib\net40-Full\Ninject.Web.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Core, Version=2.3.40210.45, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Nuget.Core.2.2.0-alpha004\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <HintPath>..\packages\Nuget.Core.2.3.0-alpha002\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
@@ -477,7 +477,6 @@
     <Compile Include="Queries\CuratedFeedByNameQuery.cs" />
     <Compile Include="Queries\CuratedFeedsByManagerKeyQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
-    <Compile Include="Queries\UserByUsernameQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
@@ -844,6 +843,8 @@
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
+    <Content Include="App_Offline-Planned.htm" />
+    <Content Include="App_Offline-Unplanned.htm" />
     <Content Include="Content\Images\changePassword.png" />
     <Content Include="Content\Images\copy.png" />
     <Content Include="Content\Images\errorPage.png" />
@@ -1023,7 +1024,6 @@
     <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
     <Content Include="Views\Shared\TwoColumnLayout.cshtml" />
     <Content Include="api\Web.config" />
-    <Content Include="_app_offline.htm" />
     <Content Include="Views\Users\ResendConfirmation.cshtml">
     </Content>
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />

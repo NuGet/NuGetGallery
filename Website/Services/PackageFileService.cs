@@ -15,10 +15,10 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService;
         }
 
-        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Package package)
+        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
         {
             var fileName = BuildFileName(package);
-            return _fileStorageService.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, fileName);
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
         public Task DeletePackageFileAsync(string id, string version)
