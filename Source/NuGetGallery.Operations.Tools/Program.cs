@@ -45,7 +45,7 @@ namespace NuGetGallery.Operations.Tools
         {
             try
             {
-                HelpCommand = new HelpCommand(Manager, "galops", "NuGet Gallery Operations", "https://github.com/NuGet/NuGetGalleryOps/wiki/NuGet-Operations-Tool");
+                HelpCommand = new HelpCommand(Manager, "galops", "NuGet Gallery Operations", "https://github.com/NuGet/NuGetOperations/wiki/GalOps---Gallery-Operations-Commands");
 
                 // Add commands
                 foreach (ICommand cmd in Commands)
