@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
@@ -68,7 +69,7 @@ namespace NuGetGallery
                 string portString = String.Empty;
                 if (Configuration.SSLPort != 443)
                 {
-                    portString = String.Format(":{0}", Configuration.SSLPort);
+                    portString = String.Format(CultureInfo.InvariantCulture, ":{0}", Configuration.SSLPort);
                 }
 
                 string url = "https://" + filterContext.HttpContext.Request.Url.Host + portString + filterContext.HttpContext.Request.RawUrl;

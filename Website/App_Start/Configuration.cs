@@ -34,7 +34,7 @@ namespace NuGetGallery
         /// </summary>
         public int SSLPort
         {
-            get { return ReadAppSettings("SSL.Port", str => Int32.Parse(str ?? "443")); }
+            get { return ReadAppSettings("SSL.Port", str => Int32.Parse(str ?? "443", CultureInfo.InvariantCulture)); }
         }
 
         public string AzureStorageConnectionString
