@@ -398,52 +398,31 @@ namespace NuGetGallery
             var packageFileStream = nugetPackage.GetStream();
 
             package = new Package
-                {
-                    Version = nugetPackage.Version.ToString(),
-                    Description = nugetPackage.Description,
-                    ReleaseNotes = nugetPackage.ReleaseNotes,
-                    RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
-                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
-                    Hash = _cryptoService.GenerateHash(packageFileStream.ReadAllBytes()),
-                    PackageFileSize = packageFileStream.Length,
-                    Created = now,
-                    Language = nugetPackage.Language,
-                    LastUpdated = now,
-                    Published = now,
-                    Copyright = nugetPackage.Copyright,
-                    IsPrerelease = !nugetPackage.IsReleaseVersion(),
-                    Listed = true,
-                    PackageRegistration = packageRegistration,
-                };
+            {
+                Version = nugetPackage.Version.ToString(),
+                Description = nugetPackage.Description,
+                ReleaseNotes = nugetPackage.ReleaseNotes,
+                RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
+                HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                Hash = _cryptoService.GenerateHash(packageFileStream.ReadAllBytes()),
+                PackageFileSize = packageFileStream.Length,
+                Created = now,
+                Language = nugetPackage.Language,
+                LastUpdated = now,
+                Published = now,
+                Copyright = nugetPackage.Copyright,
+                IsPrerelease = !nugetPackage.IsReleaseVersion(),
+                Listed = true,
+                PackageRegistration = packageRegistration,
+                Summary = nugetPackage.Summary,
+                Tags = nugetPackage.Tags,
+                Title = nugetPackage.Title,
+            };
 
-            if (nugetPackage.IconUrl != null)
-            {
-                package.IconUrl = nugetPackage.IconUrl.ToString();
-            }
-            if (nugetPackage.LicenseUrl != null)
-            {
-                package.LicenseUrl = nugetPackage.LicenseUrl.ToString();
-            }
-            if (nugetPackage.ProjectUrl != null)
-            {
-                package.ProjectUrl = nugetPackage.ProjectUrl.ToString();
-            }
-            if (nugetPackage.Summary != null)
-            {
-                package.Summary = nugetPackage.Summary;
-            }
-            if (nugetPackage.Tags != null)
-            {
-                package.Tags = nugetPackage.Tags;
-            }
-            if (nugetPackage.Title != null)
-            {
-                package.Title = nugetPackage.Title;
-            }
-            if (nugetPackage.RequiredMinVersion != null)
-            {
-                package.MinClientVersion = nugetPackage.RequiredMinVersion.ToString();
-            }
+            package.IconUrl = nugetPackage.IconUrl.ToStringOrNull();
+            package.LicenseUrl = nugetPackage.LicenseUrl.ToStringOrNull();
+            package.ProjectUrl = nugetPackage.ProjectUrl.ToStringOrNull();
+            package.MinClientVersion = nugetPackage.RequiredMinVersion.ToStringOrNull();
 
             foreach (var author in nugetPackage.Authors)
             {
