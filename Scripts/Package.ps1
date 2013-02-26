@@ -1,4 +1,5 @@
 ﻿param(
+  [Parameter(Mandatory=$false)][string]$EnvironmentName,
   [Parameter(Mandatory=$false)][string]$ReleaseSha,
   [Parameter(Mandatory=$false)][string]$ReleaseBranch,
   [Parameter(Mandatory=$false)][string]$VMSize = $null,
@@ -100,6 +101,9 @@ set-vmsize -path $csdefPath -size $VMSize
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseBranch" -value $ReleaseBranch
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseSha" -value $ReleaseSha
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+if(![String]::IsNullOrEmpty($EnvironmentName)) {
+  set-appsetting -path $webConfigPath -name "Gallery.EnvironmentName" -value $EnvironmentName
+}
 disable-debug -path $webConfigPath
 
 $startupScripts | ForEach-Object {
