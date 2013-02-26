@@ -444,6 +444,7 @@ namespace NuGetGallery.Infrastructure
                 LastUpdated = DateTime.UtcNow,
                 LicenseUrl = "nuget.org/license.txt",
                 Listed = true,
+                MinClientVersion = new Version(1, 2, int.MaxValue, int.MaxValue-1).ToString(),
                 PackageFileSize = 234567,
                 ProjectUrl = "http://projecturl.com",
                 Published = DateTime.UtcNow,
@@ -465,7 +466,7 @@ namespace NuGetGallery.Infrastructure
 
             packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(new Package[] {p}.AsQueryable());
             var results = IndexAndSearch(packageSource, "");
-            var r = results.First().ToV2FeedPackage("http://www.nuget.org/");
+            var r = results.AsQueryable().ToV2FeedPackageQuery("http://www.nuget.org/").First();
 
             Assert.Equal("Pride", r.Id);
             Assert.Equal("3.4 RC", r.Version);
@@ -494,6 +495,7 @@ namespace NuGetGallery.Infrastructure
             Assert.Equal("TitleText", r.Title);
             Assert.Equal("Tag1 Tag2 Tag3", r.Tags);
             Assert.Equal(12345, r.VersionDownloadCount);
+            Assert.Equal("1.2.2147483647.2147483646", r.MinClientVersion);
         }
 
         // See issue https://github.com/NuGet/NuGetGallery/issues/406
