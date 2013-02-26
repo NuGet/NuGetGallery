@@ -13,6 +13,6 @@ namespace NuGetGallery
         IEnumerable<StatisticsPackagesItemViewModel> PackageDownloadsByVersion { get; }
         Task<bool> LoadDownloadPackages();
         Task<bool> LoadDownloadPackageVersions();
-        Task LoadPackageDownloadsByVersion(string id);
+        Task<bool> LoadPackageDownloadsByVersion(string id);
     }
 }

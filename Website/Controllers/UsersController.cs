@@ -8,31 +8,34 @@ namespace NuGetGallery
 {
     public partial class UsersController : AppController
     {
+        private readonly ICuratedFeedsByManagerQuery _feedsQuery;
         private readonly IPrincipal _currentUser;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
-        private readonly GallerySetting _settings;
+        private readonly IConfiguration _config;
         private readonly IUserService _userService;
 
         public UsersController(
+            ICuratedFeedsByManagerQuery feedsQuery,
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            GallerySetting settings,
+            IConfiguration config,
             IPrincipal currentUser)
         {
+            _feedsQuery = feedsQuery;
             _userService = userService;
             _packageService = packageService;
             _messageService = messageService;
-            _settings = settings;
+            _config = config;
             _currentUser = currentUser;
         }
 
         [Authorize]
         public virtual ActionResult Account()
         {
-            var user = GetService<IUserByUsernameQuery>().Execute(Identity.Name);
-            var curatedFeeds = GetService<ICuratedFeedsByManagerQuery>().Execute(user.Key);
+            var user = _userService.FindByUsername(_currentUser.Identity.Name);
+            var curatedFeeds = _feedsQuery.Execute(user.Key);
             return View(
                 new AccountViewModel
                     {
@@ -128,7 +131,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            if (_settings.ConfirmEmailAddresses)
+            if (_config.ConfirmEmailAddresses)
             {
                 // Passing in scheme to force fully qualified URL
                 var confirmationUrl = Url.ConfirmationUrl(
@@ -140,7 +143,7 @@ namespace NuGetGallery
 
         public virtual ActionResult Thanks()
         {
-            if (_settings.ConfirmEmailAddresses)
+            if (_config.ConfirmEmailAddresses)
             {
                 return View();
             }

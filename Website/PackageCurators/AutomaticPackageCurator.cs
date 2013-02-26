@@ -9,7 +9,8 @@ namespace NuGetGallery
     {
         public abstract void Curate(
             Package galleryPackage,
-            IPackage nugetPackage);
+            IPackage nugetPackage,
+            bool commitChanges);
 
         protected virtual T GetService<T>()
         {

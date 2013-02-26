@@ -15,7 +15,8 @@ namespace NuGetGallery
     {
         private Lucene.Net.Store.Directory _directory;
 
-        private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Author" };
+        private static readonly string[] FieldAliases = new[] { "Id", "Title", "Tag", "Tags", "Description", "Author", "Authors", "Owner", "Owners" };
+        private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Authors", "Owners" };
 
         public LuceneSearchService(Lucene.Net.Store.Directory directory)
         {
@@ -93,11 +94,11 @@ namespace NuGetGallery
             DateTime published = DateTime.Parse(doc.Get("Published"), CultureInfo.InvariantCulture);
             DateTime lastUpdated = DateTime.Parse(doc.Get("LastUpdated"), CultureInfo.InvariantCulture);
 
-            var owners = doc.Get("Owners")
+            var owners = doc.Get("FlattenedOwners")
                             .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
                             .Select(o => new User {Username = o})
                             .ToArray();
-            var authors = doc.Get("Authors")
+            var authors = doc.Get("FlattenedAuthors")
                              .SplitSafe(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
                              .Select(a => new PackageAuthor {Name = a.Trim()})
                              .ToArray();
@@ -120,7 +121,7 @@ namespace NuGetGallery
                 Description = doc.Get("Description"),
                 Dependencies = dependencies,
                 DownloadCount = versionDownloadCount,
-                FlattenedAuthors = doc.Get("Author"),
+                FlattenedAuthors = doc.Get("FlattenedAuthors"),
                 FlattenedDependencies = doc.Get("FlattenedDependencies"),
                 Hash = doc.Get("Hash"),
                 HashAlgorithm = doc.Get("HashAlgorithm"),
@@ -157,8 +158,9 @@ namespace NuGetGallery
             string[] parts = s.SplitSafe(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
             return new PackageDependency
             {
-                Id = parts[0],
-                VersionSpec = parts.Length <= 1 ? null : parts[1],
+                Id = parts.Length > 0 ? parts[0] : null,
+                VersionSpec = parts.Length > 1 ? parts[1] : null,
+                TargetFramework = parts.Length > 2 ? parts[2] : null,
             };
         }
 
@@ -202,14 +204,17 @@ namespace NuGetGallery
             {
                 var combinedQuery = new BooleanQuery();
 
-                if (!IsDegenerateQuery(combinedQuery))
+                if (!IsDegenerateQuery(generalQuery))
                 {
                     combinedQuery.Add(generalQuery, BooleanClause.Occur.MUST);
                 }
 
                 foreach (var fieldQuery in fieldSpecificQueries)
                 {
-                    combinedQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                    if (!IsDegenerateQuery(fieldQuery))
+                    {
+                        combinedQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                    }
                 }
 
                 generalQuery = combinedQuery;
@@ -289,11 +294,23 @@ namespace NuGetGallery
         // 1) fix cases of field names: ID -> Id
         // 2) null out field names that we don't understand (so we will search them as non-field-specific terms)
         // 3) For ID search, split search terms such as Id:"Foo.Bar" and "Foo-Bar" into a phrase "Foo Bar" which will work better for analyzed field search
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1309:UseOrdinalStringComparison", MessageId = "System.String.Equals(System.String,System.StringComparison)")]
         private static NuGetSearchTerm StandardizeSearchTerms(NuGetSearchTerm input)
         {
-            var fieldName = Fields
-                .FirstOrDefault(f => f.Equals(input.Field, StringComparison.InvariantCultureIgnoreCase));
+            var fieldName = FieldAliases
+                .FirstOrDefault(f => f.Equals(input.Field, StringComparison.OrdinalIgnoreCase));
+
+            if (string.Equals(fieldName, "Author", StringComparison.OrdinalIgnoreCase))
+            {
+                fieldName = "Authors";
+            }
+            else if (string.Equals(fieldName, "Owner", StringComparison.OrdinalIgnoreCase))
+            {
+                fieldName = "Owners";
+            }
+            else if (string.Equals(fieldName, "Tag", StringComparison.OrdinalIgnoreCase))
+            {
+                fieldName = "Tags";
+            }
 
             var searchTerm = new NuGetSearchTerm { Field = fieldName, TermOrPhrase = input.TermOrPhrase };
 

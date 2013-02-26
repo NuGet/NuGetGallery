@@ -17,7 +17,7 @@ namespace NuGetGallery
         /// </summary>
         protected abstract string CuratedFeedName { get; }
 
-        public override void Curate(Package galleryPackage, IPackage nugetPackage)
+        public override void Curate(Package galleryPackage, IPackage nugetPackage, bool commitChanges)
         {
             // Make sure the target feed exists
             CuratedFeed feed = GetService<ICuratedFeedByNameQuery>().Execute(CuratedFeedName, includePackages: true);
@@ -34,7 +34,10 @@ namespace NuGetGallery
                     if (DependenciesAreCurated(galleryPackage, feed))
                     {
                         GetService<ICreateCuratedPackageCommand>().Execute(
-                            feed.Key, galleryPackage.PackageRegistration.Key, automaticallyCurated: true);
+                            feed, 
+                            galleryPackage.PackageRegistration, 
+                            automaticallyCurated: true,
+                            commitChanges: commitChanges);
                     }
                 }
             }

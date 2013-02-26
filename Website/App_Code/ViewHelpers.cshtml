@@ -104,14 +104,14 @@
 
 @helper ReleaseTag()
 {
-    string sha = ConfigurationManager.AppSettings["Gallery:ReleaseSha"];
-    string branch = ConfigurationManager.AppSettings["Gallery:ReleaseBranch"];
-    string time = ConfigurationManager.AppSettings["Gallery:ReleaseTime"];
+    string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"];
+    string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"];
+    string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"];
     if (!String.IsNullOrEmpty(sha) && !String.IsNullOrEmpty(branch) && !String.IsNullOrEmpty(time))
     {
         <p id="releaseTag">
-            Deployed from <a href="https://github.com/NuGet/NuGetGallery/commit/@sha" title="View the commit.">@sha.Substring(0, 10)</a>
-            on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a> 
+            Deployed from <a href="https://github.com/NuGet/NuGetGallery/commit/@sha" title="View the commit.">@sha.Substring(0, Math.Min(sha.Length, 10))</a>.
+            Originally built on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a> 
             at @time.
         </p>
     }
