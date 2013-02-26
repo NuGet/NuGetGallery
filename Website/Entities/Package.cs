@@ -105,5 +105,8 @@ namespace NuGetGallery
         public string FlattenedAuthors { get; set; }
         public string FlattenedDependencies { get; set; }
         public int Key { get; set; }
+
+        [StringLength(44)]
+        public string MinClientVersion { get; set; }
     }
 }

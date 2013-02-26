@@ -413,7 +413,7 @@ namespace NuGetGallery
                     Copyright = nugetPackage.Copyright,
                     IsPrerelease = !nugetPackage.IsReleaseVersion(),
                     Listed = true,
-                    PackageRegistration = packageRegistration
+                    PackageRegistration = packageRegistration,
                 };
 
             if (nugetPackage.IconUrl != null)
@@ -439,6 +439,10 @@ namespace NuGetGallery
             if (nugetPackage.Title != null)
             {
                 package.Title = nugetPackage.Title;
+            }
+            if (nugetPackage.RequiredMinVersion != null)
+            {
+                package.MinClientVersion = nugetPackage.RequiredMinVersion.ToString();
             }
 
             foreach (var author in nugetPackage.Authors)
