@@ -20,6 +20,7 @@
       <Setting name="Gallery.ReadOnlyMode" value="" /><!-- set value 'true' to put the gallery in read only mode -->
       <Setting name="Gallery.SiteRoot" value="http://nuget.org/" />
       <Setting name="Gallery.Sql.NuGetGallery" value="" />
+      <Setting name="Gallery.SSL.Required" value="false" />
 
       <!-- Set this to enable use of the Azure Caching Service for Package Explorer in the Cloud -->
       <Setting name="Gallery.AzureCacheEndpoint" value="" />
