@@ -56,17 +56,14 @@ namespace NuGetGallery
             }
         }
 
-        private Task ExtractNuGetExe(IPackage package)
+        private async Task ExtractNuGetExe(IPackage package)
         {
-            lock (fileLock)
-            {
-                var executable = package.GetFiles("tools")
-                                        .First(f => f.Path.Equals(@"tools\NuGet.exe", StringComparison.OrdinalIgnoreCase));
+            var executable = package.GetFiles("tools")
+                                    .First(f => f.Path.Equals(@"tools\NuGet.exe", StringComparison.OrdinalIgnoreCase));
 
-                using (Stream packageFileStream = executable.GetStream())
-                {
-                    return _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
-                }
+            using (Stream packageFileStream = executable.GetStream())
+            {
+                await _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
             }
         }
     }
