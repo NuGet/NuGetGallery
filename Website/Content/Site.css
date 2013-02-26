@@ -18,7 +18,6 @@ html, body {
 }
 
 body {
-    background: url('../Content/Images/headerbackground.png') repeat-x top left #fff;
     color: #333;
     font-family: "Segoe UI", "Trebuchet MS", Verdana, Helvetica, Sans-Serif;
     font-size: .85em;
@@ -144,7 +143,21 @@ pre, code, tt {
 header, footer,
 nav, section { display: block; }
 
+#environment-warning-banner {
+    padding: 0.25em;
+    font-size: 14pt;
+    text-align: center;
+    background: yellow;
+    background-image: -moz-linear-gradient(top, #ffff00, #e5e600);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffff00), to(#e5e600));
+    background-image: -webkit-linear-gradient(top, #ffff00, #e5e600);
+    background-image: -o-linear-gradient(top, #ffff00, #e5e600);
+    background-image: linear-gradient(to bottom, #ffff00, #e5e600);
+}
 
+#outer-wrapper {
+    background: url('../Content/Images/headerbackground.png') repeat-x top left #fff;
+}
 
 #content-wrapper {
     margin: 0 auto;
