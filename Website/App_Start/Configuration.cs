@@ -21,6 +21,11 @@ namespace NuGetGallery
             _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
         }
 
+        public string EnvironmentName
+        {
+            get { return ReadAppSettings("Environment") ?? "Development"; }
+        }
+
         public string AzureStorageConnectionString
         {
             get { return ReadAppSettings("AzureStorageConnectionString"); }
