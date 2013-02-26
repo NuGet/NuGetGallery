@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet;
@@ -9,7 +10,6 @@ namespace NuGetGallery
 {
     public class NuGetExeDownloaderService : INuGetExeDownloaderService
     {
-        private static readonly object fileLock = new object();
         private readonly IFileStorageService _fileStorageService;
         private readonly IPackageFileService _packageFileService;
         private readonly IPackageService _packageService;
