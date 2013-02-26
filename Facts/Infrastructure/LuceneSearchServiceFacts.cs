@@ -116,6 +116,57 @@ namespace NuGetGallery.Infrastructure
         }
 
         [Fact]
+        public void SearchUsingCombinedIdAndGeneralTerms()
+        {
+            var packageSource = new Mock<IPackageSource>();
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
+                new List<Package>
+                {
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "RedDeath",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "Yeah",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Eric I",
+                        Title = "Red Death",
+                        Version = "1.1.2",
+                    },
+                    new Package
+                    {
+                        Key = 144,
+                        PackageRegistrationKey = 12,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "RedHerring",
+                            Key = 12,
+                            DownloadCount = 41
+                        },
+                        Description = "Library for compressing your filez",
+                        Listed = true,
+                        IsLatest = true,
+                        IsLatestStable = true,
+                        FlattenedAuthors = "Eric II",
+                        Title = "Red Herring",
+                        Version = "1.1.2",
+                    },
+                }.AsQueryable());
+
+            var results = IndexAndSearch(packageSource, "Id:Red Death");
+
+            Assert.Equal(1, results.Count);
+            Assert.Equal("Red Death", results[0].Title);
+        }
+
+        [Fact]
         public void SearchUsingExactPackageId()
         {
             var packageSource = new Mock<IPackageSource>();
@@ -183,10 +234,15 @@ namespace NuGetGallery.Infrastructure
         [InlineData("id", "NuGet.Core")]
         [InlineData("title", "NuGet.Core")]
         [InlineData("TITLE", "NuGet.Core")]
+        [InlineData("Owner", "NugetCoreOwner")]
+        [InlineData("Owners", "NugetCoreOwner")]
+        [InlineData("Authors", "Alpha")]
         [InlineData("Author", "Alpha")]
+        [InlineData("Authors", "Alpha")]
         [InlineData("author", "\"Alpha Beta Gamma\"")]
         [InlineData("Description", "core framework")]
         [InlineData("Tags", "dotnet")]
+        [InlineData("Tag", "dotnet")]
         public void SearchForNuGetCoreWithExactField(string field, string term)
         {
             var packageSource = new Mock<IPackageSource>();
@@ -201,7 +257,8 @@ namespace NuGetGallery.Infrastructure
                         {
                             Id = "NuGet.Core",
                             Key = 12,
-                            DownloadCount = 41
+                            DownloadCount = 41,
+                            Owners = { new User { Username = "NugetCoreOwner" } },
                         },
                         Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
                         Listed = true,
@@ -221,8 +278,9 @@ namespace NuGetGallery.Infrastructure
                             Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
                             Key = 13,
                             DownloadCount = 2,
+                            Owners = { new User { Username = "SomeOtherOwner" } },
                         },
-                        Description = "This isn't really NuGet.Core. Sorry for the confusing name - But its needed for a test case!",
+                        Description = "This isn't really NuGet.Core. But it needs to look a bit like it for the test case!",
                         Listed = true,
                         IsLatest = true,
                         IsLatestStable = true,

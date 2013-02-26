@@ -380,11 +380,12 @@ namespace NuGetGallery
 
                 controller.StubCreatedCuratedPackageCmd.Verify(
                     stub => stub.Execute(
-                        42,
-                        1066,
+                        controller.StubCuratedFeed,
+                        controller.StubPackageRegistration,
                         true,
                         false,
-                        "theNotes"));
+                        "theNotes",
+                        true));
             }
 
             [Fact]

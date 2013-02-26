@@ -42,7 +42,6 @@ namespace NuGetGallery
         {
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IConfiguration>();
-
             MiniProfilerPostStart();
             DbMigratorPostStart();
             BackgroundJobsPostStart(config);

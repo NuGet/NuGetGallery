@@ -13,6 +13,11 @@ namespace NuGetGallery
         Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package);
 
         /// <summary>
+        ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
+        /// </summary>
+        Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
+
+        /// <summary>
         ///     Deletes the nupkg from the file storage.
         /// </summary>
         Task DeletePackageFileAsync(string id, string version);

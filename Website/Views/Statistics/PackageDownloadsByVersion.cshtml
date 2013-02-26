@@ -4,6 +4,8 @@
 }
 
 <h2>Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (Over the Last 6 Weeks)</h2>
+@if (Model.IsDownloadPackageByVersionAvailable)
+{
 <table class="sexy-table">
     <thead>
         <tr>
@@ -24,3 +26,10 @@
         </tr>
     </tbody>
 </table>
+}
+else
+{
+    <p>
+        Download statistics are not currently available for this package, please check back later. 
+    </p>
+}

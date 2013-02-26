@@ -6,7 +6,8 @@ namespace NuGetGallery
     {
         void Execute(
             Package galleryPackage,
-            IPackage nugetPackage);
+            IPackage nugetPackage,
+            bool commitChanges);
     }
 
     public class AutomaticallyCuratePackageCommand : AppCommand, IAutomaticallyCuratePackageCommand
@@ -16,11 +17,11 @@ namespace NuGetGallery
         {
         }
 
-        public void Execute(Package galleryPackage, IPackage nugetPackage)
+        public void Execute(Package galleryPackage, IPackage nugetPackage, bool commitChanges)
         {
             foreach (var curator in GetServices<IAutomaticPackageCurator>())
             {
-                curator.Curate(galleryPackage, nugetPackage);
+                curator.Curate(galleryPackage, nugetPackage, commitChanges: commitChanges);
             }
         }
     }
