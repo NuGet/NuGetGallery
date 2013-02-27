@@ -111,8 +111,8 @@ namespace NuGetGallery.Monitoring
                 ServicePointManager.ServerCertificateValidationCallback = CertificateValidationCallBack;
             }
 
-            // Try once with a short timeout, we definitely should be able to get there in 200ms
-            var requestResult = await MakeSingleRequest(Url, Method, timeout: 200);
+            // Try once with a short timeout, we definitely should be able to get there in ExpectedTimeout
+            var requestResult = await MakeSingleRequest(Url, Method, timeout: ExpectedTimeout);
             if (requestResult.IsSuccess && IsSuccessfulResponse(requestResult, ExpectedStatusCode))
             {
                 return;
@@ -140,7 +140,7 @@ namespace NuGetGallery.Monitoring
             requestResult = await MakeMultipleRequests(Url, Method, NumberOfAttempts, timeout: MaximumTimeout);
             if (requestResult.IsSuccess && IsSuccessfulResponse(requestResult, ExpectedStatusCode))
             {
-                Degraded(String.Format("Reached {0} in {1:N2}ms. This is longer than the expected timout of {2}ms.", Url.AbsoluteUri, requestResult.Time.TotalMilliseconds, ExpectedTimeout));
+                Degraded(String.Format("Reached {0} in {1:N2}ms. However, we failed to reach it in the expected time, so this may indicate a potential failure.", Url.AbsoluteUri, requestResult.Time.TotalMilliseconds));
                 return;
             }
 
