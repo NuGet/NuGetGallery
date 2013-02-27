@@ -140,7 +140,7 @@ namespace NuGetGallery.Monitoring
             requestResult = await MakeMultipleRequests(Url, Method, NumberOfAttempts, timeout: MaximumTimeout);
             if (requestResult.IsSuccess && IsSuccessfulResponse(requestResult, ExpectedStatusCode))
             {
-                Degraded(String.Format("Reached {0} in {1:N2}ms. This is considered a degraded state.", Url.AbsoluteUri, requestResult.Time.TotalMilliseconds));
+                Degraded(String.Format("Reached {0} in {1:N2}ms. This is longer than the expected timout of {2}ms.", Url.AbsoluteUri, requestResult.Time.TotalMilliseconds, ExpectedTimeout));
                 return;
             }
 
@@ -256,7 +256,7 @@ namespace NuGetGallery.Monitoring
             var dnsResult = await Time(async () => 
                 await Task.Factory
                     .FromAsync((cb, state) => Dns.BeginGetHostAddresses(url.Host, cb, state), res => Dns.EndGetHostAddresses(res), new object())
-                    .TimeoutAfter(timeout));
+                    .TimeoutAfter(timeout, "DNS Resolution"));
             if (!dnsResult.IsSuccess)
             {
                 return dnsResult;
@@ -276,7 +276,7 @@ namespace NuGetGallery.Monitoring
                 HttpWebResponse response;
                 try
                 {
-                    response = (HttpWebResponse)(await request.GetResponseAsync().TimeoutAfter(timeout));
+                    response = (HttpWebResponse)(await request.GetResponseAsync().TimeoutAfter(timeout, "Web Request"));
                 }
                 catch (WebException wex)
                 {
