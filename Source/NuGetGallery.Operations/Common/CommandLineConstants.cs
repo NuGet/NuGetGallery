@@ -2,6 +2,6 @@
 {
     internal static class CommandLineConstants
     {
-        internal static string ReferencePage = "https://github.com/NuGet/NuGetGalleryOps/wiki/Nuget-operations-tool";
+        internal static string ReferencePage = "https://github.com/NuGet/NuGetOperations";
     }
 }
