@@ -54,7 +54,7 @@ namespace NuGetGallery.Helpers
                 cacheService.SetBytes(cacheKey, buffer);
             }
 
-            return new Nupkg(new MemoryStream(buffer));
+            return new Nupkg(new MemoryStream(buffer), leaveOpen: false);
         }
 
         private static string CreateCacheKey(string id, string version)

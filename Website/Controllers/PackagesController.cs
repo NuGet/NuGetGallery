@@ -587,7 +587,7 @@ namespace NuGetGallery
         // this methods exist to make unit testing easier
         protected internal virtual INupkg CreatePackage(Stream stream)
         {
-            return new Nupkg(stream);
+            return new Nupkg(stream, leaveOpen: false);
         }
 
         private static SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)

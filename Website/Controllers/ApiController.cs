@@ -323,7 +323,7 @@ namespace NuGetGallery
                 stream = Request.InputStream;
             }
 
-            return new Nupkg(stream);
+            return new Nupkg(stream, leaveOpen: false);
         }
 
         [ActionName("PackageIDs")]
