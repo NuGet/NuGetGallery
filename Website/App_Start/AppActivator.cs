@@ -65,6 +65,7 @@ namespace NuGetGallery
             Routes.RegisterRoutes(RouteTable.Routes);
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
+            GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 

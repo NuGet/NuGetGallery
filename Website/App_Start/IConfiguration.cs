@@ -2,6 +2,9 @@
 {
     public interface IConfiguration
     {
+        bool RequireSSL { get; }
+        int SSLPort { get; }
+
         string SmtpHost { get; }
         string SmtpUsername { get; }
         string SmtpPassword { get; }

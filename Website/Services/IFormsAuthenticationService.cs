@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Web;
 
 namespace NuGetGallery
 {
@@ -10,5 +11,7 @@ namespace NuGetGallery
             IEnumerable<string> roles);
 
         void SignOut();
+
+        bool ShouldForceSSL(HttpContextBase context);
     }
 }

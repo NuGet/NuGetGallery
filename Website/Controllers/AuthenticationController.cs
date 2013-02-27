@@ -18,14 +18,14 @@ namespace NuGetGallery
             _userService = userService;
         }
 
-        [RequireRemoteHttps]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult LogOn()
         {
             return View();
         }
 
         [HttpPost]
-        [RequireRemoteHttps]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult LogOn(SignInRequest request, string returnUrl)
         {
             // TODO: improve the styling of the validation summary
