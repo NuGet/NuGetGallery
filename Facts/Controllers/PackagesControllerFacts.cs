@@ -91,14 +91,14 @@ namespace NuGetGallery
             {
                 controller.Setup(x => x.CreatePackage(It.IsAny<Stream>())).Throws(readPackageException);
             }
-            else if (fakeNuGetPackage != null)
+
+            if (fakeNuGetPackage == null)
             {
-                controller.Setup(x => x.CreatePackage(It.IsAny<Stream>())).Returns(fakeNuGetPackage.Object);
+                fakeNuGetPackage = new Mock<INupkg>();
+                fakeNuGetPackage.Setup(p => p.Metadata.Id).Returns("thePackageId");
             }
-            else
-            {
-                controller.Setup(x => x.CreatePackage(It.IsAny<Stream>())).Returns(new Mock<INupkg>().Object);
-            }
+
+            controller.Setup(x => x.CreatePackage(It.IsAny<Stream>())).Returns(fakeNuGetPackage.Object);
 
             return controller.Object;
         }
@@ -664,6 +664,7 @@ namespace NuGetGallery
                 var fakeIdentity = new Mock<IIdentity>();
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakeNuGetPackage = new Mock<INupkg>();
+                fakeNuGetPackage.Setup(p => p.Metadata.Id).Returns("thePackageId");
                 fakeNuGetPackage.Setup(x => x.GetStream()).Returns(fakeFileStream);
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(42)).Returns(Task.FromResult(0));
