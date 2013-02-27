@@ -132,7 +132,7 @@ namespace NuGetGallery.Monitoring
                 else
                 {
                     // We reached the known good site.
-                    Unhealthy(String.Format("Failed to reach {0} in 200ms. Still confirming failure.", Url.AbsoluteUri));
+                    Unhealthy(String.Format("Failed to reach {0} in {1}ms. Still confirming failure.", Url.AbsoluteUri, ExpectedTimeout));
                 }
             }
 
