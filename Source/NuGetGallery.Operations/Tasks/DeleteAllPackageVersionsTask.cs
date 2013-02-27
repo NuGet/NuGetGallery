@@ -57,9 +57,6 @@ namespace NuGetGallery.Operations
                         "DELETE pro FROM PackageRegistrationOwners pro JOIN PackageRegistrations pr ON pr.[Key] = pro.PackageRegistrationKey WHERE pr.[Key] = @packageRegistrationKey",
                         new { packageRegistrationKey = packageRegistration.Key });
                     dbExecutor.Execute(
-                        "DELETE pro FROM PackageRegistrationOwners pro JOIN PackageRegistrations pr ON pr.[Key] = pro.PackageRegistrationKey WHERE pr.[Key] = @packageRegistrationKey",
-                        new { packageRegistrationKey = packageRegistration.Key });
-                    dbExecutor.Execute(
                         "DELETE FROM PackageRegistrations WHERE [Key] = @packageRegistrationKey",
                         new { packageRegistrationKey = packageRegistration.Key });
                 }

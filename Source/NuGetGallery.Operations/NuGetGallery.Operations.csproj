@@ -138,6 +138,7 @@
     <Compile Include="Infrastructure\ICommand.cs" />
     <Compile Include="Infrastructure\ICommandManager.cs" />
     <Compile Include="Infrastructure\Verbosity.cs" />
+    <Compile Include="Tasks\DeleteUserTask.cs" />
     <Compile Include="Tasks\LowerCaseAllPackageBlobs.cs" />
     <Compile Include="Tasks\IBackupDatabase.cs" />
     <Compile Include="Tasks\OpsTask.cs" />
@@ -164,6 +165,7 @@
     <Compile Include="Tasks\TaskBases.cs" />
     <Compile Include="Tasks\SynchronizePackageBackupsTask.cs" />
     <Compile Include="Tasks\UploadPackageTask.cs" />
+    <Compile Include="User.cs" />
     <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>

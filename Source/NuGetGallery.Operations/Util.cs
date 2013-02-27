@@ -225,6 +225,24 @@ namespace NuGetGallery.Operations
                 new { packageRegistrationKey });
         }
 
+        internal static User GetUser(
+            IDbExecutor dbExecutor,
+            string username)
+        {
+            var user = dbExecutor.Query<User>(
+                "SELECT u.[Key], u.Username, u.EmailAddress, u.UnconfirmedEmailAddress FROM Users u WHERE u.Username = @username",
+                new { username }).SingleOrDefault();
+
+            if (user != null)
+            {
+                user.PackageRegistrationIds = dbExecutor.Query<string>(
+                    "SELECT r.[Id] FROM PackageRegistrations r INNER JOIN PackageRegistrationOwners o ON o.PackageRegistrationKey = r.[Key] WHERE o.UserKey = @userKey AND NOT EXISTS(SELECT * FROM PackageRegistrationOwners other WHERE other.PackageRegistrationKey = r.[Key] AND other.UserKey != @userKey)",
+                    new { userkey = user.Key });
+            }
+
+            return user;
+        }
+
         public static string GenerateHash(byte[] input)
         {
             byte[] hashBytes;
