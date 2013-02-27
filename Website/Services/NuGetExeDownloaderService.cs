@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet;
@@ -9,7 +10,6 @@ namespace NuGetGallery
 {
     public class NuGetExeDownloaderService : INuGetExeDownloaderService
     {
-        private static readonly object fileLock = new object();
         private readonly IFileStorageService _fileStorageService;
         private readonly IPackageFileService _packageFileService;
         private readonly IPackageService _packageService;
@@ -56,17 +56,14 @@ namespace NuGetGallery
             }
         }
 
-        private Task ExtractNuGetExe(IPackage package)
+        private async Task ExtractNuGetExe(IPackage package)
         {
-            lock (fileLock)
-            {
-                var executable = package.GetFiles("tools")
-                                        .First(f => f.Path.Equals(@"tools\NuGet.exe", StringComparison.OrdinalIgnoreCase));
+            var executable = package.GetFiles("tools")
+                                    .First(f => f.Path.Equals(@"tools\NuGet.exe", StringComparison.OrdinalIgnoreCase));
 
-                using (Stream packageFileStream = executable.GetStream())
-                {
-                    return _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
-                }
+            using (Stream packageFileStream = executable.GetStream())
+            {
+                await _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
             }
         }
     }
