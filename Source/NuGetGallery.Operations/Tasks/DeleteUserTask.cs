@@ -36,15 +36,16 @@ namespace NuGetGallery.Operations.Tasks
                     return;
                 }
 
-                var packageCount = user.PackageRegistrationIds.Count();
-
                 Log.Info("User found with EmailAddress '{0}' and UnconfirmedEmailAddress '{1}'",
                     user.EmailAddress, user.UnconfirmedEmailAddress);
 
+                var packageCount = user.PackageRegistrationIds.Count();
+                var packageNumber = 0;
+
                 foreach (var packageId in user.PackageRegistrationIds)
                 {
-                    Log.Info("User has {0} package registrations (as the sole owner) remaining to delete",
-                        packageCount--);
+                    Log.Info("Deleting package '{0}' because '{1}' is the sole owner. ({2}/{3})",
+                        packageId, Username, ++packageNumber, packageCount);
 
                     var deletePackageTask = new DeleteAllPackageVersionsTask
                     {
