@@ -181,6 +181,7 @@ namespace NuGetGallery
             document.Add(new Field("LastUpdated", package.LastUpdated.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Language", package.Language.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("LicenseUrl", package.LicenseUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("MinClientVersion", package.MinClientVersion.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Version", package.Version.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("VersionDownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));

@@ -42,6 +42,16 @@ namespace NuGetGallery
             routes.Add(routeName, serviceRoute);
         }
 
+        public static string ToStringOrNull(this object obj)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+
+            return obj.ToString();
+        }
+
         public static string ToStringSafe(this object obj)
         {
             if (obj != null)
