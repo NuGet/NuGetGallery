@@ -63,6 +63,15 @@ namespace NuGetGallery.Monitoring
                 resource ?? DefaultResourceName));
         }
 
+        protected virtual void Unhealthy(string message, string resource = null)
+        {
+            Reporter.Report(new MonitoringMessageEvent(
+                EventType.Unhealthy,
+                DateTime.UtcNow,
+                message,
+                resource ?? DefaultResourceName));
+        }
+
         protected virtual void QoS(string action, bool success, TimeSpan timeTaken, string resource = null)
         {
             Reporter.Report(new MonitoringQoSEvent(

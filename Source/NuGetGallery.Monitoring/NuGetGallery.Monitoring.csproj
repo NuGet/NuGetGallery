@@ -82,6 +82,7 @@
     <Compile Include="SqlMonitorBase.cs" />
     <Compile Include="SqlServerRunningMonitor.cs" />
     <Compile Include="SqlConnectionExtensions.cs" />
+    <Compile Include="TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

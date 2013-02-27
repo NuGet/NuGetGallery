@@ -11,11 +11,16 @@ namespace NuGetGallery.Monitoring
         /// Represents a successful monitoring operation
         /// </summary>
         Success,
-        
+
         /// <summary>
         /// Represents a failed monitoring operation
         /// </summary>
         Failure,
+
+        /// <summary>
+        /// Represents an unhealthy report - Indicates that the site may be dead, but the monitor is still checking.
+        /// </summary>
+        Unhealthy,
 
         /// <summary>
         /// Represents an degraded monitoring operation (not Failed, but not good)

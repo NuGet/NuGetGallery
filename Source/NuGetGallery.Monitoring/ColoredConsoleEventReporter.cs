@@ -36,6 +36,10 @@ namespace NuGetGallery.Monitoring
                         WriteColored("err :", ConsoleColor.Magenta);
                         HandleMessageEvent((MonitoringMessageEvent)evt);
                         break;
+                    case EventType.Unhealthy:
+                        WriteColored("weak:", ConsoleColor.Cyan);
+                        HandleMessageEvent((MonitoringMessageEvent)evt);
+                        break;
                     default:
                         WriteColored("unk :", ConsoleColor.Gray);
                         HandleEvent(evt);
