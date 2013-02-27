@@ -6,7 +6,7 @@ namespace NuGetGallery
     {
         void Execute(
             Package galleryPackage,
-            IPackage nugetPackage,
+            INupkg nugetPackage,
             bool commitChanges);
     }
 
@@ -17,7 +17,7 @@ namespace NuGetGallery
         {
         }
 
-        public void Execute(Package galleryPackage, IPackage nugetPackage, bool commitChanges)
+        public void Execute(Package galleryPackage, INupkg nugetPackage, bool commitChanges)
         {
             foreach (var curator in GetServices<IAutomaticPackageCurator>())
             {

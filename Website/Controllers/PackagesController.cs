@@ -118,7 +118,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            IPackage nuGetPackage;
+            INupkg nuGetPackage;
             try
             {
                 using (var uploadStream = uploadFile.InputStream)
@@ -136,7 +136,7 @@ namespace NuGetGallery
                 _cacheService.RemoveProgress(currentUser.Username);
             }
 
-            var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Id);
+            var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Metadata.Id);
             if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
             {
                 ModelState.AddModelError(
@@ -144,7 +144,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            var package = _packageService.FindPackageByIdAndVersion(nuGetPackage.Id, nuGetPackage.Version.ToStringSafe());
+            var package = _packageService.FindPackageByIdAndVersion(nuGetPackage.Metadata.Id, nuGetPackage.Metadata.Version.ToStringSafe());
             if (package != null)
             {
                 ModelState.AddModelError(
@@ -477,7 +477,7 @@ namespace NuGetGallery
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
 
-            IPackage package;
+            IPackageMetadata packageMetadata;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
@@ -485,24 +485,27 @@ namespace NuGetGallery
                     return RedirectToRoute(RouteName.UploadPackage);
                 }
 
-                package = CreatePackage(uploadFile);
+                using (INupkg package = CreatePackage(uploadFile))
+                {
+                    packageMetadata = package.Metadata;
+                }
             }
 
             return View(
                 new VerifyPackageViewModel
-                    {
-                        Id = package.Id,
-                        Version = package.Version.ToStringSafe(),
-                        Title = package.Title,
-                        Summary = package.Summary,
-                        Description = package.Description,
-                        RequiresLicenseAcceptance = package.RequireLicenseAcceptance,
-                        LicenseUrl = package.LicenseUrl.ToStringSafe(),
-                        Tags = package.Tags,
-                        ProjectUrl = package.ProjectUrl.ToStringSafe(),
-                        Authors = package.Authors.Flatten(),
-                        Listed = package.Listed
-                    });
+                {
+                    Id = packageMetadata.Id,
+                    Version = packageMetadata.Version.ToStringSafe(),
+                    Title = packageMetadata.Title,
+                    Summary = packageMetadata.Summary,
+                    Description = packageMetadata.Description,
+                    RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
+                    LicenseUrl = packageMetadata.LicenseUrl.ToStringSafe(),
+                    Tags = packageMetadata.Tags,
+                    ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
+                    Authors = packageMetadata.Authors.Flatten(),
+                    Listed = true
+                });
         }
 
         [Authorize]
@@ -512,7 +515,7 @@ namespace NuGetGallery
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
 
-            IPackage nugetPackage;
+            INupkg nugetPackage;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
@@ -582,9 +585,9 @@ namespace NuGetGallery
         }
 
         // this methods exist to make unit testing easier
-        protected internal virtual IPackage CreatePackage(Stream stream)
+        protected internal virtual INupkg CreatePackage(Stream stream)
         {
-            return new ZipPackage(stream);
+            return new Nupkg(stream);
         }
 
         private static SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)

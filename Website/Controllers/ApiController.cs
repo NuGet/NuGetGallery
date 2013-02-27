@@ -187,7 +187,7 @@ namespace NuGetGallery
             var packageToPush = ReadPackageFromRequest();
 
             // Ensure that the user can push packages for this partialId.
-            var packageRegistration = _packageService.FindPackageRegistrationById(packageToPush.Id);
+            var packageRegistration = _packageService.FindPackageRegistrationById(packageToPush.Metadata.Id);
             if (packageRegistration != null)
             {
                 if (!packageRegistration.IsOwner(user))
@@ -198,12 +198,12 @@ namespace NuGetGallery
 
                 // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
                 bool packageExists =
-                    packageRegistration.Packages.Any(p => p.Version.Equals(packageToPush.Version.ToString(), StringComparison.OrdinalIgnoreCase));
+                    packageRegistration.Packages.Any(p => p.Version.Equals(packageToPush.Metadata.Version.ToString(), StringComparison.OrdinalIgnoreCase));
                 if (packageExists)
                 {
                     return new HttpStatusCodeWithBodyResult(
                         HttpStatusCode.Conflict,
-                        String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, packageToPush.Id, packageToPush.Version));
+                        String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, packageToPush.Metadata.Id, packageToPush.Metadata.Version));
                 }
             }
 
@@ -213,7 +213,7 @@ namespace NuGetGallery
                 await _packageFileService.SavePackageFileAsync(package, stream);
             }
 
-            if (packageToPush.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
+            if (packageToPush.Metadata.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
             {
                 // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
                 await _nugetExeDownloaderService.UpdateExecutableAsync(packageToPush);
@@ -310,7 +310,7 @@ namespace NuGetGallery
             }
         }
 
-        protected internal virtual IPackage ReadPackageFromRequest()
+        protected internal virtual INupkg ReadPackageFromRequest()
         {
             Stream stream;
             if (Request.Files.Count > 0)
@@ -323,7 +323,7 @@ namespace NuGetGallery
                 stream = Request.InputStream;
             }
 
-            return new ZipPackage(stream);
+            return new Nupkg(stream);
         }
 
         [ActionName("PackageIDs")]

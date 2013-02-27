@@ -33,11 +33,11 @@ namespace NuGetGallery
             _indexingService = indexingService;
         }
 
-        public Package CreatePackage(IPackage nugetPackage, User user, bool commitChanges = true)
+        public Package CreatePackage(INupkg nugetPackage, User user, bool commitChanges = true)
         {
-            ValidateNuGetPackage(nugetPackage);
+            ValidateNuGetPackageMetadata(nugetPackage.Metadata);
 
-            var packageRegistration = CreateOrGetPackageRegistration(user, nugetPackage);
+            var packageRegistration = CreateOrGetPackageRegistration(user, nugetPackage.Metadata);
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
             packageRegistration.Packages.Add(package);
@@ -360,7 +360,7 @@ namespace NuGetGallery
             return false;
         }
 
-        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackage nugetPackage)
+        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackageMetadata nugetPackage)
         {
             var packageRegistration = FindPackageRegistrationById(nugetPackage.Id);
 
@@ -384,9 +384,9 @@ namespace NuGetGallery
             return packageRegistration;
         }
 
-        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, IPackage nugetPackage)
+        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage)
         {
-            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Version.ToString());
+            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Metadata.Version.ToString());
 
             if (package != null)
             {
@@ -399,49 +399,49 @@ namespace NuGetGallery
 
             package = new Package
                 {
-                    Version = nugetPackage.Version.ToString(),
-                    Description = nugetPackage.Description,
-                    ReleaseNotes = nugetPackage.ReleaseNotes,
-                    RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
+                    Version = nugetPackage.Metadata.Version.ToString(),
+                    Description = nugetPackage.Metadata.Description,
+                    ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
+                    RequiresLicenseAcceptance = nugetPackage.Metadata.RequireLicenseAcceptance,
                     HashAlgorithm = Constants.Sha512HashAlgorithmId,
                     Hash = _cryptoService.GenerateHash(packageFileStream.ReadAllBytes()),
                     PackageFileSize = packageFileStream.Length,
                     Created = now,
-                    Language = nugetPackage.Language,
+                    Language = nugetPackage.Metadata.Language,
                     LastUpdated = now,
                     Published = now,
-                    Copyright = nugetPackage.Copyright,
-                    IsPrerelease = !nugetPackage.IsReleaseVersion(),
+                    Copyright = nugetPackage.Metadata.Copyright,
+                    IsPrerelease = !nugetPackage.Metadata.IsReleaseVersion(),
                     Listed = true,
                     PackageRegistration = packageRegistration
                 };
 
-            if (nugetPackage.IconUrl != null)
+            if (nugetPackage.Metadata.IconUrl != null)
             {
-                package.IconUrl = nugetPackage.IconUrl.ToString();
+                package.IconUrl = nugetPackage.Metadata.IconUrl.ToString();
             }
-            if (nugetPackage.LicenseUrl != null)
+            if (nugetPackage.Metadata.LicenseUrl != null)
             {
-                package.LicenseUrl = nugetPackage.LicenseUrl.ToString();
+                package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToString();
             }
-            if (nugetPackage.ProjectUrl != null)
+            if (nugetPackage.Metadata.ProjectUrl != null)
             {
-                package.ProjectUrl = nugetPackage.ProjectUrl.ToString();
+                package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToString();
             }
-            if (nugetPackage.Summary != null)
+            if (nugetPackage.Metadata.Summary != null)
             {
-                package.Summary = nugetPackage.Summary;
+                package.Summary = nugetPackage.Metadata.Summary;
             }
-            if (nugetPackage.Tags != null)
+            if (nugetPackage.Metadata.Tags != null)
             {
-                package.Tags = nugetPackage.Tags;
+                package.Tags = nugetPackage.Metadata.Tags;
             }
-            if (nugetPackage.Title != null)
+            if (nugetPackage.Metadata.Title != null)
             {
-                package.Title = nugetPackage.Title;
+                package.Title = nugetPackage.Metadata.Title;
             }
 
-            foreach (var author in nugetPackage.Authors)
+            foreach (var author in nugetPackage.Metadata.Authors)
             {
                 package.Authors.Add(new PackageAuthor { Name = author });
             }
@@ -455,7 +455,7 @@ namespace NuGetGallery
                 }
             }
 
-            foreach (var dependencySet in nugetPackage.DependencySets)
+            foreach (var dependencySet in nugetPackage.Metadata.DependencySets)
             {
                 if (dependencySet.Dependencies.Count == 0)
                 {
@@ -488,13 +488,13 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual IEnumerable<FrameworkName> GetSupportedFrameworks(IPackage package)
+        public virtual IEnumerable<FrameworkName> GetSupportedFrameworks(INupkg package)
         {
             return package.GetSupportedFrameworks();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        private static void ValidateNuGetPackage(IPackage nugetPackage)
+        private static void ValidateNuGetPackageMetadata(IPackageMetadata nugetPackage)
         {
             // TODO: Change this to use DataAnnotations
             if (nugetPackage.Id.Length > 128)

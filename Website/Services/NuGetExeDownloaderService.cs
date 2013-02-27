@@ -30,7 +30,7 @@ namespace NuGetGallery
             return await _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.DownloadsFolderName, "nuget.exe");
         }
 
-        public Task UpdateExecutableAsync(IPackage zipPackage)
+        public Task UpdateExecutableAsync(INupkg zipPackage)
         {
             return ExtractNuGetExe(zipPackage);
         }
@@ -51,21 +51,18 @@ namespace NuGetGallery
 
             using (Stream packageStream = await _packageFileService.DownloadPackageFileAsync(package))
             {
-                var zipPackage = new ZipPackage(packageStream);
+                var zipPackage = new Nupkg(packageStream);
                 await ExtractNuGetExe(zipPackage);
             }
         }
 
-        private Task ExtractNuGetExe(IPackage package)
+        private Task ExtractNuGetExe(INupkg package)
         {
             lock (fileLock)
             {
-                var executable = package.GetFiles("tools")
-                                        .First(f => f.Path.Equals(@"tools\NuGet.exe", StringComparison.OrdinalIgnoreCase));
-
-                using (Stream packageFileStream = executable.GetStream())
+                using (Stream nugetExeStream = package.GetCheckedFileStream(@"tools\NuGet.exe", maxSize: 16777216))
                 {
-                    return _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
+                    return _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", nugetExeStream);
                 }
             }
         }

@@ -472,6 +472,8 @@
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Packaging\INupkg.cs" />
+    <Compile Include="Packaging\Nupkg.cs" />
     <Compile Include="PagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>

@@ -75,8 +75,11 @@ namespace NuGetGallery
                 .Returns(Task.FromResult(0))
                 .Verifiable();
 
-            var nugetPackage = new Mock<IPackage>();
-            nugetPackage.Setup(s => s.GetFiles()).Returns(new[] { CreateExePackageFile() }.AsQueryable());
+            var nugetPackage = new Mock<INupkg>();
+            nugetPackage.Setup(s => s.GetFiles()).Returns(new[] {"nuget.exe"});
+            nugetPackage
+                .Setup(s => s.GetCheckedFileStream("nuget.exe", 10000))
+                .Returns(Stream.Null);
 
             // Act
             var downloaderService = GetDownloaderService(fileStorageService: fileStorage);

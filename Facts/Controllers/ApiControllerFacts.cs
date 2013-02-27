@@ -33,7 +33,7 @@ namespace NuGetGallery
             Mock<IPackageFileService> fileService = null,
             Mock<IUserService> userService = null,
             Mock<INuGetExeDownloaderService> nugetExeDownloader = null,
-            IPackage packageFromInputStream = null)
+            Mock<INupkg> packageFromInputStream = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             userService = userService ?? new Mock<IUserService>();
@@ -48,7 +48,7 @@ namespace NuGetGallery
             controller.CallBase = true;
             if (packageFromInputStream != null)
             {
-                controller.Setup(x => x.ReadPackageFromRequest()).Returns(packageFromInputStream);
+                controller.Setup(x => x.ReadPackageFromRequest()).Returns(packageFromInputStream.Object);
             }
             return controller.Object;
         }
@@ -74,15 +74,15 @@ namespace NuGetGallery
                 var packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0)).Verifiable();
 
-                var nuGetPackage = new Mock<IPackage>();
-                nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
 
                 var controller = CreateController(
                     fileService: packageFileService,
                     userService: userService,
                     packageService: packageService,
-                    packageFromInputStream: nuGetPackage.Object);
+                    packageFromInputStream: nuGetPackage);
 
                 // Act
                 await controller.CreatePackagePut(guid);
@@ -128,9 +128,9 @@ namespace NuGetGallery
             public async Task WillReturnConflictIfAPackageWithTheIdAndSemanticVersionAlreadyExists()
             {
                 var version = new SemanticVersion("1.0.42");
-                var nuGetPackage = new Mock<IPackage>();
-                nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(version);
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(version);
 
                 var user = new User();
 
@@ -144,7 +144,7 @@ namespace NuGetGallery
                 packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(user);
-                var controller = CreateController(userService: userService, packageService: packageService, packageFromInputStream: nuGetPackage.Object);
+                var controller = CreateController(userService: userService, packageService: packageService, packageFromInputStream: nuGetPackage);
 
                 // Act
                 var result = await controller.CreatePackagePut(Guid.NewGuid().ToString());
@@ -159,13 +159,13 @@ namespace NuGetGallery
             [Fact]
             public void WillFindTheUserThatMatchesTheApiKey()
             {
-                var nuGetPackage = new Mock<IPackage>();
-                nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageService = new Mock<IPackageService>();
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
-                var controller = CreateController(userService: userService, packageService: packageService, packageFromInputStream: nuGetPackage.Object);
+                var controller = CreateController(userService: userService, packageService: packageService, packageFromInputStream: nuGetPackage);
                 var apiKey = Guid.NewGuid();
 
                 controller.CreatePackagePut(apiKey.ToString());
@@ -176,13 +176,13 @@ namespace NuGetGallery
             [Fact]
             public void WillCreateAPackageFromTheNuGetPackage()
             {
-                var nuGetPackage = new Mock<IPackage>();
-                nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageService = new Mock<IPackageService>();
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
-                var controller = CreateController(userService: userService, packageService: packageService, packageFromInputStream: nuGetPackage.Object);
+                var controller = CreateController(userService: userService, packageService: packageService, packageFromInputStream: nuGetPackage);
 
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
@@ -192,27 +192,27 @@ namespace NuGetGallery
             [Fact]
             public void WillCreateAPackageWithTheUserMatchingTheApiKey()
             {
-                var nuGetPackage = new Mock<IPackage>();
-                nuGetPackage.Setup(x => x.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageService = new Mock<IPackageService>();
                 var userService = new Mock<IUserService>();
                 var matchingUser = new User();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
-                var controller = CreateController(userService: userService, packageService: packageService, packageFromInputStream: nuGetPackage.Object);
+                var controller = CreateController(userService: userService, packageService: packageService, packageFromInputStream: nuGetPackage);
 
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
-                packageService.Verify(x => x.CreatePackage(It.IsAny<IPackage>(), matchingUser, true));
+                packageService.Verify(x => x.CreatePackage(It.IsAny<INupkg>(), matchingUser, true));
             }
 
             [Fact]
             public void CreatePackageRefreshesNuGetExeIfCommandLinePackageIsUploaded()
             {
                 // Arrange
-                var nuGetPackage = new Mock<IPackage>();
-                nuGetPackage.Setup(x => x.Id).Returns("NuGet.CommandLine");
-                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42"));
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("NuGet.CommandLine");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
                           .Returns(new Package { IsLatestStable = true });
@@ -222,7 +222,7 @@ namespace NuGetGallery
                 var matchingUser = new User();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
                 var controller = CreateController(
-                    userService: userService, packageService: packageService, nugetExeDownloader: nugetExeDownloader, packageFromInputStream: nuGetPackage.Object);
+                    userService: userService, packageService: packageService, nugetExeDownloader: nugetExeDownloader, packageFromInputStream: nuGetPackage);
 
                 // Act
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
@@ -235,9 +235,9 @@ namespace NuGetGallery
             public void CreatePackageDoesNotRefreshNuGetExeIfItIsNotLatestStable()
             {
                 // Arrange
-                var nuGetPackage = new Mock<IPackage>();
-                nuGetPackage.Setup(x => x.Id).Returns("NuGet.CommandLine");
-                nuGetPackage.Setup(x => x.Version).Returns(new SemanticVersion("2.0.0-alpha"));
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("NuGet.CommandLine");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("2.0.0-alpha"));
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
                           .Returns(new Package { IsLatest = true, IsLatestStable = false });
@@ -246,13 +246,13 @@ namespace NuGetGallery
                 var matchingUser = new User();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
                 var controller = CreateController(
-                    userService: userService, packageService: packageService, nugetExeDownloader: nugetExeDownloader, packageFromInputStream: nuGetPackage.Object);
+                    userService: userService, packageService: packageService, nugetExeDownloader: nugetExeDownloader, packageFromInputStream: nuGetPackage);
 
                 // Act
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
                 // Assert
-                nugetExeDownloader.Verify(s => s.UpdateExecutableAsync(It.IsAny<IPackage>()), Times.Never());
+                nugetExeDownloader.Verify(s => s.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
             }
         }
 
