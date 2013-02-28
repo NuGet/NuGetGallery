@@ -56,9 +56,12 @@ namespace NuGetGallery
             _archive.Dispose();
         }
 
+        /// <summary>
+        /// Gets a list of all the files in the package.
+        /// Filter out parts which are obviously OPC metadata.
+        /// </summary>
         public IEnumerable<string> GetFiles()
         {
-            // Filter out parts which are obviously OPC metadata
             foreach (string part in Parts)
             {
                 if (part.EndsWith("/.rels", StringComparison.OrdinalIgnoreCase))
@@ -242,15 +245,42 @@ namespace NuGetGallery
 
         public Stream GetCheckedFileStream(string filePath, int maxSize)
         {
-            var zipEntry = _archive.GetEntry(filePath);
+            if (filePath == null)
+            {
+                throw new ArgumentNullException("filePath");
+            }
+
+            var zipEntry = _archive.GetEntry(CanonicalName(filePath));
+            if (zipEntry == null)
+            {
+                throw new ArgumentException("Zip entry does not exist.");
+            }
+
             return GetCheckedFileStream(zipEntry, maxSize);
         }
 
-        private static Stream GetCheckedFileStream(ZipArchiveEntry manifestEntry, int maxSize)
+        // Needs to be able to convert: \tools\NuGet.exe to something close enough to tools/NuGet.exe
+        internal static string CanonicalName(string fileName)
         {
+            Debug.Assert(fileName != null);
+
+            fileName = fileName.Replace('\\', '/');
+
+            if (fileName.Length > 1 && fileName[0] == '/')
+            {
+                return fileName.Substring(1);
+            }
+
+            return fileName;
+        }
+
+        private static Stream GetCheckedFileStream(ZipArchiveEntry zipEntry, int maxSize)
+        {
+            Debug.Assert(zipEntry != null);
+
             // claimedLength = What the zip file header claims is the uncompressed length
             // let's not be too trusting when it comes to that claim.
-            var claimedLength = manifestEntry.Length;
+            var claimedLength = zipEntry.Length;
             if (claimedLength < 0)
             {
                 throw new InvalidOperationException("The zip entry size is invalid.");
@@ -264,7 +294,7 @@ namespace NuGetGallery
             // Read at most the claimed number of bytes from the array.
             byte[] safeBytes;
             int bytesRead;
-            using (Stream unsafeStream = manifestEntry.Open())
+            using (Stream unsafeStream = zipEntry.Open())
             {
                 safeBytes = new byte[claimedLength];
                 bytesRead = unsafeStream.Read(safeBytes, 0, (int)claimedLength);

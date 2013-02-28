@@ -83,6 +83,11 @@ namespace NuGetGallery
 
         public virtual PackageRegistration FindPackageRegistrationById(string id)
         {
+            if (id == null)
+            {
+                throw new ArgumentNullException("id");
+            }
+
             return _packageRegistrationRepository.GetAll()
                 .Include(pr => pr.Owners)
                 .SingleOrDefault(pr => pr.Id == id);

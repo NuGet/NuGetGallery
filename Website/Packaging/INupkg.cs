@@ -13,8 +13,9 @@ namespace NuGetGallery
         IPackageMetadata Metadata { get; }
 
         /// <summary>
-        /// Gets all the paths of all *non-metadata* files contained in the nupkg.
-        /// [Content_Types].xml, .rels, .pmd, and .nuspec files will not be included.
+        /// Gets all the paths of all *non-OPC-junk* files contained in the nupkg.
+        /// .nuspec file will be included in results
+        /// [Content_Types].xml, .rels, .pmd, and files will not be included.
         /// </summary>
         IEnumerable<string> GetFiles();
 

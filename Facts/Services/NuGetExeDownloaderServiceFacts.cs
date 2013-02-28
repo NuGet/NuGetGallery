@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -75,11 +76,19 @@ namespace NuGetGallery
                 .Returns(Task.FromResult(0))
                 .Verifiable();
 
+            var zipStream = new MemoryStream();
+            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                archive.CreateEntry(@"tools\NuGet.exe");
+            }
+
+            zipStream.Position = 0;
+
             var nugetPackage = new Mock<INupkg>();
-            nugetPackage.Setup(s => s.GetFiles()).Returns(new[] {"nuget.exe"});
+            nugetPackage.Setup(s => s.GetFiles()).Returns(new[] { @"tools\NuGet.exe" });
             nugetPackage
                 .Setup(s => s.GetCheckedFileStream("nuget.exe", 10000))
-                .Returns(Stream.Null);
+                .Returns(zipStream);
 
             // Act
             var downloaderService = GetDownloaderService(fileStorageService: fileStorage);
