@@ -17,6 +17,7 @@ namespace NuGetGallery
                 var packageStream = CreateTestPackageStream();
                 packageStream.Position = 0;
 
+                // Act
                 using (var nupkg = new Nupkg(packageStream, leaveOpen: false))
                 {
                     Assert.Equal("TestPackage", nupkg.Metadata.Id);
@@ -31,6 +32,7 @@ namespace NuGetGallery
                 var packageStream = CreateTestPackageStream();
                 packageStream.Position = 0;
 
+                // Act
                 using (var nupkg = new Nupkg(packageStream, leaveOpen: false))
                 {
                     var parts = nupkg.Parts;
@@ -47,6 +49,7 @@ namespace NuGetGallery
                 var packageStream = CreateTestPackageStream();
                 packageStream.Position = 0;
 
+                // Act
                 using (var nupkg = new Nupkg(packageStream, leaveOpen: false))
                 {
                     var files = nupkg.GetFiles();
@@ -59,7 +62,7 @@ namespace NuGetGallery
                 }
             }
 
-            private Stream CreateTestPackageStream()
+            private static Stream CreateTestPackageStream()
             {
                 var packageStream = new MemoryStream();
                 var builder = new PackageBuilder
@@ -119,7 +122,7 @@ namespace NuGetGallery
             public void PiecesWithTrailingSlashesAreIgnored()
             {
                 bool interleaved;
-                bool ignored = Nupkg.IsInvalidPartName(Nupkg.GetLogicalPartName("foo.txt/[13].piece/", out interleaved).ToString());
+                bool ignored = !Nupkg.IsValidPartName(Nupkg.GetLogicalPartName("foo.txt/[13].piece/", out interleaved).ToString());
                 Assert.True(ignored);
             }
         }
@@ -134,37 +137,23 @@ namespace NuGetGallery
             [InlineData("/[Content_Types].xml")]
             public void LegitPartNamesAreAccepted(string logicalPartName)
             {
-                bool ignored = Nupkg.IsInvalidPartName(logicalPartName);
-                Assert.False(ignored);
+                bool valid = Nupkg.IsValidPartName(logicalPartName);
+                Assert.True(valid);
             }
 
             [Fact]
             public void EmptyPartNamesAreIgnored()
             {
-                bool ignored = Nupkg.IsInvalidPartName("/");
-                Assert.True(ignored);
+                bool valid = Nupkg.IsValidPartName("/");
+                Assert.False(valid);
             }
 
             [Fact]
             public void PartsWithTrailingSlashesAreIgnored()
             {
-                bool ignored = Nupkg.IsInvalidPartName("/content/");
-                Assert.True(ignored);
+                bool valid = Nupkg.IsValidPartName("/content/");
+                Assert.False(valid);
             }
-
-            //[Fact]
-            //public void PartsWithBackslashesAreAnError(string logicalPartName)
-            //{
-            //    Assert.Throws<InvalidDataException>(
-            //        () => Nupkg.IsInvalidPartName("/content\file.txt"));
-            //}
-
-            //[Fact]
-            //public void PartsWithPercentEncodedSlashesAreAnError(string logicalPartName)
-            //{
-            //    Assert.Throws<InvalidDataException>(
-            //        () => Nupkg.IsInvalidPartName("/content%2Ffile.txt"));
-            //}
 
             [Theory]
             [InlineData("//")]
@@ -173,8 +162,8 @@ namespace NuGetGallery
             [InlineData("/Dir1//Dir2/file.txt")]
             public void PartsWithEmptyISegmentsAreIgnored(string logicalPartName)
             {
-                bool ignored = Nupkg.IsInvalidPartName(logicalPartName);
-                Assert.True(ignored);
+                bool valid = Nupkg.IsValidPartName(logicalPartName);
+                Assert.False(valid);
             }
 
             [Theory]
@@ -184,8 +173,8 @@ namespace NuGetGallery
             [InlineData("/Dir1/File.")]
             public void PartsWithDotEndingSegmentsAreIgnored(string logicalPartName)
             {
-                bool ignored = Nupkg.IsInvalidPartName(logicalPartName);
-                Assert.True(ignored);
+                bool valid = Nupkg.IsValidPartName(logicalPartName);
+                Assert.False(valid);
             }
 
             [Theory]
@@ -196,18 +185,8 @@ namespace NuGetGallery
             [InlineData("/Dir1/../File.txt")]
             public void PartsWithDotOnlyISegmentsAreIgnored(string logicalPartName)
             {
-                bool ignored = Nupkg.IsInvalidPartName(logicalPartName);
-                Assert.True(ignored);
-            }
-
-            //[Fact]
-            public void WeDontVerifyContentTypes()
-            {
-                // Not really a test, just a statement of policy.
-                // We don't go and verify content types exist for the part, because never extract parts (except nuspec - known content type) so there's not much point. Invalid packages there are the end users problem.
-
-                // This is despite the normative statement
-                // "The package implementer shall not map a logical item name or complete sequence of logical item names sharing a common prefix to a part name if the logical item prefix has no corresponding content type.""
+                bool valid = Nupkg.IsValidPartName(logicalPartName);
+                Assert.False(valid);
             }
         }
 

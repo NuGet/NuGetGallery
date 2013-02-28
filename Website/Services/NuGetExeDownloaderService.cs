@@ -1,14 +1,13 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGet;
 
 namespace NuGetGallery
 {
     public class NuGetExeDownloaderService : INuGetExeDownloaderService
     {
+        private const int MaxNuGetExeFileSize = 10 * 1024 * 1024;
         private static readonly object fileLock = new object();
         private readonly IFileStorageService _fileStorageService;
         private readonly IPackageFileService _packageFileService;
@@ -60,7 +59,7 @@ namespace NuGetGallery
         {
             lock (fileLock)
             {
-                using (Stream nugetExeStream = package.GetCheckedFileStream(@"tools\NuGet.exe", maxSize: 16777216))
+                using (Stream nugetExeStream = package.GetSizeVerifiedFileStream(@"tools\NuGet.exe", MaxNuGetExeFileSize))
                 {
                     return _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", nugetExeStream);
                 }

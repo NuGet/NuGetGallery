@@ -10,8 +10,15 @@ using NuGet;
 
 namespace NuGetGallery
 {
+    // Note - a lot of this code is based on the OPC format which we've traditionally used to generate (save) nupkg files.
+    // This class is intended for *reading* the packages only.
+    // We deviate from a typical OPC package reader in a couple notable ways:
+    // 1) We never look at [Content_Types] and .rels, and don't suppor their semantics.
+    // 2) We don't actually support reading files that are stored as interleaved parts (/[0].piece etc), 
+    //    although we do recognize the part exists (with its proper intended part name).
     public sealed class Nupkg : INupkg
     {
+        private const int MaxManifestSize = 1024*1024;
         private static readonly Regex PieceSpecifierRegex = new Regex(@"\[(0|[1-9][1-9]*)\]\.piece", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
         private readonly Stream _stream;
@@ -25,7 +32,7 @@ namespace NuGetGallery
             get { return _manifest.Metadata; }
         }
 
-        internal IEnumerable<string> Parts
+        public IEnumerable<string> Parts
         { 
             get { return _parts ?? (_parts = SafelyLoadParts(_archive)); }
         }
@@ -39,6 +46,16 @@ namespace NuGetGallery
             if (stream == null)
             {
                 throw new ArgumentNullException("stream");
+            }
+
+            if (!stream.CanSeek)
+            {
+                var originalStream = stream;
+                stream = new MemoryStream(originalStream.ReadAllBytes(), writable: false);
+                if (!leaveOpen)
+                {
+                    originalStream.Dispose();
+                }
             }
 
             _stream = stream;
@@ -93,28 +110,22 @@ namespace NuGetGallery
 
         private static Manifest SafelyLoadManifest(ZipArchive archive)
         {
-            var nuspecs = archive.Entries.Where(entry =>
-                    (entry.Name.IndexOf("/", StringComparison.Ordinal) == -1)
+            var manifestEntry = archive.Entries.SingleOrDefault(entry =>
+                    entry.Name.IndexOf("/", StringComparison.Ordinal) == -1
                     && entry.Name.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase)
-                ).ToArray();
+                );
 
-            if (nuspecs.Length < 1)
+            if (manifestEntry == null)
             {
-                throw new InvalidOperationException("Package does not contain a package manifest.");
+                throw new InvalidOperationException("The package does not contain a manifest.");
             }
 
-            if (nuspecs.Length > 1)
-            {
-                throw new InvalidOperationException("Package contains multiple package manifests.");
-            }
-
-            ZipArchiveEntry manifestEntry = nuspecs[0];
-            using (var safeStream = GetCheckedFileStream(manifestEntry, 1048576))
+            using (var safeStream = GetSizeVerifiedFileStream(manifestEntry, MaxManifestSize))
             {
                 return Manifest.ReadFrom(
-                        safeStream,
-                        NullPropertyProvider.Instance,
-                        validateSchema: false);
+                    safeStream,
+                    NullPropertyProvider.Instance,
+                    validateSchema: true); // Validating schema hopefully helps ensure quality of packages on the gallery
             }
         }
 
@@ -124,17 +135,17 @@ namespace NuGetGallery
         /// </summary>
         private static HashSet<string> SafelyLoadParts(ZipArchive archive)
         {
-            var ret = new HashSet<string>();
+            var ret = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var entry in archive.Entries)
             {
                 bool interleaved;
                 string partName = GetLogicalPartName(entry.FullName, out interleaved).ToString();
-                if (!IsInvalidPartName(partName))
+                if (IsValidPartName(partName))
                 {
                     bool added = ret.Add(partName);
                     if (!added && !interleaved)
                     {
-                        throw new InvalidOperationException("Duplicate Part Name");
+                        throw new InvalidDataException("Duplicate Part Name");
                     }
                 }
 
@@ -143,49 +154,29 @@ namespace NuGetGallery
             return ret;
         }
 
-        internal static bool IsInvalidPartName(string logicalPartName)
+        internal static bool IsValidPartName(string logicalPartName)
         {
             Debug.Assert(logicalPartName != null);
             Debug.Assert(logicalPartName.Length >= 1);
             Debug.Assert(logicalPartName.StartsWith("/", StringComparison.Ordinal));
 
-            if (logicalPartName.EndsWith("/", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
+            var segments = logicalPartName.Split('/');
 
-            bool segmentHasNoNonDotCharacters = false;
-            bool segmentEndsInDot = false;
-            foreach (char c in logicalPartName)
+            // note: Skip(1): since logicalPartName starts with '/', there is always an empty string at the start
+            foreach (string segment in segments.Skip(1))
             {
-                switch (c)
+                // Part names can't be empty (no double slash //)
+                // Part names can't end in .
+                // Part name segments must contain a non-dot character.
+                if (segment.Length == 0 ||
+                    segment.All(c => c == '.') ||
+                    segment[segment.Length - 1] == '.')
                 {
-                    case '/':
-                        if (segmentEndsInDot || segmentHasNoNonDotCharacters)
-                        {
-                            return true; // Part name segments must contain a non-dot character.
-                        }
-
-                        segmentHasNoNonDotCharacters = true;
-                        break;
-
-                    case '.':
-                        segmentEndsInDot = true;
-                        break;
-
-                    default:
-                        segmentHasNoNonDotCharacters = false;
-                        segmentEndsInDot = false;
-                        break;
+                    return false;
                 }
             }
 
-            if (segmentEndsInDot || segmentHasNoNonDotCharacters)
-            {
-                return true; // Part name segments must contain a non-dot character, and may not end in a dot.
-            }
-
-            return false;
+            return true;
         }
 
         internal static Uri GetLogicalPartName(string zipEntryName, out bool interleaved)
@@ -198,7 +189,17 @@ namespace NuGetGallery
             interleaved = false;
             string logicalPartName = zipEntryName;
 
-            // Convert '\' to '/' because it will happen anyway during URI-ifying.
+            // Note: ZIP Entries path format (APPNOTE.TXT 6.3.3)
+            // "4.4.17.1 The name of the file, with optional relative path.
+            //  The path stored MUST not contain a drive or
+            //  device letter, or a leading slash.  All slashes
+            //  MUST be forward slashes '/' as opposed to
+            //  backwards slashes '\' for compatibility with Amiga
+            //  and UNIX file systems etc..."
+            if (zipEntryName.Contains('\\'))
+            {
+                throw new InvalidDataException("The zip entry name violates zip format");
+            }
 
             // If it matches the pattern for 'piece of interleaved part' then interleaved is true, and we trim off the piece specifier
             // e.g. "spine.xml/[0].piece"
@@ -212,7 +213,7 @@ namespace NuGetGallery
                 }
             }
 
-            // Finally logical part names should start with a '/'. Zip Embedding Convention says to prepend the slash.
+            // Finally logical part names should start with a '/'. OPC Zip Embedding Convention says to prepend the slash.
             Uri ret = new Uri('/' + logicalPartName, UriKind.Relative);
             Debug.Assert(!ret.IsAbsoluteUri);
             return ret;
@@ -221,12 +222,18 @@ namespace NuGetGallery
         public IEnumerable<FrameworkName> GetSupportedFrameworks()
         {
             var fileFrameworks = new HashSet<FrameworkName>();
-            fileFrameworks.AddRange(Metadata.FrameworkAssemblies.SelectMany(f => f.SupportedFrameworks));
+            fileFrameworks.AddRange(Metadata.FrameworkAssemblies
+                .SelectMany(f => f.SupportedFrameworks)
+                .Where(sf => sf != null));
 
             foreach (var file in GetFiles())
             {
                 string effectivePath;
-                fileFrameworks.Add(VersionUtility.ParseFrameworkNameFromFilePath(file, out effectivePath));
+                var frameworkName = VersionUtility.ParseFrameworkNameFromFilePath(file, out effectivePath);
+                if (frameworkName != null)
+                {
+                    fileFrameworks.Add(frameworkName);
+                }
             }
 
             return fileFrameworks;
@@ -238,7 +245,7 @@ namespace NuGetGallery
             return _stream;
         }
 
-        public Stream GetCheckedFileStream(string filePath, int maxSize)
+        public Stream GetSizeVerifiedFileStream(string filePath, int maxSize)
         {
             if (filePath == null)
             {
@@ -251,7 +258,7 @@ namespace NuGetGallery
                 throw new ArgumentException("Zip entry does not exist.");
             }
 
-            return GetCheckedFileStream(zipEntry, maxSize);
+            return GetSizeVerifiedFileStream(zipEntry, maxSize);
         }
 
         // Needs to be able to convert: \tools\NuGet.exe to something close enough to tools/NuGet.exe
@@ -269,7 +276,7 @@ namespace NuGetGallery
             return fileName;
         }
 
-        private static Stream GetCheckedFileStream(ZipArchiveEntry zipEntry, int maxSize)
+        private static Stream GetSizeVerifiedFileStream(ZipArchiveEntry zipEntry, int maxSize)
         {
             Debug.Assert(zipEntry != null);
 
@@ -278,12 +285,12 @@ namespace NuGetGallery
             var claimedLength = zipEntry.Length;
             if (claimedLength < 0)
             {
-                throw new InvalidOperationException("The zip entry size is invalid.");
+                throw new InvalidDataException("The zip entry size is invalid.");
             }
 
             if (claimedLength > maxSize)
             {
-                throw new InvalidOperationException("The zip entry is larger than the allowed size.");
+                throw new InvalidDataException("The zip entry is larger than the allowed size.");
             }
 
             // Read at most the claimed number of bytes from the array.
