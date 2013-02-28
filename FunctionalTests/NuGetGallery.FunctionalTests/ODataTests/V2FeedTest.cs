@@ -8,20 +8,21 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NugetClientSDKHelpers;
+using NuGetGallery.FunctionTests.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace NuGetGalleryBVTs.ODataFeedTests
+namespace NuGetGallery.FunctionalTests.ODataFeedTests
 {
     /// <summary>
-    /// Checks if the basic operations against OData feed works fine.
+    /// Checks if the basic operations against V2 Feed works fine.
     /// </summary>
     [TestClass]
-    public class ODataTest
+    public partial class V2FeedTest
     {
         [TestMethod]
-        [Description("Downloads a package from the OData feed and checks if the file is present on local disk")]
-        public void DownloadPackageFromODataFeed()
+        [Description("Downloads a package from the V2 feed and checks if the file is present on local disk")]
+        [Priority(0)]
+        public void DownloadPackageFromV2Feed()
         {
             ClientSDKHelper.ClearMachineCache(); //clear local cache.
             try
@@ -31,10 +32,10 @@ namespace NuGetGalleryBVTs.ODataFeedTests
                 Task<string> downloadTask = DownloadPackage(packageId, version);                
                 string filename = downloadTask.Result;
                 //check if the file exists.
-                Assert.IsTrue(File.Exists(filename), " Package download from OData feed didnt work");
+                Assert.IsTrue(File.Exists(filename), " Package download from V2 feed didnt work");
                 string downloadedPackageId = ClientSDKHelper.GetPackageIdFromNupkgFile(filename);
                 //Check that the downloaded Nupkg file is not corrupt and it indeed corresponds to the package which we were trying to download.
-                Assert.IsTrue(downloadedPackageId.Equals(packageId), "Unable to unzip the package downloaded via OData. Check log for details");
+                Assert.IsTrue(downloadedPackageId.Equals(packageId), "Unable to unzip the package downloaded via V2 feed. Check log for details");
                 
             }
             catch (Exception e)
@@ -43,8 +44,33 @@ namespace NuGetGalleryBVTs.ODataFeedTests
             }
         }
 
+        [TestMethod]
+        [Description("Restores a package from the V2 feed and checks if the file is present on local disk")]
+        [Priority(0)]
+        public void RestorePackageFromV2Feed()
+        {
+            ClientSDKHelper.ClearMachineCache(); //clear local cache.
+            try
+            {
+                string packageId = "EntityFramework"; //the package name shall be fixed as it really doesnt matter which package we are trying to install.
+                string version = "5.0.0";
+                Task<string> downloadTask = DownloadPackage(packageId, version,"Restore");
+                string filename = downloadTask.Result;
+                //check if the file exists.
+                Assert.IsTrue(File.Exists(filename), " Package restore from V2 feed didnt work");
+                string downloadedPackageId = ClientSDKHelper.GetPackageIdFromNupkgFile(filename);
+                //Check that the downloaded Nupkg file is not corrupt and it indeed corresponds to the package which we were trying to download.
+                Assert.IsTrue(downloadedPackageId.Equals(packageId), "Unable to unzip the package restored via V2 Feed. Check log for details");
+
+            }
+            catch (Exception e)
+            {
+                Assert.Fail(e.Message);
+            }
+        }
+
         #region PrivateMethods
-        private Task<string> DownloadPackage(string packageId, string version)
+        private Task<string> DownloadPackage(string packageId, string version,string operation="Install")
         {
             HttpClient client = new HttpClient();
             string requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
@@ -52,7 +78,7 @@ namespace NuGetGalleryBVTs.ODataFeedTests
             CancellationTokenSource cts = new CancellationTokenSource();
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add("user-agent", "TestAgent");
-            request.Headers.Add("NuGet-Operation", "Install");
+            request.Headers.Add("NuGet-Operation", operation);           
             Task<HttpResponseMessage> responseTask = client.SendAsync(request);
             TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
             responseTask.ContinueWith((rt) =>

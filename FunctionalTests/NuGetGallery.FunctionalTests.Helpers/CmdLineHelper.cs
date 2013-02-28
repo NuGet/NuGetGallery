@@ -205,7 +205,7 @@ namespace NuGetGallery.FunctionTests.Helpers
 
         private static void AddWindows8Tag(string NuspecFilePath)
         {
-            UpdateNuspecFile(NuspecFilePath, "<tags>Tag1 Tag2</tags>", "<tags>windows8</tags>");
+            UpdateNuspecFile(NuspecFilePath, "<tags>Tag1 Tag2</tags>", "<tags>Windows8</tags>");
         }
 
         private static void AddWebMatrixTag(string NuspecFilePath)
