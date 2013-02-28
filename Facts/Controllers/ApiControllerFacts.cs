@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Data;
+using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web;
@@ -15,6 +17,9 @@ namespace NuGetGallery
 {
     public class ApiControllerFacts
     {
+        private static readonly Uri HttpRequestUrl = new Uri("http://nuget.org/api/v2/something");
+        private static readonly Uri HttpsRequestUrl = new Uri("https://nuget.org/api/v2/something");
+
         private static void AssertStatusCodeResult(ActionResult result, int statusCode, string statusDesc)
         {
             Assert.IsType<HttpStatusCodeWithBodyResult>(result);
@@ -369,6 +374,24 @@ namespace NuGetGallery
         public class TheGetPackageAction
         {
             [Fact]
+            public async Task GetPackageReturns400ForEvilPackageName()
+            {
+                var controller = CreateController();
+                var result = await controller.GetPackage("../..", "1.0.0.0");
+                var badRequestResult = (HttpStatusCodeWithBodyResult)result;
+                Assert.Equal(400, badRequestResult.StatusCode);
+            }
+
+            [Fact]
+            public async Task GetPackageReturns400ForEvilPackageVersion()
+            {
+                var controller = CreateController();
+                var result2 = await controller.GetPackage("Foo", "10../..1.0");
+                var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
+                Assert.Equal(400, badRequestResult2.StatusCode);
+            }
+
+            [Fact]
             public async Task GetPackageReturns404IfPackageIsNotFound()
             {
                 // Arrange
@@ -401,7 +424,7 @@ namespace NuGetGallery
                 packageService.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux", "Install")).Verifiable();
 
                 var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
-                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(package))
+                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, package))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
                               .Verifiable();
                 var userService = new Mock<IUserService>(MockBehavior.Strict);
@@ -414,6 +437,7 @@ namespace NuGetGallery
                 httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
                 httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
                 httpRequest.SetupGet(r => r.Headers).Returns(headers);
+                httpRequest.SetupGet(r => r.Url).Returns(HttpRequestUrl);
                 var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
                 httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
 
@@ -423,6 +447,45 @@ namespace NuGetGallery
 
                 // Act
                 var result = await controller.GetPackage("Baz", "1.0.1");
+
+                // Assert
+                Assert.Same(actionResult, result);
+                packageFileService.Verify();
+                packageService.Verify();
+            }
+
+            [Fact]
+            public async Task GetPackageReturnsSpecificPackageEvenIfDatabaseIsOffline()
+            {
+                // Arrange
+                var guid = Guid.NewGuid();
+                var package = new Package();
+                var actionResult = new EmptyResult();
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.0", false)).Throws(new DataException("Can't find the database")).Verifiable();
+
+                var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
+                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
+                              .Returns(Task.FromResult<ActionResult>(actionResult))
+                              .Verifiable();
+
+                NameValueCollection headers = new NameValueCollection();
+                headers.Add("NuGet-Operation", "Install");
+
+                var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
+                httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
+                httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
+                httpRequest.SetupGet(r => r.Headers).Returns(headers);
+                httpRequest.SetupGet(r => r.Url).Returns(HttpRequestUrl);
+                var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+                httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
+
+                var controller = CreateController(packageService: packageService, fileService: packageFileService);
+                var controllerContext = new ControllerContext(new RequestContext(httpContext.Object, new RouteData()), controller);
+                controller.ControllerContext = controllerContext;
+
+                // Act
+                var result = await controller.GetPackage("Baz", "1.0.0");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -442,7 +505,7 @@ namespace NuGetGallery
                 packageService.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux", "Install")).Verifiable();
 
                 var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
-                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(package))
+                packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, package))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
                               .Verifiable();
                 var userService = new Mock<IUserService>(MockBehavior.Strict);
@@ -455,6 +518,7 @@ namespace NuGetGallery
                 httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
                 httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
                 httpRequest.SetupGet(r => r.Headers).Returns(headers);
+                httpRequest.SetupGet(r => r.Url).Returns(HttpRequestUrl);
                 var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
                 httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
 

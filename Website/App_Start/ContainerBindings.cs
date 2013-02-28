@@ -21,21 +21,11 @@ namespace NuGetGallery
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         public override void Load()
         {
-            IConfiguration configuration = new Configuration();
+            var configuration = new Configuration();
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
-
-            var gallerySetting = new Lazy<GallerySetting>(
-                () =>
-                    {
-                        using (var entitiesContext = new EntitiesContext(configuration.SqlConnectionString, configuration.ReadOnlyMode))
-                        {
-                            var settingsRepo = new EntityRepository<GallerySetting>(entitiesContext);
-                            return settingsRepo.GetAll().FirstOrDefault();
-                        }
-                    });
-
-            Bind<GallerySetting>().ToMethod(c => gallerySetting.Value);
+            Bind<PoliteCaptcha.IConfigurationSource>()
+                .ToMethod(context => Configuration.GetPoliteCaptchaConfiguration());
 
             Bind<Lucene.Net.Store.Directory>()
                 .ToMethod(_ => LuceneCommon.GetDirectory())
@@ -163,7 +153,7 @@ namespace NuGetGallery
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                     {
-                        var settings = Kernel.Get<GallerySetting>();
+                        var settings = Kernel.Get<IConfiguration>();
                         if (settings.UseSmtp)
                         {
                             var mailSenderConfiguration = new MailSenderConfiguration
@@ -272,9 +262,6 @@ namespace NuGetGallery
                 .InRequestScope();
             Bind<IPackageRegistrationByIdQuery>()
                 .To<PackageRegistrationByIdQuery>()
-                .InRequestScope();
-            Bind<IUserByUsernameQuery>()
-                .To<UserByUsernameQuery>()
                 .InRequestScope();
 
             Bind<IAggregateStatsService>()

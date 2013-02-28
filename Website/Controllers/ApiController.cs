@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -33,37 +35,77 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> GetPackage(string id, string version)
         {
+            // some security paranoia about URL hacking somehow creating e.g. open redirects
+            // validate user input: explicit calls to the same validators used during Package Registrations
+            // Ideally shouldn't be necessary?
+            if (!PackageIdValidator.IsValidPackageId(id ?? ""))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
+            }
+
+            if (!String.IsNullOrEmpty(version))
+            {
+                SemanticVersion dummy;
+                if (!SemanticVersion.TryParse(version, out dummy))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
+                }
+            }
+
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
             // The allow prerelease flag is ignored if both partialId and version are specified.
-            var package = _packageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
-            
-            if (package == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-            }
-
+            // In general we want to try to add download statistics for any package regardless of whether a version was specified.
             try
             {
-                _packageService.AddDownloadStatistics(
-                    package,
-                    Request.UserHostAddress,
-                    Request.UserAgent,
-                    Request.Headers["NuGet-Operation"]);
+                Package package = _packageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+                if (package == null)
+                {
+                    return new HttpStatusCodeWithBodyResult(
+                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                }
+
+                try
+                {
+                    _packageService.AddDownloadStatistics(
+                        package,
+                        Request.UserHostAddress,
+                        Request.UserAgent,
+                        Request.Headers["NuGet-Operation"]);
+                }
+                catch (ReadOnlyModeException)
+                {
+                    // *gulp* Swallowed. It's OK not to add statistics and ok to not log errors in read only mode.
+                }
+                catch (SqlException e)
+                {
+                    // Log the error and continue
+                    QuietlyLogException(e);
+                }
+                catch (DataException e)
+                {
+                    // Log the error and continue
+                    QuietlyLogException(e);
+                }
+
+                if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
+                {
+                    return Redirect(package.ExternalPackageUrl);
+                }
+
+                return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
             }
-            catch (ReadOnlyModeException)
+            catch (SqlException e)
             {
-                // *gulp* Swallowed. It's OK not to log statistics in read only mode.
+                QuietlyLogException(e);
+            }
+            catch (DataException e)
+            {
+                QuietlyLogException(e);
             }
 
-            if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
-            {
-                return Redirect(package.ExternalPackageUrl);
-            }
-            else
-            {
-                return await _packageFileService.CreateDownloadPackageActionResultAsync(package);
-            }
+            // Fall back to constructing the URL based on the package version and ID.
+
+            return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, id, version);
         }
 
         [ActionName("GetNuGetExeApi")]
@@ -71,7 +113,7 @@ namespace NuGetGallery
         [OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
         public virtual Task<ActionResult> GetNuGetExe()
         {
-            return _nugetExeDownloaderService.CreateNuGetExeDownloadActionResultAsync();
+            return _nugetExeDownloaderService.CreateNuGetExeDownloadActionResultAsync(HttpContext.Request.Url);
         }
 
         [ActionName("VerifyPackageKeyApi")]
@@ -306,6 +348,18 @@ namespace NuGetGallery
                     Data = query.Execute(id, includePrerelease).ToArray(),
                     JsonRequestBehavior = JsonRequestBehavior.AllowGet
                 };
+        }
+
+        private static void QuietlyLogException(Exception e)
+        {
+            try
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
         }
     }
 }

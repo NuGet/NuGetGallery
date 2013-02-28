@@ -150,6 +150,7 @@ namespace NuGetGallery
                 Title = doc.Get("Title"),
                 Version = doc.Get("Version"),
                 SupportedFrameworks = frameworks,
+                MinClientVersion = doc.Get("MinClientVersion"),
             };
         }
 

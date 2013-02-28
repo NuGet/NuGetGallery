@@ -1,4 +1,9 @@
-﻿using System.Web.DynamicData;
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Reflection;
+using System.Web;
+using System.Web.DynamicData;
 using System.Web.Routing;
 using DynamicData.EFCodeFirstProvider;
 using NuGetGallery;
@@ -12,24 +17,49 @@ namespace DynamicDataEFCodeFirst
 
         public static void Register(RouteCollection routes, IConfiguration configuration)
         {
-            DefaultModel.RegisterContext(
-                new EFCodeFirstDataModelProvider(
-                    () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
-                    configuration: new ContextConfiguration { ScaffoldAllTables = true });
+            try
+            {
+                DefaultModel.RegisterContext(
+                    new EFCodeFirstDataModelProvider(
+                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
+                        configuration: new ContextConfiguration { ScaffoldAllTables = true });
+            }
+            catch (SqlException e)
+            {
+                QuietlyLogException(e);
+                return;
+            }
+            catch (DataException e)
+            {
+                QuietlyLogException(e);
+                return;
+            }
 
             // This route must come first to prevent some other route from the site to take over
             routes.Insert(
                 0,
                 new DynamicDataRoute("dbadmin/{table}/{action}")
-                    {
-                        Constraints = new RouteValueDictionary(new { action = "List|Details|Edit|Insert" }),
-                        Model = DefaultModel
-                    });
+                {
+                    Constraints = new RouteValueDictionary(new { action = "List|Details|Edit|Insert" }),
+                    Model = DefaultModel
+                });
 
             routes.MapPageRoute(
                 "dd_default",
                 "dbadmin",
                 "~/DynamicData/Default.aspx");
+        }
+
+        private static void QuietlyLogException(Exception e)
+        {
+            try
+            {
+                Elmah.ErrorSignal.FromCurrentContext().Raise(e);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
         }
     }
 }

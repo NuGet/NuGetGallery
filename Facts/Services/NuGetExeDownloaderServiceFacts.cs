@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -10,6 +11,9 @@ namespace NuGetGallery
 {
     public class NuGetExeDownloaderServiceFacts
     {
+        private static readonly Uri HttpRequestUrl = new Uri("http://nuget.org/nuget.exe");
+        private static readonly Uri HttpsRequestUrl = new Uri("https://nuget.org/nuget.exe");
+
         [Fact]
         public async Task CreateNuGetExeDownloadDoesNotExtractFileIfItAlreadyExists()
         {
@@ -18,13 +22,13 @@ namespace NuGetGallery
             fileStorage.Setup(s => s.FileExistsAsync("downloads", "nuget.exe"))
                 .Returns(Task.FromResult(true)).Verifiable();
 
-            fileStorage.Setup(s => s.CreateDownloadFileActionResultAsync("downloads", "nuget.exe"))
+            fileStorage.Setup(s => s.CreateDownloadFileActionResultAsync(HttpRequestUrl, "downloads", "nuget.exe"))
                 .Returns(Task.FromResult(Mock.Of<ActionResult>()))
                 .Verifiable();
 
             // Act
             var downloaderService = GetDownloaderService(fileStorageService: fileStorage);
-            await downloaderService.CreateNuGetExeDownloadActionResultAsync();
+            await downloaderService.CreateNuGetExeDownloadActionResultAsync(HttpRequestUrl);
 
             // Assert
             fileStorage.Verify();
@@ -39,7 +43,7 @@ namespace NuGetGallery
             fileStorage.Setup(s => s.SaveFileAsync("downloads", "nuget.exe", It.IsAny<Stream>()))
                 .Returns(Task.FromResult(0))
                 .Verifiable();
-            fileStorage.Setup(s => s.CreateDownloadFileActionResultAsync("downloads", "nuget.exe"))
+            fileStorage.Setup(s => s.CreateDownloadFileActionResultAsync(HttpRequestUrl, "downloads", "nuget.exe"))
                 .Returns(Task.FromResult(Mock.Of<ActionResult>()))
                 .Verifiable();
 
@@ -55,7 +59,7 @@ namespace NuGetGallery
 
             // Act
             var downloaderService = GetDownloaderService(packageService, packageFileService, fileStorage);
-            await downloaderService.CreateNuGetExeDownloadActionResultAsync();
+            await downloaderService.CreateNuGetExeDownloadActionResultAsync(HttpRequestUrl);
 
             // Assert
             packageFileService.Verify();

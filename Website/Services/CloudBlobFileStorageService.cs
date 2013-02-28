@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -24,12 +25,12 @@ namespace NuGetGallery
             _configuration = configuration;
         }
 
-        public async Task<ActionResult> CreateDownloadFileActionResultAsync(string folderName, string fileName)
+        public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
         {
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
 
-            var redirectUri = ConstructRedirectUri(blob.Uri);
+            var redirectUri = GetRedirectUri(requestUrl, blob.Uri);
             return new RedirectResult(redirectUri.OriginalString, false);
         }
 
@@ -76,10 +77,8 @@ namespace NuGetGallery
                 {
                     return null;
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
             catch (TestableStorageClientException ex)
             {
@@ -91,10 +90,8 @@ namespace NuGetGallery
                 {
                     return null;
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             stream.Position = 0;
@@ -123,7 +120,7 @@ namespace NuGetGallery
 
                 await Task.WhenAll(packagesTask, downloadsTask, uploadsTask);
             }
-            
+
             return _containers[folderName];
         }
 
@@ -149,26 +146,36 @@ namespace NuGetGallery
             var container = _client.GetContainerReference(folderName);
             await container.CreateIfNotExistAsync();
             await container.SetPermissionsAsync(
-                new BlobContainerPermissions { 
+                new BlobContainerPermissions
+                {
                     PublicAccess = isPublic ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off
                 });
 
             _containers[folderName] = container;
         }
 
-        private Uri ConstructRedirectUri(Uri blobUri)
+        internal async Task<ActionResult> CreateDownloadFileActionResult(
+            HttpContextBase httpContext,
+            string folderName,
+            string fileName)
         {
-            if (!String.IsNullOrEmpty(_configuration.AzureCdnHost))
+            var container = await GetContainer(folderName);
+            var blob = container.GetBlobReference(fileName);
+
+            var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri);
+            return new RedirectResult(redirectUri.OriginalString, false);
+        }
+
+        internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri)
+        {
+            string host = String.IsNullOrEmpty(_configuration.AzureCdnHost) ? blobUri.Host : _configuration.AzureCdnHost;
+            var urlBuilder = new UriBuilder(requestUrl.Scheme, host)
             {
-                // If a Cdn is specified, convert the blob url to an Azure Cdn url.
-                var builder = new UriBuilder(blobUri.Scheme, _configuration.AzureCdnHost);
-                builder.Path = blobUri.AbsolutePath;
-                builder.Query = blobUri.Query;
+                Path = blobUri.LocalPath,
+                Query = blobUri.Query
+            };
 
-                return builder.Uri;
-            }
-
-            return blobUri;
+            return urlBuilder.Uri;
         }
     }
 }

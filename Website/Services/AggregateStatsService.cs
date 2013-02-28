@@ -24,6 +24,7 @@ namespace NuGetGallery
                     (SELECT COUNT([Key]) FROM Packages WHERE Listed = 1) AS TotalPackages,
                     (SELECT TotalDownloadCount FROM GallerySettings) AS DownloadCount";
 
+                    command.CommandTimeout = 200;
                     database.Connection.Open();
                     using (var reader = command.ExecuteReader(CommandBehavior.CloseConnection | CommandBehavior.SingleRow))
                     {

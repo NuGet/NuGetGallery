@@ -40,5 +40,6 @@ namespace NuGetGallery
         public string Tags { get; set; }
         public string Title { get; set; }
         public int VersionDownloadCount { get; set; }
+        public string MinClientVersion { get; set; }
     }
 }

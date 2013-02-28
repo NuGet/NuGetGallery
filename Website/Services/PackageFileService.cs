@@ -15,10 +15,16 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService;
         }
 
-        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Package package)
+        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
         {
             var fileName = BuildFileName(package);
-            return _fileStorageService.CreateDownloadFileActionResultAsync(Constants.PackagesFolderName, fileName);
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
+        }
+
+        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
+        {
+            var fileName = BuildFileName(id, version);
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
         public Task DeletePackageFileAsync(string id, string version)
@@ -56,11 +62,26 @@ namespace NuGetGallery
 
         private static string BuildFileName(string id, string version)
         {
+            if (id == null)
+            {
+                throw new ArgumentNullException("id");
+            }
+            
+            if (version == null)
+            {
+                throw new ArgumentNullException("version");
+            }
+
+            // Note: packages should be saved and retrieved in blob storage using the lower case version of their filename because
+            // a) package IDs can and did change case over time
+            // b) blob storage is case sensitive
+            // c) it sucks to hit the database just to look up the right case
+            // and remember - version can contain letters too.
             return String.Format(
                 CultureInfo.InvariantCulture,
                 Constants.PackageFileSavePathTemplate,
-                id,
-                version,
+                id.ToLowerInvariant(),
+                version.ToLowerInvariant(),
                 Constants.NuGetPackageFileExtension);
         }
 

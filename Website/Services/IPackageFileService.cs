@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
@@ -9,7 +10,12 @@ namespace NuGetGallery
         /// <summary>
         ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
-        Task<ActionResult> CreateDownloadPackageActionResultAsync(Package package);
+        Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package);
+
+        /// <summary>
+        ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
+        /// </summary>
+        Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
 
         /// <summary>
         ///     Deletes the nupkg from the file storage.
