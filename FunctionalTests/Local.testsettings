@@ -4,9 +4,8 @@
   <Deployment>
     <DeploymentItem filename=".nuget\NuGet.Config" />
     <DeploymentItem filename=".nuget\NuGet.exe" />
-    <DeploymentItem filename="DataSource\Packages.csv" />
     <DeploymentItem filename=".nuget\NuGet.targets" />
-    <DeploymentItem filename="DataSource\LogonCredentials.csv" />
+    <DeploymentItem filename="DataSource\Packages.csv" />
   </Deployment>
   <Execution>
     <TestTypeSpecific>

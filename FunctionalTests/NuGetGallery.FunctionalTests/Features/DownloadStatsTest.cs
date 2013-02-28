@@ -12,6 +12,7 @@ namespace NuGetGallery.FunctionalTests.Features
     {
         [TestMethod]
         [Description("Uploads a test package and downloads it and checks if the download stats has increased appropriately.")]
+        [Priority(1)]
         public void DownloadStatsForNewlyUploadedPackage()
         {
             string packageId = DateTime.Now.Ticks.ToString();

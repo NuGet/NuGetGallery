@@ -66,20 +66,25 @@
   <ItemGroup>
     <Compile Include="ClientIntegrationTests\NuGetCommandLineTests.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCoreTests.cs" />
+    <Compile Include="Features\SearchTest.cs" />
+    <Compile Include="ODataTests\V2FeedExtendedTest.cs" />
     <Compile Include="TestBase\Constants.cs" />
     <Compile Include="Features\DownloadStatsTest.cs" />
     <Compile Include="Features\CuratedFeedTest.cs" />
-    <Compile Include="Features\PackageVersion.cs" />
+    <Compile Include="Features\PackageVersionTest.cs" />
     <Compile Include="TestBase\GalleryTestBase.cs" />
-    <Compile Include="WebUITests\UploadPackageFromUI.cs" />
-    <Compile Include="WebUITests\LogonTest.cs" />
-    <Compile Include="WebUITests\PackagesPageTest.cs" />
-    <Compile Include="WebUITests\HomePageValidationTest.cs" />
-    <Compile Include="ODataTests\ODataTest.cs" />
+    <Compile Include="WebUITests\PackageManagement\ContactOwnerTest.cs" />
+    <Compile Include="WebUITests\PackageManagement\DeletePackageTest.cs" />
+    <Compile Include="WebUITests\PackageManagement\ManagePackagesPageTest.cs" />
+    <Compile Include="WebUITests\UploadAndDownload\UploadPackageFromUI.cs" />
+    <Compile Include="WebUITests\AccountManagement\LogonTest.cs" />
+    <Compile Include="WebUITests\BasicPages\PackagesPageTest.cs" />
+    <Compile Include="WebUITests\BasicPages\HomePageValidationTest.cs" />
+    <Compile Include="ODataTests\V2FeedTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WebUITests\RegisterNewUserTest.cs" />
-    <Compile Include="WebUITests\StatisticsPageTest.cs" />
-    <Compile Include="WebUITests\UploadPackageWithoutLoginTest.cs" />
+    <Compile Include="WebUITests\AccountManagement\RegisterNewUserTest.cs" />
+    <Compile Include="WebUITests\BasicPages\StatisticsPageTest.cs" />
+    <Compile Include="WebUITests\AccountManagement\UploadPackageWithoutLoginTest.cs" />
     <Compile Include="WebUITests\ValidationRuleHelper.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -90,9 +95,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="DataSource\LogonCredentials.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="DataSource\Packages.csv">
