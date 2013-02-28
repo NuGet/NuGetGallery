@@ -6,26 +6,16 @@ using System.Configuration;
 
 namespace NuGetGallery.FunctionTests.Helpers
 {
+    /// <summary>
+    /// Provides the Urls to hit various pages in the Gallery WebSite.
+    /// </summary>
     public class UrlHelper
-    {     
-        private static string _baseurl;
-        /// <summary>
-        /// The environment against which the test has to be run. The value would be picked from env variable.
-        /// If nothing is specified, preview is used as default.
-        /// </summary>
+    {
         public static string BaseUrl
         {
             get
             {
-                if (string.IsNullOrEmpty(_baseurl))
-                {
-                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl")))
-                        _baseurl = "https://preview.nuget.org/";
-                    else
-                        _baseurl = Environment.GetEnvironmentVariable("GalleryUrl");
-                }
-
-                return _baseurl;
+                return EnvironmentSettings.BaseUrl;
             }
         }
 
@@ -79,16 +69,36 @@ namespace NuGetGallery.FunctionTests.Helpers
         public static string LogonPageUrlOnPackageUpload
         {
             get { return UrlHelper.BaseUrl + LogonPageUrlOnPackageUploadSuffix; }
-        } 
-
-        public static string GetPackagePageUrl(string packageId)
-        {
-            return UrlHelper.BaseUrl + @"Packages/" + packageId + "/";
         }
 
         public static string Windows8CuratedFeedUrl
         {
             get { return  UrlHelper.V2FeedRootUrl + Windows8CuratedFeedUrlSuffix; }
+        }
+
+        public static string WebMatrixCuratedFeedUrl
+        {
+            get { return UrlHelper.V2FeedRootUrl + WebMatrixCuratedFeedUrlSuffix; }
+        } 
+
+        public static string ManageMyPackagesUrl
+        {
+            get { return ManageMyPackagesUrlSuffix; }
+        }
+
+        public static string GetPackagePageUrl(string packageId, string version = "1.0.0")
+        {
+            return UrlHelper.BaseUrl + @"Packages/" + packageId + "/" + version;
+        }
+
+        public static string GetPackageDeletePageUrl(string packageId, string version = "1.0.0")
+        {
+            return UrlHelper.BaseUrl + @"Packages/" + packageId + "/" + version + "/Delete";
+        }
+
+        public static string GetContactOwnerPageUrl(string packageId)
+        {
+            return UrlHelper.BaseUrl + @"Packages/" + packageId + "/ContactOwners";
         } 
 
         #region UrlSuffix
@@ -99,10 +109,9 @@ namespace NuGetGallery.FunctionTests.Helpers
         private const string StatsPageUrlSuffix = "stats";
         private const string UploadPageUrlSuffix = "/packages/Upload";
         private const string VerifyUploadPageUrlSuffix = "/packages/verify-upload";
-        private const string Windows8CuratedFeedUrlSuffix = "/curated-feeds/windows8-packages/";
-
-     
-
+        private const string Windows8CuratedFeedUrlSuffix = "curated-feeds/windows8-packages/";
+        private const string WebMatrixCuratedFeedUrlSuffix = "curated-feeds/webmatrix/";
+        private const string ManageMyPackagesUrlSuffix = "/account/Packages";
         #endregion UrlSuffix
     }
 }

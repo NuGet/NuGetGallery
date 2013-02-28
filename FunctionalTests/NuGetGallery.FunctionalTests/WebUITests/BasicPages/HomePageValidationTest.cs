@@ -21,13 +21,8 @@
         {
             //send a request to home page and check for default home page text.
             WebTestRequest homePageRequest = new WebTestRequest(UrlHelper.BaseUrl);           
-            WebTestRequest request1Dependent1 = new WebTestRequest(UrlHelper.StatsPageUrl);
-            homePageRequest.DependentRequests.Add(request1Dependent1);
-            if ((this.Context.ValidationLevel >= Microsoft.VisualStudio.TestTools.WebTesting.ValidationLevel.High))
-            {
-                ValidationRuleFindText homePageTextValidationRule = ValidationRuleHelper.GetValidationRuleForFindText(Constants.HomePageText);               
-                homePageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(homePageTextValidationRule.Validate);
-            }
+            ValidationRuleFindText homePageTextValidationRule = ValidationRuleHelper.GetValidationRuleForFindText(Constants.HomePageText);               
+            homePageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(homePageTextValidationRule.Validate);         
             yield return homePageRequest;
             homePageRequest = null;          
         }

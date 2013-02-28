@@ -14,6 +14,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
     {
         [TestMethod]
         [Description("Downloads a package using NuGet.exe and checks if the package file is present in the output dir")]
+        [Priority(0)]
         public void DownPackageWithNuGetCommandLineTest()
         {
            string packageId = "Ninject";
@@ -26,6 +27,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
 
         [TestMethod]
         [Description("Creates a test package and pushes it to the server using Nuget.exe")]
+        [Priority(0)]
         public void UploadPackageWithNuGetCommandLineTest()
         {
             base.UploadNewPackageAndVerify(DateTime.Now.Ticks.ToString());

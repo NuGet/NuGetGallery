@@ -6,13 +6,14 @@ using NuGetGallery.FunctionTests.Helpers;
 namespace NuGetGallery.FunctionalTests.Features
 {
     [TestClass]
-    public class PackageVersion : GalleryTestBase
+    public class PackageVersionTest : GalleryTestBase
     {
         [TestMethod]
         [Description("Upload multiple versions of a package and see if it gets uploaded properly")]
+        [Priority(1)]
         public void UploadMultipleVersionOfPackage()
         {
-            string packageId = "TestMultipleVersion" + "." + DateTime.Now.ToString();
+            string packageId = "TestMultipleVersion" + "." + DateTime.Now.Ticks.ToString();
             base.UploadNewPackageAndVerify(packageId, "1.0.0");
             base.UploadNewPackageAndVerify(packageId, "2.0.0");
             int actualCount = ClientSDKHelper.GetVersionCount(packageId);
