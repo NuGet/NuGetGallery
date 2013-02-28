@@ -8,10 +8,12 @@ using System.Web.Hosting;
 using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
+using Glimpse.Core.Extensibility;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Ninject;
 using Ninject.Modules;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
@@ -273,6 +275,18 @@ namespace NuGetGallery
             Bind<IPackageVersionsQuery>()
                 .To<PackageVersionsQuery>()
                 .InRequestScope();
+
+            // Diagnostics
+            var diagService = new GlimpseDiagnosticsService();
+            Bind<IDiagnosticsService>()
+                .ToConstant(diagService)
+                .InSingletonScope();
+            Bind<IInspector>()
+                .ToConstant(diagService)
+                .InSingletonScope();
+            Bind<IRuntimePolicy>()
+                .To<NuGetRuntimePolicy>()
+                .InSingletonScope();
         }
 
         public static bool IsDeployedToCloud

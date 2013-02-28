@@ -4,7 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Versioning;
 using NuGet;
-using StackExchange.Profiling;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -16,14 +16,16 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
+        private readonly IDiagnosticsService _diagnostics;
 
         public PackageService(
-            ICryptographyService cryptoService, 
-            IEntityRepository<PackageRegistration> packageRegistrationRepository, 
-            IEntityRepository<Package> packageRepository, 
-            IEntityRepository<PackageStatistics> packageStatsRepository, 
-            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository, 
-            IIndexingService indexingService)
+            ICryptographyService cryptoService,
+            IEntityRepository<PackageRegistration> packageRegistrationRepository,
+            IEntityRepository<Package> packageRepository,
+            IEntityRepository<PackageStatistics> packageStatsRepository,
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
+            IIndexingService indexingService,
+            IDiagnosticsService diagnostics)
         {
             _cryptoService = cryptoService;
             _packageRegistrationRepository = packageRegistrationRepository;
@@ -31,6 +33,7 @@ namespace NuGetGallery
             _packageStatsRepository = packageStatsRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _indexingService = indexingService;
+            _diagnostics = diagnostics;
         }
 
         public Package CreatePackage(IPackage nugetPackage, User user, bool commitChanges = true)
@@ -63,7 +66,7 @@ namespace NuGetGallery
 
             var packageRegistration = package.PackageRegistration;
             _packageRepository.DeleteOnCommit(package);
-                
+
             UpdateIsLatest(packageRegistration);
 
             if (packageRegistration.Packages.Count == 0)
@@ -207,7 +210,7 @@ namespace NuGetGallery
 
         public void AddDownloadStatistics(Package package, string userHostAddress, string userAgent, string operation)
         {
-            using (MiniProfiler.Current.Step("Updating package stats"))
+            using (_diagnostics.Time("Updating package statistics"))
             {
                 _packageStatsRepository.InsertOnCommit(
                     new PackageStatistics

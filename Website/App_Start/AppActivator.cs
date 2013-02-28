@@ -15,8 +15,6 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
 using NuGetGallery.Migrations;
-using StackExchange.Profiling;
-using StackExchange.Profiling.MVCHelpers;
 using WebActivator;
 using WebBackgrounder;
 
@@ -34,7 +32,6 @@ namespace NuGetGallery
         public static void PreStart()
         {
             NinjectPreStart();
-            MiniProfilerPreStart();
             ElmahPreStart();
         }
 
@@ -42,7 +39,6 @@ namespace NuGetGallery
         {
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IConfiguration>();
-            MiniProfilerPostStart();
             DbMigratorPostStart();
             BackgroundJobsPostStart(config);
             AppPostStart();
@@ -108,23 +104,6 @@ namespace NuGetGallery
             Registration.Register(RouteTable.Routes, configuration);
         }
 
-        private static void MiniProfilerPreStart()
-        {
-            MiniProfilerEF.Initialize();
-            DynamicModuleUtility.RegisterModule(typeof(MiniProfilerStartupModule));
-            GlobalFilters.Filters.Add(new ProfilingActionFilter());
-        }
-
-        private static void MiniProfilerPostStart()
-        {
-            var copy = ViewEngines.Engines.ToList();
-            ViewEngines.Engines.Clear();
-            foreach (var item in copy)
-            {
-                ViewEngines.Engines.Add(new ProfilingViewEngine(item));
-            }
-        }
-
         private static void NinjectPreStart()
         {
             DynamicModuleUtility.RegisterModule(typeof(OnePerRequestModule));
@@ -135,45 +114,6 @@ namespace NuGetGallery
         private static void NinjectStop()
         {
             NinjectBootstrapper.ShutDown();
-        }
-
-        private class MiniProfilerStartupModule : IHttpModule
-        {
-            public void Init(HttpApplication context)
-            {
-                context.BeginRequest += (sender, e) => MiniProfiler.Start();
-
-                context.AuthorizeRequest += (sender, e) =>
-                                                {
-                                                    bool stopProfiling;
-                                                    var httpContext = HttpContext.Current;
-
-                                                    if (httpContext == null)
-                                                    {
-                                                        stopProfiling = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        // Temporarily removing until we figure out the hammering of request we saw.
-                                                        //var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
-                                                        var requestIsLocal = httpContext.Request.IsLocal;
-
-                                                        //stopProfiling = !userCanProfile && !requestIsLocal
-                                                        stopProfiling = !requestIsLocal;
-                                                    }
-
-                                                    if (stopProfiling)
-                                                    {
-                                                        MiniProfiler.Stop(true);
-                                                    }
-                                                };
-
-                context.EndRequest += (sender, e) => MiniProfiler.Stop();
-            }
-
-            public void Dispose()
-            {
-            }
         }
     }
 }

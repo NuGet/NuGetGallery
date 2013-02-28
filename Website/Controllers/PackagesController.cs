@@ -10,6 +10,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
+using NuGetGallery.Diagnostics;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -32,6 +33,7 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
+        private readonly IDiagnosticsService _diagnostics;
 
         public PackagesController(
             IPackageService packageService,
@@ -45,7 +47,8 @@ namespace NuGetGallery
             IEntitiesContext entitiesContext,
             IConfiguration config,
             IIndexingService indexingService,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            IDiagnosticsService diagnostics)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -59,6 +62,7 @@ namespace NuGetGallery
             _config = config;
             _indexingService = indexingService;
             _cacheService = cacheService;
+            _diagnostics = diagnostics;
         }
 
         [Authorize]
@@ -177,25 +181,30 @@ namespace NuGetGallery
 
         public virtual ActionResult ListPackages(string q, string sortOrder = null, int page = 1, bool prerelease = false)
         {
-            if (page < 1)
-            {
-                page = 1;
-            }
-
-            IQueryable<Package> packageVersions = _packageService.GetPackagesForListing(prerelease);
-
-            q = (q ?? "").Trim();
-
-            if (String.IsNullOrEmpty(sortOrder))
-            {
-                // Determine the default sort order. If no query string is specified, then the sortOrder is DownloadCount
-                // If we are searching for something, sort by relevance.
-                sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
-            }
-
-            var searchFilter = GetSearchFilter(q, sortOrder, page, prerelease);
+            IQueryable<Package> packageVersions;
             int totalHits;
-            packageVersions = _searchService.Search(packageVersions, searchFilter, out totalHits);
+            using (_diagnostics.Time("Querying Search Index"))
+            {
+                if (page < 1)
+                {
+                    page = 1;
+                }
+
+                packageVersions = _packageService.GetPackagesForListing(prerelease);
+
+                q = (q ?? "").Trim();
+
+                if (String.IsNullOrEmpty(sortOrder))
+                {
+                    // Determine the default sort order. If no query string is specified, then the sortOrder is DownloadCount
+                    // If we are searching for something, sort by relevance.
+                    sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
+                }
+
+                var searchFilter = GetSearchFilter(q, sortOrder, page, prerelease);
+                packageVersions = _searchService.Search(packageVersions, searchFilter, out totalHits);
+            }
+
             if (page == 1 && !packageVersions.Any())
             {
                 // In the event the index wasn't updated, we may get an incorrect count. 
