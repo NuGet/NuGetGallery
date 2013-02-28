@@ -27,10 +27,10 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
-    <IISExpressSSLPort />
-    <IISExpressAnonymousAuthentication />
-    <IISExpressWindowsAuthentication />
-    <IISExpressUseClassicPipelineMode />
+    <IISExpressSSLPort>44300</IISExpressSSLPort>
+    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
+    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
+    <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -460,6 +460,10 @@
     <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.cs" />
     <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.Designer.cs">
       <DependentUpon>201302072118537_MovingGallerySettingsToConfiguration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.cs" />
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.Designer.cs">
+      <DependentUpon>201302282115583_AddMinRequiredVersionColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
