@@ -33,19 +33,19 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="packageId"></param>
         /// <returns></returns>
-        public static int GetVersionCount(string packageId)
+        public static int GetVersionCount(string packageId,bool allowPreRelease=true)
         {
             IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
             List<IPackage> packages = repo.FindPackagesById(packageId).ToList();
             if (packages != null)
             {
+                if(!allowPreRelease)
+                    packages = packages.Where(item => item.IsReleaseVersion()).ToList();
                 return packages.Count;
             }
             else
                 return 0;                
         }
-        
-
         /// <summary>
         /// Returns the download count of the given package as a formatted string as it would appear in the gallery UI.
         /// </summary>
@@ -110,8 +110,23 @@ namespace NuGetGallery.FunctionTests.Helpers
             {
                 Console.WriteLine(" Exception thrown while trying to create zippackage for :{0}. Message {1}", filePath, e.Message);
                 return null;
-            }
-            
+            }            
+        }
+
+        /// <summary>
+        /// Given the path to the nupkg file, returns the corresponding package ID.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public static bool IsPackageVersionUnListed(string packageId,string version)
+        {
+            IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
+            IPackage package = repo.FindPackage(packageId, new SemanticVersion(version), true, true);
+            if (package != null)
+                return !package.Listed;
+            else
+                return false;
+        
         }
 
         /// <summary>
