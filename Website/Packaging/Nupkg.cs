@@ -10,9 +10,9 @@ using NuGet;
 
 namespace NuGetGallery
 {
-    public class Nupkg : INupkg
+    public sealed class Nupkg : INupkg
     {
-        private static readonly Regex PieceSpecifierRegex;
+        private static readonly Regex PieceSpecifierRegex = new Regex(@"\[(0|[1-9][1-9]*)\]\.piece", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
         private readonly Stream _stream;
         private readonly ZipArchive _archive;
@@ -28,11 +28,6 @@ namespace NuGetGallery
         internal IEnumerable<string> Parts
         { 
             get { return _parts ?? (_parts = SafelyLoadParts(_archive)); }
-        }
-
-        static Nupkg()
-        {
-            PieceSpecifierRegex = new Regex(@"\[(0|[1-9][1-9]*)\]\.piece", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
         }
 
         /// <summary>
@@ -105,12 +100,12 @@ namespace NuGetGallery
 
             if (nuspecs.Length < 1)
             {
-                throw new InvalidOperationException("Package does not contain a .nuspec manifest.");
+                throw new InvalidOperationException("Package does not contain a package manifest.");
             }
 
             if (nuspecs.Length > 1)
             {
-                throw new InvalidOperationException("Package contains multiple .nuspec manifests.");
+                throw new InvalidOperationException("Package contains multiple package manifests.");
             }
 
             ZipArchiveEntry manifestEntry = nuspecs[0];
@@ -300,7 +295,7 @@ namespace NuGetGallery
                 bytesRead = unsafeStream.Read(safeBytes, 0, (int)claimedLength);
                 if (bytesRead != claimedLength)
                 {
-                    throw new InvalidDataException("The .nuspec zip entry decompressed size is incorrect.");
+                    throw new InvalidDataException("The zip entry's claimed decompressed size is incorrect.");
                 }
             }
 
