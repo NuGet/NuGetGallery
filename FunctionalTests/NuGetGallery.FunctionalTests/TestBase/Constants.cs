@@ -1,9 +1,9 @@
-﻿using System;
+﻿using NuGetGallery.FunctionTests.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NuGetGallery.FunctionTests.Helpers;
 
 namespace NuGetGallery.FunctionalTests
 {
@@ -22,6 +22,8 @@ namespace NuGetGallery.FunctionalTests
         internal const string PendingConfirmationText = "An email with instructions on how to activate your account is on its way to you.";
         internal const string SearchTerm = "elmah";
         internal const string StatsPageDefaultText = "Download statistics displayed on this page reflect the actual package downloads from the NuGet.org site";
+        internal const string ContactOwnersText = "Your message has been sent to the owners of ";
+        internal const string UnListedPackageText = "This package is unlisted and hidden from package listings";
         #endregion PredefinedText
 
      }

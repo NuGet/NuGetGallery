@@ -10,6 +10,7 @@ namespace NuGetGallery.FunctionalTests
     public class NuGetCoreTests : GalleryTestBase
     {       
         [Description("Downloads a package from the server and validates that the file is present in the local disk"), TestMethod]
+        [Priority(0)]
         public void DownloadPackageWithNuGetCoreTest()
         {
             string packageId = "Ninject";
