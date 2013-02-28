@@ -6,7 +6,7 @@ obj
 *.Vsp
 App_Data
 *.results.xml
-/packages
+packages/
 _AzurePackage
 *.bak
 NuGetGallery.sln.docstates
