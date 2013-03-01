@@ -31,6 +31,10 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <IISExpressSSLPort></IISExpressSSLPort>
+    <IISExpressAnonymousAuthentication></IISExpressAnonymousAuthentication>
+    <IISExpressWindowsAuthentication></IISExpressWindowsAuthentication>
+    <IISExpressUseClassicPipelineMode></IISExpressUseClassicPipelineMode>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -460,6 +464,10 @@
     <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.cs" />
     <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.Designer.cs">
       <DependentUpon>201302072118537_MovingGallerySettingsToConfiguration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.cs" />
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.Designer.cs">
+      <DependentUpon>201302282115583_AddMinRequiredVersionColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
