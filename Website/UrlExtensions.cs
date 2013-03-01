@@ -63,13 +63,7 @@ namespace NuGetGallery
             string result = url.RouteUrl(RouteName.DisplayPackage, new { id, version });
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
-            // https://github.com/NuGet/NuGetGallery/issues/657
-            if (version == null && result != null && !result.EndsWith("/", StringComparison.OrdinalIgnoreCase))
-            {
-                return result + "/";
-            }
-
-            return result;
+            return version == null ? EnsureTrailingSlash(result) : result;
         }
 
         public static string Package(this UrlHelper url, Package package)
@@ -91,7 +85,10 @@ namespace NuGetGallery
         {
             string routeName = "v" + feedVersion + RouteName.DownloadPackage;
             string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
-            return url.RouteUrl(routeName, new { Id = id, Version = version }, protocol: protocol);
+            string result = url.RouteUrl(routeName, new { Id = id, Version = version }, protocol: protocol);
+            
+            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
+            return version == null ? EnsureTrailingSlash(result) : result;
         }
 
         public static string LogOn(this UrlHelper url)
@@ -153,6 +150,16 @@ namespace NuGetGallery
                 builder.Host = builder.Host.Substring(4);
             }
             return builder;
+        }
+
+        private static string EnsureTrailingSlash(string result)
+        {
+            if (result != null && !result.EndsWith("/", StringComparison.OrdinalIgnoreCase))
+            {
+                return result + '/';
+            }
+
+            return result;
         }
     }
 }
