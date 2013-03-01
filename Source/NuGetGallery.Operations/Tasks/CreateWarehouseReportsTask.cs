@@ -44,9 +44,7 @@ namespace NuGetGallery.Operations
             CreateReport_PerMonth();
             CreateReport_RecentPopularityDetail();
             CreateReport_RecentPopularity();
-
-            //TODO: comment this line back in when we want the "ten thousand reports" live
-            //CreateAllPerPackageReports();
+            CreateAllPerPackageReports();
 
             Log.Info("Generate reports end");
         }
@@ -176,7 +174,7 @@ namespace NuGetGallery.Operations
 
             string name = PackageReportBaseName + packageId.ToLowerInvariant();
 
-            Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityByPackage.sql", new Tuple<string, string>("@packageId", packageId));
+            Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityByPackage.sql", new Tuple<string, int, string>("@packageId", 128, packageId));
 
             CreateBlob(name + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
@@ -199,7 +197,7 @@ namespace NuGetGallery.Operations
             }
         }
 
-        private Tuple<string[], List<string[]>> ExecuteSql(string filename, params Tuple<string, string>[] parameters)
+        private Tuple<string[], List<string[]>> ExecuteSql(string filename, params Tuple<string, int, string>[] parameters)
         {
             string sql = ResourceHelper.GetBatchFromSqlFile(filename);
 
@@ -214,9 +212,9 @@ namespace NuGetGallery.Operations
                 command.CommandType = CommandType.Text;
                 command.CommandTimeout = 60 * 5;
 
-                foreach (Tuple<string, string> parameter in parameters)
+                foreach (Tuple<string, int, string> parameter in parameters)
                 {
-                    command.Parameters.AddWithValue(parameter.Item1, parameter.Item2);
+                    command.Parameters.Add(parameter.Item1, SqlDbType.NVarChar, parameter.Item2).Value = parameter.Item3;
                 }
 
                 SqlDataReader reader = command.ExecuteReader();
