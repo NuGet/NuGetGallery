@@ -1,2 +1,2 @@
 set GalleryUrl=%1
-mstest /testcontainer:"..\NuGetGallery.FunctionalTests\bin\NuGetGallery.FunctionalTests.dll" /testsettings:"..\Local.testsettings" 
+"%VS110COMNTOOLS%..\IDE\mstest.exe" /testcontainer:"..\NuGetGallery.FunctionalTests\bin\NuGetGallery.FunctionalTests.dll" /testsettings:"..\Local.testsettings" 
