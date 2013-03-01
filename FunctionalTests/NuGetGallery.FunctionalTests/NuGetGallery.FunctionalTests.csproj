@@ -76,6 +76,7 @@
     <Compile Include="WebUITests\PackageManagement\ContactOwnerTest.cs" />
     <Compile Include="WebUITests\PackageManagement\DeletePackageTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ManagePackagesPageTest.cs" />
+    <Compile Include="WebUITests\ReadOnlyMode\ReadOnlyModeRegisterNewUserTest.cs" />
     <Compile Include="WebUITests\UploadAndDownload\UploadPackageFromUI.cs" />
     <Compile Include="WebUITests\AccountManagement\LogonTest.cs" />
     <Compile Include="WebUITests\BasicPages\PackagesPageTest.cs" />
