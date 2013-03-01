@@ -3,7 +3,7 @@
 We welcome contributions to the NuGet Gallery! However, we do have a few suggestions for making sure we can integrate your code in the cleanest possible way. Also, please remember that we will be maintaining the code you contribute, so there may be cases where we have to decline a feature because it doesn't make much sense in the main code. You are more than welcome to maintain a custom fork of the code for your use cases.
 
 ## Getting Started
-1. Make sure there is an issue in the (Issue Tracker)[https://github.com/NuGet/NuGetGallery/issues] for the feature or bug you want to fix. If not, create one!
+1. Make sure there is an issue in the [Issue Tracker](https://github.com/NuGet/NuGetGallery/issues) for the feature or bug you want to fix. If not, create one!
 1. Create a fork in GitHub
 1. Create a branch off of the 'dev-start' branch. Name it something which easily links it back to the issue. For example: "Bug-1234".
 1. Make your changes
@@ -22,6 +22,6 @@ We welcome contributions to the NuGet Gallery! However, we do have a few suggest
 1. We use Allman style braces (the VS default)
 1. We avoid "this." unless absolutely necessary
 1. We use "_camelCase" private members and use "readonly" where possible
-1. Our tests use the (Arrange/Act/Assert)[http://c2.com/cgi/wiki?ArrangeActAssert] pattern
+1. Our tests use the [Arrange/Act/Assert](http://c2.com/cgi/wiki?ArrangeActAssert) pattern
 1. Namespace Imports should be specified at the top of the file, OUTSIDE of "namespace" declarations.
 1. Namespace Imports should be sorted alphabetically, with 'System.' namespaces at the top (there is a VS setting to do this)
