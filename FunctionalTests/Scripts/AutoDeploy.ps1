@@ -12,7 +12,7 @@ param(
 Import-Module $AzurePowerShellPath
 
 #Get the certificates and subscription
-$certificate = (Get-Item cert:\CurrentUser\MY\$certificateThumbprint)
+$certificate = (Get-Item cert:\LocalMachine\MY\$certificateThumbprint)
 Set-AzureSubscription -SubscriptionName "nugetbvt" -SubscriptionId $subscriptionId -Certificate $certificate
 Select-AzureSubscription "nugetbvt"
 
