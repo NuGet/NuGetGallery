@@ -1,0 +1,21 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)' == ''">
+    <Configuration>Debug</Configuration>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <Platform>Any CPU</Platform>
+    <OutDir>$(MSBuildThisFileDirectory)..\NuGetGallery.FunctionalTests\bin\</OutDir>    
+  </PropertyGroup>
+  
+  <Target Name="Clean">
+    <MSBuild Projects="..\NuGetGallery.FunctionalTests.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform);OutDir=$(OutDir)"/>    
+  </Target>
+  
+  <Target Name="Build" DependsOnTargets="Clean">
+    <MSBuild Projects="..\NuGetGallery.FunctionalTests.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);OutDir=$(OutDir)" />    
+  </Target>
+
+  
+
+</Project>
