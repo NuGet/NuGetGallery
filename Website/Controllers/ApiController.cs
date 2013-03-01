@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -184,39 +185,47 @@ namespace NuGetGallery
                     HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
             }
 
-            var packageToPush = ReadPackageFromRequest();
-
-            // Ensure that the user can push packages for this partialId.
-            var packageRegistration = _packageService.FindPackageRegistrationById(packageToPush.Metadata.Id);
-            if (packageRegistration != null)
+            using (var packageToPush = ReadPackageFromRequest())
             {
-                if (!packageRegistration.IsOwner(user))
+                // Ensure that the user can push packages for this partialId.
+                var packageRegistration = _packageService.FindPackageRegistrationById(packageToPush.Metadata.Id);
+                if (packageRegistration != null)
                 {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                    if (!packageRegistration.IsOwner(user))
+                    {
+                        return new HttpStatusCodeWithBodyResult(
+                            HttpStatusCode.Forbidden,
+                            String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                    }
+
+                    // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
+                    bool packageExists =
+                        packageRegistration.Packages.Any(
+                            p =>
+                            p.Version.Equals(packageToPush.Metadata.Version.ToString(),
+                                             StringComparison.OrdinalIgnoreCase));
+                    if (packageExists)
+                    {
+                        return new HttpStatusCodeWithBodyResult(
+                            HttpStatusCode.Conflict,
+                            String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
+                                          packageToPush.Metadata.Id, packageToPush.Metadata.Version));
+                    }
                 }
 
-                // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                bool packageExists =
-                    packageRegistration.Packages.Any(p => p.Version.Equals(packageToPush.Metadata.Version.ToString(), StringComparison.OrdinalIgnoreCase));
-                if (packageExists)
+                var package = _packageService.CreatePackage(packageToPush, user, commitChanges: true);
+                using (Stream uploadStream = packageToPush.GetStream())
                 {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.Conflict,
-                        String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, packageToPush.Metadata.Id, packageToPush.Metadata.Version));
+                    await _packageFileService.SavePackageFileAsync(package, uploadStream);
                 }
-            }
 
-            var package = _packageService.CreatePackage(packageToPush, user, commitChanges: true);
-            using (Stream stream = packageToPush.GetStream())
-            {
-                await _packageFileService.SavePackageFileAsync(package, stream);
-            }
-
-            if (packageToPush.Metadata.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
-            {
-                // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
-                await _nugetExeDownloaderService.UpdateExecutableAsync(packageToPush);
+                if (
+                    packageToPush.Metadata.Id.Equals(Constants.NuGetCommandLinePackageId,
+                                                     StringComparison.OrdinalIgnoreCase) && package.IsLatestStable)
+                {
+                    // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
+                    await _nugetExeDownloaderService.UpdateExecutableAsync(packageToPush);
+                }
             }
 
             return new HttpStatusCodeResult(201);

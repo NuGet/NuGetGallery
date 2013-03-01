@@ -1073,6 +1073,7 @@
     <Content Include="Views\Statistics\PackageVersions.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsByVersion.cshtml" />
     <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
+    <Content Include="Views\Packages\UnverifiablePackage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />

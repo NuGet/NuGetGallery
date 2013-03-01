@@ -1,0 +1,36 @@
+﻿@{
+    Layout = "~/Errors/ErrorLayout.cshtml";
+    ViewBag.Tab = "Uh-oh!";
+}
+
+<h1 class="page-heading">Upload Package - Something went wrong!</h1>
+
+<p>Something has gone wrong and the file you just uploaded cannot be processed. 
+    You can try to recover by clicking 'Continue', 
+    which will allow you to upload a new package.
+</p>
+<p>If this error persists and prevents you from uploading a package, please contact the site owners.</p>
+
+@using (Html.BeginForm())
+{
+    <fieldset class="form">
+        <legend>Cancel Submit Package</legend>
+        @Html.AntiForgeryToken()
+        <a class="cancel" href="@Url.CancelUpload()" title="Continue">Continue</a>
+    </fieldset>
+}
+
+@section BottomScripts {
+    <script>
+        $(function () {
+            $('a.cancel').click(function () {
+                var $anchor = $(this);
+                var $form = $anchor.parents('form');
+                $form.attr('action', $anchor.attr('href'));
+                $form.submit();
+                return false;
+            });
+        });
+    </script>
+}
+

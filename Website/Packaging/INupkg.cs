@@ -33,6 +33,8 @@ namespace NuGetGallery
 
         /// <summary>
         /// Gets the backing Stream which this package was read from (and seeks stream to position zero).
+        /// Note: a popular usage error is that the backing stream has already been disposed,
+        /// either directly or via disposing this object.
         /// </summary>
         Stream GetStream();
 
