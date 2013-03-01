@@ -3,17 +3,19 @@ param(
     [Parameter(Mandatory=$true)][string]$subscriptionId = $null,     
     [Parameter(Mandatory=$true)][string]$Configuration = $null,
     [Parameter(Mandatory=$true)][string]$AzureSdkPath = $null,
-    [Parameter(Mandatory=$true)][string]$Slot = $null,
+    [Parameter(Mandatory=$true)][string]$AzurePowerShellPath = $null,        
     [Parameter(Mandatory=$true)][string]$certificateThumbprint=$null,
+    [Parameter(Mandatory=$false)][string]$branch = "dev",
+    [Parameter(Mandatory=$false)][string]$Slot = "Production",
     [Parameter(Mandatory=$false)][string]$DeploymentName = "AutoDeployment")
 
 
+Import-Module $AzurePowerShellPath
+
 #Get the certificates and subscription
-$certificate = (get-item cert:\CurrentUser\MY\$certificateThumbprint)
+$certificate = (Get-Item cert:\CurrentUser\MY\$certificateThumbprint)
 Set-AzureSubscription -SubscriptionName "nugetbvt" -SubscriptionId $subscriptionId -Certificate $certificate
 Select-AzureSubscription "nugetbvt"
-
-
 
 if(!$SourceBlob) {
     #Get the storage account
@@ -26,7 +28,7 @@ if(!$SourceBlob) {
     $ContainerRef = $BlobClient.GetContainerReference("deployment-packages");
     $allItems = $ContainerRef.ListBlobs();       
     #Get the latest package from Dev branch
-    $devBlobs =  @($allItems | Where-Object { ([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$_).Name -like "NuGetGallery_*_dev.cspkg" })
+    $devBlobs =  @($allItems | Where-Object { ([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$_).Name -like $branch })
     $latestBlob = $devBlobs[0];
     foreach( $element in $devBlobs)
     {
