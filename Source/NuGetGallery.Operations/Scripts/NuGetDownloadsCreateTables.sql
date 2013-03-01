@@ -133,6 +133,14 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Fact_Download_NCI_Downloa
     CREATE NONCLUSTERED INDEX [Fact_Download_NCI_DownloadCount] ON [dbo].[Fact_Download] ( [DownloadCount] )
 GO
 
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Fact_Download_NCI_Package_Id')
+	CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Package_Id] ON [dbo].[Fact_Download] ( [Dimension_Package_Id] ) INCLUDE ( [Dimension_Date_Id], [DownloadCount] )
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Fact_Download_NCI_Date_Id')
+	CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Date_Id] ON [dbo].[Fact_Download] ( [Dimension_Date_Id] ) INCLUDE ( [Dimension_Package_Id], [DownloadCount] )
+GO
+
 IF OBJECT_ID('[dbo].[ReplicationMarker]') IS NULL
     CREATE TABLE [dbo].[ReplicationMarker]
     (
