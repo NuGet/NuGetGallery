@@ -214,7 +214,7 @@ namespace NuGetGallery.Operations
 
                 foreach (Tuple<string, int, string> parameter in parameters)
                 {
-                    command.Parameters.Add(parameter.Item1, SqlDbType.NVarChar, parameter.Item2).Value = parameter.Item2;
+                    command.Parameters.Add(parameter.Item1, SqlDbType.NVarChar, parameter.Item2).Value = parameter.Item3;
                 }
 
                 SqlDataReader reader = command.ExecuteReader();
