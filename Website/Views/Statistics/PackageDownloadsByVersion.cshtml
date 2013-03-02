@@ -1,6 +1,7 @@
 ﻿@model StatisticsPackagesViewModel
 @{
     ViewBag.Title = "Package Downloads for " + Model.PackageId;
+    ViewBag.Tab = "Statistics";
 }
 
 <h2>Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (Over the Last 6 Weeks)</h2>
