@@ -152,14 +152,14 @@ namespace NuGetGallery
             return builder;
         }
 
-        private static string EnsureTrailingSlash(string result)
+        internal static string EnsureTrailingSlash(string url)
         {
-            if (result != null && !result.EndsWith("/", StringComparison.OrdinalIgnoreCase))
+            if (url != null && !url.EndsWith("/", StringComparison.OrdinalIgnoreCase))
             {
-                return result + '/';
+                return url + '/';
             }
 
-            return result;
+            return url;
         }
     }
 }
