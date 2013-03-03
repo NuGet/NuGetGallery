@@ -9,7 +9,7 @@ namespace NuGetGallery
     public class RequireRemoteHttpsAttributeFacts
     {
         [Fact]
-        public void RequireFactsAttributeDoesNotThrowWhenRequireSSLIsFalse()
+        public void RequireHttpsAttributeDoesNotThrowWhenRequireSSLIsFalse()
         {
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
