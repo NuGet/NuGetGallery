@@ -181,6 +181,7 @@
     <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="TaskAssert.cs" />
     <Compile Include="TestUtility.cs" />
+    <Compile Include="UrlExtensionsFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
   </ItemGroup>
