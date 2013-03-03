@@ -12,10 +12,10 @@ namespace NuGetGallery.Helpers
     internal class PackageHelper
     {
         /// <summary>
-        /// Look for the IPackage instance in the cache first. If it's in the cache, return it.
+        /// Look for the INupkg instance in the cache first. If it's in the cache, return it.
         /// Otherwise, download the package from the storage service and store it into the cache.
         /// </summary>
-        public static async Task<IPackage> GetPackageFromCacheOrDownloadIt(
+        public static async Task<INupkg> GetPackageFromCacheOrDownloadIt(
             Package package,
             IPackageCacheService cacheService,
             IPackageFileService packageFileService)
@@ -54,7 +54,7 @@ namespace NuGetGallery.Helpers
                 cacheService.SetBytes(cacheKey, buffer);
             }
 
-            return new ZipPackage(new MemoryStream(buffer));
+            return new Nupkg(new MemoryStream(buffer), leaveOpen: false);
         }
 
         private static string CreateCacheKey(string id, string version)

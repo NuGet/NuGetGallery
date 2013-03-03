@@ -245,10 +245,10 @@ namespace NuGetGallery.PackageCurators
                     };
             }
 
-            private static Mock<IPackage> CreateStubNuGetPackage()
+            private static Mock<INupkg> CreateStubNuGetPackage()
             {
-                var stubNuGetPackage = new Mock<IPackage>();
-                stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(new IPackageFile[] { });
+                var stubNuGetPackage = new Mock<INupkg>();
+                stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(new string[] {});
                 return stubNuGetPackage;
             }
         }

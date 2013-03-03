@@ -118,45 +118,42 @@ namespace NuGetGallery
                 return View();
             }
 
-            IPackage nuGetPackage;
-            try
+            using (var uploadStream = uploadFile.InputStream)
             {
-                using (var uploadStream = uploadFile.InputStream)
+                INupkg nuGetPackage;
+                try
                 {
                     nuGetPackage = CreatePackage(uploadStream);
                 }
-            }
-            catch
-            {
-                ModelState.AddModelError(String.Empty, Strings.FailedToReadUploadFile);
-                return View();
-            }
-            finally
-            {
-                _cacheService.RemoveProgress(currentUser.Username);
-            }
+                catch
+                {
+                    ModelState.AddModelError(String.Empty, Strings.FailedToReadUploadFile);
+                    return View();
+                }
+                finally
+                {
+                    _cacheService.RemoveProgress(currentUser.Username);
+                }
 
-            var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Id);
-            if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
-            {
-                ModelState.AddModelError(
-                    String.Empty, String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
-                return View();
-            }
+                var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Metadata.Id);
+                if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
+                {
+                    ModelState.AddModelError(
+                        String.Empty, String.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+                    return View();
+                }
 
-            var package = _packageService.FindPackageByIdAndVersion(nuGetPackage.Id, nuGetPackage.Version.ToStringSafe());
-            if (package != null)
-            {
-                ModelState.AddModelError(
-                    String.Empty,
-                    String.Format(
-                        CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
-                return View();
-            }
+                var package = _packageService.FindPackageByIdAndVersion(nuGetPackage.Metadata.Id, nuGetPackage.Metadata.Version.ToStringSafe());
+                if (package != null)
+                {
+                    ModelState.AddModelError(
+                        String.Empty,
+                        String.Format(
+                            CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified, package.PackageRegistration.Id, package.Version));
+                    return View();
+                }
 
-            using (Stream stream = nuGetPackage.GetStream())
-            {
-                await _uploadFileService.SaveUploadFileAsync(currentUser.Key, stream);
+                await _uploadFileService.SaveUploadFileAsync(currentUser.Key, nuGetPackage.GetStream());
             }
 
             return RedirectToRoute(RouteName.VerifyPackage);
@@ -477,7 +474,7 @@ namespace NuGetGallery
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
 
-            IPackage package;
+            IPackageMetadata packageMetadata;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
@@ -485,24 +482,37 @@ namespace NuGetGallery
                     return RedirectToRoute(RouteName.UploadPackage);
                 }
 
-                package = CreatePackage(uploadFile);
+                try
+                {
+                    using (INupkg package = CreatePackage(uploadFile))
+                    {
+                        packageMetadata = package.Metadata;
+                    }
+                }
+                catch (InvalidDataException e)
+                {
+                    // Log the exception in case we get support requests about it.
+                    QuietLog.LogHandledException(e);
+
+                    return View(Views.UnverifiablePackage);
+                }
             }
 
             return View(
                 new VerifyPackageViewModel
-                    {
-                        Id = package.Id,
-                        Version = package.Version.ToStringSafe(),
-                        Title = package.Title,
-                        Summary = package.Summary,
-                        Description = package.Description,
-                        RequiresLicenseAcceptance = package.RequireLicenseAcceptance,
-                        LicenseUrl = package.LicenseUrl.ToStringSafe(),
-                        Tags = package.Tags,
-                        ProjectUrl = package.ProjectUrl.ToStringSafe(),
-                        Authors = package.Authors.Flatten(),
-                        Listed = package.Listed
-                    });
+                {
+                    Id = packageMetadata.Id,
+                    Version = packageMetadata.Version.ToStringSafe(),
+                    Title = packageMetadata.Title,
+                    Summary = packageMetadata.Summary,
+                    Description = packageMetadata.Description,
+                    RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
+                    LicenseUrl = packageMetadata.LicenseUrl.ToStringSafe(),
+                    Tags = packageMetadata.Tags,
+                    ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
+                    Authors = packageMetadata.Authors.Flatten(),
+                    Listed = true
+                });
         }
 
         [Authorize]
@@ -512,7 +522,7 @@ namespace NuGetGallery
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
 
-            IPackage nugetPackage;
+            Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
@@ -520,42 +530,40 @@ namespace NuGetGallery
                     return HttpNotFound();
                 }
 
-                nugetPackage = CreatePackage(uploadFile);
-            }
+                INupkg nugetPackage = CreatePackage(uploadFile);
 
-            // update relevant database tables
-            Package package = _packageService.CreatePackage(nugetPackage, currentUser, commitChanges: false);
-            Debug.Assert(package.PackageRegistration != null);
+                // update relevant database tables
+                package = _packageService.CreatePackage(nugetPackage, currentUser, commitChanges: false);
+                Debug.Assert(package.PackageRegistration != null);
 
-            _packageService.PublishPackage(package, commitChanges: false);
+                _packageService.PublishPackage(package, commitChanges: false);
 
-            if (listed == false)
-            {
-                _packageService.MarkPackageUnlisted(package, commitChanges: false);
-            }
+                if (listed == false)
+                {
+                    _packageService.MarkPackageUnlisted(package, commitChanges: false);
+                }
 
-            _autoCuratedPackageCmd.Execute(package, nugetPackage, commitChanges: false);
+                _autoCuratedPackageCmd.Execute(package, nugetPackage, commitChanges: false);
 
-            // save package to blob storage
-            using (Stream stream = nugetPackage.GetStream())
-            {
-                await _packageFileService.SavePackageFileAsync(package, stream);
-            }
+                // save package to blob storage
+                uploadFile.Position = 0;
+                await _packageFileService.SavePackageFileAsync(package, uploadFile);
 
-            // commit all changes to database as an atomic transaction
-            _entitiesContext.SaveChanges();
+                // commit all changes to database as an atomic transaction
+                _entitiesContext.SaveChanges();
 
-            // tell Lucene to update index for the new package
-            _indexingService.UpdateIndex();
+                // tell Lucene to update index for the new package
+                _indexingService.UpdateIndex();
 
-            // delete the uploaded binary in the Uploads container
-            await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                // delete the uploaded binary in the Uploads container
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
-            // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
-            if (package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) &&
-                package.IsLatestStable)
-            {
-                await _nugetExeDownloaderService.UpdateExecutableAsync(nugetPackage);
+                // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
+                if (package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) &&
+                    package.IsLatestStable)
+                {
+                    await _nugetExeDownloaderService.UpdateExecutableAsync(nugetPackage);
+                }
             }
 
             TempData["Message"] = String.Format(
@@ -582,9 +590,9 @@ namespace NuGetGallery
         }
 
         // this methods exist to make unit testing easier
-        protected internal virtual IPackage CreatePackage(Stream stream)
+        protected internal virtual INupkg CreatePackage(Stream stream)
         {
-            return new ZipPackage(stream);
+            return new Nupkg(stream, leaveOpen: false);
         }
 
         private static SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)

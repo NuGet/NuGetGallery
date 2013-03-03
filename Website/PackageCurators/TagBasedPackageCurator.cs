@@ -17,7 +17,7 @@ namespace NuGetGallery
         /// </summary>
         protected abstract string CuratedFeedName { get; }
 
-        public override void Curate(Package galleryPackage, IPackage nugetPackage, bool commitChanges)
+        public override void Curate(Package galleryPackage, INupkg nugetPackage, bool commitChanges)
         {
             // Make sure the target feed exists
             CuratedFeed feed = GetService<ICuratedFeedByNameQuery>().Execute(CuratedFeedName, includePackages: true);

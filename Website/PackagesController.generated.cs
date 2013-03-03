@@ -113,6 +113,7 @@ namespace NuGetGallery {
             public readonly string ListPackages = "~/Views/Packages/ListPackages.cshtml";
             public readonly string ManagePackageOwners = "~/Views/Packages/ManagePackageOwners.cshtml";
             public readonly string ReportAbuse = "~/Views/Packages/ReportAbuse.cshtml";
+            public readonly string UnverifiablePackage = "~/Views/Packages/UnverifiablePackage.cshtml";
             public readonly string UploadPackage = "~/Views/Packages/UploadPackage.cshtml";
             public readonly string VerifyPackage = "~/Views/Packages/VerifyPackage.cshtml";
         }

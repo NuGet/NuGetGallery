@@ -11,9 +11,9 @@ namespace NuGetGallery
     public class PackageContentsViewModel
     {
         private readonly PackageItem _rootFolder;
-        private readonly IPackage _packageMetadata;
+        private readonly IPackageMetadata _packageMetadata;
 
-        public PackageContentsViewModel(IPackage packageMetadata, ICollection<User> owners, PackageItem rootFolder)
+        public PackageContentsViewModel(IPackageMetadata packageMetadata, ICollection<User> owners, PackageItem rootFolder)
         {
             _packageMetadata = packageMetadata;
             _rootFolder = rootFolder;
@@ -35,7 +35,7 @@ namespace NuGetGallery
                     }).ToList();
         }
 
-        public IPackage PackageMetadata
+        public IPackageMetadata PackageMetadata
         {
             get { return _packageMetadata; }
         }
@@ -76,7 +76,7 @@ namespace NuGetGallery
 
         public string GetNpeActivationArgument(UrlHelper urlHelper)
         {
-            return PackageMetadata.Id + "|" + 
+            return PackageMetadata.Id + "|" +
                 PackageMetadata.Version.ToString() + "|" +
                 urlHelper.PackageDownload(2, PackageMetadata.Id, PackageMetadata.Version.ToString());
         }
