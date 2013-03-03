@@ -13,7 +13,7 @@ We welcome contributions to the NuGet Gallery! However, we do have a few suggest
 * Please follow the code style of the rest of the gallery. When you can't figure out what the style for a particular aspect is, please bring that up in your PR and we'd be happy to advise you.
 * Please don't surprise us with big Pull Requests. If you have a feature you want to work on, file an Issue so we can discuss it.
 * Please DO grab things from the "Up For Grabs" milestone! Some of those things are small things we just don't have time to get to, but we'd be happy to take contributions. Think of it as a great way to get your feet wet :)
-* However, don't feel obligated to stick to Unscheduled. We're happy to accept well-written, maintainable, PRs for any Issue in the Backlog.
+* However, don't feel obligated to stick to stuff in "Up For Grabs". We're happy to accept well-written, maintainable, PRs for any Issue in the Backlog.
 * We have to dedicate resources to integrate and test your code, so it may take a while for us to integrate it. Feel free to ping the PR and nag us to take a look :)
 * All contributions must include Unit Tests. We're also building out our Functional Tests, so the more of those you provide, the more excited we'll be to accept your change :).
 * Contributed code must be free of compilation warnings, FxCop errors/warnings and Unit or Functional Test failures.
