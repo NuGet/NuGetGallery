@@ -29,11 +29,6 @@ namespace NuGetGallery
 
         public bool OnlyWhenAuthenticated { get; set; }
 
-        public RequireRemoteHttpsAttribute()
-        {
-            OnlyWhenAuthenticated = false;
-        }
-
         public void OnAuthorization(AuthorizationContext filterContext)
         {
             if (filterContext == null)
