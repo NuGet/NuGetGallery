@@ -157,8 +157,8 @@ namespace NuGetGallery.Operations
         {
             return string.Format(
                 "{0}.{1}.nupkg",
-                id,
-                version);
+                id.ToLowerInvariant(),
+                version.ToLowerInvariant());
         }
 
         internal static string GetTempFolder()
