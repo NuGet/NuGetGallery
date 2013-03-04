@@ -7,8 +7,8 @@ using Microsoft.WindowsAzure.Storage;
 
 namespace NuGetGallery.Operations.Tasks
 {
-    [Command("copydeprecatedexternalpackages", "Copies the nupkg file of any packages that were using ExternalPackageUrl to blob storage, in preparation for removing the ExternalPackageUrl feature.", AltName = "cdxp")]
-    public class CopyDeprecatedExternalPackagesTask : DatabaseAndStorageTask
+    [Command("copyexternalpackages", "Copies the nupkg file of any packages that were using ExternalPackageUrl to blob storage, in preparation for deprecating the ExternalPackageUrl feature.", AltName = "cpxp")]
+    public class CopyExternalPackagesTask : DatabaseAndStorageTask
     {
         public override void ExecuteCommand()
         {
@@ -33,7 +33,7 @@ namespace NuGetGallery.Operations.Tasks
                     if (!response.IsSuccessStatusCode)
                     {
                         Console.WriteLine("Found broken package: " + response.StatusCode + "  " + pkg.ExternalPackageUrl);
-                        Console.WriteLine("You should owner to unlist the package " + pkg.Id + " " + pkg.Version);
+                        Console.WriteLine("You should ask the package owner to unlist the package " + pkg.Id + " " + pkg.Version);
                     }
 
                     var bytesTask = response.Content.ReadAsByteArrayAsync();
