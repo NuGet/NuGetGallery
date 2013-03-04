@@ -8,7 +8,7 @@ using Ninject.Web.Mvc.Filter;
 
 namespace NuGetGallery
 {
-    // This code is identical to System.Web.Mvc except that we allow for working in localhost environment without https.
+    // This code is identical to System.Web.Mvc except that we allow for working in localhost environment without https and we force authenticated users to use SSL
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public sealed class RequireRemoteHttpsAttribute : FilterAttribute, IAuthorizationFilter
     {
