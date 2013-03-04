@@ -130,7 +130,7 @@
     <Compile Include="Common\ResourceHelper.cs" />
     <Compile Include="Tasks\BackupWarehouseTask.cs" />
     <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
-    <Compile Include="Tasks\CopyDeprecatedExternalPackagesTask.cs" />
+    <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
     <Compile Include="Tasks\DeleteOldWarehouseBackupsTask.cs" />
     <Compile Include="Tasks\CreateWarehouseArtifactsTask.cs" />
