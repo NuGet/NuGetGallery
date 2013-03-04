@@ -534,30 +534,6 @@ namespace NuGetGallery
                 packageFileService.Verify();
                 packageService.Verify();
             }
-
-            [Fact]
-            public async Task GetPackageReturnsRedirectResultWhenExternalPackageUrlIsNotNull()
-            {
-                var package = new Package { ExternalPackageUrl = "http://theUrl" };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(x => x.FindPackageByIdAndVersion("thePackage", "42.1066", false)).Returns(package);
-                var httpRequest = new Mock<HttpRequestBase>();
-                httpRequest.SetupGet(r => r.UserHostAddress).Returns("Foo");
-                httpRequest.SetupGet(r => r.UserAgent).Returns("Qux");
-                NameValueCollection headers = new NameValueCollection();
-                headers.Add("NuGet-Operation", "Install");
-                httpRequest.SetupGet(r => r.Headers).Returns(headers);
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
-                var controller = CreateController(packageService);
-                var controllerContext = new ControllerContext(new RequestContext(httpContext.Object, new RouteData()), controller);
-                controller.ControllerContext = controllerContext;
-
-                var result = await controller.GetPackage("thePackage", "42.1066") as RedirectResult;
-
-                Assert.NotNull(result);
-                Assert.Equal("http://theUrl", result.Url);
-            }
         }
 
         public class ThePublishPackageAction

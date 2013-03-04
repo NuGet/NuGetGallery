@@ -27,7 +27,7 @@ namespace NuGetGallery
                             Dependencies = p.FlattenedDependencies,
                             Description = p.Description,
                             DownloadCount = p.PackageRegistration.DownloadCount,
-                            ExternalPackageUrl = p.ExternalPackageUrl,
+                            ExternalPackageUrl = null,
                             GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.Version,
                             IconUrl = p.IconUrl,
                             IsLatestVersion = p.IsLatestStable,
