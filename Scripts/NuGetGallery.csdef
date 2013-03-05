@@ -20,6 +20,7 @@
       <Setting name="Gallery.SmtpPassword" />
       <Setting name="Gallery.SmtpPort" />
       <Setting name="Gallery.UseSmtp" />
+      <Setting name="ConfirmEmailAddresses" />
 
       <!-- Basic Site Configuration -->
       <Setting name="Gallery.PackageStoreType" />
