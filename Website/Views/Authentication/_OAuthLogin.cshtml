@@ -1,0 +1,21 @@
+﻿@model SignInRequest
+@using Ninject;
+@using WorldDomination.Web.Authentication
+@{
+    var authService = Container.Kernel.TryGet<IAuthenticationService>();
+}
+
+@if (authService != null && authService.AuthenticationProviders != null && authService.AuthenticationProviders.Count > 0) {
+    <div id="oauth-login">
+        <h1>Use an existing account</h1>
+        <p>Log in using one of your accounts from these providers</p>
+        <ul id="oauth-providers">
+            @foreach (var provider in authService.AuthenticationProviders)
+            {
+                <li>
+                    <a href="@Url.Action(MVC.Authentication.RedirectToProvider(provider.Key, Model.ReturnUrl))"><img src="~/Content/Images/oauth/@(provider.Key).png" /></a>
+                </li>
+            }
+        </ul>
+    </div>
+}
