@@ -71,10 +71,13 @@ namespace NuGetGallery
         public bool ShouldForceSSL(HttpContextBase context)
         {
             var cookie = context.Request.Cookies[ForceSSLCookieName];
-            if (cookie != null)
+            
+            bool value;
+            if (cookie != null && Boolean.TryParse(cookie.Value, out value))
             {
-                return Boolean.Parse(cookie.Value);
+                return value;
             }
+            
             return false;
         }
     }
