@@ -2,6 +2,11 @@
 {
     public interface IConfiguration
     {
+        string MicrosoftAccountClientId { get; }
+        string MicrosoftAccountClientSecret { get; }
+        string TwitterAccountClientId { get; }
+        string TwitterAccountClientSecret { get; }
+
         bool RequireSSL { get; }
         int SSLPort { get; }
 

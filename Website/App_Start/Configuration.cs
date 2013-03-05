@@ -26,6 +26,26 @@ namespace NuGetGallery
             get { return ReadAppSettings("Environment") ?? "Development"; }
         }
 
+        public string MicrosoftAccountClientId
+        {
+            get { return ReadAppSettings("OAuth.Microsoft.ClientId"); }
+        }
+
+        public string MicrosoftAccountClientSecret
+        {
+            get { return ReadAppSettings("OAuth.Microsoft.ClientSecret"); }
+        }
+
+        public string TwitterAccountClientId
+        {
+            get { return ReadAppSettings("OAuth.Twitter.ClientId"); }
+        }
+
+        public string TwitterAccountClientSecret
+        {
+            get { return ReadAppSettings("OAuth.Twitter.ClientSecret"); }
+        }
+
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>

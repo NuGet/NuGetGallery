@@ -33,6 +33,21 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult RedirectToProvider() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.RedirectToProvider);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ReturnFromOAuth() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ReturnFromOAuth);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult LogOn() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.LogOn);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult LogOff() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
         }
@@ -49,6 +64,8 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+            public readonly string RedirectToProvider = "RedirectToProvider";
+            public readonly string ReturnFromOAuth = "ReturnFromOAuth";
             public readonly string LogOn = "LogOn";
             public readonly string LogOff = "LogOff";
         }
@@ -59,6 +76,7 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string _OAuthLogin = "~/Views/Authentication/_OAuthLogin.cshtml";
             public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
         }
     }
@@ -67,8 +85,23 @@ namespace NuGetGallery {
     public class T4MVC_AuthenticationController: NuGetGallery.AuthenticationController {
         public T4MVC_AuthenticationController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult LogOn() {
+        public override System.Web.Mvc.ActionResult RedirectToProvider(string providerName, string returnUrl) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.RedirectToProvider);
+            callInfo.RouteValueDictionary.Add("providerName", providerName);
+            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ReturnFromOAuth(string providerName, string state) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ReturnFromOAuth);
+            callInfo.RouteValueDictionary.Add("providerName", providerName);
+            callInfo.RouteValueDictionary.Add("state", state);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult LogOn(string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOn);
+            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
             return callInfo;
         }
 

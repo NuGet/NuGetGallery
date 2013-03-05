@@ -2,6 +2,7 @@
 using System.Web.Routing;
 using MvcHaack.Ajax;
 using RouteMagic;
+using WorldDomination.Web.Authentication.Mvc;
 
 namespace NuGetGallery
 {
@@ -106,6 +107,16 @@ namespace NuGetGallery
                 r => r.MapRoute(
                     "v1Confirmation",
                     "Users/Account/ChallengeEmail")).To(resendRoute);
+
+            routes.MapRoute(
+                RouteName.OAuthRedirect,
+                "oauth/start/{providerName}",
+                MVC.Authentication.RedirectToProvider());
+
+            routes.MapRoute(
+                RouteName.OAuthLand,
+                "oauth/land/{providerName}",
+                MVC.Authentication.ReturnFromOAuth());
 
             routes.MapRoute(
                 RouteName.Authentication,
