@@ -14,6 +14,11 @@ using Ninject;
 using Ninject.Modules;
 using Ninject.Web.Mvc.Filter;
 using NuGetGallery.Infrastructure;
+using WorldDomination.Web.Authentication;
+using WorldDomination.Web.Authentication.Config;
+using WorldDomination.Web.Authentication.ExtraProviders;
+using WorldDomination.Web.Authentication.Mvc;
+using WorldDomination.Web.Authentication.Twitter;
 
 namespace NuGetGallery
 {
@@ -265,6 +270,31 @@ namespace NuGetGallery
             Bind<IPackageVersionsQuery>()
                 .To<PackageVersionsQuery>()
                 .InRequestScope();
+
+            ConfigureAuthentication(configuration);
+        }
+
+        private void ConfigureAuthentication(IConfiguration config)
+        {
+            var authService = new AuthenticationService();
+
+            if (!String.IsNullOrEmpty(config.MicrosoftAccountClientId) && !String.IsNullOrEmpty(config.MicrosoftAccountClientSecret))
+            {
+                authService.AddProvider(new WindowsLiveProvider(config.MicrosoftAccountClientId, config.MicrosoftAccountClientSecret, restClientFactory: null));
+            }
+            if (!String.IsNullOrEmpty(config.TwitterAccountClientId) && !String.IsNullOrEmpty(config.TwitterAccountClientSecret))
+            {
+                authService.AddProvider(new TwitterProvider(config.TwitterAccountClientId, config.TwitterAccountClientSecret, restClientFactory: null));
+            }
+            
+
+            Bind<IAuthenticationService>()
+                .ToConstant(authService)                
+                .InSingletonScope();
+
+            Bind<IAuthenticationCallbackProvider>()
+                .To<AuthenticationCallback>()
+                .InSingletonScope();
         }
 
         public static bool IsDeployedToCloud

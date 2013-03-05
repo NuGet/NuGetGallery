@@ -3,6 +3,11 @@
     public interface IConfiguration
     {
         bool HasWorker { get; }
+        string MicrosoftAccountClientId { get; }
+        string MicrosoftAccountClientSecret { get; }
+        string TwitterAccountClientId { get; }
+        string TwitterAccountClientSecret { get; }
+
         bool RequireSSL { get; }
         int SSLPort { get; }
 

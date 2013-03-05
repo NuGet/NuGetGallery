@@ -163,6 +163,8 @@
     <Compile Include="Infrastructure\LuceneIndexingServiceFacts.cs" />
     <Compile Include="Infrastructure\LuceneSearchServiceFacts.cs" />
     <Compile Include="Infrastructure\NuGetQueryParserFacts.cs" />
+    <Compile Include="MockExtensions.cs" />
+    <Compile Include="Infrastructure\AntiForgeryExtensionsFacts.cs" />
     <Compile Include="PackageCurators\Windows8PackageCuratorFacts.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCuratorFacts.cs" />
     <Compile Include="Packaging\NupkgFacts.cs" />

@@ -1269,3 +1269,28 @@ form .async-upload-progress-advance
     display: block;
     background-color: green;
 }
+
+/* Login form */
+#basic-login {
+    float: left;
+}
+
+#oauth-login {
+    float: left;
+    margin-left: 2em;
+}
+
+ul#oauth-providers {
+    margin: 0;
+    padding: 0;
+}
+
+ul#oauth-providers li {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 0.5em;
+}
+ul#oauth-providers li a {   
+    
+}

@@ -378,6 +378,15 @@ namespace Links {
             public static readonly string newAccountGraphic_png = Url("newAccountGraphic.png");
             public static readonly string nugetlogo_png = Url("nugetlogo.png");
             public static readonly string nugetLogoFooter_png = Url("nugetLogoFooter.png");
+            [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+            public static class oauth {
+                private const string URLPATH = "~/Content/Images/oauth";
+                public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                public static readonly string twitter_png = Url("twitter.png");
+                public static readonly string windowslive_png = Url("windowslive.png");
+            }
+        
             public static readonly string packageDefaultIcon_50x50_png = Url("packageDefaultIcon-50x50.png");
             public static readonly string packageDefaultIcon_png = Url("packageDefaultIcon.png");
             public static readonly string packageOwnerActionIcons_png = Url("packageOwnerActionIcons.png");

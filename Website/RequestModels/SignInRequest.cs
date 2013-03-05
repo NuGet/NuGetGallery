@@ -13,5 +13,8 @@ namespace NuGetGallery
         [DataType(DataType.Password)]
         [Hint("Passwords must be at least 7 characters long.")]
         public string Password { get; set; }
+
+        [ScaffoldColumn(false)]
+        public string ReturnUrl { get; set; }
     }
 }

@@ -65,7 +65,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\elmah.corelibrary.1.2.2\lib\Elmah.dll</HintPath>
     </Reference>
-    <Reference Include="Elmah.Contrib.Mvc">
+    <Reference Include="Elmah.Contrib.Mvc, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Elmah.Contrib.Mvc.1.0\lib\net40\Elmah.Contrib.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
@@ -163,6 +164,9 @@
     <Reference Include="Recaptcha">
       <HintPath>..\packages\recaptcha.1.0.5.0\lib\.NetFramework 4.0\Recaptcha.dll</HintPath>
     </Reference>
+    <Reference Include="RestSharp">
+      <HintPath>..\packages\RestSharp.104.1\lib\net4\RestSharp.dll</HintPath>
+    </Reference>
     <Reference Include="RouteMagic, Version=1.1.3.0, Culture=neutral, PublicKeyToken=84b59be021aa4cee, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RouteMagic.1.1.3\lib\net40\RouteMagic.dll</HintPath>
@@ -240,6 +244,14 @@
     <Reference Include="WebGrease, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebGrease.1.1.0\lib\WebGrease.dll</HintPath>
+    <Reference Include="WorldDomination.Web.Authentication">
+      <HintPath>..\packages\WorldDomination.Web.Authentication.0.17.0\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
+    </Reference>
+    <Reference Include="WorldDomination.Web.Authentication.ExtraProviders">
+      <HintPath>..\packages\WorldDomination.Web.Authentication.ExtraProviders.0.17.0\lib\net40\WorldDomination.Web.Authentication.ExtraProviders.dll</HintPath>
+    </Reference>
+    <Reference Include="WorldDomination.Web.Authentication.Mvc">
+      <HintPath>..\packages\WorldDomination.Web.Authentication.Mvc.0.17.0\lib\net40\WorldDomination.Web.Authentication.Mvc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -309,10 +321,12 @@
     <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
+    <Compile Include="Infrastructure\AuthenticationCallback.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
     <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
+    <Compile Include="Infrastructure\AntiForgeryExtensions.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadModule.cs" />
@@ -871,6 +885,8 @@
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
     <Content Include="Content\Images\managePackages.png" />
+    <Content Include="Content\Images\oauth\windowslive.png" />
+    <Content Include="Content\Images\oauth\twitter.png" />
     <Content Include="Content\Images\treeview\ajax-loader.gif" />
     <Content Include="Content\Images\treeview\file.gif" />
     <Content Include="Content\Images\treeview\folder-closed.gif" />
@@ -1090,6 +1106,7 @@
     <Content Include="Views\Packages\ReportMyPackage.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
+    <Content Include="Views\Authentication\_OAuthLogin.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />
