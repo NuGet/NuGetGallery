@@ -18,8 +18,13 @@ namespace NuGetGallery
             _userService = userService;
         }
 
+<<<<<<< HEAD
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        public virtual ActionResult LogOn()
+=======
+        [RequireRemoteHttps]
         public virtual ActionResult LogOn(string returnUrl)
+>>>>>>> staging
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
