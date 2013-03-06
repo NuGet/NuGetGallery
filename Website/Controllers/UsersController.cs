@@ -102,6 +102,9 @@ namespace NuGetGallery
 
         public virtual ActionResult Register()
         {
+            // We don't want Login to have us as a return URL. 
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
             return View();
         }
 
@@ -109,6 +112,10 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult Register(RegisterRequest request)
         {
+            // If we have to render a view, we don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             // TODO: consider client-side validation for unique username
             // TODO: add email validation
 
@@ -143,6 +150,10 @@ namespace NuGetGallery
 
         public virtual ActionResult Thanks()
         {
+            // No need to redirect here after someone logs in...
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             if (_config.ConfirmEmailAddresses)
             {
                 return View();
@@ -186,6 +197,10 @@ namespace NuGetGallery
 
         public virtual ActionResult ForgotPassword()
         {
+            // We don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             return View();
         }
 
@@ -193,6 +208,10 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult ForgotPassword(ForgotPasswordViewModel model)
         {
+            // We don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             if (ModelState.IsValid)
             {
                 var user = _userService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
@@ -214,6 +233,10 @@ namespace NuGetGallery
 
         public virtual ActionResult ResendConfirmation()
         {
+            // We don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             return View();
         }
 
@@ -221,6 +244,10 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult ResendConfirmation(ResendConfirmationEmailViewModel model)
         {
+            // We don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             if (ModelState.IsValid)
             {
                 var user = _userService.FindByUnconfirmedEmailAddress(model.Email);
@@ -238,6 +265,10 @@ namespace NuGetGallery
 
         public virtual ActionResult PasswordSent()
         {
+            // We don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             ViewBag.Email = TempData["Email"];
             ViewBag.Expiration = Constants.DefaultPasswordResetTokenExpirationHours;
             return View();
@@ -245,6 +276,10 @@ namespace NuGetGallery
 
         public virtual ActionResult ResetPassword()
         {
+            // We don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             ViewBag.ResetTokenValid = true;
             return View();
         }
@@ -253,6 +288,10 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult ResetPassword(string username, string token, PasswordResetViewModel model)
         {
+            // We don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             ViewBag.ResetTokenValid = _userService.ResetPasswordWithToken(username, token, model.NewPassword);
 
             if (!ViewBag.ResetTokenValid)
@@ -265,6 +304,10 @@ namespace NuGetGallery
 
         public virtual ActionResult Confirm(string username, string token)
         {
+            // We don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            
             if (String.IsNullOrEmpty(token))
             {
                 return HttpNotFound();
