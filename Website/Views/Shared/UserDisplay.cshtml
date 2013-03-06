@@ -1,7 +1,8 @@
 ﻿<div class="user-display">
     @if (!User.Identity.IsAuthenticated)
     {
-        <span class="welcome">@Html.ActionLink("Log On", "LogOn", "Authentication", new { returnUrl = Request.RequestContext.HttpContext.Request.RawUrl }, null)</span>
+        string returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+        <span class="welcome">@Html.ActionLink("Log On", "LogOn", "Authentication", new { returnUrl = returnUrl }, null)</span>
         <a href="@Url.Action(MVC.Users.Register())" class="register">Register</a>
     }
     else
