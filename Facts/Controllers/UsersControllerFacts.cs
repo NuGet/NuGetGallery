@@ -122,6 +122,26 @@ namespace NuGetGallery
         public class TheConfirmMethod
         {
             [Fact]
+            public void WillClearTheReturnUrlValue()
+            {
+                var user = new User
+                {
+                    UnconfirmedEmailAddress = "email@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername("username")).Returns(user);
+                userService.Setup(u => u.ConfirmEmailAddress(user, "the-token")).Returns(true);
+                var controller = CreateController(userService: userService);
+
+                var result = controller.Confirm("username", "the-token") as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
             public void Returns404WhenTokenIsEmpty()
             {
                 var controller = CreateController();
@@ -323,8 +343,76 @@ namespace NuGetGallery
             }
         }
 
+        public class TheResendConfirmationMethod
+        {
+            [Fact]
+            public void WillClearTheReturnUrlValue()
+            {
+                var controller = CreateController();
+
+                var result = controller.ResendConfirmation() as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
+            public void PostbackWillClearTheReturnUrlValue()
+            {
+                var controller = CreateController();
+                controller.ModelState.AddModelError("error", "message");
+
+                var result = controller.ResendConfirmation(new ResendConfirmationEmailViewModel()) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+        }
+
+        public class ThePasswordSentMethod
+        {
+            [Fact]
+            public void WillClearTheReturnUrlValue()
+            {
+                var controller = CreateController();
+
+                var result = controller.PasswordSent() as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+        }
+
         public class TheForgotPasswordMethod
         {
+            [Fact]
+            public void WillClearTheReturnUrlValue()
+            {
+                var controller = CreateController();
+
+                var result = controller.ForgotPassword() as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
+            public void PostbackWillClearTheReturnUrlValue()
+            {
+                var controller = CreateController();
+                controller.ModelState.AddModelError("error", "message");
+
+                var result = controller.ForgotPassword(new ForgotPasswordViewModel()) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
             [Fact]
             public void SendsEmailWithPasswordResetUrl()
             {
@@ -414,6 +502,31 @@ namespace NuGetGallery
 
         public class TheRegisterMethod
         {
+            [Fact]
+            public void WillClearTheReturnUrlValue()
+            {
+                var controller = CreateController();
+
+                var result = controller.Register() as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
+            public void PostbackWillClearTheReturnUrlValue()
+            {
+                var controller = CreateController();
+                controller.ModelState.AddModelError("error", "message");
+                
+                var result = controller.Register(new RegisterRequest()) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
             [Fact]
             public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
             {
@@ -518,6 +631,38 @@ namespace NuGetGallery
         public class TheResetPasswordMethod
         {
             [Fact]
+            public void WillClearTheReturnUrlValue()
+            {
+                var controller = CreateController();
+
+                var result = controller.ResetPassword() as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
+            public void PostbackWillClearTheReturnUrlValue()
+            {
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd")).Returns(false);
+                var controller = CreateController(userService: userService);
+                var model = new PasswordResetViewModel
+                {
+                    ConfirmPassword = "pwd",
+                    NewPassword = "newpwd"
+                };
+
+                
+                var result = controller.ResetPassword("user", "token", model) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
             public void ShowsErrorIfTokenExpired()
             {
                 var userService = new Mock<IUserService>();
@@ -556,6 +701,17 @@ namespace NuGetGallery
 
         public class TheThanksMethod
         {
+            [Fact]
+            public void WillClearTheReturnUrlValue()
+            {
+                var controller = CreateController();
+
+                var result = controller.Thanks() as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
             [Fact]
             public void ShowsDefaultThanksViewWhenConfirmingEmailAddressIsRequired()
             {

@@ -73,6 +73,54 @@ namespace NuGetGallery.Controllers
         public class TheLogOnAction
         {
             [Fact]
+            public void WillShowTheViewWithTheProvidedReturnUrl()
+            {
+                var controller = CreateController();
+                
+                var result = controller.LogOn("abc123") as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Equal("abc123", result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
+            public void WillShowTheViewWithNoReturnUrlIfNoneSpecified()
+            {
+                var controller = CreateController();
+
+                var result = controller.LogOn(null) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
+            public void PostbackWillShowTheViewWithTheProvidedReturnUrl()
+            {
+                var controller = CreateController();
+
+                var result = controller.LogOn(new SignInRequest(), "abc123") as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Equal("abc123", result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
+            public void PostbackWillShowTheViewWithNoReturnUrlIfNoneSpecified()
+            {
+                var controller = CreateController();
+
+                var result = controller.LogOn(new SignInRequest(), null) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.Empty(result.ViewName);
+                Assert.Null(result.ViewData[Constants.ReturnUrlViewDataKey]);
+            }
+
+            [Fact]
             public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
             {
                 var controller = CreateController();
