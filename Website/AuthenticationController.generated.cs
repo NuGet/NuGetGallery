@@ -85,19 +85,19 @@ namespace NuGetGallery {
     public class T4MVC_AuthenticationController: NuGetGallery.AuthenticationController {
         public T4MVC_AuthenticationController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult RedirectToProvider(string providerName, string returnUrl) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.RedirectToProvider);
-            callInfo.RouteValueDictionary.Add("providerName", providerName);
-            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
-            return callInfo;
-        }
+        //public override System.Web.Mvc.ActionResult RedirectToProvider(string providerName, string returnUrl) {
+        //    var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.RedirectToProvider);
+        //    callInfo.RouteValueDictionary.Add("providerName", providerName);
+        //    callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+        //    return callInfo;
+        //}
 
-        public override System.Web.Mvc.ActionResult ReturnFromOAuth(string providerName, string state) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ReturnFromOAuth);
-            callInfo.RouteValueDictionary.Add("providerName", providerName);
-            callInfo.RouteValueDictionary.Add("state", state);
-            return callInfo;
-        }
+        //public override System.Web.Mvc.ActionResult ReturnFromOAuth(string providerName, string state) {
+        //    var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ReturnFromOAuth);
+        //    callInfo.RouteValueDictionary.Add("providerName", providerName);
+        //    callInfo.RouteValueDictionary.Add("state", state);
+        //    return callInfo;
+        //}
 
         public override System.Web.Mvc.ActionResult LogOn(string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOn);

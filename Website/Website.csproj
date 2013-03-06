@@ -233,14 +233,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebBackgrounder.EntityFramework.0.1\lib\net40\WebBackgrounder.EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="WorldDomination.Web.Authentication">
-      <HintPath>..\packages\WorldDomination.Web.Authentication.0.17.0\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
+    <Reference Include="WorldDomination.Web.Authentication, Version=0.19.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.0.19.0-Csrf-PewPew-2\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
     </Reference>
-    <Reference Include="WorldDomination.Web.Authentication.ExtraProviders">
-      <HintPath>..\packages\WorldDomination.Web.Authentication.ExtraProviders.0.17.0\lib\net40\WorldDomination.Web.Authentication.ExtraProviders.dll</HintPath>
-    </Reference>
-    <Reference Include="WorldDomination.Web.Authentication.Mvc">
-      <HintPath>..\packages\WorldDomination.Web.Authentication.Mvc.0.17.0\lib\net40\WorldDomination.Web.Authentication.Mvc.dll</HintPath>
+    <Reference Include="WorldDomination.Web.Authentication.Mvc, Version=0.19.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.Mvc.0.19.0-Csrf-PewPew-2\lib\net40\WorldDomination.Web.Authentication.Mvc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
