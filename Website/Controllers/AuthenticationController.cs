@@ -19,8 +19,11 @@ namespace NuGetGallery
         }
 
         [RequireRemoteHttps]
-        public virtual ActionResult LogOn()
+        public virtual ActionResult LogOn(string returnUrl)
         {
+            // I think it should be obvious why we don't want the current URL to be the return URL here ;)
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
             return View();
         }
 
@@ -28,6 +31,9 @@ namespace NuGetGallery
         [RequireRemoteHttps]
         public virtual ActionResult LogOn(SignInRequest request, string returnUrl)
         {
+            // I think it should be obvious why we don't want the current URL to be the return URL here ;)
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
             // TODO: improve the styling of the validation summary
             // TODO: modify the Object.cshtml partial to make the first text box autofocus, or use additional metadata
 
