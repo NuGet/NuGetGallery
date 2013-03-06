@@ -13,7 +13,12 @@
             @foreach (var provider in authService.AuthenticationProviders)
             {
                 <li>
-                    <a href="@Url.Action(MVC.Authentication.RedirectToProvider(provider.Key, Model.ReturnUrl))"><img src="~/Content/Images/oauth/@(provider.Key).png" /></a>
+                    @*
+                        Controller: WorldDomination.Web.Authentication.Mvc.WorldDominationAuthenticationController
+                        ControllerName: WorldDominationAutomatedMvc-Redirect
+                        params: providerkey=google, etc.
+                    *@
+                    <a href="/authentication/redirect/@(provider.Key)"><img src="~/Content/Images/oauth/@(provider.Key).png" /></a>
                 </li>
             }
         </ul>

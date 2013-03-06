@@ -16,7 +16,7 @@ using Ninject.Web.Mvc.Filter;
 using NuGetGallery.Infrastructure;
 using WorldDomination.Web.Authentication;
 using WorldDomination.Web.Authentication.Config;
-using WorldDomination.Web.Authentication.ExtraProviders;
+using WorldDomination.Web.Authentication.Csrf;
 using WorldDomination.Web.Authentication.Mvc;
 using WorldDomination.Web.Authentication.Twitter;
 
@@ -285,24 +285,34 @@ namespace NuGetGallery
 
         private void ConfigureAuthentication(IConfiguration config)
         {
-            var authService = new AuthenticationService();
+            // Don't bother with manually wiring this up.
+            // We'll just let the provider look in the config file, itself.
+            //var authService = new AuthenticationService();
 
-            if (!String.IsNullOrEmpty(config.MicrosoftAccountClientId) && !String.IsNullOrEmpty(config.MicrosoftAccountClientSecret))
-            {
-                authService.AddProvider(new WindowsLiveProvider(config.MicrosoftAccountClientId, config.MicrosoftAccountClientSecret, restClientFactory: null));
-            }
-            if (!String.IsNullOrEmpty(config.TwitterAccountClientId) && !String.IsNullOrEmpty(config.TwitterAccountClientSecret))
-            {
-                authService.AddProvider(new TwitterProvider(config.TwitterAccountClientId, config.TwitterAccountClientSecret, restClientFactory: null));
-            }
-            
+            //if (!String.IsNullOrEmpty(config.TwitterAccountClientId) && !String.IsNullOrEmpty(config.TwitterAccountClientSecret))
+            //{
+            //    authService.AddProvider(new TwitterProvider(config.TwitterAccountClientId, config.TwitterAccountClientSecret));
+            //}
+
+            //if (!String.IsNullOrEmpty(config.TwitterAccountClientId) && !String.IsNullOrEmpty(config.TwitterAccountClientSecret))
+            //{
+            //    authService.AddProvider(new TwitterProvider(config.TwitterAccountClientId, config.TwitterAccountClientSecret));
+            //}
 
             Bind<IAuthenticationService>()
-                .ToConstant(authService)                
+                //.ToConstant(authService)                
+                .To<AuthenticationService>()
                 .InSingletonScope();
 
             Bind<IAuthenticationCallbackProvider>()
                 .To<AuthenticationCallback>()
+                .InSingletonScope();
+            
+            // Bind any custom IAntiForgery implementation, here.
+            // NOTE: I'm just using the default one we provide, which just generates a GUID.
+            //       You can replace this with some custom System.Web.Antiforgery code stuff.
+            Bind<IAntiForgery>()
+                .To<AntiForgery>()
                 .InSingletonScope();
         }
 

@@ -63,6 +63,10 @@ namespace NuGetGallery
         private static void AppPostStart()
         {
             Routes.RegisterRoutes(RouteTable.Routes);
+            
+            // Wire up the default Authentication Mvc Controller routes.
+            WorldDomination.Web.Authentication.Mvc.WorldDominationRouteConfig.RegisterRoutes(RouteTable.Routes);
+
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
