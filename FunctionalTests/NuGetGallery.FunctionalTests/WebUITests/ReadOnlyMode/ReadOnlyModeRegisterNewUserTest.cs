@@ -12,9 +12,9 @@ namespace NuGetGallery.FunctionalTests
     /// <summary>
     /// Sends http POST request to register a new user and checks that a pending confirmation page is shown as response.
     /// </summary>
-    public class RegisterNewUserTest : GalleryTestBase
+    public class ReadOnlyModeRegisterNewUserTest : GalleryTestBase
     {
-        public RegisterNewUserTest()
+        public ReadOnlyModeRegisterNewUserTest()
         {
             this.PreAuthenticate = true;
         }
@@ -27,7 +27,7 @@ namespace NuGetGallery.FunctionalTests
 
             WebTestRequest registerPagePostRequest = new WebTestRequest(UrlHelper.RegisterPageUrl);
             registerPagePostRequest.Method = "POST";
-            registerPagePostRequest.ExpectedResponseUrl = UrlHelper.RegistrationPendingPageUrl;
+            registerPagePostRequest.ExpectedResponseUrl = UrlHelper.RegisterPageUrl; // the same page will be the response url.
             //create a form and set the UserName, Email and password as form post parameters.
             //We just need to set some unique user name and Email.
             FormPostHttpBody registerNewUserFormPost = new FormPostHttpBody();
@@ -38,10 +38,11 @@ namespace NuGetGallery.FunctionalTests
             registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordFormField, "xxxxxxx");
             registerPagePostRequest.Body = registerNewUserFormPost;
             //Validate the response to make sure that it has the pending confirmation text in it.           
-            ValidationRuleFindText PendingConfirmationTextRule = ValidationRuleHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText);
-            registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);           
+            ValidationRuleFindText PendingConfirmationTextRule = ValidationRuleHelper.GetValidationRuleForFindText(Constants.ReadOnlyModeRegisterNewUserText);
+            registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);
             yield return registerPagePostRequest;
             registerPagePostRequest = null;
         }
     }
 }
+
