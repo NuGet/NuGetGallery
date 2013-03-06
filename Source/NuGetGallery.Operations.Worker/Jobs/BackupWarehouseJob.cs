@@ -26,10 +26,11 @@ namespace NuGetGallery.Operations.Worker.Jobs
         {
             Logger.Info("Starting backup warehouse task.");
          
-            BackupWarehouseTask backupTask = new BackupWarehouseTask
+            var backupTask = new BackupWarehouseTask
             {
                 ConnectionString = Settings.WarehouseConnectionString,
-                WhatIf = Settings.WhatIf
+                WhatIf = Settings.WhatIf,
+                IfOlderThan = 25,
             };
 
             backupTask.Execute();

@@ -7,12 +7,17 @@ namespace NuGetGallery.Operations
     [Command("backupdatabase", "Backs up the database", AltName = "bdb", MaxArgs = 0)]
     public class BackupDatabaseTask : DatabaseTask, IBackupDatabase
     {
-        [Option("Force a backup, even if there is one less than 24 hours old", AltName="f")]
-        public bool Force { get; set; }
+        [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
+        public int IfOlderThan { get; set; } 
 
         public string BackupName { get; private set; }
 
         public bool SkippingBackup { get; private set; }
+
+        public BackupDatabaseTask()
+        {
+            IfOlderThan = 30;
+        }
 
         public override void ExecuteCommand()
         {
@@ -38,20 +43,17 @@ namespace NuGetGallery.Operations
 
                 Log.Trace("Found no backup in progress.");
 
-                if (!Force)
+                Log.Trace("Getting last backup time.");
+                var lastBackupTime = Util.GetLastBackupTime(dbExecutor);
+                if (lastBackupTime >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(IfOlderThan)))
                 {
-                    Log.Trace("Getting last backup time.");
-                    var lastBackupTime = Util.GetLastBackupTime(dbExecutor);
-                    if (lastBackupTime >= DateTime.UtcNow.Subtract(TimeSpan.FromHours(24)))
-                    {
-                        Log.Info("Skipping Backup. Last Backup was less than 24 hours ago");
+                    Log.Info("Skipping Backup. Last Backup was less than {0} minutes ago", IfOlderThan);
 
-                        SkippingBackup = true;
+                    SkippingBackup = true;
 
-                        return;
-                    }
-                    Log.Trace("Last backup time is more than 24 hours ago. Starting new backup.");
+                    return;
                 }
+                Log.Trace("Last backup time is more than {0} minutes ago. Starting new backup.", IfOlderThan);
 
                 var timestamp = Util.GetTimestamp();
 
