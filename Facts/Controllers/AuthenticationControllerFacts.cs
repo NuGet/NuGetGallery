@@ -178,18 +178,5 @@ namespace NuGetGallery.Controllers
                 return new RedirectResult("aSafeRedirectUrl");
             }
         }
-
-        public class TheRedirectToProviderAction
-        {
-            [Fact]
-            public void RequiresAProviderName()
-            {
-                var controller = CreateController();
-                var ex = Assert.Throws<ArgumentException>(() => controller.RedirectToProvider(null, "abc123"));
-                Assert.Equal("'providerName' must be a non-empty string", ex.Message);
-                Assert.Equal("providerName", ex.ParamName);
-            }
-
-        }
     }
 }

@@ -15,6 +15,9 @@ namespace NuGetGallery
                 "",
                 MVC.Pages.Home());
 
+            routes.MapOAuthRedirect("oauth/redirect");
+            routes.MapOAuthCallback("oauth/land");
+
             routes.MapRoute(
                 RouteName.StatisticsHome,
                 "stats",
@@ -112,16 +115,6 @@ namespace NuGetGallery
                 r => r.MapRoute(
                     "v1Confirmation",
                     "Users/Account/ChallengeEmail")).To(resendRoute);
-
-            routes.MapRoute(
-                RouteName.OAuthRedirect,
-                "oauth/start/{providerName}",
-                MVC.Authentication.RedirectToProvider());
-
-            routes.MapRoute(
-                RouteName.OAuthLand,
-                "oauth/land/{providerName}",
-                MVC.Authentication.ReturnFromOAuth());
 
             routes.MapRoute(
                 RouteName.Authentication,

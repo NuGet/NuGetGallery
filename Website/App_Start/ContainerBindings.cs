@@ -11,6 +11,7 @@ using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Ninject;
+using Ninject.Activation;
 using Ninject.Modules;
 using Ninject.Web.Mvc.Filter;
 using NuGetGallery.Infrastructure;
@@ -271,30 +272,35 @@ namespace NuGetGallery
                 .To<PackageVersionsQuery>()
                 .InRequestScope();
 
-            ConfigureAuthentication(configuration);
+            ConfigureAuthentication();
         }
 
-        private void ConfigureAuthentication(IConfiguration config)
+        private void ConfigureAuthentication()
         {
-            var authService = new AuthenticationService();
-
-            if (!String.IsNullOrEmpty(config.MicrosoftAccountClientId) && !String.IsNullOrEmpty(config.MicrosoftAccountClientSecret))
-            {
-                authService.AddProvider(new WindowsLiveProvider(config.MicrosoftAccountClientId, config.MicrosoftAccountClientSecret, restClientFactory: null));
-            }
-            if (!String.IsNullOrEmpty(config.TwitterAccountClientId) && !String.IsNullOrEmpty(config.TwitterAccountClientSecret))
-            {
-                authService.AddProvider(new TwitterProvider(config.TwitterAccountClientId, config.TwitterAccountClientSecret, restClientFactory: null));
-            }
-            
+            Bind<IAuthenticationProvider>()
+                .ToMethod(WithConfiguration(config => 
+                    new WindowsLiveProvider(
+                        config.MicrosoftAccountClientId, 
+                        config.MicrosoftAccountClientSecret, 
+                        restClientFactory: null)))
+                .InSingletonScope();
 
             Bind<IAuthenticationService>()
-                .ToConstant(authService)                
+                .To<AuthenticationService>()
                 .InSingletonScope();
 
             Bind<IAuthenticationCallbackProvider>()
                 .To<AuthenticationCallback>()
                 .InSingletonScope();
+        }
+
+        private Func<IContext, T> WithConfiguration<T>(Func<IConfiguration, T> thunk)
+        {
+            return ctx =>
+            {
+                var config = ctx.Kernel.Get<IConfiguration>();
+                return thunk(config);
+            };
         }
 
         public static bool IsDeployedToCloud

@@ -1,6 +1,7 @@
 ﻿@model SignInRequest
 @using Ninject;
 @using WorldDomination.Web.Authentication
+@using WorldDomination.Web.Authentication.Mvc
 @{
     var authService = Container.Kernel.TryGet<IAuthenticationService>();
 }
@@ -13,7 +14,7 @@
             @foreach (var provider in authService.AuthenticationProviders)
             {
                 <li>
-                    <a href="@Url.Action(MVC.Authentication.RedirectToProvider(provider.Key, Model.ReturnUrl))"><img src="~/Content/Images/oauth/@(provider.Key).png" /></a>
+                    <a href="@Url.RedirectToOAuthProvider(provider.Key)"><img src="~/Content/Images/oauth/@(provider.Key).png" /></a>
                 </li>
             }
         </ul>
