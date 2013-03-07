@@ -9,15 +9,18 @@ namespace NuGetGallery
         private readonly ICryptographyService _cryptoService;
         private readonly IConfiguration _config;
         private readonly IEntityRepository<User> _userRepository;
+        private readonly IEntityRepository<Credential> _credentialRepository;
 
         public UserService(
             IConfiguration config,
             ICryptographyService cryptoService,
-            IEntityRepository<User> userRepository)
+            IEntityRepository<User> userRepository,
+            IEntityRepository<Credential> credentialRepository)
         {
             _config = config;
             _cryptoService = cryptoService;
             _userRepository = userRepository;
+            _credentialRepository = credentialRepository;
         }
 
         public virtual User Create(
@@ -96,6 +99,15 @@ namespace NuGetGallery
             // TODO: validate input
 
             return _userRepository.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
+        }
+
+        public virtual User FindByCredential(string credentialName, string credentialValue)
+        {
+            return _credentialRepository
+                .GetAll()
+                .Where(c => c.Name == credentialName && c.Value == credentialValue)
+                .Select(c => c.User)
+                .SingleOrDefault();
         }
 
         public virtual User FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress)
