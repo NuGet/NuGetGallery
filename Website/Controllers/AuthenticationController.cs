@@ -6,6 +6,7 @@ using System.Text;
 using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
+using System.Web.Security;
 using NuGetGallery.Infrastructure;
 using WorldDomination.Web.Authentication;
 using WorldDomination.Web.Authentication.Mvc;
@@ -16,6 +17,7 @@ namespace NuGetGallery
     {
         private readonly IAuthenticationService _oauth;
         private readonly IAuthenticationCallbackProvider _callback;
+        internal static readonly string OAuthLinkingMachineKeyPurpose = "OAuthLinkToken";
 
         public IFormsAuthenticationService FormsAuth { get; protected set; }
         public IUserService Users { get; protected set; }
@@ -91,6 +93,24 @@ namespace NuGetGallery
                 roles);
 
             return SafeRedirect(returnUrl);
+        }
+
+        public virtual ActionResult LinkOrCreateUser(string token)
+        {
+            string unprotected = Encoding.UTF8.GetString(
+                MachineKey.Unprotect(
+                    Convert.FromBase64String(token), 
+                    OAuthLinkingMachineKeyPurpose));
+            string[] bits = unprotected.Split('|');
+            if(bits.Length != 3) {
+                throw new ArgumentException("Unknown token format", "token");
+            }
+
+            string providerId = bits[0];
+            string email = bits[1];
+            string username = bits[2];
+
+            return Content("Link " + providerId + " to user with email [" + email + "] and user name [" + username + "]");
         }
 
         public virtual ActionResult LogOff(string returnUrl)

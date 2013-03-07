@@ -100,6 +100,15 @@ namespace NuGetGallery
             return UserRepository.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
         }
 
+        public virtual User FindByCredential(string credentialName, string credentialValue)
+        {
+            return _credentialRepository
+                .GetAll()
+                .Where(c => c.Name == credentialName && c.Value == credentialValue)
+                .Select(c => c.User)
+                .SingleOrDefault();
+        }
+
         public virtual User FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress)
         {
             // TODO: validate input

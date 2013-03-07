@@ -116,6 +116,10 @@ namespace NuGetGallery
                 .To<EntityRepository<PackageStatistics>>()
                 .InRequestScope();
 
+            Bind<IEntityRepository<Credential>>()
+                .To<EntityRepository<Credential>>()
+                .InRequestScope();
+
             Bind<IUserService>()
                 .To<UserService>()
                 .InRequestScope();

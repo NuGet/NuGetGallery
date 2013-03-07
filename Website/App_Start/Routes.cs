@@ -17,6 +17,10 @@ namespace NuGetGallery
 
             routes.MapOAuthRedirect("oauth/redirect");
             routes.MapOAuthCallback("oauth/land");
+            routes.MapRoute(
+                RouteName.OAuthLink,
+                "oauth/link/{token}",
+                MVC.Authentication.LinkOrCreateUser());
 
             routes.MapRoute(
                 RouteName.StatisticsHome,

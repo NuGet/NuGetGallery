@@ -313,6 +313,7 @@
     <Compile Include="DataServices\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
@@ -496,6 +497,10 @@
     <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.cs" />
     <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.Designer.cs">
       <DependentUpon>201302282115583_AddMinRequiredVersionColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201303070014559_AddCredentialsTable.cs" />
+    <Compile Include="Migrations\201303070014559_AddCredentialsTable.Designer.cs">
+      <DependentUpon>201303070014559_AddCredentialsTable.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />

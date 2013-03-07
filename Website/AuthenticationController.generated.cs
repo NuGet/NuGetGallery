@@ -38,6 +38,11 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult LinkOrCreateUser() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.LinkOrCreateUser);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult LogOff() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
         }
@@ -55,6 +60,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string LogOn = "LogOn";
+            public readonly string LinkOrCreateUser = "LinkOrCreateUser";
             public readonly string LogOff = "LogOff";
         }
 
@@ -83,6 +89,12 @@ namespace NuGetGallery {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOn);
             callInfo.RouteValueDictionary.Add("request", request);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult LinkOrCreateUser(string token) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LinkOrCreateUser);
+            callInfo.RouteValueDictionary.Add("token", token);
             return callInfo;
         }
 
