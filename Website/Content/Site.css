@@ -1054,6 +1054,7 @@ fieldset.form legend { display: none; }
 }
 
 .form-field textarea,
+.form-field input[type="email"],
 .form-field input[type="text"],
 .form-field input[type="file"],
 .form-field input[type="password"] {
