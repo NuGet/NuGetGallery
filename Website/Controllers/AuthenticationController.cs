@@ -15,18 +15,23 @@ namespace NuGetGallery
 {
     public partial class AuthenticationController : Controller
     {
-        private readonly IFormsAuthenticationService _formsAuthService;
-        private readonly IUserService _userService;
-        private readonly ICryptographyService _cryptoService;
+        public IFormsAuthenticationService FormsAuth { get; protected set; }
+        public IUserService Users { get; protected set; }
+        public ICryptographyService Crypto { get; protected set; }
+
+        // For sub-classes to initialize services themselves
+        protected AuthenticationController()
+        {
+        }
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthService,
             IUserService userService,
             ICryptographyService cryptoService)
         {
-            _formsAuthService = formsAuthService;
-            _userService = userService;
-            _cryptoService = cryptoService;
+            FormsAuth = formsAuthService;
+            Users = userService;
+            Crypto = cryptoService;
         }
 
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -52,7 +57,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            var user = _userService.FindByUsernameOrEmailAddressAndPassword(
+            var user = Users.FindByUsernameOrEmailAddressAndPassword(
                 request.UserNameOrEmail,
                 request.Password);
 
@@ -77,7 +82,7 @@ namespace NuGetGallery
                 roles = user.Roles.Select(r => r.Name);
             }
 
-            _formsAuthService.SetAuthCookie(
+            FormsAuth.SetAuthCookie(
                 user.Username,
                 true,
                 roles);
@@ -92,8 +97,7 @@ namespace NuGetGallery
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
             // Deserialize the token
-            OAuthLinkToken linkToken = OAuthLinkToken.FromToken(
-                _cryptoService.DecryptString(token, OAuthLinkToken.CryptoPurpose));
+            OAuthLinkToken linkToken = DecodeToken(token);
 
             // Send down the view model
             return View(new LinkOrCreateViewModel()
@@ -113,6 +117,9 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult LinkOrCreateUser(LinkOrCreateViewModel model, string token, string returnUrl)
         {
+            // Decode the token
+            OAuthLinkToken linkToken = DecodeToken(token);
+
             return Json(model);
         }
 
@@ -120,7 +127,7 @@ namespace NuGetGallery
         {
             // TODO: this should really be a POST
 
-            _formsAuthService.SignOut();
+            FormsAuth.SignOut();
 
             return SafeRedirect(returnUrl);
         }
@@ -139,6 +146,12 @@ namespace NuGetGallery
             }
 
             return Redirect(Url.Home());
+        }
+
+        private OAuthLinkToken DecodeToken(string token)
+        {
+            return OAuthLinkToken.FromToken(
+                            Crypto.DecryptString(token, OAuthLinkToken.CryptoPurpose));
         }
     }
 }
