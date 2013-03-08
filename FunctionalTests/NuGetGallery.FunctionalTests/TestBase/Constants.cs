@@ -25,6 +25,7 @@ namespace NuGetGallery.FunctionalTests
         internal const string StatsPageDefaultText = "Download statistics displayed on this page reflect the actual package downloads from the NuGet.org site";
         internal const string ContactOwnersText = "Your message has been sent to the owners of ";
         internal const string UnListedPackageText = "This package is unlisted and hidden from package listings";
+        internal const string TestPackageId = "BaseTestPackage";
         #endregion PredefinedText
 
      }

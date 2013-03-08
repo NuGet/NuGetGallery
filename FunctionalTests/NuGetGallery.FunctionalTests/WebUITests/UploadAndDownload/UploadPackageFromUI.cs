@@ -12,7 +12,7 @@ namespace NuGetGallery.FunctionalTests
     /// <summary>
     /// Uploads a new test package using Gallery UI. Validates that logon prompt appears to upload and checks that the package's home page opens post upload.
     /// </summary>
-    public class UploadPackageFromUI : GalleryTestBase
+    public class UploadPackageFromUI : WebTest
     {
         public UploadPackageFromUI()
         {
@@ -22,18 +22,18 @@ namespace NuGetGallery.FunctionalTests
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
           
-            ExtractHiddenFields defaultExtractionRule = ValidationRuleHelper.GetDefaultExtractHiddenFields();
+            ExtractHiddenFields defaultExtractionRule = AssertAndValidationHelper.GetDefaultExtractHiddenFields();
 
             //Do initial login
-            WebTestRequest logonGet = base.GetLogonGetRequest();
+            WebTestRequest logonGet = AssertAndValidationHelper.GetLogonGetRequest();
             yield return logonGet;
             logonGet = null;
 
-            WebTestRequest logonPost = base.GetLogonPostRequest();
+            WebTestRequest logonPost = AssertAndValidationHelper.GetLogonPostRequest(this);
             yield return logonPost;
             logonPost = null;            
 
-            WebTestRequest uploadRequest = base.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);       
+            WebTestRequest uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);       
             yield return uploadRequest;
             uploadRequest = null;
 

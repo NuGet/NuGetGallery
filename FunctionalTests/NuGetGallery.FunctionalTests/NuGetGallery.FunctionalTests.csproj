@@ -66,7 +66,6 @@
   <ItemGroup>
     <Compile Include="ClientIntegrationTests\NuGetCommandLineTests.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCoreTests.cs" />
-    <Compile Include="Features\SearchTest.cs" />
     <Compile Include="ODataTests\V2FeedExtendedTest.cs" />
     <Compile Include="TestBase\Constants.cs" />
     <Compile Include="Features\DownloadStatsTest.cs" />
@@ -86,7 +85,7 @@
     <Compile Include="WebUITests\AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="WebUITests\BasicPages\StatisticsPageTest.cs" />
     <Compile Include="WebUITests\AccountManagement\UploadPackageWithoutLoginTest.cs" />
-    <Compile Include="WebUITests\ValidationRuleHelper.cs" />
+    <Compile Include="WebUITests\AssertAndValidationHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionTests.Helpers.csproj">
@@ -96,9 +95,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="DataSource\Packages.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />

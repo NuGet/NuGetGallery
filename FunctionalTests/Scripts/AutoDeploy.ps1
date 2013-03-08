@@ -27,7 +27,7 @@ if(!$SourceBlob) {
     $ContainerRef = $BlobClient.GetContainerReference("deployment-packages");
     $allItems = $ContainerRef.ListBlobs();       
     #Get the latest package from Dev branch
-    $devBlobs =  @($allItems | Where-Object { ([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$_).Name -like $branch })
+    $devBlobs =  @($allItems | Where-Object { ([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$_).Name -like 'NuGetGallery_*_' +$branch + '.cspkg' })
     $latestBlob = $devBlobs[0];
     foreach( $element in $devBlobs)
     {

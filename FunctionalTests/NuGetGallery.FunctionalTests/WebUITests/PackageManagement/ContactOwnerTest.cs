@@ -9,7 +9,7 @@ using System.Text;
 
 namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
 {
-    public class ContactOwnerTest : GalleryTestBase
+    public class ContactOwnerTest : WebTest
     {
         public ContactOwnerTest()
         {
@@ -21,17 +21,17 @@ namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
             //Upload a new package.   
             string packageId = this.Name + DateTime.Now.Ticks.ToString();
             string version = "1.0.0";
-            base.UploadNewPackageAndVerify(packageId,version);
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageId,version);
 
             //Do initial login to be able to contact owner.
-            WebTestRequest logonGet = base.GetLogonGetRequest();
+            WebTestRequest logonGet = AssertAndValidationHelper.GetLogonGetRequest();
             yield return logonGet;
             logonGet = null;
-            WebTestRequest logonPost = base.GetLogonPostRequest();
+            WebTestRequest logonPost = AssertAndValidationHelper.GetLogonPostRequest(this);
             yield return logonPost;
             logonPost = null;
-            
-            WebTestRequest conactOwnerRequest = base.GetHttpRequestForUrl(UrlHelper.GetContactOwnerPageUrl(packageId));         
+
+            WebTestRequest conactOwnerRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.GetContactOwnerPageUrl(packageId));         
             yield return conactOwnerRequest;
             conactOwnerRequest = null;
 
@@ -45,7 +45,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
             conactOwnerPostRequest.Body = contactOwnerRequestBody;
 
             //Make sure that the package page shows the message saying that the mail has been sent.
-            ValidationRuleFindText findTextRule = ValidationRuleHelper.GetValidationRuleForFindText(Constants.ContactOwnersText + packageId);            
+            ValidationRuleFindText findTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.ContactOwnersText + packageId);            
             conactOwnerPostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(findTextRule.Validate);
             yield return conactOwnerPostRequest;
             conactOwnerPostRequest = null;
@@ -54,7 +54,8 @@ namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
             System.Threading.Thread.Sleep(30 * 1000);
 
             //Cross check with the pop3 client to check if the message actually has been received.
-            Assert.IsTrue(MailHelper.IsMailSentForContactOwner(packageId), "Contact owners message not sent to the owner properly");
+            string subject = string.Empty;
+            Assert.IsTrue(MailHelper.IsMailSentForContactOwner(packageId,out subject), "Contact owners message not sent to the owner properly. Actual subject : {0}", subject);
 
            
 

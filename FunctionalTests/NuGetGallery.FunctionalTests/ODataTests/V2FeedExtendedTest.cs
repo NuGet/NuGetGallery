@@ -19,8 +19,8 @@ namespace NuGetGallery.FunctionalTests.ODataTests
         public void FindPackagesByIdTest()
         {
             string packageId = "TestV2FeedFindPackagesById" + "." + DateTime.Now.Ticks.ToString();
-            base.UploadNewPackageAndVerify(packageId, "1.0.0");
-            base.UploadNewPackageAndVerify(packageId, "2.0.0");
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "1.0.0");
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
             WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId +"'");          
             // Get the response.          
             WebResponse response = request.GetResponse();
