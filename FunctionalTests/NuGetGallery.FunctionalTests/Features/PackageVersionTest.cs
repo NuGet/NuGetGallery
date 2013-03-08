@@ -14,8 +14,8 @@ namespace NuGetGallery.FunctionalTests.Features
         public void UploadMultipleVersionOfPackage()
         {
             string packageId = "TestMultipleVersion" + "." + DateTime.Now.Ticks.ToString();
-            base.UploadNewPackageAndVerify(packageId, "1.0.0");
-            base.UploadNewPackageAndVerify(packageId, "2.0.0");
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "1.0.0");
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageId, "2.0.0");
             int actualCount = ClientSDKHelper.GetVersionCount(packageId);
             Assert.IsTrue(actualCount.Equals(2), " 2 versions of package {0} not found after uploading. Actual versions found {1}", packageId, actualCount);
         }

@@ -27,8 +27,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             ClientSDKHelper.ClearMachineCache(); //clear local cache.
             try
             {
-                string packageId = "EntityFramework"; //the package name shall be fixed as it really doesnt matter which package we are trying to install.
-                string version = "5.0.0";
+                string packageId = Constants.TestPackageId; //try to down load a pre-defined test package.   
+                string version = "1.0.0";
                 Task<string> downloadTask = DownloadPackage(packageId, version);                
                 string filename = downloadTask.Result;
                 //check if the file exists.
@@ -52,8 +52,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeedTests
             ClientSDKHelper.ClearMachineCache(); //clear local cache.
             try
             {
-                string packageId = "EntityFramework"; //the package name shall be fixed as it really doesnt matter which package we are trying to install.
-                string version = "5.0.0";
+                string packageId = Constants.TestPackageId; //the package name shall be fixed as it really doesnt matter which package we are trying to install.
+                string version = "1.0.0";
                 Task<string> downloadTask = DownloadPackage(packageId, version,"Restore");
                 string filename = downloadTask.Result;
                 //check if the file exists.

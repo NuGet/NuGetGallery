@@ -1,2 +1,2 @@
 set GalleryUrl=%1
-"%VS110COMNTOOLS%..\IDE\mstest.exe" /testcontainer:"..\NuGetGallery.FunctionalTests\bin\NuGetGallery.FunctionalTests.dll" /testsettings:"..\Local.testsettings" 
+"%VS110COMNTOOLS%..\IDE\mstest.exe"  /testsettings:"..\Local.testsettings" /testmetadata:"..\NuGetGallery.FunctionalTests.vsmdi" /testlist:AllHappyPathTests

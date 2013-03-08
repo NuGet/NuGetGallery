@@ -17,7 +17,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
         [Priority(0)]
         public void DownPackageWithNuGetCommandLineTest()
         {
-           string packageId = "Ninject";
+           string packageId = Constants.TestPackageId; //try to down load a pre-defined test package.          
            ClientSDKHelper.ClearLocalPackageFolder(packageId);
            int exitCode = CmdLineHelper.InstallPackage(packageId, UrlHelper.V2FeedRootUrl);
            Assert.IsTrue((exitCode == 0), "The package install via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream");
@@ -30,7 +30,7 @@ namespace NuGetGallery.FunctionalTests.ClientIntegrationTests
         [Priority(0)]
         public void UploadPackageWithNuGetCommandLineTest()
         {
-            base.UploadNewPackageAndVerify(DateTime.Now.Ticks.ToString());
+            AssertAndValidationHelper.UploadNewPackageAndVerify(DateTime.Now.Ticks.ToString());
         }
 
 

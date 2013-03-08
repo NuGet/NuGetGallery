@@ -13,7 +13,7 @@ namespace NuGetGallery.FunctionalTests
     /// <summary>
     /// Tries to login with a POST request with the credentials retrieved from the data source. Validates that the response has the logged in user name.
     /// </summary>   
-    public class LogonTest : GalleryTestBase
+    public class LogonTest : WebTest
     {
         public LogonTest()
         {
@@ -22,12 +22,12 @@ namespace NuGetGallery.FunctionalTests
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
             //Do initial login
-            WebTestRequest logonGet = base.GetLogonGetRequest();
+            WebTestRequest logonGet = AssertAndValidationHelper.GetLogonGetRequest();
             yield return logonGet;
             logonGet = null;
 
-            WebTestRequest logonPostRequest = base.GetLogonPostRequest();                     
-            ValidateHtmlTagInnerText loggedOnUserNameValidationRule = ValidationRuleHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/account", "NugetTestAccount");             
+            WebTestRequest logonPostRequest = AssertAndValidationHelper.GetLogonPostRequest(this);                     
+            ValidateHtmlTagInnerText loggedOnUserNameValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/account", "NugetTestAccount");             
             logonPostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(loggedOnUserNameValidationRule.Validate);
             
             yield return logonPostRequest;

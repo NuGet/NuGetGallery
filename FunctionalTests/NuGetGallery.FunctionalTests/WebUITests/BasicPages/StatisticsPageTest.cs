@@ -13,7 +13,7 @@ namespace NuGetGallery.FunctionalTests
     /// <summary>
     /// Sends a http request to the statistics page and tries to validate the default stats page text and the prescene of top package.
     /// </summary>
-    public class StatisticsPageTest : GalleryTestBase
+    public class StatisticsPageTest : WebTest
     {
         public StatisticsPageTest()
         {
@@ -26,10 +26,10 @@ namespace NuGetGallery.FunctionalTests
           
             //Checks for the prescene of a link to jqeury package. It is harded to Jquery for now as there is no API exposed for stats
             //and also Jquery is going to be one of the top 10 for now.
-            ValidateHtmlTagInnerText jQueryPackageValidationRule = ValidationRuleHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/packages/jQuery/", "jQuery");               
+            ValidateHtmlTagInnerText jQueryPackageValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/packages/jQuery/", "jQuery");               
             statsPageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(jQueryPackageValidationRule.Validate);
             //validation rule to check for the default text in stats page.
-            ValidationRuleFindText StatsPageDefaultTextValidationRule = ValidationRuleHelper.GetValidationRuleForFindText(Constants.StatsPageDefaultText);
+            ValidationRuleFindText StatsPageDefaultTextValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.StatsPageDefaultText);
             statsPageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(StatsPageDefaultTextValidationRule.Validate);
           
             yield return statsPageRequest;
