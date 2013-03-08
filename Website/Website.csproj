@@ -1102,6 +1102,7 @@
     <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
     <Content Include="Views\Packages\UnverifiablePackage.cshtml" />
     <Content Include="Views\Authentication\_OAuthLogin.cshtml" />
+    <Content Include="Views\Authentication\LinkOrCreateUser.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />
