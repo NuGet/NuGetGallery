@@ -14,7 +14,7 @@
             @foreach (var provider in authService.AuthenticationProviders)
             {
                 <li>
-                    <a href="@Url.RedirectToOAuthProvider(provider.Key)"><img src="~/Content/Images/oauth/@(provider.Key).png" /></a>
+                    <a href="@Url.RedirectToOAuthProvider(provider.Key, ViewData[Constants.ReturnUrlViewDataKey] as string)"><img src="~/Content/Images/oauth/@(provider.Key).png" /></a>
                 </li>
             }
         </ul>

@@ -19,7 +19,7 @@ namespace NuGetGallery
             routes.MapOAuthCallback("oauth/land");
             routes.MapRoute(
                 RouteName.OAuthLink,
-                "oauth/link/{token}",
+                "oauth/link",
                 MVC.Authentication.LinkOrCreateUser());
 
             routes.MapRoute(
