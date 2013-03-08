@@ -131,7 +131,7 @@ namespace NuGetGallery.Infrastructure
 
                 // Assert
                 callback.MockFormsAuth
-                        .Verify(f => f.SetAuthCookie("foobar", true, null));
+                        .Verify(f => f.SetAuthCookie(user, true));
             }
 
             [Fact]
@@ -152,7 +152,7 @@ namespace NuGetGallery.Infrastructure
 
                 // Assert
                 callback.MockFormsAuth
-                        .Verify(f => f.SetAuthCookie("foobar", true, null));
+                        .Verify(f => f.SetAuthCookie(user, true));
             }
 
             [Fact]
@@ -182,10 +182,7 @@ namespace NuGetGallery.Infrastructure
 
                 // Assert
                 callback.MockFormsAuth
-                        .Verify(f => f.SetAuthCookie(
-                            "foobar", 
-                            true, 
-                            It.Is<IEnumerable<string>>(actualRoles => actualRoles.SequenceEqual(expectedRoles))));
+                        .Verify(f => f.SetAuthCookie(user, true));
             }
 
             [Fact]

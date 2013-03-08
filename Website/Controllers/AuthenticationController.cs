@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -76,16 +77,9 @@ namespace NuGetGallery
                 return View();
             }
 
-            IEnumerable<string> roles = null;
-            if (user.Roles.AnySafe())
-            {
-                roles = user.Roles.Select(r => r.Name);
-            }
-
             FormsAuth.SetAuthCookie(
-                user.Username,
-                true,
-                roles);
+                user,
+                true);
 
             return SafeRedirect(returnUrl);
         }
@@ -117,10 +111,21 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult LinkOrCreateUser(LinkOrCreateViewModel model, string token, string returnUrl)
         {
+            // Don't even bother if the model state is invalid.
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
             // Decode the token
             OAuthLinkToken linkToken = DecodeToken(token);
-
-            return Json(model);
+            
+            // Do we have a link token or a create token?
+            if (model.LinkModel != null)
+            {
+                return LinkUser(model, linkToken, returnUrl);
+            }
+            throw new NotImplementedException();
         }
 
         public virtual ActionResult LogOff(string returnUrl)
@@ -152,6 +157,36 @@ namespace NuGetGallery
         {
             return OAuthLinkToken.FromToken(
                             Crypto.DecryptString(token, OAuthLinkToken.CryptoPurpose));
+        }
+
+        private ActionResult LinkUser(LinkOrCreateViewModel model, OAuthLinkToken token, string returnUrl)
+        {
+            Debug.Assert(model.LinkModel != null);
+            var linkModel = model.LinkModel;
+
+            var user = Users.FindByUsernameAndPassword(linkModel.UserNameOrEmail, linkModel.Password);
+            if (user == null)
+            {
+                ModelState.AddModelError(
+                    String.Empty,
+                    Strings.UserNotFound);
+                return View(model);
+            }
+
+            if (!user.Confirmed)
+            {
+                ViewBag.ConfirmationRequired = true;
+                return View(model);
+            }
+            throw new NotImplementedException();
+            //// Associate the user
+            //Users.AssociateCredential(user, token.Provider, token.Id);
+
+            //// Log the user in
+            //FormsAuth.SetAuthCookie(user, createPersistentCookie: true);
+
+            //// Safe redirect outta here
+            //return SafeRedirect(returnUrl);
         }
     }
 }

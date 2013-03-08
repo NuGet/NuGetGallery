@@ -93,16 +93,9 @@ namespace NuGetGallery.Infrastructure
 
         private ActionResult LogInUser(User user, Uri returnUrl)
         {
-            IEnumerable<string> roles = null;
-            if (user.Roles.AnySafe())
-            {
-                roles = user.Roles.Select(r => r.Name);
-            }
-
             FormsAuth.SetAuthCookie(
-                user.Username,
-                true,
-                roles);
+                user,
+                true);
 
             // Safe redirect
             return SafeRedirect(returnUrl);

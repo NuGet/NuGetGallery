@@ -31,5 +31,7 @@ namespace NuGetGallery
         User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes);
 
         bool ResetPasswordWithToken(string username, string token, string newPassword);
+
+        void AssociateCredential(User user, string credentialKey, string credentialValue);
     }
 }
