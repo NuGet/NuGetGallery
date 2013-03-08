@@ -295,7 +295,7 @@ namespace NuGetGallery
 
             Bind<IAuthenticationCallbackProvider>()
                 .To<AuthenticationCallback>()
-                .InSingletonScope();
+                .InRequestScope();
         }
 
         private Func<IContext, T> WithConfiguration<T>(Func<IConfiguration, T> thunk)

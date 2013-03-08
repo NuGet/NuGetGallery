@@ -92,9 +92,10 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult LinkOrCreateUser(string token) {
+        public override System.Web.Mvc.ActionResult LinkOrCreateUser(string token, string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LinkOrCreateUser);
             callInfo.RouteValueDictionary.Add("token", token);
+            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
             return callInfo;
         }
 

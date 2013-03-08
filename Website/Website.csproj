@@ -249,15 +249,15 @@
       <HintPath>..\packages\WorldDomination.Web.Authentication.0.17.0\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
     <Reference Include="WorldDomination.Web.Authentication, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WorldDomination.Web.Authentication.0.20.0-alpha008\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.0.20.0-alpha014\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
     </Reference>
     <Reference Include="WorldDomination.Web.Authentication.ExtraProviders, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WorldDomination.Web.Authentication.ExtraProviders.0.20.0-alpha008\lib\net40\WorldDomination.Web.Authentication.ExtraProviders.dll</HintPath>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.ExtraProviders.0.20.0-alpha014\lib\net40\WorldDomination.Web.Authentication.ExtraProviders.dll</HintPath>
     </Reference>
     <Reference Include="WorldDomination.Web.Authentication.Mvc, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WorldDomination.Web.Authentication.Mvc.0.20.0-alpha008\lib\net40\WorldDomination.Web.Authentication.Mvc.dll</HintPath>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.Mvc.0.20.0-alpha014\lib\net40\WorldDomination.Web.Authentication.Mvc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -332,6 +332,7 @@
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
     <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
+    <Compile Include="ViewModels\LinkOrCreateViewModel.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\AntiForgeryExtensions.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
