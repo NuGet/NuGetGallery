@@ -64,11 +64,8 @@ namespace NuGetGallery.Controllers
                     new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
 
-                controller.MockFormsAuth.Verify(
-                    x => x.SetAuthCookie(
-                        "theUsername",
-                        true,
-                        null));
+                controller.MockFormsAuth
+                          .Verify(x => x.SetAuthCookie(user, true));
             }
 
             [Fact]
@@ -84,11 +81,8 @@ namespace NuGetGallery.Controllers
                     new SignInRequest { UserNameOrEmail = "confirmed@example.com", Password = "thePassword" },
                     "theReturnUrl");
 
-                controller.MockFormsAuth.Verify(
-                    x => x.SetAuthCookie(
-                        "theUsername",
-                        true,
-                        null));
+                controller.MockFormsAuth
+                          .Verify(x => x.SetAuthCookie(user, true));
             }
 
             [Fact]
@@ -105,7 +99,7 @@ namespace NuGetGallery.Controllers
 
                 controller.MockFormsAuth
                           .Verify(
-                              x => x.SetAuthCookie(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IEnumerable<string>>()), 
+                              x => x.SetAuthCookie(It.IsAny<User>(), It.IsAny<bool>()), 
                               Times.Never());
             }
 
@@ -126,11 +120,8 @@ namespace NuGetGallery.Controllers
                     new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
 
-                controller.MockFormsAuth.Verify(
-                    x => x.SetAuthCookie(
-                        "theUsername",
-                        true,
-                        new [] { "Administrators" }));
+                controller.MockFormsAuth
+                          .Verify(x => x.SetAuthCookie(user, true));
             }
 
             [Fact]
@@ -197,7 +188,7 @@ namespace NuGetGallery.Controllers
             public void WillNotPrefillUsernameIfDoesNotMatchRegex()
             {
                 // Arrange
-                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                const string token = "foo@bar.com|John Doe|abc123|windowslive,OAuthLinkToken";
                 var controller = new TestableAuthenticationController();
 
                 // Act
@@ -222,13 +213,13 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public class TheLinkOrCreateUserActionOnPost
+        public class TheLinkOrCreateUserActionOnPostWithLinkModel
         {
             [Fact]
             public void WillThrowCryptoExceptionIfTokenIsInvalid()
             {
                 // Arrange
-                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthSTINKToken";
+                const string token = "doesn't matter,OAuthSTINKToken";
                 var controller = new TestableAuthenticationController();
                 
                 // Act/Assert
@@ -236,10 +227,25 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public void GivenALinkTokenWithInvalidCredentialsItWillRerenderViewWithError()
+            public void RendersViewIfModelStateHasErrors()
             {
                 // Arrange
-                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthSTINKToken";
+                const string token = "foo@bar.com|foobar|abc123|windowslive,OAuthLinkToken";
+                var controller = new TestableAuthenticationController();
+                controller.ModelState.AddModelError(String.Empty, "EPIC FAIL!");
+
+                // Act
+                var result = controller.LinkOrCreateUser(new LinkOrCreateViewModel(), token, "/wololo");
+
+                // Assert
+                ResultAssert.IsView(result);
+            }
+
+            [Fact]
+            public void GivenInvalidCredentialsItWillRerenderViewWithError()
+            {
+                // Arrange
+                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
                 var model = new LinkOrCreateViewModel()
                 {
                     LinkModel = new LinkOrCreateViewModel.LinkViewModel()
@@ -252,8 +258,44 @@ namespace NuGetGallery.Controllers
                 controller.MockUsers
                           .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "nodice"))
                           .ReturnsNull();
+
+                // Act
+                var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
+
+                // Assert
+                var viewResult = ResultAssert.IsView(result, model: model);
+                ModelStateAssert.HasErrors(
+                    viewResult.ViewData.ModelState,
+                    key: String.Empty,
+                    errors: new ModelError(Strings.UserNotFound));
             }
 
+            [Fact]
+            public void GivenCredentialsForUnconfirmedAccountItRerendersTheViewWithTheConfirmationRequiredFlag()
+            {
+                // Arrange
+                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                var model = new LinkOrCreateViewModel()
+                {
+                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    {
+                        UserNameOrEmail = "foo@bar.com",
+                        Password = "nodice"
+                    }
+                };
+                var controller = new TestableAuthenticationController();
+                controller.MockUsers
+                          .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "nodice"))
+                          .Returns(new User() { EmailAddress = null, UnconfirmedEmailAddress = "foo@bar.com" });
+
+                // Act
+                var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
+
+                // Assert
+                var viewResult = ResultAssert.IsView(result, model: model, viewData: new {
+                    ConfirmationRequired = true
+                });
+            }
         }
 
         public class TestableAuthenticationController : AuthenticationController
