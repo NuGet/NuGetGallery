@@ -21,7 +21,7 @@
         {
             //send a request to home page and check for default home page text.
             WebTestRequest homePageRequest = new WebTestRequest(UrlHelper.BaseUrl);           
-            ValidationRuleFindText homePageTextValidationRule = ValidationRuleHelper.GetValidationRuleForFindText(Constants.HomePageText);               
+            ValidationRuleFindText homePageTextValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.HomePageText);               
             homePageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(homePageTextValidationRule.Validate);         
             yield return homePageRequest;
             homePageRequest = null;          

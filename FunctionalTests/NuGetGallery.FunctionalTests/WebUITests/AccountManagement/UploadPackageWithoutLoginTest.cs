@@ -23,7 +23,7 @@ namespace NuGetGallery.FunctionalTests
         {            
             WebTestRequest uploadPackageRequest = new WebTestRequest(UrlHelper.UploadPageUrl);
             uploadPackageRequest.ExpectedResponseUrl = UrlHelper.LogonPageUrlOnPackageUpload;          
-            ValidateHtmlTagInnerText logOnFormValidationRule = ValidationRuleHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.Label.ToString(), HtmlTextWriterAttribute.For.ToString(), Constants.UserNameOrEmailFormField, "Username or Email");               
+            ValidateHtmlTagInnerText logOnFormValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.Label.ToString(), HtmlTextWriterAttribute.For.ToString(), Constants.UserNameOrEmailFormField, "Username or Email");               
             uploadPackageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(logOnFormValidationRule.Validate);          
             yield return uploadPackageRequest;
             uploadPackageRequest = null;

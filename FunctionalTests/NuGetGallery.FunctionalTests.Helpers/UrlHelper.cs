@@ -83,7 +83,7 @@ namespace NuGetGallery.FunctionTests.Helpers
 
         public static string ManageMyPackagesUrl
         {
-            get { return ManageMyPackagesUrlSuffix; }
+            get { return UrlHelper.BaseUrl + ManageMyPackagesUrlSuffix; }
         }
 
         public static string GetPackagePageUrl(string packageId, string version = "1.0.0")

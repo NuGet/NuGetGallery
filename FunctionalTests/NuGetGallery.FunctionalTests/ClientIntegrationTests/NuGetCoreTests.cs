@@ -13,10 +13,9 @@ namespace NuGetGallery.FunctionalTests
         [Priority(0)]
         public void DownloadPackageWithNuGetCoreTest()
         {
-            string packageId = "Ninject";
-            base.DownloadPackageAndVerify(packageId);
+            string packageId = Constants.TestPackageId; //try to down load a pre-defined test package.            
+            AssertAndValidationHelper.DownloadPackageAndVerify(packageId);
         }
-
 
     }
 }

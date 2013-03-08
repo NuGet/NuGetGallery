@@ -17,11 +17,11 @@ namespace NuGetGallery.FunctionalTests.Features
         {
             string packageId = DateTime.Now.Ticks.ToString();
             //Upload package
-            base.UploadNewPackageAndVerify(packageId);
+            AssertAndValidationHelper.UploadNewPackageAndVerify(packageId);
             //check download count.
             Assert.IsTrue(ClientSDKHelper.GetDownLoadStatistics(packageId).Equals(0), "Package download count is not zero as soon as uploading. Actual value : {0}", ClientSDKHelper.GetDownLoadStatistics(packageId));
             //Download the new package.
-            base.DownloadPackageAndVerify(packageId);
+            AssertAndValidationHelper.DownloadPackageAndVerify(packageId);
             //Wait for a max of 5 mins ( as the stats job runs every 5 mins).
             int downloadCount = ClientSDKHelper.GetDownLoadStatistics(packageId);
             int waittime = 0;
@@ -32,7 +32,7 @@ namespace NuGetGallery.FunctionalTests.Features
                 waittime += 30;
             }
             //check download count.
-            Assert.IsTrue(ClientSDKHelper.GetDownLoadStatistics(packageId).Equals(1), "Package download count is not increased after downloading a new package. Actual value : {0}", ClientSDKHelper.GetDownLoadStatistics(packageId));
+            Assert.IsTrue(ClientSDKHelper.GetDownLoadStatistics(packageId) >= 1, "Package download count is not increased after downloading a new package. Actual value : {0}", ClientSDKHelper.GetDownLoadStatistics(packageId));
 
         }
     }
