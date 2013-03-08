@@ -32,9 +32,7 @@ namespace NuGetGallery.Controllers
                 
 
                 var result = controller.LogOff("theReturnUrl") as RedirectResult;
-
-                Assert.NotNull(result);
-                Assert.Equal("aSafeRedirectUrl", result.Url);
+                ResultAssert.IsRedirectTo(result, "aSafeRedirectUrl");
             }
         }
 
@@ -46,10 +44,9 @@ namespace NuGetGallery.Controllers
                 var controller = new TestableAuthenticationController();
                 controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
-                var result = controller.LogOn(null, null) as ViewResult;
+                var result = controller.LogOn(null, null);
 
-                Assert.NotNull(result);
-                Assert.Empty(result.ViewName);
+                ResultAssert.IsView(result);
             }
 
             [Fact]
@@ -149,11 +146,10 @@ namespace NuGetGallery.Controllers
                 controller.MockUsers
                           .Setup(x => x.FindByUsernameOrEmailAddressAndPassword(It.IsAny<string>(), It.IsAny<string>()))
                           .Returns(new User("theUsername", null) { EmailAddress = "confirmed@example.com" });
-                
-                var result = controller.LogOn(new SignInRequest(), "theReturnUrl") as RedirectResult;
 
-                Assert.NotNull(result);
-                Assert.Equal("aSafeRedirectUrl", result.Url);
+                var result = controller.LogOn(new SignInRequest(), "theReturnUrl");
+
+                ResultAssert.IsRedirectTo(result, "aSafeRedirectUrl");
             }
         }
 
@@ -298,6 +294,36 @@ namespace NuGetGallery.Controllers
                 var viewResult = ResultAssert.IsView(result, model: model, viewData: new {
                     ConfirmationRequired = true
                 });
+            }
+
+            [Fact]
+            public void GivenCredentialsForValidAccountItSavesCredentialAndLogsUserIn()
+            {
+                // Arrange
+                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                var model = new LinkOrCreateViewModel()
+                {
+                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    {
+                        UserNameOrEmail = "foo@bar.com",
+                        Password = "hunter2"
+                    }
+                };
+                var user = new User() { EmailAddress = "foo@bar.com" };
+                var controller = new TestableAuthenticationController();
+                controller.MockUsers
+                          .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "hunter2"))
+                          .Returns(user);
+
+                // Act
+                var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
+
+                // Assert
+                controller.MockUsers
+                          .Verify(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"));
+                controller.MockFormsAuth
+                          .Verify(f => f.SetAuthCookie(user, true));
+                ResultAssert.IsRedirectTo(result, "aSafeRedirectUrl");
             }
         }
 
