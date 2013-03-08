@@ -12,7 +12,7 @@ namespace NuGetGallery.FunctionalTests
     /// <summary>
     /// Sends http POST request to register a new user and checks that a pending confirmation page is shown as response.
     /// </summary>
-    public class ReadOnlyModeRegisterNewUserTest : GalleryTestBase
+    public class ReadOnlyModeRegisterNewUserTest : WebTest
     {
         public ReadOnlyModeRegisterNewUserTest()
         {
@@ -21,7 +21,7 @@ namespace NuGetGallery.FunctionalTests
 
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
-            WebTestRequest registerPageRequest = base.GetHttpRequestForUrl(UrlHelper.RegisterPageUrl);
+            WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.RegisterPageUrl);
             yield return registerPageRequest;
             registerPageRequest = null;
 
@@ -38,7 +38,7 @@ namespace NuGetGallery.FunctionalTests
             registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordFormField, "xxxxxxx");
             registerPagePostRequest.Body = registerNewUserFormPost;
             //Validate the response to make sure that it has the pending confirmation text in it.           
-            ValidationRuleFindText PendingConfirmationTextRule = ValidationRuleHelper.GetValidationRuleForFindText(Constants.ReadOnlyModeRegisterNewUserText);
+            ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.ReadOnlyModeRegisterNewUserText);
             registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);
             yield return registerPagePostRequest;
             registerPagePostRequest = null;

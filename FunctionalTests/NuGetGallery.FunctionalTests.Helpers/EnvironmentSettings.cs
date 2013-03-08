@@ -15,6 +15,9 @@ namespace NuGetGallery.FunctionTests.Helpers
         private static string _baseurl;
         private static string testAccountName;
         private static string testAccountPassword;
+        private static string testEmailServerHost;
+
+      
         #endregion PrivateFields
         #region Properties
 
@@ -66,6 +69,18 @@ namespace NuGetGallery.FunctionTests.Helpers
                     testAccountPassword = Environment.GetEnvironmentVariable("TestAccountPassword");
                 }
                 return testAccountPassword;
+            }
+        }
+
+        public static string TestEmailServerHost
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(testEmailServerHost))
+                {
+                    testEmailServerHost = Environment.GetEnvironmentVariable("TestEmailServerHost");
+                }
+                return testEmailServerHost;
             }
         }
 

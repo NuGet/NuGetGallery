@@ -5,7 +5,6 @@
     <DeploymentItem filename=".nuget\NuGet.Config" />
     <DeploymentItem filename=".nuget\NuGet.exe" />
     <DeploymentItem filename=".nuget\NuGet.targets" />
-    <DeploymentItem filename="DataSource\Packages.csv" />
   </Deployment>
   <Execution>
     <TestTypeSpecific>
