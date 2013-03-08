@@ -1119,6 +1119,7 @@
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Authentication\_OAuthLogin.cshtml" />
+    <Content Include="Views\Authentication\LinkOrCreateUser.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />

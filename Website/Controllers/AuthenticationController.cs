@@ -95,10 +95,18 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
+        [HttpGet]
         public virtual ActionResult LinkOrCreateUser(string token, string returnUrl)
         {
             LinkOrCreateViewModel model = LinkOrCreateViewModel.FromToken(token);
-            return Content("Link " + model.Provider + ":" + model.Id + " to user with email [" + model.EmailAddress + "] and user name [" + model.UserName + "]");
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public virtual ActionResult LinkOrCreateUser(LinkOrCreateViewModel model, string token, string returnUrl)
+        {
+            return Content("Back");
         }
 
         public virtual ActionResult LogOff(string returnUrl)
