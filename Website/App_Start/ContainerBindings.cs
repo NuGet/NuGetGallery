@@ -276,18 +276,20 @@ namespace NuGetGallery
                 .To<PackageVersionsQuery>()
                 .InRequestScope();
 
-            ConfigureAuthentication();
+            ConfigureAuthentication(configuration);
         }
 
-        private void ConfigureAuthentication()
+        private void ConfigureAuthentication(IConfiguration config)
         {
-            Bind<IAuthenticationProvider>()
-                .ToMethod(WithConfiguration(config => 
-                    new WindowsLiveProvider(
-                        config.MicrosoftAccountClientId, 
-                        config.MicrosoftAccountClientSecret, 
-                        restClientFactory: null)))
-                .InSingletonScope();
+            if (!String.IsNullOrWhiteSpace(config.MicrosoftAccountClientId) && !String.IsNullOrWhiteSpace(config.MicrosoftAccountClientSecret))
+            {
+                Bind<IAuthenticationProvider>()
+                    .ToConstant(new WindowsLiveProvider(
+                            config.MicrosoftAccountClientId,
+                            config.MicrosoftAccountClientSecret,
+                            restClientFactory: null))
+                    .InSingletonScope();
+            }
 
             Bind<IAuthenticationService>()
                 .To<AuthenticationService>()
@@ -296,15 +298,6 @@ namespace NuGetGallery
             Bind<IAuthenticationCallbackProvider>()
                 .To<AuthenticationCallback>()
                 .InRequestScope();
-        }
-
-        private Func<IContext, T> WithConfiguration<T>(Func<IConfiguration, T> thunk)
-        {
-            return ctx =>
-            {
-                var config = ctx.Kernel.Get<IConfiguration>();
-                return thunk(config);
-            };
         }
 
         public static bool IsDeployedToCloud
