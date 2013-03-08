@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using System.Web.Helpers;
+using System.Web.Security;
 
 namespace NuGetGallery
 {
@@ -69,6 +70,22 @@ namespace NuGetGallery
             }
 
             return ValidateLegacySaltedHash(hash, input, hashAlgorithmId);
+        }
+
+        public string EncryptString(string clearText, string purpose)
+        {
+            return Convert.ToBase64String(
+                MachineKey.Protect(
+                    Encoding.UTF8.GetBytes(clearText),
+                    purpose));
+        }
+
+        public string DecryptString(string cipherText, string purpose)
+        {
+            return Encoding.UTF8.GetString(
+                MachineKey.Unprotect(
+                    Convert.FromBase64String(cipherText),
+                    purpose));
         }
 
         private static string GenerateLegacySaltedHash(string input, string hashAlgorithmId)

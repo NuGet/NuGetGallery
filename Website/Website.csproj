@@ -332,6 +332,7 @@
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
     <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
+    <Compile Include="Infrastructure\OAuthLinkToken.cs" />
     <Compile Include="ViewModels\LinkOrCreateViewModel.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\AntiForgeryExtensions.cs" />

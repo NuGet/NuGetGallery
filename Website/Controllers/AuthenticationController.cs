@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
@@ -17,6 +18,7 @@ namespace NuGetGallery
     {
         private readonly IAuthenticationService _oauth;
         private readonly IAuthenticationCallbackProvider _callback;
+		private readonly ICryptographyService _cryptoService;
         internal static readonly string OAuthLinkingMachineKeyPurpose = "OAuthLinkToken";
 
         public IFormsAuthenticationService FormsAuth { get; protected set; }
@@ -29,14 +31,14 @@ namespace NuGetGallery
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthService,
-            IAuthenticationService oauth,
-            IAuthenticationCallbackProvider callback,
-            IUserService userService)
+            IUserService userService,
+            ICryptographyService cryptoService)
         {
             FormsAuth = formsAuthService;
             Users = userService;
             _oauth = oauth;
             _callback = callback;
+            _cryptoService = cryptoService;
         }
 
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -98,15 +100,32 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult LinkOrCreateUser(string token, string returnUrl)
         {
-            LinkOrCreateViewModel model = LinkOrCreateViewModel.FromToken(token);
+            // Set the returnURL for the login link.
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
-            return View(model);
+            // Deserialize the token
+            OAuthLinkToken linkToken = OAuthLinkToken.FromToken(
+                _cryptoService.DecryptString(token, OAuthLinkToken.CryptoPurpose));
+
+            // Send down the view model
+            return View(new LinkOrCreateViewModel()
+            {
+                CreateModel = new LinkOrCreateViewModel.CreateViewModel()
+                {
+                    Username = Regex.IsMatch(linkToken.UserName, Constants.UserNameRegex) ? linkToken.UserName : null,
+                    EmailAddress = linkToken.EmailAddress
+                },
+                LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                {
+                    UserNameOrEmail = linkToken.EmailAddress
+                }
+            });
         }
 
         [HttpPost]
         public virtual ActionResult LinkOrCreateUser(LinkOrCreateViewModel model, string token, string returnUrl)
         {
-            return Content("Back");
+            return Json(model);
         }
 
         public virtual ActionResult LogOff(string returnUrl)

@@ -1275,9 +1275,29 @@ form .async-upload-progress-advance
     float: left;
 }
 
-#oauth-login {
+#oauth-login
+{
     float: left;
     margin-left: 2em;
+}
+
+#oauth-link {
+    float: left;
+    margin-left: 2em;
+    width: 45%;
+}
+
+#oauth-link form {
+    margin-top: 1em;
+}
+
+#oauth-create {
+    float: left;
+    width: 45%;
+}
+
+#oauth-create form {
+    margin-top: 1em;
 }
 
 ul#oauth-providers {

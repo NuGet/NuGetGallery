@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Web.Security;
@@ -8,49 +9,102 @@ namespace NuGetGallery
 {
     public class LinkOrCreateViewModel
     {
-        internal static readonly string OAuthLinkingMachineKeyPurpose = "OAuthLinkToken";
+        public LinkViewModel LinkModel { get; set; }
+        public CreateViewModel CreateModel { get; set; }
 
-        public string EmailAddress { get; set; }
-        public string UserName { get; set; }
-        public string Provider { get; set; }
-        public string Id { get; set; }
-
-        public string Token
+        // [anurse] These are only ever used here, so it makes sense (to me at least) that they be nested
+        public class LinkViewModel
         {
-            get
+            [Required]
+            [Display(Name = "Username or Email")]
+            [Hint("Enter your username or email address.")]
+            public string UserNameOrEmail { get; set; }
+
+            [Required]
+            [DataType(DataType.Password)]
+            [Hint("Passwords must be at least 7 characters long.")]
+            public string Password { get; set; }
+
+            public override bool Equals(object obj)
             {
-                return CalculateToken(EmailAddress, UserName, Id, Provider);
+                LinkViewModel other = obj as LinkViewModel;
+                return other != null && 
+                    String.Equals(UserNameOrEmail, other.UserNameOrEmail) &&
+                    String.Equals(Password, other.Password);
+            }
+
+            // Silence the compiler warning
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
             }
         }
 
-        public static string CalculateToken(string email, string userName, string id, string provider)
+        public class CreateViewModel
         {
-            string formatted = String.Join("|", email, userName, id, provider);
-            return Convert.ToBase64String(
-                MachineKey.Protect(
-                    Encoding.UTF8.GetBytes(formatted),
-                    OAuthLinkingMachineKeyPurpose));
-        }
+            [Required]
+            [StringLength(255)]
+            [Display(Name = "Email")]
+            [DataType(DataType.EmailAddress)]
+            [RegularExpression(
+                @"(?i)^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|([-a-z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-z0-9][\w\.-]*[a-z0-9]\.[a-z][a-z\.]*[a-z]$",
+                ErrorMessage = "This doesn't appear to be a valid email address.")]
+            [Hint(
+                "Your email will not be public unless you choose to disclose it. It is required to verify your registration and for password retrieval, important notifications, etc."
+                )]
+            public string EmailAddress { get; set; }
 
-        public static LinkOrCreateViewModel FromToken(string token)
-        {
-            string formatted = Encoding.UTF8.GetString(
-                MachineKey.Unprotect(
-                    Convert.FromBase64String(token),
-                    OAuthLinkingMachineKeyPurpose));
-            string[] parsed = formatted.Split('|');
-            if (parsed.Length != 4)
+            [Required]
+            [StringLength(64)]
+            [RegularExpression(@"(?i)[a-z0-9][a-z0-9_.-]+[a-z0-9]",
+                ErrorMessage =
+                    "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between."
+                )]
+            [Hint("Choose something unique so others will know which contributions are yours.")]
+            public string Username { get; set; }
+
+            [Required]
+            [DataType(DataType.Password)]
+            [StringLength(64, MinimumLength = 7)]
+            [Hint("Passwords must be at least 7 characters long.")]
+            public string Password { get; set; }
+
+            [Required]
+            [Compare("Password")]
+            [DataType(DataType.Password)]
+            [Display(Name = "Password Confirmation")]
+            [Hint("Please reenter your password and ensure that it matches the one above.")]
+            public string ConfirmPassword { get; set; }
+
+            public override bool Equals(object obj)
             {
-                throw new ArgumentException("Invalid token", "token");
+                CreateViewModel other = obj as CreateViewModel;
+                return other != null &&
+                    String.Equals(EmailAddress, other.EmailAddress) &&
+                    String.Equals(Username, other.Username) &&
+                    String.Equals(Password, other.Password) &&
+                    String.Equals(ConfirmPassword, other.ConfirmPassword);
             }
 
-            return new LinkOrCreateViewModel()
+            // Silence the compiler warning
+            public override int GetHashCode()
             {
-                EmailAddress = parsed[0],
-                UserName = parsed[1],
-                Id = parsed[2],
-                Provider = parsed[3]
-            };
+                return base.GetHashCode();
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            LinkOrCreateViewModel other = obj as LinkOrCreateViewModel;
+            return other != null &&
+                Object.Equals(LinkModel, other.LinkModel) &&
+                Object.Equals(CreateModel, other.CreateModel);
+        }
+
+        // Silence the compiler warning
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }

@@ -15,10 +15,11 @@ namespace NuGetGallery.Infrastructure
     {
         public IUserService UserService { get; protected set; }
         public IFormsAuthenticationService FormsAuth { get; protected set; }
+        public ICryptographyService Crypto { get; protected set; }
 
         protected AuthenticationCallback() { }
 
-        public AuthenticationCallback(IUserService userService, IFormsAuthenticationService formsAuth) : this()
+        public AuthenticationCallback(IUserService userService, IFormsAuthenticationService formsAuth, ICryptographyService crypto) : this()
         {
             if (userService == null)
             {
@@ -30,8 +31,14 @@ namespace NuGetGallery.Infrastructure
                 throw new ArgumentNullException("formsAuth");
             }
 
+            if (crypto == null)
+            {
+                throw new ArgumentNullException("crypto");
+            }
+
             UserService = userService;
             FormsAuth = formsAuth;
+            Crypto = crypto;
         }
 
         public ActionResult Process(HttpContextBase context, AuthenticateCallbackData model)
@@ -103,8 +110,10 @@ namespace NuGetGallery.Infrastructure
 
         protected virtual string CalculateToken(string email, string userName, string id, string providerName)
         {
-            return LinkOrCreateViewModel.CalculateToken(
-                email, userName, id, providerName);
+            return Crypto.EncryptString(
+                OAuthLinkToken.CalculateToken(
+                    email, userName, id, providerName),
+                OAuthLinkToken.CryptoPurpose);
         }
 
         private ActionResult SafeRedirect(Uri returnUrl)
