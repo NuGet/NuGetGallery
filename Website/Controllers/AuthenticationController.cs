@@ -16,14 +16,10 @@ namespace NuGetGallery
 {
     public partial class AuthenticationController : Controller
     {
-        private readonly IAuthenticationService _oauth;
-        private readonly IAuthenticationCallbackProvider _callback;
-		private readonly ICryptographyService _cryptoService;
-        internal static readonly string OAuthLinkingMachineKeyPurpose = "OAuthLinkToken";
-
         public IFormsAuthenticationService FormsAuth { get; protected set; }
         public IUserService Users { get; protected set; }
-        
+        public ICryptographyService Crypto { get; protected set; }
+
         // For sub-classes to initialize services themselves
         protected AuthenticationController()
         {
@@ -36,9 +32,7 @@ namespace NuGetGallery
         {
             FormsAuth = formsAuthService;
             Users = userService;
-            _oauth = oauth;
-            _callback = callback;
-            _cryptoService = cryptoService;
+            Crypto = cryptoService;
         }
 
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -104,8 +98,7 @@ namespace NuGetGallery
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
             // Deserialize the token
-            OAuthLinkToken linkToken = OAuthLinkToken.FromToken(
-                _cryptoService.DecryptString(token, OAuthLinkToken.CryptoPurpose));
+            OAuthLinkToken linkToken = DecodeToken(token);
 
             // Send down the view model
             return View(new LinkOrCreateViewModel()
@@ -125,6 +118,9 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult LinkOrCreateUser(LinkOrCreateViewModel model, string token, string returnUrl)
         {
+            // Decode the token
+            OAuthLinkToken linkToken = DecodeToken(token);
+
             return Json(model);
         }
 
@@ -151,6 +147,12 @@ namespace NuGetGallery
             }
 
             return Redirect(Url.Home());
+        }
+
+        private OAuthLinkToken DecodeToken(string token)
+        {
+            return OAuthLinkToken.FromToken(
+                            Crypto.DecryptString(token, OAuthLinkToken.CryptoPurpose));
         }
     }
 }

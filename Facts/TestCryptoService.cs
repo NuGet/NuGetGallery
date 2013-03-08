@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public class PassThruCryptoService : ICryptographyService
+    public class TestCryptoService : ICryptographyService
     {
         public string GenerateHash(byte[] input, string hashAlgorithmId = Constants.Sha512HashAlgorithmId)
         {

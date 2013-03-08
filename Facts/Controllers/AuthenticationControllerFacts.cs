@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Web.Mvc;
 using Moq;
 using Xunit;
@@ -155,11 +156,104 @@ namespace NuGetGallery.Controllers
                 controller.MockUsers
                           .Setup(x => x.FindByUsernameOrEmailAddressAndPassword(It.IsAny<string>(), It.IsAny<string>()))
                           .Returns(new User("theUsername", null) { EmailAddress = "confirmed@example.com" });
-
+                
                 var result = controller.LogOn(new SignInRequest(), "theReturnUrl");
 
                 ResultAssert.IsRedirectTo(result, "aSafeRedirectUrl");
             }
+        }
+
+        public class TheLinkOrCreateUserActionOnGet
+        {
+            [Fact]
+            public void WillPrefillFieldsIfSpecifiedOnGet()
+            {
+                // Arrange
+                const string token = "foo@bar.com|foobar|abc123|windowslive,OAuthLinkToken";
+                var controller = new TestableAuthenticationController();
+
+                // Act
+                var result = controller.LinkOrCreateUser(token, returnUrl: "/packages");
+
+                // Assert
+                ResultAssert.IsView(result, model: new LinkOrCreateViewModel()
+                {
+                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    {
+                        UserNameOrEmail = "foo@bar.com"
+                    },
+                    CreateModel = new LinkOrCreateViewModel.CreateViewModel()
+                    {
+                        EmailAddress = "foo@bar.com",
+                        Username = "foobar"
+                    }
+                }, viewData: new
+                {
+                    ReturnUrl = "/packages" // ReturnUrl is specified in ViewData to handle the Log On link in the layout
+                });
+            }
+
+            [Fact]
+            public void WillNotPrefillUsernameIfDoesNotMatchRegex()
+            {
+                // Arrange
+                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                var controller = new TestableAuthenticationController();
+
+                // Act
+                var result = controller.LinkOrCreateUser(token, returnUrl: "/packages");
+
+                // Assert
+                ResultAssert.IsView(result, model: new LinkOrCreateViewModel()
+                {
+                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    {
+                        UserNameOrEmail = "foo@bar.com"
+                    },
+                    CreateModel = new LinkOrCreateViewModel.CreateViewModel()
+                    {
+                        EmailAddress = "foo@bar.com",
+                        Username = null
+                    }
+                }, viewData: new
+                {
+                    ReturnUrl = "/packages" // ReturnUrl is specified in ViewData to handle the Log On link in the layout
+                });
+            }
+        }
+
+        public class TheLinkOrCreateUserActionOnPost
+        {
+            [Fact]
+            public void WillThrowCryptoExceptionIfTokenIsInvalid()
+            {
+                // Arrange
+                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthSTINKToken";
+                var controller = new TestableAuthenticationController();
+                
+                // Act/Assert
+                Assert.Throws<CryptographicException>(() => controller.LinkOrCreateUser(null, token, returnUrl: "/packages"));
+            }
+
+            [Fact]
+            public void GivenALinkTokenWithInvalidCredentialsItWillRerenderViewWithError()
+            {
+                // Arrange
+                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthSTINKToken";
+                var model = new LinkOrCreateViewModel()
+                {
+                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    {
+                        UserNameOrEmail = "foo@bar.com",
+                        Password = "nodice"
+                    }
+                };
+                var controller = new TestableAuthenticationController();
+                controller.MockUsers
+                          .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "nodice"))
+                          .ReturnsNull();
+            }
+
         }
 
         public class TestableAuthenticationController : AuthenticationController
@@ -171,6 +265,7 @@ namespace NuGetGallery.Controllers
             {
                 FormsAuth = (MockFormsAuth = new Mock<IFormsAuthenticationService>()).Object;
                 Users = (MockUsers = new Mock<IUserService>()).Object;
+                Crypto = new TestCryptoService();
             }
 
             public override ActionResult SafeRedirect(string returnUrl)

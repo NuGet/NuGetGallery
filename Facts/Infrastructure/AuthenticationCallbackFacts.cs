@@ -338,7 +338,7 @@ namespace NuGetGallery.Infrastructure
             {
                 UserService = (MockUserService = new Mock<IUserService>()).Object;
                 FormsAuth = (MockFormsAuth = new Mock<IFormsAuthenticationService>()).Object;
-                Crypto = new PassThruCryptoService();
+                Crypto = new TestCryptoService();
             }
         }
     }
