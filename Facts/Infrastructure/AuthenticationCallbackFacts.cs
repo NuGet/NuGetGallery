@@ -18,13 +18,19 @@ namespace NuGetGallery.Infrastructure
             [Fact]
             public void RequiresNonNullUserService()
             {
-                ContractAssert.ThrowsArgNull(() => new AuthenticationCallback(null, Mock.Of<IFormsAuthenticationService>()), "userService");
+                ContractAssert.ThrowsArgNull(() => new AuthenticationCallback(null, Mock.Of<IFormsAuthenticationService>(), Mock.Of<ICryptographyService>()), "userService");
             }
 
             [Fact]
             public void RequiresNonNullFormsAuthService()
             {
-                ContractAssert.ThrowsArgNull(() => new AuthenticationCallback(Mock.Of<IUserService>(), null), "formsAuth");
+                ContractAssert.ThrowsArgNull(() => new AuthenticationCallback(Mock.Of<IUserService>(), null, Mock.Of<ICryptographyService>()), "formsAuth");
+            }
+
+            [Fact]
+            public void RequiresNonNullCryptoService()
+            {
+                ContractAssert.ThrowsArgNull(() => new AuthenticationCallback(Mock.Of<IUserService>(), Mock.Of<IFormsAuthenticationService>(), null), "crypto");
             }
         }
 
@@ -199,10 +205,11 @@ namespace NuGetGallery.Infrastructure
                 var result = callback.Process(httpContext, model);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(new { 
+                ResultAssert.IsRedirectToRoute(result, new
+                {
                     controller = "Pages",
                     action = "Home"
-                }, result);
+                });
             }
 
             [Fact]
@@ -223,11 +230,11 @@ namespace NuGetGallery.Infrastructure
                 var result = callback.Process(httpContext, model);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(new
+                ResultAssert.IsRedirectToRoute(result, new
                 {
                     controller = "Pages",
                     action = "Home"
-                }, result);
+                });
             }
 
             [Fact]
@@ -248,13 +255,13 @@ namespace NuGetGallery.Infrastructure
                 var result = callback.Process(httpContext, model);
 
                 // Assert
-                ResultAssert.IsRedirectTo("/safeplace", result);
+                ResultAssert.IsRedirectTo(result, "/safeplace");
             }
 
             [Fact]
             public void RedirectsToLinkPageWithDataInTokenIfNoUserExists()
             {
-                const string expectedToken = "foo@bar.com|foobar|abc123|windowslive";
+                const string expectedToken = "foo@bar.com|foobar|abc123|windowslive,OAuthLinkToken";
 
                 // Arrange
                 var httpContext = new Mock<HttpContextBase>().Object;
@@ -269,19 +276,19 @@ namespace NuGetGallery.Infrastructure
                 var result = callback.Process(httpContext, model);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(new
+                ResultAssert.IsRedirectToRoute(result, new
                 {
                     controller = "Authentication",
                     action = "LinkOrCreateUser",
                     token = expectedToken,
                     returnUrl = "/safeplace"
-                }, result);
+                });
             }
 
             [Fact]
             public void RedirectsToLinkPageWithNoReturnUrlIfNoUserAndReturnUrlIsAbsolute()
             {
-                const string expectedToken = "foo@bar.com|foobar|abc123|windowslive";
+                const string expectedToken = "foo@bar.com|foobar|abc123|windowslive,OAuthLinkToken";
 
                 // Arrange
                 var httpContext = new Mock<HttpContextBase>().Object;
@@ -296,13 +303,13 @@ namespace NuGetGallery.Infrastructure
                 var result = callback.Process(httpContext, model);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(new
+                ResultAssert.IsRedirectToRoute(result, new
                 {
                     controller = "Authentication",
                     action = "LinkOrCreateUser",
                     token = expectedToken,
                     returnUrl = (object)null
-                }, result);
+                });
             }
         }
 
@@ -331,12 +338,7 @@ namespace NuGetGallery.Infrastructure
             {
                 UserService = (MockUserService = new Mock<IUserService>()).Object;
                 FormsAuth = (MockFormsAuth = new Mock<IFormsAuthenticationService>()).Object;
-            }
-
-            protected override string CalculateToken(string email, string userName, string id, string providerName)
-            {
-                // Don't use MachineKey.Protect in tests.
-                return String.Join("|", email, userName, id, providerName);
+                Crypto = new PassThruCryptoService();
             }
         }
     }

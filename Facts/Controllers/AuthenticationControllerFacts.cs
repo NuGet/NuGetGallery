@@ -19,7 +19,8 @@ namespace NuGetGallery.Controllers
 
             var controller = new Mock<AuthenticationController>(
                 formsAuthService.Object,
-                userService.Object);
+                userService.Object,
+                new PassThruCryptoService());
 
             controller.CallBase = true;
 
@@ -206,6 +207,65 @@ namespace NuGetGallery.Controllers
 
                 Assert.NotNull(result);
                 Assert.Equal("aSafeRedirectUrl", result.Url);
+            }
+        }
+
+        public class TheLinkOrCreateUserAction
+        {
+            [Fact]
+            public void WillPrefillFieldsIfSpecifiedOnGet()
+            {
+                // Arrange
+                const string token = "foo@bar.com|foobar|abc123|windowslive,OAuthLinkToken";
+                var controller = CreateController();
+
+                // Act
+                var result = controller.LinkOrCreateUser(token, "abc123");
+
+                // Assert
+                ResultAssert.IsView(result, model: new LinkOrCreateViewModel()
+                {
+                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    {
+                        UserNameOrEmail = "foo@bar.com"
+                    },
+                    CreateModel = new LinkOrCreateViewModel.CreateViewModel()
+                    {
+                        EmailAddress = "foo@bar.com",
+                        Username = "foobar"
+                    }
+                }, viewData: new
+                {
+                    ReturnUrl = "abc123" // ReturnUrl is specified in ViewData to handle the Log On link in the layout
+                });
+            }
+
+            [Fact]
+            public void WillNotPrefillUsernameIfDoesNotMatchRegex()
+            {
+                // Arrange
+                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                var controller = CreateController();
+
+                // Act
+                var result = controller.LinkOrCreateUser(token, "abc123");
+
+                // Assert
+                ResultAssert.IsView(result, model: new LinkOrCreateViewModel()
+                {
+                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    {
+                        UserNameOrEmail = "foo@bar.com"
+                    },
+                    CreateModel = new LinkOrCreateViewModel.CreateViewModel()
+                    {
+                        EmailAddress = "foo@bar.com",
+                        Username = null
+                    }
+                }, viewData: new
+                {
+                    ReturnUrl = "abc123" // ReturnUrl is specified in ViewData to handle the Log On link in the layout
+                });
             }
         }
     }

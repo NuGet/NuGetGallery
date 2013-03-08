@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
@@ -16,13 +17,16 @@ namespace NuGetGallery
     {
         private readonly IFormsAuthenticationService _formsAuthService;
         private readonly IUserService _userService;
+        private readonly ICryptographyService _cryptoService;
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthService,
-            IUserService userService)
+            IUserService userService,
+            ICryptographyService cryptoService)
         {
             _formsAuthService = formsAuthService;
             _userService = userService;
+            _cryptoService = cryptoService;
         }
 
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -84,15 +88,32 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult LinkOrCreateUser(string token, string returnUrl)
         {
-            LinkOrCreateViewModel model = LinkOrCreateViewModel.FromToken(token);
+            // Set the returnURL for the login link.
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
-            return View(model);
+            // Deserialize the token
+            OAuthLinkToken linkToken = OAuthLinkToken.FromToken(
+                _cryptoService.DecryptString(token, OAuthLinkToken.CryptoPurpose));
+
+            // Send down the view model
+            return View(new LinkOrCreateViewModel()
+            {
+                CreateModel = new LinkOrCreateViewModel.CreateViewModel()
+                {
+                    Username = Regex.IsMatch(linkToken.UserName, Constants.UserNameRegex) ? linkToken.UserName : null,
+                    EmailAddress = linkToken.EmailAddress
+                },
+                LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                {
+                    UserNameOrEmail = linkToken.EmailAddress
+                }
+            });
         }
 
         [HttpPost]
         public virtual ActionResult LinkOrCreateUser(LinkOrCreateViewModel model, string token, string returnUrl)
         {
-            return Content("Back");
+            return Json(model);
         }
 
         public virtual ActionResult LogOff(string returnUrl)

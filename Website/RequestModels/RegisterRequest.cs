@@ -18,7 +18,7 @@ namespace NuGetGallery
 
         [Required]
         [StringLength(64)]
-        [RegularExpression(@"(?i)[a-z0-9][a-z0-9_.-]+[a-z0-9]",
+        [RegularExpression(Constants.UserNameRegex,
             ErrorMessage =
                 "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between."
             )]
