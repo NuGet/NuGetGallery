@@ -182,7 +182,6 @@ namespace NuGetGallery
             document.Add(new Field("Language", package.Language.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("LicenseUrl", package.LicenseUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("MinClientVersion", package.MinClientVersion.ToStringSafe(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Version", package.Version.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("VersionDownloadCount", package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("PackageFileSize", package.PackageFileSize.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
@@ -201,6 +200,7 @@ namespace NuGetGallery
             // Fields meant for filtering, also storing data to avoid hitting SQL while doing searches
             document.Add(new Field("IsLatest", package.IsLatest.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
             document.Add(new Field("IsLatestStable", package.IsLatestStable.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
 
             // Note: Used to identify index records for updates
             document.Add(new Field("PackageRegistrationKey",

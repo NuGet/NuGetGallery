@@ -192,7 +192,7 @@ namespace NuGetGallery
 
             var searchFilter = GetSearchFilter(q, sortOrder, page, prerelease);
             int totalHits;
-            packageVersions = _searchService.Search(packageVersions, searchFilter, out totalHits);
+            packageVersions = _searchService.Search(packageVersions, searchFilter, out totalHits, null);
             if (page == 1 && !packageVersions.Any())
             {
                 // In the event the index wasn't updated, we may get an incorrect count. 

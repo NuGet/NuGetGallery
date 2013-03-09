@@ -549,7 +549,8 @@ namespace NuGetGallery.Infrastructure
             var results = luceneSearchService.Search(
                 packageSource.Object.GetPackagesForIndexing(null),
                 searchFilter,
-                out totalHits).ToList();
+                out totalHits,
+                null).ToList();
 
             return results;
         }

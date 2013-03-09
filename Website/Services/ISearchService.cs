@@ -10,6 +10,6 @@ namespace NuGetGallery
         /// <param name="packages"> A query representing the packages to be searched for. </param>
         /// <param name="filter"> The filter to be used. </param>
         /// <param name="totalHits"> The total number of packages discovered. </param>
-        IQueryable<Package> Search(IQueryable<Package> packages, SearchFilter filter, out int totalHits);
+        IQueryable<Package> Search(IQueryable<Package> packages, SearchFilter filter, out int totalHits, IQueryable<Package> filterTo);
     }
 }
