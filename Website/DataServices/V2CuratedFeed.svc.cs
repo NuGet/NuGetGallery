@@ -125,7 +125,7 @@ namespace NuGetGallery
                 .Where(p => p.Listed);
 
             IQueryable<Package> curatedPackages = GetPackages();
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, allPackages, searchTerm, targetFramework, includePrerelease, filterTo: curatedPackages)
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, allPackages, searchTerm, targetFramework, includePrerelease, filterToPackageSet: curatedPackages)
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 

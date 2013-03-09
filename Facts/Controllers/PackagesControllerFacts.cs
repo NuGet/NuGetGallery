@@ -109,7 +109,7 @@ namespace NuGetGallery
         {
             var searchService = new Mock<ISearchService>();
             int total;
-            searchService.Setup(s => s.Search(It.IsAny<IQueryable<Package>>(), It.IsAny<SearchFilter>(), out total, null)).Returns(
+            searchService.Setup(s => s.Search(It.IsAny<SearchFilter>(), out total, null)).Returns(
                 (IQueryable<Package> p, string searchTerm) => p);
 
             return searchService;

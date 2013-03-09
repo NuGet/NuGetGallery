@@ -24,13 +24,8 @@ namespace NuGetGallery
             _directory = directory;
         }
 
-        public IQueryable<Package> Search(IQueryable<Package> packages, SearchFilter searchFilter, out int totalHits, IQueryable<Package> filterTo)
+        public IQueryable<Package> Search(SearchFilter searchFilter, out int totalHits, IQueryable<Package> filterToPackageSet = null)
         {
-            if (packages == null)
-            {
-                throw new ArgumentNullException("packages");
-            }
-
             if (searchFilter == null)
             {
                 throw new ArgumentNullException("searchFilter");
@@ -46,10 +41,10 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException("searchFilter");
             }
 
-            return SearchCore(searchFilter, out totalHits, filterTo);
+            return SearchCore(searchFilter, out totalHits, filterToPackageSet);
         }
 
-        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits, IQueryable<Package> filterTo)
+        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits, IQueryable<Package> filterToPackageSet)
         {
             int numRecords = searchFilter.Skip + searchFilter.Take;
 
@@ -66,9 +61,9 @@ namespace NuGetGallery
             var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
             var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
             Filter filter = new QueryWrapperFilter(termQuery);
-            if (filterTo != null)
+            if (filterToPackageSet != null)
             {
-                filter = new IntersectionFilter(new PackageSetFilter(filterTo), filter);
+                filter = new IntersectionFilter(new PackageSetFilter(filterToPackageSet), filter);
             }
 
             var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));

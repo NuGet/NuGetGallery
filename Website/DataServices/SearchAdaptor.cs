@@ -24,7 +24,7 @@ namespace NuGetGallery
             string searchTerm, 
             string targetFramework, 
             bool includePrerelease,
-            IQueryable<Package> filterTo = null)
+            IQueryable<Package> filterToPackageSet = null)
         {
             SearchFilter searchFilter;
             // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
@@ -34,7 +34,9 @@ namespace NuGetGallery
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
 
-                var results = GetResultsFromSearchService(searchService, packages, searchFilter, filterTo);
+                Trace.WriteLine("TODO: use target framework parameter - see #856" + targetFramework);
+
+                var results = GetResultsFromSearchService(searchService, searchFilter, filterToPackageSet);
 
                 return results;
             }
@@ -121,10 +123,10 @@ namespace NuGetGallery
             return true;
         }
 
-        private static IQueryable<Package> GetResultsFromSearchService(ISearchService searchService, IQueryable<Package> packages, SearchFilter searchFilter, IQueryable<Package> filterTo)
+        private static IQueryable<Package> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter, IQueryable<Package> filterToPackageSet)
         {
             int totalHits;
-            var result = searchService.Search(packages, searchFilter, out totalHits, filterTo);
+            var result = searchService.Search(searchFilter, out totalHits, filterToPackageSet);
 
             // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
             // it very fast.
@@ -137,19 +139,6 @@ namespace NuGetGallery
             // For relevance search, Lucene returns us a paged\sorted list. OData tries to apply default ordering and Take \ Skip on top of this.
             // We avoid it by yanking these expressions out of out the tree.
             return result.InterceptWith(new DisregardODataInterceptor());
-        }
-
-        class PackageKeyEqualityComparer : IEqualityComparer<Package>
-        {
-            public bool Equals(Package x, Package y)
-            {
-                return x.Key == y.Key;
-            }
-
-            public int GetHashCode(Package obj)
-            {
-                return obj.Key.GetHashCode();
-            }
         }
     }
 }

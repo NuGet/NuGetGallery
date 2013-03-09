@@ -179,8 +179,6 @@ namespace NuGetGallery
                 page = 1;
             }
 
-            IQueryable<Package> packageVersions = _packageService.GetPackagesForListing(prerelease);
-
             q = (q ?? "").Trim();
 
             if (String.IsNullOrEmpty(sortOrder))
@@ -192,7 +190,7 @@ namespace NuGetGallery
 
             var searchFilter = GetSearchFilter(q, sortOrder, page, prerelease);
             int totalHits;
-            packageVersions = _searchService.Search(packageVersions, searchFilter, out totalHits, null);
+            IQueryable<Package> packageVersions = _searchService.Search(searchFilter, out totalHits);
             if (page == 1 && !packageVersions.Any())
             {
                 // In the event the index wasn't updated, we may get an incorrect count. 
