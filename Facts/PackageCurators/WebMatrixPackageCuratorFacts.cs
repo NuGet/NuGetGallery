@@ -120,11 +120,11 @@ namespace NuGetGallery.PackageCurators
                 var curator = new TestableWebMatrixPackageCurator();
                 var stubNuGetPackage = CreateStubNuGetPackage();
                 stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(
-                    new[]
+                    new []
                         {
-                            CreateStubNuGetPackageFile("foo.txt").Object,
-                            CreateStubNuGetPackageFile("foo.ps1").Object,
-                            CreateStubNuGetPackageFile("foo.cs").Object
+                            "foo.txt",
+                            "foo.ps1",
+                            "foo.cs",
                         });
 
                 curator.Curate(CreateStubGalleryPackage(), stubNuGetPackage.Object, commitChanges: true);
@@ -148,9 +148,9 @@ namespace NuGetGallery.PackageCurators
                 stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(
                     new[]
                         {
-                            CreateStubNuGetPackageFile("foo.txt").Object,
-                            CreateStubNuGetPackageFile("foo.t4").Object,
-                            CreateStubNuGetPackageFile("foo.cs").Object
+                            "foo.txt",
+                            "foo.t4",
+                            "foo.cs",
                         });
 
                 curator.Curate(CreateStubGalleryPackage(), stubNuGetPackage.Object, commitChanges: true);
@@ -212,8 +212,8 @@ namespace NuGetGallery.PackageCurators
                 stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(
                     new[]
                         {
-                            CreateStubNuGetPackageFile("foo.txt").Object,
-                            CreateStubNuGetPackageFile("foo.cs").Object
+                            "foo.txt",
+                            "foo.cs",
                         });
 
                 curator.Curate(CreateStubGalleryPackage(), stubNuGetPackage.Object, commitChanges: true);
@@ -295,10 +295,10 @@ namespace NuGetGallery.PackageCurators
                     };
             }
 
-            private static Mock<IPackage> CreateStubNuGetPackage()
+            private static Mock<INupkg> CreateStubNuGetPackage()
             {
-                var stubNuGetPackage = new Mock<IPackage>();
-                stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(new IPackageFile[] { });
+                var stubNuGetPackage = new Mock<INupkg>();
+                stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(new string[] { });
                 return stubNuGetPackage;
             }
 

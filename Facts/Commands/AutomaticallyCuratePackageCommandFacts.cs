@@ -41,10 +41,10 @@ namespace NuGetGallery.Commands
                 cmd.StubCurators.Add(firstStubCurator);
                 cmd.StubCurators.Add(secondStubCurator);
 
-                cmd.Execute(new Package(), new Mock<IPackage>().Object, commitChanges: true);
+                cmd.Execute(new Package(), new Mock<INupkg>().Object, commitChanges: true);
 
-                firstStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<IPackage>(), true));
-                secondStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<IPackage>(), true));
+                firstStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<INupkg>(), true));
+                secondStubCurator.Verify(stub => stub.Curate(It.IsAny<Package>(), It.IsAny<INupkg>(), true));
             }
         }
     }

@@ -8,7 +8,7 @@ namespace NuGetGallery
     {
         public override void Curate(
             Package galleryPackage,
-            IPackage nugetPackage,
+            INupkg nugetPackage,
             bool commitChanges)
         {
             var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute("webmatrix", includePackages: true);
@@ -27,9 +27,9 @@ namespace NuGetGallery
             if (!shouldBeIncluded)
             {
                 shouldBeIncluded = true;
-                foreach (var file in nugetPackage.GetFiles())
+                foreach (var filePath in nugetPackage.GetFiles())
                 {
-                    var fi = new FileInfo(file.Path);
+                    var fi = new FileInfo(filePath);
                     if (fi.Extension == ".ps1" || fi.Extension == ".t4")
                     {
                         shouldBeIncluded = false;

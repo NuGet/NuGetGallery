@@ -87,7 +87,7 @@ namespace NuGetGallery.AsyncFileUpload
                 {
                     // If the request is from local machine, the upload will be too fast to see the progress.
                     // Slow it down a bit.
-                    System.Threading.Thread.Sleep(300);
+                    System.Threading.Thread.Sleep(30);
                 }
 #endif
             }

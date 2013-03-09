@@ -1,13 +1,34 @@
 ﻿using System;
+using System.Globalization;
 using System.Net;
+using System.Web;
 using System.Web.Mvc;
+using Ninject;
+using Ninject.Web.Mvc.Filter;
 
 namespace NuGetGallery
 {
-    // This code is identical to System.Web.Mvc except that we allow for working in localhost environment without https.
+    // This code is identical to System.Web.Mvc except that we allow for working in localhost environment without https and we force authenticated users to use SSL
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public sealed class RequireRemoteHttpsAttribute : FilterAttribute, IAuthorizationFilter
     {
+        private IConfiguration _configuration;
+        private IFormsAuthenticationService _formsAuth;
+
+        public IConfiguration Configuration
+        {
+            get { return _configuration ?? (_configuration = Container.Kernel.Get<IConfiguration>()); }
+            set { _configuration = value; }
+        }
+
+        public IFormsAuthenticationService FormsAuthentication
+        {
+            get { return _formsAuth ?? (_formsAuth = Container.Kernel.Get<IFormsAuthenticationService>()); }
+            set { _formsAuth = value; }
+        }
+
+        public bool OnlyWhenAuthenticated { get; set; }
+
         public void OnAuthorization(AuthorizationContext filterContext)
         {
             if (filterContext == null)
@@ -16,13 +37,20 @@ namespace NuGetGallery
             }
 
             var request = filterContext.HttpContext.Request;
-            if (!request.IsLocal && !request.IsSecureConnection)
+            if (Configuration.RequireSSL && !request.IsSecureConnection && ShouldForceSSL(filterContext.HttpContext))
             {
                 HandleNonHttpsRequest(filterContext);
             }
         }
 
-        private static void HandleNonHttpsRequest(AuthorizationContext filterContext)
+        private bool ShouldForceSSL(HttpContextBase context)
+        {
+            return !OnlyWhenAuthenticated || // If OnlyWhenAuthenticated == false, then we should force SSL
+                context.Request.IsAuthenticated || // If Authenticated, force SSL (we should already be on SSL, since the cookie is secure, but just in case...)
+                FormsAuthentication.ShouldForceSSL(context); // If the "ForceSSL" cookie is present.
+        }
+
+        private void HandleNonHttpsRequest(AuthorizationContext filterContext)
         {
             // only redirect for GET requests, otherwise the browser might not propagate the verb and request
             // body correctly.
@@ -33,7 +61,13 @@ namespace NuGetGallery
             else
             {
                 // redirect to HTTPS version of page
-                string url = "https://" + filterContext.HttpContext.Request.Url.Host + filterContext.HttpContext.Request.RawUrl;
+                string portString = String.Empty;
+                if (Configuration.SSLPort != 443)
+                {
+                    portString = String.Format(CultureInfo.InvariantCulture, ":{0}", Configuration.SSLPort);
+                }
+
+                string url = "https://" + filterContext.HttpContext.Request.Url.Host + portString + filterContext.HttpContext.Request.RawUrl;
                 filterContext.Result = new RedirectResult(url);
             }
         }

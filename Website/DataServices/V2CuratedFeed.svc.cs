@@ -118,14 +118,15 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
-            var packages = GetPackages();
+            // In all probability these are not actually used
+            var allPackages = PackageRepository.GetAll()
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .Where(p => p.Listed);
 
-            packages = packages.Where(p => p.Listed);
-            if (!includePrerelease)
-            {
-                packages = packages.Where(p => !p.IsPrerelease);
-            }
-            return packages.Search(searchTerm).ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
+            IQueryable<Package> curatedPackages = GetPackages();
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, allPackages, searchTerm, targetFramework, includePrerelease, filterTo: curatedPackages)
+                .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
         public override Uri GetReadStreamUri(

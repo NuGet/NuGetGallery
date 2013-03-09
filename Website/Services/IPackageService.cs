@@ -23,7 +23,7 @@ namespace NuGetGallery
         /// <param name="currentUser">The owner of the package</param>
         /// <param name="commitChanges">Specifies whether to commit the changes to database.</param>
         /// <returns>The created package entity.</returns>
-        Package CreatePackage(IPackage nugetPackage, User user, bool commitChanges = true);
+        Package CreatePackage(INupkg nugetPackage, User user, bool commitChanges = true);
 
         /// <summary>
         /// Delete all related data from database for the specified package id and version.

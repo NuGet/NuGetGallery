@@ -9,6 +9,6 @@ namespace NuGetGallery
     {
         Task<ActionResult> CreateNuGetExeDownloadActionResultAsync(Uri requestUrl);
 
-        Task UpdateExecutableAsync(IPackage package);
+        Task UpdateExecutableAsync(INupkg package);
     }
 }

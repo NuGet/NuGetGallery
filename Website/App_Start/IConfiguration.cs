@@ -2,6 +2,9 @@
 {
     public interface IConfiguration
     {
+        bool RequireSSL { get; }
+        int SSLPort { get; }
+
         string SmtpHost { get; }
         string SmtpUsername { get; }
         string SmtpPassword { get; }
@@ -10,6 +13,7 @@
         string GalleryOwnerName { get; }
         string GalleryOwnerEmail { get; }
         bool ConfirmEmailAddresses { get; }
+        string EnvironmentName { get; }
 
         string AzureDiagnosticsConnectionString { get; }
         string AzureStorageConnectionString { get; }

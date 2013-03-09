@@ -27,10 +27,14 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
-    <IISExpressSSLPort />
+    <IISExpressSSLPort>44300</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
+    <IISExpressSSLPort>44300</IISExpressSSLPort>
+    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
+    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
+    <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -171,6 +175,7 @@
     <Reference Include="System.Data.Entity" />
     <Reference Include="System.Data.Services" />
     <Reference Include="System.Data.Services.Client" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
@@ -261,6 +266,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataServices\DisregardODataInterceptor.cs" />
+    <Compile Include="DataServices\SearchAdaptor.cs" />
     <Compile Include="DataServices\V2CuratedFeed.svc.cs">
       <DependentUpon>V2CuratedFeed.svc</DependentUpon>
     </Compile>
@@ -300,6 +306,8 @@
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
+    <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
@@ -461,6 +469,10 @@
     <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.Designer.cs">
       <DependentUpon>201302072118537_MovingGallerySettingsToConfiguration.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.cs" />
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.Designer.cs">
+      <DependentUpon>201302282115583_AddMinRequiredVersionColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -472,6 +484,8 @@
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Packaging\INupkg.cs" />
+    <Compile Include="Packaging\Nupkg.cs" />
     <Compile Include="PagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -1070,6 +1084,7 @@
     <Content Include="Views\Statistics\PackageVersions.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsByVersion.cshtml" />
     <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
+    <Content Include="Views\Packages\UnverifiablePackage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />
