@@ -179,15 +179,15 @@ namespace NuGetGallery
                 ViewBag.ConfirmationRequired = true;
                 return View(model);
             }
-            throw new NotImplementedException();
-            //// Associate the user
-            //Users.AssociateCredential(user, token.Provider, token.Id);
 
-            //// Log the user in
-            //FormsAuth.SetAuthCookie(user, createPersistentCookie: true);
+            // Associate the user
+            Users.AssociateCredential(user, "oauth:" + token.Provider, token.Id);
 
-            //// Safe redirect outta here
-            //return SafeRedirect(returnUrl);
+            // Log the user in
+            FormsAuth.SetAuthCookie(user, createPersistentCookie: true);
+
+            // Safe redirect outta here
+            return SafeRedirect(returnUrl);
         }
     }
 }
