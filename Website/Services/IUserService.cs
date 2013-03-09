@@ -12,6 +12,8 @@ namespace NuGetGallery
 
         User FindByEmailAddress(string emailAddress);
 
+        User FindByCredential(string credentialKey, string credentialValue);
+
         User FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress);
 
         User FindByUsername(string username);
@@ -29,5 +31,7 @@ namespace NuGetGallery
         User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes);
 
         bool ResetPasswordWithToken(string username, string token, string newPassword);
+
+        void AssociateCredential(User user, string credentialKey, string credentialValue);
     }
 }

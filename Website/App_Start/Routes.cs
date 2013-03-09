@@ -2,6 +2,7 @@
 using System.Web.Routing;
 using MvcHaack.Ajax;
 using RouteMagic;
+using WorldDomination.Web.Authentication.Mvc;
 
 namespace NuGetGallery
 {
@@ -13,6 +14,13 @@ namespace NuGetGallery
                 RouteName.Home,
                 "",
                 MVC.Pages.Home());
+
+            routes.MapOAuthRedirect("oauth/redirect");
+            routes.MapOAuthCallback("oauth/land");
+            routes.MapRoute(
+                RouteName.OAuthLink,
+                "oauth/link",
+                MVC.Authentication.LinkOrCreateUser());
 
             routes.MapRoute(
                 RouteName.StatisticsHome,

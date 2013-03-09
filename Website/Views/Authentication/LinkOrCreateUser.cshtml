@@ -1,14 +1,33 @@
-﻿@model SignInRequest
+﻿@model LinkOrCreateViewModel
 @{
-    ViewBag.Title = "Log On";
+    ViewBag.Title = "LinkOrCreateUser";
 }
 
-<div id="basic-login">
-    <h1>Log On</h1>
+<h1>Do we know you?</h1>
+<p class="note">If you already have a NuGet.org account, log in to it using the form on the right. If not, please use the form on the left to create a new account</p>
 
-    <p>
-        Don't have an account yet? <a href="@Url.Action(MVC.Users.Register())">Register now.</a>
-    </p>
+<div id="oauth-create">
+    <h2>Create A New Account</h2>
+
+    @using (Html.BeginForm())
+    {
+        <fieldset class="form">
+            <legend>Register Form</legend>
+
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true)
+              
+            @Html.EditorFor(m => m.CreateModel)
+
+            <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
+
+            <input type="submit" value="Register" title="Register" />
+        </fieldset>
+    }
+</div>
+
+<div id="oauth-link">
+    <h2>Link an existing account</h2>
 
     @using (Html.BeginForm())
     {
@@ -30,7 +49,7 @@
                 </p>
             }
 
-            @Html.EditorForModel()
+            @Html.EditorFor(m => m.LinkModel)
 
             <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
 
@@ -40,11 +59,4 @@
     }
 </div>
 
-@Html.Partial("_OAuthLogin", Model)
-
 <div class="clear-fix"></div>
-
-@section BottomScripts {
-    <script src="@Url.Content("~/Scripts/jquery.validate.min.js")"></script>
-    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")"></script>
-}
