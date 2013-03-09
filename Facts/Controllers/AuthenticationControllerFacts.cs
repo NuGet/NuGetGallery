@@ -44,9 +44,12 @@ namespace NuGetGallery.Controllers
                 var controller = new TestableAuthenticationController();
                 controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
-                var result = controller.LogOn(null, null);
+                var result = controller.LogOn(null, "/wololo");
 
-                ResultAssert.IsView(result);
+                ResultAssert.IsView(result, viewData: new
+                {
+                    ReturnUrl = "/wololo"
+                });
             }
 
             [Fact]
