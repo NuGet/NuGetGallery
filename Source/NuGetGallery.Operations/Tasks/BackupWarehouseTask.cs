@@ -8,8 +8,8 @@ namespace NuGetGallery.Operations
     [Command("backupwarehouse", "Backs up the warehouse", AltName = "bwh", MaxArgs = 0)]
     public class BackupWarehouseTask: OpsTask, IBackupDatabase
     {
-        [Option("Force a backup, even if there is one less than 24 hours old", AltName="f")]
-        public bool Force { get; set; }
+        [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
+        public int IfOlderThan { get; set; } 
 
         [Option("Connection string to the warehouse database server", AltName = "wdb")]
         public string ConnectionString { get; set; }
@@ -22,6 +22,7 @@ namespace NuGetGallery.Operations
         {
             // Load defaults from environment
             ConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+            IfOlderThan = 30;
         }
 
         public override void ValidateArguments()
@@ -53,20 +54,17 @@ namespace NuGetGallery.Operations
 
                     Log.Trace("Found no backup in progress.");
 
-                    if (!Force)
+                    Log.Trace("Getting last backup time.");
+                    var lastBackupTime = Util.GetLastBackupTime(dbExecutor);
+                    if (lastBackupTime >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(IfOlderThan)))
                     {
-                        Log.Trace("Getting last backup time.");
-                        var lastBackupTime = Util.GetLastBackupTime(dbExecutor);
-                        if (lastBackupTime >= DateTime.UtcNow.Subtract(TimeSpan.FromHours(24)))
-                        {
-                            Log.Info("Skipping Backup. Last Backup was less than 24 hours ago");
+                        Log.Info("Skipping Backup. Last Backup was less than {0} minutes ago", IfOlderThan);
 
-                            SkippingBackup = true;
+                        SkippingBackup = true;
 
-                            return;
-                        }
-                        Log.Trace("Last backup time is more than 24 hours ago. Starting new backup.");
+                        return;
                     }
+                    Log.Trace("Last backup time is more than {0} minutes ago. Starting new backup.", IfOlderThan);
 
                     var timestamp = Util.GetTimestamp();
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel.Composition;
-using System.Threading;
 
 namespace NuGetGallery.Operations.Worker.Jobs
 {
@@ -19,10 +18,11 @@ namespace NuGetGallery.Operations.Worker.Jobs
         {
             Logger.Info("Starting backup database task.");
 
-            BackupDatabaseTask backupTask = new BackupDatabaseTask
+            var backupTask = new BackupDatabaseTask
             {
                 ConnectionString = Settings.MainConnectionString,
-                WhatIf = Settings.WhatIf
+                WhatIf = Settings.WhatIf,
+                IfOlderThan = 25,
             };
 
             backupTask.Execute();
