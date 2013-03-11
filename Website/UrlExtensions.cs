@@ -40,7 +40,10 @@ namespace NuGetGallery
 
         public static string StatisticsPackageDownloadByVersion(this UrlHelper url, string id)
         {
-            return url.RouteUrl(RouteName.StatisticsPackageDownloadsByVersion, new { id });
+            string result = url.RouteUrl(RouteName.StatisticsPackageDownloadsByVersion, new { id });
+
+            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
+            return EnsureTrailingSlash(result);
         }
 
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm, bool prerelease)
