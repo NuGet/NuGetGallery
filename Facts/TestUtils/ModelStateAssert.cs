@@ -10,6 +10,11 @@ namespace NuGetGallery
 {
     public static class ModelStateAssert
     {
+        public static void HasErrors(ModelStateDictionary dict, string key, params string[] errors)
+        {
+            HasErrors(dict, key, errors.Select(s => new ModelError(s)).ToArray());
+        }
+
         public static void HasErrors(ModelStateDictionary dict, string key, params ModelError[] errors)
         {
             Assert.True(dict.ContainsKey(key));

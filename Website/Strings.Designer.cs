@@ -79,6 +79,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You&apos;ve already associated an account from this provider. We currently only support one account per provider..
+        /// </summary>
+        public static string DuplicateOAuthCredential {
+            get {
+                return ResourceManager.GetString("DuplicateOAuthCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The email address &apos;{0}&apos; is being used..
         /// </summary>
         public static string EmailAddressBeingUsed {
