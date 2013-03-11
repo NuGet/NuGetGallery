@@ -213,8 +213,7 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public class TheLinkOrCreateUserActionOnPostWithLinkModel
-        {
+        public class TheLinkOrCreateUserActionOnPost {
             [Fact]
             public void WillThrowCryptoExceptionIfTokenIsInvalid()
             {
@@ -241,127 +240,140 @@ namespace NuGetGallery.Controllers
                 ResultAssert.IsView(result);
             }
 
-            [Fact]
-            public void GivenInvalidCredentialsItWillRerenderViewWithError()
+            public class WithCreateModel
             {
-                // Arrange
-                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
-                var model = new LinkOrCreateViewModel()
+                [Fact]
+                public void IfUserServiceThrowsItWillAddMessageAsError()
                 {
-                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
-                    {
-                        UserNameOrEmail = "foo@bar.com",
-                        Password = "nodice"
-                    }
-                };
-                var controller = new TestableAuthenticationController();
-                controller.MockUsers
-                          .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "nodice"))
-                          .ReturnsNull();
-
-                // Act
-                var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
-
-                // Assert
-                var viewResult = ResultAssert.IsView(result, model: model);
-                ModelStateAssert.HasErrors(
-                    viewResult.ViewData.ModelState,
-                    key: String.Empty,
-                    errors: new ModelError(Strings.UserNotFound));
+                    Assert.True(false);
+                }
             }
 
-            [Fact]
-            public void GivenCredentialsForUnconfirmedAccountItRerendersTheViewWithTheConfirmationRequiredFlag()
+            public class WithLinkModel
             {
-                // Arrange
-                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
-                var model = new LinkOrCreateViewModel()
+                [Fact]
+                public void GivenInvalidCredentialsItWillRerenderViewWithError()
                 {
-                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    // Arrange
+                    const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                    var model = new LinkOrCreateViewModel()
                     {
-                        UserNameOrEmail = "foo@bar.com",
-                        Password = "nodice"
-                    }
-                };
-                var controller = new TestableAuthenticationController();
-                controller.MockUsers
-                          .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "nodice"))
-                          .Returns(new User() { EmailAddress = null, UnconfirmedEmailAddress = "foo@bar.com" });
+                        LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                        {
+                            UserNameOrEmail = "foo@bar.com",
+                            Password = "nodice"
+                        }
+                    };
+                    var controller = new TestableAuthenticationController();
+                    controller.MockUsers
+                              .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "nodice"))
+                              .ReturnsNull();
 
-                // Act
-                var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
+                    // Act
+                    var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
 
-                // Assert
-                var viewResult = ResultAssert.IsView(result, model: model, viewData: new {
-                    ConfirmationRequired = true
-                });
-            }
+                    // Assert
+                    var viewResult = ResultAssert.IsView(result, model: model);
+                    ModelStateAssert.HasErrors(
+                        viewResult.ViewData.ModelState,
+                        key: String.Empty,
+                        errors: new ModelError(Strings.UserNotFound));
+                }
 
-            [Fact]
-            public void GivenCredentialsForValidAccountItSavesCredentialAndLogsUserIn()
-            {
-                // Arrange
-                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
-                var model = new LinkOrCreateViewModel()
+                [Fact]
+                public void GivenCredentialsForUnconfirmedAccountItRerendersTheViewWithTheConfirmationRequiredFlag()
                 {
-                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    // Arrange
+                    const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                    var model = new LinkOrCreateViewModel()
                     {
-                        UserNameOrEmail = "foo@bar.com",
-                        Password = "hunter2"
-                    }
-                };
-                var user = new User() { EmailAddress = "foo@bar.com" };
-                var controller = new TestableAuthenticationController();
-                controller.MockUsers
-                          .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "hunter2"))
-                          .Returns(user);
-                controller.MockUsers
-                          .Setup(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"))
-                          .Returns(true);
+                        LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                        {
+                            UserNameOrEmail = "foo@bar.com",
+                            Password = "nodice"
+                        }
+                    };
+                    var controller = new TestableAuthenticationController();
+                    controller.MockUsers
+                              .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "nodice"))
+                              .Returns(new User() { EmailAddress = null, UnconfirmedEmailAddress = "foo@bar.com" });
 
-                // Act
-                var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
+                    // Act
+                    var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
 
-                // Assert
-                controller.MockUsers
-                          .Verify(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"));
-                controller.MockFormsAuth
-                          .Verify(f => f.SetAuthCookie(user, true));
-                ResultAssert.IsRedirectTo(result, "aSafeRedirectUrl");
-            }
+                    // Assert
+                    var viewResult = ResultAssert.IsView(result, model: model, viewData: new
+                    {
+                        ConfirmationRequired = true
+                    });
+                }
 
-            [Fact]
-            public void GivenDuplicateCredentialItReportsAnErrorToTheUser()
-            {
-                // Arrange
-                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
-                var model = new LinkOrCreateViewModel()
+                [Fact]
+                public void GivenCredentialsForValidAccountItSavesCredentialAndLogsUserIn()
                 {
-                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    // Arrange
+                    const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                    var model = new LinkOrCreateViewModel()
                     {
-                        UserNameOrEmail = "foo@bar.com",
-                        Password = "hunter2"
-                    }
-                };
-                var user = new User() { EmailAddress = "foo@bar.com" };
-                var controller = new TestableAuthenticationController();
-                controller.MockUsers
-                          .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "hunter2"))
-                          .Returns(user);
-                controller.MockUsers
-                          .Setup(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"))
-                          .Returns(false);
-                
-                // Act
-                var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
+                        LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                        {
+                            UserNameOrEmail = "foo@bar.com",
+                            Password = "hunter2"
+                        }
+                    };
+                    var user = new User() { EmailAddress = "foo@bar.com" };
+                    var controller = new TestableAuthenticationController();
+                    controller.MockUsers
+                              .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "hunter2"))
+                              .Returns(user);
+                    controller.MockUsers
+                              .Setup(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"))
+                              .Returns(true);
 
-                // Assert
-                controller.MockUsers
-                          .Verify(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"));
-                controller.MockFormsAuth
-                          .Verify(f => f.SetAuthCookie(user, true), Times.Never());
-                var viewResult = ResultAssert.IsView(result, model: model);
-                ModelStateAssert.HasErrors(viewResult.ViewData.ModelState, String.Empty, Strings.DuplicateOAuthCredential);
+                    // Act
+                    var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
+
+                    // Assert
+                    controller.MockUsers
+                              .Verify(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"));
+                    controller.MockFormsAuth
+                              .Verify(f => f.SetAuthCookie(user, true));
+                    ResultAssert.IsRedirectTo(result, "aSafeRedirectUrl");
+                }
+
+                [Fact]
+                public void GivenDuplicateCredentialItReportsAnErrorToTheUser()
+                {
+                    // Arrange
+                    const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                    var model = new LinkOrCreateViewModel()
+                    {
+                        LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                        {
+                            UserNameOrEmail = "foo@bar.com",
+                            Password = "hunter2"
+                        }
+                    };
+                    var user = new User() { EmailAddress = "foo@bar.com" };
+                    var controller = new TestableAuthenticationController();
+                    controller.MockUsers
+                              .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "hunter2"))
+                              .Returns(user);
+                    controller.MockUsers
+                              .Setup(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"))
+                              .Returns(false);
+
+                    // Act
+                    var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
+
+                    // Assert
+                    controller.MockUsers
+                              .Verify(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"));
+                    controller.MockFormsAuth
+                              .Verify(f => f.SetAuthCookie(user, true), Times.Never());
+                    var viewResult = ResultAssert.IsView(result, model: model);
+                    ModelStateAssert.HasErrors(viewResult.ViewData.ModelState, String.Empty, Strings.DuplicateOAuthCredential);
+                }
             }
         }
 
