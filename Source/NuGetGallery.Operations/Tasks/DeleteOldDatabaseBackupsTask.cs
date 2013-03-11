@@ -26,9 +26,9 @@ namespace NuGetGallery.Operations
                     "SELECT name FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
                     new { state = Util.OnlineState }).ToArray();
 
-                // Policy #1: retain first backup each day for last week [day = UTC day]
+                // Policy #1: retain last backup each day for last week [day = UTC day]
                 // Policy #2: retain the last 5 backups
-                var dailyBackups = dbs.OrderByDescending(GetTimestamp).GroupBy(GetDay).Take(8).Select(Enumerable.First);
+                var dailyBackups = dbs.OrderByDescending(GetTimestamp).GroupBy(GetDay).Take(8).Select(Enumerable.Last);
                 var latestBackups = dbs.OrderByDescending(GetTimestamp).Take(5);
 
                 var dbsToSave = new HashSet<Database>();
