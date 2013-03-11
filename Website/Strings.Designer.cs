@@ -160,6 +160,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be null or an empty string.
+        /// </summary>
+        public static string ParameterCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ParameterCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via SSL..
         /// </summary>
         public static string SSLRequired {

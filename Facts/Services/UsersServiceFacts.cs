@@ -41,9 +41,9 @@ namespace NuGetGallery
             [Fact]
             public void ReturnsFalseIfUserIsNotFound()
             {
-                var userRepository = new Mock<IEntityRepository<User>>();
-                userRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<User>().AsQueryable());
-                var service = CreateUsersService(userRepo: userRepository);
+                var service = new TestableUserService();
+                service.MockUserRepository
+                       .Setup(r => r.GetAll()).Returns(Enumerable.Empty<User>().AsQueryable());
 
                 var changed = service.ChangePassword("username", "oldpwd", "newpwd");
 
@@ -53,16 +53,15 @@ namespace NuGetGallery
             [Fact]
             public void ReturnsFalseIfPasswordDoesNotMatchUser()
             {
-                var userRepository = new Mock<IEntityRepository<User>>();
-                userRepository.Setup(r => r.GetAll()).Returns(
-                    new[]
+                var service = new TestableUserService();
+                service.MockUserRepository
+                       .Setup(r => r.GetAll()).Returns(new[]
                         {
                             new User { Username = "user", HashedPassword = "hashed" }
                         }.AsQueryable());
-                var cryptoService = new Mock<ICryptographyService>();
-                cryptoService.Setup(s => s.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), Constants.Sha512HashAlgorithmId)).Returns(false);
-                var service = CreateUsersService(userRepo: userRepository, cryptoService: cryptoService);
-
+                service.MockCryptoService
+                       .Setup(s => s.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), Constants.Sha512HashAlgorithmId)).Returns(false);
+                
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");
 
                 Assert.False(changed);
@@ -755,6 +754,34 @@ namespace NuGetGallery
                 var service = CreateUsersService();
 
                 Assert.Throws<ArgumentNullException>(() => service.UpdateProfile(null, "test@example.com", emailAllowed: true));
+            }
+        }
+
+        public class TheAssociateCredentialMethod
+        {
+            [Fact]
+            public void RequiresValidArguments()
+            {
+                var userService = new TestableUserService();
+                ContractAssert.ThrowsArgNull(() => userService.AssociateCredential(null, "facebook", "abc123"), "user");
+                ContractAssert.ThrowsArgNullOrEmpty(s => userService.AssociateCredential(new User(), s, "abc123"), "credentialName");
+                ContractAssert.ThrowsArgNullOrEmpty(s => userService.AssociateCredential(new User(), "facebook", s), "credentialValue");
+            }
+        }
+
+        public class TestableUserService : UserService
+        {
+            public Mock<ICryptographyService> MockCryptoService { get; protected set; }
+            public Mock<IConfiguration> MockConfig { get; protected set; }
+            public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
+            public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
+
+            public TestableUserService()
+            {
+                CryptoService = (MockCryptoService = new Mock<ICryptographyService>()).Object;
+                Config = (MockConfig = new Mock<IConfiguration>()).Object;
+                UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
+                CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
             }
         }
     }
