@@ -137,15 +137,15 @@
     </Reference>
     <Reference Include="WorldDomination.Web.Authentication, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WorldDomination.Web.Authentication.0.20.0-alpha014\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.0.20.0-alpha015\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
     </Reference>
     <Reference Include="WorldDomination.Web.Authentication.ExtraProviders, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WorldDomination.Web.Authentication.ExtraProviders.0.20.0-alpha014\lib\net40\WorldDomination.Web.Authentication.ExtraProviders.dll</HintPath>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.ExtraProviders.0.20.0-alpha015\lib\net40\WorldDomination.Web.Authentication.ExtraProviders.dll</HintPath>
     </Reference>
     <Reference Include="WorldDomination.Web.Authentication.Mvc, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WorldDomination.Web.Authentication.Mvc.0.20.0-alpha014\lib\net40\WorldDomination.Web.Authentication.Mvc.dll</HintPath>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.Mvc.0.20.0-alpha015\lib\net40\WorldDomination.Web.Authentication.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="xunit, Version=1.9.1.1600, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

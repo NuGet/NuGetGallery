@@ -9,6 +9,7 @@ namespace NuGetGallery
         public ICryptographyService Crypto { get; protected set; }
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
+        public IEntityRepository<Credential> CredentialRepository { get; protected set; }
 
         protected UserService() {}
 
@@ -20,6 +21,7 @@ namespace NuGetGallery
             Config = config;
             Crypto = crypto;
             UserRepository = userRepository;
+            CredentialRepository = credentialRepository;
         }
 
         public virtual User Create(
@@ -278,7 +280,7 @@ namespace NuGetGallery
 
         public virtual User FindByCredential(string credentialName, string credentialValue)
         {
-            return _credentialRepository
+            return CredentialRepository
                 .GetAll()
                 .Where(c => c.Name == credentialName && c.Value == credentialValue)
                 .Select(c => c.User)
@@ -287,12 +289,28 @@ namespace NuGetGallery
 
         public virtual void AssociateCredential(User user, string credentialName, string credentialValue)
         {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+            if (String.IsNullOrEmpty(credentialName))
+            {
+                // TODO: Turn this in to a helper? Requires.NotNullOrEmpty? Code Contracts?
+                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "credentialName"), "credentialName");
+            }
+            if (String.IsNullOrEmpty(credentialValue))
+            {
+                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "credentialValue"), "credentialValue");
+            }
+
             throw new NotImplementedException();
         }
 
         private void ChangePasswordInternal(User user, string newPassword)
         {
+            var hashedPassword = _cryptoService.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
             var hashedPassword = Crypto.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = CryptoService.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
             user.HashedPassword = hashedPassword;
         }
