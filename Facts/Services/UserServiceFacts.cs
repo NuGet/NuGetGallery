@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using Xunit;
@@ -368,6 +369,50 @@ namespace NuGetGallery
                 var foundByEmailAddress = service.FindByUsernameAndPassword("test@example.com", "thePassword");
 
                 Assert.Null(foundByEmailAddress);
+            }
+        }
+
+        public class TheFindByCredentialMethod
+        {
+            [Fact]
+            public void FindsUsersByCredential()
+            {
+                var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com" };
+                var cred = new Credential { Name = "facebook", Value = "abc123", User = user };
+
+                var service = new TestableUserService();
+                service.MockCredentialRepository
+                       .Setup(r => r.GetAll())
+                       .Returns(new[] { cred }.AsQueryable());
+
+                service.MockCryptoService
+                       .Setup(c => c.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                       .Returns(true);
+
+                var foundByCredential = service.FindByCredential("facebook", "abc123");
+
+                Assert.NotNull(foundByCredential);
+                Assert.Same(user, foundByCredential);
+            }
+
+            [Fact]
+            public void ReturnsNullIfNoUserWithCredential()
+            {
+                var user = new User { Username = "theUsername", HashedPassword = "thePassword", EmailAddress = "test@example.com" };
+                var cred = new Credential { Name = "facebook", Value = "abc123", User = user };
+
+                var service = new TestableUserService();
+                service.MockCredentialRepository
+                       .Setup(r => r.GetAll())
+                       .Returns(new[] { cred }.AsQueryable());
+
+                service.MockCryptoService
+                       .Setup(c => c.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                       .Returns(true);
+
+                var foundByCredential = service.FindByCredential("facebook", "def456");
+
+                Assert.Null(foundByCredential);
             }
         }
 
@@ -760,6 +805,60 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 ContractAssert.ThrowsArgNull(() => service.UpdateProfile(null, "test@example.com", emailAllowed: true), "user");
+            }
+        }
+
+        public class TheAssociateCredentialMethod
+        {
+            [Fact]
+            public void RequiresValidArguments()
+            {
+                var userService = new TestableUserService();
+                ContractAssert.ThrowsArgNull(() => userService.AssociateCredential(null, "facebook", "abc123"), "user");
+                ContractAssert.ThrowsArgNullOrEmpty(s => userService.AssociateCredential(new User(), s, "abc123"), "credentialName");
+                ContractAssert.ThrowsArgNullOrEmpty(s => userService.AssociateCredential(new User(), "facebook", s), "credentialValue");
+            }
+
+            [Fact]
+            public void AddsNewCredentialRecordToUser()
+            {
+                // Arrange
+                var userService = new TestableUserService();
+                var user = new User("foo", "bar") { Key = 42, Credentials = new List<Credential>() };
+
+                // Act
+                Assert.True(userService.AssociateCredential(user, "facebook", "abc123"));
+
+                // Assert
+                Assert.Equal(1, user.Credentials.Count);
+                Assert.Equal("facebook", user.Credentials.Single().Name);
+                Assert.Equal("abc123", user.Credentials.Single().Value);
+                userService.MockUserRepository
+                           .Verify(r => r.CommitChanges());
+            }
+
+            [Fact]
+            public void ReturnsFalseIfCredentialExists()
+            {
+                // Arrange
+                var userService = new TestableUserService();
+                var user = new User("foo", "bar")
+                {
+                    Key = 42,
+                    Credentials = new List<Credential>() {
+                        new Credential() { Name = "facebook", Value = "abc123" } 
+                    }
+                };
+
+                // Act
+                Assert.False(userService.AssociateCredential(user, "facebook", "def456"));
+
+                // Assert
+                Assert.Equal(1, user.Credentials.Count);
+                Assert.Equal("facebook", user.Credentials.Single().Name);
+                Assert.Equal("abc123", user.Credentials.Single().Value);
+                userService.MockUserRepository
+                           .Verify(r => r.CommitChanges(), Times.Never());
             }
         }
 

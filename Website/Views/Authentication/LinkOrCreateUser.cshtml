@@ -15,7 +15,9 @@
             <legend>Register Form</legend>
 
             @Html.AntiForgeryToken()
-            @Html.ValidationSummary(true)
+            @if (Model.CreateModel != null) {
+                @Html.ValidationSummary(true)
+            }
               
             @Html.EditorFor(m => m.CreateModel)
 
@@ -35,7 +37,9 @@
             <legend>Log On Form</legend>
 
             @Html.AntiForgeryToken()
-            @Html.ValidationSummary(true)
+            @if (Model.LinkModel != null) {
+                @Html.ValidationSummary(true)
+            }
 
             @if (ViewBag.ConfirmationRequired != null && ViewBag.ConfirmationRequired)
             {

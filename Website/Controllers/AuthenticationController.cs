@@ -165,7 +165,7 @@ namespace NuGetGallery
             Debug.Assert(model.LinkModel != null);
             var linkModel = model.LinkModel;
 
-            var user = Users.FindByUsernameAndPassword(linkModel.UserNameOrEmail, linkModel.Password);
+            var user = Users.FindByUsernameOrEmailAddressAndPassword(linkModel.UserNameOrEmail, linkModel.Password);
             if (user == null)
             {
                 ModelState.AddModelError(
@@ -181,7 +181,14 @@ namespace NuGetGallery
             }
 
             // Associate the user
-            Users.AssociateCredential(user, "oauth:" + token.Provider, token.Id);
+            if (!Users.AssociateCredential(user, "oauth:" + token.Provider, token.Id))
+            {
+                // User already has a token of this type!
+                ModelState.AddModelError(
+                    String.Empty,
+                    Strings.DuplicateOAuthCredential);
+                return View(model);
+            }
 
             // Log the user in
             FormsAuth.SetAuthCookie(user, createPersistentCookie: true);

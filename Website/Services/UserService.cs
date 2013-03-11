@@ -287,23 +287,36 @@ namespace NuGetGallery
                 .SingleOrDefault();
         }
 
-        public virtual void AssociateCredential(User user, string credentialName, string credentialValue)
+        public virtual bool AssociateCredential(User user, string credentialName, string credentialValue)
         {
             if (user == null)
             {
                 throw new ArgumentNullException("user");
             }
+
             if (String.IsNullOrEmpty(credentialName))
             {
                 // TODO: Turn this in to a helper? Requires.NotNullOrEmpty? Code Contracts?
                 throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "credentialName"), "credentialName");
             }
+
             if (String.IsNullOrEmpty(credentialValue))
             {
                 throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "credentialValue"), "credentialValue");
             }
 
-            throw new NotImplementedException();
+            if (user.Credentials.Where(cred => cred.Name == credentialName).Any())
+            {
+                return false;
+            }
+
+            user.Credentials.Add(new Credential()
+            {
+                Name = credentialName,
+                Value = credentialValue
+            });
+            UserRepository.CommitChanges();
+            return true;
         }
 
         private void ChangePasswordInternal(User user, string newPassword)

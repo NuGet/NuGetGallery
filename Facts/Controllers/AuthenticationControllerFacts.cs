@@ -315,6 +315,9 @@ namespace NuGetGallery.Controllers
                 controller.MockUsers
                           .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "hunter2"))
                           .Returns(user);
+                controller.MockUsers
+                          .Setup(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"))
+                          .Returns(true);
 
                 // Act
                 var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
@@ -325,6 +328,40 @@ namespace NuGetGallery.Controllers
                 controller.MockFormsAuth
                           .Verify(f => f.SetAuthCookie(user, true));
                 ResultAssert.IsRedirectTo(result, "aSafeRedirectUrl");
+            }
+
+            [Fact]
+            public void GivenDuplicateCredentialItReportsAnErrorToTheUser()
+            {
+                // Arrange
+                const string token = "foo@bar.com|Andrew Stanton-Nurse|abc123|windowslive,OAuthLinkToken";
+                var model = new LinkOrCreateViewModel()
+                {
+                    LinkModel = new LinkOrCreateViewModel.LinkViewModel()
+                    {
+                        UserNameOrEmail = "foo@bar.com",
+                        Password = "hunter2"
+                    }
+                };
+                var user = new User() { EmailAddress = "foo@bar.com" };
+                var controller = new TestableAuthenticationController();
+                controller.MockUsers
+                          .Setup(u => u.FindByUsernameAndPassword("foo@bar.com", "hunter2"))
+                          .Returns(user);
+                controller.MockUsers
+                          .Setup(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"))
+                          .Returns(false);
+                
+                // Act
+                var result = controller.LinkOrCreateUser(model, token, returnUrl: "/wololo");
+
+                // Assert
+                controller.MockUsers
+                          .Verify(u => u.AssociateCredential(user, "oauth:windowslive", "abc123"));
+                controller.MockFormsAuth
+                          .Verify(f => f.SetAuthCookie(user, true), Times.Never());
+                var viewResult = ResultAssert.IsView(result, model: model);
+                ModelStateAssert.HasErrors(viewResult.ViewData.ModelState, String.Empty, Strings.DuplicateOAuthCredential);
             }
         }
 
