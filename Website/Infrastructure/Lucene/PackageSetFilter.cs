@@ -18,7 +18,8 @@ namespace NuGetGallery.Infrastructure.Lucene
     {
         private readonly int[] _keys;
 
-        public PackageSetFilter(IEnumerable<Package> filterTo)
+        // filterTo needs to be passed as IQueryable for decent perf.
+        public PackageSetFilter(IQueryable<Package> filterTo)
         {
             if (filterTo == null)
             {
