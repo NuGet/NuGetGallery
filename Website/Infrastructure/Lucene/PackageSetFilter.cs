@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -15,9 +16,9 @@ namespace NuGetGallery.Infrastructure.Lucene
     /// </summary>
     internal class PackageSetFilter : Filter
     {
-        private int[] _keys;
+        private readonly int[] _keys;
 
-        public PackageSetFilter(IQueryable<Package> filterTo)
+        public PackageSetFilter(IEnumerable<Package> filterTo)
         {
             if (filterTo == null)
             {
