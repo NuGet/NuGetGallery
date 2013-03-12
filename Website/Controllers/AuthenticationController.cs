@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -19,6 +20,8 @@ namespace NuGetGallery
         public IFormsAuthenticationService FormsAuth { get; protected set; }
         public IUserService Users { get; protected set; }
         public ICryptographyService Crypto { get; protected set; }
+        public IConfiguration Config { get; protected set; }
+        public IMessageService Messages { get; protected set; }
 
         // For sub-classes to initialize services themselves
         protected AuthenticationController()
@@ -28,11 +31,15 @@ namespace NuGetGallery
         public AuthenticationController(
             IFormsAuthenticationService formsAuthService,
             IUserService userService,
-            ICryptographyService cryptoService)
+            ICryptographyService cryptoService,
+            IConfiguration config,
+            IMessageService messages)
         {
             FormsAuth = formsAuthService;
             Users = userService;
             Crypto = cryptoService;
+            Config = config;
+            Messages = messages;
         }
 
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -111,10 +118,13 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult LinkOrCreateUser(LinkOrCreateViewModel model, string token, string returnUrl)
         {
+            // Set the returnURL for the login link.
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
             // Don't even bother if the model state is invalid.
             if (!ModelState.IsValid)
             {
-                return View();
+                return View(model);
             }
 
             // Decode the token
@@ -125,7 +135,11 @@ namespace NuGetGallery
             {
                 return LinkUser(model, linkToken, returnUrl);
             }
-            throw new NotImplementedException();
+            else if (model.CreateModel != null)
+            {
+                return CreateUser(model, linkToken, returnUrl);
+            }
+            return LinkOrCreateUser(token, returnUrl);
         }
 
         public virtual ActionResult LogOff(string returnUrl)
@@ -159,9 +173,53 @@ namespace NuGetGallery
                             Crypto.DecryptString(token, OAuthLinkToken.CryptoPurpose));
         }
 
+        private ActionResult CreateUser(LinkOrCreateViewModel model, OAuthLinkToken token, string returnUrl)
+        {
+            Debug.Assert(model.CreateModel != null);
+            Debug.Assert(ModelState.IsValid);
+
+            var createModel = model.CreateModel;
+
+            User user;
+            try
+            {
+                user = Users.Create(
+                    createModel.Username,
+                    createModel.Password,
+                    createModel.EmailAddress);
+            }
+            catch (EntityException ex)
+            {
+                ModelState.AddModelError(String.Empty, ex.Message);
+                return View(model);
+            }
+
+            if (user == null)
+            {
+                throw new InvalidOperationException("UserService failed to create a user.");
+            }
+
+            if (!Users.AssociateCredential(user, "oauth:" + token.Provider, token.Id))
+            {
+                throw new InvalidOperationException("Failed to associate OAuth credential with new user!");
+            }
+
+            if (Config.ConfirmEmailAddresses)
+            {
+                // Passing in scheme to force fully qualified URL
+                var confirmationUrl = Url.ConfirmationUrl(
+                    MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+                Messages.SendNewAccountEmail(new MailAddress(createModel.EmailAddress, user.Username), confirmationUrl);
+            }
+
+            return RedirectToAction(MVC.Users.Thanks());
+        }
+
         private ActionResult LinkUser(LinkOrCreateViewModel model, OAuthLinkToken token, string returnUrl)
         {
             Debug.Assert(model.LinkModel != null);
+            Debug.Assert(ModelState.IsValid);
+
             var linkModel = model.LinkModel;
 
             var user = Users.FindByUsernameOrEmailAddressAndPassword(linkModel.UserNameOrEmail, linkModel.Password);
