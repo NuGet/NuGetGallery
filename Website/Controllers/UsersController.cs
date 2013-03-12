@@ -41,6 +41,9 @@ namespace NuGetGallery
                     {
                         ApiKey = user.ApiKey.ToString(),
                         CuratedFeeds = curatedFeeds.Select(cf => cf.Name),
+
+                        // Only grab OAuth credentials (in case we add more types later)
+                        CredentialTypes = user.Credentials.Where(c => c.Name.StartsWith("oauth:")).Select(c => c.Name.Substring(6))
                     });
         }
 

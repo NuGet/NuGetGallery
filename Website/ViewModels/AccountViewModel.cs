@@ -6,5 +6,6 @@ namespace NuGetGallery
     {
         public string ApiKey { get; set; }
         public IEnumerable<string> CuratedFeeds { get; set; }
+        public IEnumerable<string> CredentialTypes { get; set; }
     }
 }
