@@ -109,16 +109,16 @@ namespace NuGetGallery
             return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, id, version);
         }
 
-        [ActionName("GetNuGetExeApi")]
         [HttpGet]
+        [ActionName("GetNuGetExeApi")]
         [OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
         public virtual Task<ActionResult> GetNuGetExe()
         {
             return _nugetExeDownloaderService.CreateNuGetExeDownloadActionResultAsync(HttpContext.Request.Url);
         }
 
-        [ActionName("VerifyPackageKeyApi")]
         [HttpGet]
+        [ActionName("VerifyPackageKeyApi")]
         public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
         {
             Guid parsedApiKey;
@@ -155,15 +155,17 @@ namespace NuGetGallery
             return new EmptyResult();
         }
 
-        [ActionName("PushPackageApi")]
         [HttpPut]
+        [ActionName("PushPackageApi")]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual Task<ActionResult> CreatePackagePut(string apiKey)
         {
             return CreatePackageInternal(apiKey);
         }
 
-        [ActionName("PushPackageApi")]
         [HttpPost]
+        [ActionName("PushPackageApi")]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual Task<ActionResult> CreatePackagePost(string apiKey)
         {
             return CreatePackageInternal(apiKey);
@@ -231,8 +233,9 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(201);
         }
 
-        [ActionName("DeletePackageApi")]
         [HttpDelete]
+        [ActionName("DeletePackageApi")]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult DeletePackage(string apiKey, string id, string version)
         {
             Guid parsedApiKey;
@@ -266,8 +269,9 @@ namespace NuGetGallery
             return new EmptyResult();
         }
 
-        [ActionName("PublishPackageApi")]
         [HttpPost]
+        [ActionName("PublishPackageApi")]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult PublishPackage(string apiKey, string id, string version)
         {
             Guid parsedApiKey;
