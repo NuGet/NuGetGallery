@@ -71,6 +71,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string _OAuthLogin = "~/Views/Authentication/_OAuthLogin.cshtml";
+            public readonly string LinkOrCreateUser = "~/Views/Authentication/LinkOrCreateUser.cshtml";
             public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
         }
     }
@@ -94,6 +95,14 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult LinkOrCreateUser(string token, string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LinkOrCreateUser);
+            callInfo.RouteValueDictionary.Add("token", token);
+            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult LinkOrCreateUser(NuGetGallery.LinkOrCreateViewModel model, string token, string returnUrl) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LinkOrCreateUser);
+            callInfo.RouteValueDictionary.Add("model", model);
             callInfo.RouteValueDictionary.Add("token", token);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
             return callInfo;

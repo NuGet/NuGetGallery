@@ -49,6 +49,14 @@ namespace NuGetGallery
                     });
         }
 
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult RemoveCredential(string type)
+        {
+            throw new NotImplementedException();
+        }
+
         [Authorize]
         public virtual ActionResult Edit()
         {

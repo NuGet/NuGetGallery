@@ -383,8 +383,15 @@ namespace Links {
                 private const string URLPATH = "~/Content/Images/oauth";
                 public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
                 public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-                public static readonly string twitter_png = Url("twitter.png");
-                public static readonly string windowslive_png = Url("windowslive.png");
+                [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+                public static class windowslive {
+                    private const string URLPATH = "~/Content/Images/oauth/windowslive";
+                    public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                    public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                    public static readonly string icon_png = Url("icon.png");
+                    public static readonly string signin_png = Url("signin.png");
+                }
+            
             }
         
             public static readonly string packageDefaultIcon_50x50_png = Url("packageDefaultIcon-50x50.png");

@@ -21,6 +21,10 @@ namespace NuGetGallery
                 RouteName.OAuthLink,
                 "oauth/link",
                 MVC.Authentication.LinkOrCreateUser());
+            routes.MapRoute(
+                RouteName.OAuthRemove,
+                "oauth/remove/{type}",
+                MVC.Users.RemoveCredential());
 
             routes.MapRoute(
                 RouteName.StatisticsHome,
