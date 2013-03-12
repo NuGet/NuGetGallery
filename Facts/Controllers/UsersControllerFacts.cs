@@ -12,37 +12,6 @@ namespace NuGetGallery
 {
     public class UsersControllerFacts
     {
-        private static UsersController CreateController(
-            Mock<IConfiguration> config = null,
-            Mock<IUserService> userService = null,
-            Mock<IMessageService> messageService = null,
-            Mock<ICuratedFeedsByManagerQuery> feedsQuery = null,
-            Mock<IPrincipal> currentUser = null)
-        {
-            userService = userService ?? new Mock<IUserService>();
-            var packageService = new Mock<IPackageService>();
-            messageService = messageService ?? new Mock<IMessageService>();
-            config = config ?? new Mock<IConfiguration>();
-            feedsQuery = feedsQuery ?? new Mock<ICuratedFeedsByManagerQuery>();
-
-            if (currentUser == null)
-            {
-                currentUser = new Mock<IPrincipal>();
-                currentUser.Setup(u => u.Identity.Name).Returns((string)null);
-            }
-
-            var controller = new UsersController(
-                feedsQuery.Object,
-                userService.Object,
-                packageService.Object,
-                messageService.Object,
-                config.Object,
-                currentUser.Object);
-
-            TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), controller);
-            return controller;
-        }
-
         public class TheAccountAction
         {
             [Fact]
@@ -608,6 +577,30 @@ namespace NuGetGallery
                 var model = result.Model as EmailConfirmationModel;
                 Assert.True(model.ConfirmingNewAccount);
                 Assert.True(model.SuccessfulConfirmation);
+            }
+        }
+
+        public class TestableUsersController : UsersController
+        {
+            public Mock<ICuratedFeedsByManagerQuery> MockFeedsQuery { get; protected set; }
+            public Mock<IPrincipal> MockCurrentUser { get; protected set; }
+            public Mock<IIdentity> MockCurrentIdentity { get; protected set; }
+            public Mock<IMessageService> MockMessageService { get; protected set; }
+            public Mock<IPackageService> MockPackageService { get; protected set; }
+            public Mock<IConfiguration> MockConfig { get; protected set; }
+            public Mock<IUserService> MockUserService { get; protected set; }
+
+            public TestableUsersController()
+            {
+                FeedsQuery = (MockFeedsQuery = new Mock<ICuratedFeedsByManagerQuery>()).Object;
+                CurrentUser = (MockCurrentUser = new Mock<IPrincipal>()).Object;
+                MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
+                PackageService = (MockPackageService = new Mock<IPackageService>()).Object;
+                Config = (MockConfig = new Mock<IConfiguration>()).Object;
+                UserService = (MockUserService = new Mock<IUserService>()).Object;
+
+                MockCurrentIdentity = new Mock<IIdentity>();
+                MockCurrentUser.Setup(u => u.Identity).Returns(MockCurrentIdentity.Object);
             }
         }
     }
