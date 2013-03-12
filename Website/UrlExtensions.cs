@@ -43,6 +43,11 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.StatisticsPackageDownloadsByVersion, new { id });
         }
 
+        public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version)
+        {
+            return url.RouteUrl(RouteName.StatisticsPackageDownloadsDetail, new { id, version });
+        }
+
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm, bool prerelease)
         {
             return url.Action(MVC.Packages.ListPackages(searchTerm, sortOrder, page, prerelease));

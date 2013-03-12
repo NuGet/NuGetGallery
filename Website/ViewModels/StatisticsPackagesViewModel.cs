@@ -28,7 +28,7 @@ namespace NuGetGallery
             get; set;
         }
 
-        public IEnumerable<StatisticsPackagesItemViewModel> PackageDownloadsByVersion
+        public StatisticsPackagesReport Report
         {
             get;
             private set;
@@ -36,24 +36,23 @@ namespace NuGetGallery
 
         public bool IsDownloadPackageAvailable { get; set; }
         public bool IsDownloadPackageDetailAvailable { get; set; }
-        public bool IsDownloadPackageByVersionAvailable { get; set; }
+
+        public bool IsReportAvailable { get { return (Report != null); } }
 
         public string PackageId { get; private set; }
-        public int TotalPackageDownloads { get; private set; }
+        public string PackageVersion { get; private set; }
 
-        public void SetPackageDownloadsByVersion(string id, bool isAvailable, IEnumerable<StatisticsPackagesItemViewModel> packageDownloadsByVersion)
+        public void SetPackageDownloadsByVersion(string packageId, StatisticsPackagesReport report)
         {
-            PackageId = id;
-            IsDownloadPackageByVersionAvailable = isAvailable;
-            PackageDownloadsByVersion = packageDownloadsByVersion;
+            PackageId = packageId;
+            Report = report;
+        }
 
-            // if the report was not available the following code will be a no-op. But there should never be any null exceptions.
-
-            TotalPackageDownloads = 0;
-            foreach (StatisticsPackagesItemViewModel item in PackageDownloadsByVersion)
-            {
-                TotalPackageDownloads += item.Downloads;
-            }
+        public void SetPackageVersionDownloadsByClient(string packageId, string packageVersion, StatisticsPackagesReport report)
+        {
+            PackageId = packageId;
+            PackageVersion = packageVersion;
+            Report = report;
         }
     }
 }
