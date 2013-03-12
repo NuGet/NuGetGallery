@@ -115,6 +115,7 @@ namespace NuGetGallery
 
             return UserRepository.GetAll()
                 .Include(u => u.Roles)
+                .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
         }
 

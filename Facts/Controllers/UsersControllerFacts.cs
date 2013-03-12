@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -80,6 +81,31 @@ namespace NuGetGallery
 
                 // verify
                 Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
+            }
+
+            [Fact]
+            public void WillReturnTheAccountViewModelWithTheCredentials()
+            {
+                var stubApiKey = Guid.NewGuid();
+                var userService = new Mock<IUserService>();
+                userService
+                    .Setup(s => s.FindByUsername(It.IsAny<string>()))
+                    .Returns(new User
+                    {
+                        Key = 42,
+                        Credentials = new List<Credential>()
+                        {
+                            new Credential() { Name = "oauth:windowslive", Value = "abc123" },
+                            new Credential() { Name = "oauth:codeplex", Value = "abc123" }
+                        }
+                    });
+                var controller = CreateController(userService: userService);
+
+                // act
+                var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
+
+                // verify
+                Assert.Equal(new[] { "windowslive", "codeplex" }, model.CredentialTypes.ToArray());
             }
         }
 
