@@ -74,7 +74,15 @@ namespace NuGetGallery.Infrastructure
             
             if (user != null)
             {
-                return LogInUser(user, model.RedirectUrl);
+                if (user.Confirmed)
+                {
+                    return LogInUser(user, model.RedirectUrl);
+                }
+                else
+                {
+                    return new RedirectToRouteResult(
+                        MVC.Users.Thanks().GetRouteValueDictionary());
+                }
             }
             else
             {
@@ -86,7 +94,7 @@ namespace NuGetGallery.Infrastructure
                             providerUserInfo.UserName,
                             providerUserInfo.Id,
                             model.AuthenticatedClient.ProviderName),
-                            (model.RedirectUrl == null || model.RedirectUrl.IsAbsoluteUri) ? null : model.RedirectUrl.OriginalString)
+                        (model.RedirectUrl == null || model.RedirectUrl.IsAbsoluteUri) ? null : model.RedirectUrl.OriginalString)
                     .GetRouteValueDictionary());
             }
         }

@@ -114,13 +114,38 @@ namespace NuGetGallery.Infrastructure
             }
 
             [Fact]
-            public void SetsAuthCookieIfUserWithOAuthCredentialFound()
+            public void RedirectsToThanksActionIfUserHasNotConfirmedEmailAddressYet()
             {
                 // Arrange
                 var httpContext = new Mock<HttpContextBase>().Object;
                 var callback = new TestableAuthenticationCallback();
                 var model = CreateModel(provider: "windowslive", id: "abc123", email: "foo@bar.com", userName: "foobar");
-                var user = new User() { Username = "foobar" };
+                var user = new User() { Username = "foobar", EmailAddress = null };
+
+                callback.MockUserService
+                        .Setup(u => u.FindByCredential("oauth:windowslive", "abc123"))
+                        .Returns(user);
+
+                // Act
+                var result = callback.Process(httpContext, model);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new {
+                    Controller = "Users",
+                    Action = "Thanks"
+                });
+                callback.MockFormsAuth
+                        .Verify(f => f.SetAuthCookie(user, true), Times.Never());
+            }
+
+            [Fact]
+            public void SetsAuthCookieIfConfirmedUserWithOAuthCredentialFound()
+            {
+                // Arrange
+                var httpContext = new Mock<HttpContextBase>().Object;
+                var callback = new TestableAuthenticationCallback();
+                var model = CreateModel(provider: "windowslive", id: "abc123", email: "foo@bar.com", userName: "foobar");
+                var user = new User() { Username = "foobar", EmailAddress = "confirmed@example.com" };
 
                 callback.MockUserService
                         .Setup(u => u.FindByCredential("oauth:windowslive", "abc123"))
@@ -204,8 +229,8 @@ namespace NuGetGallery.Infrastructure
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new
                 {
-                    controller = "Pages",
-                    action = "Home"
+                    Controller = "Pages",
+                    Action = "Home"
                 });
             }
 
@@ -229,8 +254,8 @@ namespace NuGetGallery.Infrastructure
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new
                 {
-                    controller = "Pages",
-                    action = "Home"
+                    Controller = "Pages",
+                    Action = "Home"
                 });
             }
 
@@ -275,8 +300,8 @@ namespace NuGetGallery.Infrastructure
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new
                 {
-                    controller = "Authentication",
-                    action = "LinkOrCreateUser",
+                    Controller = "Authentication",
+                    Action = "LinkOrCreateUser",
                     token = expectedToken,
                     returnUrl = "/safeplace"
                 });
@@ -302,8 +327,8 @@ namespace NuGetGallery.Infrastructure
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new
                 {
-                    controller = "Authentication",
-                    action = "LinkOrCreateUser",
+                    Controller = "Authentication",
+                    Action = "LinkOrCreateUser",
                     token = expectedToken,
                     returnUrl = (object)null
                 });
