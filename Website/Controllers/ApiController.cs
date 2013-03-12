@@ -155,15 +155,15 @@ namespace NuGetGallery
             return new EmptyResult();
         }
 
-        [ActionName("PushPackageApi")]
         [HttpPut]
+        [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePut(string apiKey)
         {
             return CreatePackageInternal(apiKey);
         }
 
-        [ActionName("PushPackageApi")]
         [HttpPost]
+        [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost(string apiKey)
         {
             return CreatePackageInternal(apiKey);
