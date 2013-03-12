@@ -60,6 +60,7 @@ namespace NuGetGallery.Operations
             else
             {
                 CreateDirtyPerPackageReports();
+                ClearInactivePackageReports();
             }
 
             Log.Info("Generate reports end");
@@ -193,6 +194,8 @@ namespace NuGetGallery.Operations
             {
                 bag.Add(packageId);
             }
+
+            // limit the potential concurrency becasue this is against SQL
 
             ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
 
@@ -394,6 +397,64 @@ namespace NuGetGallery.Operations
             }
 
             report["Items"] = items;
+        }
+
+        private void CreateEmptyPackageReport(string packageId)
+        {
+            Log.Info(string.Format("CreateEmptyPackageReport for {0}", packageId));
+
+            // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
+
+            string name = PackageReportDetailBaseName + packageId.ToLowerInvariant();
+
+            CreateBlob(name + ".json", JsonContentType, ReportHelpers.ToStream(new JObject()));
+        }
+
+        private void ClearInactivePackageReports()
+        {
+            Log.Info("ClearInactivePackageReports");
+
+            IList<string> packageIds = GetInactivePackageIds();
+
+            Log.Info(string.Format("Creating {0} empty Reports", packageIds.Count));
+
+            ConcurrentBag<string> bag = new ConcurrentBag<string>();
+
+            foreach (string packageId in packageIds)
+            {
+                bag.Add(packageId);
+            }
+
+            Parallel.ForEach(bag, packageId =>
+            {
+                CreateEmptyPackageReport(packageId);
+            });
+        }
+
+        private IList<string> GetInactivePackageIds()
+        {
+            string sql = ResourceHelper.GetBatchFromSqlFile("NuGetGallery.Operations.Scripts.DownloadReport_ListInactive.sql");
+
+            IList<string> packageIds = new List<string>();
+
+            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            {
+                connection.Open();
+
+                SqlCommand command = new SqlCommand(sql, connection);
+                command.CommandType = CommandType.Text;
+                command.CommandTimeout = 60 * 5;
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string packageId = reader.GetValue(0).ToString();
+                    packageIds.Add(packageId);
+                }
+            }
+
+            return packageIds;
         }
 
         private void ConfirmExport(Tuple<string, int> packageId)
