@@ -1308,6 +1308,20 @@ ul#oauth-providers li {
     padding: 0;
     margin-bottom: 0.5em;
 }
-ul#oauth-providers li a {   
-    
+
+#oauth-credential-list li img {
+    position: relative;
+    top: 0.4em;
+}
+
+#oauth-credential-list li fieldset.form
+{
+    margin-left: 1em;
+    display: inline;
+}
+
+#oauth-credential-list li fieldset.form input
+{
+    font-size: 10pt;
+    width: auto;
 }

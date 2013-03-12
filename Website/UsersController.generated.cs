@@ -33,6 +33,11 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult RemoveCredential() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.RemoveCredential);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult Confirm() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
         }
@@ -55,6 +60,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string Account = "Account";
+            public readonly string RemoveCredential = "RemoveCredential";
             public readonly string Edit = "Edit";
             public readonly string Register = "Register";
             public readonly string Thanks = "Thanks";
@@ -98,6 +104,12 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult Account() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Account);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult RemoveCredential(string type) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.RemoveCredential);
+            callInfo.RouteValueDictionary.Add("type", type);
             return callInfo;
         }
 
