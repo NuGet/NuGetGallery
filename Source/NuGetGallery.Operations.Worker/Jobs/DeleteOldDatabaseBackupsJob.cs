@@ -10,7 +10,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
         {
             get
             {
-                return TimeSpan.FromDays(1);
+                return TimeSpan.FromMinutes(45);
             }
         }
 
