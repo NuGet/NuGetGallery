@@ -17,6 +17,10 @@ namespace NuGetGallery
             HashedPassword = hashedPassword;
             Messages = new HashSet<EmailMessage>();
             Username = username;
+
+            Messages = new List<EmailMessage>();
+            Roles = new List<Role>();
+            Credentials = new List<Credential>();
         }
 
         public Guid ApiKey { get; set; }
