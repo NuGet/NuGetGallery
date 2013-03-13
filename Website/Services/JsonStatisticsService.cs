@@ -111,7 +111,15 @@ namespace NuGetGallery
 
                 return true;
             }
+            catch (JsonReaderException)
+            {
+                return false;
+            }
             catch (StorageException)
+            {
+                return false;
+            }
+            catch (ArgumentException)
             {
                 return false;
             }
@@ -153,7 +161,15 @@ namespace NuGetGallery
 
                 return true;
             }
+            catch (JsonReaderException)
+            {
+                return false;
+            }
             catch (StorageException)
+            {
+                return false;
+            }
+            catch (ArgumentException)
             {
                 return false;
             }
@@ -214,6 +230,10 @@ namespace NuGetGallery
             {
                 return null;
             }
+            catch (ArgumentException)
+            {
+                return null;
+            }
         }
 
         public async Task<StatisticsPackagesReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion)
@@ -257,7 +277,7 @@ namespace NuGetGallery
                     }
 
                     // if we couldn't find the item just return the empty report 
-                    
+
                     if (items == null)
                     {
                         return report;
@@ -285,6 +305,10 @@ namespace NuGetGallery
                 return null;
             }
             catch (StorageException)
+            {
+                return null;
+            }
+            catch (ArgumentException)
             {
                 return null;
             }
