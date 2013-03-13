@@ -10,6 +10,11 @@ namespace NuGetGallery
         {
         }
 
+        public virtual ActionResult Contact()
+        {
+            return View();
+        }
+
         public virtual ActionResult Home()
         {
             return View();
