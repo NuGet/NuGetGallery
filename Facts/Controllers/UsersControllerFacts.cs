@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web;
@@ -24,7 +25,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(new User { Key = 42 });
-                
+
                 //act
                 controller.Account();
 
@@ -40,7 +41,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(new User { Key = 42 });
-                
+
                 // act
                 controller.Account();
 
@@ -57,7 +58,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(new User { Key = 42, ApiKey = stubApiKey });
-                
+
                 // act
                 var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
 
@@ -75,7 +76,7 @@ namespace NuGetGallery
                 controller.MockFeedsQuery
                           .Setup(stub => stub.Execute(It.IsAny<int>()))
                           .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
-                
+
                 // act
                 var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
 
@@ -86,7 +87,6 @@ namespace NuGetGallery
             [Fact]
             public void WillReturnTheAccountViewModelWithTheCredentials()
             {
-                var stubApiKey = Guid.NewGuid();
                 var controller = new TestableUsersController();
                 controller.MockUserService
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
@@ -108,7 +108,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheConfirmMethod
+        public class TheConfirmAction
         {
             [Fact]
             public void Returns404WhenTokenIsEmpty()
@@ -135,7 +135,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
-                
+
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
 
                 Assert.True(model.SuccessfulConfirmation);
@@ -157,7 +157,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
-                
+
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
 
                 Assert.True(model.SuccessfulConfirmation);
@@ -182,7 +182,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
-                
+
                 // act:
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
 
@@ -211,7 +211,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
                           .Returns(false);
-                
+
                 // act:
                 var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as EmailConfirmationModel;
 
@@ -240,14 +240,14 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "not-the-token"))
                           .Returns(false);
-                
+
                 var model = (controller.Confirm("username", "not-the-token") as ViewResult).Model as EmailConfirmationModel;
 
                 Assert.False(model.SuccessfulConfirmation);
             }
         }
 
-        public class TheEditMethod
+        public class TheEditAction
         {
             [Fact]
             public void UpdatesEmailAllowedSetting()
@@ -335,14 +335,14 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.FindByUsername(It.IsAny<string>()))
                           .ReturnsNull();
-                
+
                 var result = controller.Edit(new EditProfileViewModel()) as HttpNotFoundResult;
 
                 Assert.NotNull(result);
             }
         }
 
-        public class TheForgotPasswordMethod
+        public class TheForgotPasswordAction
         {
             [Fact]
             public void SendsEmailWithPasswordResetUrl()
@@ -395,9 +395,9 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(s => s.GeneratePasswordResetToken("user", 1440))
                           .Returns((User)null);
-                
+
                 var model = new ForgotPasswordViewModel { Email = "user" };
-                
+
                 var result = controller.ForgotPassword(model) as ViewResult;
 
                 Assert.NotNull(result);
@@ -405,7 +405,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheGenerateApiKeyMethod
+        public class TheGenerateApiKeyAction
         {
             [Fact]
             public void RedirectsToAccountPage()
@@ -414,7 +414,7 @@ namespace NuGetGallery
                 controller.MockCurrentIdentity
                           .Setup(i => i.Name)
                           .Returns("the-username");
-                
+
                 var result = controller.GenerateApiKey() as RedirectToRouteResult;
 
                 Assert.NotNull(result);
@@ -429,7 +429,7 @@ namespace NuGetGallery
                 controller.MockCurrentIdentity
                           .Setup(i => i.Name)
                           .Returns("the-username");
-                
+
                 controller.GenerateApiKey();
 
                 controller.MockUserService
@@ -437,7 +437,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheRegisterMethod
+        public class TheRegisterAction
         {
             [Fact]
             public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
@@ -458,7 +458,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                           .Returns(new User { Username = "theUsername", EmailAddress = "to@example.com" });
-                
+
                 controller.Register(
                     new RegisterRequest
                         {
@@ -478,7 +478,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                           .Throws(new EntityException("aMessage"));
-                
+
                 var result = controller.Register(
                     new RegisterRequest
                         {
@@ -517,7 +517,7 @@ namespace NuGetGallery
                 controller.MockConfig
                           .Setup(x => x.ConfirmEmailAddresses)
                           .Returns(true);
-                
+
                 controller.Register(
                     new RegisterRequest
                         {
@@ -533,7 +533,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheResetPasswordMethod
+        public class TheResetPasswordAction
         {
             [Fact]
             public void ShowsErrorIfTokenExpired()
@@ -576,7 +576,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheThanksMethod
+        public class TheThanksAction
         {
             [Fact]
             public void ShowsDefaultThanksViewWhenConfirmingEmailAddressIsRequired()
@@ -585,7 +585,7 @@ namespace NuGetGallery
                 controller.MockConfig
                           .Setup(x => x.ConfirmEmailAddresses)
                           .Returns(true);
-                
+
                 var result = controller.Thanks() as ViewResult;
 
                 Assert.Empty(result.ViewName);
@@ -599,13 +599,56 @@ namespace NuGetGallery
                 controller.MockConfig
                           .Setup(x => x.ConfirmEmailAddresses)
                           .Returns(false);
-                
+
                 var result = controller.Thanks() as ViewResult;
 
                 Assert.Equal("Confirm", result.ViewName);
                 var model = result.Model as EmailConfirmationModel;
                 Assert.True(model.ConfirmingNewAccount);
                 Assert.True(model.SuccessfulConfirmation);
+            }
+        }
+
+        public class TheRemoveCredentialAction
+        {
+            [Fact]
+            public void GivenAValidCredentialNameItShouldDeleteTheCredentialAndRedirectBackToAccountPage()
+            {
+                var controller = new TestableUsersController();
+                controller.MockCurrentIdentity
+                    .Setup(i => i.Name)
+                    .Returns("foobar");
+                controller.MockUserService
+                    .Setup(u => u.DeleteCredential("foobar", "oauth:windowslive"))
+                    .Returns(true);
+
+                var result = controller.RemoveCredential("windowslive");
+
+                ResultAssert.IsRedirectToRoute(result, new
+                {
+                    Controller = "Users",
+                    Action = "Account"
+                });
+                controller.MockUserService
+                    .Verify(u => u.DeleteCredential("foobar", "oauth:windowslive"));
+            }
+
+            [Fact]
+            public void GivenAnInvalidCredentialNameItShouldReturnA404()
+            {
+                var controller = new TestableUsersController();
+                controller.MockCurrentIdentity
+                    .Setup(i => i.Name)
+                    .Returns("foobar");
+                controller.MockUserService
+                    .Setup(u => u.DeleteCredential("foobar", "oauth:windowslive"))
+                    .Returns(false);
+
+                var result = controller.RemoveCredential("windowslive");
+
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+                controller.MockUserService
+                    .Verify(u => u.DeleteCredential("foobar", "oauth:windowslive"));
             }
         }
 
@@ -618,7 +661,7 @@ namespace NuGetGallery
             public Mock<IPackageService> MockPackageService { get; protected set; }
             public Mock<IConfiguration> MockConfig { get; protected set; }
             public Mock<IUserService> MockUserService { get; protected set; }
-            
+
             public TestableUsersController()
             {
                 FeedsQuery = (MockFeedsQuery = new Mock<ICuratedFeedsByManagerQuery>()).Object;

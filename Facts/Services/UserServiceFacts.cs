@@ -808,6 +808,88 @@ namespace NuGetGallery
             }
         }
 
+        public class TheDeleteCredentialMethod
+        {
+            [Fact]
+            public void RequiresValidArguments()
+            {
+                var userService = new TestableUserService();
+                ContractAssert.ThrowsArgNullOrEmpty(s => userService.DeleteCredential(s, "abc123"), "userName");
+                ContractAssert.ThrowsArgNullOrEmpty(s => userService.DeleteCredential("facebook", s), "credentialName");
+            }
+
+            [Fact]
+            public void ReturnsFalseIfNoUserWithSpecifiedUserNameExists()
+            {
+                // Arrange
+                var userService = new TestableUserService();
+                var user = new User("foo", "bar") { Key = 42, Credentials = new List<Credential>() };
+                userService.MockUserRepository
+                    .Setup(r => r.GetAll())
+                    .Returns(new[] { user }.AsQueryable());
+
+                // Act
+                Assert.False(userService.DeleteCredential("not-real", "windowslive"));
+
+                // Assert
+                userService.MockUserRepository
+                           .Verify(r => r.CommitChanges(), Times.Never());
+            }
+
+            [Fact]
+            public void ReturnsFalseIfUserDoesNotHaveSpecifiedCredentialType()
+            {
+                // Arrange
+                var userService = new TestableUserService();
+                var user = new User("foo", "bar")
+                {
+                    Key = 42,
+                    Credentials = new List<Credential>()
+                    {
+                        new Credential() { Name = "facebook", Value = "abc123" }
+                    }
+                };
+                userService.MockUserRepository
+                    .Setup(r => r.GetAll())
+                    .Returns(new[] { user }.AsQueryable());
+
+                // Act
+                Assert.False(userService.DeleteCredential("foo", "windowslive"));
+
+                // Assert
+                userService.MockUserRepository
+                           .Verify(r => r.CommitChanges(), Times.Never());
+            }
+
+            [Fact]
+            public void DeletesCredentialSavesChangesAndReturnsTrueIfUserHasSpecifiedCredential()
+            {
+                // Arrange
+                var userService = new TestableUserService();
+                var cred = new Credential() {Name = "windowslive", Value = "abc123"};
+                var user = new User("foo", "bar")
+                {
+                    Key = 42,
+                    Credentials = new List<Credential>() { cred }
+                };
+                userService.MockUserRepository
+                    .Setup(r => r.GetAll())
+                    .Returns(new[] { user }.AsQueryable());
+
+                // Act
+                Assert.True(userService.DeleteCredential("foo", "windowslive"));
+
+                // Assert
+                Assert.Empty(user.Credentials);
+                userService.MockCredentialRepository
+                           .Verify(r => r.DeleteOnCommit(cred));
+                userService.MockCredentialRepository
+                           .Verify(r => r.CommitChanges());
+                userService.MockUserRepository
+                           .Verify(r => r.CommitChanges());
+            }
+        }
+
         public class TheAssociateCredentialMethod
         {
             [Fact]

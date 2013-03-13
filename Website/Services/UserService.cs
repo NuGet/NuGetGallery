@@ -306,7 +306,7 @@ namespace NuGetGallery
                 throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "credentialValue"), "credentialValue");
             }
 
-            if (user.Credentials.Where(cred => cred.Name == credentialName).Any())
+            if (user.Credentials.Any(cred => cred.Name == credentialName))
             {
                 return false;
             }
@@ -317,6 +317,42 @@ namespace NuGetGallery
                 Value = credentialValue
             });
             UserRepository.CommitChanges();
+            return true;
+        }
+
+        public virtual bool DeleteCredential(string userName, string credentialName)
+        {
+            if (String.IsNullOrEmpty(userName))
+            {
+                // TODO: Turn this in to a helper? Requires.NotNullOrEmpty? Code Contracts?
+                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "userName"), "userName");
+            }
+
+            if (String.IsNullOrEmpty(credentialName))
+            {
+                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "credentialName"), "credentialName");
+            }
+
+            var user = UserRepository.GetAll().FirstOrDefault(u => u.Username == userName);
+            if (user == null)
+            {
+                return false;
+            }
+
+            var cred = user.Credentials.FirstOrDefault(c => c.Name == credentialName);
+            if (cred == null)
+            {
+                return false;
+            }
+
+            user.Credentials.Remove(cred);
+            CredentialRepository.DeleteOnCommit(cred);
+
+            UserRepository.CommitChanges();
+
+            // EF should be smart enough to detect that UserRepository.CommitChanges saved everything but just in case we go
+            // to a model where each repo is separately stored for whatever reason, we should call commit changes here too.
+            CredentialRepository.CommitChanges();
             return true;
         }
 
