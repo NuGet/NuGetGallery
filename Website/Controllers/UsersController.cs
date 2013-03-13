@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
@@ -54,7 +55,11 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult RemoveCredential(string type)
         {
-            throw new NotImplementedException();
+            if (UserService.DeleteCredential(CurrentUser.Identity.Name, "oauth:" + type))
+            {
+                return RedirectToAction(MVC.Users.Account());
+            }
+            return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
         [Authorize]
@@ -199,9 +204,9 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        [HttpPost]
         public virtual ActionResult GenerateApiKey()
         {
             UserService.GenerateApiKey(CurrentUser.Identity.Name);

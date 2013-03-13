@@ -33,5 +33,7 @@ namespace NuGetGallery
         bool ResetPasswordWithToken(string username, string token, string newPassword);
 
         bool AssociateCredential(User user, string credentialKey, string credentialValue);
+
+        bool DeleteCredential(string userName, string credentialKey);
     }
 }

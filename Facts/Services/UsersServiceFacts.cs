@@ -62,7 +62,7 @@ namespace NuGetGallery
                         }.AsQueryable());
                 service.MockCryptoService
                        .Setup(s => s.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), Constants.Sha512HashAlgorithmId)).Returns(false);
-                
+
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");
 
                 Assert.False(changed);
@@ -79,7 +79,7 @@ namespace NuGetGallery
                        .Setup(s => s.ValidateSaltedHash("old hash", "oldpwd", Constants.PBKDF2HashAlgorithmId)).Returns(true);
                 service.MockCryptoService
                        .Setup(s => s.GenerateSaltedHash("newpwd", Constants.PBKDF2HashAlgorithmId)).Returns("hash and bacon");
-                
+
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");
 
                 Assert.True(changed);
@@ -99,7 +99,7 @@ namespace NuGetGallery
                        .Setup(s => s.GenerateSaltedHash("oldpwd", Constants.PBKDF2HashAlgorithmId)).Returns("monkey fighting snakes");
                 service.MockCryptoService
                        .Setup(s => s.GenerateSaltedHash("newpwd", Constants.PBKDF2HashAlgorithmId)).Returns("hash and bacon");
-                
+
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");
 
                 Assert.True(changed);
@@ -227,7 +227,7 @@ namespace NuGetGallery
                 userService.MockCryptoService
                            .Setup(x => x.GenerateSaltedHash("thePassword", It.IsAny<string>()))
                            .Returns("theHashedPassword");
-                
+
                 var user = userService.Create(
                     "theUsername",
                     "thePassword",
@@ -244,7 +244,7 @@ namespace NuGetGallery
                 userService.MockCryptoService
                            .Setup(x => x.GenerateSaltedHash(It.IsAny<string>(), It.IsAny<string>()))
                            .Returns("theHashedPassword");
-                
+
                 userService.Create(
                     "theUsername",
                     "thePassword",
@@ -269,11 +269,11 @@ namespace NuGetGallery
                 userService.MockConfig
                            .Setup(x => x.ConfirmEmailAddresses)
                            .Returns(false);
-                
+
                 userService.MockCryptoService
                            .Setup(x => x.GenerateSaltedHash(It.IsAny<string>(), It.IsAny<string>()))
                            .Returns("theHashedPassword");
-                
+
                 userService.Create(
                     "theUsername",
                     "thePassword",
@@ -310,7 +310,7 @@ namespace NuGetGallery
                 userService.MockCryptoService
                            .Setup(c => c.GenerateToken())
                            .Returns("secret!");
-                
+
                 var user = userService.Create(
                     "theUsername",
                     "thePassword",
@@ -331,7 +331,7 @@ namespace NuGetGallery
                 userService.MockCryptoService
                            .Setup(c => c.GenerateToken())
                            .Returns("secret!");
-                
+
                 var user = userService.Create(
                     "theUsername",
                     "thePassword",
@@ -355,7 +355,7 @@ namespace NuGetGallery
                 service.MockCryptoService
                        .Setup(c => c.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                        .Returns(true);
-                
+
                 var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
 
                 Assert.NotNull(foundByUserName);
@@ -374,7 +374,7 @@ namespace NuGetGallery
                 service.MockCryptoService
                        .Setup(c => c.ValidateSaltedHash(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                        .Returns(true);
-                
+
                 var foundByEmailAddress = service.FindByUsernameAndPassword("test@example.com", "thePassword");
 
                 Assert.Null(foundByEmailAddress);
@@ -658,7 +658,7 @@ namespace NuGetGallery
                 userService.MockUserRepository
                            .Setup(r => r.GetAll())
                            .Returns(Enumerable.Empty<User>().AsQueryable());
-                
+
                 bool result = userService.ResetPasswordWithToken("user", "some-token", "new-password");
 
                 Assert.False(result);
@@ -680,7 +680,7 @@ namespace NuGetGallery
                 userService.MockUserRepository
                            .Setup(r => r.GetAll())
                            .Returns(new[] { user }.AsQueryable());
-                
+
                 Assert.Throws<InvalidOperationException>(() => userService.ResetPasswordWithToken("user", "some-token", "new-password"));
             }
 
@@ -702,7 +702,7 @@ namespace NuGetGallery
                 userService.MockUserRepository
                            .Setup(r => r.GetAll())
                            .Returns(new[] { user }.AsQueryable());
-                
+
                 bool result = userService.ResetPasswordWithToken("user", "some-token", "new-password");
 
                 Assert.True(result);
@@ -730,7 +730,7 @@ namespace NuGetGallery
                 userService.MockUserRepository
                            .Setup(r => r.GetAll())
                            .Returns(new[] { user }.AsQueryable());
-                
+
 
                 bool result = userService.ResetPasswordWithToken("user", "some-token", "new-password");
 
@@ -754,7 +754,7 @@ namespace NuGetGallery
                 service.MockCryptoService
                        .Setup(c => c.GenerateToken())
                        .Returns("token");
-                
+
                 service.UpdateProfile(user, "new@example.com", emailAllowed: true);
 
                 Assert.Equal("token", user.EmailConfirmationToken);
@@ -771,7 +771,7 @@ namespace NuGetGallery
                 service.MockCryptoService
                        .Setup(c => c.GenerateToken())
                        .Returns("token");
-                
+
                 service.UpdateProfile(user, "new@example.org", true);
 
                 Assert.Equal("token", user.EmailConfirmationToken);
@@ -789,7 +789,7 @@ namespace NuGetGallery
                 service.MockCryptoService
                        .Setup(c => c.GenerateToken())
                        .Returns("token");
-                
+
                 service.UpdateProfile(user, "old@example.com", emailAllowed: true);
 
                 Assert.Null(user.EmailConfirmationToken);
@@ -803,7 +803,7 @@ namespace NuGetGallery
                 service.MockCryptoService
                        .Setup(c => c.GenerateToken())
                        .Returns("token");
-                
+
                 service.UpdateProfile(user, "old@example.com", emailAllowed: true);
 
                 Assert.Equal("pending-token", user.EmailConfirmationToken);
@@ -820,7 +820,7 @@ namespace NuGetGallery
                 service.MockCryptoService
                        .Setup(c => c.GenerateToken())
                        .Returns("token");
-                
+
                 service.UpdateProfile(user, "old@example.org", false);
 
                 Assert.Equal(false, user.EmailAllowed);
@@ -834,6 +834,88 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 ContractAssert.ThrowsArgNull(() => service.UpdateProfile(null, "test@example.com", emailAllowed: true), "user");
+            }
+        }
+
+        public class TheDeleteCredentialMethod
+        {
+            [Fact]
+            public void RequiresValidArguments()
+            {
+                var userService = new TestableUserService();
+                ContractAssert.ThrowsArgNullOrEmpty(s => userService.DeleteCredential(s, "abc123"), "userName");
+                ContractAssert.ThrowsArgNullOrEmpty(s => userService.DeleteCredential("facebook", s), "credentialName");
+            }
+
+            [Fact]
+            public void ReturnsFalseIfNoUserWithSpecifiedUserNameExists()
+            {
+                // Arrange
+                var userService = new TestableUserService();
+                var user = new User("foo", "bar") { Key = 42, Credentials = new List<Credential>() };
+                userService.MockUserRepository
+                    .Setup(r => r.GetAll())
+                    .Returns(new[] { user }.AsQueryable());
+
+                // Act
+                Assert.False(userService.DeleteCredential("not-real", "windowslive"));
+
+                // Assert
+                userService.MockUserRepository
+                           .Verify(r => r.CommitChanges(), Times.Never());
+            }
+
+            [Fact]
+            public void ReturnsFalseIfUserDoesNotHaveSpecifiedCredentialType()
+            {
+                // Arrange
+                var userService = new TestableUserService();
+                var user = new User("foo", "bar")
+                {
+                    Key = 42,
+                    Credentials = new List<Credential>()
+                    {
+                        new Credential() { Name = "facebook", Value = "abc123" }
+                    }
+                };
+                userService.MockUserRepository
+                    .Setup(r => r.GetAll())
+                    .Returns(new[] { user }.AsQueryable());
+
+                // Act
+                Assert.False(userService.DeleteCredential("foo", "windowslive"));
+
+                // Assert
+                userService.MockUserRepository
+                           .Verify(r => r.CommitChanges(), Times.Never());
+            }
+
+            [Fact]
+            public void DeletesCredentialSavesChangesAndReturnsTrueIfUserHasSpecifiedCredential()
+            {
+                // Arrange
+                var userService = new TestableUserService();
+                var cred = new Credential() {Name = "windowslive", Value = "abc123"};
+                var user = new User("foo", "bar")
+                {
+                    Key = 42,
+                    Credentials = new List<Credential>() { cred }
+                };
+                userService.MockUserRepository
+                    .Setup(r => r.GetAll())
+                    .Returns(new[] { user }.AsQueryable());
+
+                // Act
+                Assert.True(userService.DeleteCredential("foo", "windowslive"));
+
+                // Assert
+                Assert.Empty(user.Credentials);
+                userService.MockCredentialRepository
+                           .Verify(r => r.DeleteOnCommit(cred));
+                userService.MockCredentialRepository
+                           .Verify(r => r.CommitChanges());
+                userService.MockUserRepository
+                           .Verify(r => r.CommitChanges());
             }
         }
 

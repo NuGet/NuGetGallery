@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -57,6 +58,17 @@ namespace NuGetGallery
 
             // Make sure we used all the expected keys (Assert.True lets us provide a message)
             Assert.True(expectedKeys.Count == 0, "Missing keys: " + String.Join(",", expectedKeys));
+        }
+
+        public static void IsStatusCode(ActionResult result, HttpStatusCode code)
+        {
+            IsStatusCode(result, (int)code);
+        }
+
+        public static void IsStatusCode(ActionResult result, int code)
+        {
+            var statusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
+            Assert.Equal(code, statusCodeResult.StatusCode);
         }
     }
 }
