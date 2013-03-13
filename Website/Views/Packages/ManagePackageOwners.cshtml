@@ -39,7 +39,8 @@
 
 
 @section bottomScripts {
-    <script src="@Url.Content("~/Scripts/knockout-latest.js")"></script>
+    @* Right now this is the only page that uses knockout. If we increase our KO usage, we should put it in our bundles *@
+    @Scripts.Render("~/Scripts/knockout-latest.js")
     <script src="@Url.Content("~/json/JsonApi?json")"></script>
     <script>
         $(function() {

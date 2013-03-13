@@ -3,6 +3,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Optimization;
 using System.Web.Routing;
 using DynamicDataEFCodeFirst;
 using Elmah;
@@ -36,6 +37,7 @@ namespace NuGetGallery
             NinjectPreStart();
             MiniProfilerPreStart();
             ElmahPreStart();
+            BundlingPreStart();
         }
 
         public static void PostStart()
@@ -53,6 +55,26 @@ namespace NuGetGallery
         {
             BackgroundJobsStop();
             NinjectStop();
+        }
+
+        private static void BundlingPreStart()
+        {
+            var scriptBundle = new ScriptBundle("~/bundles/js")
+                .Include("~/Scripts/jquery-{version}.js")
+                .Include("~/Scripts/jquery.validate.js")
+                .Include("~/Scripts/jquery.validate.unobtrusive.js");
+            BundleTable.Bundles.Add(scriptBundle);
+
+            // Modernizr needs to be delivered at the top of the page but putting it in a bundle gets us a cache-buster.
+            // TODO: Use minified modernizr!
+            var modernizrBundle = new ScriptBundle("~/bundles/modernizr")
+                .Include("~/Scripts/modernizr-2.0.6-development-only.js");
+            BundleTable.Bundles.Add(modernizrBundle);
+
+            var stylesBundle = new StyleBundle("~/bundles/css")
+                .Include("~/Content/site.css");
+            BundleTable.Bundles.Add(stylesBundle);
+
         }
 
         private static void ElmahPreStart()
