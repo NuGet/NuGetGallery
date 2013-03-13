@@ -12,6 +12,16 @@
       <Setting name="Gallery.AzureStatisticsConnectionString" />
       <Setting name="Gallery.Sql.NuGetGallery" />
 
+      <!-- SMTP Settings -->
+      <Setting name="Gallery.GalleryOwnerName" />
+      <Setting name="Gallery.GalleryOwnerEmail" />
+      <Setting name="Gallery.SmtpHost" />
+      <Setting name="Gallery.SmtpUsername" />
+      <Setting name="Gallery.SmtpPassword" />
+      <Setting name="Gallery.SmtpPort" />
+      <Setting name="Gallery.UseSmtp" />
+      <Setting name="Gallery.ConfirmEmailAddresses" />
+
       <!-- Basic Site Configuration -->
       <Setting name="Gallery.PackageStoreType" />
       <Setting name="Gallery.ReadOnlyMode" /><!-- set value 'true' to put the gallery in read only mode -->

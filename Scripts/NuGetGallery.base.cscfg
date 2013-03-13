@@ -17,6 +17,15 @@
       <Setting name="Gallery.AzureStatisticsConnectionString" value="" />
       <Setting name="Gallery.Sql.NuGetGallery" value="" />
 
+      <!-- SMTP Settings -->
+      <Setting name="Gallery.GalleryOwnerName" value="" />
+      <Setting name="Gallery.GalleryOwnerEmail" value="" />
+      <Setting name="Gallery.SmtpHost" value="" />
+      <Setting name="Gallery.SmtpUsername" value="" />
+      <Setting name="Gallery.SmtpPassword" value="" />
+      <Setting name="Gallery.SmtpPort" value="" />
+      <Setting name="Gallery.UseSmtp" value="" />
+
       <!-- Basic Site Configuration -->
       <Setting name="Gallery.PackageStoreType" value="AzureStorageBlob" />
       <Setting name="Gallery.ReadOnlyMode" value="" /><!-- set value 'true' to put the gallery in read only mode -->
