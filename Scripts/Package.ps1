@@ -102,7 +102,7 @@ set-appsetting -path $webConfigPath -name "Gallery.ReleaseBranch" -value $Releas
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseSha" -value $ReleaseSha
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
 if(![String]::IsNullOrEmpty($EnvironmentName)) {
-  set-appsetting -path $webConfigPath -name "Gallery.EnvironmentName" -value $EnvironmentName
+  set-appsetting -path $webConfigPath -name "Gallery.Environment" -value $EnvironmentName
 }
 disable-debug -path $webConfigPath
 
