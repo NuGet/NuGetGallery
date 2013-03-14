@@ -27,12 +27,14 @@ namespace NuGetGallery
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
-                messageService.ReportAbuse(from, package, "Abuse!");
+                messageService.ReportAbuse(from, package, "Reason!", "Abuse!", true, "http://package.url/");
 
                 Assert.Equal("joe@example.com", message.To[0].Address);
-                Assert.Equal("[NuGet Gallery] Abuse Report for Package 'smangit' Version '1.42.0.1'", message.Subject);
+                Assert.Equal("[NuGet Gallery] Abuse Report for Package 'smangit' Version '1.42.0.1' (Reason: Reason!)", message.Subject);
+                Assert.Contains("Reason!", message.Body);
                 Assert.Contains("Abuse!", message.Body);
-                Assert.Contains("User too (legit@example.com) reports the package 'smangit' version '1.42.0.1' as abusive", message.Body);
+                Assert.Contains("User too (legit@example.com) reports", message.Body);
+                Assert.Contains("package 'smangit' version '1.42.0.1'", message.Body);
             }
         }
 

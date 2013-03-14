@@ -398,7 +398,10 @@ namespace NuGetGallery
                     s => s.ReportAbuse(
                         It.IsAny<MailAddress>(),
                         It.IsAny<Package>(),
-                        "Mordor took my finger"));
+                        It.IsAny<string>(),
+                        "Mordor took my finger",
+                        It.IsAny<bool>(),
+                        It.IsAny<string>()));
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -415,9 +418,12 @@ namespace NuGetGallery
                 var model = new ReportAbuseViewModel
                     {
                         Email = "frodo@hobbiton.example.com",
-                        Message = "Mordor took my finger."
+                        Message = "Mordor took my finger.",
+                        Reason = "GollumWasThere",
+                        AlreadyContactedOwner = true,
                     };
 
+                TestUtility.SetupUrlHelper(controller, httpContext);
                 var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
 
                 Assert.NotNull(result);
@@ -425,8 +431,10 @@ namespace NuGetGallery
                     s => s.ReportAbuse(
                         It.Is<MailAddress>(m => m.Address == "frodo@hobbiton.example.com"),
                         package,
-                        "Mordor took my finger."
-                             ));
+                        "GollumWasThere",
+                        "Mordor took my finger.",
+                        true,
+                        It.IsAny<string>()));
             }
 
             [Fact]
@@ -437,7 +445,10 @@ namespace NuGetGallery
                     s => s.ReportAbuse(
                         It.IsAny<MailAddress>(),
                         It.IsAny<Package>(),
-                        "Mordor took my finger"));
+                        It.IsAny<string>(),
+                        "Mordor took my finger",
+                        It.IsAny<bool>(),
+                        It.IsAny<string>()));
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -457,10 +468,12 @@ namespace NuGetGallery
                     httpContext: httpContext);
                 var model = new ReportAbuseViewModel
                     {
-                        Message = "Mordor took my finger."
+                        Message = "Mordor took my finger.",
+                        Reason = "GollumWasThere",
                     };
 
-                var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
+                TestUtility.SetupUrlHelper(controller, httpContext);
+                ActionResult result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
 
                 Assert.NotNull(result);
                 userService.VerifyAll();
@@ -470,8 +483,10 @@ namespace NuGetGallery
                             m => m.Address == "frodo@hobbiton.example.com"
                                  && m.DisplayName == "Frodo"),
                         package,
-                        "Mordor took my finger."
-                             ));
+                        "GollumWasThere",
+                        It.IsAny<string>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>()));
             }
         }
 
