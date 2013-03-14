@@ -266,6 +266,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataServices\DisregardODataInterceptor.cs" />
+    <Compile Include="DataServices\SearchAdaptor.cs" />
     <Compile Include="DataServices\V2CuratedFeed.svc.cs">
       <DependentUpon>V2CuratedFeed.svc</DependentUpon>
     </Compile>
@@ -305,6 +306,8 @@
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
+    <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />

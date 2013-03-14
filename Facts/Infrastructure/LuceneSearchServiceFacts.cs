@@ -538,7 +538,6 @@ namespace NuGetGallery.Infrastructure
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = new LuceneSearchService(d);
-            int totalHits = 0;
             var searchFilter = new SearchFilter
             {
                 Skip = 0,
@@ -546,10 +545,8 @@ namespace NuGetGallery.Infrastructure
                 SearchTerm = searchTerm,
             };
 
-            var results = luceneSearchService.Search(
-                packageSource.Object.GetPackagesForIndexing(null),
-                searchFilter,
-                out totalHits).ToList();
+            int totalHits;
+            var results = luceneSearchService.Search(searchFilter, out totalHits).ToList();
 
             return results;
         }
