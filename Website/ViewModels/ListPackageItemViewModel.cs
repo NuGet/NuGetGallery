@@ -16,12 +16,14 @@ namespace NuGetGallery
                 Authors = package.Authors;
             }
 
+            MinimumClientVersion = package.MinClientVersion;
             Owners = package.PackageRegistration.Owners;
         }
 
         public IEnumerable<PackageAuthor> Authors { get; set; }
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
+        public string MinimumClientVersion { get; set; }
 
         public bool UseVersion
         {

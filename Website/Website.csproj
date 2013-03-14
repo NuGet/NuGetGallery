@@ -31,7 +31,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
-    <IISExpressSSLPort>44300</IISExpressSSLPort>
+    <IISExpressSSLPort>443</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
     <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
     <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
@@ -150,9 +150,9 @@
     <Reference Include="Ninject.Web.Mvc">
       <HintPath>..\packages\Ninject.MVC3.2.2.2.0\lib\net40-Full\Ninject.Web.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=2.3.40210.45, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Core, Version=2.3.40314.95, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Nuget.Core.2.3.0-alpha002\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <HintPath>..\packages\Nuget.Core.2.3.0-alpha003\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
@@ -1110,7 +1110,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>55880</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:55880/</IISUrl>
+          <IISUrl>http://nuget-dev.localtest.me</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

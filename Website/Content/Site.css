@@ -791,6 +791,10 @@ section.package {
     padding-top: 10px;
 }
 
+section.package div.minimum-client-version {
+    float: right;
+}
+
 section.package.my-package { background: url("Images/yourpackage.png") no-repeat 100% 0; }
 
 section.package .main { margin-left: 70px; }
