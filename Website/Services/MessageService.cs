@@ -84,7 +84,6 @@ _Message sent from {6}_
                 reason,
                 message,
                 _config.GalleryOwnerName,
-                reason,
                 packageUrl
                 );
 
