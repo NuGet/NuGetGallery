@@ -19,15 +19,18 @@ namespace NuGetGallery
             _config = config;
         }
 
-        public void ReportAbuse(MailAddress fromAddress, Package package, string message)
+        public void ReportAbuse(MailAddress fromAddress, Package package, string reason, string message,
+                                 bool alreadyContactedOwners, string packageUrl)
         {
-            const string subject = "[{0}] Abuse Report for Package '{1}' Version '{2}'";
-            string body = @"_User {0} ({1}) reports the package '{2}' version '{3}' as abusive. 
+            const string subject = "[{0}] Abuse Report for Package '{1}' Version '{2}' (Reason: {3})";
+            string body = @"_User {0} ({1}) reports the <a href=""{8}"">package '{2}' version '{3}'</a> as abusive ({4}). 
 {0} left the following information in the report:_
 
-{4}
+{5}
 
-_Message sent from {5}_
+_User {7} already contacted the package owners._
+
+_Message sent from {6}_
 ";
             body = String.Format(
                 CultureInfo.CurrentCulture,
@@ -36,13 +39,63 @@ _Message sent from {5}_
                 fromAddress.Address,
                 package.PackageRegistration.Id,
                 package.Version,
+                reason,
                 message,
-                _config.GalleryOwnerName);
+                _config.GalleryOwnerName,
+                alreadyContactedOwners ? "HAS" : "has NOT",
+                packageUrl
+                );
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = String.Format(
-                    CultureInfo.CurrentCulture, subject, _config.GalleryOwnerName, package.PackageRegistration.Id, package.Version);
+                    CultureInfo.CurrentCulture, subject,
+                    _config.GalleryOwnerName, 
+                    package.PackageRegistration.Id, 
+                    package.Version, 
+                    reason);
+                mailMessage.Body = body;
+                mailMessage.From = fromAddress;
+
+                mailMessage.To.Add(_config.GalleryOwnerEmail);
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void ReportMyPackage(MailAddress fromAddress, Package package, string reason, string message, string packageUrl)
+        {
+            const string subject = "[{0}] Owner requested support for Package '{1}' Version '{2}' (Reason: {3})";
+            string body = @"_User {0} ({1}) requires assistance with <a href=""{7}"">package '{2}' version '{3}'</a> (because {4}). 
+{0} left the following information in the report:_
+
+{5}
+
+_Assuming that this email is not a complete forgery, user was an authenticated package owner at time of request._
+
+_Message sent from {6}_
+";
+            body = String.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                fromAddress.DisplayName,
+                fromAddress.Address,
+                package.PackageRegistration.Id,
+                package.Version,
+                reason,
+                message,
+                _config.GalleryOwnerName,
+                reason,
+                packageUrl
+                );
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = String.Format(
+                    CultureInfo.CurrentCulture, subject,
+                    _config.GalleryOwnerName,
+                    package.PackageRegistration.Id,
+                    package.Version,
+                    reason);
                 mailMessage.Body = body;
                 mailMessage.From = fromAddress;
 

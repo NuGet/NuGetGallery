@@ -65,8 +65,16 @@
             {
                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
             }
-            <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report Abuse">
-                    Report Abuse</a></li>
+            @if (Model.IsOwner(User))
+            {
+                <li><a href="@Url.Action(MVC.Packages.ReportMyPackage(Model.Id, Model.Version))" title="Contact support for help with your package">
+                        Contact Support</a></li>
+            }
+            else
+            {
+                <li><a href="@Url.Action(MVC.Packages.ReportAbuse(Model.Id, Model.Version))" title="Report the package as abusive">
+                        Report Abuse</a></li>
+            }
             <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
             @if (User.Identity.IsAuthenticated)
             {

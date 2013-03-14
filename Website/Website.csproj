@@ -1082,6 +1082,7 @@
     <Content Include="Views\Statistics\PackageDownloadsByVersion.cshtml" />
     <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
     <Content Include="Views\Packages\UnverifiablePackage.cshtml" />
+    <Content Include="Views\Packages\ReportMyPackage.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
   </ItemGroup>
   <ItemGroup>
