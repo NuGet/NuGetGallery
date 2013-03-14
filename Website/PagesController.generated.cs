@@ -56,6 +56,7 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string Contact = "~/Views/Pages/Contact.cshtml";
             public readonly string Home = "~/Views/Pages/Home.cshtml";
             public readonly string Privacy = "~/Views/Pages/Privacy.cshtml";
             public readonly string Terms = "~/Views/Pages/Terms.cshtml";
