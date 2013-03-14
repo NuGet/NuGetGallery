@@ -33,9 +33,10 @@
             }
         </p>
 
-        @if (!String.IsNullOrEmpty(Model.MinimumClientVersion)) {
+        @if (!String.IsNullOrEmpty(Model.MinClientVersion)) 
+        {
             <div class="minimum-client-version">
-                Requires NuGet @Model.MinimumClientVersion or higher.
+                Requires NuGet @Model.MinClientVersion or higher.
             </div>
         }
     
