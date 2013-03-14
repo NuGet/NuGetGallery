@@ -76,9 +76,9 @@
     <Reference Include="MvcHaack.Ajax">
       <HintPath>..\packages\MvcHaack.Ajax.MVC4.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=2.3.40210.45, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Core, Version=2.3.40314.95, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Nuget.Core.2.3.0-alpha002\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <HintPath>..\packages\NuGet.Core.2.3.0-alpha003\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
