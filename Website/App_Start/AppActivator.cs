@@ -37,7 +37,6 @@ namespace NuGetGallery
             NinjectPreStart();
             MiniProfilerPreStart();
             ElmahPreStart();
-            BundlingPreStart();
         }
 
         public static void PostStart()
@@ -49,6 +48,7 @@ namespace NuGetGallery
             BackgroundJobsPostStart(config);
             AppPostStart();
             DynamicDataPostStart(config);
+            BundlingPostStart();
         }
 
         public static void Stop()
@@ -57,7 +57,7 @@ namespace NuGetGallery
             NinjectStop();
         }
 
-        private static void BundlingPreStart()
+        private static void BundlingPostStart()
         {
             var scriptBundle = new ScriptBundle("~/bundles/js")
                 .Include("~/Scripts/jquery-{version}.js")
@@ -123,7 +123,7 @@ namespace NuGetGallery
 
             // To make app startup not directly depend on the database,
             // we set the migrations to run when the database is first used, instead of doing it up-front.
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext,MigrationsConfiguration>());
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext, MigrationsConfiguration>());
         }
 
         private static void DynamicDataPostStart(IConfiguration configuration)
