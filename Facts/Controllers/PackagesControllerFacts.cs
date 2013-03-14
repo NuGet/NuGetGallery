@@ -488,6 +488,61 @@ namespace NuGetGallery
                         It.IsAny<bool>(),
                         It.IsAny<string>()));
             }
+
+            [Fact]
+            public void FormRedirectsPackageOwnerToReportMyPackage()
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Mordor", Owners = { new User { Username = "Sauron" }} },
+                    Version = "2.0.1"
+                };
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersion("Mordor", It.IsAny<string>(), true)).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Sauron");
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername("Sauron")).Returns(new User { EmailAddress = "darklord@mordor.com", Username = "Sauron" });
+                var controller = CreateController(
+                    packageService: packageService,
+                    userService: userService,
+                    httpContext: httpContext);
+
+                TestUtility.SetupUrlHelper(controller, httpContext);
+                ActionResult result = controller.ReportAbuse("Mordor", "2.0.1");
+                Assert.IsType<RedirectToRouteResult>(result);
+                Assert.Equal("ReportMyPackage", ((RedirectToRouteResult)result).RouteValues["Action"]);
+            }
+        }
+
+        public class TheReportMyPackageMethod
+        {
+            [Fact]
+            public void FormRedirectsNonOwnersToReportAbuse()
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Mordor", Owners = { new User { Username = "Sauron", Key = 1 } } },
+                    Version = "2.0.1"
+                };
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersion("Mordor", It.IsAny<string>(), true)).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
+                var userService = new Mock<IUserService>();
+                userService.Setup(u => u.FindByUsername("Frodo")).Returns(new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 2 });
+                var controller = CreateController(
+                    packageService: packageService,
+                    userService: userService,
+                    httpContext: httpContext);
+
+                TestUtility.SetupUrlHelper(controller, httpContext);
+                ActionResult result = controller.ReportMyPackage("Mordor", "2.0.1");
+                Assert.IsType<RedirectToRouteResult>(result);
+                Assert.Equal("ReportAbuse", ((RedirectToRouteResult)result).RouteValues["Action"]);
+            }
         }
 
         public class TheUploadFileActionForGetRequests

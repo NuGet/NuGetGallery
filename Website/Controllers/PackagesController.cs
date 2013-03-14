@@ -225,10 +225,18 @@ namespace NuGetGallery
             }
 
             var model = new ReportAbuseViewModel
+            {
+                AllowedReasons = new[]
                 {
-                    PackageId = id,
-                    PackageVersion = package.Version,
-                };
+                    ReportPackageReason.ContainsMaliciousCode,
+                    ReportPackageReason.ViolatesALicenseIOwn,
+                    ReportPackageReason.IsFraudulent,
+                    ReportPackageReason.HasABug,
+                    ReportPackageReason.Other
+                },
+                PackageId = id,
+                PackageVersion = package.Version,
+            };
 
             if (Request.IsAuthenticated)
             {
@@ -269,14 +277,18 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
+                AllowedReasons = new[]
+                {
+                    ReportPackageReason.ContainsMaliciousCode,
+                    ReportPackageReason.ContainsPrivateAndConfidentialData,
+                    ReportPackageReason.PublishedWithWrongVersion,
+                    ReportPackageReason.ReleasedInPublicByAccident,
+                    ReportPackageReason.Other
+                },
+                ConfirmedUser = user.Confirmed,
                 PackageId = id,
                 PackageVersion = package.Version,
             };
-
-            if (user.Confirmed)
-            {
-                model.ConfirmedUser = true;
-            }
 
             return View(model);
         }

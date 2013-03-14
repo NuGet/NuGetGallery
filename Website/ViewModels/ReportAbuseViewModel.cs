@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
@@ -23,7 +24,7 @@ namespace NuGetGallery
         public bool AlreadyContactedOwner { get; set; }
 
         [Required(ErrorMessage = "You must select a reason for reporting the package")]
-        [Display(Name = "Reason for Reporting")]
+        [Display(Name = "Reason")]
         public string Reason { get; set; }
 
         [Required]
@@ -41,5 +42,19 @@ namespace NuGetGallery
         public string Email { get; set; }
 
         public bool ConfirmedUser { get; set; }
+
+        public ReportPackageReason[] AllowedReasons { get; set; }
+
+        public static Dictionary<ReportPackageReason, string> ReasonDescriptions = new Dictionary<ReportPackageReason, string>
+        {
+            {ReportPackageReason.Other, "Other" },
+            {ReportPackageReason.HasABug, "The package has a bug" },
+            {ReportPackageReason.ContainsMaliciousCode, "The package contains malicious code" },
+            {ReportPackageReason.ViolatesALicenseIOwn, "The package violates a license I own" },
+            {ReportPackageReason.IsFraudulent, "The package owner is fraudulently claiming authorship" },
+            {ReportPackageReason.ContainsPrivateAndConfidentialData, "The package contains private/confidential data" },
+            {ReportPackageReason.PublishedWithWrongVersion, "The package was published as the wrong version" },
+            {ReportPackageReason.ReleasedInPublicByAccident, "The package was not intended to be published publically on nuget.org"},
+        };
     }
 }

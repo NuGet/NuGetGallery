@@ -1199,7 +1199,7 @@ input:focus ~ .field-validation-error ~ .field-hint-message { display: none; }
 footer#footer {
     margin: 0 auto;
     text-align: center;
-    width: 63%;
+    display: table;
 }
 
 footer#footer p {

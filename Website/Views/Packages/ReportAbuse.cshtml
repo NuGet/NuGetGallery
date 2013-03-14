@@ -18,7 +18,7 @@
 
 @if (!Model.ConfirmedUser)
 {
-    <p>Note: if you are the <i>owner</i> of @Model.PackageId, please 
+    <p>Note: if you are the owner of @Model.PackageId, please 
         @Html.ActionLink("log on now before you complete this form.", "LogOn", "Authentication", new { returnUrl = returnUrl }, null)</p>
 }
 
@@ -42,18 +42,17 @@
         </div>
         <div class="form-field">
             @Html.LabelFor(m => m.Reason)
-            @Html.DropDownListFor(m => m.Reason, new[]
+            @Html.DropDownListFor(m => m.Reason, Model.AllowedReasons.Select(
+                x => new SelectListItem { Value = x.ToString(), Text = ReportAbuseViewModel.ReasonDescriptions[x]}))
+            <br/>
+            @Html.CheckBoxFor(m => m.AlreadyContactedOwner)
+            @Html.LabelFor(m => m.AlreadyContactedOwner, "Yes! I have already tried to contact the package owner about this problem.",
+                new Dictionary<string, object>
                 {
-                    new SelectListItem { Text = "The package contains malicious code", Value = ReportPackageReason.ContainsMaliciousCode.ToString() },
-                    new SelectListItem { Text = "The package violates a license I own", Value = ReportPackageReason.ViolatesALicenseIOwn.ToString() },
-                    new SelectListItem { Text = "The package owner is fraudulently claiming authorship", Value = ReportPackageReason.IsFraudulent.ToString() },
-                    new SelectListItem { Text = "The package has a bug", Value = ReportPackageReason.HasABug.ToString() },
-                    new SelectListItem { Text = "Other", Value = ReportPackageReason.Other.ToString() },
-                })
-            @Html.LabelFor(m => m.AlreadyContactedOwner)
-            @Html.CheckBoxFor(m => m.AlreadyContactedOwner) Yes! I have already tried to contact the package owner about this problem. <br/>
-            @Html.LabelFor(m => m.Message)
-            <p>In addition to selecting the reason for reporting the package, you must provide details of the problem.</p>
+                    { "style", "display: inline" },
+                })<br/>
+            @Html.LabelFor(m => m.Message, "Abuse Report")
+            <p>In addition to selecting the reason for reporting the package, you <em>must</em> provide details of the problem.</p>
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
             @Html.ValidationMessageFor(m => m.Message) <br/>
         </div>
