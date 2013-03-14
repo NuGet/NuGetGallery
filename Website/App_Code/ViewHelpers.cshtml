@@ -2,7 +2,33 @@
 @using System.Web.Mvc
 @using Microsoft.Web.Helpers
 @using NuGetGallery
+@using Ninject
+
 @* Generator: MvcHelper Namespace: NuGetGallery*@
+
+@functions {
+    public static IConfiguration Configuration
+    {
+        get { return Container.Kernel.Get<IConfiguration>(); }
+    }
+
+    private static Dictionary<string, string> EnvironmentMessages = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Development", "This is a development environment. No data will be preserved." },
+        { "Preview", "This is a preview environment. Some data from the main site may exist but data added here will be lost." },
+        { "Staging", "This is a staging environment. Some data from the main site may exist but data added here will be lost." }
+    };
+}
+
+@helper NonProductionBanner() {
+    string message;
+    if (EnvironmentMessages.TryGetValue(Configuration.EnvironmentName, out message))
+    {
+        <div id="environment-warning-banner">
+            @message
+        </div>
+    }
+}
 
 @helper PreviousNextPager(IPreviousNextPager pager)
 {
@@ -104,6 +130,7 @@
 
 @helper ReleaseTag()
 {
+    // Using ConfigurationManager because these settings are part of the cspkg itself and thus are always in web.config.
     string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"];
     string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"];
     string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"];

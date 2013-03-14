@@ -21,6 +21,27 @@ namespace NuGetGallery
             _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
         }
 
+        public string EnvironmentName
+        {
+            get { return ReadAppSettings("Environment") ?? "Development"; }
+        }
+
+        /// <summary>
+        /// Gets a setting indicating if SSL is required for all operations once logged in.
+        /// </summary>
+        public bool RequireSSL
+        {
+            get { return ReadAppSettings("SSL.Required", str => Boolean.Parse(str ?? "false")); }
+        }
+
+        /// <summary>
+        /// Gets the port used for SSL
+        /// </summary>
+        public int SSLPort
+        {
+            get { return ReadAppSettings("SSL.Port", str => Int32.Parse(str ?? "443", CultureInfo.InvariantCulture)); }
+        }
+
         public string AzureStorageConnectionString
         {
             get { return ReadAppSettings("AzureStorageConnectionString"); }

@@ -33,11 +33,11 @@ namespace NuGetGallery
             _indexingService = indexingService;
         }
 
-        public Package CreatePackage(IPackage nugetPackage, User user, bool commitChanges = true)
+        public Package CreatePackage(INupkg nugetPackage, User user, bool commitChanges = true)
         {
-            ValidateNuGetPackage(nugetPackage);
+            ValidateNuGetPackageMetadata(nugetPackage.Metadata);
 
-            var packageRegistration = CreateOrGetPackageRegistration(user, nugetPackage);
+            var packageRegistration = CreateOrGetPackageRegistration(user, nugetPackage.Metadata);
 
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
             packageRegistration.Packages.Add(package);
@@ -83,6 +83,11 @@ namespace NuGetGallery
 
         public virtual PackageRegistration FindPackageRegistrationById(string id)
         {
+            if (id == null)
+            {
+                throw new ArgumentNullException("id");
+            }
+
             return _packageRegistrationRepository.GetAll()
                 .Include(pr => pr.Owners)
                 .SingleOrDefault(pr => pr.Id == id);
@@ -360,7 +365,7 @@ namespace NuGetGallery
             return false;
         }
 
-        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackage nugetPackage)
+        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackageMetadata nugetPackage)
         {
             var packageRegistration = FindPackageRegistrationById(nugetPackage.Id);
 
@@ -384,9 +389,9 @@ namespace NuGetGallery
             return packageRegistration;
         }
 
-        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, IPackage nugetPackage)
+        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage)
         {
-            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Version.ToString());
+            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Metadata.Version.ToString());
 
             if (package != null)
             {
@@ -398,50 +403,33 @@ namespace NuGetGallery
             var packageFileStream = nugetPackage.GetStream();
 
             package = new Package
-                {
-                    Version = nugetPackage.Version.ToString(),
-                    Description = nugetPackage.Description,
-                    ReleaseNotes = nugetPackage.ReleaseNotes,
-                    RequiresLicenseAcceptance = nugetPackage.RequireLicenseAcceptance,
-                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
-                    Hash = _cryptoService.GenerateHash(packageFileStream.ReadAllBytes()),
-                    PackageFileSize = packageFileStream.Length,
-                    Created = now,
-                    Language = nugetPackage.Language,
-                    LastUpdated = now,
-                    Published = now,
-                    Copyright = nugetPackage.Copyright,
-                    IsPrerelease = !nugetPackage.IsReleaseVersion(),
-                    Listed = true,
-                    PackageRegistration = packageRegistration
-                };
+            {
+                Version = nugetPackage.Metadata.Version.ToString(),
+                Description = nugetPackage.Metadata.Description,
+                ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
+                RequiresLicenseAcceptance = nugetPackage.Metadata.RequireLicenseAcceptance,
+                HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                Hash = _cryptoService.GenerateHash(packageFileStream.ReadAllBytes()),
+                PackageFileSize = packageFileStream.Length,
+                Created = now,
+                Language = nugetPackage.Metadata.Language,
+                LastUpdated = now,
+                Published = now,
+                Copyright = nugetPackage.Metadata.Copyright,
+                IsPrerelease = !nugetPackage.Metadata.IsReleaseVersion(),
+                Listed = true,
+                PackageRegistration = packageRegistration,
+                Summary = nugetPackage.Metadata.Summary,
+                Tags = nugetPackage.Metadata.Tags,
+                Title = nugetPackage.Metadata.Title,
+            };
 
-            if (nugetPackage.IconUrl != null)
-            {
-                package.IconUrl = nugetPackage.IconUrl.ToString();
-            }
-            if (nugetPackage.LicenseUrl != null)
-            {
-                package.LicenseUrl = nugetPackage.LicenseUrl.ToString();
-            }
-            if (nugetPackage.ProjectUrl != null)
-            {
-                package.ProjectUrl = nugetPackage.ProjectUrl.ToString();
-            }
-            if (nugetPackage.Summary != null)
-            {
-                package.Summary = nugetPackage.Summary;
-            }
-            if (nugetPackage.Tags != null)
-            {
-                package.Tags = nugetPackage.Tags;
-            }
-            if (nugetPackage.Title != null)
-            {
-                package.Title = nugetPackage.Title;
-            }
+            package.IconUrl = nugetPackage.Metadata.IconUrl.ToStringOrNull();
+            package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToStringOrNull();
+            package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
+            package.MinClientVersion = nugetPackage.Metadata.RequiredMinVersion.ToStringOrNull();
 
-            foreach (var author in nugetPackage.Authors)
+            foreach (var author in nugetPackage.Metadata.Authors)
             {
                 package.Authors.Add(new PackageAuthor { Name = author });
             }
@@ -455,7 +443,7 @@ namespace NuGetGallery
                 }
             }
 
-            foreach (var dependencySet in nugetPackage.DependencySets)
+            foreach (var dependencySet in nugetPackage.Metadata.DependencySets)
             {
                 if (dependencySet.Dependencies.Count == 0)
                 {
@@ -488,13 +476,13 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual IEnumerable<FrameworkName> GetSupportedFrameworks(IPackage package)
+        public virtual IEnumerable<FrameworkName> GetSupportedFrameworks(INupkg package)
         {
             return package.GetSupportedFrameworks();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
-        private static void ValidateNuGetPackage(IPackage nugetPackage)
+        private static void ValidateNuGetPackageMetadata(IPackageMetadata nugetPackage)
         {
             // TODO: Change this to use DataAnnotations
             if (nugetPackage.Id.Length > 128)

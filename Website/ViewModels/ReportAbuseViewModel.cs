@@ -2,10 +2,29 @@
 
 namespace NuGetGallery
 {
+    public enum ReportPackageReason
+    {
+        Other,
+        HasABug,
+        ContainsMaliciousCode,
+        ViolatesALicenseIOwn,
+        IsFraudulent,
+        ContainsPrivateAndConfidentialData,
+        PublishedWithWrongVersion,
+        ReleasedInPublicByAccident,
+    }
+
     public class ReportAbuseViewModel
     {
         public string PackageId { get; set; }
         public string PackageVersion { get; set; }
+
+        [Display(Name = "Contacted Owner")]
+        public bool AlreadyContactedOwner { get; set; }
+
+        [Required(ErrorMessage = "You must select a reason for reporting the package")]
+        [Display(Name = "Reason for Reporting")]
+        public string Reason { get; set; }
 
         [Required]
         [StringLength(4000)]
@@ -14,6 +33,7 @@ namespace NuGetGallery
 
         [Required(ErrorMessage = "Please enter your email address.")]
         [StringLength(4000)]
+        [Display(Name = "Your Email Address")]
         [DataType(DataType.EmailAddress)]
         [RegularExpression(
             @"(?i)^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|([-a-z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-z0-9][\w\.-]*[a-z0-9]\.[a-z][a-z\.]*[a-z]$",

@@ -18,7 +18,7 @@ namespace NuGetGallery
             _userService = userService;
         }
 
-        [RequireRemoteHttps]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult LogOn(string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
@@ -28,7 +28,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [RequireRemoteHttps]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult LogOn(SignInRequest request, string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)

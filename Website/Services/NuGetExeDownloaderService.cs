@@ -1,15 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGet;
 
 namespace NuGetGallery
 {
     public class NuGetExeDownloaderService : INuGetExeDownloaderService
     {
+        private const int MaxNuGetExeFileSize = 10 * 1024 * 1024;
         private readonly IFileStorageService _fileStorageService;
         private readonly IPackageFileService _packageFileService;
         private readonly IPackageService _packageService;
@@ -30,9 +29,9 @@ namespace NuGetGallery
             return await _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.DownloadsFolderName, "nuget.exe");
         }
 
-        public Task UpdateExecutableAsync(IPackage zipPackage)
+        public Task UpdateExecutableAsync(INupkg nupkg)
         {
-            return ExtractNuGetExe(zipPackage);
+            return ExtractNuGetExe(nupkg);
         }
 
         private async Task EnsureNuGetExe()
@@ -51,19 +50,16 @@ namespace NuGetGallery
 
             using (Stream packageStream = await _packageFileService.DownloadPackageFileAsync(package))
             {
-                var zipPackage = new ZipPackage(packageStream);
-                await ExtractNuGetExe(zipPackage);
+                var nupkg = new Nupkg(packageStream, leaveOpen: true);
+                await ExtractNuGetExe(nupkg);
             }
         }
 
-        private async Task ExtractNuGetExe(IPackage package)
+        private Task ExtractNuGetExe(INupkg package)
         {
-            var executable = package.GetFiles("tools")
-                                    .First(f => f.Path.Equals(@"tools\NuGet.exe", StringComparison.OrdinalIgnoreCase));
-
-            using (Stream packageFileStream = executable.GetStream())
+            using (Stream nugetExeStream = package.GetSizeVerifiedFileStream(@"tools\NuGet.exe", MaxNuGetExeFileSize))
             {
-                await _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", packageFileStream);
+                return _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", nugetExeStream);
             }
         }
     }
