@@ -203,10 +203,10 @@ namespace NuGetGallery
                         .To<FileSystemFileStorageService>()
                         .InSingletonScope();
                     break;
-                case PackageStoreType.AzureStorageBlob:
+                case PackageStoreType.AzureStorageBlob: 
                     Bind<ICloudBlobClient>()
                         .ToMethod(
-                            context => new CloudBlobClientWrapper(CloudStorageAccount.Parse(configuration.AzureStorageConnectionString).CreateCloudBlobClient()))
+                            _ => new CloudBlobClientWrapper(configuration.AzureStorageConnectionString))
                         .InSingletonScope();
                     Bind<IFileStorageService>()
                         .To<CloudBlobFileStorageService>()
