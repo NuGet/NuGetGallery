@@ -132,11 +132,12 @@ namespace NuGetGallery.Operations
 
             IList<string> packageIds = GetAllPackageIds();
 
-            ConcurrentBag<string> bag = new ConcurrentBag<string>();
+            string[] bag = new string[packageIds.Count];
 
+            int index = 0;
             foreach (string packageId in packageIds)
             {
-                bag.Add(packageId);
+                bag[index++] = packageId;
             }
 
             ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
@@ -188,11 +189,12 @@ namespace NuGetGallery.Operations
 
             Log.Info(string.Format("Creating {0} Reports", packageIds.Count));
 
-            ConcurrentBag<Tuple<string, int>> bag = new ConcurrentBag<Tuple<string, int>>();
+            Tuple<string, int>[] bag = new Tuple<string, int>[packageIds.Count];
 
+            int index =0;
             foreach (Tuple<string, int> packageId in packageIds)
             {
-                bag.Add(packageId);
+                bag[index++] = packageId;
             }
 
             // limit the potential concurrency becasue this is against SQL
@@ -289,7 +291,7 @@ namespace NuGetGallery.Operations
         {
             Tuple<string[], List<object[]>> data = ExecuteSqlNew("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetailByPackage.sql", new Tuple<string, int, string>("@packageId", 128, packageId));
             JObject content = MakeReportJson(data);
-            Sum(content);
+            TotalDownloads(content);
             SortItems(content);
             return content;
         }
@@ -349,7 +351,7 @@ namespace NuGetGallery.Operations
             return report;
         }
 
-        private static int Sum(JObject report)
+        private static int TotalDownloads(JObject report)
         {
             JToken token;
             if (report.TryGetValue("Items", out token))
@@ -359,7 +361,7 @@ namespace NuGetGallery.Operations
                     int total = 0;
                     for (int i = 0; i < ((JArray)token).Count; i++)
                     {
-                        total += Sum((JObject)((JArray)token)[i]);
+                        total += TotalDownloads((JObject)((JArray)token)[i]);
                     }
                     report["Downloads"] = total;
                     return total;
@@ -369,7 +371,7 @@ namespace NuGetGallery.Operations
                     int total = 0;
                     foreach (KeyValuePair<string, JToken> child in ((JObject)token))
                     {
-                        total += Sum((JObject)child.Value);
+                        total += TotalDownloads((JObject)child.Value);
                     }
                     report["Downloads"] = total;
                     return total;
@@ -418,11 +420,12 @@ namespace NuGetGallery.Operations
 
             Log.Info(string.Format("Creating {0} empty Reports", packageIds.Count));
 
-            ConcurrentBag<string> bag = new ConcurrentBag<string>();
+            string[] bag = new string[packageIds.Count];
 
+            int index = 0;
             foreach (string packageId in packageIds)
             {
-                bag.Add(packageId);
+                bag[index++] = packageId;
             }
 
             Parallel.ForEach(bag, packageId =>
