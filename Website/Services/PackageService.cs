@@ -427,7 +427,7 @@ namespace NuGetGallery
             package.IconUrl = nugetPackage.Metadata.IconUrl.ToStringOrNull();
             package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToStringOrNull();
             package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
-            package.MinClientVersion = nugetPackage.Metadata.RequiredMinVersion.ToStringOrNull();
+            package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
 
             foreach (var author in nugetPackage.Metadata.Authors)
             {
