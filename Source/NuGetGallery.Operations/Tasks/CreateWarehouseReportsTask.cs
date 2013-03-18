@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json.Linq;
 using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations
@@ -20,12 +21,19 @@ namespace NuGetGallery.Operations
         private const string PerMonth = "permonth";
         private const string RecentPopularity = "recentpopularity";
         private const string RecentPopularityDetail = "recentpopularitydetail";
+        private const string PackageReportDetailBaseName = "recentpopularitydetail_";
 
         [Option("Connection string to the warehouse database", AltName = "wdb")]
         public string WarehouseConnectionString { get; set; }
 
         [Option("Connection string to the warehouse reports container", AltName = "wracc")]
         public CloudStorageAccount ReportStorage { get; set; }
+
+        [Option("Re-create all reports", AltName = "all")]
+        public bool All { get; set; }
+
+        [Option("Re-create just detail reports", AltName = "new")]
+        public bool New { get; set; }
 
         public CreateWarehouseReportsTask()
         {
@@ -44,7 +52,16 @@ namespace NuGetGallery.Operations
             CreateReport_PerMonth();
             CreateReport_RecentPopularityDetail();
             CreateReport_RecentPopularity();
-            CreateAllPerPackageReports();
+
+            if (All)
+            {
+                CreateAllPerPackageReports();
+            }
+            else
+            {
+                CreateDirtyPerPackageReports();
+                ClearInactivePackageReports();
+            }
 
             Log.Info("Generate reports end");
         }
@@ -113,15 +130,14 @@ namespace NuGetGallery.Operations
 
             DateTime before = DateTime.Now;
 
-            IList<Tuple<string, int>> packageIds = GetPackageIds();
+            IList<string> packageIds = GetAllPackageIds();
 
-            Log.Info(string.Format("Creating {0} Reports", packageIds.Count));
+            string[] bag = new string[packageIds.Count];
 
-            ConcurrentBag<Tuple<string, int>> bag = new ConcurrentBag<Tuple<string, int>>();
-
-            foreach (Tuple<string, int> packageId in packageIds)
+            int index = 0;
+            foreach (string packageId in packageIds)
             {
-                bag.Add(packageId);
+                bag[index++] = packageId;
             }
 
             ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
@@ -130,12 +146,72 @@ namespace NuGetGallery.Operations
             {
                 WithRetry(() =>
                 {
-                    CreatePackageReport(packageId.Item1);
-                    ConfirmExport(packageId);
+                    CreatePackageReport(packageId);
                 });
             });
 
             string msg = string.Format("CreateAllPerPackageReports complete {0} seconds", (DateTime.Now - before).TotalSeconds);
+
+            Log.Info(msg);
+        }
+
+        private IList<string> GetAllPackageIds()
+        {
+            IList<string> packageIds = new List<string>();
+
+            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            {
+                connection.Open();
+
+                SqlCommand command = new SqlCommand("SELECT DISTINCT packageId FROM Dimension_Package", connection);
+                command.CommandType = CommandType.Text;
+                command.CommandTimeout = 60 * 5;
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string packageId = reader.GetValue(0).ToString();
+                    packageIds.Add(packageId);
+                }
+            }
+
+            return packageIds;
+        }
+
+        private void CreateDirtyPerPackageReports()
+        {
+            Log.Info("CreateDirtyPerPackageReports");
+
+            DateTime before = DateTime.Now;
+
+            IList<Tuple<string, int>> packageIds = GetPackageIds();
+
+            Log.Info(string.Format("Creating {0} Reports", packageIds.Count));
+
+            Tuple<string, int>[] bag = new Tuple<string, int>[packageIds.Count];
+
+            int index =0;
+            foreach (Tuple<string, int> packageId in packageIds)
+            {
+                bag[index++] = packageId;
+            }
+
+            // limit the potential concurrency becasue this is against SQL
+
+            ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 4 };
+
+            Parallel.ForEach(bag, options, packageId =>
+            {
+                WithRetry(() =>
+                {
+                    CreatePackageReport(packageId.Item1);
+                    
+                    ConfirmExport(packageId);
+                });
+            });
+
+            string msg = string.Format("CreateDirtyPerPackageReports complete {0} seconds", (DateTime.Now - before).TotalSeconds);
 
             Log.Info(msg);
         }
@@ -166,9 +242,28 @@ namespace NuGetGallery.Operations
             return packageIds;
         }
 
+        //  for the initial release we will run New and Old reports in parallel
+        //  (the difference is that new reports contain more details)
+        //  then when we are happy with our new deployment we will drop the old
+
         private void CreatePackageReport(string packageId)
         {
             Log.Info(string.Format("CreatePackageReport for {0}", packageId));
+
+            if (New)
+            {
+                CreatePackageReportNew(packageId);
+            }
+            else
+            {
+                CreatePackageReportOld(packageId);
+                CreatePackageReportNew(packageId);
+            }
+        }
+
+        private void CreatePackageReportOld(string packageId)
+        {
+            Log.Info(string.Format("CreatePackageReportOld for {0}", packageId));
 
             // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
 
@@ -177,6 +272,192 @@ namespace NuGetGallery.Operations
             Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityByPackage.sql", new Tuple<string, int, string>("@packageId", 128, packageId));
 
             CreateBlob(name + ".json", JsonContentType, ReportHelpers.ToJson(report));
+        }
+
+        private void CreatePackageReportNew(string packageId)
+        {
+            Log.Info(string.Format("CreatePackageReportNew for {0}", packageId));
+
+            // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
+
+            string name = PackageReportDetailBaseName + packageId.ToLowerInvariant();
+
+            JObject report = CreateJsonContent(packageId);
+
+            CreateBlob(name + ".json", JsonContentType, ReportHelpers.ToStream(report));
+        }
+
+        private JObject CreateJsonContent(string packageId)
+        {
+            Tuple<string[], List<object[]>> data = ExecuteSqlNew("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetailByPackage.sql", new Tuple<string, int, string>("@packageId", 128, packageId));
+            JObject content = MakeReportJson(data);
+            TotalDownloads(content);
+            SortItems(content);
+            return content;
+        }
+
+        static JObject MakeReportJson(Tuple<string[], List<object[]>> data)
+        {
+            JObject report = new JObject();
+
+            report.Add("Downloads", 0);
+
+            JObject items = new JObject();
+
+            foreach (object[] row in data.Item2)
+            {
+                string packageVersion = (string)row[0];
+                int downloads = (int)row[row.Length - 1];
+
+                JObject childReport;
+                JToken token;
+                if (items.TryGetValue(packageVersion, out token))
+                {
+                    childReport = (JObject)token;
+                }
+                else
+                {
+                    childReport = new JObject();
+                    childReport.Add("Downloads", 0);
+                    childReport.Add("Items", new JArray());
+                    childReport.Add("Version", packageVersion);
+
+                    items.Add(packageVersion, childReport);
+                }
+
+                JObject obj = new JObject();
+
+                if (row[1].ToString() == "NuGet" || row[1].ToString() == "WebMatrix")
+                {
+                    obj.Add("Client", string.Format("{0} {1}.{2}", row[2], row[3], row[4]));
+                }
+                else
+                {
+                    obj.Add("Client", row[2].ToString());
+                }
+
+                if (row[5].ToString() != "(unknown)")
+                {
+                    obj.Add("Operation", row[5].ToString());
+                }
+
+                obj.Add("Downloads", (int)row[6]);
+
+                ((JArray)childReport["Items"]).Add(obj);
+            }
+
+            report.Add("Items", items);
+
+            return report;
+        }
+
+        private static int TotalDownloads(JObject report)
+        {
+            JToken token;
+            if (report.TryGetValue("Items", out token))
+            {
+                if (token is JArray)
+                {
+                    int total = 0;
+                    for (int i = 0; i < ((JArray)token).Count; i++)
+                    {
+                        total += TotalDownloads((JObject)((JArray)token)[i]);
+                    }
+                    report["Downloads"] = total;
+                    return total;
+                }
+                else
+                {
+                    int total = 0;
+                    foreach (KeyValuePair<string, JToken> child in ((JObject)token))
+                    {
+                        total += TotalDownloads((JObject)child.Value);
+                    }
+                    report["Downloads"] = total;
+                    return total;
+                }
+            }
+            return (int)report["Downloads"];
+        }
+
+        private static void SortItems(JObject report)
+        {
+            List<Tuple<int, JObject>> scratch = new List<Tuple<int, JObject>>();
+
+            foreach (KeyValuePair<string, JToken> child in ((JObject)report["Items"]))
+            {
+                scratch.Add(new Tuple<int, JObject>((int)child.Value["Downloads"], new JObject((JObject)child.Value)));
+            }
+
+            scratch.Sort((x, y) => { return x.Item1 == y.Item1 ? 0 : x.Item1 < y.Item1 ? 1 : -1; });
+
+            JArray items = new JArray();
+
+            foreach (Tuple<int, JObject> item in scratch)
+            {
+                items.Add(item.Item2);
+            }
+
+            report["Items"] = items;
+        }
+
+        private void CreateEmptyPackageReport(string packageId)
+        {
+            Log.Info(string.Format("CreateEmptyPackageReport for {0}", packageId));
+
+            // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
+
+            string name = PackageReportDetailBaseName + packageId.ToLowerInvariant();
+
+            CreateBlob(name + ".json", JsonContentType, ReportHelpers.ToStream(new JObject()));
+        }
+
+        private void ClearInactivePackageReports()
+        {
+            Log.Info("ClearInactivePackageReports");
+
+            IList<string> packageIds = GetInactivePackageIds();
+
+            Log.Info(string.Format("Creating {0} empty Reports", packageIds.Count));
+
+            string[] bag = new string[packageIds.Count];
+
+            int index = 0;
+            foreach (string packageId in packageIds)
+            {
+                bag[index++] = packageId;
+            }
+
+            Parallel.ForEach(bag, packageId =>
+            {
+                CreateEmptyPackageReport(packageId);
+            });
+        }
+
+        private IList<string> GetInactivePackageIds()
+        {
+            string sql = ResourceHelper.GetBatchFromSqlFile("NuGetGallery.Operations.Scripts.DownloadReport_ListInactive.sql");
+
+            IList<string> packageIds = new List<string>();
+
+            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            {
+                connection.Open();
+
+                SqlCommand command = new SqlCommand(sql, connection);
+                command.CommandType = CommandType.Text;
+                command.CommandTimeout = 60 * 5;
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    string packageId = reader.GetValue(0).ToString();
+                    packageIds.Add(packageId);
+                }
+            }
+
+            return packageIds;
         }
 
         private void ConfirmExport(Tuple<string, int> packageId)
@@ -240,6 +521,54 @@ namespace NuGetGallery.Operations
             }
 
             return new Tuple<string[], List<string[]>>(columns, rows);
+        }
+
+        //  this is basically the same function as ExecuteSql but preserves the types in the results
+        //  we should port the calls across to this after we release this one.
+
+        private Tuple<string[], List<object[]>> ExecuteSqlNew(string filename, params Tuple<string, int, string>[] parameters)
+        {
+            string sql = ResourceHelper.GetBatchFromSqlFile(filename);
+
+            List<object[]> rows = new List<object[]>();
+            string[] columns;
+
+            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            {
+                connection.Open();
+
+                SqlCommand command = new SqlCommand(sql, connection);
+                command.CommandType = CommandType.Text;
+                command.CommandTimeout = 60 * 5;
+
+                foreach (Tuple<string, int, string> parameter in parameters)
+                {
+                    command.Parameters.Add(parameter.Item1, SqlDbType.NVarChar, parameter.Item2).Value = parameter.Item3;
+                }
+
+                SqlDataReader reader = command.ExecuteReader();
+
+                columns = new string[reader.FieldCount];
+
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    columns[i] = reader.GetName(i);
+                }
+
+                while (reader.Read())
+                {
+                    object[] row = new object[reader.FieldCount];
+
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        row[i] = reader.GetValue(i);
+                    }
+
+                    rows.Add(row);
+                }
+            }
+
+            return new Tuple<string[], List<object[]>>(columns, rows);
         }
 
         private Uri CreateBlob(string name, string contentType, Stream content)

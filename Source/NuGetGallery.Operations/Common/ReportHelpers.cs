@@ -7,6 +7,16 @@ namespace NuGetGallery.Operations.Common
 {
     static class ReportHelpers
     {
+        public static Stream ToStream(JToken jToken)
+        {
+            MemoryStream stream = new MemoryStream();
+            TextWriter writer = new StreamWriter(stream);
+            writer.Write(jToken.ToString());
+            writer.Flush();
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
+        }
+
         public static Stream ToJson(Tuple<string[], List<string[]>> report)
         {
             JArray jArray = new JArray();
@@ -23,12 +33,7 @@ namespace NuGetGallery.Operations.Common
                 jArray.Add(jObject);
             }
 
-            MemoryStream stream = new MemoryStream();
-            TextWriter writer = new StreamWriter(stream);
-            writer.Write(jArray.ToString());
-            writer.Flush();
-            stream.Seek(0, SeekOrigin.Begin);
-            return stream;
+            return ToStream(jArray);
         }
     }
 }
