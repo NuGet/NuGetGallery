@@ -488,7 +488,6 @@
     <Compile Include="PackageCurators\TagBasedPackageCurator.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCurator.cs" />
     <Compile Include="PackageCurators\Windows8PackageCurator.cs" />
-    <Compile Include="Helpers\PackageHelper.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -514,14 +513,11 @@
     <Compile Include="Services\HttpContextCacheService.cs" />
     <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\IStatisticsService.cs" />
-    <Compile Include="Services\NullPackageCacheService.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
-    <Compile Include="Services\CloudPackageCacheService.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
-    <Compile Include="Services\IPackageCacheService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
