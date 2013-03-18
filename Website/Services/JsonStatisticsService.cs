@@ -111,16 +111,19 @@ namespace NuGetGallery
 
                 return true;
             }
-            catch (JsonReaderException)
+            catch (JsonReaderException e)
             {
+                QuietLog.LogHandledException(e);
                 return false;
             }
-            catch (StorageException)
+            catch (StorageException e)
             {
+                QuietLog.LogHandledException(e);
                 return false;
             }
-            catch (ArgumentException)
+            catch (ArgumentException e)
             {
+                QuietLog.LogHandledException(e);
                 return false;
             }
         }
@@ -161,16 +164,19 @@ namespace NuGetGallery
 
                 return true;
             }
-            catch (JsonReaderException)
+            catch (JsonReaderException e)
             {
+                QuietLog.LogHandledException(e);
                 return false;
             }
-            catch (StorageException)
+            catch (StorageException e)
             {
+                QuietLog.LogHandledException(e);
                 return false;
             }
-            catch (ArgumentException)
+            catch (ArgumentException e)
             {
+                QuietLog.LogHandledException(e);
                 return false;
             }
         }
@@ -222,16 +228,19 @@ namespace NuGetGallery
 
                 return report;
             }
-            catch (JsonReaderException)
+            catch (JsonReaderException e)
             {
+                QuietLog.LogHandledException(e);
                 return null;
             }
-            catch (StorageException)
+            catch (StorageException e)
             {
+                QuietLog.LogHandledException(e);
                 return null;
             }
-            catch (ArgumentException)
+            catch (ArgumentException e)
             {
+                QuietLog.LogHandledException(e);
                 return null;
             }
         }
@@ -300,16 +309,19 @@ namespace NuGetGallery
 
                 return report;
             }
-            catch (JsonReaderException)
+            catch (JsonReaderException e)
             {
+                QuietLog.LogHandledException(e);
                 return null;
             }
-            catch (StorageException)
+            catch (StorageException e)
             {
+                QuietLog.LogHandledException(e);
                 return null;
             }
-            catch (ArgumentException)
+            catch (ArgumentException e)
             {
+                QuietLog.LogHandledException(e);
                 return null;
             }
         }
