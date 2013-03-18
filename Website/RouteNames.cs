@@ -41,5 +41,6 @@
         public const string StatisticsPackages = "StatisticsPackages";
         public const string StatisticsPackageVersions = "StatisticsPackageVersions";
         public const string StatisticsPackageDownloadsByVersion = "StatisticsPackageDownloadsByVersion";
+        public const string StatisticsPackageDownloadsDetail = "StatisticsPackageDownloadsDetail";
     }
 }
