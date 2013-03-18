@@ -1204,7 +1204,7 @@ input:focus ~ .field-validation-error ~ .field-hint-message { display: none; }
 footer#footer {
     margin: 0 auto;
     text-align: center;
-    width: 80%;
+    display: table;
 }
 
 footer#footer p {
@@ -1225,7 +1225,6 @@ footer#footer ul.recommended {
     list-style: none;
     margin: 0 auto;
     padding: 0;
-    width: 760px;
 }
 
 footer#footer ul.recommended li {

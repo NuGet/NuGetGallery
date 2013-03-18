@@ -48,6 +48,11 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ReportMyPackage() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ReportMyPackage);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult ContactOwners() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ContactOwners);
         }
@@ -88,6 +93,7 @@ namespace NuGetGallery {
             public readonly string DisplayPackage = "DisplayPackage";
             public readonly string ListPackages = "ListPackages";
             public readonly string ReportAbuse = "ReportAbuse";
+            public readonly string ReportMyPackage = "ReportMyPackage";
             public readonly string ContactOwners = "ContactOwners";
             public readonly string Download = "Download";
             public readonly string ManagePackageOwners = "ManagePackageOwners";
@@ -113,6 +119,7 @@ namespace NuGetGallery {
             public readonly string ListPackages = "~/Views/Packages/ListPackages.cshtml";
             public readonly string ManagePackageOwners = "~/Views/Packages/ManagePackageOwners.cshtml";
             public readonly string ReportAbuse = "~/Views/Packages/ReportAbuse.cshtml";
+            public readonly string ReportMyPackage = "~/Views/Packages/ReportMyPackage.cshtml";
             public readonly string UnverifiablePackage = "~/Views/Packages/UnverifiablePackage.cshtml";
             public readonly string UploadPackage = "~/Views/Packages/UploadPackage.cshtml";
             public readonly string VerifyPackage = "~/Views/Packages/VerifyPackage.cshtml";
@@ -151,8 +158,23 @@ namespace NuGetGallery {
             return callInfo;
         }
 
+        public override System.Web.Mvc.ActionResult ReportMyPackage(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ReportMyPackage);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
         public override System.Web.Mvc.ActionResult ReportAbuse(string id, string version, NuGetGallery.ReportAbuseViewModel reportForm) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ReportAbuse);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            callInfo.RouteValueDictionary.Add("reportForm", reportForm);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ReportMyPackage(string id, string version, NuGetGallery.ReportAbuseViewModel reportForm) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ReportMyPackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             callInfo.RouteValueDictionary.Add("reportForm", reportForm);

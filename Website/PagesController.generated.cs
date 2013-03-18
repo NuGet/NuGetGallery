@@ -44,6 +44,7 @@ namespace NuGetGallery {
         public ActionNamesClass ActionNames { get { return s_actions; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
+            public readonly string Contact = "Contact";
             public readonly string Home = "Home";
             public readonly string Terms = "Terms";
             public readonly string Privacy = "Privacy";
@@ -55,6 +56,7 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string Contact = "~/Views/Pages/Contact.cshtml";
             public readonly string Home = "~/Views/Pages/Home.cshtml";
             public readonly string Privacy = "~/Views/Pages/Privacy.cshtml";
             public readonly string Terms = "~/Views/Pages/Terms.cshtml";
@@ -64,6 +66,11 @@ namespace NuGetGallery {
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class T4MVC_PagesController: NuGetGallery.PagesController {
         public T4MVC_PagesController() : base(Dummy.Instance) { }
+
+        public override System.Web.Mvc.ActionResult Contact() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Contact);
+            return callInfo;
+        }
 
         public override System.Web.Mvc.ActionResult Home() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Home);
