@@ -26,6 +26,13 @@ namespace NuGetGallery
             return httpContext;
         }
 
+        public static void SetupUrlHelper(Controller controller, Mock<HttpContextBase> mockHttpContext)
+        {
+            var routes = new RouteCollection();
+            Routes.RegisterRoutes(routes);
+            controller.Url = new UrlHelper(new RequestContext(mockHttpContext.Object, new RouteData()), routes);
+        }
+
         public static T GetAnonymousPropertyValue<T>(Object source, string propertyName)
         {
             var property = source.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public);
