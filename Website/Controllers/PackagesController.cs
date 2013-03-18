@@ -226,7 +226,7 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                AllowedReasons = new[]
+                AllowedReasons = 
                 {
                     ReportPackageReason.ContainsMaliciousCode,
                     ReportPackageReason.ViolatesALicenseIOwn,
@@ -277,7 +277,7 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                AllowedReasons = new[]
+                AllowedReasons =
                 {
                     ReportPackageReason.ContainsMaliciousCode,
                     ReportPackageReason.ContainsPrivateAndConfidentialData,

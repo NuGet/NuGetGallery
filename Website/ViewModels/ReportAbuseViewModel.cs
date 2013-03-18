@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
@@ -43,9 +44,9 @@ namespace NuGetGallery
 
         public bool ConfirmedUser { get; set; }
 
-        public ReportPackageReason[] AllowedReasons { get; set; }
+        public ICollection<ReportPackageReason> AllowedReasons { get; private set; }
 
-        public static Dictionary<ReportPackageReason, string> ReasonDescriptions = new Dictionary<ReportPackageReason, string>
+        public static readonly Dictionary<ReportPackageReason, string> ReasonDescriptions = new Dictionary<ReportPackageReason, string>
         {
             {ReportPackageReason.Other, "Other" },
             {ReportPackageReason.HasABug, "The package has a bug" },
@@ -56,5 +57,10 @@ namespace NuGetGallery
             {ReportPackageReason.PublishedWithWrongVersion, "The package was published as the wrong version" },
             {ReportPackageReason.ReleasedInPublicByAccident, "The package was not intended to be published publically on nuget.org"},
         };
+
+        public ReportAbuseViewModel()
+        {
+            AllowedReasons = new Collection<ReportPackageReason>();
+        }
     }
 }
