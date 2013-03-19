@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
+using Newtonsoft.Json.Linq;
 using NuGet;
 
 namespace NuGetGallery
@@ -19,6 +20,7 @@ namespace NuGetGallery
         private readonly IPackageFileService _packageFileService;
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
+        private readonly IStatisticsService _statisticsService;
 
         public ApiController(
             IPackageService packageService,
@@ -30,6 +32,21 @@ namespace NuGetGallery
             _packageFileService = packageFileService;
             _userService = userService;
             _nugetExeDownloaderService = nugetExeDownloaderService;
+            _statisticsService = null;
+        }
+
+        public ApiController(
+            IPackageService packageService,
+            IPackageFileService packageFileService,
+            IUserService userService,
+            INuGetExeDownloaderService nugetExeDownloaderService,
+            IStatisticsService statisticsService)
+        {
+            _packageService = packageService;
+            _packageFileService = packageFileService;
+            _userService = userService;
+            _nugetExeDownloaderService = nugetExeDownloaderService;
+            _statisticsService = statisticsService;
         }
 
         [ActionName("GetPackageApi")]
@@ -360,13 +377,37 @@ namespace NuGetGallery
 
         [ActionName("StatisticsDownloadsApi")]
         [HttpGet]
-        public virtual ActionResult GetStatsDownloads()
+        public virtual async Task<ActionResult> GetStatsDownloads()
         {
-            return new ContentResult
+            if (_statisticsService != null)
             {
-                Content = "{\"hello\":\"world\"}",
-                ContentType = "application/json"
-            };
+                bool isAvailable = await _statisticsService.LoadDownloadPackageVersions();
+
+                if (isAvailable)
+                {
+                    JArray content = new JArray();
+                    foreach (StatisticsPackagesItemViewModel row in _statisticsService.DownloadPackageVersionsAll)
+                    {
+                        JObject item = new JObject();
+
+                        item.Add("PackageId", row.PackageId);
+                        item.Add("PackageVersion", row.PackageVersion);
+                        item.Add("Gallery", "http://nuget.org/packages/" + row.PackageId + "/" + row.PackageVersion);
+                        item.Add("Package", "http://nuget.org/package/api/v2/"  + row.PackageId + "/" + row.PackageVersion);
+                        item.Add("Downloads", row.Downloads);
+
+                        content.Add(item);
+                    }
+
+                    return new ContentResult
+                    {
+                        Content = content.ToString(),
+                        ContentType = "application/json"
+                    };
+                }
+            }
+
+            return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
         private static void QuietlyLogException(Exception e)

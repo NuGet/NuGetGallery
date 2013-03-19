@@ -74,7 +74,6 @@ namespace NuGetGallery {
             public readonly string PublishPackage = "PublishPackageApi";
             public readonly string GetPackageIds = "PackageIDs";
             public readonly string GetPackageVersions = "PackageVersions";
-            public readonly string GetStatsDownloads = "StatisticsDownloadsApi";
         }
 
 
@@ -125,11 +124,6 @@ namespace NuGetGallery {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GetPackageVersions);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("includePrerelease", includePrerelease);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult GetStatsDownloads() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.GetStatsDownloads);
             return callInfo;
         }
 
