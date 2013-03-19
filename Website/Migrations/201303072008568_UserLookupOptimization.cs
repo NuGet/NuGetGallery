@@ -9,7 +9,6 @@ namespace NuGetGallery.Migrations
             AlterColumn("Users", "EmailAddress", c => c.String(maxLength: 256));
             AlterColumn("Users", "UnconfirmedEmailAddress", c => c.String(maxLength: 256));
             AlterColumn("Users", "HashedPassword", c => c.String(nullable: false, maxLength: 256));
-            AlterColumn("Users", "PasswordHashAlgorithm", c => c.String(maxLength: 16));
             AlterColumn("Users", "Username", c => c.String(nullable: false, maxLength: 64));
             AlterColumn("Users", "EmailConfirmationToken", c => c.String(maxLength: 32));
             AlterColumn("Users", "PasswordResetToken", c => c.String(maxLength: 32));
@@ -23,7 +22,6 @@ namespace NuGetGallery.Migrations
             AlterColumn("Users", "PasswordResetToken", c => c.String());
             AlterColumn("Users", "EmailConfirmationToken", c => c.String());
             AlterColumn("Users", "Username", c => c.String());
-            AlterColumn("Users", "PasswordHashAlgorithm", c => c.String());
             AlterColumn("Users", "HashedPassword", c => c.String());
             AlterColumn("Users", "UnconfirmedEmailAddress", c => c.String());
             AlterColumn("Users", "EmailAddress", c => c.String());

@@ -31,7 +31,7 @@ namespace NuGetGallery
         [StringLength(256)]
         public string HashedPassword { get; set; }
 
-        [StringLength(16)]
+        // Would declare max length of this too, but EF is buggy, see http://entityframework.codeplex.com/workitem/452
         public string PasswordHashAlgorithm { get; set; }
 
         public virtual ICollection<EmailMessage> Messages { get; set; }
