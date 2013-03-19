@@ -2,6 +2,7 @@
 {
     public interface IConfiguration
     {
+        bool HasWorker { get; }
         bool RequireSSL { get; }
         int SSLPort { get; }
 
