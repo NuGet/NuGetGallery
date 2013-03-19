@@ -631,9 +631,6 @@ namespace NuGetGallery
                 // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();
 
-                // delete the uploaded binary in the Uploads container
-                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
-
                 // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
                 if (package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) &&
                     package.IsLatestStable)
@@ -641,6 +638,9 @@ namespace NuGetGallery
                     await _nugetExeDownloaderService.UpdateExecutableAsync(nugetPackage);
                 }
             }
+
+            // delete the uploaded binary in the Uploads container
+            await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
