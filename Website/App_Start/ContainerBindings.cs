@@ -80,15 +80,6 @@ namespace NuGetGallery
                 Bind<ICacheService>()
                     .To<HttpContextCacheService>()
                     .InRequestScope();
-
-                // when running on Windows Azure, pull the statistics from the warehouse via storage
-                Bind<IReportService>()
-                    .ToMethod(context => new CloudReportService(configuration.AzureStatisticsConnectionString))
-                    .InSingletonScope();
-
-                Bind<IStatisticsService>()
-                    .To<JsonStatisticsService>()
-                    .InSingletonScope();
             }
 
             Bind<IEntitiesContext>()
