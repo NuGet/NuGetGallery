@@ -18,6 +18,9 @@
     <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute(Links.Content.Images.packageDefaultIcon_png))" />
 }
 @section BottomScripts {
+    @* NuGet Favorite Button *@
+    <script>function favorite() { document.favoriteform.submit(); }</script>
+
     @* Facebook SDK *@
     <div id="fb-root"></div>
     <script>(function (d, s, id) {
@@ -148,6 +151,16 @@
     { 
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
+    <div>
+    @* Follow Package *@
+    @using (Html.BeginForm("Favorite", MVC.Packages.Name, FormMethod.Post, new { name = "favoriteform" }))
+    {
+        @Html.AntiForgeryToken()
+        <input type="submit" tabindex="-1" title="\f005" id="favoritesubmit" />
+        <label for="favoritesubmit">Favorite this package</label>
+    }
+
+    </div>
     <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
     <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
 

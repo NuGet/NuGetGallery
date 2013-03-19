@@ -19,5 +19,8 @@ namespace NuGetGallery
         public virtual ICollection<User> Owners { get; set; }
         public virtual ICollection<Package> Packages { get; set; }
         public int Key { get; set; }
+
+        // These relationships should not be loaded eagerly, only as needed!
+        public virtual ICollection<User> Followers { get; set; }
     }
 }

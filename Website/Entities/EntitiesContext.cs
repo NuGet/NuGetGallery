@@ -65,6 +65,13 @@ namespace NuGetGallery
                            .MapLeftKey("UserKey")
                            .MapRightKey("RoleKey"));
 
+            modelBuilder.Entity<User>()
+                .HasMany<PackageRegistration>(u => u.FollowedPackages)
+                .WithMany(p => p.Followers)
+                .Map(c => c.ToTable("UserFollowedPackages")
+                    .MapLeftKey("UserKey")
+                    .MapRightKey("PackageRegistrationKey"));
+
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
 
