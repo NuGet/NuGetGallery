@@ -46,6 +46,7 @@ namespace NuGetGallery
 
         public ICollection<ReportPackageReason> AllowedReasons { get; private set; }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes")]
         public static readonly Dictionary<ReportPackageReason, string> ReasonDescriptions = new Dictionary<ReportPackageReason, string>
         {
             {ReportPackageReason.Other, "Other" },
