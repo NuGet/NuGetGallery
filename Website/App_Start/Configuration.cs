@@ -21,6 +21,11 @@ namespace NuGetGallery
             _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
         }
 
+        public bool HasWorker
+        {
+            get { return ReadAppSettings("HasWorker", str => Boolean.Parse(str ?? "true")); }
+        }
+
         public string EnvironmentName
         {
             get { return ReadAppSettings("Environment") ?? "Development"; }

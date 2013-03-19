@@ -94,7 +94,13 @@ namespace NuGetGallery
 
         private static void BackgroundJobsPostStart(IConfiguration configuration)
         {
-            var jobs = new IJob[]
+            var jobs = configuration.HasWorker ?
+                new IJob[]
+                {
+                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), timeout: TimeSpan.FromMinutes(2))
+                }                
+                    :
+                new IJob[]
                 {
                     // readonly: false workaround - let statistics background job write to DB in read-only mode since we don't care too much about losing that data
                     new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
