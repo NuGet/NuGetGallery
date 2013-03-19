@@ -770,7 +770,7 @@ namespace NuGetGallery
 
                 var fakeReportService = new Mock<IReportService>();
 
-                fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
 
                 var controller = new ApiController(null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
 
