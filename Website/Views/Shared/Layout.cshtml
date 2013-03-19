@@ -6,10 +6,9 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         @RenderSection("OpenGraph", required: false)
         <title>NuGet Gallery @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
-        <link href="@Url.Content("~/Content/site.css")" rel="stylesheet" />
+        @Styles.Render("~/bundles/css")
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
-        <script src="@Url.Content("~/Scripts/modernizr-2.0.6-development-only.js")"></script>
-        <script src="@Url.Content("~/Scripts/jquery-1.6.2.min.js")"></script>
+        @Scripts.Render("~/bundles/modernizr")
         @MiniProfiler.RenderIncludes()
         @ViewHelpers.AnalyticsScript()
         @RenderSection("TopScripts", required: false)
@@ -59,6 +58,10 @@
                 <footer id="footer">
                     <ul class="recommended">
                         <li>
+                            <a href="@Url.Action(MVC.Pages.Contact())">Contact Us</a>
+                            <p>Got questions about NuGet or the NuGet Gallery?</p>
+                        </li>
+                        <li>
                             <a href="http://docs.nuget.org/docs/start-here/overview">Overview</a>
                             <p>NuGet is a Visual Studio 2010 extension that makes it easy to add, remove, and update libraries and...</p>
                         </li>
@@ -84,6 +87,7 @@
                 </footer>
             </div>
         </div>
+        @Scripts.Render("~/bundles/js")
         @RenderSection("BottomScripts", required: false)
     </body>
 </html>

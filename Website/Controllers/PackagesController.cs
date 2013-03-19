@@ -179,8 +179,6 @@ namespace NuGetGallery
                 page = 1;
             }
 
-            IQueryable<Package> packageVersions = _packageService.GetPackagesForListing(prerelease);
-
             q = (q ?? "").Trim();
 
             if (String.IsNullOrEmpty(sortOrder))
@@ -192,7 +190,7 @@ namespace NuGetGallery
 
             var searchFilter = GetSearchFilter(q, sortOrder, page, prerelease);
             int totalHits;
-            packageVersions = _searchService.Search(packageVersions, searchFilter, out totalHits);
+            IQueryable<Package> packageVersions = _searchService.Search(searchFilter, out totalHits);
             if (page == 1 && !packageVersions.Any())
             {
                 // In the event the index wasn't updated, we may get an incorrect count. 
@@ -225,19 +223,70 @@ namespace NuGetGallery
             }
 
             var model = new ReportAbuseViewModel
+            {
+                AllowedReasons = 
                 {
-                    PackageId = id,
-                    PackageVersion = package.Version,
-                };
+                    ReportPackageReason.ContainsMaliciousCode,
+                    ReportPackageReason.ViolatesALicenseIOwn,
+                    ReportPackageReason.IsFraudulent,
+                    ReportPackageReason.HasABug,
+                    ReportPackageReason.Other
+                },
+                PackageId = id,
+                PackageVersion = package.Version,
+            };
 
             if (Request.IsAuthenticated)
             {
                 var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+
+                // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
+                if (package.IsOwner(user))
+                {
+                    return RedirectToAction(ActionNames.ReportMyPackage, new {id, version});
+                }
+
                 if (user.Confirmed)
                 {
                     model.ConfirmedUser = true;
                 }
             }
+
+            return View(model);
+        }
+
+        [Authorize]
+        public virtual ActionResult ReportMyPackage(string id, string version)
+        {
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
+            if (!package.IsOwner(user))
+            {
+                return RedirectToAction(ActionNames.ReportAbuse, new { id, version });
+            }
+
+            var model = new ReportAbuseViewModel
+            {
+                AllowedReasons =
+                {
+                    ReportPackageReason.ContainsMaliciousCode,
+                    ReportPackageReason.ContainsPrivateAndConfidentialData,
+                    ReportPackageReason.PublishedWithWrongVersion,
+                    ReportPackageReason.ReleasedInPublicByAccident,
+                    ReportPackageReason.Other
+                },
+                ConfirmedUser = user.Confirmed,
+                PackageId = id,
+                PackageVersion = package.Version,
+            };
 
             return View(model);
         }
@@ -269,9 +318,36 @@ namespace NuGetGallery
                 from = new MailAddress(reportForm.Email);
             }
 
-            _messageService.ReportAbuse(from, package, reportForm.Message);
+            _messageService.ReportAbuse(from, package, reportForm.Reason, reportForm.Message, reportForm.AlreadyContactedOwner, 
+                _config.GetSiteRoot(false) + Url.Package(id, version));
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
+            return RedirectToAction(MVC.Packages.DisplayPackage(id, version));
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        [ValidateSpamPrevention]
+        public virtual ActionResult ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return ReportMyPackage(id, version);
+            }
+
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            MailAddress from = user.ToMailAddress();
+
+            _messageService.ReportMyPackage(from, package, reportForm.Reason, reportForm.Message, Url.Package(id, version));
+
+            TempData["Message"] = "Your support request has been sent to the gallery operators.";
             return RedirectToAction(MVC.Packages.DisplayPackage(id, version));
         }
 

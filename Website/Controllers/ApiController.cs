@@ -88,11 +88,6 @@ namespace NuGetGallery
                     QuietlyLogException(e);
                 }
 
-                if (!String.IsNullOrWhiteSpace(package.ExternalPackageUrl))
-                {
-                    return Redirect(package.ExternalPackageUrl);
-                }
-
                 return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
             }
             catch (SqlException e)
