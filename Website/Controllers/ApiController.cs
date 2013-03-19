@@ -358,6 +358,17 @@ namespace NuGetGallery
                 };
         }
 
+        [ActionName("StatisticsDownloadsApi")]
+        [HttpGet]
+        public virtual ActionResult GetStatsDownloads()
+        {
+            return new ContentResult
+            {
+                Content = "{\"hello\":\"world\"}",
+                ContentType = "application/json"
+            };
+        }
+
         private static void QuietlyLogException(Exception e)
         {
             try

@@ -232,6 +232,22 @@ namespace NuGetGallery
                 "api/v2/package-versions/{id}",
                 MVC.Api.GetPackageVersions());
 
+            routes.MapServiceRoute(
+                RouteName.V2ApiCuratedFeed,
+                "api/v2/curated-feed",
+                typeof(V2CuratedFeed));
+
+            routes.MapRoute(
+                RouteName.StatisticsDownloadsApi,
+                "api/v2/stats/downloads",
+                defaults: new { controller = MVC.Api.Name, action = "StatisticsDownloadsApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapServiceRoute(
+                RouteName.V2ApiFeed,
+                "api/v2/",
+                typeof(V2Feed));
+
             routes.MapRoute(
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
