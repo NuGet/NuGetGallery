@@ -984,7 +984,6 @@
     <Content Include="robots.txt" />
     <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\async-file-upload.js" />
-    <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\knockout-2.2.1.debug.js" />
     <Content Include="Scripts\knockout-2.2.1.js" />
     <Content Include="Scripts\stats.js" />
