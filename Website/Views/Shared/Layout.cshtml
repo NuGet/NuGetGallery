@@ -28,6 +28,7 @@
                             var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
                             var uploadClass = ViewBag.Tab == "Upload" ? "current" : "";
                             var statisticsClass = ViewBag.Tab == "Statistics" ? "current" : "";
+                            var adminClass = ViewBag.Tab == "Admin" ? "current" : "";
                         }
                         <li class="@homeClass"><a href="@Url.Home()">Home</a></li>
                         <li class="@packagesClass"><a href="@Url.PackageList()">Packages</a></li>
@@ -35,6 +36,10 @@
                         @if (StatisticsHelper.IsStatisticsPageAvailable)
                         {
                             <li class="@statisticsClass"><a href="@Url.Statistics()">Statistics</a></li>
+                        }
+                        @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
+                        {
+                            <li class="@adminClass"><a href="@Url.Action("Index", "Home", new { area="Admin" })">Admin</a></li>
                         }
                         <li><a href="http://docs.nuget.org">Documentation</a></li>
                         <li><a href="http://blog.nuget.org">Blog</a></li>

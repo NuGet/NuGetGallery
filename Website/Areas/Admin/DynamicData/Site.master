@@ -1,5 +1,6 @@
 ﻿<%@ Master Language="C#" CodeBehind="Site.master.cs" Inherits="NuGetGallery.Areas.Admin.DynamicData.Site" %>
 <%@ Import Namespace="System.Web.Optimization" %>
+<%@ Import Namespace="Ninject" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -16,6 +17,18 @@
         </asp:ContentPlaceHolder>
     </head>
 <body>
+    <% 
+        // Cheap and easy DI. Not too clean :)
+        var config = NuGetGallery.Container.Kernel.Get<NuGetGallery.IConfiguration>();
+        string cls = "banner-yellow";
+        string message = "You are working with Live Data. Be careful!";
+        if (String.Equals(config.EnvironmentName, "Production"))
+        {
+            cls = "banner-red mega-banner";
+            message = "YOU ARE WORKING ON LIVE PRODUCTION DATA. USE EXTREME CAUTION";
+        }
+     %>
+    <div class="<%: cls %>"><%: message %></div>
     <div id="outer-wrapper">
         <div style="padding-left: 2em; padding-right: 2em;">
             <header class="main">

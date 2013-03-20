@@ -10,7 +10,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
     {
         public ActionResult Index()
         {
-            return Content("Hello Admins!");
+            return View();
         }
     }
 }
