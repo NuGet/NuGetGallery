@@ -293,6 +293,8 @@ namespace NuGetGallery
                     "v1/Package/Download/{id}/{version}",
                     new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional }),
                 permanent: true).To(downloadRoute);
+
+            AreaRegistration.RegisterAllAreas();
         }
 
         // note: Pulled out service route registration separately because it's not testable T.T (won't run outside IIS/WAS) 
