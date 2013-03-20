@@ -1004,6 +1004,10 @@ ul.pager li.next { padding-left: 10px; }
     font-weight:bold;
 }
 
+.statistics-rank {
+    font-size: 0.8em;
+}
+
     /* NuGet Badge */
 
 .nuget-badge code {

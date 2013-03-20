@@ -19,16 +19,22 @@
         <table class="sexy-table">
             <thead>
                 <tr>
-                    <th class="first">Package</th><th>Downloads</th>
+                    <th></th><th class="first">Package</th><th>Downloads</th>
                 </tr>
             </thead>
             <tbody>
-            @foreach (var item in Model.DownloadPackagesSummary)
-            {
-                <tr>
-                    <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
-                    <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@item.Downloads</a></td>
-                </tr>
+            @{
+                var index = 0;
+                foreach (var item in Model.DownloadPackagesSummary)
+                {
+                    index++;
+                    
+                    <tr>
+                        <td class="statistics-rank">@index</td>
+                        <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                        <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@item.Downloads</a></td>
+                    </tr>
+                }
             }
             </tbody>
         </table>
@@ -42,17 +48,23 @@
         <table class="sexy-table">
             <thead>
                 <tr>
-                    <th class="first">Package</th><th>Version</th><th>Downloads</th>
+                    <th></th><th class="first">Package</th><th>Version</th><th>Downloads</th>
                 </tr>
             </thead>
             <tbody>
-            @foreach (var item in Model.DownloadPackageVersionsSummary)
-            {
-                <tr>
-                    <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
-                    <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-                    <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@item.Downloads</a></td>
-                </tr>
+            @{
+                var index = 0;
+                foreach (var item in Model.DownloadPackageVersionsSummary)
+                {
+                    index++;
+                    
+                    <tr>
+                        <td class="statistics-rank">@index</td>
+                        <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                        <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                        <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@item.Downloads</a></td>
+                    </tr>
+                }
             }
             </tbody>
         </table>
