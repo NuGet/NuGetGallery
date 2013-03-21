@@ -1,0 +1,32 @@
+﻿@model SignInRequest
+@using Ninject;
+@using WorldDomination.Web.Authentication
+@using WorldDomination.Web.Authentication.Mvc
+@{
+    var authService = Container.Kernel.TryGet<IAuthenticationService>();
+}
+
+@if (authService != null && authService.AuthenticationProviders != null && authService.AuthenticationProviders.Count > 0)
+{
+    <div id="oauth-login">
+        <h1>Use an existing account</h1>
+        <p>Log in using one of your accounts from these providers</p>
+        <ul id="oauth-providers">
+            @foreach (var provider in authService.AuthenticationProviders)
+            {
+                <li>
+                    @Html.Partial("LoginButtons/_" + provider.Key)
+                </li>
+            }
+            <li>
+                @Html.Partial("LoginButtons/_Twitter")
+            </li>
+            <li>
+                @Html.Partial("LoginButtons/_GitHub")
+            </li>
+            <li>
+                @Html.Partial("LoginButtons/_CodePlex")
+            </li>
+        </ul>
+    </div>
+}

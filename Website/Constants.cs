@@ -30,5 +30,8 @@
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
+        public static readonly string OAuthTokenViewDataKey = "Token";
+
+        internal const string UserNameRegex = @"^(?i)[a-z0-9][a-z0-9_.-]+[a-z0-9]$";
     }
 }

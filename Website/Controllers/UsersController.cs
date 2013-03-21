@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
@@ -42,8 +43,23 @@ namespace NuGetGallery
                 new AccountViewModel
                     {
                         ApiKey = user.ApiKey.ToString(),
-                        CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
+                        CuratedFeeds = curatedFeeds.Select(cf => cf.Name),
+
+                        // Only grab OAuth credentials (in case we add more types later)
+                        CredentialTypes = user.Credentials.Where(c => c.Name.StartsWith("oauth:")).Select(c => c.Name.Substring(6))
                     });
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult RemoveCredential(string type)
+        {
+            if (UserService.DeleteCredential(CurrentUser.Identity.Name, "oauth:" + type))
+            {
+                return RedirectToAction(MVC.Users.Account());
+            }
+            return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
         [Authorize]
@@ -188,9 +204,9 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        [HttpPost]
         public virtual ActionResult GenerateApiKey()
         {
             UserService.GenerateApiKey(CurrentUser.Identity.Name);

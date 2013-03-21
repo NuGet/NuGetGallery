@@ -23,5 +23,8 @@
             string hashAlgorithmId);
 
         string GenerateToken();
+
+        string EncryptString(string clearText, string purpose);
+        string DecryptString(string cipherText, string purpose);
     }
 }

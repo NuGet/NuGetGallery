@@ -9,17 +9,20 @@ namespace NuGetGallery
         public ICryptographyService Crypto { get; protected set; }
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
+        public IEntityRepository<Credential> CredentialRepository { get; protected set; }
 
         protected UserService() {}
 
         public UserService(
             IConfiguration config,
             ICryptographyService crypto,
-            IEntityRepository<User> userRepository) : this()
+            IEntityRepository<User> userRepository,
+            IEntityRepository<Credential> credentialRepository) : this()
         {
             Config = config;
             Crypto = crypto;
             UserRepository = userRepository;
+            CredentialRepository = credentialRepository;
         }
 
         public virtual User Create(
@@ -113,6 +116,7 @@ namespace NuGetGallery
 
             return UserRepository.GetAll()
                 .Include(u => u.Roles)
+                .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
         }
 
@@ -274,6 +278,83 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        public virtual User FindByCredential(string credentialName, string credentialValue)
+        {
+            return CredentialRepository
+                .GetAll()
+                .Where(c => c.Name == credentialName && c.Value == credentialValue)
+                .Select(c => c.User)
+                .SingleOrDefault();
+        }
+
+        public virtual bool AssociateCredential(User user, string credentialName, string credentialValue)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            if (String.IsNullOrEmpty(credentialName))
+            {
+                // TODO: Turn this in to a helper? Requires.NotNullOrEmpty? Code Contracts?
+                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "credentialName"), "credentialName");
+            }
+
+            if (String.IsNullOrEmpty(credentialValue))
+            {
+                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "credentialValue"), "credentialValue");
+            }
+
+            if (user.Credentials.Any(cred => cred.Name == credentialName))
+            {
+                return false;
+            }
+
+            user.Credentials.Add(new Credential()
+            {
+                Name = credentialName,
+                Value = credentialValue
+            });
+            UserRepository.CommitChanges();
+            return true;
+        }
+
+        public virtual bool DeleteCredential(string userName, string credentialName)
+        {
+            if (String.IsNullOrEmpty(userName))
+            {
+                // TODO: Turn this in to a helper? Requires.NotNullOrEmpty? Code Contracts?
+                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "userName"), "userName");
+            }
+
+            if (String.IsNullOrEmpty(credentialName))
+            {
+                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "credentialName"), "credentialName");
+            }
+
+            var user = UserRepository.GetAll().FirstOrDefault(u => u.Username == userName);
+            if (user == null)
+            {
+                return false;
+            }
+
+            var cred = user.Credentials.FirstOrDefault(c => c.Name == credentialName);
+            if (cred == null)
+            {
+                return false;
+            }
+
+            user.Credentials.Remove(cred);
+            CredentialRepository.DeleteOnCommit(cred);
+
+            UserRepository.CommitChanges();
+
+            // EF should be smart enough to detect that UserRepository.CommitChanges saved everything but just in case we go
+            // to a model where each repo is separately stored for whatever reason, we should call commit changes here too.
+            CredentialRepository.CommitChanges();
+            return true;
         }
 
         private void ChangePasswordInternal(User user, string newPassword)

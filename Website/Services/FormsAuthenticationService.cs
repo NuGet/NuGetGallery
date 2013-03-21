@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 using System.Web.Security;
 
@@ -17,21 +18,22 @@ namespace NuGetGallery
         private const string ForceSSLCookieName = "ForceSSL";
 
         public void SetAuthCookie(
-            string userName,
-            bool createPersistentCookie,
-            IEnumerable<string> roles)
+            User user,
+            bool createPersistentCookie)
         {
+
+
             string formattedRoles = String.Empty;
-            if (roles.AnySafe())
+            if (user.Roles.AnySafe())
             {
-                formattedRoles = String.Join("|", roles);
+                formattedRoles = String.Join("|", user.Roles.Select(r => r.Name));
             }
 
             HttpContext context = HttpContext.Current;
 
             var ticket = new FormsAuthenticationTicket(
                 version: 1,
-                name: userName,
+                name: user.Username,
                 issueDate: DateTime.UtcNow,
                 expiration: DateTime.UtcNow.AddMinutes(30),
                 isPersistent: createPersistentCookie,

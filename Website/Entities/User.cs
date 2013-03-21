@@ -17,6 +17,10 @@ namespace NuGetGallery
             HashedPassword = hashedPassword;
             Messages = new HashSet<EmailMessage>();
             Username = username;
+
+            Messages = new List<EmailMessage>();
+            Roles = new List<Role>();
+            Credentials = new List<Credential>();
         }
 
         public Guid ApiKey { get; set; }
@@ -27,6 +31,7 @@ namespace NuGetGallery
         public virtual ICollection<EmailMessage> Messages { get; set; }
         public string Username { get; set; }
         public virtual ICollection<Role> Roles { get; set; }
+        public virtual ICollection<Credential> Credentials { get; set; }
         public bool EmailAllowed { get; set; }
 
         public bool Confirmed

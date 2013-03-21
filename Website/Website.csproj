@@ -65,7 +65,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\elmah.corelibrary.1.2.2\lib\Elmah.dll</HintPath>
     </Reference>
-    <Reference Include="Elmah.Contrib.Mvc">
+    <Reference Include="Elmah.Contrib.Mvc, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Elmah.Contrib.Mvc.1.0\lib\net40\Elmah.Contrib.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
@@ -163,6 +164,10 @@
     <Reference Include="Recaptcha">
       <HintPath>..\packages\recaptcha.1.0.5.0\lib\.NetFramework 4.0\Recaptcha.dll</HintPath>
     </Reference>
+    <Reference Include="RestSharp, Version=104.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\RestSharp.104.1\lib\net4\RestSharp.dll</HintPath>
+    </Reference>
     <Reference Include="RouteMagic, Version=1.1.3.0, Culture=neutral, PublicKeyToken=84b59be021aa4cee, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\RouteMagic.1.1.3\lib\net40\RouteMagic.dll</HintPath>
@@ -241,6 +246,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebGrease.1.1.0\lib\WebGrease.dll</HintPath>
     </Reference>
+    <Reference Include="WorldDomination.Web.Authentication, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.0.20.0-alpha015\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
+    </Reference>
+    <Reference Include="WorldDomination.Web.Authentication.ExtraProviders, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.ExtraProviders.0.20.0-alpha015\lib\net40\WorldDomination.Web.Authentication.ExtraProviders.dll</HintPath>
+    </Reference>
+    <Reference Include="WorldDomination.Web.Authentication.Mvc, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WorldDomination.Web.Authentication.Mvc.0.20.0-alpha015\lib\net40\WorldDomination.Web.Authentication.Mvc.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiController.generated.cs">
@@ -295,6 +312,7 @@
     <Compile Include="DataServices\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
@@ -309,10 +327,14 @@
     <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
+    <Compile Include="Infrastructure\AuthenticationCallback.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
     <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
+    <Compile Include="Infrastructure\OAuthLinkToken.cs" />
+    <Compile Include="ViewModels\LinkOrCreateViewModel.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
+    <Compile Include="Infrastructure\AntiForgeryExtensions.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadModule.cs" />
@@ -476,6 +498,10 @@
     <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.cs" />
     <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.Designer.cs">
       <DependentUpon>201302282115583_AddMinRequiredVersionColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201303070014559_AddCredentialsTable.cs" />
+    <Compile Include="Migrations\201303070014559_AddCredentialsTable.Designer.cs">
+      <DependentUpon>201303070014559_AddCredentialsTable.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -871,6 +897,8 @@
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
     <Content Include="Content\Images\managePackages.png" />
+    <Content Include="Content\Images\oauth\windowslive\icon.png" />
+    <Content Include="Content\Images\oauth\windowslive\signin.png" />
     <Content Include="Content\Images\treeview\ajax-loader.gif" />
     <Content Include="Content\Images\treeview\file.gif" />
     <Content Include="Content\Images\treeview\folder-closed.gif" />
@@ -1090,6 +1118,8 @@
     <Content Include="Views\Packages\ReportMyPackage.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
+    <Content Include="Views\Authentication\_OAuthLogin.cshtml" />
+    <Content Include="Views\Authentication\LinkOrCreateUser.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />

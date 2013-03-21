@@ -11,9 +11,15 @@ using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 using Ninject;
+using Ninject.Activation;
 using Ninject.Modules;
 using Ninject.Web.Mvc.Filter;
 using NuGetGallery.Infrastructure;
+using WorldDomination.Web.Authentication;
+using WorldDomination.Web.Authentication.Config;
+using WorldDomination.Web.Authentication.ExtraProviders;
+using WorldDomination.Web.Authentication.Mvc;
+using WorldDomination.Web.Authentication.Twitter;
 
 namespace NuGetGallery
 {
@@ -108,6 +114,10 @@ namespace NuGetGallery
 
             Bind<IEntityRepository<PackageStatistics>>()
                 .To<EntityRepository<PackageStatistics>>()
+                .InRequestScope();
+
+            Bind<IEntityRepository<Credential>>()
+                .To<EntityRepository<Credential>>()
                 .InRequestScope();
 
             Bind<IUserService>()
@@ -264,6 +274,29 @@ namespace NuGetGallery
                 .InRequestScope();
             Bind<IPackageVersionsQuery>()
                 .To<PackageVersionsQuery>()
+                .InRequestScope();
+
+            ConfigureAuthentication(configuration);
+        }
+
+        private void ConfigureAuthentication(IConfiguration config)
+        {
+            if (!String.IsNullOrWhiteSpace(config.MicrosoftAccountClientId) && !String.IsNullOrWhiteSpace(config.MicrosoftAccountClientSecret))
+            {
+                Bind<IAuthenticationProvider>()
+                    .ToConstant(new WindowsLiveProvider(
+                            config.MicrosoftAccountClientId,
+                            config.MicrosoftAccountClientSecret,
+                            restClientFactory: null))
+                    .InSingletonScope();
+            }
+
+            Bind<IAuthenticationService>()
+                .To<AuthenticationService>()
+                .InSingletonScope();
+
+            Bind<IAuthenticationCallbackProvider>()
+                .To<AuthenticationCallback>()
                 .InRequestScope();
         }
 

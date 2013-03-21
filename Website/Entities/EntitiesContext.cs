@@ -33,6 +33,7 @@ namespace NuGetGallery
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
+        public IDbSet<Credential> Credentials { get; set; }
 
         public override int SaveChanges()
         {
@@ -60,6 +61,14 @@ namespace NuGetGallery
                 .Map(c => c.ToTable("UserRoles")
                            .MapLeftKey("UserKey")
                            .MapRightKey("RoleKey"));
+
+            modelBuilder.Entity<User>()
+                .HasMany<Credential>(u => u.Credentials)
+                .WithRequired(c => c.User)
+                .HasForeignKey(c => c.UserKey);
+
+            modelBuilder.Entity<Credential>()
+                .HasKey(c => c.Key);
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
