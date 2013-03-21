@@ -1303,13 +1303,90 @@ form .async-upload-progress-advance
 ul#oauth-providers {
     margin: 0;
     padding: 0;
+    margin-top: 2em;
 }
 
 ul#oauth-providers li {
     list-style-type: none;
-    margin: 0;
-    padding: 0;
-    margin-bottom: 0.5em;
+    margin-left: 0;
+}
+
+a.oauth-signin {
+    color: white;
+    border: solid 1px #ddd;
+    margin: 0.25em;
+    padding: 0.75em;
+    display: inline-block;
+    width: 16em;
+}
+
+a.oauth-signin:hover { text-decoration: none; }
+a.oauth-signin:active { text-decoration: none; }
+
+a.oauth-signin-twitter {
+    background-color: #4bace2;
+}
+
+a.oauth-signin-twitter:hover {
+    background-color: #60B6E5;
+}
+
+a.oauth-signin-twitter:active {
+    background-color: #2296D7;
+}
+
+a.oauth-signin-codeplex {
+    background-color: #996EBA;
+}
+
+a.oauth-signin-codeplex:hover {
+    background-color: #ae7dd3;
+}
+
+a.oauth-signin-codeplex:active {
+    background-color: #855fa1;  
+}
+
+a.oauth-signin-github {
+    background-color: #5ba740;
+    background-image: -moz-linear-gradient(#82db63, #5ba740);
+    background-image: -webkit-linear-gradient(#82db63, #5ba740);
+    background-image: linear-gradient(#82db63, #5ba740);
+    background-repeat: repeat-x;
+}
+
+a.oauth-signin-github:hover {
+    background-color: #82db63;
+    background-image: none;
+}
+
+a.oauth-signin-github:active {
+    background-color: #5ba740;
+    background-image: none;
+}
+
+a.oauth-signin-wl:hover {
+    background-color: #0080DF;
+}
+
+a.oauth-signin-wl:active {
+    background-color: #0063AC;
+}
+
+a.oauth-signin-wl {
+    background-color: #0072C6;
+}
+
+a.oauth-signin-wl:hover {
+    background-color: #0080DF;
+    background-image: none;
+    text-decoration: none;
+}
+
+a.oauth-signin-wl:active {
+    background-color: #0063AC;
+    background-image: none;
+    text-decoration: none;
 }
 
 #oauth-credential-list li img {
