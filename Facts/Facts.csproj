@@ -180,7 +180,7 @@
     <Compile Include="Services\ODataRemoveVersionSorterFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
     <Compile Include="Services\UploadFileServiceFacts.cs" />
-    <Compile Include="Services\UsersServiceFacts.cs" />
+    <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="TaskAssert.cs" />
     <Compile Include="TestUtility.cs" />
