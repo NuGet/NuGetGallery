@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -11,19 +12,21 @@ namespace NuGetGallery
 {
     public static class ResultAssert
     {
-        public static void IsRedirectTo(ActionResult result, string expectedUrl)
+        public static RedirectResult IsRedirectTo(ActionResult result, string expectedUrl)
         {
             var redirect = Assert.IsType<RedirectResult>(result);
             Assert.Equal(expectedUrl, redirect.Url);
+            return redirect;
         }
 
-        public static void IsRedirectToRoute(ActionResult result, object expectedRouteData)
+        public static RedirectToRouteResult IsRedirectToRoute(ActionResult result, object expectedRouteData)
         {
             var redirect = Assert.IsType<RedirectToRouteResult>(result);
             DictionariesMatch(new RouteValueDictionary(expectedRouteData), redirect.RouteValues);
+            return redirect;
         }
 
-        public static void IsView(ActionResult result, string viewName = "", string masterName = "", object model = null, object viewData = null)
+        public static ViewResult IsView(ActionResult result, string viewName = "", string masterName = "", object model = null, object viewData = null)
         {
             var view = Assert.IsType<ViewResult>(result);
 
@@ -39,6 +42,7 @@ namespace NuGetGallery
             {
                 Assert.Equal(0, view.ViewData.Count);
             }
+            return view;
         }
 
         private static void DictionariesMatch<K, V>(IDictionary<K, V> expected, IDictionary<K, V> actual)
@@ -54,6 +58,17 @@ namespace NuGetGallery
 
             // Make sure we used all the expected keys (Assert.True lets us provide a message)
             Assert.True(expectedKeys.Count == 0, "Missing keys: " + String.Join(",", expectedKeys));
+        }
+
+        public static void IsStatusCode(ActionResult result, HttpStatusCode code)
+        {
+            IsStatusCode(result, (int)code);
+        }
+
+        public static void IsStatusCode(ActionResult result, int code)
+        {
+            var statusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
+            Assert.Equal(code, statusCodeResult.StatusCode);
         }
     }
 }

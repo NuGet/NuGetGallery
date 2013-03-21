@@ -21,6 +21,13 @@ namespace NuGetGallery
             Assert.Equal(paramName, argNullEx.ParamName);
         }
 
+        public static void ThrowsArgNullOrEmpty(Action<string> act, string paramName)
+        {
+            var message = String.Format(Strings.ParameterCannotBeNullOrEmpty, paramName);
+            ContractAssert.ThrowsArgException(() => act(null), paramName, message);
+            ContractAssert.ThrowsArgException(() => act(String.Empty), paramName, message);
+        }
+
         public static void ThrowsArgException(Action act, string paramName, string message)
         {
             var argEx = Assert.Throws<ArgumentException>(() => act());
