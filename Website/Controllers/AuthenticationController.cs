@@ -1,18 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Net.Mail;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Web;
-using System.Web.Helpers;
 using System.Web.Mvc;
-using System.Web.Security;
-using NuGetGallery.Infrastructure;
-using WorldDomination.Web.Authentication;
-using WorldDomination.Web.Authentication.Mvc;
 
 namespace NuGetGallery
 {

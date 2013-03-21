@@ -16,7 +16,8 @@ namespace NuGetGallery
         public UserService(
             IConfiguration config,
             ICryptographyService crypto,
-            IEntityRepository<User> userRepository) : this()
+            IEntityRepository<User> userRepository,
+            IEntityRepository<Credential> credentialRepository) : this()
         {
             Config = config;
             Crypto = crypto;
@@ -358,9 +359,7 @@ namespace NuGetGallery
 
         private void ChangePasswordInternal(User user, string newPassword)
         {
-            var hashedPassword = _cryptoService.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
             var hashedPassword = Crypto.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
-            var hashedPassword = CryptoService.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
             user.HashedPassword = hashedPassword;
         }

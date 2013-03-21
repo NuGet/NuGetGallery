@@ -163,7 +163,6 @@
     <Compile Include="Commands\DeleteCuratedPackageCommandFacts.cs" />
     <Compile Include="Commands\ModifyCuratedPackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationFacts.cs" />
-    <Compile Include="TestUtils\ContractAssert.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
     <Compile Include="Controllers\CuratedFeedsControllerFacts.cs" />
@@ -181,18 +180,12 @@
     <Compile Include="Infrastructure\LuceneIndexingServiceFacts.cs" />
     <Compile Include="Infrastructure\LuceneSearchServiceFacts.cs" />
     <Compile Include="Infrastructure\NuGetQueryParserFacts.cs" />
-    <Compile Include="MockExtensions.cs" />
-    <Compile Include="Infrastructure\AntiForgeryExtensionsFacts.cs" />
-    <Compile Include="TestUtils\MockExtensions.cs" />
     <Compile Include="PackageCurators\Windows8PackageCuratorFacts.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCuratorFacts.cs" />
     <Compile Include="Packaging\NupkgFacts.cs" />
-    <Compile Include="TestUtils\ModelStateAssert.cs" />
-    <Compile Include="TestUtils\TestCryptoService.cs" />
     <Compile Include="PathToTreeConverterFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequireRemoteHttpsAttributeFacts.cs" />
-    <Compile Include="TestUtils\ResultAssert.cs" />
     <Compile Include="Routing\VersionRouteConstraintFacts.cs" />
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
@@ -207,7 +200,6 @@
     <Compile Include="TestUtils\MockExtensions.cs" />
     <Compile Include="TestUtils\ModelStateAssert.cs" />
     <Compile Include="TestUtils\ResultAssert.cs" />
-    <Compile Include="TestUtils\TaskAssert.cs" />
     <Compile Include="TestUtils\TestCryptoService.cs" />
     <Compile Include="TestUtils\TaskAssert.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />

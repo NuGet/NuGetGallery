@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using Moq;
 using WorldDomination.Web.Authentication;
@@ -11,6 +8,15 @@ using Xunit;
 
 namespace NuGetGallery.Infrastructure
 {
+    public class Andrew
+    {
+        [Fact]
+        public void HasWrittenTestsForWhenUserIsNotConfirmed()
+        {
+            Assert.True(false);
+        }
+    }
+
     public class AuthenticationCallbackFacts
     {
         public class TheConstructor
@@ -166,7 +172,7 @@ namespace NuGetGallery.Infrastructure
                 var httpContext = new Mock<HttpContextBase>().Object;
                 var callback = new TestableAuthenticationCallback();
                 var model = CreateModel(provider: "windowslive", id: "abc123", email: "foo@bar.com", userName: "foobar");
-                var user = new User() { Username = "foobar", Roles = new List<Role>() };
+                var user = new User() { Username = "foobar", Roles = new List<Role>(), EmailAddress = "foo@bar.com" };
 
                 callback.MockUserService
                         .Setup(u => u.FindByCredential("oauth:windowslive", "abc123"))
@@ -190,6 +196,7 @@ namespace NuGetGallery.Infrastructure
                 var user = new User()
                 {
                     Username = "foobar",
+                    EmailAddress = "foo@bar.com",
                     Roles = new List<Role>()
                     {
                         new Role() { Name = "Administrator" },
@@ -217,7 +224,7 @@ namespace NuGetGallery.Infrastructure
                 var httpContext = new Mock<HttpContextBase>().Object;
                 var callback = new TestableAuthenticationCallback();
                 var model = CreateModel(provider: "windowslive", id: "abc123", email: "foo@bar.com", userName: "foobar");
-                var user = new User() { Username = "foobar", Roles = new List<Role>() };
+                var user = new User() { Username = "foobar", Roles = new List<Role>(), EmailAddress = "foo@bar.com" };
 
                 callback.MockUserService
                         .Setup(u => u.FindByCredential("oauth:windowslive", "abc123"))
@@ -242,7 +249,7 @@ namespace NuGetGallery.Infrastructure
                 var callback = new TestableAuthenticationCallback();
                 var model = CreateModel(provider: "windowslive", id: "abc123", email: "foo@bar.com", userName: "foobar");
                 model.RedirectUrl = new Uri("http://hackersrus.com");
-                var user = new User() { Username = "foobar", Roles = new List<Role>() };
+                var user = new User() { Username = "foobar", Roles = new List<Role>(), EmailAddress = "foo@bar.com" };
 
                 callback.MockUserService
                         .Setup(u => u.FindByCredential("oauth:windowslive", "abc123"))
@@ -267,7 +274,7 @@ namespace NuGetGallery.Infrastructure
                 var callback = new TestableAuthenticationCallback();
                 var model = CreateModel(provider: "windowslive", id: "abc123", email: "foo@bar.com", userName: "foobar");
                 model.RedirectUrl = new Uri("/safeplace", UriKind.RelativeOrAbsolute);
-                var user = new User() { Username = "foobar", Roles = new List<Role>() };
+                var user = new User() { Username = "foobar", Roles = new List<Role>(), EmailAddress = "foo@bar.com" };
 
                 callback.MockUserService
                         .Setup(u => u.FindByCredential("oauth:windowslive", "abc123"))

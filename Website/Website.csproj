@@ -245,8 +245,7 @@
     <Reference Include="WebGrease, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebGrease.1.1.0\lib\WebGrease.dll</HintPath>
-    <Reference Include="WorldDomination.Web.Authentication">
-      <HintPath>..\packages\WorldDomination.Web.Authentication.0.17.0\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
+    </Reference>
     <Reference Include="WorldDomination.Web.Authentication, Version=0.20.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WorldDomination.Web.Authentication.0.20.0-alpha015\lib\net40\WorldDomination.Web.Authentication.dll</HintPath>
