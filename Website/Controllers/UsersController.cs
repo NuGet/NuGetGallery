@@ -10,12 +10,14 @@ namespace NuGetGallery
 {
     public partial class UsersController : AppController
     {
-        private readonly ICuratedFeedsByManagerQuery _feedsQuery;
-        private readonly IPrincipal _currentUser;
-        private readonly IMessageService _messageService;
-        private readonly IPackageService _packageService;
-        private readonly IConfiguration _config;
-        private readonly IUserService _userService;
+        public ICuratedFeedsByManagerQuery FeedsQuery { get; protected set; }
+        public IPrincipal CurrentUser { get; protected set; }
+        public IMessageService MessageService { get; protected set; }
+        public IPackageService PackageService { get; protected set; }
+        public IConfiguration Config { get; protected set; }
+        public IUserService UserService { get; protected set; }
+
+        protected UsersController() { }
 
         public UsersController(
             ICuratedFeedsByManagerQuery feedsQuery,
@@ -23,33 +25,33 @@ namespace NuGetGallery
             IPackageService packageService,
             IMessageService messageService,
             IConfiguration config,
-            IPrincipal currentUser)
+            IPrincipal currentUser) : this()
         {
-            _feedsQuery = feedsQuery;
-            _userService = userService;
-            _packageService = packageService;
-            _messageService = messageService;
-            _config = config;
-            _currentUser = currentUser;
+            FeedsQuery = feedsQuery;
+            UserService = userService;
+            PackageService = packageService;
+            MessageService = messageService;
+            Config = config;
+            CurrentUser = currentUser;
         }
 
         [Authorize]
         public virtual ActionResult Account()
         {
-            var user = _userService.FindByUsername(_currentUser.Identity.Name);
-            var curatedFeeds = _feedsQuery.Execute(user.Key);
+            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var curatedFeeds = FeedsQuery.Execute(user.Key);
             return View(
                 new AccountViewModel
                     {
                         ApiKey = user.ApiKey.ToString(),
-                        CuratedFeeds = curatedFeeds.Select(cf => cf.Name),
+                        CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
                     });
         }
 
         [Authorize]
         public virtual ActionResult Edit()
         {
-            var user = _userService.FindByUsername(_currentUser.Identity.Name);
+            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
             var model = new EditProfileViewModel
                 {
                     EmailAddress = user.EmailAddress,
@@ -66,7 +68,7 @@ namespace NuGetGallery
         {
             if (ModelState.IsValid)
             {
-                var user = _userService.FindByUsername(_currentUser.Identity.Name);
+                var user = UserService.FindByUsername(CurrentUser.Identity.Name);
                 if (user == null)
                 {
                     return HttpNotFound();
@@ -75,7 +77,7 @@ namespace NuGetGallery
                 string existingConfirmationToken = user.EmailConfirmationToken;
                 try
                 {
-                    _userService.UpdateProfile(user, profile.EmailAddress, profile.EmailAllowed);
+                    UserService.UpdateProfile(user, profile.EmailAddress, profile.EmailAllowed);
                 }
                 catch (EntityException ex)
                 {
@@ -94,7 +96,7 @@ namespace NuGetGallery
 
                     var confirmationUrl = Url.ConfirmationUrl(
                         MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                    _messageService.SendEmailChangeConfirmationNotice(new MailAddress(profile.EmailAddress, user.Username), confirmationUrl);
+                    MessageService.SendEmailChangeConfirmationNotice(new MailAddress(profile.EmailAddress, user.Username), confirmationUrl);
                 }
 
                 return RedirectToAction(MVC.Users.Account());
@@ -129,7 +131,7 @@ namespace NuGetGallery
             User user;
             try
             {
-                user = _userService.Create(
+                user = UserService.Create(
                     request.Username,
                     request.Password,
                     request.EmailAddress);
@@ -140,12 +142,12 @@ namespace NuGetGallery
                 return View();
             }
 
-            if (_config.ConfirmEmailAddresses)
+            if (Config.ConfirmEmailAddresses)
             {
                 // Passing in scheme to force fully qualified URL
                 var confirmationUrl = Url.ConfirmationUrl(
                     MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                _messageService.SendNewAccountEmail(new MailAddress(request.EmailAddress, user.Username), confirmationUrl);
+                MessageService.SendNewAccountEmail(new MailAddress(request.EmailAddress, user.Username), confirmationUrl);
             }
             return RedirectToAction(MVC.Users.Thanks());
         }
@@ -156,7 +158,7 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
             
-            if (_config.ConfirmEmailAddresses)
+            if (Config.ConfirmEmailAddresses)
             {
                 return View();
             }
@@ -170,8 +172,8 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Packages()
         {
-            var user = _userService.FindByUsername(_currentUser.Identity.Name);
-            var packages = _packageService.FindPackagesByOwner(user);
+            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var packages = PackageService.FindPackagesByOwner(user);
 
             var published = from p in packages
                             group p by p.PackageRegistration.Id;
@@ -193,7 +195,7 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult GenerateApiKey()
         {
-            _userService.GenerateApiKey(_currentUser.Identity.Name);
+            UserService.GenerateApiKey(CurrentUser.Identity.Name);
             return RedirectToAction(MVC.Users.Account());
         }
 
@@ -216,12 +218,12 @@ namespace NuGetGallery
             
             if (ModelState.IsValid)
             {
-                var user = _userService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
+                var user = UserService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
                 if (user != null)
                 {
                     var resetPasswordUrl = Url.ConfirmationUrl(
                         MVC.Users.ResetPassword(), user.Username, user.PasswordResetToken, protocol: Request.Url.Scheme);
-                    _messageService.SendPasswordResetInstructions(user, resetPasswordUrl);
+                    MessageService.SendPasswordResetInstructions(user, resetPasswordUrl);
 
                     TempData["Email"] = user.EmailAddress;
                     return RedirectToAction(MVC.Users.PasswordSent());
@@ -252,12 +254,12 @@ namespace NuGetGallery
             
             if (ModelState.IsValid)
             {
-                var user = _userService.FindByUnconfirmedEmailAddress(model.Email);
+                var user = UserService.FindByUnconfirmedEmailAddress(model.Email);
                 if (user != null && !user.Confirmed)
                 {
                     var confirmationUrl = Url.ConfirmationUrl(
                         MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                    _messageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+                    MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
                     return RedirectToAction(MVC.Users.Thanks());
                 }
                 ModelState.AddModelError("Email", "There was an issue resending your confirmation token.");
@@ -294,7 +296,7 @@ namespace NuGetGallery
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
             
-            ViewBag.ResetTokenValid = _userService.ResetPasswordWithToken(username, token, model.NewPassword);
+            ViewBag.ResetTokenValid = UserService.ResetPasswordWithToken(username, token, model.NewPassword);
 
             if (!ViewBag.ResetTokenValid)
             {
@@ -314,7 +316,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            var user = _userService.FindByUsername(username);
+            var user = UserService.FindByUsername(username);
             if (user == null)
             {
                 return HttpNotFound();
@@ -324,27 +326,27 @@ namespace NuGetGallery
             var model = new EmailConfirmationModel
                 {
                     ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
-                    SuccessfulConfirmation = _userService.ConfirmEmailAddress(user, token)
+                    SuccessfulConfirmation = UserService.ConfirmEmailAddress(user, token)
                 };
 
             // SuccessfulConfirmation is required so that the confirm Action isn't a way to spam people.
             // Change notice not required for new accounts.
             if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
             {
-                _messageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
+                MessageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
             }
             return View(model);
         }
 
         public virtual ActionResult Profiles(string username)
         {
-            var user = _userService.FindByUsername(username);
+            var user = UserService.FindByUsername(username);
             if (user == null)
             {
                 return HttpNotFound();
             }
 
-            var packages = (from p in _packageService.FindPackagesByOwner(user)
+            var packages = (from p in PackageService.FindPackagesByOwner(user)
                             where p.Listed
                             orderby p.Version descending
                             group p by p.PackageRegistration.Id)
@@ -375,7 +377,7 @@ namespace NuGetGallery
         {
             if (ModelState.IsValid)
             {
-                if (!_userService.ChangePassword(_currentUser.Identity.Name, model.OldPassword, model.NewPassword))
+                if (!UserService.ChangePassword(CurrentUser.Identity.Name, model.OldPassword, model.NewPassword))
                 {
                     ModelState.AddModelError(
                         "OldPassword",

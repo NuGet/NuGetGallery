@@ -147,6 +147,7 @@
     <Compile Include="Commands\DeleteCuratedPackageCommandFacts.cs" />
     <Compile Include="Commands\ModifyCuratedPackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationFacts.cs" />
+    <Compile Include="ContractAssert.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
     <Compile Include="Controllers\CuratedFeedsControllerFacts.cs" />
@@ -163,12 +164,14 @@
     <Compile Include="Infrastructure\LuceneIndexingServiceFacts.cs" />
     <Compile Include="Infrastructure\LuceneSearchServiceFacts.cs" />
     <Compile Include="Infrastructure\NuGetQueryParserFacts.cs" />
+    <Compile Include="MockExtensions.cs" />
     <Compile Include="PackageCurators\Windows8PackageCuratorFacts.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCuratorFacts.cs" />
     <Compile Include="Packaging\NupkgFacts.cs" />
     <Compile Include="PathToTreeConverterFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequireRemoteHttpsAttributeFacts.cs" />
+    <Compile Include="ResultAssert.cs" />
     <Compile Include="Routing\VersionRouteConstraintFacts.cs" />
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
@@ -177,7 +180,7 @@
     <Compile Include="Services\ODataRemoveVersionSorterFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
     <Compile Include="Services\UploadFileServiceFacts.cs" />
-    <Compile Include="Services\UsersServiceFacts.cs" />
+    <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="TaskAssert.cs" />
     <Compile Include="TestUtility.cs" />
