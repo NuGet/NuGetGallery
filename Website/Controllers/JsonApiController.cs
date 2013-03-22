@@ -51,6 +51,64 @@ namespace NuGetGallery
             return owners.Union(pending);
         }
 
+        [Authorize]
+        public object TestFavorited(string id)
+        {
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (user == null)
+            {
+                return new { success = false, message = "User not found" };
+            }
+
+            var package = _packageService.FindPackageRegistrationById(id);
+            if (package == null)
+            {
+                return new { success = false, message = "Package not found" };
+            }
+
+            var result = _userService.IsFollowing(user, package);
+            return new {success = true, favorite = result };
+        }
+
+        [Authorize]
+        public object FavoritePackage(string id)
+        {
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (user == null)
+            {
+                return new { success = false, message = "User not found" };
+            }
+
+            var package = _packageService.FindPackageRegistrationById(id);
+            if (package == null)
+            {
+                return new {success = false, message = "Package not found"};
+            }
+
+            _userService.Follow(user, package, saveChanges: true);
+            return new { success = true };
+        }
+
+        [Authorize]
+        public object UnfavoritePackage(string id)
+        {
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (user == null)
+            {
+                return new { success = false, message = "User not found" };
+            }
+
+            var package = _packageService.FindPackageRegistrationById(id);
+            if (package == null)
+            {
+                return new { success = false, message = "Package not found" };
+            }
+
+            _userService.Unfollow(user, package, saveChanges: true);
+            return new { success = true };
+        }
+
+        [Authorize]
         public object AddPackageOwner(string id, string username)
         {
             var package = _packageService.FindPackageRegistrationById(id);

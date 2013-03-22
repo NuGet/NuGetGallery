@@ -6,6 +6,7 @@
         @RenderSection("OpenGraph", required: false)
         <title>NuGet Gallery @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
         @Styles.Render("~/bundles/css")
+        @Styles.Render("~/Content/font-awesome.min.css")
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
         @Scripts.Render("~/bundles/modernizr")
         @ViewHelpers.AnalyticsScript()
@@ -87,6 +88,11 @@
                             &copy; @DateTime.UtcNow.Year Outercurve Foundation.
                         </p>
                         @ViewHelpers.ReleaseTag()
+                    </div>
+                    <div class="footer-acknowledgements">
+                        <p>
+                            Font Awesome by Dave Gandy - http://fortawesome.github.com/Font-Awesome
+                        </p>
                     </div>
                 </footer>
             </div>

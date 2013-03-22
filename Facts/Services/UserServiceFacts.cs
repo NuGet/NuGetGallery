@@ -18,11 +18,13 @@ namespace NuGetGallery
 
             cryptoService = cryptoService ?? new Mock<ICryptographyService>();
             userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
-            
+            var followsRepo = new Mock<IEntityRepository<UserFollowsPackage>>();
+
             var userService = new Mock<UserService>(
                 config.Object,
                 cryptoService.Object,
-                userRepo.Object)
+                userRepo.Object,
+                followsRepo.Object)
             {
                 CallBase = true
             };
@@ -768,12 +770,14 @@ namespace NuGetGallery
             public Mock<ICryptographyService> MockCrypto { get; protected set; }
             public Mock<IConfiguration> MockConfig { get; protected set; }
             public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
+            public Mock<IEntityRepository<UserFollowsPackage>> MockFollowsRepository { get; set; }
 
             public TestableUserService()
             {
-                Crypto = (MockCrypto = new Mock<ICryptographyService>()).Object;
+                CryptoService = (MockCrypto = new Mock<ICryptographyService>()).Object;
                 Config = (MockConfig = new Mock<IConfiguration>()).Object;
                 UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
+                FollowsRepository = (MockFollowsRepository = new Mock<IEntityRepository<UserFollowsPackage>>()).Object;
 
                 // Set ConfirmEmailAddress to a default of true
                 MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);

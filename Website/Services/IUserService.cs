@@ -20,6 +20,8 @@ namespace NuGetGallery
 
         User FindByUsernameOrEmailAddressAndPassword(string usernameOrEmail, string password);
 
+        void Follow(User user, PackageRegistration package, bool saveChanges);
+
         string GenerateApiKey(string username);
 
         bool ConfirmEmailAddress(User user, string token);
@@ -29,5 +31,9 @@ namespace NuGetGallery
         User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes);
 
         bool ResetPasswordWithToken(string username, string token, string newPassword);
+
+        void Unfollow(User user, PackageRegistration package, bool saveChanges);
+
+        bool IsFollowing(User user, PackageRegistration package);
     }
 }

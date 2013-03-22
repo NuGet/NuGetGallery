@@ -552,6 +552,7 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\IEntitiesContext.cs" />
+    <Compile Include="Entities\UserFollowsPackage.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
@@ -735,6 +736,10 @@
     <Compile Include="Migrations\201304020006512_UserLookupOptimization.cs" />
     <Compile Include="Migrations\201304020006512_UserLookupOptimization.Designer.cs">
       <DependentUpon>201304020006512_UserLookupOptimization.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201303222130335_Favorites.cs" />
+    <Compile Include="Migrations\201303222130335_Favorites.Designer.cs">
+      <DependentUpon>201303222130335_Favorites.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />

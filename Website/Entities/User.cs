@@ -67,8 +67,5 @@ namespace NuGetGallery
             EmailConfirmationToken = null;
             UnconfirmedEmailAddress = null;
         }
-
-        // These relationships should only be loaded as needed
-        public virtual ICollection<PackageRegistration> FollowedPackages { get; set; }
     }
 }

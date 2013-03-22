@@ -18,25 +18,69 @@
     <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute(Links.Content.Images.packageDefaultIcon_png))" />
 }
 @section BottomScripts {
+    @* NuGet JSON API *@
+    <script src="@Url.Content("~/json/JsonApi?json")"></script>
+
     @* NuGet Favorite Button *@
-    <script>function favorite() { document.favoriteform.submit(); }</script>
+    <script>
+        $(function() {
+            var input = { id: "$Model.Id" };
+            $mvc.JsonApi.TestFavorited(input).success(function (result) {
+                if (result.favorite) {
+                    $(".favoritebtn").hide();
+                    $(".unfavoritebtn").show();
+                } else {
+                    $(".unfavoritebtn").hide();
+                    $(".favoritebtn").show();
+                }
+            });
+        });
+
+        function favorite() {
+            var input = { id: "@Model.Id" };
+            $mvc.JsonApi.FavoritePackage(input).success(function() {
+                $(".favoritebtn").hide();
+                $(".unfavoritebtn").show();
+            });
+        }
+
+        function unfavorite() {
+            var input = { id: "@Model.Id" };
+            $mvc.JsonApi.UnfavoritePackage(input).success(function() {
+                $(".unfavoritebtn").hide();
+                $(".favoritebtn").show();
+            });
+        }
+    </script>
 
     @* Facebook SDK *@
     <div id="fb-root"></div>
-    <script>(function (d, s, id) {
+    <script> (function(d, s, id) {
         var js, fjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) return;
-        js = d.createElement(s); js.id = id;
-    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
-        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
-    } else {
-        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-    }
+        js = d.createElement(s);
+        js.id = id;
+        @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
+        {
+            @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
+        }
+        else
+        {
+            @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+        }
         fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));</script>
+    }(document, 'script', 'facebook-jssdk')); </script>
 
     @* Twitter SDK *@
-    <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = "//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "twitter-wjs");</script>
+    <script> !function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (!d.getElementById(id)) {
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "//platform.twitter.com/widgets.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }
+    }(document, "script", "twitter-wjs"); </script>
 }
 @section SideColumn {
     <img class="logo" src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src = '@Content.Images.packageDefaultIcon_png';" />
@@ -152,13 +196,18 @@
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
     <div>
-    @* Follow Package *@
-    @using (Html.BeginForm("Favorite", MVC.Packages.Name, FormMethod.Post, new { name = "favoriteform" }))
-    {
-        @Html.AntiForgeryToken()
-        <input type="submit" tabindex="-1" title="\f005" id="favoritesubmit" />
-        <label for="favoritesubmit">Favorite this package</label>
-    }
+        
+        @* Follow Package *@
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a href="javascript:favorite()" class="btn favoritebtn" ><i class=" icon-star-empty" >&nbsp;Favorite this package</i></a>
+            <a href="javascript:unfavorite()" class="btn unfavoritebtn" style="display: none"><i class=" icon-star" >&nbsp;Unfavorite this package</i></a>
+        }
+        @using (Html.BeginForm("Favorite", MVC.Packages.Name, FormMethod.Post, new { name = "favoriteform" }))
+        {
+            @Html.AntiForgeryToken()
+            <input type="submit" style="display: none" tabindex="-1" id="favoritesubmit" />
+        }
 
     </div>
     <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>

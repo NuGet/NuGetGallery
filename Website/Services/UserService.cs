@@ -6,20 +6,23 @@ namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        public ICryptographyService Crypto { get; protected set; }
+        public ICryptographyService CryptoService { get; protected set; }
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
+        public IEntityRepository<UserFollowsPackage> FollowsRepository { get; protected set; }
 
         protected UserService() {}
 
         public UserService(
             IConfiguration config,
-            ICryptographyService crypto,
-            IEntityRepository<User> userRepository) : this()
+            ICryptographyService cryptoService,
+            IEntityRepository<User> userRepository,
+            IEntityRepository<UserFollowsPackage> followsRepository)
         {
             Config = config;
-            Crypto = crypto;
+            CryptoService = cryptoService;
             UserRepository = userRepository;
+            FollowsRepository = followsRepository;
         }
 
         public virtual User Create(
@@ -42,7 +45,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
             }
 
-            var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = CryptoService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
             var newUser = new User(
                 username,
@@ -51,7 +54,7 @@ namespace NuGetGallery
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
                     UnconfirmedEmailAddress = emailAddress,
-                    EmailConfirmationToken = Crypto.GenerateToken(),
+                    EmailConfirmationToken = CryptoService.GenerateToken(),
                     PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 };
 
@@ -81,7 +84,7 @@ namespace NuGetGallery
                     throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
                 }
                 user.UnconfirmedEmailAddress = emailAddress;
-                user.EmailConfirmationToken = Crypto.GenerateToken();
+                user.EmailConfirmationToken = CryptoService.GenerateToken();
             }
 
             user.EmailAllowed = emailAllowed;
@@ -127,7 +130,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (!Crypto.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!CryptoService.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
             {
                 return null;
             }
@@ -147,11 +150,12 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (!Crypto.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!CryptoService.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
             {
                 return null;
             }
-            else if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
+            
+            if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
             {
                 // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
                 ChangePasswordInternal(user, password);
@@ -241,7 +245,7 @@ namespace NuGetGallery
                 return user;
             }
 
-            user.PasswordResetToken = Crypto.GenerateToken();
+            user.PasswordResetToken = CryptoService.GenerateToken();
             user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(tokenExpirationMinutes);
 
             UserRepository.CommitChanges();
@@ -278,9 +282,54 @@ namespace NuGetGallery
 
         private void ChangePasswordInternal(User user, string newPassword)
         {
-            var hashedPassword = Crypto.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = CryptoService.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
             user.HashedPassword = hashedPassword;
+        }
+
+        public void Follow(User user, PackageRegistration package, bool saveChanges)
+        {
+            UserFollowsPackage follow = FollowsRepository.GetAll()
+                .FirstOrDefault(ufp => ufp.UserKey == user.Key && ufp.PackageRegistrationKey == package.Key);
+
+            if (follow == null)
+            {
+                follow = UserFollowsPackage.Create(user, package);
+                FollowsRepository.InsertOnCommit(follow);
+            }
+
+            follow.IsFollowed = true;
+            follow.LastModified = DateTime.UtcNow;
+
+            if (saveChanges)
+            {
+                FollowsRepository.CommitChanges();
+            }
+        }
+
+        public void Unfollow(User user, PackageRegistration package, bool saveChanges)
+        {
+            UserFollowsPackage follow = FollowsRepository.GetAll()
+                .FirstOrDefault(ufp => ufp.UserKey == user.Key && ufp.PackageRegistrationKey == package.Key);
+
+            if (follow == null)
+            {
+                return; // unfollowing something you never followed is a no-op 
+            }
+
+            follow.IsFollowed = false;
+            follow.LastModified = DateTime.UtcNow;
+
+            if (saveChanges)
+            {
+                FollowsRepository.CommitChanges();
+            }
+        }
+
+        public bool IsFollowing(User user, PackageRegistration package)
+        {
+            return FollowsRepository.GetAll()
+                .Any(ufp => ufp.UserKey == user.Key && ufp.PackageRegistrationKey == package.Key);
         }
     }
 }

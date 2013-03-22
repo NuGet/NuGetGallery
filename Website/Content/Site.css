@@ -1278,6 +1278,10 @@ footer#footer div.license {
     font-size: .7em;
 }
 
+.footer-acknowledgements {
+    font-size: .7em
+}
+
 /* async upload */
 form .async-upload-panel
 {
