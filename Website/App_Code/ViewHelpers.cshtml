@@ -147,15 +147,16 @@
         }
         
         @* A little quick-n-dirty code to display the current machine *@
-        @if(Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName)) {
-            @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
-            try {
-                if(RoleEnvironment.IsAvailable) {
-                    <text>You are on @RoleEnvironment.CurrentRoleInstance.Id.</text>
-                }
-            } catch(Exception) {
+        @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
+        try {
+            if(RoleEnvironment.IsAvailable) {
+                <text>You are on @RoleEnvironment.CurrentRoleInstance.Id.</text>
+            } else {
                 <text>You are on @Environment.MachineName.</text>
             }
+        } catch(Exception) {
+            @* Azure SDK not installed so we can't even run RoleEnvironment.IsAvailable. Just use Machine Name *@
+            <text>You are on @Environment.MachineName.</text>
         }
     </p>
 }

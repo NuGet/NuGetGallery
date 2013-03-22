@@ -57,7 +57,7 @@
       </InstanceInputEndpoint>
       <InstanceInputEndpoint name="InstanceDirectSSL" protocol="tcp" localPort="443">
         <AllocatePublicPortFrom>
-          <FixedPortRange min="444" max="445" />
+          <FixedPortRange min="44301" max="44302" />
         </AllocatePublicPortFrom>
       </InstanceInputEndpoint>
     </Endpoints>
