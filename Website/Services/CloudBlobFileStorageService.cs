@@ -134,7 +134,7 @@ namespace NuGetGallery
 
             container = await creationTask;
             _containers[folderName] = container;
-            return _containers[folderName];
+            return container;
         }
 
         private static string GetContentType(string folderName)
