@@ -119,6 +119,12 @@ namespace NuGetGallery
             return url.Action(actionName: "UploadPackage", controllerName: MVC.Packages.Name);
         }
 
+        public static string User(this UrlHelper url, User user)
+        {
+            string result = url.Action(MVC.Users.Profiles(user.Username));
+            return EnsureTrailingSlash(result);
+        }
+
         public static string EditPackage(this UrlHelper url, IPackageVersionModel package)
         {
             return url.Action(MVC.Packages.Edit(package.Id, package.Version));

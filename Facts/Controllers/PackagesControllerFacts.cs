@@ -401,7 +401,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         "Mordor took my finger",
                         It.IsAny<bool>(),
-                        It.IsAny<string>()));
+                        It.IsAny<string>(), TODO));
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -434,7 +434,7 @@ namespace NuGetGallery
                         "GollumWasThere",
                         "Mordor took my finger.",
                         true,
-                        It.IsAny<string>()));
+                        It.IsAny<string>(), TODO));
             }
 
             [Fact]
@@ -448,7 +448,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         "Mordor took my finger",
                         It.IsAny<bool>(),
-                        It.IsAny<string>()));
+                        It.IsAny<string>(), TODO));
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -486,7 +486,7 @@ namespace NuGetGallery
                         "GollumWasThere",
                         It.IsAny<string>(),
                         It.IsAny<bool>(),
-                        It.IsAny<string>()));
+                        It.IsAny<string>(), TODO));
             }
 
             [Fact]

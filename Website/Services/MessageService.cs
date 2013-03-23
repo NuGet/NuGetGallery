@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
+using System.Text;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
@@ -19,44 +20,90 @@ namespace NuGetGallery
             _config = config;
         }
 
-        public void ReportAbuse(MailAddress fromAddress, Package package, string reason, string message,
-                                 bool alreadyContactedOwners, string packageUrl)
+        private string FormatPart(params object[] args)
         {
-            const string subject = "[{0}] Abuse Report for Package '{1}' Version '{2}' (Reason: {3})";
-            string body = @"_User {0} ({1}) reports the <a href=""{8}"">package '{2}' version '{3}'</a> as abusive ({4}). 
-{0} left the following information in the report:_
-
-{5}
-
-_User {7} already contacted the package owners._
-
-_Message sent from {6}_
+            string partTemplate;
+            if (args.Length < 2)
+            {
+                partTemplate = @"_{0}:_
+{1}
 ";
-            body = String.Format(
-                CultureInfo.CurrentCulture,
-                body,
-                fromAddress.DisplayName,
-                fromAddress.Address,
-                package.PackageRegistration.Id,
-                package.Version,
-                reason,
-                message,
-                _config.GalleryOwnerName,
-                alreadyContactedOwners ? "HAS" : "has NOT",
-                packageUrl
-                );
+            }
+            else
+            {
+                partTemplate = @"_{0}:_ 
+{1} - {2}
+";
+            }
+
+            return string.Format(CultureInfo.InvariantCulture, partTemplate, args);
+        }
+
+        public void ReportAbuse(ReportPackageRequest request)
+        {
+            string subject = "[{0}] Support Request for '{1}' version {2} (Reason: {3})";
+            var subjectArgs = new object[4];
+            subjectArgs[0] = _config.GalleryOwnerName;
+            subjectArgs[1] = request.Package.PackageRegistration.Id;
+            subjectArgs[2] = request.Package.Version;
+            subjectArgs[3] = request.Reason;
+            subject = String.Format(CultureInfo.InvariantCulture, subject, subjectArgs);
+
+            var body = new StringBuilder();
+            if (request.RequestingUser != null)
+            {
+                string user = FormatPart(
+                    "User",
+                    request.RequestingUser.Username,
+                    request.Url.User(request.RequestingUser));
+
+                body.Append(user);
+            }
+
+            string email = FormatPart(
+                "Email",
+                request.FromAddress.DisplayName,
+                request.FromAddress.Address);
+            body.Append(email);
+
+            string package = FormatPart(
+                "Package",
+                request.Package.PackageRegistration.Id,
+                request.Url.Package(request.Package.PackageRegistration));
+            body.Append(package);
+
+            string version = FormatPart(
+                "Version",
+                request.Package.Version,
+                request.Url.Package(request.Package));
+            body.Append(version);
+
+            var owners = new StringBuilder(@"_Owners:_");
+            owners.AppendLine();
+            foreach (var owner in request.Package.PackageRegistration.Owners)
+            {
+                owners.AppendFormat(
+                    CultureInfo.InvariantCulture,
+                    "{0} - {1}",
+                    owner.Username,
+                    request.Url.User(owner));
+                owners.AppendLine();
+            }
+            owners.AppendLine();
+            body.Append(owners);
+
+            body.Append(FormatPart("Reason", request.Reason));
+            body.Append(FormatPart(
+                "Has the package owner been contacted?",
+                request.AlreadyContactedOwners ? "Yes" : "No"));
+            body.Append(FormatPart("Message", request.Message));
+            body.AppendFormat(CultureInfo.InvariantCulture, "*Message sent from {0}*", _config.GalleryOwnerName)
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(
-                    CultureInfo.CurrentCulture, subject,
-                    _config.GalleryOwnerName, 
-                    package.PackageRegistration.Id, 
-                    package.Version, 
-                    reason);
-                mailMessage.Body = body;
-                mailMessage.From = fromAddress;
-
+                mailMessage.Subject = subject;
+                mailMessage.Body = body.ToString();
+                mailMessage.From = request.FromAddress;
                 mailMessage.To.Add(_config.GalleryOwnerEmail);
                 SendMessage(mailMessage);
             }
@@ -103,8 +150,7 @@ _Message sent from {6}_
             }
         }
 
-        public void SendContactOwnersMessage(
-            MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl)
+        public void SendContactOwnersMessage(ReportPackageRequest request)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
             string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}'._
