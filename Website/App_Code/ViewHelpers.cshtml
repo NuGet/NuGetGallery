@@ -148,7 +148,7 @@
         
         @* A little quick-n-dirty code to display the current machine *@
         @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
-        try {
+        @try {
             if(RoleEnvironment.IsAvailable) {
                 <text>You are on @RoleEnvironment.CurrentRoleInstance.Id.</text>
             } else {
