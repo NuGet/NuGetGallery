@@ -224,11 +224,11 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                AllowedReasons = 
+                ReasonChoices = 
                 {
-                    ReportPackageReason.ContainsMaliciousCode,
-                    ReportPackageReason.ViolatesALicenseIOwn,
                     ReportPackageReason.IsFraudulent,
+                    ReportPackageReason.ViolatesALicenseIOwn,
+                    ReportPackageReason.ContainsMaliciousCode,
                     ReportPackageReason.HasABug,
                     ReportPackageReason.Other
                 },
@@ -252,6 +252,7 @@ namespace NuGetGallery
                 }
             }
 
+            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action(ActionNames.ReportMyPackage, new {id, version});
             return View(model);
         }
 
@@ -267,7 +268,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
+            // If user hit this url by e.g. constructing it manually but is not the owner, redirect them to ReportAbuse
             if (!package.IsOwner(user))
             {
                 return RedirectToAction(ActionNames.ReportAbuse, new { id, version });
@@ -275,12 +276,12 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                AllowedReasons =
+                ReasonChoices =
                 {
-                    ReportPackageReason.ContainsMaliciousCode,
                     ReportPackageReason.ContainsPrivateAndConfidentialData,
                     ReportPackageReason.PublishedWithWrongVersion,
                     ReportPackageReason.ReleasedInPublicByAccident,
+                    ReportPackageReason.ContainsMaliciousCode,
                     ReportPackageReason.Other
                 },
                 ConfirmedUser = user.Confirmed,
@@ -307,10 +308,11 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            User user = null;
             MailAddress from;
             if (Request.IsAuthenticated)
             {
-                var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+                user = _userService.FindByUsername(HttpContext.User.Identity.Name);
                 from = user.ToMailAddress();
             }
             else
@@ -318,8 +320,17 @@ namespace NuGetGallery
                 from = new MailAddress(reportForm.Email);
             }
 
-            _messageService.ReportAbuse(from, package, reportForm.Reason, reportForm.Message, reportForm.AlreadyContactedOwner, 
-                _config.GetSiteRoot(false) + Url.Package(id, version));
+            _messageService.ReportAbuse(
+                new ReportPackageRequest
+                {
+                    AlreadyContactedOwners = reportForm.AlreadyContactedOwner,
+                    FromAddress = from,
+                    Message = reportForm.Message,
+                    Package = package,
+                    Reason = reportForm.Reason,
+                    RequestingUser = user,
+                    Url = Url
+                });
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
             return RedirectToAction(MVC.Packages.DisplayPackage(id, version));
@@ -345,7 +356,16 @@ namespace NuGetGallery
             var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
             MailAddress from = user.ToMailAddress();
 
-            _messageService.ReportMyPackage(from, package, reportForm.Reason, reportForm.Message, Url.Package(id, version));
+            _messageService.ReportMyPackage(
+                new ReportPackageRequest
+                {
+                    FromAddress = from,
+                    Message = reportForm.Message,
+                    Package = package,
+                    Reason = reportForm.Reason,
+                    RequestingUser = user,
+                    Url = Url
+                });
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
             return RedirectToAction(MVC.Packages.DisplayPackage(id, version));

@@ -23,8 +23,8 @@ namespace NuGetGallery
 
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(connectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("popularity");
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
+            CloudBlobContainer container = blobClient.GetContainerReference("stats");
+            CloudBlockBlob blob = container.GetBlockBlobReference("popularity/" + name);
 
             MemoryStream stream = new MemoryStream();
 
