@@ -1,4 +1,6 @@
-﻿namespace NuGetGallery
+﻿using NuGetGallery.Data.Model;
+
+namespace NuGetGallery
 {
     public class CuratedPackage : IEntity
     {

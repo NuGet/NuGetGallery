@@ -1,8 +1,8 @@
-﻿using System.Data.Entity;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using Ninject;
 
-namespace NuGetGallery
+namespace NuGetGallery.Data
 {
     /// <summary>
     /// Used by EF Migrations to load the Entity Context for migrations and such like.

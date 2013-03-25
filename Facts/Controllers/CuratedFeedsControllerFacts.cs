@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Data.Model;
 using Xunit;
 
 namespace NuGetGallery

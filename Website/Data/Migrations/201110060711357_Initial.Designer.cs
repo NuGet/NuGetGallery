@@ -1,9 +1,5 @@
-using System.Data.Entity.Migrations.Infrastructure;
-
-namespace NuGetGallery.Migrations
+namespace NuGetGallery.Data.Migrations
 {
-    using System.Data.Entity.Migrations;
-
     public partial class Initial : IMigrationMetadata
     {
         string IMigrationMetadata.Id

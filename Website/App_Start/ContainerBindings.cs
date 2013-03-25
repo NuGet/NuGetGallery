@@ -13,6 +13,7 @@ using Microsoft.WindowsAzure.Storage;
 using Ninject;
 using Ninject.Modules;
 using Ninject.Web.Mvc.Filter;
+using NuGetGallery.Data;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
