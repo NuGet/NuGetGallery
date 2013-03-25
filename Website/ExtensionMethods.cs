@@ -14,6 +14,8 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.WebPages;
 using NuGet;
+using NuGetGallery.Data.Model;
+using PackageDependency = NuGetGallery.Data.Model.PackageDependency;
 
 namespace NuGetGallery
 {

@@ -1,9 +1,7 @@
 using System.Data.Entity.Migrations.Infrastructure;
 
-namespace NuGetGallery.Migrations
+namespace NuGetGallery.Data.Migrations
 {
-    using System.Data.Entity.Migrations;
-
     public partial class AddSmtpPassword : IMigrationMetadata
     {
         string IMigrationMetadata.Id

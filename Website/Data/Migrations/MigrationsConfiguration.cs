@@ -1,9 +1,8 @@
-using System;
 using System.Data.Entity.Migrations;
 using System.Linq;
-using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 
-namespace NuGetGallery.Migrations
+namespace NuGetGallery.Data.Migrations
 {
     public class MigrationsConfiguration : DbMigrationsConfiguration<EntitiesContext>
     {

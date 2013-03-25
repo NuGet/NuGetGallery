@@ -1,7 +1,7 @@
-namespace NuGetGallery.Migrations
+using System.Data.Entity.Migrations;
+
+namespace NuGetGallery.Data.Migrations
 {
-    using System.Data.Entity.Migrations;
-    
     public partial class AddNuGetOperation : DbMigration
     {
         public override void Up()

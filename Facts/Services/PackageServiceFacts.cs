@@ -6,6 +6,8 @@ using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Moq;
 using NuGet;
+using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 using Xunit;
 
 namespace NuGetGallery

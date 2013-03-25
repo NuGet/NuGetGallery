@@ -5,6 +5,7 @@ using System.Net.Mail;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

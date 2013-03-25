@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Globalization;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

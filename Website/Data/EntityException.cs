@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace NuGetGallery
+namespace NuGetGallery.Data
 {
     [Serializable]
     public class EntityException : Exception

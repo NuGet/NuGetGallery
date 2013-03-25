@@ -2,7 +2,7 @@ using System;
 using System.Data.Entity.Migrations;
 using System.IO;
 
-namespace NuGetGallery.Migrations
+namespace NuGetGallery.Data.Migrations
 {
     public partial class ExecuteELMAHSql : DbMigration
     {

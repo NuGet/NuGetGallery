@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

@@ -1,6 +1,4 @@
-﻿using NuGetGallery.Data.Model;
-
-namespace NuGetGallery
+﻿namespace NuGetGallery.Data.Model
 {
     public class CuratedPackage : IEntity
     {

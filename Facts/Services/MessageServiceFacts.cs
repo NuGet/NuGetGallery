@@ -2,6 +2,7 @@
 using System.Net.Mail;
 using AnglicanGeek.MarkdownMailer;
 using Moq;
+using NuGetGallery.Data.Model;
 using Xunit;
 
 namespace NuGetGallery

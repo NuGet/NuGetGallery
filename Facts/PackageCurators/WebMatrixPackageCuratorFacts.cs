@@ -3,6 +3,7 @@ using Moq;
 using NuGet;
 using NuGetGallery.Data.Model;
 using Xunit;
+using PackageDependency = NuGetGallery.Data.Model.PackageDependency;
 
 namespace NuGetGallery.PackageCurators
 {

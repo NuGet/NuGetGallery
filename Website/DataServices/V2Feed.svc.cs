@@ -8,6 +8,8 @@ using System.ServiceModel.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGet;
+using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery

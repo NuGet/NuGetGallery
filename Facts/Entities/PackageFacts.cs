@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using NuGetGallery.Data.Model;
+using Xunit;
 
 namespace NuGetGallery.Entities
 {

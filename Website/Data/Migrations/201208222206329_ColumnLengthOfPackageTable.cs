@@ -1,6 +1,6 @@
 using System.Data.Entity.Migrations;
 
-namespace NuGetGallery.Migrations
+namespace NuGetGallery.Data.Migrations
 {
     public partial class ColumnLengthOfPackageTable : DbMigration
     {

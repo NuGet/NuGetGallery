@@ -1,4 +1,4 @@
-﻿namespace NuGetGallery
+﻿namespace NuGetGallery.Data
 {
     public interface IEntity
     {

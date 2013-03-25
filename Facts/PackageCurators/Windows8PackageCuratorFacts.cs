@@ -4,6 +4,7 @@ using NuGet;
 using NuGetGallery.Data.Model;
 using Xunit;
 using Xunit.Extensions;
+using PackageDependency = NuGetGallery.Data.Model.PackageDependency;
 
 namespace NuGetGallery.PackageCurators
 {

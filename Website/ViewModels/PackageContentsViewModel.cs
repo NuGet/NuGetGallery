@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Web.Mvc;
 using NuGet;
+using NuGetGallery.Data.Model;
 using NuGetGallery.ViewModels.PackagePart;
 
 namespace NuGetGallery
