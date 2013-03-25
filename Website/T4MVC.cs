@@ -341,6 +341,8 @@ namespace Links {
                       
         public static readonly string knockout_2_2_1_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/knockout-2.2.1.min.js") ? Url("knockout-2.2.1.min.js") : Url("knockout-2.2.1.js");
                       
+        public static readonly string modernizr_2_0_6_development_only_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/modernizr-2.0.6-development-only.min.js") ? Url("modernizr-2.0.6-development-only.min.js") : Url("modernizr-2.0.6-development-only.js");
+                      
         public static readonly string stats_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/stats.min.js") ? Url("stats.min.js") : Url("stats.js");
                       
         public static readonly string ZeroClipboard_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/ZeroClipboard.min.js") ? Url("ZeroClipboard.min.js") : Url("ZeroClipboard.js");
@@ -353,21 +355,6 @@ namespace Links {
         private const string URLPATH = "~/Content";
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public static class font {
-            private const string URLPATH = "~/Content/font";
-            public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
-            public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
-            public static readonly string fontawesome_webfont_eot = Url("fontawesome-webfont.eot");
-            public static readonly string fontawesome_webfont_svg = Url("fontawesome-webfont.svg");
-            public static readonly string fontawesome_webfont_ttf = Url("fontawesome-webfont.ttf");
-            public static readonly string fontawesome_webfont_woff = Url("fontawesome-webfont.woff");
-            public static readonly string FontAwesome_otf = Url("FontAwesome.otf");
-        }
-    
-        public static readonly string font_awesome_ie7_min_css = Url("font-awesome-ie7.min.css");
-        public static readonly string font_awesome_css = Url("font-awesome.css");
-        public static readonly string font_awesome_min_css = Url("font-awesome.min.css");
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public static class Images {
             private const string URLPATH = "~/Content/Images";

@@ -395,13 +395,7 @@ namespace NuGetGallery
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(
-                        It.IsAny<MailAddress>(),
-                        It.IsAny<Package>(),
-                        It.IsAny<string>(),
-                        "Mordor took my finger",
-                        It.IsAny<bool>(),
-                        It.IsAny<string>(), TODO));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -429,12 +423,12 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 messageService.Verify(
                     s => s.ReportAbuse(
-                        It.Is<MailAddress>(m => m.Address == "frodo@hobbiton.example.com"),
-                        package,
-                        "GollumWasThere",
-                        "Mordor took my finger.",
-                        true,
-                        It.IsAny<string>(), TODO));
+                        It.Is<ReportPackageRequest>(
+                            r => r.FromAddress.Address == "frodo@hobbiton.example.com"
+                                 && r.Package == package
+                                 && r.Reason == "GollumWasThere"
+                                 && r.Message == "Mordor took my finger."
+                                 && r.AlreadyContactedOwners)));
             }
 
             [Fact]
@@ -442,13 +436,7 @@ namespace NuGetGallery
             {
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(
-                        It.IsAny<MailAddress>(),
-                        It.IsAny<Package>(),
-                        It.IsAny<string>(),
-                        "Mordor took my finger",
-                        It.IsAny<bool>(),
-                        It.IsAny<string>(), TODO));
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
                 var package = new Package
                     {
                         PackageRegistration = new PackageRegistration { Id = "mordor" },
@@ -479,14 +467,11 @@ namespace NuGetGallery
                 userService.VerifyAll();
                 messageService.Verify(
                     s => s.ReportAbuse(
-                        It.Is<MailAddress>(
-                            m => m.Address == "frodo@hobbiton.example.com"
-                                 && m.DisplayName == "Frodo"),
-                        package,
-                        "GollumWasThere",
-                        It.IsAny<string>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<string>(), TODO));
+                        It.Is<ReportPackageRequest>(
+                            r => r.Message == "Mordor took my finger"
+                                 && r.FromAddress.Address == "frodo@hobbiton.example.com"
+                                 && r.FromAddress.DisplayName == "Frodo"
+                                 && r.Reason == "GollumWasThere")));
             }
 
             [Fact]
