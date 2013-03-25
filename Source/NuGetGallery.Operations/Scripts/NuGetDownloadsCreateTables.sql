@@ -134,7 +134,7 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Fact_Download_NCI_Downloa
 GO
 
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Fact_Download_NCI_Package_Id')
-	CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Package_Id] ON [dbo].[Fact_Download] ( [Dimension_Package_Id] ) INCLUDE ( [Dimension_Date_Id], [DownloadCount] )
+	CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Package_Id] ON [dbo].[Fact_Download] ( [Dimension_Package_Id] ) INCLUDE ( [Dimension_UserAgent_Id], [Dimension_Date_Id], [Dimension_Operation_Id], [DownloadCount] )
 GO
 
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Fact_Download_NCI_Date_Id')
