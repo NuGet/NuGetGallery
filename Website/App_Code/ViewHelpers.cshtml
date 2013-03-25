@@ -108,7 +108,7 @@
 
 @helper OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true)
 {
-    <a class="owner" href="@url.Action(MVC.Users.Profiles(owner.Username))" title="@owner.Username">
+    <a class="owner" href="@url.User(owner)" title="@owner.Username">
         @if (!String.IsNullOrEmpty(owner.EmailAddress))
         {
             @GravatarImage(owner.EmailAddress, owner.Username, size)
