@@ -320,17 +320,18 @@ namespace NuGetGallery
                 from = new MailAddress(reportForm.Email);
             }
 
-            _messageService.ReportAbuse(
-                new ReportPackageRequest
-                {
-                    AlreadyContactedOwners = reportForm.AlreadyContactedOwner,
-                    FromAddress = from,
-                    Message = reportForm.Message,
-                    Package = package,
-                    Reason = reportForm.Reason,
-                    RequestingUser = user,
-                    Url = Url
-                });
+            var request = new ReportPackageRequest
+            {
+                AlreadyContactedOwners = reportForm.AlreadyContactedOwner,
+                FromAddress = from,
+                Message = reportForm.Message,
+                Package = package,
+                Reason = reportForm.Reason,
+                RequestingUser = user,
+                Url = Url
+            };
+            _messageService.ReportAbuse(request
+                );
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
             return RedirectToAction(MVC.Packages.DisplayPackage(id, version));

@@ -57,7 +57,7 @@ namespace NuGetGallery
             return ret.ToString();
         }
 
-        private string Escape(string s)
+        private static string Escape(string s)
         {
             return s.Replace("{", @"\{\");
         }

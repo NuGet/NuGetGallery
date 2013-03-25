@@ -448,7 +448,7 @@ namespace NuGetGallery
                 httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
                 httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
                 var userService = new Mock<IUserService>();
-                userService.Setup(u => u.FindByUsername("Frodo")).Returns(new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo" });
+                userService.Setup(u => u.FindByUsername("Frodo")).Returns(new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 1 });
                 var controller = CreateController(
                     packageService: packageService,
                     messageService: messageService,
@@ -456,7 +456,7 @@ namespace NuGetGallery
                     httpContext: httpContext);
                 var model = new ReportAbuseViewModel
                     {
-                        Message = "Mordor took my finger.",
+                        Message = "Mordor took my finger",
                         Reason = "GollumWasThere",
                     };
 
