@@ -26,29 +26,38 @@ namespace NuGetGallery
             subject = request.FillIn(subject, _config);
 
             const string userSection = @"
-_User:_
+**User:**
+
 {Username} - {UserUrl}
 ";
 
-            const string emailPackageVersionSection = @"
-_Email:_
+            const string bodyTemplate = @"
+**Email:**
+
 {Name} ({Address})
 
-_Package:_
+**Package:**
+
 {Id} - {PackageUrl}
 
-_Version:_
-{Version} - {VersionUrl}
-";
+**Version:**
 
-            const string reasonMessageSection = @"
-_Reason:_
+{Version} - {VersionUrl}
+
+**Owners:**
+
+{OwnerList}
+
+**Reason:**
+
 {Reason}
 
-_Has the package owner been contacted?:_
+**Has the package owner been contacted?:**
+
 {AlreadyContactedOwners}
 
-_Message:_
+**Message:**
+
 {Message}
 ";
 
@@ -58,25 +67,10 @@ _Message:_
                 body.Append(request.FillIn(userSection, _config));
             }
 
-            body.Append(request.FillIn(emailPackageVersionSection, _config));
+            body.Append(request.FillIn(bodyTemplate, _config));
+            body.AppendFormat(CultureInfo.InvariantCulture, @"
 
-            var owners = new StringBuilder(@"_Owners:_");
-            owners.AppendLine();
-            foreach (var owner in request.Package.PackageRegistration.Owners)
-            {
-                owners.AppendFormat(
-                    CultureInfo.InvariantCulture,
-                    "{0} - {1} - ({2})",
-                    owner.Username,
-                    request.Url.User(owner),
-                    owner.EmailAddress);
-                owners.AppendLine();
-            }
-            owners.AppendLine();
-            body.Append(owners);
-
-            body.Append(request.FillIn(reasonMessageSection, _config));
-            body.AppendFormat(CultureInfo.InvariantCulture, "*Message sent from {0}*", _config.GalleryOwnerName);
+*Message sent from {0}*", _config.GalleryOwnerName);
 
             using (var mailMessage = new MailMessage())
             {
@@ -93,48 +87,41 @@ _Message:_
             string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, _config);
 
-            const string userEmailPackageVersionSection = @"
-_User:_
+            const string bodyTemplate = @"
+**User:**
+
 {Username} - {UserUrl}
 
-_Email:_
+**Email:**
+
 {Name} ({Address})
 
-_Package:_
+**Package:**
+
 {Id} - {PackageUrl}
 
-_Version:_
-{Version} - {VersionUrl}
-";
+**Version:**
 
-            const string reasonMessageSection = @"
-_Reason:_
+{Version} - {VersionUrl}
+
+**Owners:**
+
+{OwnerList}
+
+**Reason:**
+
 {Reason}
 
-_Message:_
+**Message:**
+
 {Message}
 ";
 
             var body = new StringBuilder();
-            body.Append(request.FillIn(userEmailPackageVersionSection, _config));
+            body.Append(request.FillIn(bodyTemplate, _config));
+            body.AppendFormat(CultureInfo.InvariantCulture, @"
 
-            var owners = new StringBuilder(@"_Owners:_");
-            owners.AppendLine();
-            foreach (var owner in request.Package.PackageRegistration.Owners)
-            {
-                owners.AppendFormat(
-                    CultureInfo.InvariantCulture,
-                    "{0} - {1} - ({2})",
-                    owner.Username,
-                    request.Url.User(owner),
-                    owner.EmailAddress);
-                owners.AppendLine();
-            }
-            owners.AppendLine();
-            body.Append(owners);
-
-            body.Append(request.FillIn(reasonMessageSection, _config));
-            body.AppendFormat(CultureInfo.InvariantCulture, "*Message sent from {0}*", _config.GalleryOwnerName);
+*Message sent from {0}*", _config.GalleryOwnerName);
 
             using (var mailMessage = new MailMessage())
             {

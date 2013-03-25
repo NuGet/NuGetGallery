@@ -41,6 +41,7 @@ namespace NuGetGallery
             var mockHttpResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
             mockHttpContext.Setup(httpContext => httpContext.Request).Returns(mockHttpRequest.Object);
             mockHttpContext.Setup(httpContext => httpContext.Response).Returns(mockHttpResponse.Object);
+            mockHttpRequest.Setup(httpRequest => httpRequest.Url).Returns(new Uri("http://unittest.nuget.org/"));
             mockHttpRequest.Setup(httpRequest => httpRequest.ApplicationPath).Returns("http://unittest.nuget.org/");
             mockHttpRequest.Setup(httpRequest => httpRequest.ServerVariables).Returns(new NameValueCollection());
 

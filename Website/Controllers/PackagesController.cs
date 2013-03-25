@@ -226,9 +226,9 @@ namespace NuGetGallery
             {
                 ReasonChoices = 
                 {
-                    ReportPackageReason.ContainsMaliciousCode,
-                    ReportPackageReason.ViolatesALicenseIOwn,
                     ReportPackageReason.IsFraudulent,
+                    ReportPackageReason.ViolatesALicenseIOwn,
+                    ReportPackageReason.ContainsMaliciousCode,
                     ReportPackageReason.HasABug,
                     ReportPackageReason.Other
                 },
@@ -278,10 +278,10 @@ namespace NuGetGallery
             {
                 ReasonChoices =
                 {
-                    ReportPackageReason.ContainsMaliciousCode,
                     ReportPackageReason.ContainsPrivateAndConfidentialData,
                     ReportPackageReason.PublishedWithWrongVersion,
                     ReportPackageReason.ReleasedInPublicByAccident,
+                    ReportPackageReason.ContainsMaliciousCode,
                     ReportPackageReason.Other
                 },
                 ConfirmedUser = user.Confirmed,
