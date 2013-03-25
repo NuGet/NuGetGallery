@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -9,10 +9,9 @@ using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
 using Ninject;
 using Ninject.Modules;
-using Ninject.Web.Mvc.Filter;
+using Ninject.Web.Common;
 using NuGetGallery.Data;
 using NuGetGallery.Data.Model;
 using NuGetGallery.Infrastructure;
@@ -84,8 +83,25 @@ namespace NuGetGallery
                     .InRequestScope();
             }
 
+            Bind<IDbModelManager>()
+                .To<DbModelManager>()
+                .InSingletonScope();
+
+            Bind<IEntitiesContextFactory>()
+                .To<EntitiesContextFactory>()
+                .InSingletonScope();
+
             Bind<IEntitiesContext>()
-                .ToMethod(context => new EntitiesContext(configuration.SqlConnectionString, readOnly: configuration.ReadOnlyMode))
+                .ToMethod(context =>
+                {
+                    var factory = context.Kernel.TryGet<IEntitiesContextFactory>();
+                    Debug.Assert(factory != null);
+                    if (factory == null)
+                    {
+                        throw new ActivationException(Strings.UnableToActivateContextNoFactory);
+                    }
+                    return factory.Create(readOnly: configuration.ReadOnlyMode);
+                })
                 .InRequestScope();
 
             Bind<IEntityRepository<User>>()

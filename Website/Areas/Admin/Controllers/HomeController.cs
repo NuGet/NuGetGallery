@@ -6,9 +6,9 @@ using System.Web.Mvc;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
-    public class HomeController : AdminControllerBase
+    public partial class HomeController : AdminControllerBase
     {
-        public ActionResult Index()
+        public virtual ActionResult Index()
         {
             return View();
         }

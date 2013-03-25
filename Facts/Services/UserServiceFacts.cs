@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using Moq;
+using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 using Xunit;
 
 namespace NuGetGallery
