@@ -181,7 +181,7 @@ namespace NuGetGallery
             [Fact]
             public void WillThrowIfTheUsernameIsAlreadyInUse()
             {
-                var userService = CreateMockUsersService(
+                var userService = CreateMockUserService(
                     setup: u => u.Setup(x => x.FindByUsername("theUsername"))
                                  .Returns(new User()));
 
@@ -197,7 +197,7 @@ namespace NuGetGallery
             [Fact]
             public void WillThrowIfTheEmailAddressIsAlreadyInUse()
             {
-                var userService = CreateMockUsersService(
+                var userService = CreateMockUserService(
                     setup: u => u.Setup(x => x.FindByEmailAddress("theEmailAddress"))
                                  .Returns(new User()));
 
@@ -463,7 +463,7 @@ namespace NuGetGallery
             {
                 var user = new User { ApiKey = Guid.Empty };
                 var userRepo = new Mock<IEntityRepository<User>>();
-                var userService = CreateMockUsersService(
+                var userService = CreateMockUserService(
                     setup: u => u.Setup(x => x.FindByUsername("theUsername"))
                                  .Returns(user),
                     userRepo: userRepo);
@@ -481,7 +481,7 @@ namespace NuGetGallery
             [Fact]
             public void ReturnsNullIfEmailIsNotFound()
             {
-                var userService = CreateMockUsersService(
+                var userService = CreateMockUserService(
                     setup: u => u.Setup(x => x.FindByEmailAddress("email@example.com"))
                                  .Returns((User)null));
 
@@ -495,7 +495,7 @@ namespace NuGetGallery
                 var user = new User { Username = "user" };
                 var cryptoService = new Mock<ICryptographyService>();
                 cryptoService.Setup(s => s.GenerateToken()).Returns("reset-token");
-                var userService = CreateMockUsersService(
+                var userService = CreateMockUserService(
                     setup: u => u.Setup(x => x.FindByEmailAddress("user@example.com"))
                                  .Returns(user),
                     cryptoService: cryptoService);
@@ -509,7 +509,7 @@ namespace NuGetGallery
                 var user = new User { Username = "user", EmailAddress = "confirmed@example.com" };
                 var cryptoService = new Mock<ICryptographyService>();
                 cryptoService.Setup(s => s.GenerateToken()).Returns("reset-token");
-                var userService = CreateMockUsersService(
+                var userService = CreateMockUserService(
                     setup: u => u.Setup(x => x.FindByEmailAddress("email@example.com"))
                                  .Returns(user),
                     cryptoService: cryptoService);
@@ -534,7 +534,7 @@ namespace NuGetGallery
                 };
                 var cryptoService = new Mock<ICryptographyService>();
                 cryptoService.Setup(s => s.GenerateToken()).Throws(new InvalidOperationException("Should not get called"));
-                var userService = CreateMockUsersService(
+                var userService = CreateMockUserService(
                     setup: u => u.Setup(x => x.FindByEmailAddress("user@example.com"))
                                  .Returns(user),
                     cryptoService: cryptoService);
@@ -557,7 +557,7 @@ namespace NuGetGallery
                 };
                 var cryptoService = new Mock<ICryptographyService>();
                 cryptoService.Setup(s => s.GenerateToken()).Returns("reset-token");
-                var userService = CreateMockUsersService(
+                var userService = CreateMockUserService(
                     setup: mockUserService =>
                     {
                         mockUserService
