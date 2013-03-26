@@ -16,7 +16,7 @@
             <ul class="owners">
                 @foreach (var owner in Model.Owners)
                 {
-                    <li><a href="@Url.Action(MVC.Users.Profiles(owner.Username))" title="@owner.Username">@owner.Username</a></li>
+                    <li><a href="@Url.User(owner)" title="@owner.Username">@owner.Username</a></li>
                 }
             </ul>
         </header>
