@@ -94,6 +94,41 @@ namespace NuGetGallery.FunctionalTests
             return logonPostRequest;
         }
 
+        /// <summary>
+        /// Returns the POST WebRequest for logon with appropriate form parameters set.
+        /// Individual WebTests can use this.
+        /// </summary>
+        /// <returns></returns>
+        public static WebTestRequest GetUploadPostRequestForPackage(WebTest test,string packageFullPath)
+        {
+            WebTestRequest uploadPostRequest = new WebTestRequest(UrlHelper.UploadPageUrl);
+            uploadPostRequest.Method = "POST";
+            uploadPostRequest.ExpectedResponseUrl = UrlHelper.VerifyUploadPageUrl;
+            FormPostHttpBody uploadPostBody = new FormPostHttpBody();
+            uploadPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+            uploadPostBody.FormPostParameters.Add(new FileUploadParameter("UploadFile", packageFullPath, "application/x-zip-compressed", true));
+            uploadPostRequest.Body = uploadPostBody;
+            return uploadPostRequest;
+        }
+
+        /// <summary>
+        /// Returns the POST WebRequest for logon with appropriate form parameters set.
+        /// Individual WebTests can use this.
+        /// </summary>
+        /// <returns></returns>
+        public static WebTestRequest GetVerifyPackagePostRequestForPackage(WebTest test, string packageId, string packageVersion)
+        {
+            WebTestRequest verifyUploadPostRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
+            verifyUploadPostRequest.Method = "POST";
+            verifyUploadPostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId) + "/" + packageVersion;
+            FormPostHttpBody verifyUploadPostRequestBody = new FormPostHttpBody();
+            verifyUploadPostRequestBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+            verifyUploadPostRequestBody.FormPostParameters.Add("Listed", "true");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Listed", test.Context["$HIDDEN1.Listed"].ToString());
+            verifyUploadPostRequest.Body = verifyUploadPostRequestBody;
+            return verifyUploadPostRequest;
+        }
+
         #endregion WebRequestBaseMethods
 
         #region AssertMethods
@@ -110,9 +145,13 @@ namespace NuGetGallery.FunctionalTests
             {
                 packageId = DateTime.Now.Ticks.ToString();
             }
-            string packageFullPath = CmdLineHelper.CreatePackage(packageId, version);
+            string packageFullPath = PackageCreationHelper.CreatePackage(packageId, version);
+            string standardOutput = string.Empty;
+            string standardError = string.Empty;
             int exitCode = CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
             Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream");
+            Console.WriteLine(standardOutput);
+            Console.WriteLine(standardError);
             Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl), "Package {0} is not found in the site {1} after uploading.", packageId, UrlHelper.V2FeedRootUrl);
 
             //Delete package from local disk so once it gets uploaded
