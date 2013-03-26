@@ -39,31 +39,18 @@ namespace NuGetGallery.FunctionalTests
 
             // The API key is part of the nuget.config file that is present under the solution dir.
             string packageId = DateTime.Now.Ticks.ToString();
-            string packageFullPath = CmdLineHelper.CreatePackage(packageId);            
+            string packageFullPath = PackageCreationHelper.CreatePackage(packageId);
 
-            WebTestRequest uploadPostRequest = new WebTestRequest(UrlHelper.UploadPageUrl);
-            uploadPostRequest.Method = "POST";
-            uploadPostRequest.ExpectedResponseUrl = UrlHelper.VerifyUploadPageUrl;
-            FormPostHttpBody uploadPostBody = new FormPostHttpBody();
-            uploadPostBody.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
-            uploadPostBody.FormPostParameters.Add(new FileUploadParameter("UploadFile", packageFullPath, "application/x-zip-compressed", true));
-            uploadPostRequest.Body = uploadPostBody;
+            WebTestRequest uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(this, packageFullPath);
             yield return uploadPostRequest;
             uploadPostRequest = null;
 
             WebTestRequest verifyUploadRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
             verifyUploadRequest.ExtractValues += new EventHandler<ExtractionEventArgs>(defaultExtractionRule.Extract);
             yield return verifyUploadRequest;
-            verifyUploadRequest = null;                     
+            verifyUploadRequest = null;
 
-            WebTestRequest verifyUploadPostRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
-            verifyUploadPostRequest.Method = "POST";
-            verifyUploadPostRequest.ExpectedResponseUrl = UrlHelper.GetPackagePageUrl(packageId)+ "/1.0.0";
-            FormPostHttpBody verifyUploadPostRequestBody = new FormPostHttpBody();
-            verifyUploadPostRequestBody.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
-            verifyUploadPostRequestBody.FormPostParameters.Add("Listed", "true");
-            verifyUploadPostRequestBody.FormPostParameters.Add("Listed", this.Context["$HIDDEN1.Listed"].ToString());
-            verifyUploadPostRequest.Body = verifyUploadPostRequestBody;         
+            WebTestRequest verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0");              
             yield return verifyUploadPostRequest;
             verifyUploadPostRequest = null;      
         }
