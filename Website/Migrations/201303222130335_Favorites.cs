@@ -6,10 +6,6 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            DropForeignKey("UserFollowedPackages", "UserKey", "Users");
-            DropForeignKey("UserFollowedPackages", "PackageRegistrationKey", "PackageRegistrations");
-            DropIndex("UserFollowedPackages", new[] { "UserKey" });
-            DropIndex("UserFollowedPackages", new[] { "PackageRegistrationKey" });
             CreateTable(
                 "UserFollowsPackages",
                 c => new
@@ -26,30 +22,15 @@ namespace NuGetGallery.Migrations
                 .ForeignKey("PackageRegistrations", t => t.PackageRegistrationKey, cascadeDelete: true)
                 .Index(t => t.UserKey)
                 .Index(t => t.PackageRegistrationKey);
-            
-            DropTable("UserFollowedPackages");
         }
         
         public override void Down()
         {
-            CreateTable(
-                "UserFollowedPackages",
-                c => new
-                    {
-                        UserKey = c.Int(nullable: false),
-                        PackageRegistrationKey = c.Int(nullable: false),
-                    })
-                .PrimaryKey(t => new { t.UserKey, t.PackageRegistrationKey });
-            
             DropIndex("UserFollowsPackages", new[] { "PackageRegistrationKey" });
             DropIndex("UserFollowsPackages", new[] { "UserKey" });
             DropForeignKey("UserFollowsPackages", "PackageRegistrationKey", "PackageRegistrations");
             DropForeignKey("UserFollowsPackages", "UserKey", "Users");
             DropTable("UserFollowsPackages");
-            CreateIndex("UserFollowedPackages", "PackageRegistrationKey");
-            CreateIndex("UserFollowedPackages", "UserKey");
-            AddForeignKey("UserFollowedPackages", "PackageRegistrationKey", "PackageRegistrations", "Key", cascadeDelete: true);
-            AddForeignKey("UserFollowedPackages", "UserKey", "Users", "Key", cascadeDelete: true);
         }
     }
 }
