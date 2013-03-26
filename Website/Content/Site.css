@@ -1484,7 +1484,6 @@ input:focus ~ .field-validation-error ~ .field-hint-message
     font-weight: 500;
     margin: 0 10px 0 0;
     text-decoration: none;
-    width: 100px;
 }
 
     .form input[type="submit"]:hover
@@ -1660,4 +1659,17 @@ form .async-upload-progress-advance
     height: 15px;
     display: block;
     background-color: green;
+}
+
+/* Database migrations Admin Page */
+table.migration-table {
+    width: 100%
+}
+
+table.migration-table .name-column {
+    width: 40%
+}
+
+table.migration-table .created-column {
+    width: 20%
 }

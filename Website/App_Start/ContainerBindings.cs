@@ -24,6 +24,8 @@ namespace NuGetGallery
         public override void Load()
         {
             var configuration = new Configuration();
+            Bind<Func<IKernel>>()
+                .ToConstant(new Func<IKernel>(() => Container.Kernel));
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
             Bind<PoliteCaptcha.IConfigurationSource>()
@@ -85,6 +87,14 @@ namespace NuGetGallery
 
             Bind<IDbModelManager>()
                 .To<DbModelManager>()
+                .InSingletonScope();
+
+            Bind<IDbModelFactory>()
+                .To<DbModelFactory>()
+                .InSingletonScope();
+
+            Bind<IDatabaseVersioningService>()
+                .To<DatabaseVersioningService>()
                 .InSingletonScope();
 
             Bind<IEntitiesContextFactory>()

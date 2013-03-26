@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.Reflection;
+using System.Threading;
 using System.Web;
 using System.Web.DynamicData;
 using System.Web.Routing;
@@ -12,16 +13,35 @@ using NuGetGallery.Data;
 
 namespace NuGetGallery.Areas.Admin.DynamicData
 {
-    public class Registration
+    public class DynamicDataManager
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = "Although this type is mutable, we use it as immutable in our code.")]
-        public static readonly MetaModel DefaultModel = new MetaModel() { DynamicDataFolderVirtualPath = "~/Areas/Admin/DynamicData" };
+        private static MetaModel _defaultModel;
+        public static MetaModel DefaultModel { get { return _defaultModel; } }
 
+        private static DynamicDataRoute _route;
+        
         public static void Register(RouteCollection routes, string root, IConfiguration configuration, IEntitiesContextFactory contextFactory)
         {
+            // This route must come first to prevent some other route from the site to take over
+            _route = new DynamicDataRoute(root + "/{table}/{action}")
+            {
+                Constraints = new RouteValueDictionary(new { action = "List|Details|Edit|Insert" }),
+            };
+            LoadModel(contextFactory);
+            routes.Insert(0, _route);
+
+            routes.MapPageRoute(
+                "dd_default",
+                root,
+                "~/Areas/Admin/DynamicData/Default.aspx");
+        }
+
+        public static void LoadModel(IEntitiesContextFactory contextFactory)
+        {
+            var model = new MetaModel() { DynamicDataFolderVirtualPath = "~/Areas/Admin/DynamicData" };
             try
             {
-                DefaultModel.RegisterContext(
+                model.RegisterContext(
                     new EFCodeFirstDataModelProvider(
                         () => contextFactory.Create(readOnly: false)), // DB Admins do not need to respect read-only mode.
                         configuration: new ContextConfiguration { ScaffoldAllTables = true });
@@ -37,19 +57,8 @@ namespace NuGetGallery.Areas.Admin.DynamicData
                 return;
             }
 
-            // This route must come first to prevent some other route from the site to take over
-            routes.Insert(
-                0,
-                new DynamicDataRoute(root + "/{table}/{action}")
-                {
-                    Constraints = new RouteValueDictionary(new { action = "List|Details|Edit|Insert" }),
-                    Model = DefaultModel
-                });
-
-            routes.MapPageRoute(
-                "dd_default",
-                root,
-                "~/Areas/Admin/DynamicData/Default.aspx");
+            _route.Model = model;
+            Interlocked.Exchange(ref _defaultModel, model);
         }
 
         private static void QuietlyLogException(Exception e)

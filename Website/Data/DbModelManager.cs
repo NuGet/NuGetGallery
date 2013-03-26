@@ -13,7 +13,7 @@ namespace NuGetGallery.Data
         private DbCompiledModel _model;
 
         public IDbModelFactory ModelFactory { get; protected set; }
-
+        
         protected DbModelManager()
         {
         }
@@ -44,6 +44,12 @@ namespace NuGetGallery.Data
         {
             // Atomically replace the current model with the new one
             Interlocked.Exchange(ref _model, model);
+        }
+
+        public void RebuildModel()
+        {
+            var newModel = ModelFactory.CreateModel();
+            ReplaceCurrentModel(newModel);
         }
     }
 }

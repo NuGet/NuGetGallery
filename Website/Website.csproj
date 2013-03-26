@@ -39,6 +39,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -127,12 +128,6 @@
     </Reference>
     <Reference Include="Microsoft.WindowsFabric.Data.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAzure.Caching.1.7.0.0\lib\net35-full\Microsoft.WindowsFabric.Data.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="MiniProfiler">
-      <HintPath>..\packages\MiniProfiler.2.0.0-rc1\lib\net40\MiniProfiler.dll</HintPath>
-    </Reference>
-    <Reference Include="MiniProfiler.EntityFramework">
-      <HintPath>..\packages\MiniProfiler.EF.2.0.1-rc1\lib\net40\MiniProfiler.EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="MvcHaack.Ajax">
       <HintPath>..\packages\MvcHaack.Ajax.MVC4.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
@@ -251,17 +246,22 @@
     <Compile Include="Admin.HomeController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Admin.MigrationsController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Admin.SharedController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="App_Start\NinjectWebCommon.cs" />
     <Compile Include="App_Start\PackageStoreType.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
     <Compile Include="Areas\Admin\Controllers\HomeController.cs" />
+    <Compile Include="Areas\Admin\Controllers\MigrationsController.cs" />
+    <Compile Include="Areas\Admin\ViewModels\MigrationListViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\MigrationViewModel.cs" />
     <Compile Include="AuthenticationController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -310,16 +310,18 @@
     <Compile Include="DataServices\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Data\DatabaseVersioningService.cs" />
     <Compile Include="Data\DbModelFactory.cs" />
     <Compile Include="Data\DbModelManager.cs" />
     <Compile Include="Data\EntitiesContextFactory.cs" />
     <Compile Include="Data\IDbModelFactory.cs" />
     <Compile Include="Data\IDbModelManager.cs" />
     <Compile Include="Data\IEntitiesContextFactory.cs" />
+    <Compile Include="Data\Migrations\MigrationUtils.cs" />
     <Compile Include="Data\Model\CuratedFeed.cs" />
     <Compile Include="Data\Model\CuratedPackage.cs" />
     <Compile Include="Data\Model\GallerySetting.cs" />
-    <Compile Include="Data\Model\IEntitiesContext.cs" />
+    <Compile Include="Data\IEntitiesContext.cs" />
     <Compile Include="Data\Model\PackageFramework.cs" />
     <Compile Include="Data\ReadOnlyModeException.cs" />
     <Compile Include="Data\RequiresMigrationAttribute.cs" />
@@ -334,6 +336,7 @@
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
     <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
+    <Compile Include="Infrastructure\DatabaseVersion.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
@@ -525,7 +528,7 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
-    <Compile Include="Services\IDatabaseVersioningService.cs" />
+    <Compile Include="Data\IDatabaseVersioningService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />
@@ -809,7 +812,7 @@
     <Compile Include="Areas\Admin\DynamicData\PageTemplates\List.aspx.designer.cs">
       <DependentUpon>List.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\DynamicData\Registration.cs" />
+    <Compile Include="Areas\Admin\DynamicData\DynamicDataManager.cs" />
     <Compile Include="Areas\Admin\DynamicData\Site.master.cs">
       <DependentUpon>Site.master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -1100,6 +1103,8 @@
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Admin\Views\Migrations\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Migrations\_MigrationList.cshtml" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>

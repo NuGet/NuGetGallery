@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Web;
 using NuGetGallery.Data.Model;
-using NuGetGallery.Services;
 
 namespace NuGetGallery.Data
 {
@@ -37,18 +33,27 @@ namespace NuGetGallery.Data
 
         public DbCompiledModel CreateModel()
         {
+            // Ensure we're at the minimum allowed migration version
+            if (VersioningService != null)
+            {
+                VersioningService.UpdateToMinimum();
+            }
+
             var modelBuilder = new DbModelBuilder(DbModelBuilderVersion.Latest);
 
             // Load the entities in to the model
             var entities = from t in typeof(DbModelFactory).Assembly.GetExportedTypes()
-                           where t.Namespace.Equals(typeof(User).Namespace, StringComparison.Ordinal)
+                           where String.Equals(t.Namespace, typeof(User).Namespace, StringComparison.Ordinal)
                            select t;
             foreach (var entityType in entities)
             {
                 object config = EntityMethod.MakeGenericMethod(entityType).Invoke(modelBuilder, new object[0]);
 
-                // Now configure this entity
-                ConfigureEntityMethod.MakeGenericMethod(entityType).Invoke(this, new[] { config });
+                // Now configure this entity based on the versioning service, if present
+                if (VersioningService != null)
+                {
+                    ConfigureEntityMethod.MakeGenericMethod(entityType).Invoke(this, new[] {config});
+                }
             }
 
             ConfigureBaseModel(modelBuilder);
@@ -74,7 +79,7 @@ namespace NuGetGallery.Data
 
         private void ConfigureEntityProperty<TEntity, TProperty>(dynamic config, PropertyInfo property)
         {
-            var param = Expression.Parameter(typeof(TProperty));
+            var param = Expression.Parameter(typeof(TEntity));
             var expr =
                 Expression.Lambda<Func<TEntity, TProperty>>(
                     Expression.Property(param, property),

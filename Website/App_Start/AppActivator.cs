@@ -18,8 +18,6 @@ using NuGetGallery.Data.Migrations;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
-using StackExchange.Profiling;
-using StackExchange.Profiling.MVCHelpers;
 using WebActivator;
 using WebBackgrounder;
 
@@ -37,7 +35,6 @@ namespace NuGetGallery
         public static void PreStart()
         {
             NinjectPreStart();
-            MiniProfilerPreStart();
             ElmahPreStart();
         }
 
@@ -47,8 +44,7 @@ namespace NuGetGallery
             var config = Container.Kernel.Get<IConfiguration>();
             var contextFactory = Container.Kernel.Get<IEntitiesContextFactory>();
 
-            MiniProfilerPostStart();
-            DbMigratorPostStart();
+            EntityFrameworkPostStart();
             BackgroundJobsPostStart(config, contextFactory);
             AppPostStart();
             BundlingPostStart();
@@ -127,32 +123,10 @@ namespace NuGetGallery
             _jobManager.Dispose();
         }
 
-        private static void DbMigratorPostStart()
+        private static void EntityFrameworkPostStart()
         {
-            // After upgrading to EF 4.3 and MiniProfile 1.9, there is a bug that causes several 
-            // 'Invalid object name 'dbo.__MigrationHistory' to be thrown when the database is first created; 
-            // it seems these can safely be ignored, and the database will still be created.
-
-            // To make app startup not directly depend on the database,
-            // we set the migrations to run when the database is first used, instead of doing it up-front.
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext, MigrationsConfiguration>());
-        }
-
-        private static void MiniProfilerPreStart()
-        {
-            MiniProfilerEF.Initialize();
-            DynamicModuleUtility.RegisterModule(typeof(MiniProfilerStartupModule));
-            GlobalFilters.Filters.Add(new ProfilingActionFilter());
-        }
-
-        private static void MiniProfilerPostStart()
-        {
-            var copy = ViewEngines.Engines.ToList();
-            ViewEngines.Engines.Clear();
-            foreach (var item in copy)
-            {
-                ViewEngines.Engines.Add(new ProfilingViewEngine(item));
-            }
+            // Only initialize the database to the last migration that expected automatic migrations.
+            Database.SetInitializer<EntitiesContext>(null);
         }
 
         private static void NinjectPreStart()
@@ -165,45 +139,6 @@ namespace NuGetGallery
         private static void NinjectStop()
         {
             NinjectBootstrapper.ShutDown();
-        }
-
-        private class MiniProfilerStartupModule : IHttpModule
-        {
-            public void Init(HttpApplication context)
-            {
-                context.BeginRequest += (sender, e) => MiniProfiler.Start();
-
-                context.AuthorizeRequest += (sender, e) =>
-                                                {
-                                                    bool stopProfiling;
-                                                    var httpContext = HttpContext.Current;
-
-                                                    if (httpContext == null)
-                                                    {
-                                                        stopProfiling = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        // Temporarily removing until we figure out the hammering of request we saw.
-                                                        //var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
-                                                        var requestIsLocal = httpContext.Request.IsLocal;
-
-                                                        //stopProfiling = !userCanProfile && !requestIsLocal
-                                                        stopProfiling = !requestIsLocal;
-                                                    }
-
-                                                    if (stopProfiling)
-                                                    {
-                                                        MiniProfiler.Stop(true);
-                                                    }
-                                                };
-
-                context.EndRequest += (sender, e) => MiniProfiler.Stop();
-            }
-
-            public void Dispose()
-            {
-            }
         }
     }
 }

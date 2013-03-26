@@ -8,7 +8,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            IList visibleTables = Registration.DefaultModel.VisibleTables;
+            IList visibleTables = DynamicDataManager.DefaultModel.VisibleTables;
             if (visibleTables.Count == 0)
             {
                 throw new InvalidOperationException(

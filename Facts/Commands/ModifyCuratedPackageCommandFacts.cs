@@ -1,5 +1,6 @@
 ﻿using System;
 using Moq;
+using NuGetGallery.Data;
 using NuGetGallery.Data.Model;
 using Xunit;
 

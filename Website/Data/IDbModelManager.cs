@@ -11,5 +11,6 @@ namespace NuGetGallery.Data
     {
         DbCompiledModel GetCurrentModel();
         void ReplaceCurrentModel(DbCompiledModel model);
+        void RebuildModel();
     }
 }

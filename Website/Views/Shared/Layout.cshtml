@@ -1,5 +1,4 @@
-﻿@using StackExchange.Profiling
-<!DOCTYPE html> 
+﻿<!DOCTYPE html> 
 <html lang="en" class="static "> 
     <head>
         <meta charset="utf-8" />
@@ -9,7 +8,6 @@
         @Styles.Render("~/bundles/css")
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
         @Scripts.Render("~/bundles/modernizr")
-        @MiniProfiler.RenderIncludes()
         @ViewHelpers.AnalyticsScript()
         @RenderSection("TopScripts", required: false)
     </head>

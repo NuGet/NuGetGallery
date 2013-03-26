@@ -7,6 +7,21 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Data
 {
+    public class EntitiesContextMigrationFactory : IDbContextFactory<EntitiesContext>
+    {
+        public EntitiesContext Create()
+        {
+            // Create an Entities context for migrations
+            var modelFactory = new DbModelFactory(null);
+#pragma warning disable 618
+            return new EntitiesContext(
+                Container.Kernel.Get<IConfiguration>().SqlConnectionString,
+                modelFactory.CreateModel(),
+                readOnly: false);
+#pragma warning restore 618
+        }
+    }
+
     public class EntitiesContext : DbContext, IEntitiesContext
     {
         [Obsolete("Stop! If you're constructing a context manually, you're probably doing something wrong. Use Ninject or IEntityContextFactory.")]

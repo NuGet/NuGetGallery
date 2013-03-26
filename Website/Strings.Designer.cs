@@ -115,6 +115,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid EntityFramework migration id. Expected string in the format of &apos;ID_Name&apos;.
+        /// </summary>
+        public static string InvalidEntityFrameworkMigrationId {
+            get {
+                return ResourceManager.GetString("InvalidEntityFrameworkMigrationId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
         public static string NuGetPackagePropertyTooLong {
