@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGetGallery
 {
     public class PreviousNextPagerViewModel<T> : IPreviousNextPager
     {
         public PreviousNextPagerViewModel(
-            IEnumerable<T> items,
+            IList<T> items,
             int pageIndex,
             int totalPages,
             Func<int, string> url)
@@ -19,7 +20,7 @@ namespace NuGetGallery
             PreviousPageUrl = url(pageNumber - 1);
         }
 
-        public IEnumerable<T> Items { get; private set; }
+        public IList<T> Items { get; private set; }
 
         public bool HasNextPage { get; private set; }
         public bool HasPreviousPage { get; private set; }

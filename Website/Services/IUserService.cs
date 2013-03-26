@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -35,5 +37,7 @@ namespace NuGetGallery
         void Unfollow(User user, PackageRegistration package, bool saveChanges);
 
         bool IsFollowing(User user, PackageRegistration package);
+
+        IEnumerable<Package> GetFollowedPackagesInSet(User user, IEnumerable<Package> packageVersions);
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -207,6 +209,29 @@ namespace NuGetGallery
                 Url,
                 prerelease);
 
+            if (Request.IsAuthenticated)
+            {
+                try
+                {
+                    User user = _userService.FindByUsername(GetIdentity().Name);
+                    var followedPackages = _userService.GetFollowedPackagesInSet(user, packageVersions);
+                    var pvlist = packageVersions.ToList();
+                    for (int i = 0; i < viewModel.Items.Count(); i++)
+                    {
+                        Debug.Assert(viewModel.Items[i].Id == pvlist[i].PackageRegistration.Id, "list orders do not match");
+                        viewModel.Items[i].IsFollowed = followedPackages.Contains(pvlist[i]);
+                    }
+                }
+                catch (DataException e)
+                {
+                    QuietLog.LogHandledException(e);
+                }
+                catch (SqlException e)
+                {
+                    QuietLog.LogHandledException(e);
+                }
+            }
+
             ViewBag.SearchTerm = q;
 
             return View(viewModel);
@@ -238,7 +263,7 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+                var user = _userService.FindByUsername(GetIdentity().Name);
 
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
                 if (package.IsOwner(user))

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 
@@ -330,6 +331,24 @@ namespace NuGetGallery
         {
             return FollowsRepository.GetAll()
                 .Any(ufp => ufp.UserKey == user.Key && ufp.PackageRegistrationKey == package.Key);
+        }
+
+        public IEnumerable<Package> GetFollowedPackagesInSet(User user, IEnumerable<Package> packages)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            int[] keys = packages.Select(p => p.PackageRegistrationKey).ToArray();
+            var follows = _followsRepository
+                .GetAll()
+                .Where(ufp =>
+                       ufp.UserKey == user.Key && keys.Contains(ufp.PackageRegistrationKey));
+
+            var filteredKeys = new HashSet<int>(follows.Select(ufp => ufp.PackageRegistrationKey));
+
+            return packages.Where(p => filteredKeys.Contains(p.PackageRegistrationKey)).ToArray();
         }
     }
 }

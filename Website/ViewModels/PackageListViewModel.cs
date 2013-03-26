@@ -16,10 +16,12 @@ namespace NuGetGallery
             UrlHelper url,
             bool includePrerelease)
         {
-            // TODO: Implement actual sorting
-            IEnumerable<ListPackageItemViewModel> items = 
-                packages.ToList()
-                        .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
+            IList<ListPackageItemViewModel> items;
+            using (MiniProfiler.Current.Step("Querying and mapping packages to list"))
+            {
+                items = packages.ToList()
+                    .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false)).ToList();
+            }
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = totalCount;
@@ -42,7 +44,7 @@ namespace NuGetGallery
 
         public int FirstResultIndex { get; set; }
 
-        public IEnumerable<ListPackageItemViewModel> Items { get; private set; }
+        public IList<ListPackageItemViewModel> Items { get; private set; }
 
         public int LastResultIndex { get; set; }
 

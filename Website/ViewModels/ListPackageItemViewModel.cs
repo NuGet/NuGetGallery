@@ -24,6 +24,7 @@ namespace NuGetGallery
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public string MinClientVersion { get; set; }
+        public bool IsFollowed { get; set; }
 
         public bool UseVersion
         {
