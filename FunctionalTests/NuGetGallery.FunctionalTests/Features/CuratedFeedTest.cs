@@ -30,7 +30,7 @@ namespace NuGetGallery.FunctionalTests.Features
         public void AddPackageToWindows8CuratedFeed()
         {
              string packageId = testContextInstance.TestName + DateTime.Now.Ticks.ToString();
-             string packageFullPath = CmdLineHelper.CreateWindows8CuratedPackage(packageId);
+             string packageFullPath = PackageCreationHelper.CreateWindows8CuratedPackage(packageId);
              int exitCode = CmdLineHelper.UploadPackage(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
              Assert.IsTrue((exitCode == 0), "The package upload via Nuget.exe didnt suceed properly. Check the logs to see the process error and output stream");
             //check if the package is present in windows 8 feed.
