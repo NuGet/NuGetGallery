@@ -16,6 +16,12 @@
 
 ## Running tests locally :
 
+   * The tests pick up the test email account, password and mail server from the environment variables "TestAccountName", "TestAccountPassword" and "TestEmailServerHost" respectively.
+     Make sure that these variables are set to appropriate values before running tests. Also execute the Nuget.exe SetAPI command to set the API keys for the test account which you would be using.
+     A script file which does these pre-req steps can be found @ http://sharepoint/sites/nuget/Internal%20Documents/FunctionalTests/TestRunSetupScript.cmd.
+     Folks inside microsoft corpnet shall copy it locally to "FunctionalTests\Scripts" folder and run it.    
+
+
    * Execute "RunTests.cmd" from the scripts folder to run all tests. [this would run all happy path tests which doesn’t require read-only mode or SQL to be down).
      RunTests.cmd takes an input parameter to set the Gallery Url to point to.
   
