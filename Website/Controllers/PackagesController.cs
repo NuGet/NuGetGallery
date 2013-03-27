@@ -268,7 +268,7 @@ namespace NuGetGallery
             }
 
             // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
-            if (!package.IsOwner(user))
+            if (!(HttpContext.User.IsInRole(Constants.AdminRoleName) || package.IsOwner(user)))
             {
                 return RedirectToAction(ActionNames.ReportAbuse, new { id, version });
             }
