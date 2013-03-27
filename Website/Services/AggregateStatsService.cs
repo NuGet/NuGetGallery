@@ -5,16 +5,18 @@ namespace NuGetGallery
 {
     public class AggregateStatsService : IAggregateStatsService
     {
-        readonly IConfiguration configuration;
+        private readonly IConfiguration _configuration;
+        private readonly IEntitiesContextFactory _contextFactory;
 
-        public AggregateStatsService(IConfiguration configuration)
+        public AggregateStatsService(IConfiguration configuration, IEntitiesContextFactory contextFactory)
         {
-            this.configuration = configuration;
+            _configuration = configuration;
+            _contextFactory = contextFactory;
         }
 
         public AggregateStats GetAggregateStats()
         {
-            using (var dbContext = new EntitiesContext(configuration.SqlConnectionString, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
+            using (var dbContext = _contextFactory.Create(readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
             {
                 var database = dbContext.Database;
                 using (var command = database.Connection.CreateCommand())

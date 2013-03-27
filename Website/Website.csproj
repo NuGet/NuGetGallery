@@ -38,6 +38,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -68,10 +70,9 @@
     <Reference Include="Elmah.Contrib.Mvc">
       <HintPath>..\packages\Elmah.Contrib.Mvc.1.0\lib\net40\Elmah.Contrib.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.4.3.1\lib\net40\EntityFramework.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net">
       <HintPath>..\packages\Lucene.Net.2.9.2.2\lib\net40\Lucene.Net.dll</HintPath>
@@ -128,23 +129,22 @@
     <Reference Include="Microsoft.WindowsFabric.Data.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WindowsAzure.Caching.1.7.0.0\lib\net35-full\Microsoft.WindowsFabric.Data.Common.dll</HintPath>
     </Reference>
-    <Reference Include="MiniProfiler">
-      <HintPath>..\packages\MiniProfiler.2.0.0-rc1\lib\net40\MiniProfiler.dll</HintPath>
-    </Reference>
-    <Reference Include="MiniProfiler.EntityFramework">
-      <HintPath>..\packages\MiniProfiler.EF.2.0.1-rc1\lib\net40\MiniProfiler.EntityFramework.dll</HintPath>
-    </Reference>
     <Reference Include="MvcHaack.Ajax">
       <HintPath>..\packages\MvcHaack.Ajax.MVC4.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Ninject">
-      <HintPath>..\packages\Ninject.2.2.1.4\lib\net40-Full\Ninject.dll</HintPath>
+    <Reference Include="Ninject, Version=3.0.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
     </Reference>
-    <Reference Include="Ninject.Web.Mvc">
-      <HintPath>..\packages\Ninject.MVC3.2.2.2.0\lib\net40-Full\Ninject.Web.Mvc.dll</HintPath>
+    <Reference Include="Ninject.Web.Common">
+      <HintPath>..\packages\Ninject.Web.Common.3.0.0.7\lib\net45-full\Ninject.Web.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Ninject.Web.Mvc, Version=3.0.0.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Ninject.MVC3.3.0.0.6\lib\net45-full\Ninject.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Core, Version=2.3.40314.95, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -226,9 +226,9 @@
       <HintPath>..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="WebActivator, Version=1.4.4.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="WebActivator, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WebActivator.1.4.4\lib\net40\WebActivator.dll</HintPath>
+      <HintPath>..\packages\WebActivator.1.5\lib\net40\WebActivator.dll</HintPath>
     </Reference>
     <Reference Include="WebBackgrounder">
       <HintPath>..\packages\WebBackgrounder.0.2.0\lib\net40\WebBackgrounder.dll</HintPath>
@@ -243,10 +243,25 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Admin.HomeController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Admin.MigrationsController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Admin.SharedController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="App_Start\PackageStoreType.cs" />
+    <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
+    <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
+    <Compile Include="Areas\Admin\Controllers\HomeController.cs" />
+    <Compile Include="Areas\Admin\Controllers\MigrationsController.cs" />
+    <Compile Include="Areas\Admin\ViewModels\MigrationListViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\MigrationViewModel.cs" />
     <Compile Include="AuthenticationController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -295,12 +310,21 @@
     <Compile Include="DataServices\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Data\DatabaseVersioningService.cs" />
+    <Compile Include="Data\DbModelFactory.cs" />
+    <Compile Include="Data\DbModelManager.cs" />
+    <Compile Include="Data\EntitiesContextFactory.cs" />
+    <Compile Include="Data\IDbModelFactory.cs" />
+    <Compile Include="Data\IDbModelManager.cs" />
+    <Compile Include="Data\IEntitiesContextFactory.cs" />
+    <Compile Include="Data\Migrations\MigrationUtils.cs" />
     <Compile Include="Data\Model\CuratedFeed.cs" />
     <Compile Include="Data\Model\CuratedPackage.cs" />
     <Compile Include="Data\Model\GallerySetting.cs" />
-    <Compile Include="Data\Model\IEntitiesContext.cs" />
+    <Compile Include="Data\IEntitiesContext.cs" />
     <Compile Include="Data\Model\PackageFramework.cs" />
     <Compile Include="Data\ReadOnlyModeException.cs" />
+    <Compile Include="Data\RequiresMigrationAttribute.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
@@ -312,6 +336,7 @@
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
     <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
+    <Compile Include="Infrastructure\DatabaseVersion.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
@@ -503,6 +528,7 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
+    <Compile Include="Data\IDatabaseVersioningService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />
@@ -569,229 +595,229 @@
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
-    <Compile Include="DynamicData\Content\GridViewPager.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx.cs">
       <DependentUpon>GridViewPager.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\Content\GridViewPager.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx.designer.cs">
       <DependentUpon>GridViewPager.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\Default.aspx.cs">
+    <Compile Include="Areas\Admin\DynamicData\Default.aspx.cs">
       <DependentUpon>Default.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\Default.aspx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\Default.aspx.designer.cs">
       <DependentUpon>Default.aspx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\EntityTemplates\Default.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default.ascx.cs">
       <DependentUpon>Default.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\EntityTemplates\Default.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default.ascx.designer.cs">
       <DependentUpon>Default.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\EntityTemplates\Default_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default_Edit.ascx.cs">
       <DependentUpon>Default_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\EntityTemplates\Default_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default_Edit.ascx.designer.cs">
       <DependentUpon>Default_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\EntityTemplates\Default_Insert.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default_Insert.ascx.cs">
       <DependentUpon>Default_Insert.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\EntityTemplates\Default_Insert.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\EntityTemplates\Default_Insert.ascx.designer.cs">
       <DependentUpon>Default_Insert.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Boolean.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Boolean.ascx.cs">
       <DependentUpon>Boolean.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Boolean.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Boolean.ascx.designer.cs">
       <DependentUpon>Boolean.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Boolean_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Boolean_Edit.ascx.cs">
       <DependentUpon>Boolean_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Boolean_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Boolean_Edit.ascx.designer.cs">
       <DependentUpon>Boolean_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Children.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Children.ascx.cs">
       <DependentUpon>Children.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Children.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Children.ascx.designer.cs">
       <DependentUpon>Children.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Children_Insert.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Children_Insert.ascx.cs">
       <DependentUpon>Children_Insert.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Children_Insert.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Children_Insert.ascx.designer.cs">
       <DependentUpon>Children_Insert.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\DateTime.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\DateTime.ascx.cs">
       <DependentUpon>DateTime.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\DateTime.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\DateTime.ascx.designer.cs">
       <DependentUpon>DateTime.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\DateTime_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\DateTime_Edit.ascx.cs">
       <DependentUpon>DateTime_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\DateTime_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\DateTime_Edit.ascx.designer.cs">
       <DependentUpon>DateTime_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Decimal_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Decimal_Edit.ascx.cs">
       <DependentUpon>Decimal_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Decimal_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Decimal_Edit.ascx.designer.cs">
       <DependentUpon>Decimal_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\EmailAddress.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\EmailAddress.ascx.cs">
       <DependentUpon>EmailAddress.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\EmailAddress.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\EmailAddress.ascx.designer.cs">
       <DependentUpon>EmailAddress.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Enumeration.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration.ascx.cs">
       <DependentUpon>Enumeration.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Enumeration.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration.ascx.designer.cs">
       <DependentUpon>Enumeration.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Enumeration_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration_Edit.ascx.cs">
       <DependentUpon>Enumeration_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Enumeration_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration_Edit.ascx.designer.cs">
       <DependentUpon>Enumeration_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\ForeignKey.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey.ascx.cs">
       <DependentUpon>ForeignKey.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\ForeignKey.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey.ascx.designer.cs">
       <DependentUpon>ForeignKey.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\ForeignKey_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey_Edit.ascx.cs">
       <DependentUpon>ForeignKey_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\ForeignKey_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey_Edit.ascx.designer.cs">
       <DependentUpon>ForeignKey_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Integer_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Integer_Edit.ascx.cs">
       <DependentUpon>Integer_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Integer_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Integer_Edit.ascx.designer.cs">
       <DependentUpon>Integer_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\ManyToMany.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany.ascx.cs">
       <DependentUpon>ManyToMany.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\ManyToMany.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany.ascx.designer.cs">
       <DependentUpon>ManyToMany.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\ManyToMany_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany_Edit.ascx.cs">
       <DependentUpon>ManyToMany_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\ManyToMany_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany_Edit.ascx.designer.cs">
       <DependentUpon>ManyToMany_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\MultilineText_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\MultilineText_Edit.ascx.cs">
       <DependentUpon>MultilineText_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\MultilineText_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\MultilineText_Edit.ascx.designer.cs">
       <DependentUpon>MultilineText_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Text.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Text.ascx.cs">
       <DependentUpon>Text.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Text.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Text.ascx.designer.cs">
       <DependentUpon>Text.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Text_Edit.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Text_Edit.ascx.cs">
       <DependentUpon>Text_Edit.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Text_Edit.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Text_Edit.ascx.designer.cs">
       <DependentUpon>Text_Edit.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Url.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url.ascx.cs">
       <DependentUpon>Url.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\FieldTemplates\Url.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url.ascx.designer.cs">
       <DependentUpon>Url.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\Filters\Boolean.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\Filters\Boolean.ascx.cs">
       <DependentUpon>Boolean.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\Filters\Boolean.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\Filters\Boolean.ascx.designer.cs">
       <DependentUpon>Boolean.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\Filters\Enumeration.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\Filters\Enumeration.ascx.cs">
       <DependentUpon>Enumeration.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\Filters\Enumeration.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\Filters\Enumeration.ascx.designer.cs">
       <DependentUpon>Enumeration.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\Filters\ForeignKey.ascx.cs">
+    <Compile Include="Areas\Admin\DynamicData\Filters\ForeignKey.ascx.cs">
       <DependentUpon>ForeignKey.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\Filters\ForeignKey.ascx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\Filters\ForeignKey.ascx.designer.cs">
       <DependentUpon>ForeignKey.ascx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\PageTemplates\Details.aspx.cs">
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Details.aspx.cs">
       <DependentUpon>Details.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\PageTemplates\Details.aspx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Details.aspx.designer.cs">
       <DependentUpon>Details.aspx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\PageTemplates\Edit.aspx.cs">
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Edit.aspx.cs">
       <DependentUpon>Edit.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\PageTemplates\Edit.aspx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Edit.aspx.designer.cs">
       <DependentUpon>Edit.aspx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\PageTemplates\Insert.aspx.cs">
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx.cs">
       <DependentUpon>Insert.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\PageTemplates\Insert.aspx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx.designer.cs">
       <DependentUpon>Insert.aspx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\PageTemplates\List.aspx.cs">
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\List.aspx.cs">
       <DependentUpon>List.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\PageTemplates\List.aspx.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\PageTemplates\List.aspx.designer.cs">
       <DependentUpon>List.aspx</DependentUpon>
     </Compile>
-    <Compile Include="DynamicData\Registration.cs" />
-    <Compile Include="DynamicData\Site.master.cs">
+    <Compile Include="Areas\Admin\DynamicData\DynamicDataManager.cs" />
+    <Compile Include="Areas\Admin\DynamicData\Site.master.cs">
       <DependentUpon>Site.master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="DynamicData\Site.master.designer.cs">
+    <Compile Include="Areas\Admin\DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
     <Compile Include="Data\Model\PackageOwnerRequest.cs" />
@@ -938,45 +964,45 @@
     <Content Include="DataServices\V2CuratedFeed.svc" />
     <Content Include="DataServices\V1Feed.svc" />
     <Content Include="DataServices\V2Feed.svc" />
-    <Content Include="DynamicData\Content\GridViewPager.ascx" />
-    <Content Include="DynamicData\Content\Images\Back.gif" />
-    <Content Include="DynamicData\Content\Images\header_back.gif" />
-    <Content Include="DynamicData\Content\Images\PgFirst.gif" />
-    <Content Include="DynamicData\Content\Images\PgLast.gif" />
-    <Content Include="DynamicData\Content\Images\PgNext.gif" />
-    <Content Include="DynamicData\Content\Images\PgPrev.gif" />
-    <Content Include="DynamicData\Content\Images\plus.gif" />
-    <Content Include="DynamicData\Default.aspx" />
-    <Content Include="DynamicData\EntityTemplates\Default.ascx" />
-    <Content Include="DynamicData\EntityTemplates\Default_Edit.ascx" />
-    <Content Include="DynamicData\EntityTemplates\Default_Insert.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Boolean.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Boolean_Edit.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Children.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Children_Insert.ascx" />
-    <Content Include="DynamicData\FieldTemplates\DateTime.ascx" />
-    <Content Include="DynamicData\FieldTemplates\DateTime_Edit.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Decimal_Edit.ascx" />
-    <Content Include="DynamicData\FieldTemplates\EmailAddress.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Enumeration.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Enumeration_Edit.ascx" />
-    <Content Include="DynamicData\FieldTemplates\ForeignKey.ascx" />
-    <Content Include="DynamicData\FieldTemplates\ForeignKey_Edit.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Integer_Edit.ascx" />
-    <Content Include="DynamicData\FieldTemplates\ManyToMany.ascx" />
-    <Content Include="DynamicData\FieldTemplates\ManyToMany_Edit.ascx" />
-    <Content Include="DynamicData\FieldTemplates\MultilineText_Edit.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Text.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Text_Edit.ascx" />
-    <Content Include="DynamicData\FieldTemplates\Url.ascx" />
-    <Content Include="DynamicData\Filters\Boolean.ascx" />
-    <Content Include="DynamicData\Filters\Enumeration.ascx" />
-    <Content Include="DynamicData\Filters\ForeignKey.ascx" />
-    <Content Include="DynamicData\PageTemplates\Details.aspx" />
-    <Content Include="DynamicData\PageTemplates\Edit.aspx" />
-    <Content Include="DynamicData\PageTemplates\Insert.aspx" />
-    <Content Include="DynamicData\PageTemplates\List.aspx" />
-    <Content Include="DynamicData\Site.css" />
+    <Content Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\Back.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\header_back.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\PgFirst.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\PgLast.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\PgNext.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\PgPrev.gif" />
+    <Content Include="Areas\Admin\DynamicData\Content\Images\plus.gif" />
+    <Content Include="Areas\Admin\DynamicData\Default.aspx" />
+    <Content Include="Areas\Admin\DynamicData\EntityTemplates\Default.ascx" />
+    <Content Include="Areas\Admin\DynamicData\EntityTemplates\Default_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\EntityTemplates\Default_Insert.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Boolean.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Boolean_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Children.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Children_Insert.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\DateTime.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\DateTime_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Decimal_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\EmailAddress.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Enumeration_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\ForeignKey_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Integer_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\ManyToMany_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\MultilineText_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Text.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Text_Edit.ascx" />
+    <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url.ascx" />
+    <Content Include="Areas\Admin\DynamicData\Filters\Boolean.ascx" />
+    <Content Include="Areas\Admin\DynamicData\Filters\Enumeration.ascx" />
+    <Content Include="Areas\Admin\DynamicData\Filters\ForeignKey.ascx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\Details.aspx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\Edit.aspx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx" />
+    <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
+    <Content Include="Areas\Admin\DynamicData\Site.css" />
     <Content Include="Errors\Error.html" />
     <Content Include="favicon.ico" />
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
@@ -1067,13 +1093,18 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DynamicData\web.config" />
-    <Content Include="DynamicData\Site.master" />
+    <Content Include="Areas\Admin\DynamicData\web.config" />
+    <Content Include="Areas\Admin\DynamicData\Site.master" />
     <Content Include="Diagnostics.wadcfg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
     <Content Include="Errors\ReadOnlyMode.cshtml" />
+    <Content Include="Areas\Admin\Views\Web.config" />
+    <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Admin\Views\Migrations\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Migrations\_MigrationList.cshtml" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
@@ -1092,7 +1123,9 @@
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DynamicData\CustomPages\" />
+    <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
+    <Folder Include="Areas\Admin\Models\" />
+    <Folder Include="Areas\Admin\Views\Shared\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

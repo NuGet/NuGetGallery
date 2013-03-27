@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Web.Mvc;
 using NuGetGallery.Data.Model;
-using StackExchange.Profiling;
 
 namespace NuGetGallery
 {
@@ -20,11 +19,8 @@ namespace NuGetGallery
         {
             // TODO: Implement actual sorting
             IEnumerable<ListPackageItemViewModel> items;
-            using (MiniProfiler.Current.Step("Querying and mapping packages to list"))
-            {
-                items = packages.ToList()
-                    .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
-            }
+            items = packages.ToList()
+                .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = totalCount;

@@ -1,5 +1,6 @@
 using System;
 using Ninject;
+using Ninject.Web.Mvc;
 
 namespace NuGetGallery
 {

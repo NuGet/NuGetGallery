@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGetGallery.Data;
 using Xunit;
 
 namespace NuGetGallery
@@ -28,6 +29,13 @@ namespace NuGetGallery
             Assert.Equal(
                 message + Environment.NewLine + String.Format("Parameter name: {0}", paramName),
                 argEx.Message);
+        }
+
+        public static void ThrowsArgNullOrEmpty(Action<string> act, string paramName)
+        {
+            var message = String.Format(Strings.ArgumentCannotBeNullOrEmpty, paramName);
+            ThrowsArgException(() => act(String.Empty), paramName, message);
+            ThrowsArgException(() => act(null), paramName, message);
         }
     }
 }
