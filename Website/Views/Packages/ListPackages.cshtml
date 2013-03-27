@@ -80,5 +80,46 @@
             });
         });
     </script>
+
+    @* NuGet Favorite Button *@
+    <script>
+        $(function() {
+            var input = "{ ids: [" +
+                @foreach (var item in Model.Items)
+                {
+                    <text>@(item) + ", "</text>
+                }
+            "] }";
+        };
+        $mvc.JsonApi.TestFavorites(input).success(function(result) {
+            $.each(result.favorites)
+            {
+                
+            }
+            if (result.favorite) {
+                $(".favoritebtn").hide();
+                $(".unfavoritebtn").show();
+            } else {
+                $(".unfavoritebtn").hide();
+                $(".favoritebtn").show();
+            }
+        });
+
+            function favorite() {
+            var input = { id: "@Model.Id" };
+            $mvc.JsonApi.FavoritePackage(input).success(function () {
+            $(".favoritebtn").hide();
+            $(".unfavoritebtn").show();
+        });
+        }
+
+            function unfavorite() {
+            var input = { id: "@Model.Id" };
+            $mvc.JsonApi.UnfavoritePackage(input).success(function () {
+            $(".unfavoritebtn").hide();
+            $(".favoritebtn").show();
+        });
+        }
+    </script>
 }
 

@@ -4,7 +4,18 @@
     <div class="side">
         <a href="@Url.Package(Model)" title="View more about @Model.Title">
             <img src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_50x50_png)" alt="@Model.Id icon" onerror="this.src = '@Content.Images.packageDefaultIcon_50x50_png';" />
-        </a>
+        </a><br/>
+        @if (User.Identity.IsAuthenticated)
+        {
+            if (Model.IsFollowed)
+            {
+                <a href="javascript:unfavorite(@Model.Id)" class="btn unfavoritebtn" id="@("unfavorite-"+Model.Id)" title="Unfavorite this package"><i class=" icon-star" ></i></a>
+            }
+            else
+            {
+                <a href="javascript:favorite(@Model.Id)" class="btn favoritebtn" id="@("favorite-"+Model.Id)" title="Favorite this package"><i class=" icon-star-empty" ></i></a>
+            }
+        }
     </div>
     <div class="main">
         <header>

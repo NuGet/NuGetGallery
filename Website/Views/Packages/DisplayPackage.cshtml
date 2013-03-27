@@ -24,8 +24,8 @@
     @* NuGet Favorite Button *@
     <script>
         $(function() {
-            var input = { id: "$Model.Id" };
-            $mvc.JsonApi.TestFavorited(input).success(function (result) {
+            var input = { id: "@Model.Id" };
+            $mvc.JsonApi.TestFavorite(input).success(function (result) {
                 if (result.favorite) {
                     $(".favoritebtn").hide();
                     $(".unfavoritebtn").show();
@@ -195,20 +195,17 @@
     { 
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
-    <div>
-        
+    <div style="min-height: 20px; display: block">
         @* Follow Package *@
         @if (User.Identity.IsAuthenticated)
         {
-            <a href="javascript:favorite()" class="btn favoritebtn" ><i class=" icon-star-empty" >&nbsp;Favorite this package</i></a>
-            <a href="javascript:unfavorite()" class="btn unfavoritebtn" style="display: none"><i class=" icon-star" >&nbsp;Unfavorite this package</i></a>
+            <a href="javascript:favorite()" class="btn favoritebtn" style="display: none"><i class=" icon-star-empty" >&nbsp;Click to favorite this package</i></a>
+            <a href="javascript:unfavorite()" class="btn unfavoritebtn" style="display: none"><i class=" icon-star" >&nbsp;You have favorited this package</i></a>
         }
-        @using (Html.BeginForm("Favorite", MVC.Packages.Name, FormMethod.Post, new { name = "favoriteform" }))
+        else
         {
-            @Html.AntiForgeryToken()
-            <input type="submit" style="display: none" tabindex="-1" id="favoritesubmit" />
+            <a href="@Url.Action(MVC.Authentication.LogOn(returnUrl: Request.RawUrl))"><i class=" icon-star-empty" >&nbsp;Log in to favorite this package</i></a>
         }
-
     </div>
     <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
     <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>

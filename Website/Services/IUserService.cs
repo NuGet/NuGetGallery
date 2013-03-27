@@ -38,6 +38,6 @@ namespace NuGetGallery
 
         bool IsFollowing(User user, PackageRegistration package);
 
-        IEnumerable<Package> GetFollowedPackagesInSet(User user, IEnumerable<Package> packageVersions);
+        IEnumerable<string> GetFollowedPackageIdsInSet(User user, IEnumerable<string> packageIds);
     }
 }

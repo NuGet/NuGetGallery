@@ -209,29 +209,6 @@ namespace NuGetGallery
                 Url,
                 prerelease);
 
-            if (Request.IsAuthenticated)
-            {
-                try
-                {
-                    User user = _userService.FindByUsername(GetIdentity().Name);
-                    var followedPackages = _userService.GetFollowedPackagesInSet(user, packageVersions);
-                    var pvlist = packageVersions.ToList();
-                    for (int i = 0; i < viewModel.Items.Count(); i++)
-                    {
-                        Debug.Assert(viewModel.Items[i].Id == pvlist[i].PackageRegistration.Id, "list orders do not match");
-                        viewModel.Items[i].IsFollowed = followedPackages.Contains(pvlist[i]);
-                    }
-                }
-                catch (DataException e)
-                {
-                    QuietLog.LogHandledException(e);
-                }
-                catch (SqlException e)
-                {
-                    QuietLog.LogHandledException(e);
-                }
-            }
-
             ViewBag.SearchTerm = q;
 
             return View(viewModel);

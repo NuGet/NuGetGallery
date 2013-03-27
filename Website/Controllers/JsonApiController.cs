@@ -52,7 +52,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public object TestFavorited(string id)
+        public object TestFavorite(string id)
         {
             var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
             if (user == null)
@@ -67,7 +67,20 @@ namespace NuGetGallery
             }
 
             var result = _userService.IsFollowing(user, package);
-            return new {success = true, favorite = result };
+            return new { success = true, favorite = result };
+        }
+
+        [Authorize]
+        public object TestFavorites(string[] ids)
+        {
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (user == null)
+            {
+                return new { success = false, message = "User not found" };
+            }
+
+            var result = _userService.GetFollowedPackageIdsInSet(user, ids);
+            return new { success = true, favorites = result };
         }
 
         [Authorize]
