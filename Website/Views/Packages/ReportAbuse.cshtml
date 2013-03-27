@@ -42,8 +42,8 @@
         </div>
         <div class="form-field">
             @Html.LabelFor(m => m.Reason)
-            @Html.DropDownListFor(m => m.Reason, Model.AllowedReasons.Select(
-                x => new SelectListItem { Value = x.ToString(), Text = ReportAbuseViewModel.ReasonDescriptions[x]}))
+            @Html.DropDownListFor(m => m.Reason, Model.ReasonChoices.Select(
+                x => new SelectListItem { Value = ReportAbuseViewModel.ReasonDescriptions[x], Text = ReportAbuseViewModel.ReasonDescriptions[x]}))
             <br/>
             @Html.CheckBoxFor(m => m.AlreadyContactedOwner)
             @Html.LabelFor(m => m.AlreadyContactedOwner, "Yes! I have already tried to contact the package owner about this problem.",
