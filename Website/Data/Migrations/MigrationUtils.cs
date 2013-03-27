@@ -9,6 +9,11 @@ namespace NuGetGallery.Data.Migrations
 {
     public static class MigrationUtils
     {
+        public static string GetMigrationId<TMigration>() where TMigration : IMigrationMetadata, new()
+        {
+            return (new TMigration()).Id;
+        }
+
         public static string GetMigrationId(Type migrationType)
         {
             Debug.Assert(migrationType != null);

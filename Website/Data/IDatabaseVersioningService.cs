@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity.Migrations.Infrastructure;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGetGallery.Data.Migrations;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery.Data
@@ -46,6 +48,11 @@ namespace NuGetGallery.Data
         public static bool HasVersion(this IDatabaseVersioningService self, string versionName)
         {
             return self.AppliedVersions.Contains(versionName);
+        }
+
+        public static bool HasVersion<TVersion>(this IDatabaseVersioningService self) where TVersion : IMigrationMetadata, new()
+        {
+            return HasVersion(self, MigrationUtils.GetMigrationId<TVersion>());
         }
     }
 }
