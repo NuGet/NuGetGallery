@@ -477,6 +477,10 @@
     <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.Designer.cs">
       <DependentUpon>201302282115583_AddMinRequiredVersionColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201303072008568_UserLookupOptimization.cs" />
+    <Compile Include="Migrations\201303072008568_UserLookupOptimization.Designer.cs">
+      <DependentUpon>201303072008568_UserLookupOptimization.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
