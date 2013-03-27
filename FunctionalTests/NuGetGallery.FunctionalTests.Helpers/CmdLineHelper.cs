@@ -86,6 +86,8 @@ namespace NuGetGallery.FunctionTests.Helpers
             nugetProcessStartInfo.RedirectStandardOutput = true;
             nugetProcessStartInfo.RedirectStandardInput = true;
             nugetProcessStartInfo.UseShellExecute = false;
+            nugetProcessStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            nugetProcessStartInfo.CreateNoWindow = true;
             nugetProcess.StartInfo = nugetProcessStartInfo;
             nugetProcess.StartInfo.WorkingDirectory = WorkingDir;
             nugetProcess.Start();
