@@ -61,7 +61,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         }
 
         /// <summary>
-        /// Returns the download count of the given package as a formatted string as it would appear in the gallery UI.
+        /// Returns the download count of the given package.
         /// </summary>
         /// <param name="packageId"></param>
         /// <returns></returns>
@@ -69,6 +69,18 @@ namespace NuGetGallery.FunctionTests.Helpers
         {
             IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
             IPackage package = repo.FindPackage(packageId);
+            return package.DownloadCount;
+        }
+
+        /// <summary>
+        /// Returns the download count of the specific version of the package.
+        /// </summary>
+        /// <param name="packageId"></param>
+        /// <returns></returns>
+        public static int GetDownLoadStatisticsForPackageVersion(string packageId,string packageVersion)
+        {
+            IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
+            IPackage package = repo.FindPackage(packageId, new SemanticVersion(packageVersion));
             return package.DownloadCount;
         }
 
@@ -180,19 +192,31 @@ namespace NuGetGallery.FunctionTests.Helpers
         public static bool CheckIfPackageInstalled(string packageId)
         {
             string packageVersion = ClientSDKHelper.GetLatestStableVersion(packageId);
+            return CheckIfPackageVersionInstalled(packageId, packageVersion);
+        }
+
+
+        /// <summary>
+        /// Given a package checks if it that version of the package is installed.
+        /// </summary>
+        /// <param name="packageId"></param>
+        /// <returns></returns>
+        public static bool CheckIfPackageVersionInstalled(string packageId, string packageVersion)
+        {
+            //string packageVersion = ClientSDKHelper.GetLatestStableVersion(packageId);
             string expectedDownloadedNupkgFileName = packageId + "." + packageVersion;
             //check if the nupkg file exists on the expected path post install
             string expectedNupkgFilePath = Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName, expectedDownloadedNupkgFileName + ".nupkg");
-            if((!File.Exists(expectedNupkgFilePath)))
+            if ((!File.Exists(expectedNupkgFilePath)))
             {
-                Console.WriteLine( " Package file {0} not present after download", expectedDownloadedNupkgFileName);
+                Console.WriteLine(" Package file {0} not present after download", expectedDownloadedNupkgFileName);
                 return false;
             }
             string downloadedPackageId = ClientSDKHelper.GetPackageIdFromNupkgFile(expectedNupkgFilePath);
             //Check that the downloaded Nupkg file is not corrupt and it indeed corresponds to the package which we were trying to download.
-            if(!(downloadedPackageId.Equals(packageId)))
+            if (!(downloadedPackageId.Equals(packageId)))
             {
-                Console.WriteLine( "Unable to unzip the package downloaded via Nuget Core. Check log for details");
+                Console.WriteLine("Unable to unzip the package downloaded via Nuget Core. Check log for details");
                 return false;
             }
             return true;
