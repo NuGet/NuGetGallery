@@ -1,0 +1,27 @@
+﻿@model ICollection<MigrationViewModel>
+@if (!Model.Any())
+{
+    <p class="no-items">There are no migrations in this list.</p>
+}
+else
+{
+    <table class="migration-table">
+        <thead>
+            <tr>
+                <th class="created-column">Created</th>
+                <th class="name-column">Name</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var migration in Model)
+            {
+                <tr>
+                    <td class="created-column">@migration.CreatedLocal.ToString("yyyy-MM-dd hh:mm:ss tt")</td>
+                    <td class="name-column">@migration.Name</td>
+                    <td>@migration.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
