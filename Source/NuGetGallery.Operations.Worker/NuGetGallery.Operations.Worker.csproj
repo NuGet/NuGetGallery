@@ -115,6 +115,7 @@
     <Compile Include="Jobs\BackupPackagesJob.cs" />
     <Compile Include="Jobs\BackupWarehouseJob.cs" />
     <Compile Include="Jobs\BackupDatabaseJob.cs" />
+    <Compile Include="Jobs\ExecuteAggregateStatisticsJob.cs" />
     <Compile Include="Jobs\CreateWarehouseReportsJob.cs" />
     <Compile Include="Jobs\DeleteOldWarehouseBackupsJob.cs" />
     <Compile Include="Jobs\DeleteOldDatabaseBackupsJob.cs" />

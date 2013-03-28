@@ -42,11 +42,12 @@ function prompt() {
 	# Reset color, which can be messed up by Enable-GitColors
 	$Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
 	
+	Write-Host -noNewline " branch:"
 	Write-VcsStatus
 	
 	$global:LASTEXITCODE = $realLASTEXITCODE
 	Write-Host
-	Write-Host -noNewline "["
+	Write-Host -noNewline "[env:"
 	if(Test-Environment "Production") {
 		Write-Host -noNewLine -foregroundColor Yellow $env
 	} else {

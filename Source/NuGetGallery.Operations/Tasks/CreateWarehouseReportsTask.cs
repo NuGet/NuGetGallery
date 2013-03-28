@@ -574,8 +574,8 @@ namespace NuGetGallery.Operations
         private Uri CreateBlob(string name, string contentType, Stream content)
         {
             CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
-            CloudBlobContainer container = blobClient.GetContainerReference("popularity");
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(name);
+            CloudBlobContainer container = blobClient.GetContainerReference("stats");
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference("popularity/" + name);
 
             blockBlob.Properties.ContentType = contentType;
             blockBlob.UploadFromStream(content);
