@@ -4,8 +4,6 @@
     ViewBag.Tab = "Packages";
 }
 
-
-
 <hgroup class="search">
     @if (!String.IsNullOrEmpty(Model.SearchTerm))
     {
@@ -81,44 +79,43 @@
         });
     </script>
 
+    @* NuGet JSON API *@
+    <script src="@Url.Content("~/json/JsonApi?json")"></script>
+
     @* NuGet Favorite Button *@
     <script>
         $(function() {
-            var input = "{ ids: [" +
-                @foreach (var item in Model.Items)
-                {
-                    <text>@(item) + ", "</text>
+            var input = {
+                ids: "@String.Join("|", Model.Items.Select(item => item.Id))"
+            };
+            $mvc.JsonApi.TestFavorites(input).success(function(result) {
+                if (result.success) {
+                    $(".favoritebtn").show();
+                    $(".unfavoritebtn").hide();
+                    var i;
+                    for (i = 0; i < result.favorites.length; i++) {
+                        var packageId = result.favorites[i];
+                        $(document.getElementById("unfavorite-" + packageId)).show();
+                        $(document.getElementById("favorite-" + packageId)).hide();
+                    }
                 }
-            "] }";
-        };
-        $mvc.JsonApi.TestFavorites(input).success(function(result) {
-            $.each(result.favorites)
-            {
-                
-            }
-            if (result.favorite) {
-                $(".favoritebtn").hide();
-                $(".unfavoritebtn").show();
-            } else {
-                $(".unfavoritebtn").hide();
-                $(".favoritebtn").show();
-            }
+            });
         });
 
-            function favorite() {
-            var input = { id: "@Model.Id" };
+        function favorite(packageId) {
+            var input = { id: packageId };
             $mvc.JsonApi.FavoritePackage(input).success(function () {
-            $(".favoritebtn").hide();
-            $(".unfavoritebtn").show();
-        });
+                $(document.getElementById("favorite-" + packageId)).hide();
+                $(document.getElementById("unfavorite-" + packageId)).show();
+            });
         }
 
-            function unfavorite() {
-            var input = { id: "@Model.Id" };
+        function unfavorite(packageId) {
+            var input = { id: packageId };
             $mvc.JsonApi.UnfavoritePackage(input).success(function () {
-            $(".unfavoritebtn").hide();
-            $(".favoritebtn").show();
-        });
+                $(document.getElementById("unfavorite-" + packageId)).hide();
+                $(document.getElementById("favorite-" + packageId)).show();
+            });
         }
     </script>
 }

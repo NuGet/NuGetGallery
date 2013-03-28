@@ -70,16 +70,21 @@ namespace NuGetGallery
             return new { success = true, favorite = result };
         }
 
-        [Authorize]
-        public object TestFavorites(string[] ids)
+        public object TestFavorites(string ids)
         {
+            if (!Request.IsAuthenticated)
+            {
+                return new { success = false, error = "Not logged in" };
+            }
+
             var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
             if (user == null)
             {
                 return new { success = false, message = "User not found" };
             }
 
-            var result = _userService.GetFollowedPackageIdsInSet(user, ids);
+            string[] idArray = ids.Split('|');
+            var result = _userService.GetFollowedPackageIdsInSet(user, idArray);
             return new { success = true, favorites = result };
         }
 
