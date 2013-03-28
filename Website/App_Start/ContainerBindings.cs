@@ -94,8 +94,8 @@ namespace NuGetGallery
             Bind<IDbModelFactory>()
                 .To<DbModelFactory>()
                 .InSingletonScope()
-                .WithConstructorArgument("modelsAssembly", typeof(User).Assembly)
-                .WithConstructorArgument("modelsNamespace", typeof(User).Namespace);
+                .WithConstructorArgument("modelsAssembly", typeof(IEntity).Assembly)
+                .WithConstructorArgument("modelInterface", typeof(IEntity));
 
             Bind<IDbModelManager>()
                 .To<DbModelManager>()

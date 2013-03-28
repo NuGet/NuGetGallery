@@ -19,17 +19,17 @@ namespace NuGetGallery.Data
 
         public IDatabaseVersioningService VersioningService { get; protected set; }
         public Assembly ModelsAssembly { get; protected set; }
-        public string ModelsNamespace { get; protected set; }
+        public Type ModelInterface { get; protected set; }
 
         protected DbModelFactory()
         {
         }
 
-        public DbModelFactory(IDatabaseVersioningService versioningService, Assembly modelsAssembly, string modelsNamespace) : this()
+        public DbModelFactory(IDatabaseVersioningService versioningService, Assembly modelsAssembly, Type modelInterface) : this()
         {
             VersioningService = versioningService;
             ModelsAssembly = modelsAssembly;
-            ModelsNamespace = modelsNamespace;
+            ModelInterface = modelInterface;
         }
 
         public DbCompiledModel CreateModel()
@@ -44,7 +44,7 @@ namespace NuGetGallery.Data
 
             // Load the entities in to the model
             var entities = from t in ModelsAssembly.GetExportedTypes()
-                           where t.IsClass && !t.IsAbstract && String.Equals(t.Namespace, ModelsNamespace, StringComparison.Ordinal)
+                           where t.IsClass && !t.IsAbstract && t.GetInterfaces().Contains(ModelInterface) 
                            select t;
             foreach (var entityType in entities)
             {

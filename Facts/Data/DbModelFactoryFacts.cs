@@ -43,8 +43,8 @@ namespace NuGetGallery.Data
 
             public TestableDbModelFactory(bool withVersioningService = true)
             {
-                ModelsAssembly = typeof(TestModels.EmptyModel).Assembly;
-                ModelsNamespace = typeof(TestModels.EmptyModel).Namespace;
+                ModelsAssembly = typeof(TestModels.IEntity).Assembly;
+                ModelInterface = typeof(TestModels.IEntity);
                 if (withVersioningService)
                 {
                     VersioningService = (MockVersioningService = new Mock<IDatabaseVersioningService>()).Object;
@@ -60,18 +60,22 @@ namespace NuGetGallery.Data
 
     namespace TestModels
     {
-        public class EmptyModel
+        public interface IEntity
+        {
+        }
+
+        public class EmptyModel : IEntity
         {
             public int Id { get; set; }
         }
-        
-        public class ModelWithProperties
+
+        public class ModelWithProperties : IEntity
         {
             public int Id { get; set; }
             public string Property { get; set; }
         }
 
-        public class ModelWithPropertiesDependentUponMigrations
+        public class ModelWithPropertiesDependentUponMigrations : IEntity
         {
             public int Id { get; set; }
             public string IndependentProperty { get; set; }

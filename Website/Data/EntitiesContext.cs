@@ -11,7 +11,7 @@ namespace NuGetGallery.Data
         public EntitiesContext Create()
         {
             // Create an Entities context for migrations
-            var modelFactory = new DbModelFactory(null, typeof(User).Assembly, typeof(User).Namespace);
+            var modelFactory = new DbModelFactory(null, typeof(IEntity).Assembly, typeof(IEntity));
 #pragma warning disable 618
             return new EntitiesContext(
                 Container.Kernel.Get<IConfiguration>().SqlConnectionString,
