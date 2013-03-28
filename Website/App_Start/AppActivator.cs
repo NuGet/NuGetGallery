@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Data.Entity;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using DynamicDataEFCodeFirst;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
@@ -41,8 +38,10 @@ namespace NuGetGallery
         {
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IConfiguration>();
+            var contextFactory = Container.Kernel.Get<IEntitiesContextFactory>();
+
             DbMigratorPostStart();
-            BackgroundJobsPostStart(config);
+            BackgroundJobsPostStart(config, contextFactory);
             AppPostStart();
             BundlingPostStart();
         }
@@ -90,21 +89,21 @@ namespace NuGetGallery
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
-        private static void BackgroundJobsPostStart(IConfiguration configuration)
+        private static void BackgroundJobsPostStart(IConfiguration configuration, IEntitiesContextFactory contextFactory)
         {
             var jobs = configuration.HasWorker ?
                 new IJob[]
                 {
-                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), timeout: TimeSpan.FromMinutes(2))
+                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => contextFactory.Create(readOnly: true), timeout: TimeSpan.FromMinutes(2))
                 }                
                     :
                 new IJob[]
                 {
                     // readonly: false workaround - let statistics background job write to DB in read-only mode since we don't care too much about losing that data
                     new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
-                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), 
+                        () => contextFactory.Create(readOnly: false), 
                         timeout: TimeSpan.FromMinutes(5)),
-                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), timeout: TimeSpan.FromMinutes(2))
+                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => contextFactory.Create(readOnly: true), timeout: TimeSpan.FromMinutes(2))
                 };
             var jobCoordinator = new NuGetJobCoordinator();
             _jobManager = new JobManager(jobs, jobCoordinator)

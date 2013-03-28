@@ -239,6 +239,9 @@
     <Compile Include="Admin.HomeController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Admin.MigrationsController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Admin.SharedController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -249,6 +252,7 @@
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
     <Compile Include="Areas\Admin\Controllers\HomeController.cs" />
+    <Compile Include="Areas\Admin\Controllers\MigrationsController.cs" />
     <Compile Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx.cs">
       <DependentUpon>GridViewPager.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -524,12 +528,25 @@
     <Compile Include="DataServices\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Data\DatabaseVersion.cs" />
+    <Compile Include="Data\DatabaseVersioningService.cs" />
+    <Compile Include="Data\DbMigratorWrapper.cs" />
+    <Compile Include="Data\DbModelFactory.cs" />
+    <Compile Include="Data\DbModelManager.cs" />
+    <Compile Include="Data\EntitiesContextFactory.cs" />
+    <Compile Include="Data\IDatabaseVersioningService.cs" />
+    <Compile Include="Data\IDbMigrator.cs" />
+    <Compile Include="Data\IDbModelFactory.cs" />
+    <Compile Include="Data\IDbModelManager.cs" />
+    <Compile Include="Data\IEntitiesContextFactory.cs" />
+    <Compile Include="Data\MigrationUtils.cs" />
     <Compile Include="Data\Model\CuratedFeed.cs" />
     <Compile Include="Data\Model\CuratedPackage.cs" />
     <Compile Include="Data\Model\GallerySetting.cs" />
     <Compile Include="Data\IEntitiesContext.cs" />
     <Compile Include="Data\Model\PackageFramework.cs" />
     <Compile Include="Data\ReadOnlyModeException.cs" />
+    <Compile Include="Data\RequiresMigrationAttribute.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
@@ -1081,6 +1098,8 @@
     <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Areas\Admin\Views\Migrations\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\Migrations\_MigrationList.cshtml" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>

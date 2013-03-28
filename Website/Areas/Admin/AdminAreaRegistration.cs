@@ -1,6 +1,7 @@
 ﻿using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.DynamicData;
 using Ninject;
+using NuGetGallery.Data;
 
 namespace NuGetGallery.Areas.Admin
 {
@@ -16,10 +17,10 @@ namespace NuGetGallery.Areas.Admin
 
         public override void RegisterArea(AreaRegistrationContext context)
         {
-            var config = Container.Kernel.Get<IConfiguration>();
+            var contextFactory = Container.Kernel.Get<IEntitiesContextFactory>();
 
             context.Routes.Ignore("Admin/Errors/{*pathInfo}"); // ELMAH owns this root
-            DynamicDataManager.Register(context.Routes, "Admin/Database", config);
+            DynamicDataManager.Register(context.Routes, "Admin/Database", contextFactory);
 
             context.MapRoute(
                 "Admin_default",

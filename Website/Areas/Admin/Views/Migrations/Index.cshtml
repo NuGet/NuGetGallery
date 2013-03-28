@@ -1,0 +1,25 @@
+﻿@model MigrationListViewModel
+
+@{
+    ViewBag.Title = "Index";
+    ViewBag.Tab = "Admin";
+}
+
+<section id="migrations">
+    @Html.ActionLink("Return to Admin Home", MVC.Admin.Home.Index())
+    <h1>Database migrations</h1>
+    <h2>Pending</h2>
+    @Html.Partial("_MigrationList", Model.Pending)
+    @if (Model.Pending.Any())
+    {
+        using (Html.BeginForm(MVC.Admin.Migrations.Apply(), FormMethod.Post))
+        {
+            <fieldset class="form">
+                <input type="submit" value="Update to Latest" />
+            </fieldset>
+        }
+    }
+    <h2>Applied</h2>
+    @Html.Partial("_MigrationList", Model.Applied)
+</section>
+

@@ -1,4 +1,6 @@
 using System;
+using System.Data.Entity.Migrations;
+using System.Data.Entity.Migrations.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -14,6 +16,8 @@ using Ninject;
 using Ninject.Modules;
 using Ninject.Web.Mvc.Filter;
 using NuGetGallery.Data;
+using NuGetGallery.Data.Migrations;
+using NuGetGallery.Data.Model;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
@@ -83,8 +87,38 @@ namespace NuGetGallery
                     .InRequestScope();
             }
 
+            Bind<IDbMigrator>()
+                .ToMethod(_ => new DbMigratorWrapper(new DbMigrator(new MigrationsConfiguration())))
+                .InSingletonScope();
+
+            Bind<IDbModelFactory>()
+                .To<DbModelFactory>()
+                .InSingletonScope()
+                .WithConstructorArgument("modelsAssembly", typeof(IEntity).Assembly)
+                .WithConstructorArgument("modelInterface", typeof(IEntity));
+
+            Bind<IDbModelManager>()
+                .To<DbModelManager>()
+                .InSingletonScope();
+            
+            Bind<IDatabaseVersioningService>()
+                .To<DatabaseVersioningService>()
+                .InSingletonScope();
+
+            Bind<IEntitiesContextFactory>()
+                .To<EntitiesContextFactory>()
+                .InSingletonScope();
+
             Bind<IEntitiesContext>()
-                .ToMethod(context => new EntitiesContext(configuration.SqlConnectionString, readOnly: configuration.ReadOnlyMode))
+                .ToMethod(context =>
+                {
+                    var factory = context.Kernel.TryGet<IEntitiesContextFactory>();
+                    if (factory == null)
+                    {
+                        throw new ActivationException(Strings.UnableToActivateContextNoFactory);
+                    }
+                    return factory.Create(readOnly: configuration.ReadOnlyMode);
+                })
                 .InRequestScope();
 
             Bind<IEntityRepository<User>>()

@@ -1,4 +1,5 @@
 ﻿using System.Data.Entity;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery.Data
 {
