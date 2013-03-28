@@ -1,8 +1,7 @@
 ﻿using System.Data;
-using NuGetGallery.Data;
 using Xunit;
 
-namespace NuGetGallery.Entities
+namespace NuGetGallery.Data
 {
     class EntitiesContextFacts
     {
