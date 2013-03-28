@@ -875,6 +875,7 @@
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
     <Content Include="Content\Images\managePackages.png" />
+    <Content Include="Content\Images\outercurve.png" />
     <Content Include="Content\Images\treeview\ajax-loader.gif" />
     <Content Include="Content\Images\treeview\file.gif" />
     <Content Include="Content\Images\treeview\folder-closed.gif" />
