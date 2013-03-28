@@ -1,0 +1,12 @@
+using System.Data.Entity.Migrations;
+
+namespace NuGetGallery.Data.Migrations
+{
+    public partial class CreateAggregateStatisticsSP : DbMigration
+    {
+        public override void Up()
+        {
+            // This migration is now a no-op. The script it used to reference has been updated to use a column that is added by a later migration.
+        }
+    }
+}
