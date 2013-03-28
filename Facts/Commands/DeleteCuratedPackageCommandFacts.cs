@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 using Moq;
+using NuGetGallery.Data;
 using Xunit;
 
 namespace NuGetGallery.Commands

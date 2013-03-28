@@ -1,6 +1,6 @@
 ﻿using System.Data.Entity;
 
-namespace NuGetGallery
+namespace NuGetGallery.Data
 {
     public interface IEntitiesContext
     {

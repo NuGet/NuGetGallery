@@ -4,6 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Versioning;
 using NuGet;
+using NuGetGallery.Data;
 
 namespace NuGetGallery
 {

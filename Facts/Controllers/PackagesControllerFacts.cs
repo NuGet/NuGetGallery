@@ -10,6 +10,7 @@ using System.Web.Routing;
 using Moq;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
+using NuGetGallery.Data;
 using Xunit;
 using Xunit.Extensions;
 

@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace NuGetGallery
+namespace NuGetGallery.Data
 {
     public class EntityRepository<T> : IEntityRepository<T>
         where T : class, IEntity, new()

@@ -6,6 +6,7 @@ using System.IO;
 using System.ServiceModel;
 using System.Web;
 using System.Web.Mvc;
+using NuGetGallery.Data;
 
 namespace NuGetGallery
 {

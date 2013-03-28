@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Web;
 using Moq;
+using NuGetGallery.Data;
 using Xunit;
 using Xunit.Extensions;
 

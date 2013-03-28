@@ -12,6 +12,7 @@ using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Ninject;
 using Ninject.Web.Mvc;
 using NuGetGallery;
+using NuGetGallery.Data;
 using NuGetGallery.Data.Migrations;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;

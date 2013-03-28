@@ -5,6 +5,7 @@ using System.Linq;
 using System.ServiceModel.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using NuGetGallery.Data;
 
 namespace NuGetGallery
 {
