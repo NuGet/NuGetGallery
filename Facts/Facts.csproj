@@ -156,6 +156,7 @@
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Data\DatabaseVersioningServiceFacts.cs" />
+    <Compile Include="Data\DbModelFactoryFacts.cs" />
     <Compile Include="Data\EntitiesContextFacts.cs" />
     <Compile Include="Data\PackageFacts.cs" />
     <Compile Include="Data\RequiresMigrationAttributeFacts.cs" />

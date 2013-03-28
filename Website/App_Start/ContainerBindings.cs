@@ -89,6 +89,12 @@ namespace NuGetGallery
             Bind<IDbMigrator>()
                 .ToMethod(_ => new DbMigratorWrapper(new DbMigrator(new MigrationsConfiguration())))
                 .InSingletonScope();
+
+            Bind<IDbModelFactory>()
+                .To<DbModelFactory>()
+                .InSingletonScope()
+                .WithConstructorArgument("modelsAssembly", typeof(User).Assembly)
+                .WithConstructorArgument("modelsNamespace", typeof(User).Namespace);
             
             Bind<IDatabaseVersioningService>()
                 .To<DatabaseVersioningService>()
