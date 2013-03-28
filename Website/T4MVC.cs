@@ -378,6 +378,7 @@ namespace Links {
             public static readonly string newAccountGraphic_png = Url("newAccountGraphic.png");
             public static readonly string nugetlogo_png = Url("nugetlogo.png");
             public static readonly string nugetLogoFooter_png = Url("nugetLogoFooter.png");
+            public static readonly string outercurve_png = Url("outercurve.png");
             public static readonly string packageDefaultIcon_50x50_png = Url("packageDefaultIcon-50x50.png");
             public static readonly string packageDefaultIcon_png = Url("packageDefaultIcon.png");
             public static readonly string packageOwnerActionIcons_png = Url("packageOwnerActionIcons.png");
