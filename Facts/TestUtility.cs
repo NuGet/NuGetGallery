@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Specialized;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
@@ -24,6 +25,38 @@ namespace NuGetGallery
             routeCollection.MapRoute("catch-all", "{*catchall}");
             controller.Url = new UrlHelper(requestContext, routeCollection);
             return httpContext;
+        }
+
+        public static void SetupUrlHelper(Controller controller, Mock<HttpContextBase> mockHttpContext)
+        {
+            var routes = new RouteCollection();
+            Routes.RegisterRoutes(routes);
+            controller.Url = new UrlHelper(new RequestContext(mockHttpContext.Object, new RouteData()), routes);
+        }
+
+        public static UrlHelper MockUrlHelper()
+        {
+            var mockHttpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+            var mockHttpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
+            var mockHttpResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
+            mockHttpContext.Setup(httpContext => httpContext.Request).Returns(mockHttpRequest.Object);
+            mockHttpContext.Setup(httpContext => httpContext.Response).Returns(mockHttpResponse.Object);
+            mockHttpRequest.Setup(httpRequest => httpRequest.Url).Returns(new Uri("http://unittest.nuget.org/"));
+            mockHttpRequest.Setup(httpRequest => httpRequest.ApplicationPath).Returns("http://unittest.nuget.org/");
+            mockHttpRequest.Setup(httpRequest => httpRequest.ServerVariables).Returns(new NameValueCollection());
+
+            string value = null;
+            Action<string> saveValue = x =>
+            {
+                value = x;
+            };
+            Func<String> restoreValue = () => value;
+            mockHttpResponse.Setup(httpResponse => httpResponse.ApplyAppPathModifier(It.IsAny<string>()))
+                            .Callback(saveValue).Returns(restoreValue);
+            var requestContext = new RequestContext(mockHttpContext.Object, new RouteData());
+            var routes = new RouteCollection();
+            Routes.RegisterRoutes(routes);
+            return new UrlHelper(requestContext, routes);
         }
 
         public static T GetAnonymousPropertyValue<T>(Object source, string propertyName)

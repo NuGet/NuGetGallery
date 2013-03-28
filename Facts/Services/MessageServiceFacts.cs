@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Net.Mail;
 using AnglicanGeek.MarkdownMailer;
 using Moq;
@@ -27,12 +28,75 @@ namespace NuGetGallery
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
-                messageService.ReportAbuse(from, package, "Abuse!");
+                messageService.ReportAbuse(
+                    new ReportPackageRequest
+                    {
+                        AlreadyContactedOwners = true,
+                        FromAddress = from,
+                        Message = "Abuse!",
+                        Package = package,
+                        Reason = "Reason!",
+                        RequestingUser = null,
+                        Url = TestUtility.MockUrlHelper(),
+                    });
 
                 Assert.Equal("joe@example.com", message.To[0].Address);
-                Assert.Equal("[NuGet Gallery] Abuse Report for Package 'smangit' Version '1.42.0.1'", message.Subject);
+                Assert.Equal("[NuGet Gallery] Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
+                Assert.Contains("Reason!", message.Body);
                 Assert.Contains("Abuse!", message.Body);
-                Assert.Contains("User too (legit@example.com) reports the package 'smangit' version '1.42.0.1' as abusive", message.Body);
+                Assert.Contains("too (legit@example.com)", message.Body);
+                Assert.Contains("smangit", message.Body);
+                Assert.Contains("1.42.0.1", message.Body);
+                Assert.Contains("Yes", message.Body);
+            }
+        }
+
+        public class TheReportMyPackageMethod
+        {
+            [Fact]
+            public void WillSendEmailToGalleryOwner()
+            {
+                var from = new MailAddress("legit@example.com", "too");
+                var owner = new User
+                {
+                    Username = "too",
+                    EmailAddress = "legit@example.com",
+                };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "smangit", 
+                        Owners = new Collection<User> { owner }
+                    },
+                    Version = "1.42.0.1"
+                };
+                var mailSender = new Mock<IMailSender>();
+                var config = new Mock<IConfiguration>();
+                config.Setup(x => x.GalleryOwnerName).Returns("NuGet Gallery");
+                config.Setup(x => x.GalleryOwnerEmail).Returns("joe@example.com");
+                var messageService = new MessageService(mailSender.Object, config.Object);
+                MailMessage message = null;
+                mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
+
+                messageService.ReportMyPackage(
+                    new ReportPackageRequest
+                    {
+                        FromAddress = from,
+                        Message = "Abuse!",
+                        Package = package,
+                        Reason = "Reason!",
+                        RequestingUser = owner,
+                        Url = TestUtility.MockUrlHelper(),
+                    });
+
+                Assert.Equal("joe@example.com", message.To[0].Address);
+                Assert.Equal("[NuGet Gallery] Owner Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
+                Assert.Contains("Reason!", message.Body);
+                Assert.Contains("Abuse!", message.Body);
+                Assert.Contains("too (legit@example.com)", message.Body);
+                Assert.Contains("smangit", message.Body);
+                Assert.Contains("1.42.0.1", message.Body);
             }
         }
 

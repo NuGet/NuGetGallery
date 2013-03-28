@@ -35,10 +35,15 @@ namespace NuGetGallery
                 new { controller = MVC.Statistics.Name, action = "PackageVersions" });
 
             routes.MapRoute(
+                RouteName.StatisticsPackageDownloadsDetail,
+                "stats/packages/{id}/{version}",
+                new { controller = MVC.Statistics.Name, action = "PackageDownloadsDetail" });
+
+            routes.MapRoute(
                 RouteName.StatisticsPackageDownloadsByVersion,
                 "stats/packages/{id}",
                 new { controller = MVC.Statistics.Name, action = "PackageDownloadsByVersion" });
-            
+           
             routes.Add(new JsonRoute("json/{controller}"));
 
             routes.MapRoute(
@@ -150,16 +155,6 @@ namespace NuGetGallery
             // TODO : Most of the routes are essentially of the format api/v{x}/*. We should refactor the code to vary them by the version.
             // V1 Routes
             // If the push url is /api/v1 then NuGet.Core would ping the path to resolve redirection. 
-            routes.MapServiceRoute(
-                RouteName.V1ApiFeed,
-                "api/v1/FeedService.svc",
-                typeof(V1Feed));
-
-            routes.MapServiceRoute(
-                "LegacyFeedService",
-                "v1/FeedService.svc",
-                typeof(V1Feed));
-
             routes.MapRoute(
                 "v1" + RouteName.VerifyPackageKey,
                 "api/v1/verifykey/{id}/{version}",
@@ -187,11 +182,6 @@ namespace NuGetGallery
                 "v1" + RouteName.PublishPackageApi,
                 "v1/PublishedPackages/Publish",
                 MVC.Api.PublishPackage());
-
-            routes.MapServiceRoute(
-                "v1" + RouteName.V1ApiFeed,
-                "api/v1",
-                typeof(V1Feed));
 
             // V2 routes
             routes.MapRoute(
@@ -241,16 +231,6 @@ namespace NuGetGallery
                 "v2PackageVersions",
                 "api/v2/package-versions/{id}",
                 MVC.Api.GetPackageVersions());
-
-            routes.MapServiceRoute(
-                RouteName.V2ApiCuratedFeed,
-                "api/v2/curated-feed",
-                typeof(V2CuratedFeed));
-
-            routes.MapServiceRoute(
-                RouteName.V2ApiFeed,
-                "api/v2/",
-                typeof(V2Feed));
 
             routes.MapRoute(
                 RouteName.DownloadNuGetExe,
@@ -313,6 +293,35 @@ namespace NuGetGallery
                     "v1/Package/Download/{id}/{version}",
                     new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional }),
                 permanent: true).To(downloadRoute);
+        }
+
+        // note: Pulled out service route registration separately because it's not testable T.T (won't run outside IIS/WAS) 
+        public static void RegisterServiceRoutes(RouteCollection routes)
+        {
+            routes.MapServiceRoute(
+                RouteName.V1ApiFeed,
+                "api/v1/FeedService.svc",
+                typeof(V1Feed));
+
+            routes.MapServiceRoute(
+                "LegacyFeedService",
+                "v1/FeedService.svc",
+                typeof(V1Feed));
+
+            routes.MapServiceRoute(
+                "v1" + RouteName.V1ApiFeed,
+                "api/v1",
+                typeof(V1Feed));
+
+            routes.MapServiceRoute(
+                RouteName.V2ApiCuratedFeed,
+                "api/v2/curated-feed",
+                typeof(V2CuratedFeed));
+
+            routes.MapServiceRoute(
+                RouteName.V2ApiFeed,
+                "api/v2/",
+                typeof(V2Feed));
         }
     }
 }

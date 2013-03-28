@@ -55,6 +55,7 @@ namespace NuGetGallery {
         public class ViewNames {
             public readonly string Index = "~/Views/Statistics/Index.cshtml";
             public readonly string PackageDownloadsByVersion = "~/Views/Statistics/PackageDownloadsByVersion.cshtml";
+            public readonly string PackageDownloadsDetail = "~/Views/Statistics/PackageDownloadsDetail.cshtml";
             public readonly string Packages = "~/Views/Statistics/Packages.cshtml";
             public readonly string PackageVersions = "~/Views/Statistics/PackageVersions.cshtml";
         }
