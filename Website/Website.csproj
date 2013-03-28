@@ -288,12 +288,12 @@
     <Compile Include="DataServices\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Entities\CuratedFeed.cs" />
-    <Compile Include="Entities\CuratedPackage.cs" />
-    <Compile Include="Entities\GallerySetting.cs" />
-    <Compile Include="Entities\IEntitiesContext.cs" />
-    <Compile Include="Entities\PackageFramework.cs" />
-    <Compile Include="Entities\ReadOnlyModeException.cs" />
+    <Compile Include="Data\Model\CuratedFeed.cs" />
+    <Compile Include="Data\Model\CuratedPackage.cs" />
+    <Compile Include="Data\Model\GallerySetting.cs" />
+    <Compile Include="Data\IEntitiesContext.cs" />
+    <Compile Include="Data\Model\PackageFramework.cs" />
+    <Compile Include="Data\ReadOnlyModeException.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
@@ -326,152 +326,152 @@
     <Compile Include="JsonApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201110060711357_Initial.cs">
+    <Compile Include="Data\Migrations\201110060711357_Initial.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201110060711357_Initial.Designer.cs">
+    <Compile Include="Data\Migrations\201110060711357_Initial.Designer.cs">
       <DependentUpon>201110060711357_Initial.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201110102157002_PrereleaseChanges.cs">
+    <Compile Include="Data\Migrations\201110102157002_PrereleaseChanges.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201110102157002_PrereleaseChanges.Designer.cs">
+    <Compile Include="Data\Migrations\201110102157002_PrereleaseChanges.Designer.cs">
       <DependentUpon>201110102157002_PrereleaseChanges.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201110180052097_GallerySettings.cs">
+    <Compile Include="Data\Migrations\201110180052097_GallerySettings.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201110180052097_GallerySettings.Designer.cs">
+    <Compile Include="Data\Migrations\201110180052097_GallerySettings.Designer.cs">
       <DependentUpon>201110180052097_GallerySettings.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.cs">
+    <Compile Include="Data\Migrations\201110230649210_PackageOwnerRequests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201110230649210_PackageOwnerRequests.Designer.cs">
+    <Compile Include="Data\Migrations\201110230649210_PackageOwnerRequests.Designer.cs">
       <DependentUpon>201110230649210_PackageOwnerRequests.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.cs">
+    <Compile Include="Data\Migrations\201111022024584_PackageDependencyVersionSpec.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201111022024584_PackageDependencyVersionSpec.Designer.cs">
+    <Compile Include="Data\Migrations\201111022024584_PackageDependencyVersionSpec.Designer.cs">
       <DependentUpon>201111022024584_PackageDependencyVersionSpec.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.cs">
+    <Compile Include="Data\Migrations\201111022051010_PackageReleaseNotes.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201111022051010_PackageReleaseNotes.Designer.cs">
+    <Compile Include="Data\Migrations\201111022051010_PackageReleaseNotes.Designer.cs">
       <DependentUpon>201111022051010_PackageReleaseNotes.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201111080239544_ListPackagesIndexes.cs">
+    <Compile Include="Data\Migrations\201111080239544_ListPackagesIndexes.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201111080239544_ListPackagesIndexes.Designer.cs">
+    <Compile Include="Data\Migrations\201111080239544_ListPackagesIndexes.Designer.cs">
       <DependentUpon>201111080239544_ListPackagesIndexes.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201111080816426_DisplayPackageIndexes.cs">
+    <Compile Include="Data\Migrations\201111080816426_DisplayPackageIndexes.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201111080816426_DisplayPackageIndexes.Designer.cs">
+    <Compile Include="Data\Migrations\201111080816426_DisplayPackageIndexes.Designer.cs">
       <DependentUpon>201111080816426_DisplayPackageIndexes.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201111081908453_MyPackagesIndexes.cs">
+    <Compile Include="Data\Migrations\201111081908453_MyPackagesIndexes.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201111081908453_MyPackagesIndexes.Designer.cs">
+    <Compile Include="Data\Migrations\201111081908453_MyPackagesIndexes.Designer.cs">
       <DependentUpon>201111081908453_MyPackagesIndexes.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201111150729167_AddSmtpPassword.cs">
+    <Compile Include="Data\Migrations\201111150729167_AddSmtpPassword.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201111150729167_AddSmtpPassword.Designer.cs">
+    <Compile Include="Data\Migrations\201111150729167_AddSmtpPassword.Designer.cs">
       <DependentUpon>201111150729167_AddSmtpPassword.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201111222338036_GalleryOwnerEmailSettings.cs">
+    <Compile Include="Data\Migrations\201111222338036_GalleryOwnerEmailSettings.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201111222338036_GalleryOwnerEmailSettings.Designer.cs">
+    <Compile Include="Data\Migrations\201111222338036_GalleryOwnerEmailSettings.Designer.cs">
       <DependentUpon>201111222338036_GalleryOwnerEmailSettings.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201201031925005_AddPasswordHash.cs">
+    <Compile Include="Data\Migrations\201201031925005_AddPasswordHash.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Migrations\201201031925005_AddPasswordHash.Designer.cs">
+    <Compile Include="Data\Migrations\201201031925005_AddPasswordHash.Designer.cs">
       <DependentUpon>201201031925005_AddPasswordHash.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201203180016174_CuratedFeeds.cs" />
-    <Compile Include="Migrations\201203180016174_CuratedFeeds.Designer.cs">
+    <Compile Include="Data\Migrations\201203180016174_CuratedFeeds.cs" />
+    <Compile Include="Data\Migrations\201203180016174_CuratedFeeds.Designer.cs">
       <DependentUpon>201203180016174_CuratedFeeds.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201203180320147_ChangeCuratedFeedIdToName.cs" />
-    <Compile Include="Migrations\201203180320147_ChangeCuratedFeedIdToName.Designer.cs">
+    <Compile Include="Data\Migrations\201203180320147_ChangeCuratedFeedIdToName.cs" />
+    <Compile Include="Data\Migrations\201203180320147_ChangeCuratedFeedIdToName.Designer.cs">
       <DependentUpon>201203180320147_ChangeCuratedFeedIdToName.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201203182132476_CuratedPackages.cs" />
-    <Compile Include="Migrations\201203182132476_CuratedPackages.Designer.cs">
+    <Compile Include="Data\Migrations\201203182132476_CuratedPackages.cs" />
+    <Compile Include="Data\Migrations\201203182132476_CuratedPackages.Designer.cs">
       <DependentUpon>201203182132476_CuratedPackages.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201205172325056_FrameworkName.cs" />
-    <Compile Include="Migrations\201205172325056_FrameworkName.Designer.cs">
+    <Compile Include="Data\Migrations\201205172325056_FrameworkName.cs" />
+    <Compile Include="Data\Migrations\201205172325056_FrameworkName.Designer.cs">
       <DependentUpon>201205172325056_FrameworkName.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201206131919241_AddTargetFxToDependencies.cs" />
-    <Compile Include="Migrations\201206131919241_AddTargetFxToDependencies.Designer.cs">
+    <Compile Include="Data\Migrations\201206131919241_AddTargetFxToDependencies.cs" />
+    <Compile Include="Data\Migrations\201206131919241_AddTargetFxToDependencies.Designer.cs">
       <DependentUpon>201206131919241_AddTargetFxToDependencies.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201206250141447_ExecuteELMAHSql.cs" />
-    <Compile Include="Migrations\201206250141447_ExecuteELMAHSql.Designer.cs">
+    <Compile Include="Data\Migrations\201206250141447_ExecuteELMAHSql.cs" />
+    <Compile Include="Data\Migrations\201206250141447_ExecuteELMAHSql.Designer.cs">
       <DependentUpon>201206250141447_ExecuteELMAHSql.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201208171904586_Language.cs" />
-    <Compile Include="Migrations\201208171904586_Language.Designer.cs">
+    <Compile Include="Data\Migrations\201208171904586_Language.cs" />
+    <Compile Include="Data\Migrations\201208171904586_Language.Designer.cs">
       <DependentUpon>201208171904586_Language.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201208222206329_ColumnLengthOfPackageTable.cs" />
-    <Compile Include="Migrations\201208222206329_ColumnLengthOfPackageTable.Designer.cs">
+    <Compile Include="Data\Migrations\201208222206329_ColumnLengthOfPackageTable.cs" />
+    <Compile Include="Data\Migrations\201208222206329_ColumnLengthOfPackageTable.Designer.cs">
       <DependentUpon>201208222206329_ColumnLengthOfPackageTable.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201208222227425_PackageIndexes.cs" />
-    <Compile Include="Migrations\201208222227425_PackageIndexes.Designer.cs">
+    <Compile Include="Data\Migrations\201208222227425_PackageIndexes.cs" />
+    <Compile Include="Data\Migrations\201208222227425_PackageIndexes.Designer.cs">
       <DependentUpon>201208222227425_PackageIndexes.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201208230640333_PackageSortingIndexes.cs" />
-    <Compile Include="Migrations\201208230640333_PackageSortingIndexes.Designer.cs">
+    <Compile Include="Data\Migrations\201208230640333_PackageSortingIndexes.cs" />
+    <Compile Include="Data\Migrations\201208230640333_PackageSortingIndexes.Designer.cs">
       <DependentUpon>201208230640333_PackageSortingIndexes.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201208302051344_CreateAggregateStatisticsSP.cs" />
-    <Compile Include="Migrations\201208302051344_CreateAggregateStatisticsSP.Designer.cs">
+    <Compile Include="Data\Migrations\201208302051344_CreateAggregateStatisticsSP.cs" />
+    <Compile Include="Data\Migrations\201208302051344_CreateAggregateStatisticsSP.Designer.cs">
       <DependentUpon>201208302051344_CreateAggregateStatisticsSP.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201209181743161_AggregateStatsSp_ReduxLastUpdate.cs" />
-    <Compile Include="Migrations\201209181743161_AggregateStatsSp_ReduxLastUpdate.Designer.cs">
+    <Compile Include="Data\Migrations\201209181743161_AggregateStatsSp_ReduxLastUpdate.cs" />
+    <Compile Include="Data\Migrations\201209181743161_AggregateStatsSp_ReduxLastUpdate.Designer.cs">
       <DependentUpon>201209181743161_AggregateStatsSp_ReduxLastUpdate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201210312146585_GallerySettings_TotalDownloadCount.cs" />
-    <Compile Include="Migrations\201210312146585_GallerySettings_TotalDownloadCount.Designer.cs">
+    <Compile Include="Data\Migrations\201210312146585_GallerySettings_TotalDownloadCount.cs" />
+    <Compile Include="Data\Migrations\201210312146585_GallerySettings_TotalDownloadCount.Designer.cs">
       <DependentUpon>201210312146585_GallerySettings_TotalDownloadCount.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201210312150156_AggregateStatistics_TotalDownloadCount.cs" />
-    <Compile Include="Migrations\201210312150156_AggregateStatistics_TotalDownloadCount.Designer.cs">
+    <Compile Include="Data\Migrations\201210312150156_AggregateStatistics_TotalDownloadCount.cs" />
+    <Compile Include="Data\Migrations\201210312150156_AggregateStatistics_TotalDownloadCount.Designer.cs">
       <DependentUpon>201210312150156_AggregateStatistics_TotalDownloadCount.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201211271813001_AddNuGetOperation.cs" />
-    <Compile Include="Migrations\201211271813001_AddNuGetOperation.Designer.cs">
+    <Compile Include="Data\Migrations\201211271813001_AddNuGetOperation.cs" />
+    <Compile Include="Data\Migrations\201211271813001_AddNuGetOperation.Designer.cs">
       <DependentUpon>201211271813001_AddNuGetOperation.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201301180132053_RemoveWorkItems.cs" />
-    <Compile Include="Migrations\201301180132053_RemoveWorkItems.Designer.cs">
+    <Compile Include="Data\Migrations\201301180132053_RemoveWorkItems.cs" />
+    <Compile Include="Data\Migrations\201301180132053_RemoveWorkItems.Designer.cs">
       <DependentUpon>201301180132053_RemoveWorkItems.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.cs" />
-    <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.Designer.cs">
+    <Compile Include="Data\Migrations\201302072118537_MovingGallerySettingsToConfiguration.cs" />
+    <Compile Include="Data\Migrations\201302072118537_MovingGallerySettingsToConfiguration.Designer.cs">
       <DependentUpon>201302072118537_MovingGallerySettingsToConfiguration.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.cs" />
-    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.Designer.cs">
+    <Compile Include="Data\Migrations\201302282115583_AddMinRequiredVersionColumn.cs" />
+    <Compile Include="Data\Migrations\201302282115583_AddMinRequiredVersionColumn.Designer.cs">
       <DependentUpon>201302282115583_AddMinRequiredVersionColumn.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\MigrationsConfiguration.cs" />
-    <Compile Include="Migrations\SqlResourceMigration.cs" />
+    <Compile Include="Data\Migrations\MigrationsConfiguration.cs" />
+    <Compile Include="Data\Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />
     <Compile Include="PackageCurators\TagBasedPackageCurator.cs" />
@@ -787,9 +787,9 @@
     <Compile Include="DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
-    <Compile Include="Entities\PackageOwnerRequest.cs" />
-    <Compile Include="Entities\PackageStatistics.cs" />
-    <Compile Include="Entities\Role.cs" />
+    <Compile Include="Data\Model\PackageOwnerRequest.cs" />
+    <Compile Include="Data\Model\PackageStatistics.cs" />
+    <Compile Include="Data\Model\Role.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Infrastructure\NuGetControllerFactory.cs" />
     <Compile Include="Services\Extensions.cs" />
@@ -806,35 +806,35 @@
     <Compile Include="Services\IFileSystemService.cs" />
     <Compile Include="Services\IPackageService.cs" />
     <Compile Include="Services\PackageService.cs" />
-    <Compile Include="Entities\PackageDependency.cs" />
+    <Compile Include="Data\Model\PackageDependency.cs" />
     <Compile Include="App_Start\Configuration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="App_Start\Container.cs" />
     <Compile Include="App_Start\ContainerBindings.cs" />
     <Compile Include="Services\CryptographyService.cs" />
-    <Compile Include="Entities\EntityException.cs" />
+    <Compile Include="Data\EntityException.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
     <Compile Include="App_Start\IConfiguration.cs" />
     <Compile Include="Services\ICryptographyService.cs" />
-    <Compile Include="Entities\IEntity.cs" />
+    <Compile Include="Data\Model\IEntity.cs" />
     <Compile Include="Services\IFormsAuthenticationService.cs" />
     <Compile Include="Services\IPackageFileService.cs" />
-    <Compile Include="Entities\IEntityRepository.cs" />
+    <Compile Include="Data\IEntityRepository.cs" />
     <Compile Include="Services\IUserService.cs" />
-    <Compile Include="Entities\EmailMessage.cs" />
-    <Compile Include="Entities\EntitiesContext.cs" />
-    <Compile Include="Entities\PackageRegistration.cs" />
-    <Compile Include="Entities\PackageAuthor.cs" />
-    <Compile Include="Entities\Package.cs" />
-    <Compile Include="Entities\EntityRepository.cs" />
+    <Compile Include="Data\Model\EmailMessage.cs" />
+    <Compile Include="Data\EntitiesContext.cs" />
+    <Compile Include="Data\Model\PackageRegistration.cs" />
+    <Compile Include="Data\Model\PackageAuthor.cs" />
+    <Compile Include="Data\Model\Package.cs" />
+    <Compile Include="Data\EntityRepository.cs" />
     <Compile Include="RequestModels\DisplayPackageRequest.cs" />
     <Compile Include="Strings.Designer.cs">
       <DependentUpon>Strings.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Entities\User.cs" />
+    <Compile Include="Data\Model\User.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestModels\SignInRequest.cs" />
