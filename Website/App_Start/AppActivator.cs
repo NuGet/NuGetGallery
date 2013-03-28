@@ -3,6 +3,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Optimization;
 using System.Web.Routing;
 using DynamicDataEFCodeFirst;
 using Elmah;
@@ -47,12 +48,33 @@ namespace NuGetGallery
             BackgroundJobsPostStart(config);
             AppPostStart();
             DynamicDataPostStart(config);
+            BundlingPostStart();
         }
 
         public static void Stop()
         {
             BackgroundJobsStop();
             NinjectStop();
+        }
+
+        private static void BundlingPostStart()
+        {
+            var scriptBundle = new ScriptBundle("~/bundles/js")
+                .Include("~/Scripts/jquery-{version}.js")
+                .Include("~/Scripts/jquery.validate.js")
+                .Include("~/Scripts/jquery.validate.unobtrusive.js");
+            BundleTable.Bundles.Add(scriptBundle);
+
+            // Modernizr needs to be delivered at the top of the page but putting it in a bundle gets us a cache-buster.
+            // TODO: Use minified modernizr!
+            var modernizrBundle = new ScriptBundle("~/bundles/modernizr")
+                .Include("~/Scripts/modernizr-2.0.6-development-only.js");
+            BundleTable.Bundles.Add(modernizrBundle);
+
+            var stylesBundle = new StyleBundle("~/bundles/css")
+                .Include("~/Content/site.css");
+            BundleTable.Bundles.Add(stylesBundle);
+
         }
 
         private static void ElmahPreStart()
@@ -63,6 +85,7 @@ namespace NuGetGallery
         private static void AppPostStart()
         {
             Routes.RegisterRoutes(RouteTable.Routes);
+            Routes.RegisterServiceRoutes(RouteTable.Routes);
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
@@ -71,7 +94,13 @@ namespace NuGetGallery
 
         private static void BackgroundJobsPostStart(IConfiguration configuration)
         {
-            var jobs = new IJob[]
+            var jobs = configuration.HasWorker ?
+                new IJob[]
+                {
+                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), timeout: TimeSpan.FromMinutes(2))
+                }                
+                    :
+                new IJob[]
                 {
                     // readonly: false workaround - let statistics background job write to DB in read-only mode since we don't care too much about losing that data
                     new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
@@ -101,7 +130,7 @@ namespace NuGetGallery
 
             // To make app startup not directly depend on the database,
             // we set the migrations to run when the database is first used, instead of doing it up-front.
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext,MigrationsConfiguration>());
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext, MigrationsConfiguration>());
         }
 
         private static void DynamicDataPostStart(IConfiguration configuration)

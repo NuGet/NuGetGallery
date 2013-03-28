@@ -1,9 +1,6 @@
 ﻿@using Links
 @model ListPackageItemViewModel
-<section class="package @if (Model.IsOwner(User))
-                        {
-                            <text>my-package</text>
-                        }">
+<section class="package @(Model.IsOwner(User) ? "my-package" : null)">
     <div class="side">
         <a href="@Url.Package(Model)" title="View more about @Model.Title">
             <img src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_50x50_png)" alt="@Model.Id icon" onerror="this.src = '@Content.Images.packageDefaultIcon_50x50_png';" />
@@ -19,7 +16,7 @@
             <ul class="owners">
                 @foreach (var owner in Model.Owners)
                 {
-                    <li><a href="@Url.Action(MVC.Users.Profiles(owner.Username))" title="@owner.Username">@owner.Username</a></li>
+                    <li><a href="@Url.User(owner)" title="@owner.Username">@owner.Username</a></li>
                 }
             </ul>
         </header>
@@ -36,6 +33,13 @@
             }
         </p>
 
+        @if (!String.IsNullOrEmpty(Model.MinClientVersion)) 
+        {
+            <div class="minimum-client-version">
+                Requires NuGet @Model.MinClientVersion or higher.
+            </div>
+        }
+    
         <footer>
             <p class="downloads">
                 @Model.TotalDownloadCount.ToString("n0") downloads

@@ -25,11 +25,6 @@
       <!-- Set this to enable use of the Azure Caching Service for Package Explorer in the Cloud -->
       <Setting name="Gallery.AzureCacheEndpoint" value="" />
       <Setting name="Gallery.AzureCacheKey" value="" />
-
-      <!-- Make sure these are unique, secret and remain constant for a particular instance of the gallery! Otherwise cookies will break -->
-      <!-- These are just some values for the Emulated environment. Don't use them in production! They are public! -->
-      <Setting name="Gallery.ValidationKey" value="536AE50FF6EEEF5E6D3AE9C1A7D40EBB6A89ED7A6670956BE8CF48482CC985F39C07129C0044AFB8DD719FD17B9382BB64BC09D1315ABA3EB011C03B614F1474" />
-      <Setting name="Gallery.DecryptionKey" value="8EAE82EF44953302DF848E53C2AB75EC3C77F5B71BA7D59ADDABCDBB8907153A" />
     </ConfigurationSettings>
     <Certificates>
       <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="123" thumbprintAlgorithm="sha1" />
