@@ -15,6 +15,9 @@ using NuGetGallery;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
+using NuGetGallery.Migrations;
+using StackExchange.Profiling;
+using StackExchange.Profiling.MVCHelpers;
 using WebActivator;
 using WebBackgrounder;
 
@@ -131,6 +134,12 @@ namespace NuGetGallery
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext, MigrationsConfiguration>());
         }
 
+<<<<<<< HEAD
+        private static void DynamicDataPostStart(IConfiguration configuration)
+        {
+            Registration.Register(RouteTable.Routes, configuration);
+        }
+
         private static void MiniProfilerPreStart()
         {
             MiniProfilerEF.Initialize();
@@ -148,6 +157,8 @@ namespace NuGetGallery
             }
         }
 
+=======
+>>>>>>> 570f2ee... Added Admin MVC Area
         private static void NinjectPreStart()
         {
             DynamicModuleUtility.RegisterModule(typeof(OnePerRequestModule));
