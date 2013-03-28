@@ -12,7 +12,7 @@
     <li>
         <span data-bind="text: name"></span> <em data-bind="visible: current">(that&#8217;s you!)</em> 
         <em data-bind="visible: pending">(pending approval)</em> 
-        <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current, click: remove">Remove</a>
+        <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current, click: $root.removeOwner">Remove</a>
     </li>
 </ul>
 
@@ -30,16 +30,14 @@
         <legend>Add Owner</legend>
         <div class="form-field">
             <label for="newOwnerUserName">Username</label>
-            <input type="text" name="newOwnerUserName" data-bind="value: newOwner().name" />
+            <input type="text" name="newOwnerUserName" data-bind="value: newOwnerUsername" />
         </div>
         <input type="submit" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: addOwner" />
     </fieldset>
 }
 
-
-
 @section bottomScripts {
-    <script src="@Url.Content("~/Scripts/knockout-latest.js")"></script>
+    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
     <script src="@Url.Content("~/json/JsonApi?json")"></script>
     <script>
         $(function() {
@@ -51,20 +49,40 @@
             var viewModel = {
                 package: { id: '@Model.Id' },
                 owners: ko.observableArray([]),
-                newOwner: ko.observable(new Owner(null)),
+                newOwnerUsername: ko.observable(''),
                 message: ko.observable(''),
-                addOwner: function() {
-                    var ownerInputModel = viewModel.newOwner().toJS();
-                    ownerInputModel.id = viewModel.package.id;
+
+                addOwner: function () {
+                    var newUsername = viewModel.newOwnerUsername();
+
+                    var existingOwner = ko.utils.arrayFirst(
+                        viewModel.owners(),
+                        function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });
+
+                    if (existingOwner) {
+                        viewModel.message("The user '" + newUsername + "' is already an owner or pending owner of this package.");
+                        return;
+                    }
+
+                    var ownerInputModel =
+                        {
+                            username: newUsername,
+                            id: viewModel.package.id
+                        };
 
                     $mvc.JsonApi.AddPackageOwner(ownerInputModel)
                         .done(function(data) {
                             if (data.success) {
-                                viewModel.newOwner().name(data.name);
-                                viewModel.newOwner().pending(true);
-                                viewModel.owners.push(viewModel.newOwner());
-                                viewModel.newOwner(new Owner(null));
-                            } else {
+                                var newOwner = new Owner(data.name, /* pending */ true, data.current);
+                                viewModel.owners.push(newOwner);
+
+                                // reset the Username textbox
+                                viewModel.newOwnerUsername('');
+
+                                // when an operation succeeds, always clear the error message
+                                viewModel.message('');
+                            }
+                            else {
                                 viewModel.message(data.message);
                             }
                         })
@@ -77,6 +95,9 @@
                         .done(function(data) {
                             if (data.success) {
                                 viewModel.owners.remove(item);
+
+                                // when an operation succeeds, always clear the error message
+                                viewModel.message('');
                             } else {
                                 viewModel.message(data.message);
                             }
@@ -88,24 +109,15 @@
             // Load initial owners.
             $mvc.JsonApi.GetPackageOwners(viewModel.package)
                 .done(function(data) {
-                    viewModel.owners($.map(data, function(item) { return new Owner(item); }));
+                    viewModel.owners($.map(data, function(item) { return new Owner(item.name, item.pending, item.current); }));
                 })
                 .fail(failHandler);
 
-            function Owner(item) {
-                item = item || { };
-
-                this.name = ko.observable(item.name);
-                this.pending = ko.observable(item.pending);
-                this.current = item.current;
-                this.remove = function() {
-                    viewModel.removeOwner(this);
-                };
-                this.toJS = function() {
-                    return { username: this.name() };
-                };
+            function Owner(name, pending, current) {
+                this.name = ko.observable(name);
+                this.pending = ko.observable(pending);
+                this.current = current;
             }
         });
     </script>
 }
-

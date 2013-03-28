@@ -2,6 +2,7 @@
 @model ReportAbuseViewModel
 @{
     ViewBag.Tab = "Packages";
+    string returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
 }
 
 <h1 class="page-heading">Report Abuse</h1>
@@ -11,9 +12,15 @@
     packages containing <em>malicious code</em> or spam. If "@Model.PackageId" simply doesn't 
     appear to work or work correctly, please 
     <a href="@Url.Action(MVC.Packages.ContactOwners(Model.PackageId))" title="contact the owners">contact the owners of "@Model.PackageId".</a> 
-</p>                            
+</p>
 
 <p>Please provide a detailed abuse report. Include exactly what the package did.</p>
+
+@if (!Model.ConfirmedUser)
+{
+    <p>Note: if you are the owner of @Model.PackageId, please 
+        @Html.ActionLink("log on now before you complete this form.", "LogOn", "Authentication", new { returnUrl = returnUrl }, null)</p>
+}
 
 @using (Html.BeginForm())
 {
@@ -34,9 +41,20 @@
             }
         </div>
         <div class="form-field">
-            @Html.LabelFor(m => m.Message)
+            @Html.LabelFor(m => m.Reason)
+            @Html.DropDownListFor(m => m.Reason, Model.ReasonChoices.Select(
+                x => new SelectListItem { Value = ReportAbuseViewModel.ReasonDescriptions[x], Text = ReportAbuseViewModel.ReasonDescriptions[x]}))
+            <br/>
+            @Html.CheckBoxFor(m => m.AlreadyContactedOwner)
+            @Html.LabelFor(m => m.AlreadyContactedOwner, "Yes! I have already tried to contact the package owner about this problem.",
+                new Dictionary<string, object>
+                {
+                    { "style", "display: inline" },
+                })<br/>
+            @Html.LabelFor(m => m.Message, "Abuse Report")
+            <p>In addition to selecting the reason for reporting the package, you <em>must</em> provide details of the problem.</p>
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
-            @Html.ValidationMessageFor(m => m.Message)
+            @Html.ValidationMessageFor(m => m.Message) <br/>
         </div>
         @Html.SpamPreventionFields()
         <input type="submit" value="Report" title="Report '@Model.PackageId' for abuse" />
@@ -44,7 +62,5 @@
 }
 
 @section BottomScripts {
-    <script src="@Url.Content("~/Scripts/jquery.validate.min.js")" type="text/javascript"></script>
-    <script src="@Url.Content("~/Scripts/jquery.validate.unobtrusive.min.js")" type="text/javascript"></script>
     @Html.SpamPreventionScript()
 }

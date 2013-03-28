@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,9 +11,11 @@ namespace NuGetGallery
         IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary { get; }
         IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll { get; }
         IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll { get; }
-        IEnumerable<StatisticsPackagesItemViewModel> PackageDownloadsByVersion { get; }
+
         Task<bool> LoadDownloadPackages();
         Task<bool> LoadDownloadPackageVersions();
-        Task<bool> LoadPackageDownloadsByVersion(string id);
+
+        Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId);
+        Task<StatisticsPackagesReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion);
     }
 }

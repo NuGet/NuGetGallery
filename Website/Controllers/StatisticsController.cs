@@ -141,11 +141,30 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            bool isAvailable = await _statisticsService.LoadPackageDownloadsByVersion(id);
+            StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
 
             var model = new StatisticsPackagesViewModel();
 
-            model.SetPackageDownloadsByVersion(id, isAvailable, _statisticsService.PackageDownloadsByVersion);
+            model.SetPackageDownloadsByVersion(id, report);
+
+            return View(model);
+        }
+
+        //
+        // GET: /stats/package/{id}/{version}
+
+        public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version)
+        {
+            if (_statisticsService == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
+
+            var model = new StatisticsPackagesViewModel();
+
+            model.SetPackageVersionDownloadsByClient(id, version, report);
 
             return View(model);
         }

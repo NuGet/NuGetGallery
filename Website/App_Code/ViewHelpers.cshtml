@@ -1,6 +1,7 @@
 ﻿@using System.Configuration
 @using System.Web.Mvc
 @using Microsoft.Web.Helpers
+@using Microsoft.WindowsAzure.ServiceRuntime
 @using NuGetGallery
 @using Ninject
 
@@ -107,7 +108,7 @@
 
 @helper OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true)
 {
-    <a class="owner" href="@url.Action(MVC.Users.Profiles(owner.Username))" title="@owner.Username">
+    <a class="owner" href="@url.User(owner)" title="@owner.Username">
         @if (!String.IsNullOrEmpty(owner.EmailAddress))
         {
             @GravatarImage(owner.EmailAddress, owner.Username, size)
@@ -134,14 +135,30 @@
     string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"];
     string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"];
     string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"];
-    if (!String.IsNullOrEmpty(sha) && !String.IsNullOrEmpty(branch) && !String.IsNullOrEmpty(time))
-    {
-        <p id="releaseTag">
-            Deployed from <a href="https://github.com/NuGet/NuGetGallery/commit/@sha" title="View the commit.">@sha.Substring(0, Math.Min(sha.Length, 10))</a>.
-            Originally built on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a> 
-            at @time.
-        </p>
-    }
+    <p id="releaseTag">
+        This is the NuGet Gallery.
+        @if (!String.IsNullOrEmpty(sha) && !String.IsNullOrEmpty(branch) && !String.IsNullOrEmpty(time))
+        {
+            <text>
+                Deployed from <a href="https://github.com/NuGet/NuGetGallery/commit/@sha" title="View the commit.">@sha.Substring(0, Math.Min(sha.Length, 10))</a>.
+                Originally built on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a> 
+                at @time.
+            </text>
+        }
+        
+        @* A little quick-n-dirty code to display the current machine *@
+        @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
+        @try {
+            if(RoleEnvironment.IsAvailable) {
+                <text>You are on @RoleEnvironment.CurrentRoleInstance.Id.</text>
+            } else {
+                <text>You are on @Environment.MachineName.</text>
+            }
+        } catch(Exception) {
+            @* Azure SDK not installed so we can't even run RoleEnvironment.IsAvailable. Just use Machine Name *@
+            <text>You are on @Environment.MachineName.</text>
+        }
+    </p>
 }
 
 @helper AnalyticsScript()
