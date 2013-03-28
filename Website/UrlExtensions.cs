@@ -46,6 +46,11 @@ namespace NuGetGallery
             return EnsureTrailingSlash(result);
         }
 
+        public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version)
+        {
+            return url.RouteUrl(RouteName.StatisticsPackageDownloadsDetail, new { id, version });
+        }
+
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm, bool prerelease)
         {
             return url.Action(MVC.Packages.ListPackages(searchTerm, sortOrder, page, prerelease));
@@ -58,12 +63,12 @@ namespace NuGetGallery
 
         public static string Package(this UrlHelper url, string id)
         {
-            return url.Package(id, null);
+            return url.Package(id, null, scheme: null);
         }
 
-        public static string Package(this UrlHelper url, string id, string version)
+        public static string Package(this UrlHelper url, string id, string version, string scheme = null)
         {
-            string result = url.RouteUrl(RouteName.DisplayPackage, new { id, version });
+            string result = url.RouteUrl(RouteName.DisplayPackage, new { id, version }, protocol: scheme);
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
             return version == null ? EnsureTrailingSlash(result) : result;
@@ -112,6 +117,12 @@ namespace NuGetGallery
         public static string UploadPackage(this UrlHelper url)
         {
             return url.Action(actionName: "UploadPackage", controllerName: MVC.Packages.Name);
+        }
+
+        public static string User(this UrlHelper url, User user, string scheme = null)
+        {
+            string result = url.Action(MVC.Users.Profiles(user.Username), protocol: scheme);
+            return EnsureTrailingSlash(result);
         }
 
         public static string EditPackage(this UrlHelper url, IPackageVersionModel package)

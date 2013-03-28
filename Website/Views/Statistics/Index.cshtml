@@ -51,7 +51,7 @@
                 <tr>
                     <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
                     <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-                    <td>@item.Downloads</td>
+                    <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@item.Downloads</a></td>
                 </tr>
             }
             </tbody>

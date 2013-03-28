@@ -22,14 +22,13 @@ namespace NuGetGallery
                                   orderby new SemanticVersion(p.Version) descending
                                   select new DisplayPackageViewModel(p, isVersionHistory: true);
             }
-
             DownloadCount = package.DownloadCount;
         }
 
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
-
+        
         public bool IsLatestVersionAvailable
         {
             get

@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
+using System.Text;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
@@ -19,40 +20,120 @@ namespace NuGetGallery
             _config = config;
         }
 
-        public void ReportAbuse(MailAddress fromAddress, Package package, string message)
+        public void ReportAbuse(ReportPackageRequest request)
         {
-            const string subject = "[{0}] Abuse Report for Package '{1}' Version '{2}'";
-            string body = @"_User {0} ({1}) reports the package '{2}' version '{3}' as abusive. 
-{0} left the following information in the report:_
+            string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
+            subject = request.FillIn(subject, _config);
 
-{4}
+            const string userSection = @"
+**User:**
 
-_Message sent from {5}_
+{Username} - {UserUrl}
 ";
-            body = String.Format(
-                CultureInfo.CurrentCulture,
-                body,
-                fromAddress.DisplayName,
-                fromAddress.Address,
-                package.PackageRegistration.Id,
-                package.Version,
-                message,
-                _config.GalleryOwnerName);
+
+            const string bodyTemplate = @"
+**Email:**
+
+{Name} ({Address})
+
+**Package:**
+
+{Id} - {PackageUrl}
+
+**Version:**
+
+{Version} - {VersionUrl}
+
+**Owners:**
+
+{OwnerList}
+
+**Reason:**
+
+{Reason}
+
+**Has the package owner been contacted?:**
+
+{AlreadyContactedOwners}
+
+**Message:**
+
+{Message}
+";
+
+            var body = new StringBuilder("");
+            if (request.RequestingUser != null)
+            {
+                body.Append(request.FillIn(userSection, _config));
+            }
+
+            body.Append(request.FillIn(bodyTemplate, _config));
+            body.AppendFormat(CultureInfo.InvariantCulture, @"
+
+*Message sent from {0}*", _config.GalleryOwnerName);
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(
-                    CultureInfo.CurrentCulture, subject, _config.GalleryOwnerName, package.PackageRegistration.Id, package.Version);
-                mailMessage.Body = body;
-                mailMessage.From = fromAddress;
-
+                mailMessage.Subject = subject;
+                mailMessage.Body = body.ToString();
+                mailMessage.From = request.FromAddress;
                 mailMessage.To.Add(_config.GalleryOwnerEmail);
                 SendMessage(mailMessage);
             }
         }
 
-        public void SendContactOwnersMessage(
-            MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl)
+        public void ReportMyPackage(ReportPackageRequest request)
+        {
+            string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
+            subject = request.FillIn(subject, _config);
+
+            const string bodyTemplate = @"
+**User:**
+
+{Username} - {UserUrl}
+
+**Email:**
+
+{Name} ({Address})
+
+**Package:**
+
+{Id} - {PackageUrl}
+
+**Version:**
+
+{Version} - {VersionUrl}
+
+**Owners:**
+
+{OwnerList}
+
+**Reason:**
+
+{Reason}
+
+**Message:**
+
+{Message}
+";
+
+            var body = new StringBuilder();
+            body.Append(request.FillIn(bodyTemplate, _config));
+            body.AppendFormat(CultureInfo.InvariantCulture, @"
+
+*Message sent from {0}*", _config.GalleryOwnerName);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body.ToString();
+                mailMessage.From = request.FromAddress;
+                mailMessage.To.Add(_config.GalleryOwnerEmail);
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
             string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}'._
