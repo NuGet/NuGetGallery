@@ -180,4 +180,7 @@
   <data name="InvalidEntityFrameworkMigrationId" xml:space="preserve">
     <value>'{0}' is not a valid EntityFramework migration id. Expected string in the format of 'ID_Name'</value>
   </data>
+  <data name="UnableToActivateContextNoFactory" xml:space="preserve">
+    <value>Unable to activate EntitiesContext, no IEntitiesContextFactory found</value>
+  </data>
 </root>

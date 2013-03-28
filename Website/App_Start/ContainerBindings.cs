@@ -104,8 +104,20 @@ namespace NuGetGallery
                 .To<DatabaseVersioningService>()
                 .InSingletonScope();
 
+            Bind<IEntitiesContextFactory>()
+                .To<EntitiesContextFactory>()
+                .InSingletonScope();
+
             Bind<IEntitiesContext>()
-                .ToMethod(context => new EntitiesContext(configuration.SqlConnectionString, readOnly: configuration.ReadOnlyMode))
+                .ToMethod(context =>
+                {
+                    var factory = context.Kernel.TryGet<IEntitiesContextFactory>();
+                    if (factory == null)
+                    {
+                        throw new ActivationException(Strings.UnableToActivateContextNoFactory);
+                    }
+                    return factory.Create(readOnly: configuration.ReadOnlyMode);
+                })
                 .InRequestScope();
 
             Bind<IEntityRepository<User>>()

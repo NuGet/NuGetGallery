@@ -15,13 +15,13 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 
         private static DynamicDataRoute _route;
         
-        public static void Register(RouteCollection routes, string root, IConfiguration configuration)
+        public static void Register(RouteCollection routes, string root, IEntitiesContextFactory contextFactory)
         {
             try
             {
                 DefaultModel.RegisterContext(
                     new EFCodeFirstDataModelProvider(
-                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
+                        () => contextFactory.Create(readOnly: false)), // DB Admins do not need to respect read-only mode.
                         configuration: new ContextConfiguration { ScaffoldAllTables = true });
             }
             catch (SqlException e)

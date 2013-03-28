@@ -87,7 +87,7 @@ namespace NuGetGallery.Data
         }
 
         // Configures the model for the base Migration (the last one before we moved to a more flexible model)
-        protected virtual void ConfigureModel(DbModelBuilder modelBuilder)
+        public static void ConfigureModel(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Key);

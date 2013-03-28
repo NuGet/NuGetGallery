@@ -529,10 +529,12 @@
     <Compile Include="Data\DbMigratorWrapper.cs" />
     <Compile Include="Data\DbModelFactory.cs" />
     <Compile Include="Data\DbModelManager.cs" />
+    <Compile Include="Data\EntitiesContextFactory.cs" />
     <Compile Include="Data\IDatabaseVersioningService.cs" />
     <Compile Include="Data\IDbMigrator.cs" />
     <Compile Include="Data\IDbModelFactory.cs" />
     <Compile Include="Data\IDbModelManager.cs" />
+    <Compile Include="Data\IEntitiesContextFactory.cs" />
     <Compile Include="Data\MigrationUtils.cs" />
     <Compile Include="Data\Model\CuratedFeed.cs" />
     <Compile Include="Data\Model\CuratedPackage.cs" />
