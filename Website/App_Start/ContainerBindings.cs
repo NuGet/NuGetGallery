@@ -17,6 +17,7 @@ using Ninject.Modules;
 using Ninject.Web.Mvc.Filter;
 using NuGetGallery.Data;
 using NuGetGallery.Data.Migrations;
+using NuGetGallery.Data.Model;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
