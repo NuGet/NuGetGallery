@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using NuGetGallery.Data;
 
 namespace NuGetGallery
 {

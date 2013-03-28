@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
 using NuGet;
+using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

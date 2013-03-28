@@ -4,6 +4,9 @@ using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Versioning;
 using NuGet;
+using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
+using PackageDependency = NuGetGallery.Data.Model.PackageDependency;
 
 namespace NuGetGallery
 {

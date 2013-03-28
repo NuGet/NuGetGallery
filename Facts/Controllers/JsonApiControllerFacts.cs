@@ -1,6 +1,8 @@
 ﻿using System.Security.Principal;
 using System.Web;
 using Moq;
+using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 using Xunit;
 
 namespace NuGetGallery.Controllers

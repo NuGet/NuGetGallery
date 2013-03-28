@@ -7,6 +7,7 @@ using System.Web.DynamicData;
 using System.Web.Routing;
 using DynamicData.EFCodeFirstProvider;
 using NuGetGallery;
+using NuGetGallery.Data;
 
 namespace DynamicDataEFCodeFirst
 {

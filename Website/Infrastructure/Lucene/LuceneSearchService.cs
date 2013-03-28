@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
+using NuGetGallery.Data.Model;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
 

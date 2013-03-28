@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using NuGetGallery.Data;
 using WebBackgrounder;
 
 namespace NuGetGallery
