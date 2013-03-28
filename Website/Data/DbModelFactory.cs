@@ -44,7 +44,7 @@ namespace NuGetGallery.Data
 
             // Load the entities in to the model
             var entities = from t in ModelsAssembly.GetExportedTypes()
-                           where String.Equals(t.Namespace, ModelsNamespace, StringComparison.Ordinal)
+                           where t.IsClass && !t.IsAbstract && String.Equals(t.Namespace, ModelsNamespace, StringComparison.Ordinal)
                            select t;
             foreach (var entityType in entities)
             {
