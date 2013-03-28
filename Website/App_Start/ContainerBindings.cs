@@ -95,6 +95,10 @@ namespace NuGetGallery
                 .InSingletonScope()
                 .WithConstructorArgument("modelsAssembly", typeof(User).Assembly)
                 .WithConstructorArgument("modelsNamespace", typeof(User).Namespace);
+
+            Bind<IDbModelManager>()
+                .To<DbModelManager>()
+                .InSingletonScope();
             
             Bind<IDatabaseVersioningService>()
                 .To<DatabaseVersioningService>()
