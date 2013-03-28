@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Mail;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

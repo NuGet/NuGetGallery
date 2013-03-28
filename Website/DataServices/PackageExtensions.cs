@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Linq;
+using NuGetGallery.Data.Model;
 using OData.Linq;
 using QueryInterceptor;
 

@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 using PoliteCaptcha;
 
 namespace NuGetGallery

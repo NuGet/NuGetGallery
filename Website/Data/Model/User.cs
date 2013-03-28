@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NuGetGallery
+namespace NuGetGallery.Data.Model
 {
     public class User : IEntity
     {

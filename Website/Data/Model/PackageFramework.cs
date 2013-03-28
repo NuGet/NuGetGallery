@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Versioning;
 using NuGet;
 
-namespace NuGetGallery
+namespace NuGetGallery.Data.Model
 {
     public class PackageFramework : IEntity, IEquatable<PackageFramework>
     {

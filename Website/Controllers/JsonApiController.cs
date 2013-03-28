@@ -2,6 +2,7 @@
 using System.Web.Mvc;
 using MvcHaack.Ajax;
 using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

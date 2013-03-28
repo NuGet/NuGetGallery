@@ -4,6 +4,7 @@ using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
 using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

@@ -1,5 +1,6 @@
 ﻿using NuGet;
 using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

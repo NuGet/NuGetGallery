@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Lucene.Net.Store;
 using Moq;
+using NuGetGallery.Data.Model;
 using Xunit;
 using Xunit.Extensions;
 

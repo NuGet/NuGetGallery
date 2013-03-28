@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Data.Model;
 using Xunit;
 
 namespace NuGetGallery.Controllers

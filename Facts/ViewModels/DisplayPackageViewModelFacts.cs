@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using NuGetGallery.Data.Model;
 using Xunit;
 
 namespace NuGetGallery.ViewModels

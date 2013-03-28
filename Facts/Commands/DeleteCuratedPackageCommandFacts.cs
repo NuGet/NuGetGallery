@@ -2,6 +2,7 @@
 using System.Data.Entity;
 using Moq;
 using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 using Xunit;
 
 namespace NuGetGallery.Commands

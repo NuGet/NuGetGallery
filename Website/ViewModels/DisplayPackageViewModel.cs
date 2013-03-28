@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NuGet;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

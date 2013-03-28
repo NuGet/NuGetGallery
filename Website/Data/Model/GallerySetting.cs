@@ -1,4 +1,4 @@
-﻿namespace NuGetGallery
+﻿namespace NuGetGallery.Data.Model
 {
     // These guys are no longer referenced by code, but they are still referenced by AggregateStatistics.sql, so need to be part of the data model.
     public class GallerySetting : IEntity

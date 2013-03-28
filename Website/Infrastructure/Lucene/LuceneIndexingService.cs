@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using NuGetGallery.Data.Model;
 
 namespace NuGetGallery
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NuGetGallery
+namespace NuGetGallery.Data.Model
 {
     public class PackageOwnerRequest : IEntity
     {

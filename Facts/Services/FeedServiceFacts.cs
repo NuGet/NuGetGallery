@@ -3,6 +3,7 @@ using System.Linq;
 using System.Web;
 using Moq;
 using NuGetGallery.Data;
+using NuGetGallery.Data.Model;
 using Xunit;
 using Xunit.Extensions;
 

@@ -1,7 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 
-namespace NuGetGallery
+namespace NuGetGallery.Data.Model
 {
     // IMPORTANT:   Removed the TimeStamp column from this class because 
     //              it's completely tracked by the database layer. Don't

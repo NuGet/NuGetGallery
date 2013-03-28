@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace NuGetGallery
+namespace NuGetGallery.Data.Model
 {
     public class PackageDependency : IEntity
     {

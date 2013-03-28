@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using NuGet;
+using NuGetGallery.Data.Model;
 using Xunit;
 
 namespace NuGetGallery.Commands

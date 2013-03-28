@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using Microsoft.Data.OData.Query;
 using Microsoft.Data.OData.Query.SyntacticAst;
+using NuGetGallery.Data.Model;
 using QueryInterceptor;
 
 namespace NuGetGallery
