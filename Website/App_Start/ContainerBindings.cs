@@ -51,11 +51,6 @@ namespace NuGetGallery
             
             if (IsDeployedToCloud)
             {
-                // when running on Windows Azure, use the Azure Cache local storage
-                Bind<IPackageCacheService>()
-                    .To<CloudPackageCacheService>()
-                    .InSingletonScope();
-
                 // when running on Windows Azure, use the Azure Cache service if available
                 if (!String.IsNullOrEmpty(configuration.AzureCacheEndpoint))
                 {
@@ -81,10 +76,6 @@ namespace NuGetGallery
             }
             else
             {
-                Bind<IPackageCacheService>()
-                    .To<NullPackageCacheService>()
-                    .InSingletonScope();
-
                 // when running locally on dev box, use the built-in ASP.NET Http Cache
                 Bind<ICacheService>()
                     .To<HttpContextCacheService>()
@@ -203,10 +194,10 @@ namespace NuGetGallery
                         .To<FileSystemFileStorageService>()
                         .InSingletonScope();
                     break;
-                case PackageStoreType.AzureStorageBlob:
+                case PackageStoreType.AzureStorageBlob: 
                     Bind<ICloudBlobClient>()
                         .ToMethod(
-                            context => new CloudBlobClientWrapper(CloudStorageAccount.Parse(configuration.AzureStorageConnectionString).CreateCloudBlobClient()))
+                            _ => new CloudBlobClientWrapper(configuration.AzureStorageConnectionString))
                         .InSingletonScope();
                     Bind<IFileStorageService>()
                         .To<CloudBlobFileStorageService>()

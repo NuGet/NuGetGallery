@@ -27,14 +27,6 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
-    <IISExpressSSLPort>44300</IISExpressSSLPort>
-    <IISExpressAnonymousAuthentication />
-    <IISExpressWindowsAuthentication />
-    <IISExpressUseClassicPipelineMode />
-    <IISExpressSSLPort>44300</IISExpressSSLPort>
-    <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
-    <IISExpressWindowsAuthentication>disabled</IISExpressWindowsAuthentication>
-    <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -60,6 +52,10 @@
     <Reference Include="AnglicanGeek.MarkdownMailer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
+    </Reference>
+    <Reference Include="Antlr3.Runtime, Version=3.3.1.7705, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebGrease.1.1.0\lib\Antlr3.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="DynamicData.EFCodeFirstProvider, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -150,9 +146,9 @@
     <Reference Include="Ninject.Web.Mvc">
       <HintPath>..\packages\Ninject.MVC3.2.2.2.0\lib\net40-Full\Ninject.Web.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=2.3.40210.45, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Core, Version=2.3.40314.95, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Nuget.Core.2.3.0-alpha002\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <HintPath>..\packages\Nuget.Core.2.3.0-alpha003\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
@@ -197,6 +193,10 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.Mvc.4.0.20710.0\lib\net40\System.Web.Mvc.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web.Optimization, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.Web.Optimization.1.0.0\lib\net40\System.Web.Optimization.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.Razor.2.0.20715.0\lib\net40\System.Web.Razor.dll</HintPath>
@@ -237,6 +237,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\WebBackgrounder.EntityFramework.0.1\lib\net40\WebBackgrounder.EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="WebGrease, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WebGrease.1.1.0\lib\WebGrease.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiController.generated.cs">
@@ -266,6 +270,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataServices\DisregardODataInterceptor.cs" />
+    <Compile Include="DataServices\SearchAdaptor.cs" />
     <Compile Include="DataServices\V2CuratedFeed.svc.cs">
       <DependentUpon>V2CuratedFeed.svc</DependentUpon>
     </Compile>
@@ -305,6 +310,8 @@
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
+    <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
@@ -477,7 +484,6 @@
     <Compile Include="PackageCurators\TagBasedPackageCurator.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCurator.cs" />
     <Compile Include="PackageCurators\Windows8PackageCurator.cs" />
-    <Compile Include="Helpers\PackageHelper.cs" />
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -503,14 +509,11 @@
     <Compile Include="Services\HttpContextCacheService.cs" />
     <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\IStatisticsService.cs" />
-    <Compile Include="Services\NullPackageCacheService.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
-    <Compile Include="Services\CloudPackageCacheService.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
-    <Compile Include="Services\IPackageCacheService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
@@ -527,6 +530,7 @@
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\AggregateStatsService.cs" />
     <Compile Include="Services\PackageSource.cs" />
+    <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
@@ -546,6 +550,7 @@
     </Compile>
     <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
+    <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
@@ -980,6 +985,8 @@
     <Content Include="robots.txt" />
     <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\async-file-upload.js" />
+    <Content Include="Scripts\knockout-2.2.1.debug.js" />
+    <Content Include="Scripts\knockout-2.2.1.js" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
@@ -988,7 +995,6 @@
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="Scripts\knockout-latest.js" />
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\ZeroClipboard.js" />
     <Content Include="Scripts\ZeroClipboard.swf" />
@@ -1082,6 +1088,9 @@
     <Content Include="Views\Statistics\PackageDownloadsByVersion.cshtml" />
     <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
     <Content Include="Views\Packages\UnverifiablePackage.cshtml" />
+    <Content Include="Views\Packages\ReportMyPackage.cshtml" />
+    <Content Include="Views\Pages\Contact.cshtml" />
+    <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />
@@ -1106,16 +1115,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>True</UseIIS>
-          <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>55880</DevelopmentServerPort>
-          <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:55880/</IISUrl>
-          <NTLMAuthentication>False</NTLMAuthentication>
-          <UseCustomServer>False</UseCustomServer>
-          <CustomServerUrl>
-          </CustomServerUrl>
-          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+          <SaveServerSettingsInUserFile>True</SaveServerSettingsInUserFile>
         </WebProjectProperties>
       </FlavorProperties>
     </VisualStudio>

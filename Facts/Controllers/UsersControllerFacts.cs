@@ -17,6 +17,7 @@ namespace NuGetGallery
             Mock<IMessageService> messageService = null,
             Mock<ICuratedFeedsByManagerQuery> feedsQuery = null,
             Mock<IPrincipal> currentUser = null)
+
         {
             userService = userService ?? new Mock<IUserService>();
             var packageService = new Mock<IPackageService>();

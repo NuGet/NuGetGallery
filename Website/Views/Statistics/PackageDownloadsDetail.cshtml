@@ -1,24 +1,25 @@
 ﻿@model StatisticsPackagesViewModel
 @{
-    ViewBag.Title = "Package Downloads for " + Model.PackageId;
+    ViewBag.Title = "Package Downloads for " + Model.PackageId + "/" + Model.PackageVersion;
     ViewBag.Tab = "Statistics";
 }
 
-<h2>Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (Over the Last 6 Weeks)</h2>
+<h2>Package Downloads for <a href="@Url.Package(Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a> (Over the Last 6 Weeks)</h2>
 @if (Model.IsReportAvailable)
 {
 <table class="sexy-table">
     <thead>
         <tr>
-            <th class="first">Version</th><th>Downloads</th>
+            <th class="first">Client</th><th>Operation</th><th>Downloads</th>
         </tr>
     </thead>
     <tbody>
     @foreach (var item in Model.Report.Rows)
     {
         <tr>
-            <td><a href="@Url.Package(Model.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-            <td><a href="@Url.StatisticsPackageDownloadsDetail(Model.PackageId, item.PackageVersion)">@item.Downloads</a></td>
+            <td>@item.Client</td>
+            <td>@item.Operation</td>
+            <td>@item.Downloads</td>
         </tr>
     }
         <tr>

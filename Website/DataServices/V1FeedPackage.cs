@@ -20,7 +20,7 @@ namespace NuGetGallery
         public string Dependencies { get; set; }
         public string Description { get; set; }
         public int DownloadCount { get; set; }
-        public string ExternalPackageUrl { get; set; }
+        public string ExternalPackageUrl { get; set; } // deprecated: always null/empty
         public string GalleryDetailsUrl { get; set; }
         public string IconUrl { get; set; }
         public bool IsLatestVersion { get; set; }

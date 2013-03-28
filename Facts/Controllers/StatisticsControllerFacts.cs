@@ -151,11 +151,14 @@ namespace NuGetGallery
         {
             string PackageId = "A";
 
-            var fakeReport = "[{\"PackageVersion\":\"1.0\",\"Downloads\":101},{\"PackageVersion\":\"2.1\",\"Downloads\":202}]";
+            var fakeReport = "{\"Downloads\":303, Items:[{\"Version\":\"1.0\",\"Downloads\":101},{\"Version\":\"2.1\",\"Downloads\":202}]}";
 
             var fakeReportService = new Mock<IReportService>();
 
-            fakeReportService.Setup(x => x.Load("RecentPopularity_" + PackageId + ".json")).Returns(Task.FromResult(fakeReport));
+            string reportName = "RecentPopularityDetail_" + PackageId + ".json";
+            reportName = reportName.ToLowerInvariant();
+
+            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(fakeReport));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -163,13 +166,49 @@ namespace NuGetGallery
 
             int sum = 0;
 
-            foreach (var item in model.PackageDownloadsByVersion)
+            foreach (var item in model.Report.Rows)
             {
                 sum += item.Downloads;
             }
 
             Assert.Equal<int>(303, sum);
-            Assert.Equal<int>(303, model.TotalPackageDownloads);
+            Assert.Equal<int>(303, model.Report.Total);
+        }
+
+        [Fact]
+        public async void Statistics_By_Client_Operation_ValidateReportStructureAndAvailability()
+        {
+            string PackageId = "A";
+            string PackageVersion = "2.1";
+
+            var fakeReport = "{\"Downloads\":303, Items:[";
+            fakeReport += "{\"Version\":\"1.0\", \"Downloads\":101},";
+            fakeReport += "{\"Version\":\"2.1\", \"Downloads\":70, Items:[";
+            fakeReport += "{\"Client\":\"Package Manager\", \"Operation\":\"Install\", Downloads:45},";
+            fakeReport += "{\"Client\":\"Package Manager\", \"Operation\":\"Restore\", Downloads:25},";
+            fakeReport += "]}";
+            fakeReport += "]}";
+
+            var fakeReportService = new Mock<IReportService>();
+
+            string reportName = "RecentPopularityDetail_" + PackageId + ".json";
+            reportName = reportName.ToLowerInvariant();
+
+            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(fakeReport));
+
+            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
+
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion)).Model;
+
+            int sum = 0;
+
+            foreach (var item in model.Report.Rows)
+            {
+                sum += item.Downloads;
+            }
+
+            Assert.Equal<int>(70, sum);
+            Assert.Equal<int>(70, model.Report.Total);
         }
 
         [Fact]
