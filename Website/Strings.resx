@@ -177,4 +177,7 @@
   <data name="TypeIsNotAMigration" xml:space="preserve">
     <value>The type '{0}' is not a migration type.</value>
   </data>
+  <data name="InvalidEntityFrameworkMigrationId" xml:space="preserve">
+    <value>'{0}' is not a valid EntityFramework migration id. Expected string in the format of 'ID_Name'</value>
+  </data>
 </root>

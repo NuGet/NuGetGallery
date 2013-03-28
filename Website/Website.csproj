@@ -524,6 +524,11 @@
     <Compile Include="DataServices\V2FeedPackage.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Data\DatabaseVersion.cs" />
+    <Compile Include="Data\DatabaseVersioningService.cs" />
+    <Compile Include="Data\DbMigratorWrapper.cs" />
+    <Compile Include="Data\IDatabaseVersioningService.cs" />
+    <Compile Include="Data\IDbMigrator.cs" />
     <Compile Include="Data\MigrationUtils.cs" />
     <Compile Include="Data\Model\CuratedFeed.cs" />
     <Compile Include="Data\Model\CuratedPackage.cs" />

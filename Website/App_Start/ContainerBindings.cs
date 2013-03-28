@@ -1,4 +1,6 @@
 using System;
+using System.Data.Entity.Migrations;
+using System.Data.Entity.Migrations.Infrastructure;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -14,6 +16,7 @@ using Ninject;
 using Ninject.Modules;
 using Ninject.Web.Mvc.Filter;
 using NuGetGallery.Data;
+using NuGetGallery.Data.Migrations;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
@@ -82,6 +85,14 @@ namespace NuGetGallery
                     .To<HttpContextCacheService>()
                     .InRequestScope();
             }
+
+            Bind<IDbMigrator>()
+                .ToMethod(_ => new DbMigratorWrapper(new DbMigrator(new MigrationsConfiguration())))
+                .InSingletonScope();
+            
+            Bind<IDatabaseVersioningService>()
+                .To<DatabaseVersioningService>()
+                .InSingletonScope();
 
             Bind<IEntitiesContext>()
                 .ToMethod(context => new EntitiesContext(configuration.SqlConnectionString, readOnly: configuration.ReadOnlyMode))
