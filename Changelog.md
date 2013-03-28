@@ -1,4 +1,4 @@
-# Deployment 2013.03.28-CommitID  #
+# Deployment 2013.03.28  #
 
 *Support for MinClientVersion*:
 
