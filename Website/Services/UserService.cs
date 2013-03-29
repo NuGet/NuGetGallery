@@ -11,7 +11,6 @@ namespace NuGetGallery
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
         public IEntityRepository<UserFollowsPackage> FollowsRepository { get; protected set; }
-        private readonly IEntityRepository<PackageRegistration> _packagesRepository;
 
         protected UserService() {}
 
@@ -19,14 +18,12 @@ namespace NuGetGallery
             IConfiguration config,
             ICryptographyService cryptoService,
             IEntityRepository<User> userRepository,
-            IEntityRepository<UserFollowsPackage> followsRepository,
-            IEntityRepository<PackageRegistration> packagesRepository)
+            IEntityRepository<UserFollowsPackage> followsRepository)
         {
             Config = config;
             CryptoService = cryptoService;
             UserRepository = userRepository;
             FollowsRepository = followsRepository;
-            _packagesRepository = packagesRepository;
         }
 
         public virtual User Create(
@@ -371,7 +368,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("user");
             }
 
-            return _followsRepository.GetAll()
+            return FollowsRepository.GetAll()
                 .Where(ufp => ufp.UserKey == user.Key);
         }
     }

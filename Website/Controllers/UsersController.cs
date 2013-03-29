@@ -171,8 +171,8 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult MyFavorites()
         {
-            var user = _userService.FindByUsername(_currentUser.Identity.Name);
-            var favorites = _userService.GetFollowedPackages(user);
+            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var favorites = UserService.GetFollowedPackages(user);
 
             var packages = favorites
                 .Select(ufp => ufp.PackageRegistration.Packages.Where(p => p.Listed)
@@ -369,7 +369,7 @@ namespace NuGetGallery
                 .Select(c => new PackageViewModel(c.First()))
                 .ToList();
 
-            var currentFavoritePackages = _userService.GetFollowedPackages(user)
+            var currentFavoritePackages = UserService.GetFollowedPackages(user)
                 .Where(ufp => ufp.IsFollowed)
                 .Select(ufp => ufp.PackageRegistration.Packages.Where(p => p.Listed)
                                                .OrderBy(p => p.LastUpdated)
