@@ -23,6 +23,8 @@ using T4MVC;
 
 [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
 public static class MVC {
+    static readonly AdminClass s_Admin = new AdminClass();
+    public static AdminClass Admin { get { return s_Admin; } }
     public static NuGetGallery.ApiController Api = new NuGetGallery.T4MVC_ApiController();
     public static NuGetGallery.AuthenticationController Authentication = new NuGetGallery.T4MVC_AuthenticationController();
     public static NuGetGallery.CuratedFeedsController CuratedFeeds = new NuGetGallery.T4MVC_CuratedFeedsController();
@@ -36,6 +38,12 @@ public static class MVC {
 }
 
 namespace T4MVC {
+    [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+    public class AdminClass {
+        public readonly string Name = "Admin";
+        public NuGetGallery.Areas.Admin.Controllers.HomeController Home = new NuGetGallery.Areas.Admin.Controllers.T4MVC_HomeController();
+        public T4MVC.Admin.SharedController Shared = new T4MVC.Admin.SharedController();
+    }
 }
 
    
