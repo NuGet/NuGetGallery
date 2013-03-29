@@ -16,6 +16,10 @@
                 is different.
             </p>
         </li>
+        <li id="seeFavorites">
+            <h2><a href="@Url.Action(MVC.Users.MyFavorites())">Manage My Favorite Packages</a></h2>
+            <p>Your favorite packages are publically visible on your user profile page.</p>
+        </li>
         @if (Model.CuratedFeeds.Any())
         {
             <li id="manageCuratedFeeds">

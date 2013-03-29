@@ -7,6 +7,7 @@ namespace NuGetGallery
         public string Username { get; set; }
         public string EmailAddress { get; set; }
         public ICollection<PackageViewModel> Packages { get; set; }
+        public ICollection<PackageViewModel> FavoritePackages { get; set; }
         public int TotalPackageDownloadCount { get; set; }
     }
 }

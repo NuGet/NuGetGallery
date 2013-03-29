@@ -784,6 +784,14 @@ fieldset.search label {
     padding: 0;
 }
 
+    /* Profile Page Favorites */
+
+#favoriteList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
     /* List Package */
 
 section.package {

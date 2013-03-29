@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Principal;
 
 namespace NuGetGallery
 {
@@ -21,6 +24,7 @@ namespace NuGetGallery
             Listed = package.Listed;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
+            Owners = package.PackageRegistration.Owners;
         }
 
         public string Description { get; set; }
@@ -34,6 +38,7 @@ namespace NuGetGallery
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
+        public ICollection<User> Owners { get; set; }
 
         public int TotalDownloadCount
         {
@@ -55,6 +60,15 @@ namespace NuGetGallery
         public bool IsCurrent(IPackageVersionModel current)
         {
             return current.Version == Version && current.Id == Id;
+        }
+
+        public bool IsOwner(IPrincipal user)
+        {
+            if (user == null || user.Identity == null)
+            {
+                return false;
+            }
+            return user.IsInRole(Constants.AdminRoleName) || Owners.Any(u => u.Username == user.Identity.Name);
         }
     }
 }

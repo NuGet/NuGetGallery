@@ -110,6 +110,7 @@ namespace NuGetGallery {
         public class ViewNames {
             public readonly string _ListPackage = "~/Views/Packages/_ListPackage.cshtml";
             public readonly string _PackageDependencies = "~/Views/Packages/_PackageDependencies.cshtml";
+            public readonly string _ShortPackageInfo = "~/Views/Packages/_ShortPackageInfo.cshtml";
             public readonly string ConfirmOwner = "~/Views/Packages/ConfirmOwner.cshtml";
             public readonly string ContactOwners = "~/Views/Packages/ContactOwners.cshtml";
             public readonly string Delete = "~/Views/Packages/Delete.cshtml";

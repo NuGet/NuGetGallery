@@ -58,6 +58,7 @@ namespace NuGetGallery {
             public readonly string Edit = "Edit";
             public readonly string Register = "Register";
             public readonly string Thanks = "Thanks";
+            public readonly string MyFavorites = "MyFavorites";
             public readonly string Packages = "Packages";
             public readonly string GenerateApiKey = "GenerateApiKey";
             public readonly string ForgotPassword = "ForgotPassword";
@@ -81,6 +82,7 @@ namespace NuGetGallery {
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
             public readonly string Edit = "~/Views/Users/Edit.cshtml";
             public readonly string ForgotPassword = "~/Views/Users/ForgotPassword.cshtml";
+            public readonly string MyFavorites = "~/Views/Users/MyFavorites.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string PasswordChanged = "~/Views/Users/PasswordChanged.cshtml";
             public readonly string PasswordSent = "~/Views/Users/PasswordSent.cshtml";
@@ -125,6 +127,11 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult Thanks() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Thanks);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult MyFavorites() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.MyFavorites);
             return callInfo;
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -165,6 +166,23 @@ namespace NuGetGallery
                 var model = new EmailConfirmationModel { SuccessfulConfirmation = true, ConfirmingNewAccount = true };
                 return View("Confirm", model);
             }
+        }
+
+        [Authorize]
+        public virtual ActionResult MyFavorites()
+        {
+            var user = _userService.FindByUsername(_currentUser.Identity.Name);
+            var favorites = _userService.GetFollowedPackages(user);
+
+            var packages = favorites
+                .Select(ufp => ufp.PackageRegistration.Packages.Where(p => p.Listed)
+                                               .OrderBy(p => p.LastUpdated)
+                                               .FirstOrDefault())
+                .Include(p => p.PackageRegistration.Owners);
+
+            var model = new PackageListViewModel(packages, null, null, favorites.Count(), 0, 50, Url, false);
+
+            return View(model);
         }
 
         [Authorize]
@@ -351,11 +369,23 @@ namespace NuGetGallery
                 .Select(c => new PackageViewModel(c.First()))
                 .ToList();
 
+            var currentFavoritePackages = _userService.GetFollowedPackages(user)
+                .Where(ufp => ufp.IsFollowed)
+                .Select(ufp => ufp.PackageRegistration.Packages.Where(p => p.Listed)
+                                               .OrderBy(p => p.LastUpdated)
+                                               .FirstOrDefault())
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .ToList()
+                .Select(p => new PackageViewModel(p))
+                .ToList();
+
             var model = new UserProfileModel
                 {
                     Username = user.Username,
                     EmailAddress = user.EmailAddress,
                     Packages = packages,
+                    FavoritePackages = currentFavoritePackages,
                     TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount)
                 };
 

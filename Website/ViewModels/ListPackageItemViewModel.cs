@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
 
 namespace NuGetGallery
 {
@@ -17,11 +15,9 @@ namespace NuGetGallery
             }
 
             MinClientVersion = package.MinClientVersion;
-            Owners = package.PackageRegistration.Owners;
         }
 
         public IEnumerable<PackageAuthor> Authors { get; set; }
-        public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public string MinClientVersion { get; set; }
         public bool IsFollowed { get; set; }

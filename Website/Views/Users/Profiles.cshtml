@@ -35,7 +35,7 @@
                 </div>
                 <div class="main">
                     <h1><a href="@Url.Package(package.Id)">@package.Title</a></h1>
-                
+
                     <p>
                         @if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 350)
                         {
@@ -55,6 +55,18 @@
                     </footer>
                 </div>
             </section>
+        </li>
+    }
+</ul>
+
+<hr />
+
+<h2>@Model.Username's Favorite Packages</h2>
+<ul id="favoriteList">
+    @foreach (var package in Model.FavoritePackages)
+    {
+        <li>
+            @Html.Partial(MVC.Packages.Views._ShortPackageInfo, package)
         </li>
     }
 </ul>
