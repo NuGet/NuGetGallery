@@ -758,7 +758,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async void StatsDownloads()
+            public async void VerifyRecentPopularityStatsDownloads()
             {
                 JArray report = new JArray();
                 report.Add(new JObject(new JProperty("PackageId", "A"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 3)));
@@ -786,7 +786,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async void StatsDownloadsNegative()
+            public async void VerifyStatsDownloadsReturnsNotFoundWhenStatsNotAvailable()
             {
                 var fakeStatisticsService = new Mock<IStatisticsService>();
 
