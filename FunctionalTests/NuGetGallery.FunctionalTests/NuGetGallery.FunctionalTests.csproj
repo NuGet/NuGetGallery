@@ -57,6 +57,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
@@ -64,6 +65,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssertAndValidationHelper.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCommandLineTests.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCoreTests.cs" />
     <Compile Include="ODataTests\V2FeedExtendedTest.cs" />
@@ -72,7 +74,12 @@
     <Compile Include="Features\CuratedFeedTest.cs" />
     <Compile Include="Features\PackageVersionTest.cs" />
     <Compile Include="TestBase\GalleryTestBase.cs" />
+    <Compile Include="ValidationRuleFindHeaderText.cs" />
+    <Compile Include="WebUITests\AccountManagement\RegisterInvalidUserTest.cs" />
+    <Compile Include="WebUITests\BasicPages\SecurityHeaderTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactOwnerTest.cs" />
+    <Compile Include="WebUITests\PackageManagement\ContactUsAndReportAbuseLinkTest.cs" />
+    <Compile Include="WebUITests\UploadAndDownload\UploadPackageWithMinClientVersionFromUITest.cs" />
     <Compile Include="WebUITests\PackageManagement\DeletePackageTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ManagePackagesPageTest.cs" />
     <Compile Include="WebUITests\ReadOnlyMode\ReadOnlyModeRegisterNewUserTest.cs" />
@@ -85,7 +92,6 @@
     <Compile Include="WebUITests\AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="WebUITests\BasicPages\StatisticsPageTest.cs" />
     <Compile Include="WebUITests\AccountManagement\UploadPackageWithoutLoginTest.cs" />
-    <Compile Include="WebUITests\AssertAndValidationHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionTests.Helpers.csproj">

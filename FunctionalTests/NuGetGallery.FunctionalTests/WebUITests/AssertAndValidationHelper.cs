@@ -15,13 +15,13 @@ namespace NuGetGallery.FunctionalTests
     public class AssertAndValidationHelper
     {
         #region ValidationRules
-        public static ValidationRuleFindText GetValidationRuleForFindText(string findText)
+        public static ValidationRuleFindText GetValidationRuleForFindText(string findText, bool passIfTextFound = true)
         {
             ValidationRuleFindText text = new ValidationRuleFindText();
             text.FindText = findText;
             text.IgnoreCase = true;
             text.UseRegularExpression = false;
-            text.PassIfTextFound = true;
+            text.PassIfTextFound = passIfTextFound;
             return text;
         }
 
@@ -77,12 +77,30 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
+        /// Returns the GET WebRequest for Log Off.
+        /// </summary>
+        /// <returns></returns>
+        public static WebTestRequest GetLogOffGetRequest()
+        {
+            return new WebTestRequest(UrlHelper.LogOffPageUrl);
+        }
+
+        /// <summary>
         /// Returns the POST WebRequest for logon with appropriate form parameters set.
         /// Individual WebTests can use this.
         /// </summary>
         /// <returns></returns>
-        public static WebTestRequest GetLogonPostRequest(WebTest test)
+        public static WebTestRequest GetLogonPostRequest(WebTest test, string accountName = null, string password = null)
         {
+            if (accountName == null)
+            {
+                accountName = EnvironmentSettings.TestAccountName;
+            }
+            if (password == null)
+            {
+                accountName = EnvironmentSettings.TestAccountPassword;
+            }
+
             WebTestRequest logonPostRequest = new WebTestRequest(UrlHelper.LogonPageUrl);
             logonPostRequest.Method = "POST";
             logonPostRequest.ExpectedResponseUrl = UrlHelper.BaseUrl;
