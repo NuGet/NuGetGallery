@@ -10,16 +10,23 @@
 <table class="sexy-table">
     <thead>
         <tr>
-            <th class="first">Version</th><th>Downloads</th>
+            <th></th><th class="first">Version</th><th>Downloads</th>
         </tr>
     </thead>
     <tbody>
-    @foreach (var item in Model.Report.Rows)
-    {
-        <tr>
-            <td><a href="@Url.Package(Model.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-            <td><a href="@Url.StatisticsPackageDownloadsDetail(Model.PackageId, item.PackageVersion)">@item.Downloads</a></td>
-        </tr>
+    @{
+        var index = 0;
+        
+        foreach (var item in Model.Report.Rows)
+        {
+            index++;
+            
+            <tr>
+                <td class="statistics-rank">@index</td>
+                <td><a href="@Url.Package(Model.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                <td><a href="@Url.StatisticsPackageDownloadsDetail(Model.PackageId, item.PackageVersion)">@item.Downloads</a></td>
+            </tr>
+        }
     }
         <tr>
             <td><span class="statistics-total">Total:</span></td>
