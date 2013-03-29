@@ -10,11 +10,11 @@ namespace NuGetGallery.FunctionalTests
     using System.Text;
 
     /// <summary>
-    /// Sends http POST request to register a new user and checks that a pending confirmation page is shown as response.
+    /// Attempts to register an invalid user and confirms that the process failed.
     /// </summary>
-    public class RegisterNewUserTest : WebTest
+    public class RegisterInvalidUserTest : WebTest
     {
-        public RegisterNewUserTest()
+        public RegisterInvalidUserTest()
         {
             this.PreAuthenticate = true;
         }
@@ -28,18 +28,32 @@ namespace NuGetGallery.FunctionalTests
             WebTestRequest registerPagePostRequest = new WebTestRequest(UrlHelper.RegisterPageUrl);
             registerPagePostRequest.Method = "POST";
             registerPagePostRequest.ExpectedResponseUrl = UrlHelper.RegistrationPendingPageUrl;
-            //create a form and set the UserName, Email and password as form post parameters.
-            //We just need to set some unique user name and Email.
             FormPostHttpBody registerNewUserFormPost = new FormPostHttpBody();
             registerNewUserFormPost.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
-            registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString()+ "@live.com" ); //add a dummy mail account. This will be fixed once we incorporate the logic to delete user.
-            registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, DateTime.Now.Ticks.ToString() +"NewAccount");
+            registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString()+ "@live.com" ); 
+            registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, EnvironmentSettings.TestAccountName);  // This account already exists; we expect this to fail.
             registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxx");
             registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordFormField, "xxxxxxx");
             registerPagePostRequest.Body = registerNewUserFormPost;
             //Validate the response to make sure that it has the pending confirmation text in it.           
-            ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText);
+            ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText, false);
             registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);           
+            yield return registerPagePostRequest;
+            registerPagePostRequest = null;
+
+            registerPagePostRequest = new WebTestRequest(UrlHelper.RegisterPageUrl);
+            registerPagePostRequest.Method = "POST";
+            registerPagePostRequest.ExpectedResponseUrl = UrlHelper.RegistrationPendingPageUrl;
+            registerNewUserFormPost = new FormPostHttpBody();
+            registerNewUserFormPost.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+            registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString() + "@live.com");
+            registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, Convert.ToChar(4).ToString());  // This is an invalid username; we expect this to fail, too.
+            registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxx");
+            registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordFormField, "xxxxxxx");
+            registerPagePostRequest.Body = registerNewUserFormPost;
+            //Validate the response to make sure that it has the pending confirmation text in it.           
+            PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText, false);
+            registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);
             yield return registerPagePostRequest;
             registerPagePostRequest = null;
         }
