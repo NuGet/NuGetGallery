@@ -1,7 +1,4 @@
-﻿
-
-
-@if (!Request.IsAuthenticated)
+﻿@if (!Request.IsAuthenticated)
 {
     <h1 class="page-heading">
         Thanks for registering</h1>
@@ -17,8 +14,7 @@ else
     if (Request.IsLocal)
     {
         <p class="message">
-            Pssst! I see you're running this in a development environment. <strong>Check the <em>
-                                                                                                 \App_Data\Mail</em> folder for the email</strong>.
+            Pssst! I see you're running this in a development environment. <strong>Check the <em>\App_Data\Mail</em> folder for the email</strong>.
         </p>
     }
     else
