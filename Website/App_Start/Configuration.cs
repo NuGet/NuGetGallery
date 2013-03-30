@@ -47,6 +47,11 @@ namespace NuGetGallery
             get { return ReadAppSettings("SSL.Port", str => Int32.Parse(str ?? "443", CultureInfo.InvariantCulture)); }
         }
 
+        public bool RunMigrationsAutomatically
+        {
+            get { return ReadAppSettings("RunMigrationsAutomatically", str => Boolean.Parse(str ?? "false")); }
+        }
+
         public string AzureStorageConnectionString
         {
             get { return ReadAppSettings("AzureStorageConnectionString"); }

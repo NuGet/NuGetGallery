@@ -5,6 +5,7 @@
         bool HasWorker { get; }
         bool RequireSSL { get; }
         int SSLPort { get; }
+        bool RunMigrationsAutomatically { get; }
 
         string SmtpHost { get; }
         string SmtpUsername { get; }

@@ -44,7 +44,7 @@ namespace NuGetGallery
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IConfiguration>();
             MiniProfilerPostStart();
-            DbMigratorPostStart();
+            DbMigratorPostStart(config);
             BackgroundJobsPostStart(config);
             AppPostStart();
             DynamicDataPostStart(config);
@@ -122,15 +122,17 @@ namespace NuGetGallery
             _jobManager.Dispose();
         }
 
-        private static void DbMigratorPostStart()
+        private static void DbMigratorPostStart(IConfiguration configuration)
         {
-            // After upgrading to EF 4.3 and MiniProfile 1.9, there is a bug that causes several 
-            // 'Invalid object name 'dbo.__MigrationHistory' to be thrown when the database is first created; 
-            // it seems these can safely be ignored, and the database will still be created.
-
-            // To make app startup not directly depend on the database,
-            // we set the migrations to run when the database is first used, instead of doing it up-front.
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext, MigrationsConfiguration>());
+            if (configuration.RunMigrationsAutomatically)
+            {
+                Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext, MigrationsConfiguration>());
+            }
+            else
+            {
+                // Set Initializer to null to avoid errors about migrations not being run
+                Database.SetInitializer<EntitiesContext>(null);
+            }
         }
 
         private static void DynamicDataPostStart(IConfiguration configuration)
