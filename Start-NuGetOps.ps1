@@ -1,10 +1,3 @@
-#$oldSize = $host.UI.RawUI.BufferSize;
-#$oldSize.Width = 120;
-#$oldSize.Height = 3000;
-#$host.UI.RawUI.BufferSize = $oldSize;
-#$oldSize.Height = 50;
-#$host.UI.RawUI.WindowSize = $oldSize;
-
 $root = (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $OpsProfile = $MyInvocation.MyCommand.Path
 $OpsModules = Join-Path $root "Modules"
@@ -15,8 +8,16 @@ $env:WinSDKRoot = "$(cat "env:\ProgramFiles(x86)")\Windows Kits\8.0"
 
 $env:PATH = "$root;$OpsTools\bin;$env:PATH;$env:WinSDKRoot\bin\x86;$env:WinSDKRoot\Debuggers\x86"
 
-Import-Module PS-CmdInterop
-Import-Module PS-VsVars
+function LoadOrReloadModule($name) {
+	if(Get-Module $name) {
+		Write-Host "Module $name already loaded, reloading."
+		Remove-Module $name -Force
+	}
+	Import-Module $name
+}
+
+LoadOrReloadModule PS-CmdInterop
+LoadOrReloadModule PS-VsVars
 
 Import-VsVars -Architecture x86
 
@@ -26,9 +27,13 @@ if(Test-Path "$OpsTools\Paths.txt") {
 	}
 }
 
-Import-Module posh-git
-Import-Module WAPPSCmdlets
-Import-Module NuGetOps
+if(!(Get-Module posh-git)) {
+	Import-Module posh-git
+} else {
+	Write-Host "Module posh-git already loaded, can't reload"
+}
+LoadOrReloadModule WAPPSCmdlets
+LoadOrReloadModule NuGetOps
 
 function prompt() {
 	$env = Get-Environment;

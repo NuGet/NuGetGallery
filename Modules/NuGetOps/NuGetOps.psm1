@@ -1,12 +1,44 @@
-$Global:NuGetOpsVersion = 0.1
 $Global:OpsRoot = (Convert-Path "$PsScriptRoot\..\..")
 $EnvsRoot = $env:NUGET_OPS_ENVIRONMENTS
 
+# Extract Ops NuGetOpsVersion
+$NuGetOpsVersion = 
+	cat .\Source\CommonAssemblyInfo.cs | 
+	where { $_ -match "\[assembly:\s+AssemblyInformationalVersion\(`"(?<ver>[^`"]*)`"\)\]" } | 
+	foreach { $matches["ver"] }
+
 # Defaults for Microsoft CorpNet. If you're outside CorpNet, you'll have to VPN in. Of course, if you're hosting your own gallery, you have to build your own scripts :P
-if([String]::IsNullOrEmpty($EnvsRoot) -and (Test-Path "\\nuget\Environments")) {
-	$EnvsRoot = "\\nuget\Environments"
+if([String]::IsNullOrEmpty($EnvsRoot) -and (Test-Path "\\nuget\Environments\Environments.xml")) {
+	$EnvsRoot = "\\nuget\Environments\Environments.xml"
 }
 $emulatorOnly = [String]::IsNullOrEmpty($EnvsRoot);
+
+# Check for v0.2 level environment scripts
+$Global:Environments = @{}
+if($EnvsRoot -and (Test-Path $EnvsRoot)) {
+	if([IO.Path]::GetExtension($EnvsRoot) -eq ".xml") {
+		$x = [xml](cat $EnvsRoot)
+		$Global:Environments = @{};
+		$x.environments.environment | ForEach-Object {
+			$Environments[$_.name] = New-Object PSCustomObject
+			Add-Member -NotePropertyMembers @{
+				Version = 0.2;
+				Service = $_.service;
+				Subscription = $_.subscription
+			} -InputObject $Environments[$_.name]
+		}
+	} else {
+		# Old v0.1 environment scripts
+		dir "$EnvsRoot\*.ps1" | Where-Object { !$_.Name.StartsWith("_") } | ForEach-Object {
+			$name = [IO.Path]::GetFileNameWithoutExtension($_.FullName);
+			$Environments[$name] = New-Object PSCustomObject
+			Add-Member -NotePropertyMembers @{
+				Version = 0.1;
+				Script = $_.FullName
+			} -InputObject $Environments[$name]
+		}
+	}
+}
 
 function Get-Environment([switch]$ListAvailable) {
 	if($ListAvailable) {
@@ -205,4 +237,7 @@ Write-Host -ForegroundColor Black -BackgroundColor Yellow "Welcome to the NuGet 
 
 if($EmulatorOnly) {
 	Write-Warning "NUGET_OPS_ENVIRONMENTS is not specified, only the built-in Emulator environment will be available"
+}
+if(!(Test-Path "$env:ProgramFiles\Microsoft SDKs\Windows Azure\.NET SDK\")) {
+	Write-Warning "Couldn't find the Azure .NET SDK. Some operations may not work without it."
 }
