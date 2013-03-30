@@ -35,28 +35,11 @@ if(!(Get-Module posh-git)) {
 LoadOrReloadModule WAPPSCmdlets
 LoadOrReloadModule NuGetOps
 
-function prompt() {
-	$env = Get-Environment;
-	if($env -eq $null) { $env = "<NONE>"; }
-	$host.UI.RawUI.WindowTitle = "NuGet Operations Console v$NuGetOpsVersion [Environment: $env]"
-
-	Write-Host -noNewLine "$(Get-Location)"
-	
-	$realLASTEXITCODE = $LASTEXITCODE
-
-	# Reset color, which can be messed up by Enable-GitColors
-	$Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
-	
-	Write-Host -noNewline " branch:"
-	Write-VcsStatus
-	
-	$global:LASTEXITCODE = $realLASTEXITCODE
-	Write-Host
-	Write-Host -noNewline "[env:"
-	if(Test-Environment "Production") {
-		Write-Host -noNewLine -foregroundColor Yellow $env
+$oldprompt = $function:prompt;
+function Global:prompt {
+	if(Get-Module NuGetOps) {
+		return Write-NuGetOpsPrompt
 	} else {
-		Write-Host -noNewLine -foregroundColor Magenta $env
+		return $oldprompt.InvokeReturnAsIs()
 	}
-	return "]> "
 }

@@ -11,7 +11,6 @@ $NuGetOpsVersion =
 if([String]::IsNullOrEmpty($EnvsRoot) -and (Test-Path "\\nuget\Environments\Environments.xml")) {
 	$EnvsRoot = "\\nuget\Environments\Environments.xml"
 }
-$emulatorOnly = [String]::IsNullOrEmpty($EnvsRoot);
 
 # Check for v0.2 level environment scripts
 $Global:Environments = @{}
@@ -42,18 +41,13 @@ if($EnvsRoot -and (Test-Path $EnvsRoot)) {
 
 function Get-Environment([switch]$ListAvailable) {
 	if($ListAvailable) {
-		$emulator = "  Emulator"
-		if(Test-Environment "Emulator") {
-			$Emulator = "* Emulator"
-		}
-		@(dir "$EnvsRoot\*.ps1" | Where-Object { !$_.Name.StartsWith("_") } | ForEach-Object { 
-			$envName = [IO.Path]::GetFileNameWithoutExtension($_.Name) 
-			if(Test-Environment $envName) {
-				"* $envName"
+		@($Environments.Keys | ForEach-Object { 
+			if(Test-Environment $_) {
+				"* $_"
 			} else {
-				"  $envName"
+				"  $_"
 			}
-		}) + $Emulator
+		})
 	} else {
 		if(!(Test-Path env:\NUGET_GALLERY_ENV)) {
 			$null;
@@ -138,42 +132,9 @@ function _RefreshGitColors {
 	}
 }
 
-function _SetEmulatorEnvironment() {
-	del env:\NUGET*
-	$env:NUGET_GALLERY_USE_EMULATOR = $true
-	$env:NUGET_GALLERY_ENV = "Emulator"
-}
-
 function Set-Environment {
 	param([Parameter(Mandatory=$true)][string]$Name)
-	$env = Get-Environment
-	if($env -ne $Name) {
-		if([String]::IsNullOrEmpty($Name)) {
-			del env:\NUGET_*;
-			return;
-		}
-		
-		if([String]::IsNullOrEmpty($EnvsRoot) -or !(Test-Path (Join-Path $EnvsRoot "$Name*.ps1"))) {
-			if("Emulator" -like "$Name*") {
-				_SetEmulatorEnvironment
-				return;
-			}
-			throw "No such environment: $Name";
-		}
-
-
-		. "$EnvsRoot\$Name*.ps1"
-		if(_IsProduction) {
-			$host.UI.RawUI.BackgroundColor = "DarkRed";
-		} elseif(![String]::IsNullOrEmpty($Name)) {
-			$host.UI.RawUI.BackgroundColor = "Black";
-		} else {
-			$host.UI.RawUI.BackgroundColor = "DarkMagenta";
-		}
-		_RefreshGitColors
-		#cls;
-		"Environment is now $(Get-Environment)"
-	}
+	"Todo"
 }
 Export-ModuleMember -Function Set-Environment
 
@@ -224,7 +185,7 @@ if(Test-Environment -Exists Preview) {
 } else {
 	Set-Environment Emulator | Out-Null
 }
-Clear-Host
+#Clear-Host
 Write-Host @"
  ______         ______            
 |  ___ \       / _____)      _    
@@ -235,9 +196,35 @@ Write-Host @"
 "@
 Write-Host -ForegroundColor Black -BackgroundColor Yellow "Welcome to the NuGet Operations Console (v$NuGetOpsVersion)"
 
-if($EmulatorOnly) {
-	Write-Warning "NUGET_OPS_ENVIRONMENTS is not specified, only the built-in Emulator environment will be available"
+if([String]::IsNullOrEmpty($EnvsRoot)) {
+	Write-Warning "NUGET_OPS_ENVIRONMENTS is not specified, no environments are available"
 }
 if(!(Test-Path "$env:ProgramFiles\Microsoft SDKs\Windows Azure\.NET SDK\")) {
 	Write-Warning "Couldn't find the Azure .NET SDK. Some operations may not work without it."
 }
+
+function Write-NuGetOpsPrompt() {
+	$env = $env:NUGET_GALLERY_ENV;
+	if($env -eq $null) { $env = "<NONE>"; }
+	$host.UI.RawUI.WindowTitle = "NuGet Operations Console v$NuGetOpsVersion [Environment: $env]"
+
+	Write-Host -noNewLine "$(Get-Location)"
+	
+	$realLASTEXITCODE = $LASTEXITCODE
+
+	# Reset color, which can be messed up by Enable-GitColors
+	$Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+	
+	Write-VcsStatus
+	
+	$global:LASTEXITCODE = $realLASTEXITCODE
+	Write-Host
+	Write-Host -noNewline "[env:"
+	if($env:NUGET_GALLERY_ENV -eq "Production") {
+		Write-Host -noNewLine -foregroundColor Yellow $env
+	} else {
+		Write-Host -noNewLine -foregroundColor Magenta $env
+	}
+	return "]> "
+}
+Export-ModuleMember -Function Write-NuGetOpsPrompt
