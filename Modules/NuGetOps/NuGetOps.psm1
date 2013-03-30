@@ -7,11 +7,6 @@ $NuGetOpsVersion =
 	where { $_ -match "\[assembly:\s+AssemblyInformationalVersion\(`"(?<ver>[^`"]*)`"\)\]" } | 
 	foreach { $matches["ver"] }
 
-# Defaults for Microsoft CorpNet. If you're outside CorpNet, you'll have to VPN in. Of course, if you're hosting your own gallery, you have to build your own scripts :P
-if([String]::IsNullOrEmpty($EnvsRoot) -and (Test-Path "\\nuget\Environments\Environments.xml")) {
-	$EnvsRoot = "\\nuget\Environments\Environments.xml"
-}
-
 # Check for v0.2 level environment scripts
 $Global:Environments = @{}
 if($EnvsRoot -and (Test-Path $EnvsRoot)) {
@@ -27,15 +22,7 @@ if($EnvsRoot -and (Test-Path $EnvsRoot)) {
 			} -InputObject $Environments[$_.name]
 		}
 	} else {
-		# Old v0.1 environment scripts
-		dir "$EnvsRoot\*.ps1" | Where-Object { !$_.Name.StartsWith("_") } | ForEach-Object {
-			$name = [IO.Path]::GetFileNameWithoutExtension($_.FullName);
-			$Environments[$name] = New-Object PSCustomObject
-			Add-Member -NotePropertyMembers @{
-				Version = 0.1;
-				Script = $_.FullName
-			} -InputObject $Environments[$name]
-		}
+		throw "Your Environments are old and busted. Upgrade to the new hotness!`r`nhttps://github.com/NuGet/NuGetOperations/wiki/Setting-up-the-Operations-Console"
 	}
 }
 
@@ -197,7 +184,7 @@ Write-Host @"
 Write-Host -ForegroundColor Black -BackgroundColor Yellow "Welcome to the NuGet Operations Console (v$NuGetOpsVersion)"
 
 if([String]::IsNullOrEmpty($EnvsRoot)) {
-	Write-Warning "NUGET_OPS_ENVIRONMENTS is not specified, no environments are available"
+	Write-Warning "No environments are available, the console will not function correctly.`r`nSee https://github.com/NuGet/NuGetOperations/wiki/Setting-up-the-Operations-Console for more info"
 }
 if(!(Test-Path "$env:ProgramFiles\Microsoft SDKs\Windows Azure\.NET SDK\")) {
 	Write-Warning "Couldn't find the Azure .NET SDK. Some operations may not work without it."
