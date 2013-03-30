@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Data.SqlClient;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Migrations;
+using System.Data.SqlClient;
+using System.Reflection;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
@@ -90,6 +94,47 @@ namespace NuGetGallery.Operations
 
             ArgCheck.RequiredOrConfig(ReportStorage, "ReportStorage");
         }
+    }
+
+    public abstract class MigrationsTask : DatabaseTask
+    {
+        private const string DefaultConfigurationType = "NuGetGallery.Migrations.MigrationsConfiguration";
+
+        [Option("Path to the assembly containing the migrations", AltName = "a")]
+        public string GalleryAssembly { get; set; }
+
+        [Option("Migrations Configuration type name", AltName = "t")]
+        public string ConfigurationType { get; set; }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+            ArgCheck.Required(GalleryAssembly, "GalleryAssembly");
+        }
+
+        public override void ExecuteCommand()
+        {
+            // Load the assembly and find the configuration type
+            Assembly asm = Assembly.LoadFrom(GalleryAssembly);
+            Type configType = asm.GetType(DefaultConfigurationType, throwOnError: true);
+
+            // Create the configuration instance
+            var config = Activator.CreateInstance(configType) as DbMigrationsConfiguration;
+            if (config == null)
+            {
+                Log.Error("Invalid Migration Configuration Type: '{0}'", configType.FullName);
+            }
+
+            // Modify the target database
+            config.TargetDatabase = new DbConnectionInfo(ConnectionString, "System.Data.SqlClient");
+
+            // Create a Db Migrator
+            var migrator = new DbMigrator(config);
+
+            ExecuteCommandCore(migrator);
+        }
+
+        protected abstract void ExecuteCommandCore(DbMigrator migrator);
     }
 
     public abstract class DatabaseAndStorageTask : StorageTask
