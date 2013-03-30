@@ -102,6 +102,7 @@
     <Compile Include="Common\ReportHelpers.cs" />
     <Compile Include="Common\SqlHelper.cs" />
     <Compile Include="Common\StreamConverter.cs" />
+    <Compile Include="DeploymentEnvironment.cs" />
     <Compile Include="Infrastructure\CommandLineParser.cs" />
     <Compile Include="Tasks\BackupDatabaseTask.cs" />
     <Compile Include="Tasks\BackupPackageFileTask.cs" />

@@ -41,6 +41,19 @@ namespace NuGetGallery.Operations
         [Import]
         public HelpCommand HelpCommand { get; set; }
 
+        public DeploymentEnvironment CurrentEnvironment
+        {
+            get
+            {
+                return !String.IsNullOrEmpty(ConfigFile) ?
+                    DeploymentEnvironment.FromConfigFile(ConfigFile) : 
+                    null;
+            }
+        }
+
+        [Option("Path to the configuration file to use when command line arguments aren't specified", AltName = "cfg")]
+        public string ConfigFile { get; set; }
+
         [Option("Gets help for this command", AltName = "?")]
         public bool Help { get; set; }
 
@@ -49,6 +62,11 @@ namespace NuGetGallery.Operations
 
         public void Execute()
         {
+            if (!String.IsNullOrEmpty(ConfigFile))
+            {
+                Log.Trace("Recieved Configuration Data from Environment");
+            }
+
             if (WhatIf)
             {
                 Log.Info("Running in WhatIf mode");

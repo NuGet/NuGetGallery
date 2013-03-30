@@ -45,7 +45,7 @@ function Test-Symbols {
 			Write-Host -Foreground Black -Background Green "***********************"				
 		}
 	}
-	else if($PsCmdlet.ParameterSetName -eq "MicrosoftServers") {
+	elseif($PsCmdlet.ParameterSetName -eq "MicrosoftServers") {
 		if(!$PublicOnly) {
 			Write-Host -Foreground Black -Background Yellow "*********************************************"
 			Write-Host -Foreground Black -Background Yellow "Testing Internal Symbol Server: http://symweb"
