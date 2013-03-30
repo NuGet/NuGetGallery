@@ -1,6 +1,10 @@
 $Global:OpsRoot = (Convert-Path "$PsScriptRoot\..\..")
 $EnvsRoot = $env:NUGET_OPS_ENVIRONMENTS
 
+$CurrentDeployment = $null
+$CurrentEnvironment = $null
+Export-ModuleMember -Variable CurrentDeployment, CurrentEnvironment
+
 # Extract Ops NuGetOpsVersion
 $NuGetOpsVersion = 
 	cat .\Source\CommonAssemblyInfo.cs | 
@@ -17,6 +21,8 @@ if($EnvsRoot -and (Test-Path $EnvsRoot)) {
 			$Environments[$_.name] = New-Object PSCustomObject
 			Add-Member -NotePropertyMembers @{
 				Version = 0.2;
+				Name = $_.name;
+				Protected = $_.protected -and ([String]::Equals($_.protected, "true", "OrdinalIgnoreCase"));
 				Service = $_.service;
 				Subscription = $_.subscription
 			} -InputObject $Environments[$_.name]
@@ -36,10 +42,10 @@ function Get-Environment([switch]$ListAvailable) {
 			}
 		})
 	} else {
-		if(!(Test-Path env:\NUGET_GALLERY_ENV)) {
+		if($CurrentEnvironment) {
 			$null;
 		} else {
-			$env:NUGET_GALLERY_ENV
+			$CurrentEnvironment.Name
 		}
 	}
 }
@@ -61,7 +67,7 @@ function Test-Environment([Parameter(Mandatory=$true)][String]$Environment, [Swi
 Export-ModuleMember -Function Test-Environment
 
 function _IsProduction {
-	Test-Environment "Production"	
+	$CurrentEnvironment -and ($CurrentEnvironment.Protected -eq "true")
 }
 
 function _RefreshGitColors {
@@ -119,20 +125,6 @@ function _RefreshGitColors {
 	}
 }
 
-function Set-Environment {
-	param([Parameter(Mandatory=$true)][string]$Name)
-	"Todo"
-}
-Export-ModuleMember -Function Set-Environment
-
-function Write-DeploymentSettings {
-	dir env:\NUGET_* | ForEach {
-		"$($_.Name) = $($_.Value)"
-	}
-}
-Set-Alias -Name settings -Value Write-DeploymentSettings
-Export-ModuleMember -Function Write-DeploymentSettings -Alias settings
-
 function env([string]$Name) {
 	if([String]::IsNUllOrEmpty($Name)) {
 		Get-Environment -ListAvailable
@@ -167,11 +159,6 @@ dir $PsScriptRoot\Public\*.ps1 | foreach {
 	Export-ModuleMember -Function "$([IO.Path]::GetFileNameWithoutExtension($_.Name))"
 }
 
-if(Test-Environment -Exists Preview) {
-	Set-Environment Preview | Out-Null
-} else {
-	Set-Environment Emulator | Out-Null
-}
 #Clear-Host
 Write-Host @"
  ______         ______            
@@ -183,7 +170,7 @@ Write-Host @"
 "@
 Write-Host -ForegroundColor Black -BackgroundColor Yellow "Welcome to the NuGet Operations Console (v$NuGetOpsVersion)"
 
-if([String]::IsNullOrEmpty($EnvsRoot)) {
+if($Environments.Count -eq 0) {
 	Write-Warning "No environments are available, the console will not function correctly.`r`nSee https://github.com/NuGet/NuGetOperations/wiki/Setting-up-the-Operations-Console for more info"
 }
 if(!(Test-Path "$env:ProgramFiles\Microsoft SDKs\Windows Azure\.NET SDK\")) {
@@ -191,8 +178,8 @@ if(!(Test-Path "$env:ProgramFiles\Microsoft SDKs\Windows Azure\.NET SDK\")) {
 }
 
 function Write-NuGetOpsPrompt() {
-	$env = $env:NUGET_GALLERY_ENV;
-	if($env -eq $null) { $env = "<NONE>"; }
+	$envName = "<NONE>"
+	if($CurrentEnvironment) { $env = $CurrentEnvironment.Name; }
 	$host.UI.RawUI.WindowTitle = "NuGet Operations Console v$NuGetOpsVersion [Environment: $env]"
 
 	Write-Host -noNewLine "$(Get-Location)"
@@ -207,7 +194,7 @@ function Write-NuGetOpsPrompt() {
 	$global:LASTEXITCODE = $realLASTEXITCODE
 	Write-Host
 	Write-Host -noNewline "[env:"
-	if($env:NUGET_GALLERY_ENV -eq "Production") {
+	if(_IsProduction) {
 		Write-Host -noNewLine -foregroundColor Yellow $env
 	} else {
 		Write-Host -noNewLine -foregroundColor Magenta $env
