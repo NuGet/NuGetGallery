@@ -105,7 +105,7 @@ namespace NuGetGallery.Operations.Tools
 
             var config = new LoggingConfiguration();
             config.AddTarget("console", consoleTarget);
-            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Debug, consoleTarget));
+            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Trace, consoleTarget));
 
             LogManager.Configuration = config;
         }

@@ -51,8 +51,11 @@ namespace NuGetGallery.Operations
             }
         }
 
-        [Option("Path to the configuration file to use when command line arguments aren't specified", AltName = "cfg")]
+        [Option("Path to the configuration file to use when command line arguments aren't specified")]
         public string ConfigFile { get; set; }
+
+        [Option("Name of the environment specified by the configuration file")]
+        public string EnvironmentName { get; set; }
 
         [Option("Gets help for this command", AltName = "?")]
         public bool Help { get; set; }
@@ -64,7 +67,7 @@ namespace NuGetGallery.Operations
         {
             if (!String.IsNullOrEmpty(ConfigFile))
             {
-                Log.Trace("Recieved Configuration Data from Environment");
+                Log.Info("Running against {0} environment", EnvironmentName);
             }
 
             if (WhatIf)

@@ -13,7 +13,7 @@ if($CurrentDeployment) {
 }
 try {
     if($tmpfile) {
-        & $ScriptRoot\Source\NuGetGallery.Operations.Tools\bin\Debug\galops.exe -cfg $tmpfile @args
+        & $ScriptRoot\Source\NuGetGallery.Operations.Tools\bin\Debug\galops.exe @args -ConfigFile $tmpfile -EnvironmentName $CurrentEnvironment.Name
     } else {
         & $ScriptRoot\Source\NuGetGallery.Operations.Tools\bin\Debug\galops.exe @args
     }
