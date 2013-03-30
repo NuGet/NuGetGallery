@@ -1,3 +1,13 @@
+<#
+.SYNOPSIS
+Resets the specified Gallery Repository
+
+.PARAMETER RepositoryPath
+The path to the NuGetGallery repository
+
+.PARAMETER RepositoryURL
+The URL to clone the gallery from (optional, defaults to the NuGet/NuGetGallery repo on GitHub)
+#>
 function Reset-GalleryRepo {
 	param(
 		[string]$RepositoryPath = $null,

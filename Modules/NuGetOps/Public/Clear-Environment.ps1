@@ -1,3 +1,7 @@
+<#
+.SYNOPSIS
+Clears the active NuGet Environment
+#>
 function Clear-Environment {
     if($Global:OldBgColor) {
         $Host.UI.RawUI.BackgroundColor = $Global:OldBgColor

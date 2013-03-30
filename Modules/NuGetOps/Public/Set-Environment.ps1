@@ -1,3 +1,11 @@
+<#
+.SYNOPSIS
+Sets the active NuGet Environment
+
+.PARAMETER Name
+The name of an environment defined in Environments.xml
+
+#>
 function Set-Environment {
     param([Parameter(Mandatory=$true)][string]$Name)
     

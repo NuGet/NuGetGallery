@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+Enters the NuGet Operations Console
+
+.PARAMETER EnvironmentList
+
+The path to an Environments.xml file to use as the environment list
+#>
+
 param(
 	[Parameter(Mandatory=$false)][string]$EnvironmentList)
 
