@@ -62,23 +62,28 @@ namespace NuBot.Infrastructure
 
             // Break the message in to lines as necessary
             var message = Layout.Render(logEvent);
+            var existingLines = message.Split(new string[] {Environment.NewLine}, StringSplitOptions.None);
             var lines = new List<string>();
-            var prefix = levelName + ": ";
-            var fullMessage = prefix + message;
-            var maxWidth = Console.BufferWidth - 2;
-            while (fullMessage.Length > maxWidth)
+            foreach (var existingLine in existingLines)
             {
-                int end = maxWidth - prefix.Length;
-                int spaceIndex = message.LastIndexOf(' ', Math.Min(end, message.Length - 1));
-                if (spaceIndex < 10)
+                var prefix = levelName + ": ";
+                var fullMessage = prefix + existingLine;
+                var maxWidth = Console.BufferWidth - 2;
+                var currentLine = existingLine;
+                while (fullMessage.Length > maxWidth)
                 {
-                    spaceIndex = end;
+                    int end = maxWidth - prefix.Length;
+                    int spaceIndex = currentLine.LastIndexOf(' ', Math.Min(end, message.Length - 1));
+                    if (spaceIndex < 10)
+                    {
+                        spaceIndex = end;
+                    }
+                    lines.Add(currentLine.Substring(0, spaceIndex).Trim());
+                    currentLine = currentLine.Substring(spaceIndex).Trim();
+                    fullMessage = prefix + currentLine;
                 }
-                lines.Add(message.Substring(0, spaceIndex).Trim());
-                message = message.Substring(spaceIndex).Trim();
-                fullMessage = prefix + message;
+                lines.Add(currentLine);
             }
-            lines.Add(message);
 
             // Write lines
             bool first = true;
@@ -101,7 +106,7 @@ namespace NuBot.Infrastructure
                 // Write the message using the default foreground color, but the specified background color
                 // UNLESS: The background color has been changed. In which case the foreground color applies here too
                 var foreground = pair.Item2.Value == Console.BackgroundColor
-                                        ? Console.ForegroundColor
+                                        ? oldForeground
                                         : pair.Item1;
                 Console.ForegroundColor = foreground;
                 Console.Write(": " + line);
