@@ -121,7 +121,7 @@ function _RefreshGitColors {
 }
 
 function env([string]$Name) {
-	if([String]::IsNUllOrEmpty($Name)) {
+	if([String]::IsNullOrEmpty($Name)) {
 		Get-Environment -ListAvailable
 	} else {
 		Set-Environment $Name
@@ -154,14 +154,15 @@ dir $PsScriptRoot\Public\*.ps1 | foreach {
 	Export-ModuleMember -Function "$([IO.Path]::GetFileNameWithoutExtension($_.Name))"
 }
 
-#Clear-Host
-Write-Host @"
- ______         ______            
-|  ___ \       / _____)      _    
-| |   | |_   _| /  ___  ____| |_  
-| |   | | | | | | (___)/ _  )  _) 
-| |   | | |_| | \____/( (/ /| |__ 
-|_|   |_|\____|\_____/ \____)\___)
+
+
+Clear-Host
+Write-Host -BackgroundColor Blue -ForegroundColor White @"
+ _____     _____     _      _____ _____ _____ 
+|   | |_ _|   __|___| |    |     |     |   __|
+| | | | | |  |  |  | - |   |  |  |  |__|__   |
+|_|___|___|_____|___|_|    |_____|__|  |_____|
+                                              
 "@
 Write-Host -ForegroundColor Black -BackgroundColor Yellow "Welcome to the NuGet Operations Console (v$NuGetOpsVersion)"
 
