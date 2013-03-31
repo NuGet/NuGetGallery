@@ -100,6 +100,7 @@
     <Compile Include="Common\CommandLineConstants.cs" />
     <Compile Include="Common\ArgCheck.cs" />
     <Compile Include="Common\ReportHelpers.cs" />
+    <Compile Include="Common\SqlConnectionStringConverter.cs" />
     <Compile Include="Common\SqlHelper.cs" />
     <Compile Include="Common\StreamConverter.cs" />
     <Compile Include="DeploymentEnvironment.cs" />

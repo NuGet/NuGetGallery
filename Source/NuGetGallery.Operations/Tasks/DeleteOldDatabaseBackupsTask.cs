@@ -12,8 +12,8 @@ namespace NuGetGallery.Operations
     {
         public override void ExecuteCommand()
         {
-            var dbServer = Util.GetDbServer(ConnectionString);
-            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString);
+            var dbServer = ConnectionString.DataSource;
+            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
 
             Log.Trace("Deleting old database backups for server '{0}':", dbServer);
 

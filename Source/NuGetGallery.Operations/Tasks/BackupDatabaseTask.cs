@@ -21,9 +21,9 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            var dbServer = Util.GetDbServer(ConnectionString);
-            var dbName = Util.GetDbName(ConnectionString);
-            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString);
+            var dbServer = ConnectionString.DataSource;
+            var dbName = ConnectionString.InitialCatalog;
+            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
 
             Log.Trace("Connecting to server '{0}' to back up database '{1}'.", dbServer, dbName);
 

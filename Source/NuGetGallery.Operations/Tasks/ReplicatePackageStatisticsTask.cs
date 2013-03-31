@@ -12,14 +12,15 @@ namespace NuGetGallery.Operations
     public class ReplicatePackageStatisticsTask : DatabaseTask
     {
         [Option("Connection string to the warehouse database server", AltName = "wdb")]
-        public string WarehouseConnectionString { get; set; }
+        public SqlConnectionStringBuilder WarehouseConnectionString { get; set; }
 
         public CancellationToken CancellationToken { get; set; }
 
         public ReplicatePackageStatisticsTask() 
         {
             // Load defaults from environment
-            WarehouseConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+            var connectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+            WarehouseConnectionString = String.IsNullOrEmpty(connectionString) ? null : new SqlConnectionStringBuilder(connectionString);
         }
 
         public int Count { get; private set; }
@@ -32,8 +33,8 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            var source = Util.GetDbServer(ConnectionString);
-            var destination = Util.GetDbServer(WarehouseConnectionString);
+            var source = ConnectionString.DataSource;
+            var destination = WarehouseConnectionString.DataSource;
 
             Log.Trace("Connecting to '{0}' to replicate package statistics to '{1}'.", source, destination);
 
@@ -41,7 +42,7 @@ namespace NuGetGallery.Operations
             const int ExpectedSourceMaxQueryTime = 5;   //  if the query from the source database takes longer than this we must be busy
             const int PauseDuration = 10;               //  pause applied when the queries to the source are taking a long time 
 
-            Count = Replicate(ConnectionString, WarehouseConnectionString, BatchSize, ExpectedSourceMaxQueryTime, PauseDuration);
+            Count = Replicate(ConnectionString.ConnectionString, WarehouseConnectionString.ConnectionString, BatchSize, ExpectedSourceMaxQueryTime, PauseDuration);
         }
 
         public static int GetLastOriginalKey(string connectionString)

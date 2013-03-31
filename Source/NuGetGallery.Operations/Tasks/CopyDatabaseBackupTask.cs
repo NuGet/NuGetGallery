@@ -10,10 +10,10 @@ namespace NuGetGallery.Operations
     public class CopyDatabaseBackupTask : OpsTask
     {
         [Option("Connection string to the source database server", AltName = "s")]
-        public string SourceConnectionString { get; set; }
+        public SqlConnectionStringBuilder SourceConnectionString { get; set; }
 
         [Option("Connection string to the destination database server", AltName = "d")]        
-        public string DestinationConnectionString { get; set; }
+        public SqlConnectionStringBuilder DestinationConnectionString { get; set; }
 
         [Option("Name of the backup file", AltName = "n")]
         public string BackupName { get; set; }
@@ -21,8 +21,11 @@ namespace NuGetGallery.Operations
         public CopyDatabaseBackupTask()
         {
             // Get default from environment
-            SourceConnectionString = Environment.GetEnvironmentVariable("NUGET_GALLERY_BACKUP_SOURCE_CONNECTION_STRING");
-            DestinationConnectionString = Environment.GetEnvironmentVariable("NUGET_GALLERY_MAIN_CONNECTION_STRING");
+            var connectionString = Environment.GetEnvironmentVariable("NUGET_GALLERY_BACKUP_SOURCE_CONNECTION_STRING");
+            SourceConnectionString = String.IsNullOrEmpty(connectionString) ? null : new SqlConnectionStringBuilder(connectionString);
+
+            connectionString = Environment.GetEnvironmentVariable("NUGET_GALLERY_MAIN_CONNECTION_STRING");
+            DestinationConnectionString = String.IsNullOrEmpty(connectionString) ? null : new SqlConnectionStringBuilder(connectionString);
         }
 
         public override void ValidateArguments()
@@ -35,11 +38,11 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            using (var destinationConnection = new SqlConnection(Util.GetMasterConnectionString(DestinationConnectionString)))
+            using (var destinationConnection = new SqlConnection(Util.GetMasterConnectionString(DestinationConnectionString.ConnectionString)))
             using (var destinationDbExecutor = new SqlExecutor(destinationConnection))
             {
-                string sourceDbServerName = Util.GetDatabaseServerName(SourceConnectionString);
-                string destinationDbServerName = Util.GetDatabaseServerName(DestinationConnectionString);
+                string sourceDbServerName = SourceConnectionString.DataSource;
+                string destinationDbServerName = DestinationConnectionString.DataSource;
                 
                 destinationConnection.Open();
 

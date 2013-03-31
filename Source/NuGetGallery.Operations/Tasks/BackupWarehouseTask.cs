@@ -6,22 +6,23 @@ using NuGetGallery.Operations.Common;
 namespace NuGetGallery.Operations
 {
     [Command("backupwarehouse", "Backs up the warehouse", AltName = "bwh", MaxArgs = 0)]
-    public class BackupWarehouseTask: OpsTask, IBackupDatabase
+    public class BackupWarehouseTask : OpsTask, IBackupDatabase
     {
         [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
-        public int IfOlderThan { get; set; } 
+        public int IfOlderThan { get; set; }
 
         [Option("Connection string to the warehouse database server", AltName = "wdb")]
-        public string ConnectionString { get; set; }
+        public SqlConnectionStringBuilder ConnectionString { get; set; }
 
         public string BackupName { get; private set; }
 
         public bool SkippingBackup { get; private set; }
 
-        public BackupWarehouseTask() 
+        public BackupWarehouseTask()
         {
             // Load defaults from environment
-            ConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+            var connectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+            ConnectionString = String.IsNullOrEmpty(connectionString) ? null : new SqlConnectionStringBuilder(connectionString);
             IfOlderThan = 30;
         }
 
@@ -33,9 +34,9 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            var dbServer = Util.GetDbServer(ConnectionString);
-            var dbName = Util.GetDbName(ConnectionString);
-            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString);
+            var dbServer = ConnectionString.DataSource;
+            var dbName = ConnectionString.InitialCatalog;
+            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
 
             Log.Trace("Connecting to server '{0}' to back up database '{1}'.", dbServer, dbName);
 

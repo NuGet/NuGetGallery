@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Data.SqlClient;
 
 namespace NuGetGallery.Operations.Worker.Jobs
 {
@@ -28,7 +29,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
          
             var backupTask = new BackupWarehouseTask
             {
-                ConnectionString = Settings.WarehouseConnectionString,
+                ConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 WhatIf = Settings.WhatIf,
                 IfOlderThan = 25,
             };

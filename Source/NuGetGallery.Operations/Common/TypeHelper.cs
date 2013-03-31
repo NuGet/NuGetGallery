@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace NuGetGallery.Operations
         {
             RegisterConverter(typeof(Stream), () => new FileStreamConverter());
             RegisterConverter(typeof(CloudStorageAccount), () => new CloudStorageAccountConverter());
+            RegisterConverter(typeof(SqlConnectionStringBuilder), () => new SqlConnectionStringConverter());
         }
 
         public static void RegisterConverter(Type type, Func<TypeConverter> ctor)

@@ -14,7 +14,7 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString);
+            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
 
             using (SqlConnection connection = new SqlConnection(masterConnectionString))
             {

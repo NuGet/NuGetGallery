@@ -25,12 +25,12 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            var source = Util.GetDbServer(ConnectionString);
-            var destination = Util.GetDbServer(WarehouseConnectionString);
+            var source = ConnectionString.DataSource;
+            var destination = ConnectionString.DataSource;
 
             Log.Trace("Connecting to '{0}' to replicate package statistics to '{1}'.", source, destination);
 
-            Purge(ConnectionString, WarehouseConnectionString);
+            Purge(ConnectionString.ConnectionString, WarehouseConnectionString);
         }
 
         private void Purge(string source, string destination)

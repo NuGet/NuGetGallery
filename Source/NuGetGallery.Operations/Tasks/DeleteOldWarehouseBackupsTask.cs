@@ -9,12 +9,13 @@ namespace NuGetGallery.Operations
     public class DeleteOldWarehouseBackupsTask : OpsTask
     {
         [Option("Connection string to the warehouse database server", AltName = "wdb")]
-        public string WarehouseConnectionString { get; set; }
+        public SqlConnectionStringBuilder WarehouseConnectionString { get; set; }
 
         public DeleteOldWarehouseBackupsTask() 
         {
             // Load defaults from environment
-            WarehouseConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+            var connectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+            WarehouseConnectionString = String.IsNullOrEmpty(connectionString) ? null : new SqlConnectionStringBuilder(connectionString);
         }
 
         public override void ValidateArguments()
@@ -25,8 +26,8 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            var dbServer = Util.GetDbServer(WarehouseConnectionString);
-            var masterConnectionString = Util.GetMasterConnectionString(WarehouseConnectionString);
+            var dbServer = WarehouseConnectionString.DataSource;
+            var masterConnectionString = Util.GetMasterConnectionString(WarehouseConnectionString.ConnectionString);
 
             Log.Trace("Deleting old warehouse backups for server '{0}':", dbServer);
 

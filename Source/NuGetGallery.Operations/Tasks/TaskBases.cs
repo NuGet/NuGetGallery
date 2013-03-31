@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.SqlClient;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
@@ -40,17 +41,20 @@ namespace NuGetGallery.Operations
     public abstract class DatabaseTask : OpsTask
     {
         [Option("Connection string to the database server", AltName = "db")]
-        public string ConnectionString { get; set; }
+        public SqlConnectionStringBuilder ConnectionString { get; set; }
 
         public DatabaseTask()
         {
             // Load defaults from environment
-            ConnectionString = Environment.GetEnvironmentVariable("NUGET_GALLERY_MAIN_CONNECTION_STRING");
+            if (CurrentEnvironment != null)
+            {
+                ConnectionString = CurrentEnvironment.MainDatabase;
+            }
         }
 
         public override void ValidateArguments()
         {
-            ArgCheck.RequiredOrEnv(ConnectionString, "ConnectionString", "NUGET_GALLERY_MAIN_CONNECTION_STRING");
+            ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
         }
     }
 

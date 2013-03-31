@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Data.SqlClient;
 
 namespace NuGetGallery.Operations.Worker.Jobs
 {
@@ -27,7 +28,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             Logger.Trace("Starting purge package statistics task.");
             new PurgePackageStatisticsTask
             {
-                ConnectionString = Settings.MainConnectionString,
+                ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 WarehouseConnectionString = Settings.WarehouseConnectionString,
                 WhatIf = Settings.WhatIf
             }.Execute();
