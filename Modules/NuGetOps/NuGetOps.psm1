@@ -1,5 +1,5 @@
 $Global:OpsRoot = (Convert-Path "$PsScriptRoot\..\..")
-$EnvsRoot = $env:NUGET_OPS_ENVIRONMENTS
+$Global:EnvironmentsList = $env:NUGET_OPS_ENVIRONMENTS
 
 $CurrentDeployment = $null
 $CurrentEnvironment = $null
@@ -13,9 +13,9 @@ $NuGetOpsVersion =
 
 # Check for v0.2 level environment scripts
 $Global:Environments = @{}
-if($EnvsRoot -and (Test-Path $EnvsRoot)) {
-	if([IO.Path]::GetExtension($EnvsRoot) -eq ".xml") {
-		$x = [xml](cat $EnvsRoot)
+if($EnvironmentsList -and (Test-Path $EnvironmentsList)) {
+	if([IO.Path]::GetExtension($EnvironmentsList) -eq ".xml") {
+		$x = [xml](cat $EnvironmentsList)
 		$Global:Environments = @{};
 		$x.environments.environment | ForEach-Object {
 			$Environments[$_.name] = New-Object PSCustomObject
