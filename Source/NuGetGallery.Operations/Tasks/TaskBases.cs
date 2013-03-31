@@ -23,18 +23,13 @@ namespace NuGetGallery.Operations
             return StorageAccount.CreateCloudBlobClient();
         }
 
-        public StorageTask()
-        {
-            string defaultCs = Environment.GetEnvironmentVariable("NUGET_GALLERY_MAIN_STORAGE");
-            if (!String.IsNullOrEmpty(defaultCs))
-            {
-                StorageAccount = CloudStorageAccount.Parse(defaultCs);
-            }
-        }
-
         public override void ValidateArguments()
         {
-            ArgCheck.RequiredOrEnv(StorageAccount, "StorageAccount", "NUGET_GALLERY_MAIN_STORAGE");
+            if (CurrentEnvironment != null && StorageAccount == null)
+            {
+                StorageAccount = CurrentEnvironment.MainStorage;
+            }
+            ArgCheck.RequiredOrConfig(StorageAccount, "StorageAccount");
         }
     }
 
@@ -46,7 +41,7 @@ namespace NuGetGallery.Operations
         public override void ValidateArguments()
         {
             // Load defaults from environment
-            if (CurrentEnvironment != null)
+            if (CurrentEnvironment != null && ConnectionString == null)
             {
                 ConnectionString = CurrentEnvironment.MainDatabase;
             }
@@ -58,17 +53,17 @@ namespace NuGetGallery.Operations
     public abstract class DatabaseAndStorageTask : StorageTask
     {
         [Option("Connection string to the database server", AltName = "db")]
-        public string ConnectionString { get; set; }
-
-        public DatabaseAndStorageTask()
-        {
-            // Load defaults from environment
-            ConnectionString = Environment.GetEnvironmentVariable("NUGET_GALLERY_MAIN_CONNECTION_STRING");
-        }
+        public SqlConnectionStringBuilder ConnectionString { get; set; }
 
         public override void ValidateArguments()
         {
-            ArgCheck.RequiredOrEnv(ConnectionString, "ConnectionString", "NUGET_GALLERY_MAIN_CONNECTION_STRING");
+            // Load defaults from environment
+            if (CurrentEnvironment != null && ConnectionString == null)
+            {
+                ConnectionString = CurrentEnvironment.MainDatabase;
+            }
+
+            ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
         }
     }
 

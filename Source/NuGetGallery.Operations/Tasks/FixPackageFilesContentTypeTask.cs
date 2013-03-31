@@ -6,7 +6,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery.Operations
 {
-    [Command("fixcontenttypes", "Fixes the content type of package files in the storage server", AltName = "fct")]
+    [Command("fixcontenttypes", "Fixes the content type of package files in the storage server", AltName = "fct", IsSpecialPurpose = true)]
     public class FixPackageFilesContentTypeTask : StorageTask
     {
         public override void ExecuteCommand()

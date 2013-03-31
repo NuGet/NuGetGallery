@@ -1,2 +1,2 @@
 @echo off
-powershell -ExecutionPolicy Unrestricted -NoProfile -NoLogo "& %~dp0galops.ps1 %*"
+echo Galops.cmd is deprecated, enter the NuGet Operations Console and run the 'galops' function.

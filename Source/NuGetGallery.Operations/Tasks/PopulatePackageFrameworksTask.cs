@@ -10,7 +10,7 @@ using NuGet;
 
 namespace NuGetGallery.Operations
 {
-    [Command("populatepackageframeworks", "Populate the Package Frameworks index in the database from the data in the storage server", AltName = "pfx")]
+    [Command("populatepackageframeworks", "Populate the Package Frameworks index in the database from the data in the storage server", AltName = "pfx", IsSpecialPurpose = true)]
     public class PopulatePackageFrameworksTask : DatabaseAndStorageTask
     {
         private readonly string _tempFolder;
@@ -94,7 +94,7 @@ namespace NuGetGallery.Operations
 
         IEnumerable<int> GetAlreadyPopulatedPackageKeys()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -106,7 +106,7 @@ namespace NuGetGallery.Operations
 
         IDictionary<int, Package> GetAllPackages()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -124,7 +124,7 @@ namespace NuGetGallery.Operations
         {
             foreach (var targetFramework in targetFrameworks)
             {
-                using (var sqlConnection = new SqlConnection(ConnectionString))
+                using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
                 using (var dbExecutor = new SqlExecutor(sqlConnection))
                 {
                     sqlConnection.Open();

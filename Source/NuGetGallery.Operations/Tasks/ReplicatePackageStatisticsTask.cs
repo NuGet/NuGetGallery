@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace NuGetGallery.Operations
 {
-    [Command("replicatepackagestatistics", "Replicates any new package statistics", AltName = "repstats", MaxArgs = 0)]
+    [Command("replicatepackagestatistics", "Replicates any new package statistics", AltName = "repstats", MaxArgs = 0, IsSpecialPurpose = true)]
     public class ReplicatePackageStatisticsTask : DatabaseTask
     {
         [Option("Connection string to the warehouse database server", AltName = "wdb")]

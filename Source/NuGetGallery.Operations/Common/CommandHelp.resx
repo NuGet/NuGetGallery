@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="HelpCommandAll" xml:space="preserve">
-    <value>Print detailed help for all available commands.</value>
+    <value>Show all available commands, instead of hiding special purpose commands</value>
   </data>
   <data name="HelpCommandDescription" xml:space="preserve">
     <value>Displays general help information and help information about other commands.</value>

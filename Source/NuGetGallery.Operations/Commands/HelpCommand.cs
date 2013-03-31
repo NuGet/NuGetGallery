@@ -77,6 +77,7 @@ namespace NuGetGallery.Operations
             Console.WriteLine();
 
             var commands = from c in _commandManager.GetCommands()
+                           where !c.CommandAttribute.IsSpecialPurpose
                            orderby c.CommandAttribute.CommandName
                            select c.CommandAttribute;
 

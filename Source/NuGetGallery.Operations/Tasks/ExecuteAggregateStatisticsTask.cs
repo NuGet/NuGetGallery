@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace NuGetGallery.Operations
 {
-    [Command("executeaggregatestatistics", "Executes the AggregateStatistics in the Gallery", AltName = "exaggstats", MaxArgs = 0)]
+    [Command("executeaggregatestatistics", "Executes the AggregateStatistics in the Gallery", AltName = "exaggstats", MaxArgs = 0, IsSpecialPurpose = true)]
     public class ExecuteAggregateStatisticsTask : DatabaseTask
     {
         public ExecuteAggregateStatisticsTask()

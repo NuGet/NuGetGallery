@@ -7,7 +7,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery.Operations
 {
-    [Command("deletebrokenpackagebackups", "Delete Package Backups which are broken", AltName = "dbpb")]
+    [Command("deletebrokenpackagebackups", "Delete Package Backups which are broken", AltName = "dbpb", IsSpecialPurpose = true)]
     public class DeleteBrokenPackageBackupsTask : StorageTask
     {
         public override void ExecuteCommand()

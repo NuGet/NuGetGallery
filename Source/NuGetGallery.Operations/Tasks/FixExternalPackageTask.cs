@@ -5,13 +5,13 @@ using AnglicanGeek.DbExecutor;
 
 namespace NuGetGallery.Operations
 {
-    [Command("fixexternalpackage", "Download the specified package which uses ExternalPackageUrl and transfer it to the storage server", AltName = "fep")]
+    [Command("fixexternalpackage", "Download the specified package which uses ExternalPackageUrl and transfer it to the storage server", AltName = "fep", IsSpecialPurpose = true)]
     public class FixExternalPackageTask : DatabasePackageVersionTask
     {
         public override void ExecuteCommand()
         {
             // todo: move the data access from the website to a common lib and use that instead
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();

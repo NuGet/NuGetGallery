@@ -61,7 +61,7 @@ namespace NuGetGallery.Operations.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Print detailed help for all available commands..
+        ///   Looks up a localized string similar to Show all available commands, instead of hiding special purpose commands.
         /// </summary>
         internal static string HelpCommandAll {
             get {

@@ -5,16 +5,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.WindowsAzure.Storage;
 
 namespace NuGetGallery.Operations
 {
     public class DeploymentEnvironment
     {
         public SqlConnectionStringBuilder MainDatabase { get; private set; }
+        public CloudStorageAccount MainStorage { get; private set; }
 
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
         {
             MainDatabase = new SqlConnectionStringBuilder(deploymentSettings["Gallery.Sql.NuGetGallery"]);
+            MainStorage = CloudStorageAccount.Parse(deploymentSettings["Gallery.AzureStorageConnectionString"]);
         }
 
         public static DeploymentEnvironment FromConfigFile(string configFile)

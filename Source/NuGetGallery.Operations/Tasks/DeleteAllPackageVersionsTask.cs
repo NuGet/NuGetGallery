@@ -21,8 +21,8 @@ namespace NuGetGallery.Operations
             Log.Info(
                 "Deleting package registration and all package versions for '{0}'.",
                 PackageId);
-            
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();

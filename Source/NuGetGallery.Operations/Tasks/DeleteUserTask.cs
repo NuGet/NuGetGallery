@@ -23,7 +23,7 @@ namespace NuGetGallery.Operations.Tasks
                 "Delete the user account and all packages for '{0}'.",
                 Username);
 
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();

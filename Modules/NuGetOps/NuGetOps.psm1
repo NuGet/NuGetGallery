@@ -24,6 +24,7 @@ if($EnvsRoot -and (Test-Path $EnvsRoot)) {
 				Name = $_.name;
 				Protected = $_.protected -and ([String]::Equals($_.protected, "true", "OrdinalIgnoreCase"));
 				Service = $_.service;
+				Worker = $_.worker;
 				Subscription = $_.subscription
 			} -InputObject $Environments[$_.name]
 		}

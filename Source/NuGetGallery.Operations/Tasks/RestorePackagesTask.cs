@@ -96,7 +96,7 @@ namespace NuGetGallery.Operations
 
         IDictionary<string, Package> GetPackages()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();

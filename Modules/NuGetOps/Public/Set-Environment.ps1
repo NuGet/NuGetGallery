@@ -21,8 +21,18 @@ function Set-Environment {
     Write-Host "Downloading Configuration for $($env.Name) environment"
 
     RunInSubscription $env.Subscription {
-        $Global:CurrentDeployment = Get-AzureDeployment -ServiceName $env.Service -Slot "production"
         $Global:CurrentEnvironment = $env
+        
+        Write-Host "Downloading Configuration for Web Role..."
+        $service = Get-AzureDeployment -ServiceName $env.Service -Slot "production"
+        
+        Write-Host "Downloading Configuration for Worker Role..."
+        $worker = Get-AzureDeployment -ServiceName $env.Worker -Slot "production"
+
+        $Global:CurrentDeployment = @{
+            "Service" = $service;
+            "Worker" = $worker;
+        }
     }
 
     if(_IsProduction) {
