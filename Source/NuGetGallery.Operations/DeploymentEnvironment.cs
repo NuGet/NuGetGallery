@@ -16,8 +16,8 @@ namespace NuGetGallery.Operations
 
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
         {
-            MainDatabase = new SqlConnectionStringBuilder(deploymentSettings["Gallery.Sql.NuGetGallery"]);
-            MainStorage = CloudStorageAccount.Parse(deploymentSettings["Gallery.AzureStorageConnectionString"]);
+            MainDatabase = new SqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Primary"]);
+            MainStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Primary"]);
         }
 
         public static DeploymentEnvironment FromConfigFile(string configFile)

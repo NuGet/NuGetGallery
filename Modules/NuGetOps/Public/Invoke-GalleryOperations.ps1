@@ -10,7 +10,7 @@ function Invoke-GalleryOperations() {
     if($CurrentDeployment) {
         # Write a temp file with config data
         $tmpfile = [IO.Path]::GetTempFileName()
-        $CurrentDeployment.Worker.Configuration | Out-File -Encoding UTF8 -FilePath $tmpfile
+        $CurrentDeployment["Worker"].Configuration | Out-File -Encoding UTF8 -FilePath $tmpfile
     }
     try {
         if($tmpfile) {
