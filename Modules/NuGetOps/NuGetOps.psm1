@@ -42,7 +42,7 @@ function Get-Environment([switch]$ListAvailable) {
 			}
 		})
 	} else {
-		if($CurrentEnvironment) {
+		if(!$CurrentEnvironment) {
 			$null;
 		} else {
 			$CurrentEnvironment.Name
@@ -53,13 +53,7 @@ Export-ModuleMember -Function Get-Environment
 
 function Test-Environment([Parameter(Mandatory=$true)][String]$Environment, [Switch]$Exists) {
 	if($Exists) {
-		if($Environment.Equals("Emulator", "OrdinalIgnoreCase")) {
-			$true;
-		} elseif([String]::IsNullOrEmpty($EnvsRoot)) {
-			$false;
-		} else {
-			Test-Path (Join-Path $EnvsRoot "$Environment.ps1")
-		}
+		return $Environments.ContainsKey($Environment)
 	} else {
 		[String]::Equals((Get-Environment), $Environment, "OrdinalIgnoreCase");
 	}
