@@ -43,17 +43,14 @@ namespace NuGetGallery.Operations
         [Option("Connection string to the database server", AltName = "db")]
         public SqlConnectionStringBuilder ConnectionString { get; set; }
 
-        public DatabaseTask()
+        public override void ValidateArguments()
         {
             // Load defaults from environment
             if (CurrentEnvironment != null)
             {
                 ConnectionString = CurrentEnvironment.MainDatabase;
             }
-        }
 
-        public override void ValidateArguments()
-        {
             ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
         }
     }

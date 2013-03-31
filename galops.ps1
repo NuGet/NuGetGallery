@@ -10,6 +10,7 @@ $tmpfile;
 if($CurrentDeployment) {
     # Write a temp file with config data
     $tmpfile = [IO.Path]::GetTempFileName()
+    $CurrentDeployment.Configuration | Out-File -Encoding UTF8 -FilePath $tmpfile
 }
 try {
     if($tmpfile) {

@@ -31,10 +31,11 @@ namespace NuGetGallery.Operations
 
         private static IDictionary<string, string> BuildSettingsDictionary(XDocument doc)
         {
-            return (from s in doc.Element("ServiceConfiguration")
-                        .Element("Role")
-                        .Element("ConfigurationSettings")
-                        .Elements("Setting")
+            XNamespace ns = XNamespace.Get("http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration");
+            return (from s in doc.Element(ns + "ServiceConfiguration")
+                        .Element(ns + "Role")
+                        .Element(ns + "ConfigurationSettings")
+                        .Elements(ns + "Setting")
                     select new KeyValuePair<string, string>(
                         s.Attribute("name").Value,
                         s.Attribute("value").Value))
