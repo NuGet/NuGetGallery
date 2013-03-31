@@ -38,6 +38,7 @@ namespace NuGetGallery
         public string PasswordResetToken { get; set; }
         public DateTime? PasswordResetTokenExpirationDate { get; set; }
         public int Key { get; set; }
+        public string NewColumn { get; set; }
 
         public void ConfirmEmailAddress()
         {
