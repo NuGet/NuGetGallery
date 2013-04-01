@@ -29,7 +29,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             new PurgePackageStatisticsTask
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
-                WarehouseConnectionString = Settings.WarehouseConnectionString,
+                WarehouseConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 WhatIf = Settings.WhatIf
             }.Execute();
             Logger.Trace("Finished purge package statistics task.");

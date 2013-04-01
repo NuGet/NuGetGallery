@@ -9,18 +9,18 @@ namespace NuGetGallery.Operations
     public class PurgePackageStatisticsTask : DatabaseTask
     {
         [Option("Connection string to the warehouse database server", AltName = "wdb")]
-        public string WarehouseConnectionString { get; set; }
-
-        public PurgePackageStatisticsTask() 
-        {
-            // Load defaults from environment
-            WarehouseConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
-        }
+        public SqlConnectionStringBuilder WarehouseConnectionString { get; set; }
 
         public override void ValidateArguments()
         {
             base.ValidateArguments();
-            ArgCheck.RequiredOrEnv(WarehouseConnectionString, "WarehouseConnectionString", "NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+
+            if (CurrentEnvironment != null && WarehouseConnectionString == null)
+            {
+                WarehouseConnectionString = CurrentEnvironment.WarehouseDatabase;
+            }
+
+            ArgCheck.RequiredOrConfig(WarehouseConnectionString, "WarehouseConnectionString");
         }
 
         public override void ExecuteCommand()
@@ -30,7 +30,7 @@ namespace NuGetGallery.Operations
 
             Log.Trace("Connecting to '{0}' to replicate package statistics to '{1}'.", source, destination);
 
-            Purge(ConnectionString.ConnectionString, WarehouseConnectionString);
+            Purge(ConnectionString.ConnectionString, WarehouseConnectionString.ConnectionString);
         }
 
         private void Purge(string source, string destination)
@@ -41,7 +41,10 @@ namespace NuGetGallery.Operations
 
             Log.Info(string.Format("Purging PackageStatistics records that are not in the warehouse"));
 
-            DeletePackageStatistics(source, originalKey);
+            if (!WhatIf)
+            {
+                DeletePackageStatistics(source, originalKey);
+            }
         }
 
         private static void DeletePackageStatistics(string connectionString, int warehouseHighWatermark)
