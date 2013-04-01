@@ -4,11 +4,13 @@ using System.Collections.Specialized;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using Newtonsoft.Json.Linq;
 using NuGet;
 using Xunit;
 using Xunit.Extensions;
@@ -753,6 +755,50 @@ namespace NuGetGallery
                 var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
 
                 Assert.IsType<EmptyResult>(result);
+            }
+
+            [Fact]
+            public async void VerifyRecentPopularityStatsDownloads()
+            {
+                JArray report = new JArray();
+                report.Add(new JObject(new JProperty("PackageId", "A"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 3)));
+                report.Add(new JObject(new JProperty("PackageId", "A"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 4)));
+                report.Add(new JObject(new JProperty("PackageId", "B"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 5)));
+                report.Add(new JObject(new JProperty("PackageId", "B"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 6)));
+
+                var fakePackageVersionReport = report.ToString();
+
+                var fakeReportService = new Mock<IReportService>();
+
+                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+
+                var controller = new ApiController(null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
+
+                ActionResult actionResult = await controller.GetStatsDownloads();
+
+                ContentResult contentResult = (ContentResult)actionResult;
+
+                JArray result = JArray.Parse(contentResult.Content);
+
+                Assert.True((string)result[0]["Package"] == "http://nuget.org/package/api/v2/A/1.0", "unexpected content");
+                Assert.True((string)result[3]["Package"] == "http://nuget.org/package/api/v2/B/1.1", "unexpected content");
+                Assert.True((int)result[2]["Downloads"] == 5, "unexpected content");
+            }
+
+            [Fact]
+            public async void VerifyStatsDownloadsReturnsNotFoundWhenStatsNotAvailable()
+            {
+                var fakeStatisticsService = new Mock<IStatisticsService>();
+
+                fakeStatisticsService.Setup(x => x.LoadDownloadPackageVersions()).Returns(Task.FromResult(false));
+
+                var controller = new ApiController(null, null, null, null, fakeStatisticsService.Object);
+
+                ActionResult actionResult = await controller.GetStatsDownloads();
+
+                HttpStatusCodeResult httpStatusResult = (HttpStatusCodeResult)actionResult;
+
+                Assert.True(httpStatusResult.StatusCode == (int)HttpStatusCode.NotFound, "unexpected StatusCode");
             }
         }
     }

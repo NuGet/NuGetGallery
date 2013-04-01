@@ -27,7 +27,10 @@ else
                 {
                     <span class="field-hint-message">@prop.AdditionalValues["Hint"]</span>
                 }
-                
+                @if (prop.AdditionalValues.ContainsKey("Subtext"))
+                {
+                    <div class="field-subtext-message">@prop.AdditionalValues["Subtext"]</div>
+                }
                 
             </div>
         }

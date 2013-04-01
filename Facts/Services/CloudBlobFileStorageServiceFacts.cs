@@ -123,7 +123,7 @@ namespace NuGetGallery
         {
             [Theory]
             [FolderNamesData]
-            public async Task WillCreateABlobContainerForAllFoldersIfTheyDoNotExist(string folderName)
+            public async Task WillCreateABlobContainerForDemandedFoldersIfTheyDoNotExist(string folderName)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -136,7 +136,7 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
 
                 var service = CreateService(fakeBlobClient);
-                await service.GetFileAsync("packages", "x.txt");
+                await service.GetFileAsync(folderName, "x.txt");
 
                 fakeBlobClient.Verify(x => x.GetContainerReference(folderName));
                 fakeBlobContainer.Verify();
@@ -144,7 +144,7 @@ namespace NuGetGallery
 
             [Theory]
             [FolderNamesData(includePermissions: true)]
-            public async Task WillSetPermissionsForAllFolderBlobContainers(string folderName, bool isPublic)
+            public async Task WillSetPermissionsForDemandedFolderInBlobContainers(string folderName, bool isPublic)
             {
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
                 fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>()))
@@ -161,7 +161,7 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
 
                 var service = CreateService(fakeBlobClient);
-                await service.GetFileAsync("packages", "x.txt");
+                await service.GetFileAsync(folderName, "x.txt");
 
                 fakeBlobClient.Verify(x => x.GetContainerReference(folderName));
                 fakeBlobContainer.Verify();
