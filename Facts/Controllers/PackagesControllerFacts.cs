@@ -424,7 +424,7 @@ namespace NuGetGallery
                     };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
+                var result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
 
                 Assert.NotNull(result);
                 messageService.Verify(
@@ -473,7 +473,7 @@ namespace NuGetGallery
                     };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
-                ActionResult result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectToRouteResult;
+                ActionResult result = controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
 
                 Assert.NotNull(result);
                 userService.VerifyAll();
