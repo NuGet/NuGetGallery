@@ -145,7 +145,7 @@ nuget push -?</value>
     <value>The '{0}' option is required and must be specified on the command line.</value>
   </data>
   <data name="Option_RequiredOrConfig" xml:space="preserve">
-    <value>The '{0}' option is required. It must be specified either on the command line or it will be automatically provided in the NuGet Operations Console</value>
+    <value>The '{0}' option is required. It must be specified either on the command line or you must run galops from inside an environment in the NuGet Operations Console</value>
   </data>
   <data name="Option_RequiredOrEnv" xml:space="preserve">
     <value>The '{0}' option is required. It must be specified either on the command line or in the '{1}' environment variable.</value>

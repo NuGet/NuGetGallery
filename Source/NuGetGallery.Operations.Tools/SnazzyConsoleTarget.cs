@@ -47,11 +47,7 @@ namespace NuBot.Infrastructure
             {
                 pair = new ColorPair(Console.ForegroundColor, Console.BackgroundColor);
             }
-            if (pair.Item2 == null)
-            {
-                pair = new ColorPair(pair.Item1, Console.BackgroundColor);
-            }
-
+            
             // Get level string
             string levelName;
             if (!LevelNames.TryGetValue(logEvent.Level, out levelName))
@@ -100,14 +96,17 @@ namespace NuBot.Infrastructure
 
                 // Write Level
                 Console.ForegroundColor = pair.Item1;
-                Console.BackgroundColor = pair.Item2.Value;
+                if (pair.Item2.HasValue)
+                {
+                    Console.BackgroundColor = pair.Item2.Value;
+                }
                 Console.Write(levelName);
 
                 // Write the message using the default foreground color, but the specified background color
                 // UNLESS: The background color has been changed. In which case the foreground color applies here too
-                var foreground = pair.Item2.Value == Console.BackgroundColor
-                                        ? oldForeground
-                                        : pair.Item1;
+                var foreground = pair.Item2.HasValue
+                                        ? pair.Item1
+                                        : oldForeground;
                 Console.ForegroundColor = foreground;
                 Console.Write(": " + line);
             }
