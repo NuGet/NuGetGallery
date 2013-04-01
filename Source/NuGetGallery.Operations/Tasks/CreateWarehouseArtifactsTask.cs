@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Operations.Tasks
 {
-    [Command("createwarehousedatabase", "Create warehouse artifacts", AltName = "cwdb")]
+    [Command("createwarehousedatabase", "Create warehouse artifacts", AltName = "cwdb", IsSpecialPurpose = true)]
     public class CreateWarehouseArtifactsTask : WarehouseTask
     {
         [Option("Force recreation of the database artifacts", AltName = "f")]
