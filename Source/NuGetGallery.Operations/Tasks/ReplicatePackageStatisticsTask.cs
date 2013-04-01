@@ -16,19 +16,16 @@ namespace NuGetGallery.Operations
 
         public CancellationToken CancellationToken { get; set; }
 
-        public ReplicatePackageStatisticsTask() 
-        {
-            // Load defaults from environment
-            var connectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
-            WarehouseConnectionString = String.IsNullOrEmpty(connectionString) ? null : new SqlConnectionStringBuilder(connectionString);
-        }
-
         public int Count { get; private set; }
 
         public override void ValidateArguments()
         {
             base.ValidateArguments();
-            ArgCheck.RequiredOrEnv(WarehouseConnectionString, "WarehouseConnectionString", "NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
+            if (CurrentEnvironment != null && WarehouseConnectionString == null)
+            {
+                WarehouseConnectionString = CurrentEnvironment.WarehouseDatabase;
+            }
+            ArgCheck.RequiredOrConfig(WarehouseConnectionString, "WarehouseConnectionString");
         }
 
         public override void ExecuteCommand()
