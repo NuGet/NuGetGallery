@@ -20,7 +20,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="packageName"></param>
         /// <returns></returns>
-        public static string CreateDefaultNuspecFile(string packageName, string version = "1.0.0")
+        public static string CreateDefaultNuspecFile(string packageName, string version = "1.0.0", string minClientVersion = null)
         {
             string standardOutput = string.Empty;
             string standardError = string.Empty;
@@ -32,6 +32,12 @@ namespace NuGetGallery.FunctionTests.Helpers
             string filePath = Path.Combine(packageDir, packageName + ".nuspec");
             RemoveSampleNuspecValues(filePath);
             UpdateNuspecFile(filePath, "1.0.0", version);
+
+            // Apply the minClientVersion to the spec only if it's defined.
+            if (minClientVersion != null)
+            {
+                UpdateNuspecFile(filePath, "<metadata>", String.Format("<metadata minClientVersion=\"{0}\">", minClientVersion));
+            }
             return filePath;
         }
 

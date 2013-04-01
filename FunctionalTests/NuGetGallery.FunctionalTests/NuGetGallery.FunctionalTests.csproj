@@ -65,7 +65,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssertAndValidationHelper.cs" />
+    <Compile Include="WebUITests\AssertAndValidationHelper.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCommandLineTests.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCoreTests.cs" />
     <Compile Include="ODataTests\V2FeedExtendedTest.cs" />
