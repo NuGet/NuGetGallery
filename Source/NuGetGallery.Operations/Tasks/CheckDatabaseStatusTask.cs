@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using AnglicanGeek.DbExecutor;
+using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations
 {
@@ -11,6 +12,12 @@ namespace NuGetGallery.Operations
         public string BackupName { get; set; }
 
         public int State { get; private set; }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+            ArgCheck.Required(BackupName, "BackupName");
+        }
 
         public override void ExecuteCommand()
         {
