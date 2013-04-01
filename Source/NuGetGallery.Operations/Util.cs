@@ -256,9 +256,8 @@ namespace NuGetGallery.Operations
             return hash;
         }
 
-        public static string GetDatabaseServerName(string connectionString)
+        public static string GetDatabaseServerName(SqlConnectionStringBuilder connectionStringBuilder)
         {
-            var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
             var dataSource = connectionStringBuilder.DataSource;
             if (dataSource.StartsWith("tcp:"))
                 dataSource = dataSource.Substring(4);
