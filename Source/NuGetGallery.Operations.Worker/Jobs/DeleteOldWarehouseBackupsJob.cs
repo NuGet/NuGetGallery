@@ -20,7 +20,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             Logger.Info("Starting delete old warehouse backup task.");
             new DeleteOldWarehouseBackupsTask
             {
-                WarehouseConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
+                ConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 WhatIf = Settings.WhatIf
             }.Execute();
             Logger.Info("Finished delete old warehouse backup task.");
