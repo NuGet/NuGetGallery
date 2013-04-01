@@ -21,19 +21,25 @@ namespace NuGetGallery.Operations
 
         public SynchronizePackageBackupsTask()
         {
-            string src = Environment.GetEnvironmentVariable("NUGET_GALLERY_BACKUP_SOURCE_STORAGE");
-            if (!String.IsNullOrWhiteSpace(src))
-            {
-                SourceStorage = CloudStorageAccount.Parse(src);
-            }
-            string dest = Environment.GetEnvironmentVariable("NUGET_GALLERY_MAIN_STORAGE");
-            if (!String.IsNullOrWhiteSpace(dest))
-            {
-                DestinationStorage = CloudStorageAccount.Parse(dest);
-            }
-
             _tempFolder = Path.Combine(Path.GetTempPath(), "NuGetGalleryOps");
             Directory.CreateDirectory(_tempFolder);
+        }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+
+            if (CurrentEnvironment != null)
+            {
+                if (SourceStorage == null)
+                {
+                    SourceStorage = CurrentEnvironment.BackupSourceStorage;
+                }
+                if (DestinationStorage == null)
+                {
+                    DestinationStorage = CurrentEnvironment.MainStorage;
+                }
+            }
         }
 
         string DownloadPackageBackupFromSource(string packageBackupBlobFileName)

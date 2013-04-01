@@ -18,6 +18,7 @@ namespace NuGetGallery.Operations
 
         public CloudStorageAccount MainStorage { get; private set; }
         public CloudStorageAccount ReportStorage { get; private set; }
+        public CloudStorageAccount BackupSourceStorage { get; private set; }
 
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
         {
@@ -28,6 +29,7 @@ namespace NuGetGallery.Operations
 
             MainStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Primary"]);
             ReportStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Reports"]);
+            BackupSourceStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.BackupSource"]);
         }
 
         public static DeploymentEnvironment FromConfigFile(string configFile)
