@@ -6,6 +6,11 @@ function Invoke-GalleryOperations() {
         return;
     }
 
+    if($args.Length -eq 0) {
+        & $OpsRoot\Source\NuGetGallery.Operations.Tools\bin\Debug\galops.exe
+        return;
+    }
+
     $tmpfile;
     if($CurrentDeployment) {
         # Write a temp file with config data
