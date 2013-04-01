@@ -322,7 +322,7 @@ namespace NuGetGallery
                 _config.GetSiteRoot(false) + Url.Package(id, version));
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
-            return RedirectToAction(MVC.Packages.DisplayPackage(id, version));
+            return Redirect(Url.Package(id, version));
         }
 
         [HttpPost]
@@ -348,7 +348,7 @@ namespace NuGetGallery
             _messageService.ReportMyPackage(from, package, reportForm.Reason, reportForm.Message, Url.Package(id, version));
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
-            return RedirectToAction(MVC.Packages.DisplayPackage(id, version));
+            return Redirect(Url.Package(id, version));
         }
 
         [Authorize]
