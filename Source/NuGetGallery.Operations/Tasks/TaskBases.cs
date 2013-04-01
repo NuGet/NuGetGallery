@@ -25,6 +25,8 @@ namespace NuGetGallery.Operations
 
         public override void ValidateArguments()
         {
+            base.ValidateArguments();
+
             if (CurrentEnvironment != null && StorageAccount == null)
             {
                 StorageAccount = CurrentEnvironment.MainStorage;
@@ -40,10 +42,31 @@ namespace NuGetGallery.Operations
 
         public override void ValidateArguments()
         {
+            base.ValidateArguments();
+
             // Load defaults from environment
             if (CurrentEnvironment != null && ConnectionString == null)
             {
                 ConnectionString = CurrentEnvironment.MainDatabase;
+            }
+
+            ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
+        }
+    }
+
+    public abstract class WarehouseTask : OpsTask
+    {
+        [Option("Connection string to the warehouse database server", AltName = "db")]
+        public SqlConnectionStringBuilder ConnectionString { get; set; }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+
+            // Load defaults from environment
+            if (CurrentEnvironment != null && ConnectionString == null)
+            {
+                ConnectionString = CurrentEnvironment.WarehouseDatabase;
             }
 
             ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
@@ -57,6 +80,8 @@ namespace NuGetGallery.Operations
 
         public override void ValidateArguments()
         {
+            base.ValidateArguments();
+
             // Load defaults from environment
             if (CurrentEnvironment != null && ConnectionString == null)
             {
@@ -77,6 +102,14 @@ namespace NuGetGallery.Operations
 
         [Option("The Hash of the package", AltName = "h")]
         public string PackageHash { get; set; }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+            ArgCheck.Required(PackageId, "PackageId");
+            ArgCheck.Required(PackageVersion, "PackageVersion");
+            ArgCheck.Required(PackageHash, "PackageHash");
+        }
     }
 
     public abstract class DatabasePackageVersionTask : DatabaseAndStorageTask

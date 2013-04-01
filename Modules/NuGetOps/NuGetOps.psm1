@@ -124,7 +124,7 @@ function env([string]$Name) {
 	if([String]::IsNullOrEmpty($Name)) {
 		Get-Environment -ListAvailable
 	} else {
-		Set-Environment $Name
+		Set-Environment -Name $Name
 	}
 }
 Export-ModuleMember -Function env

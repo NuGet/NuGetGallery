@@ -6,13 +6,10 @@ using NuGetGallery.Operations.Common;
 namespace NuGetGallery.Operations
 {
     [Command("backupwarehouse", "Backs up the warehouse", AltName = "bwh", MaxArgs = 0)]
-    public class BackupWarehouseTask : OpsTask, IBackupDatabase
+    public class BackupWarehouseTask : WarehouseTask, IBackupDatabase
     {
         [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
         public int IfOlderThan { get; set; }
-
-        [Option("Connection string to the warehouse database server", AltName = "wdb")]
-        public SqlConnectionStringBuilder ConnectionString { get; set; }
 
         public string BackupName { get; private set; }
 
@@ -20,16 +17,7 @@ namespace NuGetGallery.Operations
 
         public BackupWarehouseTask()
         {
-            // Load defaults from environment
-            var connectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
-            ConnectionString = String.IsNullOrEmpty(connectionString) ? null : new SqlConnectionStringBuilder(connectionString);
             IfOlderThan = 30;
-        }
-
-        public override void ValidateArguments()
-        {
-            base.ValidateArguments();
-            ArgCheck.RequiredOrEnv(ConnectionString, "ConnectionString", "NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
         }
 
         public override void ExecuteCommand()
@@ -71,7 +59,10 @@ namespace NuGetGallery.Operations
 
                     BackupName = string.Format("WarehouseBackup_{0}", timestamp);
 
-                    dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF NuGetWarehouse", BackupName));
+                    if (!WhatIf)
+                    {
+                        dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF NuGetWarehouse", BackupName));
+                    }
 
                     Log.Info("Starting '{0}'", BackupName);
                 }
