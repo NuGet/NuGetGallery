@@ -14,7 +14,7 @@ using NuGetGallery.Operations.Common;
 namespace NuGetGallery.Operations
 {
     [Command("createwarehousereports", "Create warehouse reports", AltName = "cwrep")]
-    public class CreateWarehouseReportsTask : OpsTask
+    public class CreateWarehouseReportsTask : ReportsTask
     {
         private const string JsonContentType = "application/json";
         private const string PackageReportBaseName = "recentpopularity_";
@@ -23,27 +23,11 @@ namespace NuGetGallery.Operations
         private const string RecentPopularityDetail = "recentpopularitydetail";
         private const string PackageReportDetailBaseName = "recentpopularitydetail_";
 
-        [Option("Connection string to the warehouse database", AltName = "wdb")]
-        public string WarehouseConnectionString { get; set; }
-
-        [Option("Connection string to the warehouse reports container", AltName = "wracc")]
-        public CloudStorageAccount ReportStorage { get; set; }
-
         [Option("Re-create all reports", AltName = "all")]
         public bool All { get; set; }
 
         [Option("Re-create just detail reports", AltName = "new")]
         public bool New { get; set; }
-
-        public CreateWarehouseReportsTask()
-        {
-            WarehouseConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
-            var reportCs = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_REPORTS_STORAGE");
-            if (!String.IsNullOrWhiteSpace(reportCs))
-            {
-                ReportStorage = CloudStorageAccount.Parse(reportCs);
-            }
-        }
 
         public override void ExecuteCommand()
         {
@@ -159,7 +143,7 @@ namespace NuGetGallery.Operations
         {
             IList<string> packageIds = new List<string>();
 
-            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
             {
                 connection.Open();
 
@@ -220,7 +204,7 @@ namespace NuGetGallery.Operations
         {
             IList<Tuple<string, int>> packageIds = new List<Tuple<string, int>>();
 
-            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
             {
                 connection.Open();
 
@@ -440,7 +424,7 @@ namespace NuGetGallery.Operations
 
             IList<string> packageIds = new List<string>();
 
-            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
             {
                 connection.Open();
 
@@ -464,7 +448,7 @@ namespace NuGetGallery.Operations
         {
             Log.Info(string.Format("ConfirmPackageExported for {0}", packageId.Item1));
 
-            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
             {
                 connection.Open();
 
@@ -485,7 +469,7 @@ namespace NuGetGallery.Operations
             List<string[]> rows = new List<string[]>();
             string[] columns;
 
-            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
             {
                 connection.Open();
 
@@ -533,7 +517,7 @@ namespace NuGetGallery.Operations
             List<object[]> rows = new List<object[]>();
             string[] columns;
 
-            using (SqlConnection connection = new SqlConnection(WarehouseConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
             {
                 connection.Open();
 

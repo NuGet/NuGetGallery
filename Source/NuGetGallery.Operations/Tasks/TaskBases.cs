@@ -73,6 +73,25 @@ namespace NuGetGallery.Operations
         }
     }
 
+    public abstract class ReportsTask : WarehouseTask
+    {
+        [Option("Connection string to the warehouse reports container", AltName = "wracc")]
+        public CloudStorageAccount ReportStorage { get; set; }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+
+            // Load defaults from environment
+            if (CurrentEnvironment != null && ReportStorage == null)
+            {
+                ReportStorage = CurrentEnvironment.ReportStorage;
+            }
+
+            ArgCheck.RequiredOrConfig(ReportStorage, "ReportStorage");
+        }
+    }
+
     public abstract class DatabaseAndStorageTask : StorageTask
     {
         [Option("Connection string to the database server", AltName = "db")]

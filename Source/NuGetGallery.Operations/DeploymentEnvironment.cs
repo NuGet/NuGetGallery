@@ -17,6 +17,7 @@ namespace NuGetGallery.Operations
         public SqlConnectionStringBuilder BackupSourceDatabase { get; set; }
 
         public CloudStorageAccount MainStorage { get; private set; }
+        public CloudStorageAccount ReportStorage { get; private set; }
 
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
         {
@@ -26,6 +27,7 @@ namespace NuGetGallery.Operations
             BackupSourceDatabase = new SqlConnectionStringBuilder(deploymentSettings["Operations.Sql.BackupSource"]);
 
             MainStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Primary"]);
+            ReportStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Reports"]);
         }
 
         public static DeploymentEnvironment FromConfigFile(string configFile)
