@@ -8,7 +8,7 @@ namespace NuGetGallery.Migrations
     {
         string IMigrationMetadata.Id
         {
-            get { return "201303072008568_UserLookupOptimization"; }
+            get { return "201304020006512_UserLookupOptimization"; }
         }
         
         string IMigrationMetadata.Source
