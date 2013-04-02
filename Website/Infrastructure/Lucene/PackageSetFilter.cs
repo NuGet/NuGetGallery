@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Util;
+using NuGet;
 
 namespace NuGetGallery.Infrastructure.Lucene
 {
@@ -16,42 +18,52 @@ namespace NuGetGallery.Infrastructure.Lucene
     /// </summary>
     internal class PackageSetFilter : Filter
     {
-        private readonly int[] _keys;
+        private Filter _innerFilter;
+        private HashSet<int> _keys;
+        private int[] _cachedResult;
 
         // filterTo needs to be passed as IQueryable for decent perf.
-        public PackageSetFilter(IQueryable<Package> filterTo)
+        public PackageSetFilter(IQueryable<Package> filterToPackageSet, Filter innerFilter)
         {
-            if (filterTo == null)
-            {
-                throw new ArgumentNullException("filterTo");
-            }
-
-            _keys = filterTo.Select(p => p.Key).ToArray();
+            _innerFilter = innerFilter;
+            _keys = new HashSet<int>();
+            _keys.AddRange(filterToPackageSet.Select(p => p.Key));
         }
 
         public override DocIdSet GetDocIdSet(IndexReader reader)
         {
-            var docIds = new int[_keys.Length];
-
-            for (int i = 0; i < _keys.Length; i++)
+            if (_cachedResult == null)
             {
-                var docs = reader.TermDocs(new Term("Key", _keys[i].ToString(CultureInfo.InvariantCulture)));
-                if (docs.Next())
+                FieldSelector keySelector = new KeySelector();
+                var set = _innerFilter.GetDocIdSet(reader).Iterator();
+                var docId = set.NextDoc();
+                var goodDocIds = new List<int>();
+                while (docId != DocIdSetIterator.NO_MORE_DOCS)
                 {
-                    docIds[i] = docs.Doc();
-                }
-                else
-                {
-                    // We should nearly always be able to find a curated feed package in the lucene index, but it's possible the index is not up to date in which case we miss
-                    docIds[i] = -1;
+                    var document = reader.Document(docId, keySelector);
+                    var key = document.GetField("Key").StringValue();
+                    int keyVal = Int32.Parse(key, CultureInfo.InvariantCulture);
+                    if (_keys.Contains(keyVal))
+                    {
+                        goodDocIds.Add(docId);
+                    }
+
+                    docId = set.NextDoc();
                 }
 
-                Debug.Assert(!docs.Next(), "There should not be multiple matching documents with the same package 'Key' in the index.");
+                _cachedResult = goodDocIds.ToArray();
+                Array.Sort(_cachedResult);
             }
 
-            var goodDocIds = docIds.Where(id => id != -1).ToArray();
-            Array.Sort(goodDocIds);
-            return new SortedVIntList(goodDocIds);
+            return new SortedVIntList(_cachedResult);
+        }
+
+        class KeySelector : FieldSelector
+        {
+            public FieldSelectorResult Accept(string fieldName)
+            {
+                return fieldName.Equals("Key", StringComparison.Ordinal) ? FieldSelectorResult.LOAD_AND_BREAK : FieldSelectorResult.NO_LOAD;
+            }
         }
     }
 }
