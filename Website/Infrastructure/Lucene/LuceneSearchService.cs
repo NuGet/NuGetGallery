@@ -63,7 +63,7 @@ namespace NuGetGallery
             Filter filter = new QueryWrapperFilter(termQuery);
             if (filterToPackageSet != null)
             {
-                filter = new IntersectionFilter(new PackageSetFilter(filterToPackageSet), filter);
+                filter = new PackageSetFilter(filterToPackageSet, filter);
             }
 
             var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
