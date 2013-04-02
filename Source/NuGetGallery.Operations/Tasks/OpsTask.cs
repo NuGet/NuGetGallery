@@ -45,9 +45,17 @@ namespace NuGetGallery.Operations
         {
             get
             {
-                return !String.IsNullOrEmpty(ConfigFile) ?
-                    DeploymentEnvironment.FromConfigFile(ConfigFile) : 
-                    null;
+                try
+                {
+                    return !String.IsNullOrEmpty(ConfigFile) ?
+                        DeploymentEnvironment.FromConfigFile(ConfigFile) :
+                        null;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.Message);
+                    return null;
+                }
             }
         }
 
