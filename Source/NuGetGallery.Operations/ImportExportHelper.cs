@@ -11,6 +11,7 @@ using System.Web;
 using System.Runtime.Serialization;
 using NuGetGallery.Operations.SqlDac;
 using NLog;
+using System.Threading;
 
 namespace WASDImportExport
 {
@@ -123,6 +124,7 @@ namespace WASDImportExport
                             _log.Info("Export Complete - Database exported to: {0}\n\r", exportedBlobPath);
                             exportComplete = true;
                         }
+                        Thread.Sleep(5 * 1000);
                     }
                     return exportedBlobPath;
                 }
