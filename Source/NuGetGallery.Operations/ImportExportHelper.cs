@@ -38,7 +38,7 @@ namespace WASDImportExport
 
         public string DoExport(string blobUri, bool whatIf)
         {
-            _log.Info("Starting Export Operation - {0}\n\r", DateTime.Now);
+            _log.Info("Starting SQL DAC Export Operation");
             string requestGuid = null;
             bool exportComplete = false;
             string exportedBlobPath = null;

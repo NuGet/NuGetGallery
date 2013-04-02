@@ -53,7 +53,8 @@ namespace NuGetGallery.Operations
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex.Message);
+                    Log.Warn("Error loading cscfg. Continuing without it");
+                    Log.Warn(ex.Message);
                     return null;
                 }
             }
