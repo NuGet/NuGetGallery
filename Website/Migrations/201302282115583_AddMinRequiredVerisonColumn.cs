@@ -1,8 +1,8 @@
 namespace NuGetGallery.Migrations
 {
     using System.Data.Entity.Migrations;
-    
-    public partial class AddMinRequiredVersionColumn : DbMigration
+
+    public partial class AddMinRequiredVerisonColumn : DbMigration
     {
         public override void Up()
         {
