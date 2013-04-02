@@ -8,9 +8,13 @@ namespace NuGetGallery.Operations
     public class BackupDatabaseTask : DatabaseTask, IBackupDatabase
     {
         [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
-        public int IfOlderThan { get; set; } 
+        public int IfOlderThan { get; set; }
 
-        public string BackupName { get; private set; }
+        [Option("The name of the backup to created. Default: Backup_[yyyyMMddHHmmss]")]
+        public string BackupName { get; set; }
+
+        [Option("Forces the backup to be created, even if there is a recent enough backup.")]
+        public bool Force { get; set; }
 
         public bool SkippingBackup { get; private set; }
 
@@ -34,32 +38,46 @@ namespace NuGetGallery.Operations
             {
                 sqlConnection.Open();
 
-                Log.Trace("Checking for a backup in progress.");
-                if (Util.BackupIsInProgress(dbExecutor))
+                if (!Force)
                 {
-                    Log.Trace("Found a backup in progress; exiting.");
-                    return;
+                    Log.Trace("Checking for a backup in progress.");
+                    if (Util.BackupIsInProgress(dbExecutor))
+                    {
+                        Log.Trace("Found a backup in progress; exiting.");
+                        return;
+                    }
+
+                    Log.Trace("Found no backup in progress.");
+
+                    Log.Trace("Getting last backup time.");
+                    var lastBackupTime = Util.GetLastBackupTime(dbExecutor);
+                    if (lastBackupTime >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(IfOlderThan)))
+                    {
+                        Log.Info("Skipping Backup. Last Backup was less than {0} minutes ago", IfOlderThan);
+
+                        SkippingBackup = true;
+
+                        return;
+                    }
+                    Log.Trace("Last backup time is more than {0} minutes ago. Starting new backup.", IfOlderThan);
+                }
+                else
+                {
+                    Log.Trace("Forcing new backup");
                 }
 
-                Log.Trace("Found no backup in progress.");
-
-                Log.Trace("Getting last backup time.");
-                var lastBackupTime = Util.GetLastBackupTime(dbExecutor);
-                if (lastBackupTime >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(IfOlderThan)))
+                if (String.IsNullOrEmpty(BackupName))
                 {
-                    Log.Info("Skipping Backup. Last Backup was less than {0} minutes ago", IfOlderThan);
+                    // Generate a backup name
+                    var timestamp = Util.GetTimestamp();
 
-                    SkippingBackup = true;
-
-                    return;
+                    BackupName = string.Format("Backup_{0}", timestamp);
                 }
-                Log.Trace("Last backup time is more than {0} minutes ago. Starting new backup.", IfOlderThan);
 
-                var timestamp = Util.GetTimestamp();
-
-                BackupName = string.Format("Backup_{0}", timestamp);
-
-                dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", BackupName, dbName));
+                if (!WhatIf)
+                {
+                    dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", BackupName, dbName));
+                }
 
                 Log.Info("Starting '{0}'", BackupName);
             }

@@ -19,17 +19,21 @@ namespace NuGetGallery.Operations
         public CloudStorageAccount MainStorage { get; private set; }
         public CloudStorageAccount ReportStorage { get; private set; }
         public CloudStorageAccount BackupSourceStorage { get; private set; }
+        public CloudStorageAccount DeveloperStorage { get; set; }
+
+        public Uri SqlDac { get; set; }
 
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
         {
             Settings = deploymentSettings;
             MainDatabase = GetSqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Primary"]);
             WarehouseDatabase = GetSqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Warehouse"]);
-            BackupSourceDatabase = GetSqlConnectionStringBuilder(deploymentSettings["Operations.Sql.BackupSource"]);
 
-            MainStorage = GetCloudStorageAccount(deploymentSettings["Operations.Storage.Primary"]);
-            ReportStorage = GetCloudStorageAccount(deploymentSettings["Operations.Storage.Reports"]);
-            BackupSourceStorage = GetCloudStorageAccount(deploymentSettings["Operations.Storage.BackupSource"]);
+            MainStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Primary"]);
+            ReportStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Reports"]);
+            BackupStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Backups"]);
+
+            SqlDac = new Uri(deploymentSettings["Operations.SqlDac"]);
         }
 
         public static DeploymentEnvironment FromConfigFile(string configFile)
