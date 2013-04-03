@@ -10,5 +10,7 @@ namespace NuGetGallery
         IQueryable<Package> GetPackages(string curatedFeedName);
 
         IQueryable<PackageRegistration> GetPackageRegistrations(string curatedFeedName);
+
+        int? GetKey(string curatedFeedName);
     }
 }

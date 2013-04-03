@@ -310,8 +310,7 @@
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
-    <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
-    <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
+    <Compile Include="Infrastructure\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />

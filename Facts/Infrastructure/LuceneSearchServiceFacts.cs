@@ -39,7 +39,7 @@ namespace NuGetGallery.Infrastructure
                             new PackageFramework { TargetFramework = "net45" },
                         }
                     }
-                }.AsQueryable());
+                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             var results = IndexAndSearch(packageSource, "awesome");
 
@@ -74,7 +74,7 @@ namespace NuGetGallery.Infrastructure
                         Title = "DavidTest123",
                         Version = "1.1",
                     }
-                }.AsQueryable());
+                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             var results = IndexAndSearch(packageSource, "12");
 
@@ -107,7 +107,7 @@ namespace NuGetGallery.Infrastructure
                         Title = "SuperzipLib",
                         Version = "1.1.2",
                     }
-                }.AsQueryable());
+                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             var results = IndexAndSearch(packageSource, "compressed");
 
@@ -158,7 +158,7 @@ namespace NuGetGallery.Infrastructure
                         Title = "Red Herring",
                         Version = "1.1.2",
                     },
-                }.AsQueryable());
+                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             var results = IndexAndSearch(packageSource, "Id:Red Death");
 
@@ -213,7 +213,7 @@ namespace NuGetGallery.Infrastructure
                             Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
                             Version = "1.5.20902.9026",
                         }
-                    }.AsQueryable());
+                    }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             // simple query
             var results = IndexAndSearch(packageSource, "NuGet.Core");
@@ -289,7 +289,7 @@ namespace NuGetGallery.Infrastructure
                         Version = "1.5.20902.9026",
                         Tags = "javascript"
                     }
-                }.AsQueryable());
+                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             // query targeted specifically against id field should work equally well
             var results = IndexAndSearch(packageSource, field + ":" + term);
@@ -323,7 +323,7 @@ namespace NuGetGallery.Infrastructure
                         Title = "JQuery UI (Combined Blobbary)",
                         Tags = "web javascript",
                     },
-                }.AsQueryable());
+                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             var results = IndexAndSearch(packageSource, "id:JQuery.ui");
             Assert.NotEmpty(results);
@@ -355,7 +355,7 @@ namespace NuGetGallery.Infrastructure
                         Title = "JQuery UI (Combined Blobbary)",
                         Tags = "web javascript",
                     },
-                }.AsQueryable());
+                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             var results = IndexAndSearch(packageSource, "\"");
             Assert.NotEmpty(results);
@@ -407,7 +407,7 @@ namespace NuGetGallery.Infrastructure
                         Title = "JQuery UI (Combined Blobbary)",
                         Tags = "web javascript",
                     },
-                }.AsQueryable());
+                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             var results = IndexAndSearch(packageSource, "");
             Assert.NotEmpty(results);
@@ -464,7 +464,7 @@ namespace NuGetGallery.Infrastructure
                 Version = "3.4 RC",
             };
 
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(new Package[] {p}.AsQueryable());
+            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(new Package[] { p }.Select(x => new PackageIndexEntity(x)).AsQueryable());
             var results = IndexAndSearch(packageSource, "");
             var r = results.AsQueryable().ToV2FeedPackageQuery("http://www.nuget.org/").First();
 
@@ -525,7 +525,7 @@ namespace NuGetGallery.Infrastructure
                         Title = "NuGet.Core",
                         Version = "1.5.20902.9026",
                     },
-                }.AsQueryable());
+                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
 
             var results = IndexAndSearch(packageSource, "*Core"); // Lucene parser throws for leading asterisk in searches
             Assert.NotEmpty(results);
