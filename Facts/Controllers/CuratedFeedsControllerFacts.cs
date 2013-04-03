@@ -210,12 +210,12 @@ namespace NuGetGallery
                 var mockPackages = new[] { redPill.Packages.ElementAt(0) }.AsQueryable();
 
                 controller.StubCuratedFeedService
-                    .Setup(stub => stub.GetPackageRegistrations("TheMatrix"))
-                    .Returns(mockPackageRegistrations);
+                    .Setup(stub => stub.GetKey("TheMatrix"))
+                    .Returns(2);
 
                 int totalHits;
                 controller.StubSearchService
-                    .Setup(stub => stub.Search(It.IsAny<SearchFilter>(), out totalHits, mockPackageRegistrations))
+                    .Setup(stub => stub.Search(It.IsAny<SearchFilter>(), out totalHits))
                     .Returns(mockPackages);
 
                 var mockHttpContext = new Mock<HttpContextBase>();
