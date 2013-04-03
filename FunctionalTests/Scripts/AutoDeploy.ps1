@@ -25,13 +25,14 @@ if(!$SourceBlob) {
     $Account = [Microsoft.WindowsAzure.CloudStorageAccount]::Parse($StorageConnectionString)
     $BlobClient = [Microsoft.WindowsAzure.StorageClient.CloudStorageAccountStorageClientExtensions]::CreateCloudBlobClient($Account)
     $ContainerRef = $BlobClient.GetContainerReference("deployment-packages");
-    $allItems = $ContainerRef.ListBlobs();       
+    $allItems = $ContainerRef.ListBlobs();   
+    $devBlobsDirectory =  @($allItems | Where-Object { ([Microsoft.WindowsAzure.StorageClient.CloudBlobDirectory]$_).Uri -like  '*' +$branch +'*' })    
     #Get the latest package from Dev branch
-    $devBlobs =  @($allItems | Where-Object { ([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$_).Name -like 'NuGetGallery_*_' +$branch + '.cspkg' })
-    $latestBlob = $devBlobs[0];
+    $devBlobs = $devBlobsDirectory[0].ListBlobs();    
+    [Microsoft.WindowsAzure.StorageClient.CloudBlockBlob] $latestBlob = $devBlobs[0];
     foreach( $element in $devBlobs)
     {
-       if(([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$element).Properties.LastModifiedUtc -gt $latestBlob.Properties.LastModifiedUtc)
+       if(([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$element).Properties.LastModifiedUtc -gt ([Microsoft.WindowsAzure.StorageClient.CloudBlockBlob]$latestBlob).Properties.LastModifiedUtc)
        {
             $latestBlob = $element
        }
