@@ -3,6 +3,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 using NuGet;
+using NuGetGallery;
 
 namespace NuGetGallery
 {
@@ -11,14 +12,16 @@ namespace NuGetGallery
     {
         public const string ControllerName = "CuratedFeeds";
 
-        private IEntityRepository<CuratedFeed> _curatedFeeds;
-        private ISearchService _searchService;
+        public ICuratedFeedService CuratedFeedService { get; protected set; }
+        public ISearchService SearchService { get; protected set; }
 
-        public CuratedFeedsController(IEntityRepository<CuratedFeed> curatedFeeds,
+        protected CuratedFeedsController() { }
+
+        public CuratedFeedsController(ICuratedFeedService curatedFeedService,
             ISearchService searchService)
         {
-            _curatedFeeds = curatedFeeds;
-            _searchService = searchService;
+            CuratedFeedService = curatedFeedService;
+            SearchService = searchService;
         }
 
         [HttpGet]
@@ -69,14 +72,12 @@ namespace NuGetGallery
                 sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
             }
 
-            var packageRegistrations = _curatedFeeds.GetAll()
-                .Where(cf => cf.Name == curatedFeedName)
-                .SelectMany(cf => cf.Packages.Select(cp => cp.PackageRegistration));
+            var packageRegistrations = CuratedFeedService.GetPackageRegistrations(curatedFeedName);
 
             var searchFilter = SearchAdaptor.GetSearchFilter(q, sortOrder, page, prerelease);
 
             int totalHits;
-            IQueryable<Package> packageVersions = _searchService.Search(searchFilter, out totalHits, filterToPackageSet: packageRegistrations);
+            IQueryable<Package> packageVersions = SearchService.Search(searchFilter, out totalHits, filterToPackageSet: packageRegistrations);
             if (page == 1 && !packageVersions.Any())
             {
                 // In the event the index wasn't updated, we may get an incorrect count. 

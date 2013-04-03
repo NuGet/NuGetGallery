@@ -6,6 +6,7 @@ using System.Reflection;
 using System.ServiceModel.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using NuGetGallery;
 
 namespace NuGetGallery
 {
@@ -14,18 +15,22 @@ namespace NuGetGallery
     {
         private const int FeedVersion = 2;
 
+        ICuratedFeedService _curatedFeedService;
+
         public V2CuratedFeed()
         {
         }
 
-        public V2CuratedFeed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchService)
+        public V2CuratedFeed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchService, ICuratedFeedService curatedFeedService)
             : base(entities, repo, configuration, searchService)
         {
+            _curatedFeedService = curatedFeedService;
         }
 
         protected override FeedContext<V2FeedPackage> CreateDataSource()
         {
-            var packages = GetPackages();
+            var curatedFeedName = GetCuratedFeedName();
+            var packages = _curatedFeedService.GetPackages(curatedFeedName);
 
             return new FeedContext<V2FeedPackage>
                 {
@@ -41,7 +46,8 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> FindPackagesById(string id)
         {
-            return GetPackages()
+            var curatedFeedName = GetCuratedFeedName();
+            return _curatedFeedService.GetPackages(curatedFeedName)
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
@@ -95,18 +101,6 @@ namespace NuGetGallery
             return curatedFeedName;
         }
 
-        private IQueryable<Package> GetPackages()
-        {
-            var curatedFeedName = GetCuratedFeedName();
-
-            var packages = Entities.CuratedFeeds
-                .Where(cf => cf.Name == curatedFeedName)
-                .Include(cf => cf.Packages.Select(cp => cp.PackageRegistration.Packages))
-                .SelectMany(cf => cf.Packages.SelectMany(cp => cp.PackageRegistration.Packages));
-
-            return packages;
-        }
-
         protected override void OnStartProcessingRequest(ProcessRequestArgs args)
         {
             FixUpDataServiceUrisForCuratedFeedName(args.OperationContext, GetCuratedFeedName());
@@ -116,11 +110,9 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
-            var curatedFeedName = GetCuratedFeedName();
-            var curatedPackages = GetPackages();
-            var packageRegistrations = Entities.CuratedFeeds
-                .Where(cf => cf.Name == curatedFeedName)
-                .SelectMany(cf => cf.Packages.Select(cp => cp.PackageRegistration));
+            var curatedFeedName =  GetCuratedFeedName();
+            var curatedPackages = _curatedFeedService.GetPackages(curatedFeedName);
+            var packageRegistrations = _curatedFeedService.GetPackageRegistrations(curatedFeedName);
 
             return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, filterToPackageSet: packageRegistrations)
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
