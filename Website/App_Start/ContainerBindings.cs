@@ -94,6 +94,10 @@ namespace NuGetGallery
                 .To<EntityRepository<CuratedFeed>>()
                 .InRequestScope();
 
+            Bind<IEntityRepository<CuratedPackage>>()
+                .To<EntityRepository<CuratedPackage>>()
+                .InRequestScope();
+
             Bind<IEntityRepository<PackageRegistration>>()
                 .To<EntityRepository<PackageRegistration>>()
                 .InRequestScope();

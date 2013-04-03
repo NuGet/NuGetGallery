@@ -10,7 +10,7 @@ using NuGetGallery;
 
 namespace NuGetGallery
 {
-    // TODO : Have V2CuratedFeed derive from V2Feed
+    // TODO : Have V2CuratedFeed derive from V2Feed?
     public class V2CuratedFeed : FeedServiceBase<V2FeedPackage>
     {
         private const int FeedVersion = 2;
@@ -18,7 +18,14 @@ namespace NuGetGallery
         ICuratedFeedService _curatedFeedService;
 
         public V2CuratedFeed()
+            : this(DependencyResolver.Current.GetService<ICuratedFeedService>())
         {
+        }
+
+        public V2CuratedFeed(ICuratedFeedService curatedFeedService)
+            : base()
+        {
+            _curatedFeedService = curatedFeedService;
         }
 
         public V2CuratedFeed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchService, ICuratedFeedService curatedFeedService)
@@ -30,6 +37,12 @@ namespace NuGetGallery
         protected override FeedContext<V2FeedPackage> CreateDataSource()
         {
             var curatedFeedName = GetCuratedFeedName();
+
+            if (!Entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
+            {
+                throw new DataServiceException(404, "Not Found");
+            }
+
             var packages = _curatedFeedService.GetPackages(curatedFeedName);
 
             return new FeedContext<V2FeedPackage>
@@ -91,13 +104,6 @@ namespace NuGetGallery
         private string GetCuratedFeedName()
         {
             var curatedFeedName = HttpContext.Request.QueryString["name"];
-
-            var curatedFeed = Entities.CuratedFeeds.SingleOrDefault(cf => cf.Name == curatedFeedName);
-            if (curatedFeed == null)
-            {
-                throw new DataServiceException(404, "Not Found");
-            }
-
             return curatedFeedName;
         }
 
@@ -111,10 +117,15 @@ namespace NuGetGallery
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
             var curatedFeedName =  GetCuratedFeedName();
-            var curatedPackages = _curatedFeedService.GetPackages(curatedFeedName);
-            var packageRegistrations = _curatedFeedService.GetPackageRegistrations(curatedFeedName);
+            var curatedFeedKey = _curatedFeedService.GetKey(curatedFeedName);
+            if (curatedFeedKey == null)
+            {
+                throw new DataServiceException(404, "Not Found");
+            }
 
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, filterToPackageSet: packageRegistrations)
+            var curatedPackages = _curatedFeedService.GetPackages(curatedFeedName);
+
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: curatedFeedKey)
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 

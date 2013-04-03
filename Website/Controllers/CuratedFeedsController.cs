@@ -72,12 +72,15 @@ namespace NuGetGallery
                 sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
             }
 
-            var packageRegistrations = CuratedFeedService.GetPackageRegistrations(curatedFeedName);
-
             var searchFilter = SearchAdaptor.GetSearchFilter(q, sortOrder, page, prerelease);
+            searchFilter.CuratedFeedKey = CuratedFeedService.GetKey(curatedFeedName);
+            if (searchFilter.CuratedFeedKey == 0)
+            {
+                return HttpNotFound();
+            }
 
             int totalHits;
-            IQueryable<Package> packageVersions = SearchService.Search(searchFilter, out totalHits, filterToPackageSet: packageRegistrations);
+            IQueryable<Package> packageVersions = SearchService.Search(searchFilter, out totalHits);
             if (page == 1 && !packageVersions.Any())
             {
                 // In the event the index wasn't updated, we may get an incorrect count. 

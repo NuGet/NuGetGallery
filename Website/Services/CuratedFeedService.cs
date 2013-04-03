@@ -31,5 +31,14 @@ namespace NuGetGallery
 
             return packageRegistrations;
         }
+
+        public int? GetKey(string curatedFeedName)
+        {
+            var results = _curatedFeedRepository.GetAll()
+                .Where(cf => cf.Name == curatedFeedName)
+                .Select(cf => cf.Key).Take(1).ToArray();
+
+            return results.Length > 0 ? (int?)results[0] : null;
+        }
     }
 }

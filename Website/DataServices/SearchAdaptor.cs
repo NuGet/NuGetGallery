@@ -49,10 +49,10 @@ namespace NuGetGallery
             return searchFilter;
         }
 
-        public static IQueryable<Package> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter, IQueryable<PackageRegistration> filterToPackageSet)
+        public static IQueryable<Package> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
         {
             int totalHits;
-            var result = searchService.Search(searchFilter, out totalHits, filterToPackageSet);
+            var result = searchService.Search(searchFilter, out totalHits);
 
             // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
             // it very fast.
@@ -75,7 +75,7 @@ namespace NuGetGallery
             string searchTerm, 
             string targetFramework, 
             bool includePrerelease,
-            IQueryable<PackageRegistration> filterToPackageSet = null)
+            int? curatedFeedKey)
         {
             SearchFilter searchFilter;
             // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
@@ -84,10 +84,11 @@ namespace NuGetGallery
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
+                searchFilter.CuratedFeedKey = curatedFeedKey;
 
                 Trace.WriteLine("TODO: use target framework parameter - see #856" + targetFramework);
 
-                var results = GetResultsFromSearchService(searchService, searchFilter, filterToPackageSet);
+                var results = GetResultsFromSearchService(searchService, searchFilter);
 
                 return results;
             }
@@ -96,6 +97,7 @@ namespace NuGetGallery
             {
                 packages = packages.Where(p => !p.IsPrerelease);
             }
+
             return packages.Search(searchTerm);
         }
 
