@@ -482,6 +482,10 @@
     <Compile Include="Migrations\201304020006512_UserLookupOptimization.Designer.cs">
       <DependentUpon>201304020006512_UserLookupOptimization.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201304030226233_CuratedFeedPackageUniqueness.cs" />
+    <Compile Include="Migrations\201304030226233_CuratedFeedPackageUniqueness.Designer.cs">
+      <DependentUpon>201304030226233_CuratedFeedPackageUniqueness.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />

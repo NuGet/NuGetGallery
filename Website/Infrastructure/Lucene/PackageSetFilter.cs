@@ -25,13 +25,9 @@ namespace NuGetGallery.Infrastructure.Lucene
         // filterTo needs to be passed as IQueryable for decent perf.
         public PackageSetFilter(IQueryable<PackageRegistration> filterToPackageSet, Filter innerFilter)
         {
-            // Workaround: Distinct
-            // For now, The curated feeds table has duplicate entries for feed, package registration pairs (we have a bug to fix it). Consequently
-            // we have to apply a distinct on the results.
-
             _innerFilter = innerFilter;
             _packageRegistrationKeys = new HashSet<int>();
-            _packageRegistrationKeys.AddRange(filterToPackageSet.Select(p => p.Key).Distinct());
+            _packageRegistrationKeys.AddRange(filterToPackageSet.Select(p => p.Key));
         }
 
         public override DocIdSet GetDocIdSet(IndexReader reader)
