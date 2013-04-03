@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -13,12 +14,19 @@ using Microsoft.WindowsAzure.Storage;
 using Ninject;
 using Ninject.Modules;
 using Ninject.Web.Mvc.Filter;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
     public class ContainerBindings : NinjectModule
     {
+        public static IEnumerable<NinjectModule> GetModules()
+        {
+            yield return new ContainerBindings();
+            yield return new DiagnosticsNinjectModule();
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         public override void Load()
         {

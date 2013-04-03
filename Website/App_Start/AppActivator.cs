@@ -34,6 +34,7 @@ namespace NuGetGallery
         {
             NinjectPreStart();
             ElmahPreStart();
+            GlimpsePreStart();
         }
 
         public static void PostStart()
@@ -51,6 +52,11 @@ namespace NuGetGallery
         {
             BackgroundJobsStop();
             NinjectStop();
+        }
+
+        private static void GlimpsePreStart()
+        {
+            DynamicModuleUtility.RegisterModule(typeof(Glimpse.AspNet.HttpModule));
         }
 
         private static void BundlingPostStart()
