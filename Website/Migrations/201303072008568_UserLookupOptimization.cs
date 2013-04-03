@@ -6,6 +6,20 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
+            // DELETE duplicate Users from the database
+            // Keep the OLDER User
+            Sql(@"WITH NumberedRows
+AS 
+(
+    
+  SELECT Row_number() OVER 
+(PARTITION BY Username ORDER BY Username, [Key] ASC)
+
+   RowId, * from Users
+)
+
+DELETE * FROM NumberedRows WHERE RowId > 1");
+
             AlterColumn("Users", "EmailAddress", c => c.String(maxLength: 256));
             AlterColumn("Users", "UnconfirmedEmailAddress", c => c.String(maxLength: 256));
             AlterColumn("Users", "HashedPassword", c => c.String(nullable: false, maxLength: 256));
