@@ -97,8 +97,20 @@ namespace NuGetGallery
         {
             var document = new Document();
 
-            var field = new Field("Id-Exact", package.PackageRegistration.Id.ToLowerInvariant(), Field.Store.NO,
-                                  Field.Index.NOT_ANALYZED);
+            // First field(s) in the document should be Key type fields because we want them to be as fast as possible for retrieving the field Value.
+            // (note: fields are variable width and appended sequentially in a stream)
+            // (scenario: retrieve Key of a document during filtering search results)
+            
+            // Note: Used to identify index records for updates
+            document.Add(new Field("PackageRegistrationKey",
+                    package.PackageRegistrationKey.ToString(CultureInfo.InvariantCulture),
+                    Field.Store.YES,
+                    Field.Index.NOT_ANALYZED));
+
+            document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
+
+            var field = new Field("Id-Exact", package.PackageRegistration.Id.ToLowerInvariant(), Field.Store.NO, Field.Index.NOT_ANALYZED);
+
             field.SetBoost(2.5f);
             document.Add(field);
 
@@ -200,13 +212,6 @@ namespace NuGetGallery
             // Fields meant for filtering, also storing data to avoid hitting SQL while doing searches
             document.Add(new Field("IsLatest", package.IsLatest.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
             document.Add(new Field("IsLatestStable", package.IsLatestStable.ToString(), Field.Store.YES, Field.Index.NOT_ANALYZED));
-            document.Add(new Field("Key", package.Key.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
-
-            // Note: Used to identify index records for updates
-            document.Add(new Field("PackageRegistrationKey",
-                    package.PackageRegistrationKey.ToString(CultureInfo.InvariantCulture),
-                    Field.Store.YES,
-                    Field.Index.NOT_ANALYZED));
 
             // Fields meant for filtering, sorting
            document.Add(new Field("PublishedDate", package.Published.Ticks.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));

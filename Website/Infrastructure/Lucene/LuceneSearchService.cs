@@ -24,7 +24,7 @@ namespace NuGetGallery
             _directory = directory;
         }
 
-        public IQueryable<Package> Search(SearchFilter searchFilter, out int totalHits, IQueryable<Package> filterToPackageSet = null)
+        public IQueryable<Package> Search(SearchFilter searchFilter, out int totalHits, IQueryable<PackageRegistration> filterToPackageSet = null)
         {
             if (searchFilter == null)
             {
@@ -44,7 +44,7 @@ namespace NuGetGallery
             return SearchCore(searchFilter, out totalHits, filterToPackageSet);
         }
 
-        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits, IQueryable<Package> filterToPackageSet)
+        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits, IQueryable<PackageRegistration> filterToPackageSet)
         {
             int numRecords = searchFilter.Skip + searchFilter.Take;
 
@@ -63,7 +63,7 @@ namespace NuGetGallery
             Filter filter = new QueryWrapperFilter(termQuery);
             if (filterToPackageSet != null)
             {
-                filter = new IntersectionFilter(new PackageSetFilter(filterToPackageSet), filter);
+                filter = new PackageSetFilter(filterToPackageSet, filter);
             }
 
             var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
