@@ -104,9 +104,7 @@ namespace NuGetGallery
                 .Include(cf => cf.Packages.Select(cp => cp.PackageRegistration.Packages))
                 .SelectMany(cf => cf.Packages.SelectMany(cp => cp.PackageRegistration.Packages.Select(p => p)));
 
-            // The curated feeds table has duplicate entries for feed, package registration pairs. Consequently
-            // we have to apply a distinct on the results.
-            return packages.Distinct();
+            return packages;
         }
 
         protected override void OnStartProcessingRequest(ProcessRequestArgs args)
