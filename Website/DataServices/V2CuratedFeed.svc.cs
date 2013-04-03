@@ -102,7 +102,7 @@ namespace NuGetGallery
             var packages = Entities.CuratedFeeds
                 .Where(cf => cf.Name == curatedFeedName)
                 .Include(cf => cf.Packages.Select(cp => cp.PackageRegistration.Packages))
-                .SelectMany(cf => cf.Packages.SelectMany(cp => cp.PackageRegistration.Packages.Select(p => p)));
+                .SelectMany(cf => cf.Packages.SelectMany(cp => cp.PackageRegistration.Packages));
 
             // The curated feeds table has duplicate entries for feed, package registration pairs. Consequently
             // we have to apply a distinct on the results.
@@ -118,8 +118,13 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
-            IQueryable<Package> curatedPackages = GetPackages();
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, filterToPackageSet: curatedPackages)
+            var curatedFeedName = GetCuratedFeedName();
+            var curatedPackages = GetPackages();
+            var packageRegistrations = Entities.CuratedFeeds
+                .Where(cf => cf.Name == curatedFeedName)
+                .SelectMany(cf => cf.Packages.Select(cp => cp.PackageRegistration));
+
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, filterToPackageSet: packageRegistrations)
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 

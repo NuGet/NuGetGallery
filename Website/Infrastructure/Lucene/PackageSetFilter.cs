@@ -19,31 +19,35 @@ namespace NuGetGallery.Infrastructure.Lucene
     internal class PackageSetFilter : Filter
     {
         private Filter _innerFilter;
-        private HashSet<int> _keys;
+        private HashSet<int> _packageRegistrationKeys;
         private int[] _cachedResult;
 
         // filterTo needs to be passed as IQueryable for decent perf.
-        public PackageSetFilter(IQueryable<Package> filterToPackageSet, Filter innerFilter)
+        public PackageSetFilter(IQueryable<PackageRegistration> filterToPackageSet, Filter innerFilter)
         {
+            // Workaround: Distinct
+            // For now, The curated feeds table has duplicate entries for feed, package registration pairs (we have a bug to fix it). Consequently
+            // we have to apply a distinct on the results.
+
             _innerFilter = innerFilter;
-            _keys = new HashSet<int>();
-            _keys.AddRange(filterToPackageSet.Select(p => p.Key));
+            _packageRegistrationKeys = new HashSet<int>();
+            _packageRegistrationKeys.AddRange(filterToPackageSet.Select(p => p.Key).Distinct());
         }
 
         public override DocIdSet GetDocIdSet(IndexReader reader)
         {
             if (_cachedResult == null)
             {
-                FieldSelector keySelector = new KeySelector();
+                FieldSelector keySelector = new PackageRegistrationKeySelector();
                 var set = _innerFilter.GetDocIdSet(reader).Iterator();
                 var docId = set.NextDoc();
                 var goodDocIds = new List<int>();
                 while (docId != DocIdSetIterator.NO_MORE_DOCS)
                 {
                     var document = reader.Document(docId, keySelector);
-                    var key = document.GetField("Key").StringValue();
+                    var key = document.GetField("PackageRegistrationKey").StringValue();
                     int keyVal = Int32.Parse(key, CultureInfo.InvariantCulture);
-                    if (_keys.Contains(keyVal))
+                    if (_packageRegistrationKeys.Contains(keyVal))
                     {
                         goodDocIds.Add(docId);
                     }
@@ -58,11 +62,11 @@ namespace NuGetGallery.Infrastructure.Lucene
             return new SortedVIntList(_cachedResult);
         }
 
-        class KeySelector : FieldSelector
+        class PackageRegistrationKeySelector : FieldSelector
         {
             public FieldSelectorResult Accept(string fieldName)
             {
-                return fieldName.Equals("Key", StringComparison.Ordinal) ? FieldSelectorResult.LOAD_AND_BREAK : FieldSelectorResult.NO_LOAD;
+                return fieldName.Equals("PackageRegistrationKey", StringComparison.Ordinal) ? FieldSelectorResult.LOAD_AND_BREAK : FieldSelectorResult.NO_LOAD;
             }
         }
     }

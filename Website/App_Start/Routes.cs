@@ -138,6 +138,11 @@ namespace NuGetGallery
                 new { controller = CuratedFeedsController.ControllerName, action = "CuratedFeed" });
 
             routes.MapRoute(
+                RouteName.CuratedFeedListPackages,
+                "curated-feeds/{curatedFeedName}/packages",
+                MVC.CuratedFeeds.ListPackages());
+
+            routes.MapRoute(
                 RouteName.CreateCuratedPackageForm,
                 "forms/add-package-to-curated-feed",
                 new { controller = CuratedPackagesController.ControllerName, action = "CreateCuratedPackageForm" });
