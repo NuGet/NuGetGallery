@@ -23,9 +23,6 @@ using T4MVC;
 namespace NuGetGallery {
     public partial class CuratedFeedsController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public CuratedFeedsController() { }
-
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected CuratedFeedsController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -38,6 +35,11 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult CuratedFeed() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.CuratedFeed);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ListPackages() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ListPackages);
         }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -53,6 +55,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string CuratedFeed = "CuratedFeed";
+            public readonly string ListPackages = "ListPackages";
         }
 
 
@@ -72,6 +75,16 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult CuratedFeed(string name) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CuratedFeed);
             callInfo.RouteValueDictionary.Add("name", name);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ListPackages(string curatedFeedName, string q, string sortOrder, int page, bool prerelease) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ListPackages);
+            callInfo.RouteValueDictionary.Add("curatedFeedName", curatedFeedName);
+            callInfo.RouteValueDictionary.Add("q", q);
+            callInfo.RouteValueDictionary.Add("sortOrder", sortOrder);
+            callInfo.RouteValueDictionary.Add("page", page);
+            callInfo.RouteValueDictionary.Add("prerelease", prerelease);
             return callInfo;
         }
 
