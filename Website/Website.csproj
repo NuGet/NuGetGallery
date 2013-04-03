@@ -772,6 +772,8 @@
     <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\Exceptions\PackageNotFoundException.cs" />
     <Compile Include="Services\Exceptions\UserNotFoundException.cs" />
+    <Compile Include="Services\CuratedFeedService.cs" />
+    <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />
