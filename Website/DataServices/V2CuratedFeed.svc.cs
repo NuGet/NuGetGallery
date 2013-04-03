@@ -107,6 +107,12 @@ namespace NuGetGallery
             return curatedFeedName;
         }
 
+        private IQueryable<Package> GetPackages()
+        {
+            var curatedFeedName = GetCuratedFeedName();
+            return _curatedFeedService.GetPackages(curatedFeedName);
+        }
+
         protected override void OnStartProcessingRequest(ProcessRequestArgs args)
         {
             FixUpDataServiceUrisForCuratedFeedName(args.OperationContext, GetCuratedFeedName());
