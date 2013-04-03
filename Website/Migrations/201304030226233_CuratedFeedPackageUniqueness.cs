@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         public override void Down()
         {
             // REMOVE uniqueness constraint
-            DropIndex("CuratedPackages", "IX_CuratedPackage_CuratedFeedAndPackageRegistration");
+            DropIndex("CuratedPackages", "IX_CuratedFeed_PackageRegistration");
         }
     }
 }
