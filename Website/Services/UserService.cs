@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using NuGetGallery.Diagnostics;
 
@@ -10,20 +11,22 @@ namespace NuGetGallery
         public ICryptographyService Crypto { get; protected set; }
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
-        public IDiagnosticsService Diagnostics { get; protected set; }
 
-        protected UserService() {}
+        protected IDiagnosticsSource Trace { get; set; }
+
+        protected UserService() { }
 
         public UserService(
             IConfiguration config,
             ICryptographyService crypto,
             IEntityRepository<User> userRepository,
-            IDiagnosticsService diagnostics) : this()
+            IDiagnosticsService diagnostics)
+            : this()
         {
             Config = config;
             Crypto = crypto;
             UserRepository = userRepository;
-            Diagnostics = diagnostics;
+            Trace = diagnostics.GetSource("UserService");
         }
 
         public virtual User Create(
@@ -33,19 +36,19 @@ namespace NuGetGallery
         {
             // TODO: validate input
             // TODO: consider encrypting email address with a public key, and having the background process that send messages have the private key to decrypt
-            using (Diagnostics.Operation("Creating User"))
+            using (Trace.Activity("Create User"))
             {
                 var existingUser = FindByUsername(username);
                 if (existingUser != null)
                 {
-                    Diagnostics.Error("Attempted to create user that already exists: {0}", username);
+                    Trace.Error(String.Format(CultureInfo.CurrentCulture, "Attempted to create user that already exists: {0}", username));
                     throw new EntityException(Strings.UsernameNotAvailable, username);
                 }
 
                 existingUser = FindByEmailAddress(emailAddress);
                 if (existingUser != null)
                 {
-                    Diagnostics.Error("Attempted to create user with existing email: {0}", emailAddress);
+                    Trace.Error(String.Format(CultureInfo.CurrentCulture, "Attempted to create user with existing email: {0}", emailAddress));
                     throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
                 }
 
@@ -67,18 +70,18 @@ namespace NuGetGallery
                     newUser.ConfirmEmailAddress();
                 }
 
-                try
+                using (Trace.Activity("Saving User to Database"))
                 {
-                    using (Diagnostics.Operation("Saving User to Database"))
+                    try
                     {
                         UserRepository.InsertOnCommit(newUser);
                         UserRepository.CommitChanges();
                     }
-                }
-                catch (Exception ex)
-                {
-                    Diagnostics.Error(ex, "Error saving User to database");
-                    throw;
+                    catch (Exception ex)
+                    {
+                        Trace.Error(ex, "Saving User");
+                        throw;
+                    }
                 }
 
                 return newUser;
