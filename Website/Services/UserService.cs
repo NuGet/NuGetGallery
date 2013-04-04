@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Data.Entity;
-using System.Globalization;
 using System.Linq;
-using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -12,21 +10,16 @@ namespace NuGetGallery
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
 
-        protected IDiagnosticsSource Trace { get; set; }
-
-        protected UserService() { }
+        protected UserService() {}
 
         public UserService(
             IConfiguration config,
             ICryptographyService crypto,
-            IEntityRepository<User> userRepository,
-            IDiagnosticsService diagnostics)
-            : this()
+            IEntityRepository<User> userRepository) : this()
         {
             Config = config;
             Crypto = crypto;
             UserRepository = userRepository;
-            Trace = diagnostics.GetSource("UserService");
         }
 
         public virtual User Create(
@@ -36,27 +29,24 @@ namespace NuGetGallery
         {
             // TODO: validate input
             // TODO: consider encrypting email address with a public key, and having the background process that send messages have the private key to decrypt
-            using (Trace.Activity("Create User"))
+
+            var existingUser = FindByUsername(username);
+            if (existingUser != null)
             {
-                var existingUser = FindByUsername(username);
-                if (existingUser != null)
-                {
-                    Trace.Error(String.Format(CultureInfo.CurrentCulture, "Attempted to create user that already exists: {0}", username));
-                    throw new EntityException(Strings.UsernameNotAvailable, username);
-                }
+                throw new EntityException(Strings.UsernameNotAvailable, username);
+            }
 
-                existingUser = FindByEmailAddress(emailAddress);
-                if (existingUser != null)
-                {
-                    Trace.Error(String.Format(CultureInfo.CurrentCulture, "Attempted to create user with existing email: {0}", emailAddress));
-                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
-                }
+            existingUser = FindByEmailAddress(emailAddress);
+            if (existingUser != null)
+            {
+                throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+            }
 
-                var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
-                var newUser = new User(
-                    username,
-                    hashedPassword)
+            var newUser = new User(
+                username,
+                hashedPassword)
                 {
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
@@ -65,27 +55,15 @@ namespace NuGetGallery
                     PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 };
 
-                if (!Config.ConfirmEmailAddresses)
-                {
-                    newUser.ConfirmEmailAddress();
-                }
-
-                using (Trace.Activity("Saving User to Database"))
-                {
-                    try
-                    {
-                        UserRepository.InsertOnCommit(newUser);
-                        UserRepository.CommitChanges();
-                    }
-                    catch (Exception ex)
-                    {
-                        Trace.Error(ex, "Saving User");
-                        throw;
-                    }
-                }
-
-                return newUser;
+            if (!Config.ConfirmEmailAddresses)
+            {
+                newUser.ConfirmEmailAddress();
             }
+
+            UserRepository.InsertOnCommit(newUser);
+            UserRepository.CommitChanges();
+
+            return newUser;
         }
 
         public void UpdateProfile(User user, string emailAddress, bool emailAllowed)

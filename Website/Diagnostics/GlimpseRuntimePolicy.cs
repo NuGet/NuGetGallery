@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Glimpse.Core.Extensibility;
+using Glimpse.Core.Policy;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -21,18 +22,18 @@ namespace NuGetGallery.Diagnostics
 
         public RuntimeEvent ExecuteOn
         {
-            get { return RuntimeEvent.BeginSessionAccess | RuntimeEvent.ExecuteResource; }
+            get { return RuntimeEvent.BeginSessionAccess; }
         }
 
         public RuntimePolicy Execute(IRuntimePolicyContext policyContext)
         {
-            return Execute(policyContext.GetRequestContext<HttpContextBase>());
+            return Execute(policyContext, policyContext.GetRequestContext<HttpContextBase>());
         }
 
-        public RuntimePolicy Execute(HttpContextBase context)
+        public RuntimePolicy Execute(IRuntimePolicyContext policyContext, HttpContextBase context)
         {
-            // Policy is: Admins see Glimpse, everyone records Glimpse data
-            if (context.Request.IsAuthenticated && 
+            // Policy is: Admins see Glimpse, everyone uses the setting in web config.
+            if (context.Request.IsAuthenticated &&
                 (!Configuration.RequireSSL || context.Request.IsSecureConnection) &&
                 context.User.IsAdministrator())
             {

@@ -256,6 +256,7 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />

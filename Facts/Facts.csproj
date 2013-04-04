@@ -45,6 +45,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EntityFramework.4.3.1\lib\net40\EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="Glimpse.AspNet, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Glimpse.AspNet.1.2.0\lib\net45\Glimpse.AspNet.dll</HintPath>
+    </Reference>
     <Reference Include="Glimpse.Core">
       <HintPath>..\packages\Glimpse.1.2.0\lib\net45\Glimpse.Core.dll</HintPath>
     </Reference>
@@ -162,7 +166,11 @@
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="Diagnostics\DiagnosticsServiceFacts.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicyFacts.cs" />
+    <Compile Include="GlimpseSecurityPolicy.cs" />
+    <Compile Include="TestUtils\TestFile.cs" />
+    <Compile Include="TestUtils\TestFileSystemService.cs" />
     <Compile Include="Entities\EntitiesContextFacts.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Infrastructure\AnalysisHelperFacts.cs" />

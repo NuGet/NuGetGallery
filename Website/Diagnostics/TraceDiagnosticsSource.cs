@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.IO;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -15,7 +17,11 @@ namespace NuGetGallery.Diagnostics
         public TraceDiagnosticsSource(string name)
         {
             Name = name;
-            _source = new TraceSource(name);
+            _source = new TraceSource(name, SourceLevels.All);
+            
+            // Make the source's listeners list look like the global list.
+            _source.Listeners.Clear();
+            _source.Listeners.AddRange(Trace.Listeners);
         }
 
         public void Event(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0)
