@@ -89,6 +89,15 @@ namespace NuGetGallery
             return url.Package(package.Id);
         }
 
+        public static string PackageGallery(this UrlHelper url, string id, string version)
+        {
+            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            string result = url.RouteUrl(RouteName.DisplayPackage, new { Id = id, Version = version }, protocol: protocol);
+
+            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
+            return version == null ? EnsureTrailingSlash(result) : result;
+        }
+
         public static string PackageDownload(this UrlHelper url, int feedVersion, string id, string version)
         {
             string routeName = "v" + feedVersion + RouteName.DownloadPackage;
