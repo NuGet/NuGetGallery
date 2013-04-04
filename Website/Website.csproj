@@ -256,6 +256,8 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Diagnostics\DiagnosticsService.cs" />
+    <Compile Include="Diagnostics\IDiagnosticsService.cs" />
     <Compile Include="Diagnostics\NinjectGlimpseServiceLocator.cs" />
     <Compile Include="App_Start\PackageStoreType.cs" />
     <Compile Include="AuthenticationController.generated.cs">

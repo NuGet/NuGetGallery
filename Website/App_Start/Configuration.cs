@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Globalization;
 using System.Web;
 using Glimpse.Core.Extensibility;
@@ -102,9 +103,7 @@ namespace NuGetGallery
         {
             get
             {
-                return ReadAppSettings(
-                    "PackageStoreType",
-                    value => (PackageStoreType)Enum.Parse(typeof(PackageStoreType), value ?? PackageStoreType.NotSpecified.ToString()));
+                return ReadAppSettings("PackageStoreType", PackageStoreType.NotSpecified);
             }
         }
 
@@ -172,11 +171,21 @@ namespace NuGetGallery
 
         public RuntimePolicy UserGlimpsePolicy
         {
-            get
-            {
-                return ReadAppSettings("UserGlimpsePolicy",
-                                       s => (RuntimePolicy)Enum.Parse(typeof(RuntimePolicy), s ?? "Off", ignoreCase: true));
-            }
+            get { return ReadAppSettings("UserGlimpsePolicy", RuntimePolicy.Off); }
+        }
+
+        public static TEnum ReadAppSettings<TEnum>(string key, TEnum defaultValue) where TEnum : struct
+        {
+            return ReadAppSettings(key,
+                                   value =>
+                                   {
+                                       TEnum ret;
+                                       if (!Enum.TryParse(value, out ret))
+                                       {
+                                           ret = defaultValue;
+                                       }
+                                       return ret;
+                                   });
         }
 
         public static string ReadAppSettings(string key)

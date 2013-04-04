@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Linq;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -9,17 +10,20 @@ namespace NuGetGallery
         public ICryptographyService Crypto { get; protected set; }
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
+        public IDiagnosticsService Diagnostics { get; protected set; }
 
         protected UserService() {}
 
         public UserService(
             IConfiguration config,
             ICryptographyService crypto,
-            IEntityRepository<User> userRepository) : this()
+            IEntityRepository<User> userRepository,
+            IDiagnosticsService diagnostics) : this()
         {
             Config = config;
             Crypto = crypto;
             UserRepository = userRepository;
+            Diagnostics = diagnostics;
         }
 
         public virtual User Create(
@@ -29,24 +33,27 @@ namespace NuGetGallery
         {
             // TODO: validate input
             // TODO: consider encrypting email address with a public key, and having the background process that send messages have the private key to decrypt
-
-            var existingUser = FindByUsername(username);
-            if (existingUser != null)
+            using (Diagnostics.Operation("Creating User"))
             {
-                throw new EntityException(Strings.UsernameNotAvailable, username);
-            }
+                var existingUser = FindByUsername(username);
+                if (existingUser != null)
+                {
+                    Diagnostics.Error("Attempted to create user that already exists: {0}", username);
+                    throw new EntityException(Strings.UsernameNotAvailable, username);
+                }
 
-            existingUser = FindByEmailAddress(emailAddress);
-            if (existingUser != null)
-            {
-                throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
-            }
+                existingUser = FindByEmailAddress(emailAddress);
+                if (existingUser != null)
+                {
+                    Diagnostics.Error("Attempted to create user with existing email: {0}", emailAddress);
+                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+                }
 
-            var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
+                var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
-            var newUser = new User(
-                username,
-                hashedPassword)
+                var newUser = new User(
+                    username,
+                    hashedPassword)
                 {
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
@@ -55,15 +62,27 @@ namespace NuGetGallery
                     PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 };
 
-            if (!Config.ConfirmEmailAddresses)
-            {
-                newUser.ConfirmEmailAddress();
+                if (!Config.ConfirmEmailAddresses)
+                {
+                    newUser.ConfirmEmailAddress();
+                }
+
+                try
+                {
+                    using (Diagnostics.Operation("Saving User to Database"))
+                    {
+                        UserRepository.InsertOnCommit(newUser);
+                        UserRepository.CommitChanges();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Diagnostics.Error(ex, "Error saving User to database");
+                    throw;
+                }
+
+                return newUser;
             }
-
-            UserRepository.InsertOnCommit(newUser);
-            UserRepository.CommitChanges();
-
-            return newUser;
         }
 
         public void UpdateProfile(User user, string emailAddress, bool emailAllowed)

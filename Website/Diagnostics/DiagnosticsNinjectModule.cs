@@ -13,6 +13,8 @@ namespace NuGetGallery.Diagnostics
         {
             Bind<IRuntimePolicy>()
                 .To<GlimpseRuntimePolicy>();
+            Bind<IDiagnosticsService>()
+                .To<DiagnosticsService>();
         }
     }
 }
