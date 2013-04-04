@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.Web;
+using Glimpse.Core.Extensibility;
 using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery
@@ -167,6 +168,15 @@ namespace NuGetGallery
         public string GetSiteRoot(bool useHttps)
         {
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
+        }
+
+        public RuntimePolicy UserGlimpsePolicy
+        {
+            get
+            {
+                return ReadAppSettings("UserGlimpsePolicy",
+                                       s => (RuntimePolicy)Enum.Parse(typeof(RuntimePolicy), s ?? "Off", ignoreCase: true));
+            }
         }
 
         public static string ReadAppSettings(string key)

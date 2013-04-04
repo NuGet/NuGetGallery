@@ -6,8 +6,19 @@ using Glimpse.Core.Extensibility;
 
 namespace NuGetGallery.Diagnostics
 {
-    public class NuGetGlimpseRuntimePolicy : IRuntimePolicy
+    public class GlimpseRuntimePolicy : IRuntimePolicy
     {
+        public IConfiguration Configuration { get; protected set; }
+
+        protected GlimpseRuntimePolicy()
+        {
+        }
+
+        public GlimpseRuntimePolicy(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
         public RuntimeEvent ExecuteOn
         {
             get { return RuntimeEvent.BeginSessionAccess | RuntimeEvent.ExecuteResource; }
@@ -22,12 +33,12 @@ namespace NuGetGallery.Diagnostics
         {
             // Policy is: Admins see Glimpse, everyone records Glimpse data
             if (context.Request.IsAuthenticated && 
-                context.Request.IsSecureConnection &&
+                (!Configuration.RequireSSL || context.Request.IsSecureConnection) &&
                 context.User.IsAdministrator())
             {
                 return RuntimePolicy.On;
             }
-            return RuntimePolicy.PersistResults;
+            return Configuration.UserGlimpsePolicy;
         }
     }
 }

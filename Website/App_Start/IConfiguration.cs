@@ -1,4 +1,5 @@
-﻿namespace NuGetGallery
+﻿using Glimpse.Core.Extensibility;
+namespace NuGetGallery
 {
     public interface IConfiguration
     {
@@ -33,5 +34,7 @@
         string GetSiteRoot(bool useHttps);
 
         bool ReadOnlyMode { get; }
+
+        RuntimePolicy UserGlimpsePolicy { get; }
     }
 }

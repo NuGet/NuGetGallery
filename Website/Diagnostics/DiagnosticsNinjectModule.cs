@@ -12,7 +12,7 @@ namespace NuGetGallery.Diagnostics
         public override void Load()
         {
             Bind<IRuntimePolicy>()
-                .To<NuGetGlimpseRuntimePolicy>();
+                .To<GlimpseRuntimePolicy>();
         }
     }
 }

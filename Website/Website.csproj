@@ -307,7 +307,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
-    <Compile Include="Diagnostics\NuGetGlimpseRuntimePolicy.cs" />
+    <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
