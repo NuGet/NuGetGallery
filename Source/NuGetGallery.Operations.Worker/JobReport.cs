@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace NuGetGallery.Operations.Worker
@@ -80,6 +81,7 @@ namespace NuGetGallery.Operations.Worker
                     latestJobStatusEntry["duration"] = report.Duration;
                     latestJobStatusEntry["status"] = report.Status;
                     latestJobStatusEntry["message"] = report.Message;
+                    latestJobStatusEntry["exception"] = JsonConvert.SerializeObject(report.Exception);
 
                     JArray jobStatus;
                     JToken tok;

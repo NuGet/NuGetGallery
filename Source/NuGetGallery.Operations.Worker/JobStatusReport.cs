@@ -13,5 +13,6 @@ namespace NuGetGallery.Operations.Worker
         public string Duration { get; set; }
         public string Status { get; set; }
         public string Message { get; set; }
+        public Exception Exception { get; set; }
     }
 }
