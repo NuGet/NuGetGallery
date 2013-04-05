@@ -61,7 +61,7 @@ namespace NuGetGallery.Operations
 
                     if (!WhatIf)
                     {
-                        dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF NuGetWarehouse", BackupName));
+                        dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", BackupName, dbName));
                     }
 
                     Log.Info("Starting '{0}'", BackupName);
