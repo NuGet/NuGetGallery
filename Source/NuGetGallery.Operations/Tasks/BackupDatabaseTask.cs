@@ -59,7 +59,7 @@ namespace NuGetGallery.Operations
 
                 BackupName = string.Format("Backup_{0}", timestamp);
 
-                dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF NuGetGallery", BackupName));
+                dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", BackupName, dbName));
 
                 Log.Info("Starting '{0}'", BackupName);
             }
