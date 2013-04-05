@@ -22,6 +22,7 @@ namespace NuGetGallery.Migrations
                 .ForeignKey("PackageRegistrations", t => t.PackageRegistrationKey, cascadeDelete: true)
                 .Index(t => t.UserKey)
                 .Index(t => t.PackageRegistrationKey);
+            Sql("ALTER TABLE UserFollowsPackage ADD CONSTRAINT UNIQUE (UserKey, PackageRegistrationKey)");
         }
         
         public override void Down()

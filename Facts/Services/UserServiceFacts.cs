@@ -770,7 +770,7 @@ namespace NuGetGallery
             public Mock<ICryptographyService> MockCrypto { get; protected set; }
             public Mock<IConfiguration> MockConfig { get; protected set; }
             public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
-            public Mock<IEntityRepository<UserFollowsPackage>> MockFollowsRepository { get; set; }
+            public Mock<IEntityRepository<UserFollowsPackage>> MockFollowsRepository { get; protected set; }
 
             public TestableUserService()
             {
