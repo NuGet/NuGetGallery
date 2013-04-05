@@ -22,8 +22,6 @@ namespace NuGetGallery
 
         User FindByUsernameOrEmailAddressAndPassword(string usernameOrEmail, string password);
 
-        void Follow(User user, PackageRegistration package, bool saveChanges);
-
         string GenerateApiKey(string username);
 
         bool ConfirmEmailAddress(User user, string token);
@@ -34,11 +32,13 @@ namespace NuGetGallery
 
         bool ResetPasswordWithToken(string username, string token, string newPassword);
 
-        void Unfollow(User user, PackageRegistration package, bool saveChanges);
+        void Follow(string username, string packageId, bool saveChanges);
 
-        bool IsFollowing(User user, PackageRegistration package);
+        void Unfollow(string username, string packageId, bool saveChanges);
 
-        IEnumerable<string> GetFollowedPackageIdsInSet(User user, IEnumerable<string> packageIds);
+        bool IsFollowing(string username, string packageId);
+
+        IEnumerable<string> GetFollowedPackageIdsInSet(string username, string[] packageIds);
 
         IQueryable<UserFollowsPackage> GetFollowedPackages(User user);
     }

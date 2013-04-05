@@ -180,7 +180,15 @@ namespace NuGetGallery
                                                .FirstOrDefault())
                 .Include(p => p.PackageRegistration.Owners);
 
-            var model = new PackageListViewModel(packages, null, null, favorites.Count(), 0, 50, Url, false);
+            var model = new PackageListViewModel(
+                packages, 
+                searchTerm: null, 
+                sortOrder: null, 
+                totalCount: favorites.Count(), 
+                pageIndex: 0, 
+                pageSize: 50, 
+                url: Url, 
+                includePrerelease: false);
 
             return View(model);
         }

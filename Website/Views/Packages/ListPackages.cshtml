@@ -83,42 +83,11 @@
     <script src="@Url.Content("~/json/JsonApi?json")"></script>
 
     @* NuGet Favorite Button *@
+    <script src="@Href("~/Scripts/favorites.js")"></script>
     <script>
         $(function() {
             showFavorites("@String.Join("|", Model.Items.Select(item => item.Id))");
         });
-
-        function showFavorites(packageIds) {
-            var input = { ids: packageIds };
-            $mvc.JsonApi.TestFavorites(input).success(function(result) {
-                if (result.success) {
-                    $(".favoritebtn").show();
-                    $(".unfavoritebtn").hide();
-                    var i;
-                    for (i = 0; i < result.favorites.length; i++) {
-                        var packageId = result.favorites[i];
-                        $(document.getElementById("unfavorite-" + packageId)).show();
-                        $(document.getElementById("favorite-" + packageId)).hide();
-                    }
-                }
-            });
-        }
-
-        function favorite(packageId) {
-            var input = { id: packageId };
-            $mvc.JsonApi.FavoritePackage(input).success(function() {
-                $(document.getElementById("favorite-" + packageId)).hide();
-                $(document.getElementById("unfavorite-" + packageId)).show();
-            });
-        }
-
-        function unfavorite(packageId) {
-            var input = { id: packageId };
-            $mvc.JsonApi.UnfavoritePackage(input).success(function() {
-                $(document.getElementById("unfavorite-" + packageId)).hide();
-                $(document.getElementById("favorite-" + packageId)).show();
-            });
-        }
     </script>
 }
 

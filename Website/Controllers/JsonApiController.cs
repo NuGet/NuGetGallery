@@ -52,77 +52,38 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public object TestFavorite(string id)
+        public object IsFavorite(string id)
         {
-            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
-            if (user == null)
-            {
-                return new { success = false, message = "User not found" };
-            }
-
-            var package = _packageService.FindPackageRegistrationById(id);
-            if (package == null)
-            {
-                return new { success = false, message = "Package not found" };
-            }
-
-            var result = _userService.IsFollowing(user, package);
+            string username = HttpContext.User.Identity.Name;
+            var result = _userService.IsFollowing(username, id);
             return new { success = true, favorite = result };
         }
 
-        public object TestFavorites(string ids)
+        [Authorize]
+        public object WhereIsFavorite(string ids)
         {
-            if (!Request.IsAuthenticated)
-            {
-                return new { success = false, error = "Not logged in" };
-            }
-
-            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
-            if (user == null)
-            {
-                return new { success = false, message = "User not found" };
-            }
-
+            string username = HttpContext.User.Identity.Name;
             string[] idArray = ids.Split('|');
-            var result = _userService.GetFollowedPackageIdsInSet(user, idArray);
+
+            var result = _userService.GetFollowedPackageIdsInSet(username, idArray);
             return new { success = true, favorites = result };
         }
 
         [Authorize]
+        [HttpPost]
         public object FavoritePackage(string id)
         {
-            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
-            if (user == null)
-            {
-                return new { success = false, message = "User not found" };
-            }
-
-            var package = _packageService.FindPackageRegistrationById(id);
-            if (package == null)
-            {
-                return new {success = false, message = "Package not found"};
-            }
-
-            _userService.Follow(user, package, saveChanges: true);
+            string username = HttpContext.User.Identity.Name;
+            _userService.Follow(username, id, saveChanges: true);
             return new { success = true };
         }
 
         [Authorize]
+        [HttpPost]
         public object UnfavoritePackage(string id)
         {
-            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
-            if (user == null)
-            {
-                return new { success = false, message = "User not found" };
-            }
-
-            var package = _packageService.FindPackageRegistrationById(id);
-            if (package == null)
-            {
-                return new { success = false, message = "Package not found" };
-            }
-
-            _userService.Unfollow(user, package, saveChanges: true);
+            string username = HttpContext.User.Identity.Name;
+            _userService.Unfollow(username, id, saveChanges: true);
             return new { success = true };
         }
 
@@ -173,6 +134,24 @@ namespace NuGetGallery
 
             _packageService.RemovePackageOwner(package, user);
             return new { success = true };
+        }
+
+        protected override void OnException(ExceptionContext filterContext)
+        {
+            if (!filterContext.ExceptionHandled)
+            {
+                if (filterContext.Exception is UserNotFoundException)
+                {
+                    filterContext.ExceptionHandled = true;
+                    filterContext.Result =
+                        new JsonResult
+                        {
+                            Data = new { success = false, message = "User not found" },
+                            JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                        };
+                }
+            }
+            base.OnException(filterContext);
         }
 
         public class OwnerModel

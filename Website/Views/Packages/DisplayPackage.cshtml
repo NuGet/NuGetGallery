@@ -7,7 +7,8 @@
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 }
 @section OpenGraph {
-    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
+    @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
+    {
         <meta property="fb:app_id" content="@ViewBag.FacebookAppID" /> 
     }
     <meta property="og:title"       content="@Model.Title" />
@@ -22,35 +23,21 @@
     <script src="@Url.Content("~/json/JsonApi?json")"></script>
 
     @* NuGet Favorite Button *@
-    <script>
+    <script src="@Href("~/Scripts/favorites.js")"></script>
+    <script> 
         $(function() {
-            var input = { id: "@Model.Id" };
-            $mvc.JsonApi.TestFavorite(input).success(function (result) {
-                if (result.favorite) {
-                    $(".favoritebtn").hide();
-                    $(".unfavoritebtn").show();
-                } else {
-                    $(".unfavoritebtn").hide();
-                    $(".favoritebtn").show();
-                }
+            showFavorite("@Model.Id");
+        });
+
+        $(document).ready(function () {
+            $(document.getElementById("unfavorite-@Model.Id")).click(function() {
+                unfavorite("@Model.Id");
+            });
+            $(document.getElementById("favorite-@Model.Id")).click(function () {
+                favorite("@Model.Id");
             });
         });
 
-        function favorite() {
-            var input = { id: "@Model.Id" };
-            $mvc.JsonApi.FavoritePackage(input).success(function() {
-                $(".favoritebtn").hide();
-                $(".unfavoritebtn").show();
-            });
-        }
-
-        function unfavorite() {
-            var input = { id: "@Model.Id" };
-            $mvc.JsonApi.UnfavoritePackage(input).success(function() {
-                $(".unfavoritebtn").hide();
-                $(".favoritebtn").show();
-            });
-        }
     </script>
 
     @* Facebook SDK *@
@@ -191,7 +178,7 @@
                     <text> -Pre </text>
                 }</code></p>
     </div>
-    @if (!String.IsNullOrEmpty(Model.MinClientVersion)) 
+    @if (!String.IsNullOrEmpty(Model.MinClientVersion))
     { 
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
@@ -199,8 +186,8 @@
         @* Follow Package *@
         @if (User.Identity.IsAuthenticated)
         {
-            <a href="javascript:favorite()" class="btn favoritebtn" style="display: none"><i class=" icon-star-empty" >&nbsp;Click to favorite this package</i></a>
-            <a href="javascript:unfavorite()" class="btn unfavoritebtn" style="display: none"><i class=" icon-star" >&nbsp;You have favorited this package</i></a>
+            <a class="btn unfavoritebtn" id="@("unfavorite-" + Model.Id)" title="You have favorited this package"><i class=" icon-star" ></i></a>
+            <a class="btn favoritebtn" id="@("favorite-" + Model.Id)" title="Click to favorite this package"><i class=" icon-star-empty" ></i></a>
         }
         else
         {

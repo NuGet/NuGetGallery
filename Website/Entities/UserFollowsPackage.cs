@@ -6,12 +6,12 @@ namespace NuGetGallery
     // IsFollowedFlag + LastModified timestamp for 'creating' and 'deleting' the follow relationship in a way we can query and batch process
     public class UserFollowsPackage : IEntity
     {
-        public static UserFollowsPackage Create(User user, PackageRegistration package)
+        public static UserFollowsPackage Create(int userKey, int packageRegistrationKey)
         {
             return new UserFollowsPackage
             {
-                User = user,
-                PackageRegistration = package,
+                UserKey = userKey,
+                PackageRegistrationKey = packageRegistrationKey,
                 Created = DateTime.UtcNow,
             };
         }
