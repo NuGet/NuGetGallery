@@ -124,7 +124,7 @@ namespace NuGetGallery.Infrastructure
                             StatusCode = 888,
                             HostName = Environment.MachineName,
                             Time = DateTime.UtcNow,
-                            Detail = "Error Log Entry Will Not Fit In Table Store" + serializedError.Substring(0, 4000)
+                            Detail = "Error Log Entry Will Not Fit In Table Store: " + serializedError.Substring(0, 4000)
                         });
                 }
 
