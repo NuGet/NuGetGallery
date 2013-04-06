@@ -60,7 +60,7 @@ namespace NuGetGallery.Operations
         public static DateTime GetDateTimeFromTimestamp(string timestamp)
         {
             DateTime result;
-            if (!DateTime.TryParseExact(timestamp, "yyyyMMddHHmmss", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal, out result))
+            if (!DateTime.TryParseExact(timestamp, "yyyyMMddHHmmss", CultureInfo.CurrentCulture, DateTimeStyles.None, out result))
             {
                 result = DateTime.MinValue;
             }
