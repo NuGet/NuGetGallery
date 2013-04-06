@@ -22,11 +22,15 @@ namespace NuGetGallery.Migrations
                 .ForeignKey("PackageRegistrations", t => t.PackageRegistrationKey, cascadeDelete: true)
                 .Index(t => t.UserKey)
                 .Index(t => t.PackageRegistrationKey);
-            Sql("ALTER TABLE UserFollowsPackage ADD CONSTRAINT UNIQUE (UserKey, PackageRegistrationKey)");
+
+            // There should only ever be one follows relationship per user-package pair.
+            Sql("ALTER TABLE UserFollowsPackages ADD CONSTRAINT UNQ_UserFollowsPackages UNIQUE (UserKey, PackageRegistrationKey)");
         }
         
         public override void Down()
         {
+            Sql("ALTER TABLE UserFollowsPackages DROP CONSTRAINT UNQ_UserFollowsPackages");
+
             DropIndex("UserFollowsPackages", new[] { "PackageRegistrationKey" });
             DropIndex("UserFollowsPackages", new[] { "UserKey" });
             DropForeignKey("UserFollowsPackages", "PackageRegistrationKey", "PackageRegistrations");

@@ -27,15 +27,7 @@
     <script> 
         $(function() {
             showFavorite("@Model.Id");
-        });
-
-        $(document).ready(function () {
-            $(document.getElementById("unfavorite-@Model.Id")).click(function() {
-                unfavorite("@Model.Id");
-            });
-            $(document.getElementById("favorite-@Model.Id")).click(function () {
-                favorite("@Model.Id");
-            });
+            bindFavoriteButtons();
         });
 
     </script>

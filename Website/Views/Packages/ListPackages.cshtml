@@ -87,6 +87,7 @@
     <script>
         $(function() {
             showFavorites("@String.Join("|", Model.Items.Select(item => item.Id))");
+            bindFavoriteButtons();
         });
     </script>
 }

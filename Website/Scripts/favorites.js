@@ -1,7 +1,19 @@
 ﻿
+function bindFavoriteButtons() {
+    $(".unfavoritebtn").click(event, function () {
+        var buttonId = $(this).attr("id");
+        var packageId = buttonId.substr("unfavorite-".length);
+        unfavorite(packageId);
+    });
+    $(".favoritebtn").click(event, function () {
+        var buttonId = $(this).attr("id");
+        var packageId = buttonId.substr("favorite-".length);
+        favorite(packageId);
+    });
+}
 
 function showfavoritebuttons(packageIds) {
-    var input = { id: packageId };
+    var input = { id: packageIds };
     $mvc.JsonApi.IsFavorite(input).success(function (result) {
         if (result.favorite) {
             $(".favoritebtn").hide();

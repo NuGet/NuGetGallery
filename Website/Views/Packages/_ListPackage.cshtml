@@ -8,8 +8,8 @@
         @if (User.Identity.IsAuthenticated)
         {
             <span style="min-height: 20px; display: block">
-                <a href="javascript:unfavorite('@Model.Id')" class="btn unfavoritebtn" id="@("unfavorite-"+Model.Id)" title="You have favorited this package"><i class=" icon-star" ></i></a>
-                <a href="javascript:favorite('@Model.Id')" class="btn favoritebtn" id="@("favorite-"+Model.Id)" title="Click to favorite this package"><i class=" icon-star-empty" ></i></a>
+                <a class="btn unfavoritebtn" id="@("unfavorite-"+Model.Id)" title="You have favorited this package"><i class=" icon-star" ></i></a>
+                <a class="btn favoritebtn" id="@("favorite-"+Model.Id)" title="Click to favorite this package"><i class=" icon-star-empty" ></i></a>
             </span>
         }
     </div>

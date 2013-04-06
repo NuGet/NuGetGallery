@@ -62,6 +62,11 @@ namespace NuGetGallery
         [Authorize]
         public object WhereIsFavorite(string ids)
         {
+            if (string.IsNullOrEmpty(ids))
+            {
+                return new { success = true, favorites = new string[0] };
+            }
+
             string username = HttpContext.User.Identity.Name;
             string[] idArray = ids.Split('|');
 
