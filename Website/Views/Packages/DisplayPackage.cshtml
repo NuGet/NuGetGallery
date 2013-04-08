@@ -178,8 +178,8 @@
         @* Follow Package *@
         @if (User.Identity.IsAuthenticated)
         {
-            <a class="btn unfavoritebtn" id="@("unfavorite-" + Model.Id)" title="You have favorited this package"><i class=" icon-star" ></i></a>
-            <a class="btn favoritebtn" id="@("favorite-" + Model.Id)" title="Click to favorite this package"><i class=" icon-star-empty" ></i></a>
+            <a class="btn unfavoritebtn" id="unfavorite-@Model.Id" title="You have favorited this package"><i class="icon-star">&nbsp;Click to favorite this package</i></a>
+            <a class="btn favoritebtn" id="favorite-@Model.Id" title="Click to favorite this package"><i class="icon-star-empty">&nbsp;You have favorited this package</i></a>
         }
         else
         {
