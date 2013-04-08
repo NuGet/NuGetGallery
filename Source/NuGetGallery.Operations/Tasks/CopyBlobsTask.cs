@@ -30,6 +30,9 @@ namespace NuGetGallery.Operations
         [Option("If specified, overwrite existing blobs. Otherwise, blobs that exist will be ignored (this is a name check ONLY)", AltName = "w")]
         public bool Overwrite { get; set; }
 
+        [Option("If specified, adds checks to ensure the process only copies valid package blobs (i.e. no '/' prefix and all lowercase names)")]
+        public bool PackageBlobsOnly { get; set; }
+
         public override void ValidateArguments()
         {
             base.ValidateArguments();
@@ -57,6 +60,7 @@ namespace NuGetGallery.Operations
             Log.Info("Collecting blob names in {0} to copy to {1}", SourceStorage.Credentials.AccountName, DestinationStorage.Credentials.AccountName);
             var blobs = sourceContainer.ListBlobs(Prefix ?? String.Empty, useFlatBlobListing: true, blobListingDetails: BlobListingDetails.None)
                                        .OfType<CloudBlockBlob>()
+                                       .Where(b => !PackageBlobsOnly || (!b.Name.StartsWith("/") && String.Equals(b.Name.ToLowerInvariant(), b.Name, StringComparison.Ordinal)))
                                        .ToList();
             var count = blobs.Count;
             int index = 0;
