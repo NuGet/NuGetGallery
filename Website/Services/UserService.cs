@@ -342,17 +342,13 @@ namespace NuGetGallery
 
         public IEnumerable<string> GetFollowedPackageIdsInSet(string username, string[] packageIds)
         {
-            var user = FindByUsername(username);
-            if (user == null)
-            {
-                throw new UserNotFoundException();
-            }
+            int userKey = GetUserKey(username);
 
             var followedIds = FollowsRepository
                 .GetAll()
                 .Include(ufp => ufp.PackageRegistration)
                 .Where(
-                    ufp => ufp.UserKey == user.Key && 
+                    ufp => ufp.UserKey == userKey && 
                     ufp.IsFollowed &&
                     packageIds.Contains(ufp.PackageRegistration.Id))
                 .Select(ufp => ufp.PackageRegistration.Id);
@@ -368,7 +364,7 @@ namespace NuGetGallery
             }
 
             return FollowsRepository.GetAll()
-                .Where(ufp => ufp.UserKey == user.Key);
+                .Where(ufp => ufp.UserKey == user.Key && ufp.IsFollowed);
         }
 
         private UserFollowsPackage GetFollowRelationship(string username, string packageId)

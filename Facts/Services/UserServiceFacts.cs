@@ -19,12 +19,14 @@ namespace NuGetGallery
             cryptoService = cryptoService ?? new Mock<ICryptographyService>();
             userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
             var followsRepo = new Mock<IEntityRepository<UserFollowsPackage>>();
+            var packageRegRepo = new Mock<IEntityRepository<PackageRegistration>>();
 
             var userService = new Mock<UserService>(
                 config.Object,
                 cryptoService.Object,
                 userRepo.Object,
-                followsRepo.Object)
+                followsRepo.Object,
+                packageRegRepo.Object)
             {
                 CallBase = true
             };
@@ -762,6 +764,56 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 ContractAssert.ThrowsArgNull(() => service.UpdateProfile(null, "test@example.com", emailAllowed: true), "user");
+            }
+        }
+
+        public class TheGetFollowedPackageIdsInSetMethod
+        {
+            [Fact]
+            public void GetsAListOfPackageIds()
+            {
+                var user = new User { EmailAddress = "old@example.com", Key = 1400, Username = "Bill" };
+                var allUsers = (new[] { user });
+                var allFollows = new []
+                {
+                    new UserFollowsPackage
+                    {
+                        UserKey = 1400,
+                        PackageRegistrationKey = 1,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Key = 1,
+                            Id = "Package1",
+                        },
+                        User = user,
+                        IsFollowed = true,
+                    }
+                };
+
+                var service = new TestableUserService();
+                service.MockUserRepository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(allUsers.AsQueryable());
+                service.MockFollowsRepository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(allFollows.AsQueryable());
+
+                string[] results = service.GetFollowedPackageIdsInSet("Bill", new[] { "Package1", "Package2" }).ToArray();
+                Assert.Equal(1, results.Length);
+                Assert.Equal("Package1", results[0]);
+            }
+
+            [Fact]
+            public void CanThrowUserNotFound()
+            {
+                var service = new TestableUserService();
+                service.MockUserRepository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new User[0].AsQueryable());
+
+                Assert.Throws<UserNotFoundException>(() =>
+                    service.GetFollowedPackageIdsInSet("Bill", new[] { "Package1" })
+                );
             }
         }
 

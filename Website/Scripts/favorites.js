@@ -12,32 +12,6 @@ function bindFavoriteButtons() {
     });
 }
 
-function showfavoritebuttons(packageIds) {
-    var input = { id: packageIds };
-    $mvc.JsonApi.IsFavorite(input).success(function (result) {
-        if (result.favorite) {
-            $(".favoritebtn").hide();
-            $(".unfavoritebtn").show();
-        } else {
-            $(".unfavoritebtn").hide();
-            $(".favoritebtn").show();
-        }
-    });
-}
-
-function showFavorite(packageId) {
-    var input = { id: packageId };
-    $mvc.JsonApi.IsFavorite(input).success(function (result) {
-        if (result.favorite) {
-            $(".favoritebtn").hide();
-            $(".unfavoritebtn").show();
-        } else {
-            $(".unfavoritebtn").hide();
-            $(".favoritebtn").show();
-        }
-    });
-}
-
 function showFavorites(packageIds) {
     var input = { ids: packageIds };
     $mvc.JsonApi.WhereIsFavorite(input).success(function (result) {

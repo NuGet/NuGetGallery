@@ -4,14 +4,22 @@
     ViewBag.Title = "Favorite Packages";
 }
 
-<ol id="favorites">
+@if (Model.Items.Count == 0)
+{
+    <p>You currently have no favorite packages.</p>
+    <p><a href="@Url.PackageList()">Go Find some packages!</a></p>
+}
+
+<ul id="favorites" style="list-style: none">
     @foreach (var package in Model.Items)
     {
         <li>
             @Html.Partial(MVC.Packages.Views._ListPackage, package)
         </li>
     }
-</ol>
+</ul>
+
+<p>Note: if you want to see this list updated after you made changes, please refresh this page.</p>
 
 @ViewHelpers.PreviousNextPager(Model.Pager)
 
