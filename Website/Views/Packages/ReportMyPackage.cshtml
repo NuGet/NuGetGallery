@@ -11,7 +11,7 @@
 @using (Html.BeginForm())
 {
     <fieldset class="form">
-        <legend>Report Abuse</legend>
+        <legend>Contact Support</legend>
         @Html.AntiForgeryToken()
         <div class="form-field">
             @if (!Model.ConfirmedUser)
@@ -28,8 +28,8 @@
         </div>
         <div class="form-field">
             @Html.LabelFor(m => m.Reason)
-            @Html.DropDownListFor(m => m.Reason, Model.AllowedReasons.Select(
-                x => new SelectListItem { Value = x.ToString(), Text = ReportAbuseViewModel.ReasonDescriptions[x]}))
+            @Html.DropDownListFor(m => m.Reason, Model.ReasonChoices.Select(
+                x => new SelectListItem { Value = ReportAbuseViewModel.ReasonDescriptions[x], Text = ReportAbuseViewModel.ReasonDescriptions[x]}))
             @Html.LabelFor(m => m.Message, "Problem")
             <p>In addition to selecting the reason for reporting the package, you <em>must</em> provide details of the problem.</p>
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
