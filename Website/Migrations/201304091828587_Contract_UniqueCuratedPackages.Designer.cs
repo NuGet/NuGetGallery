@@ -4,11 +4,11 @@ namespace NuGetGallery.Migrations
     using System.Data.Entity.Migrations;
     using System.Data.Entity.Migrations.Infrastructure;
     
-    public sealed partial class CuratedFeedPackageUniqueness : IMigrationMetadata
+    public sealed partial class Contract_UniqueCuratedPackages : IMigrationMetadata
     {
         string IMigrationMetadata.Id
         {
-            get { return "201304030226233_CuratedFeedPackageUniqueness"; }
+            get { return "201304091828587_Contract_UniqueCuratedPackages"; }
         }
         
         string IMigrationMetadata.Source

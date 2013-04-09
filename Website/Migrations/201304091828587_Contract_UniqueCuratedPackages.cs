@@ -2,7 +2,7 @@ namespace NuGetGallery.Migrations
 {
     using System.Data.Entity.Migrations;
     
-    public partial class CuratedFeedPackageUniqueness : DbMigration
+    public partial class Contract_UniqueCuratedPackages : DbMigration
     {
         public override void Up()
         {
