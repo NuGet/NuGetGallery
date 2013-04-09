@@ -184,16 +184,14 @@ namespace NuGetGallery.FunctionalTests
         /// Downloads a package to local folder and see if the download is successful. Used to individual tests which extend the download scenarios.
         /// </summary>
         /// <param name="packageId"></param>
-        public static void DownloadPackageAndVerify(string packageId)
+        public static void DownloadPackageAndVerify(string packageId,string version="1.0.0")
         {
             ClientSDKHelper.ClearMachineCache();
             ClientSDKHelper.ClearLocalPackageFolder(packageId);
-            new PackageManager(PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl), Environment.CurrentDirectory).InstallPackage(packageId);
-            Assert.IsTrue(ClientSDKHelper.CheckIfPackageInstalled(packageId), "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");
+            new PackageManager(PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl), Environment.CurrentDirectory).InstallPackage(packageId,new SemanticVersion(version));
+            Assert.IsTrue(ClientSDKHelper.CheckIfPackageVersionInstalled(packageId,version), "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");
         }
-
-
-
+        
         #endregion AssertMethods
 
 

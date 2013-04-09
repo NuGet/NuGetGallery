@@ -66,6 +66,11 @@ namespace NuGetGallery.FunctionTests.Helpers
             get { return UrlHelper.BaseUrl + StatsPageUrlSuffix; }
         }
 
+        public static string AggregateStatsPageUrl
+        {
+            get { return  UrlHelper.BaseUrl + AggregateStatsPageUrlSuffix; }
+        } 
+
         public static string UploadPageUrl
         {
             get { return UrlHelper.BaseUrl + UploadPageUrlSuffix; }
@@ -119,6 +124,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         private const string RegisterPageUrlSuffix = "account/Register";
         private const string RegistrationPendingPageUrlSuffix = "account/Thanks";
         private const string StatsPageUrlSuffix = "stats";
+        private const string AggregateStatsPageUrlSuffix = "/stats/totals";     
         private const string UploadPageUrlSuffix = "/packages/Upload";
         private const string VerifyUploadPageUrlSuffix = "/packages/verify-upload";
         private const string Windows8CuratedFeedUrlSuffix = "curated-feeds/windows8-packages/";
