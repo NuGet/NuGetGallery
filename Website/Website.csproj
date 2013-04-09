@@ -310,8 +310,7 @@
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
-    <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
-    <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
+    <Compile Include="Infrastructure\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
@@ -508,6 +507,8 @@
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
+    <Compile Include="Services\CuratedFeedService.cs" />
+    <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />

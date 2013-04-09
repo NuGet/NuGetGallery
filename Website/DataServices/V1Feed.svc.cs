@@ -66,7 +66,7 @@ namespace NuGetGallery
                 .Where(p => p.Listed && !p.IsPrerelease);
 
             // For v1 feed, only allow stable package versions.
-            packages = SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, packages, searchTerm, targetFramework, includePrerelease: false);
+            packages = SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, packages, searchTerm, targetFramework, includePrerelease: false, curatedFeedKey: null);
             return packages.ToV1FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
     }

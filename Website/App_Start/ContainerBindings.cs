@@ -90,6 +90,14 @@ namespace NuGetGallery
                 .To<EntityRepository<User>>()
                 .InRequestScope();
 
+            Bind<IEntityRepository<CuratedFeed>>()
+                .To<EntityRepository<CuratedFeed>>()
+                .InRequestScope();
+
+            Bind<IEntityRepository<CuratedPackage>>()
+                .To<EntityRepository<CuratedPackage>>()
+                .InRequestScope();
+
             Bind<IEntityRepository<PackageRegistration>>()
                 .To<EntityRepository<PackageRegistration>>()
                 .InRequestScope();
@@ -108,6 +116,10 @@ namespace NuGetGallery
 
             Bind<IEntityRepository<PackageStatistics>>()
                 .To<EntityRepository<PackageStatistics>>()
+                .InRequestScope();
+
+            Bind<ICuratedFeedService>()
+                .To<CuratedFeedService>()
                 .InRequestScope();
 
             Bind<IUserService>()
