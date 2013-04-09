@@ -54,6 +54,9 @@ namespace NuGetGallery.Migrations
 
         public override void Down()
         {
+            // Drop the index and recreate it
+            DropIndex(table: "Packages", name: "IX_Packages_PackageRegistrationKey");
+
             AlterColumn("PackageFrameworks", "TargetFramework", c => c.String());
             AlterColumn("PackageDependencies", "TargetFramework", c => c.String());
             AlterColumn("PackageDependencies", "VersionSpec", c => c.String());
@@ -63,6 +66,37 @@ namespace NuGetGallery.Migrations
             AlterColumn("Packages", "Hash", c => c.String());
             AlterColumn("Packages", "HashAlgorithm", c => c.String());
             AlterColumn("PackageRegistrations", "Id", c => c.String());
+
+            Sql(@"CREATE NONCLUSTERED INDEX [IX_Packages_PackageRegistrationKey] ON [dbo].[Packages] 
+                (
+                    [PackageRegistrationKey] ASC
+                )
+                INCLUDE ( [Key],
+                [Copyright],
+                [Created],
+                [Description],
+                [DownloadCount],
+                [ExternalPackageUrl],
+                [HashAlgorithm],
+                [Hash],
+                [IconUrl],
+                [IsLatest],
+                [LastUpdated],
+                [LicenseUrl],
+                [Published],
+                [PackageFileSize],
+                [ProjectUrl],
+                [RequiresLicenseAcceptance],
+                [Summary],
+                [Tags],
+                [Title],
+                [Version],
+                [FlattenedAuthors],
+                [FlattenedDependencies],
+                [IsLatestStable],
+                [Listed],
+                [IsPrerelease],
+                [ReleaseNotes])");
         }
     }
 }
