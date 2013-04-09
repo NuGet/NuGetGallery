@@ -805,11 +805,10 @@ a.favoriteloginbtn {
   text-decoration: none;
   -webkit-font-smoothing: antialiased;
   border: thin;
-  border-color: black;
-  margin: 1px;
-  padding: 2px;
+  border-color: lightgray;
+  padding: 2px 2px 2px 2px;
   border-radius: 2px;
-  box-shadow: 0px 0px 4px #222;
+  box-shadow: 1px 1px 3px #222;
   display: none;
 }
 
@@ -818,7 +817,8 @@ a.favoritebtn {
 }
 
 a.unfavoritebtn {
-  background-color: #fffda5;
+  background-color: #fffedc;
+  box-shadow: 0px 0px 3px #222;
 }
 
 a.favoriteloginbtn {
