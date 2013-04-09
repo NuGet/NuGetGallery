@@ -176,6 +176,8 @@ namespace NuGetGallery
 
         public static TEnum ReadAppSettings<TEnum>(string key, TEnum defaultValue) where TEnum : struct
         {
+            // Can't do 'where TEnum : enum' so assert that it's an enum here
+            Debug.Assert(typeof(TEnum).IsEnum);
             return ReadAppSettings(key,
                                    value =>
                                    {

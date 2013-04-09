@@ -124,6 +124,32 @@ namespace NuGetGallery.Diagnostics
                 // Act/Assert
                 Assert.Equal(RuntimePolicy.On, policy.Execute(policyContext.Object, context.Object));
             }
+
+            [Fact]
+            public void EnablesGlimpseCompletelyIfRequestIsLocal()
+            {
+                // Arrange
+                var context = new Mock<HttpContextBase>();
+                context.Setup(c => c.Request.IsLocal)
+                       .Returns(true);
+                context.Setup(c => c.Request.IsAuthenticated)
+                       .Returns(false);
+                context.Setup(c => c.Request.IsSecureConnection)
+                       .Returns(false);
+                context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
+                       .Returns(false);
+                var policyContext = new Mock<IRuntimePolicyContext>();
+                var policy = new TestableGlimpseRuntimePolicy();
+                policy.MockConfiguration
+                    .Setup(c => c.RequireSSL)
+                    .Returns(true);
+                policy.MockConfiguration
+                    .Setup(c => c.UserGlimpsePolicy)
+                    .Returns(RuntimePolicy.ModifyResponseBody);
+
+                // Act/Assert
+                Assert.Equal(RuntimePolicy.On, policy.Execute(policyContext.Object, context.Object));
+            }
         }
 
         public class TestableGlimpseRuntimePolicy : GlimpseRuntimePolicy

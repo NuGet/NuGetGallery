@@ -32,10 +32,11 @@ namespace NuGetGallery.Diagnostics
 
         public RuntimePolicy Execute(IRuntimePolicyContext policyContext, HttpContextBase context)
         {
-            // Policy is: Admins see Glimpse, everyone uses the setting in web config.
-            if (context.Request.IsAuthenticated &&
-                (!Configuration.RequireSSL || context.Request.IsSecureConnection) &&
-                context.User.IsAdministrator())
+            // Policy is: Localhost sees everything, admins always see Glimpse (even when remote) but only over SSL if SSL is required, everyone uses the setting in web config.
+            if (context.Request.IsLocal ||
+                (context.Request.IsAuthenticated &&
+                 (!Configuration.RequireSSL || context.Request.IsSecureConnection) &&
+                 context.User.IsAdministrator()))
             {
                 return RuntimePolicy.On;
             }
