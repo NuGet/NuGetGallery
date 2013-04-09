@@ -30,6 +30,10 @@ namespace NuGetGallery
             {
                 substitute("{Username}", RequestingUser.Username);
                 substitute("{UserUrl}", Url.User(RequestingUser, scheme: "http"));
+                if (RequestingUser.EmailAddress != null)
+                {
+                    substitute("{UserAddress}", RequestingUser.EmailAddress);
+                }
             }
             substitute("{Name}", FromAddress.DisplayName);
             substitute("{Address}", FromAddress.Address);
