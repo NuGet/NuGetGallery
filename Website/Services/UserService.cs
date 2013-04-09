@@ -10,7 +10,7 @@ namespace NuGetGallery
         public ICryptographyService CryptoService { get; protected set; }
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
-        public IEntityRepository<UserFollowsPackage> FollowsRepository { get; protected set; }
+        public IEntityRepository<PackageFollow> FollowsRepository { get; protected set; }
         public IEntityRepository<PackageRegistration> PackageRegistrationRepository { get; protected set; }
 
         protected UserService() {}
@@ -19,7 +19,7 @@ namespace NuGetGallery
             IConfiguration config,
             ICryptographyService cryptoService,
             IEntityRepository<User> userRepository,
-            IEntityRepository<UserFollowsPackage> followsRepository,
+            IEntityRepository<PackageFollow> followsRepository,
             IEntityRepository<PackageRegistration> packageRegistrationRepository)
         {
             Config = config;
@@ -294,12 +294,12 @@ namespace NuGetGallery
 
         public void Follow(string username, string packageId, bool saveChanges)
         {
-            UserFollowsPackage follow = GetFollowRelationship(username, packageId);
+            PackageFollow follow = GetFollowRelationship(username, packageId);
             if (follow == null)
             {
                 var userKey = GetUserKey(username);
                 var packageRegistrationKey = GetPackageRegistrationKey(packageId);
-                follow = UserFollowsPackage.Create(userKey, packageRegistrationKey);
+                follow = PackageFollow.Create(userKey, packageRegistrationKey);
                 FollowsRepository.InsertOnCommit(follow);
             }
 
@@ -314,7 +314,7 @@ namespace NuGetGallery
 
         public void Unfollow(string username, string packageId, bool saveChanges)
         {
-            UserFollowsPackage follow = GetFollowRelationship(username, packageId);
+            PackageFollow follow = GetFollowRelationship(username, packageId);
             if (follow == null)
             {
                 return; // unfollowing something you never followed is a no-op 
@@ -331,7 +331,7 @@ namespace NuGetGallery
 
         public bool IsFollowing(string username, string packageId)
         {
-            UserFollowsPackage follow = GetFollowRelationship(username, packageId);
+            PackageFollow follow = GetFollowRelationship(username, packageId);
             if (follow == null)
             {
                 return false;
@@ -356,7 +356,7 @@ namespace NuGetGallery
             return followedIds.ToList();
         }
 
-        public IQueryable<UserFollowsPackage> GetFollowedPackages(User user)
+        public IQueryable<PackageFollow> GetFollowedPackages(User user)
         {
             if (user == null)
             {
@@ -367,7 +367,7 @@ namespace NuGetGallery
                 .Where(ufp => ufp.UserKey == user.Key && ufp.IsFollowed);
         }
 
-        private UserFollowsPackage GetFollowRelationship(string username, string packageId)
+        private PackageFollow GetFollowRelationship(string username, string packageId)
         {
             int userKey = GetUserKey(username);
             int packageRegistrationKey = GetPackageRegistrationKey(packageId);

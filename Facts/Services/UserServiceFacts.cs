@@ -18,7 +18,7 @@ namespace NuGetGallery
 
             cryptoService = cryptoService ?? new Mock<ICryptographyService>();
             userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
-            var followsRepo = new Mock<IEntityRepository<UserFollowsPackage>>();
+            var followsRepo = new Mock<IEntityRepository<PackageFollow>>();
             var packageRegRepo = new Mock<IEntityRepository<PackageRegistration>>();
 
             var userService = new Mock<UserService>(
@@ -776,7 +776,7 @@ namespace NuGetGallery
                 var allUsers = (new[] { user });
                 var allFollows = new []
                 {
-                    new UserFollowsPackage
+                    new PackageFollow
                     {
                         UserKey = 1400,
                         PackageRegistrationKey = 1,
@@ -822,14 +822,14 @@ namespace NuGetGallery
             public Mock<ICryptographyService> MockCrypto { get; protected set; }
             public Mock<IConfiguration> MockConfig { get; protected set; }
             public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
-            public Mock<IEntityRepository<UserFollowsPackage>> MockFollowsRepository { get; protected set; }
+            public Mock<IEntityRepository<PackageFollow>> MockFollowsRepository { get; protected set; }
 
             public TestableUserService()
             {
                 CryptoService = (MockCrypto = new Mock<ICryptographyService>()).Object;
                 Config = (MockConfig = new Mock<IConfiguration>()).Object;
                 UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
-                FollowsRepository = (MockFollowsRepository = new Mock<IEntityRepository<UserFollowsPackage>>()).Object;
+                FollowsRepository = (MockFollowsRepository = new Mock<IEntityRepository<PackageFollow>>()).Object;
 
                 // Set ConfirmEmailAddress to a default of true
                 MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);

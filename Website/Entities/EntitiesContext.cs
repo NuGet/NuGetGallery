@@ -65,11 +65,11 @@ namespace NuGetGallery
                            .MapLeftKey("UserKey")
                            .MapRightKey("RoleKey"));
 
-            modelBuilder.Entity<UserFollowsPackage>()
+            modelBuilder.Entity<PackageFollow>()
                 .HasKey(ufp => ufp.Key)
                 .HasRequired(ufp => ufp.User);
 
-            modelBuilder.Entity<UserFollowsPackage>()
+            modelBuilder.Entity<PackageFollow>()
                 .HasRequired(ufp => ufp.PackageRegistration);
 
             modelBuilder.Entity<Role>()

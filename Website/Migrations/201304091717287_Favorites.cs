@@ -7,7 +7,7 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             CreateTable(
-                "UserFollowsPackages",
+                "PackageFollows",
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
@@ -23,19 +23,19 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.UserKey)
                 .Index(t => t.PackageRegistrationKey);
 
-            // There should only ever be one follows relationship per user-package pair.
-            Sql("ALTER TABLE UserFollowsPackages ADD CONSTRAINT UNQ_UserFollowsPackages UNIQUE (UserKey, PackageRegistrationKey)");
+            // There should only ever be one follows relationship per user+package pair.
+            Sql("ALTER TABLE PackageFollows ADD CONSTRAINT UNQ_PackageFollows UNIQUE (UserKey, PackageRegistrationKey)");
         }
         
         public override void Down()
         {
-            Sql("ALTER TABLE UserFollowsPackages DROP CONSTRAINT UNQ_UserFollowsPackages");
+            Sql("ALTER TABLE PackageFollows DROP CONSTRAINT UNQ_PackageFollows");
 
-            DropIndex("UserFollowsPackages", new[] { "PackageRegistrationKey" });
-            DropIndex("UserFollowsPackages", new[] { "UserKey" });
-            DropForeignKey("UserFollowsPackages", "PackageRegistrationKey", "PackageRegistrations");
-            DropForeignKey("UserFollowsPackages", "UserKey", "Users");
-            DropTable("UserFollowsPackages");
+            DropIndex("PackageFollows", new[] { "PackageRegistrationKey" });
+            DropIndex("PackageFollows", new[] { "UserKey" });
+            DropForeignKey("PackageFollows", "PackageRegistrationKey", "PackageRegistrations");
+            DropForeignKey("PackageFollows", "UserKey", "Users");
+            DropTable("PackageFollows");
         }
     }
 }

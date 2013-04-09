@@ -40,6 +40,6 @@ namespace NuGetGallery
 
         IEnumerable<string> GetFollowedPackageIdsInSet(string username, string[] packageIds);
 
-        IQueryable<UserFollowsPackage> GetFollowedPackages(User user);
+        IQueryable<PackageFollow> GetFollowedPackages(User user);
     }
 }
