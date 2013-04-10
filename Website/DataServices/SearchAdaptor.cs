@@ -78,7 +78,7 @@ namespace NuGetGallery
             int? curatedFeedKey)
         {
             SearchFilter searchFilter;
-            // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
+            // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a packageRegistration
             // and specific sort orders that we have in the index.
             if (TryReadSearchFilter(request, siteRoot, out searchFilter))
             {

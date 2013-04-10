@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             CreateTable(
-                "PackageFollows",
+                "PackageFavorites",
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
                         UserKey = c.Int(nullable: false),
                         PackageRegistrationKey = c.Int(nullable: false),
-                        IsFollowed = c.Boolean(nullable: false),
+                        IsFavorited = c.Boolean(nullable: false),
                         Created = c.DateTime(nullable: false),
                         LastModified = c.DateTime(nullable: false),
                     })
@@ -23,19 +23,19 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.UserKey)
                 .Index(t => t.PackageRegistrationKey);
 
-            // There should only ever be one follows relationship per user+package pair.
-            Sql("ALTER TABLE PackageFollows ADD CONSTRAINT UNQ_PackageFollows UNIQUE (UserKey, PackageRegistrationKey)");
+            // There should only ever be one follows relationship per user+packageRegistration pair.
+            Sql("ALTER TABLE PackageFavorites ADD CONSTRAINT UNQ_PackageFavorites UNIQUE (UserKey, PackageRegistrationKey)");
         }
         
         public override void Down()
         {
-            Sql("ALTER TABLE PackageFollows DROP CONSTRAINT UNQ_PackageFollows");
+            Sql("ALTER TABLE PackageFavorites DROP CONSTRAINT UNQ_PackageFavorites");
 
-            DropIndex("PackageFollows", new[] { "PackageRegistrationKey" });
-            DropIndex("PackageFollows", new[] { "UserKey" });
-            DropForeignKey("PackageFollows", "PackageRegistrationKey", "PackageRegistrations");
-            DropForeignKey("PackageFollows", "UserKey", "Users");
-            DropTable("PackageFollows");
+            DropIndex("PackageFavorites", new[] { "PackageRegistrationKey" });
+            DropIndex("PackageFavorites", new[] { "UserKey" });
+            DropForeignKey("PackageFavorites", "PackageRegistrationKey", "PackageRegistrations");
+            DropForeignKey("PackageFavorites", "UserKey", "Users");
+            DropTable("PackageFavorites");
         }
     }
 }

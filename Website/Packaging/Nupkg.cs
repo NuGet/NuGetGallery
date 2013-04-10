@@ -12,7 +12,7 @@ namespace NuGetGallery
 {
     // Note - a lot of this code is based on the OPC format which we've traditionally used to generate (save) nupkg files.
     // This class is intended for *reading* the packages only.
-    // We deviate from a typical OPC package reader in a couple notable ways:
+    // We deviate from a typical OPC packageRegistration reader in a couple notable ways:
     // 1) We never look at [Content_Types] and .rels, and don't suppor their semantics.
     // 2) We don't actually support reading files that are stored as interleaved parts (/[0].piece etc), 
     //    although we do recognize the part exists (with its proper intended part name).
@@ -69,7 +69,7 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Gets a list of all the files in the package.
+        /// Gets a list of all the files in the packageRegistration.
         /// Filter out parts which are obviously OPC metadata.
         /// </summary>
         public IEnumerable<string> GetFiles()
@@ -117,7 +117,7 @@ namespace NuGetGallery
 
             if (manifestEntry == null)
             {
-                throw new InvalidOperationException("The package does not contain a manifest.");
+                throw new InvalidOperationException("The packageRegistration does not contain a manifest.");
             }
 
             using (var safeStream = GetSizeVerifiedFileStream(manifestEntry, MaxManifestSize))
@@ -182,7 +182,7 @@ namespace NuGetGallery
         internal static Uri GetLogicalPartName(string zipEntryName, out bool interleaved)
         {
             // OPC 10.2.4 Mapping ZIP Item Names to Part Names
-            // To map ZIP item names to part names, the package implementer shall perform, in order, the following steps
+            // To map ZIP item names to part names, the packageRegistration implementer shall perform, in order, the following steps
             // [M3.6]: 1. Map the ZIP item names to logical item names by adding a forward slash (/) to each of the ZIP item names. 
             // 2. Map the obtained logical item names to part names. For more information, see §10.1.3.4.
 

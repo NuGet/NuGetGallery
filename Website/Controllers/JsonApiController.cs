@@ -55,7 +55,7 @@ namespace NuGetGallery
         public object IsFavorite(string id)
         {
             string username = HttpContext.User.Identity.Name;
-            var result = _userService.IsFollowing(username, id);
+            var result = _userService.HasFavorite(username, id);
             return new { success = true, favorite = result };
         }
 
@@ -70,7 +70,7 @@ namespace NuGetGallery
             string username = HttpContext.User.Identity.Name;
             string[] idArray = ids.Split('|');
 
-            var result = _userService.GetFollowedPackageIdsInSet(username, idArray);
+            var result = _userService.WhereIsFavorite(username, idArray);
             return new { success = true, favorites = result };
         }
 
@@ -79,7 +79,7 @@ namespace NuGetGallery
         public object FavoritePackage(string id)
         {
             string username = HttpContext.User.Identity.Name;
-            _userService.Follow(username, id, saveChanges: true);
+            _userService.Favorite(username, id, saveChanges: true);
             return new { success = true };
         }
 
@@ -88,7 +88,7 @@ namespace NuGetGallery
         public object UnfavoritePackage(string id)
         {
             string username = HttpContext.User.Identity.Name;
-            _userService.Unfollow(username, id, saveChanges: true);
+            _userService.Unfavorite(username, id, saveChanges: true);
             return new { success = true };
         }
 
@@ -102,7 +102,7 @@ namespace NuGetGallery
             }
             if (!package.IsOwner(HttpContext.User))
             {
-                return new { success = false, message = "You are not the package owner." };
+                return new { success = false, message = "You are not the packageRegistration owner." };
             }
             var user = _userService.FindByUsername(username);
             if (user == null)
@@ -129,7 +129,7 @@ namespace NuGetGallery
             }
             if (!package.IsOwner(HttpContext.User))
             {
-                return new { success = false, message = "You are not the package owner." };
+                return new { success = false, message = "You are not the packageRegistration owner." };
             }
             var user = _userService.FindByUsername(username);
             if (user == null)

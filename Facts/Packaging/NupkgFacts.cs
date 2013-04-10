@@ -133,7 +133,7 @@ namespace NuGetGallery
             [InlineData("/_rels/.rels")]
             [InlineData("/TestPackage.nuspec")]
             [InlineData("/content/HelloWorld.cs")]
-            [InlineData("/package/services/metadata/core-properties/1cd48675fa0b4f89aecfa1fd01738c81.psmdcp")]
+            [InlineData("/packageRegistration/services/metadata/core-properties/1cd48675fa0b4f89aecfa1fd01738c81.psmdcp")]
             [InlineData("/[Content_Types].xml")]
             public void LegitPartNamesAreAccepted(string logicalPartName)
             {

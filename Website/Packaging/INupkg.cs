@@ -8,7 +8,7 @@ namespace NuGetGallery
     public interface INupkg : IDisposable
     {
         /// <summary>
-        /// Gets the package metadata contained in the nupkg's nuspec file.
+        /// Gets the packageRegistration metadata contained in the nupkg's nuspec file.
         /// </summary>
         IPackageMetadata Metadata { get; }
 
@@ -26,13 +26,13 @@ namespace NuGetGallery
         IEnumerable<string> GetFiles();
 
         /// <summary>
-        /// Gets a decompressed file stream for one of the files in the package, and ensures
+        /// Gets a decompressed file stream for one of the files in the packageRegistration, and ensures
         /// that the stream so returned will not read more than maxSize bytes.
         /// </summary>
         Stream GetSizeVerifiedFileStream(string filePath, int maxSize);
 
         /// <summary>
-        /// Gets the backing Stream which this package was read from (and seeks stream to position zero).
+        /// Gets the backing Stream which this packageRegistration was read from (and seeks stream to position zero).
         /// Note: a popular usage error is that the backing stream has already been disposed,
         /// either directly or via disposing this object.
         /// </summary>

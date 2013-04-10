@@ -8,7 +8,7 @@
         public const string ApiFeed = "ApiFeed";
         public const string Account = "Account";
         public const string Profile = "Profile";
-        public const string DisplayPackage = "package-route";
+        public const string DisplayPackage = "packageRegistration-route";
         public const string DownloadPackage = "DownloadPackage";
         public const string DownloadNuGetExe = "DownloadNuGetExe";
         public const string Home = "Home";

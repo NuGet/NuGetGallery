@@ -136,7 +136,7 @@ namespace NuGetGallery
                 .Where(
                     p =>
                         {
-                            // For each package, if the version is higher than the client version and we satisty the target framework, return it.
+                            // For each packageRegistration, if the version is higher than the client version and we satisty the target framework, return it.
                             // TODO: We could optimize for the includeAllVersions case here by short circuiting the operation once we've encountered the highest version
                             // for a given Id
                             var version = SemanticVersion.Parse(p.Version);

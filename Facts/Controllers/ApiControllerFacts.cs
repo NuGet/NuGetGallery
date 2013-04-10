@@ -339,7 +339,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 packageService.Setup(svc => svc.MarkPackageUnlisted(It.IsAny<Package>(), true)).Throws(
-                    new InvalidOperationException("Should not have unlisted the package!"));
+                    new InvalidOperationException("Should not have unlisted the packageRegistration!"));
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
                 var controller = CreateController(userService: userService, packageService: packageService);
@@ -619,7 +619,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>(), It.IsAny<bool>())).Throws(
-                    new InvalidOperationException("Should not have listed the package!"));
+                    new InvalidOperationException("Should not have listed the packageRegistration!"));
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
                 var controller = CreateController(userService: userService, packageService: packageService);

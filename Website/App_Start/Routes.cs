@@ -144,7 +144,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.CreateCuratedPackageForm,
-                "forms/add-package-to-curated-feed",
+                "forms/add-packageRegistration-to-curated-feed",
                 new { controller = CuratedPackagesController.ControllerName, action = "CreateCuratedPackageForm" });
 
             routes.MapRoute(
@@ -168,7 +168,7 @@ namespace NuGetGallery
 
             var downloadRoute = routes.MapRoute(
                 "v1" + RouteName.DownloadPackage,
-                "api/v1/package/{id}/{version}",
+                "api/v1/packageRegistration/{id}/{version}",
                 defaults: new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
@@ -197,44 +197,44 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 "v2CuratedFeeds" + RouteName.DownloadPackage,
-                "api/v2/curated-feeds/package/{id}/{version}",
+                "api/v2/curated-feeds/packageRegistration/{id}/{version}",
                 defaults: new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v2" + RouteName.DownloadPackage,
-                "api/v2/package/{id}/{version}",
+                "api/v2/packageRegistration/{id}/{version}",
                 defaults: new { controller = MVC.Api.Name, action = "GetPackageApi", version = UrlParameter.Optional },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
                 "v2" + RouteName.PushPackageApi,
-                "api/v2/package",
+                "api/v2/packageRegistration",
                 defaults: new { controller = MVC.Api.Name, action = "PushPackageApi" },
                 constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
                 "v2" + RouteName.DeletePackageApi,
-                "api/v2/package/{id}/{version}",
+                "api/v2/packageRegistration/{id}/{version}",
                 MVC.Api.DeletePackage(),
                 defaults: null,
                 constraints: new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapRoute(
                 "v2" + RouteName.PublishPackageApi,
-                "api/v2/package/{id}/{version}",
+                "api/v2/packageRegistration/{id}/{version}",
                 MVC.Api.PublishPackage(),
                 defaults: null,
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
                 "v2PackageIds",
-                "api/v2/package-ids",
+                "api/v2/packageRegistration-ids",
                 MVC.Api.GetPackageIds());
 
             routes.MapRoute(
                 "v2PackageVersions",
-                "api/v2/package-versions/{id}",
+                "api/v2/packageRegistration-versions/{id}",
                 MVC.Api.GetPackageVersions());
 
             routes.MapRoute(

@@ -42,7 +42,8 @@ namespace NuGetGallery
         {
             string result = url.RouteUrl(RouteName.StatisticsPackageDownloadsByVersion, new { id });
 
-            return result + "?groupby=Version";
+            // Ensure trailing slashes for versionless packageRegistration URLs, as a fix for packageRegistration filenames that look like known file extensions
+            return EnsureTrailingSlash(result) + "?groupby=Version";
         }
 
         public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version)
@@ -71,7 +72,7 @@ namespace NuGetGallery
         {
             string result = url.RouteUrl(RouteName.DisplayPackage, new { id, version }, protocol: scheme);
 
-            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
+            // Ensure trailing slashes for versionless packageRegistration URLs, as a fix for packageRegistration filenames that look like known file extensions
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
@@ -105,7 +106,7 @@ namespace NuGetGallery
             string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
             string result = url.RouteUrl(routeName, new { Id = id, Version = version }, protocol: protocol);
             
-            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
+            // Ensure trailing slashes for versionless packageRegistration URLs, as a fix for packageRegistration filenames that look like known file extensions
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 

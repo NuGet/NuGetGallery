@@ -15,13 +15,15 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
+        private readonly IEntityRepository<PackageFavorite> _favoriteRepository;
 
         public PackageService(
-            ICryptographyService cryptoService,
-            IEntityRepository<PackageRegistration> packageRegistrationRepository,
-            IEntityRepository<Package> packageRepository,
-            IEntityRepository<PackageStatistics> packageStatsRepository,
+            ICryptographyService cryptoService, 
+            IEntityRepository<PackageRegistration> packageRegistrationRepository, 
+            IEntityRepository<Package> packageRepository, 
+            IEntityRepository<PackageStatistics> packageStatsRepository, 
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
+            IEntityRepository<PackageFavorite> packageFavoriteRepository, 
             IIndexingService indexingService)
         {
             _cryptoService = cryptoService;
@@ -29,6 +31,7 @@ namespace NuGetGallery
             _packageRepository = packageRepository;
             _packageStatsRepository = packageStatsRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
+            _favoriteRepository = packageFavoriteRepository;
             _indexingService = indexingService;
         }
 
@@ -359,6 +362,12 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        public int CountFavorites(PackageRegistration packageRegistration)
+        {
+            return _favoriteRepository.GetAll()
+                .Count(f => f.PackageRegistrationKey == packageRegistration.Key && f.IsFavorited);
         }
 
         private PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackageMetadata nugetPackage)

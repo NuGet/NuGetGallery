@@ -6,7 +6,7 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            // These indexes were found to be needed after the last deployment and then performing package searches
+            // These indexes were found to be needed after the last deployment and then performing packageRegistration searches
             Sql(@"Create NonClustered Index [IX_PackageRegistration_Id_Key] On [dbo].[PackageRegistrations] ([Id]) 
                          Include ([Key])");
 

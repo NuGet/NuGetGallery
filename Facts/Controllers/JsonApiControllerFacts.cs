@@ -50,7 +50,7 @@ namespace NuGetGallery.Controllers
                 var result = controller.AddPackageOwner("foo", "steve");
 
                 Assert.False(TestUtility.GetAnonymousPropertyValue<bool>(result, "success"));
-                Assert.Equal("You are not the package owner.", TestUtility.GetAnonymousPropertyValue<string>(result, "message"));
+                Assert.Equal("You are not the packageRegistration owner.", TestUtility.GetAnonymousPropertyValue<string>(result, "message"));
             }
 
             [Fact]

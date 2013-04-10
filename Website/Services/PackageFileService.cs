@@ -73,7 +73,7 @@ namespace NuGetGallery
             }
 
             // Note: packages should be saved and retrieved in blob storage using the lower case version of their filename because
-            // a) package IDs can and did change case over time
+            // a) packageRegistration IDs can and did change case over time
             // b) blob storage is case sensitive
             // c) it sucks to hit the database just to look up the right case
             // and remember - version can contain letters too.
@@ -89,14 +89,14 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("package");
+                throw new ArgumentNullException("packageRegistration");
             }
 
             if (package.PackageRegistration == null || 
                 String.IsNullOrWhiteSpace(package.PackageRegistration.Id) || 
                 String.IsNullOrWhiteSpace(package.Version))
             {
-                throw new ArgumentException("The package is missing required data.", "package");
+                throw new ArgumentException("The packageRegistration is missing required data.", "packageRegistration");
             }
 
             return BuildFileName(package.PackageRegistration.Id, package.Version);
