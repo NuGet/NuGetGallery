@@ -8,7 +8,7 @@ namespace NuGetGallery.Diagnostics
 {
     public interface IDiagnosticsSource
     {
-        void Event(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0);
+        void TraceEvent(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0);
     }
 
     public static class DiagnosticsSourceExtensions
@@ -21,7 +21,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Critical, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(TraceEventType.Critical, id: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Critical(this IDiagnosticsSource self,
@@ -31,7 +31,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Critical, id, message, member, file, line);
+            self.TraceEvent(TraceEventType.Critical, id, message, member, file, line);
         }
 
         public static void Critical(this IDiagnosticsSource self,
@@ -56,7 +56,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Error, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(TraceEventType.Error, id: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Error(this IDiagnosticsSource self,
@@ -66,7 +66,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Error, id, message, member, file, line);
+            self.TraceEvent(TraceEventType.Error, id, message, member, file, line);
         }
 
         public static void Error(this IDiagnosticsSource self,
@@ -91,7 +91,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Warning, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(TraceEventType.Warning, id: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Warning(this IDiagnosticsSource self,
@@ -101,7 +101,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Warning, id, message, member, file, line);
+            self.TraceEvent(TraceEventType.Warning, id, message, member, file, line);
         }
 
         public static void Warning(this IDiagnosticsSource self,
@@ -126,7 +126,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Information, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(TraceEventType.Information, id: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Information(this IDiagnosticsSource self,
@@ -136,7 +136,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Information, id, message, member, file, line);
+            self.TraceEvent(TraceEventType.Information, id, message, member, file, line);
         }
 
         public static void Information(this IDiagnosticsSource self,
@@ -161,7 +161,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Verbose, id: 0, message: message, member: member, file: file, line: line);
+            self.TraceEvent(TraceEventType.Verbose, id: 0, message: message, member: member, file: file, line: line);
         }
 
         public static void Verbose(this IDiagnosticsSource self,
@@ -171,7 +171,7 @@ namespace NuGetGallery.Diagnostics
                                     [CallerFilePath] string file = null,
                                     [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Verbose, id, message, member, file, line);
+            self.TraceEvent(TraceEventType.Verbose, id, message, member, file, line);
         }
 
         public static void Verbose(this IDiagnosticsSource self,
@@ -196,7 +196,7 @@ namespace NuGetGallery.Diagnostics
                                            [CallerFilePath] string file = null,
                                            [CallerLineNumber] int line = 0)
         {
-            self.Event(TraceEventType.Start,
+            self.TraceEvent(TraceEventType.Start,
                        id: 0,
                        message: String.Format(CultureInfo.CurrentCulture, "Starting {0}", name),
                        member: member,
@@ -204,7 +204,7 @@ namespace NuGetGallery.Diagnostics
                        line: line);
             var stopMessage = String.Format(CultureInfo.CurrentCulture, "Starting {0}", name);
             return new DisposableAction(() =>
-                self.Event(TraceEventType.Stop,
+                self.TraceEvent(TraceEventType.Stop,
                             id: 0,
                             message: stopMessage,
                             member: member,

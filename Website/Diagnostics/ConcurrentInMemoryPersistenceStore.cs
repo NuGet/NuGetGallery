@@ -41,7 +41,7 @@ namespace NuGetGallery.Diagnostics
             lock (_lock)
             {
                 GlimpseRequest _;
-                while (_requests.Count > DefaultBufferSize)
+                while (_requests.Count > _bufferSize)
                 {
                     _requests.TryDequeue(out _);
                 }

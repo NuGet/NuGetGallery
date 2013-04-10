@@ -27,10 +27,10 @@ namespace NuGetGallery.Diagnostics
 
         public RuntimePolicy Execute(IRuntimePolicyContext policyContext)
         {
-            return Execute(policyContext, policyContext.GetRequestContext<HttpContextBase>());
+            return Execute(policyContext.GetRequestContext<HttpContextBase>());
         }
 
-        public RuntimePolicy Execute(IRuntimePolicyContext policyContext, HttpContextBase context)
+        public RuntimePolicy Execute(HttpContextBase context)
         {
             // Policy is: Localhost sees everything, admins always see Glimpse (even when remote) but only over SSL if SSL is required, everyone uses the setting in web config.
             if (context.Request.IsLocal ||

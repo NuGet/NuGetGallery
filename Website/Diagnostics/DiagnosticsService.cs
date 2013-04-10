@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 
@@ -17,7 +18,7 @@ namespace NuGetGallery.Diagnostics
         {
             if (String.IsNullOrEmpty(name))
             {
-                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "name"), "name");
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "name"), "name");
             }
             return new TraceDiagnosticsSource(name);
         }

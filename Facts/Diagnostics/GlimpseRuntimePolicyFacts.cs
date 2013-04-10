@@ -21,14 +21,13 @@ namespace NuGetGallery.Diagnostics
                 var context = new Mock<HttpContextBase>();
                 context.Setup(c => c.Request.IsAuthenticated)
                        .Returns(false);
-                var policyContext = new Mock<IRuntimePolicyContext>();
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.UserGlimpsePolicy)
                     .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.ModifyResponseBody, policy.Execute(policyContext.Object, context.Object));
+                Assert.Equal(RuntimePolicy.ModifyResponseBody, policy.Execute(context.Object));
             }
 
             [Fact]
@@ -40,7 +39,6 @@ namespace NuGetGallery.Diagnostics
                        .Returns(true);
                 context.Setup(c => c.Request.IsSecureConnection)
                        .Returns(false);
-                var policyContext = new Mock<IRuntimePolicyContext>();
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -50,7 +48,7 @@ namespace NuGetGallery.Diagnostics
                     .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.ModifyResponseBody, policy.Execute(policyContext.Object, context.Object));
+                Assert.Equal(RuntimePolicy.ModifyResponseBody, policy.Execute(context.Object));
             }
 
             [Fact]
@@ -64,7 +62,6 @@ namespace NuGetGallery.Diagnostics
                        .Returns(true);
                 context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
                        .Returns(false);
-                var policyContext = new Mock<IRuntimePolicyContext>();
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -74,7 +71,7 @@ namespace NuGetGallery.Diagnostics
                     .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.ModifyResponseBody, policy.Execute(policyContext.Object, context.Object));
+                Assert.Equal(RuntimePolicy.ModifyResponseBody, policy.Execute(context.Object));
             }
 
             [Fact]
@@ -88,7 +85,6 @@ namespace NuGetGallery.Diagnostics
                        .Returns(true);
                 context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
                        .Returns(true);
-                var policyContext = new Mock<IRuntimePolicyContext>();
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -98,7 +94,7 @@ namespace NuGetGallery.Diagnostics
                     .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.On, policy.Execute(policyContext.Object, context.Object));
+                Assert.Equal(RuntimePolicy.On, policy.Execute(context.Object));
             }
 
             [Fact]
@@ -112,7 +108,6 @@ namespace NuGetGallery.Diagnostics
                        .Returns(false);
                 context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
                        .Returns(true);
-                var policyContext = new Mock<IRuntimePolicyContext>();
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -122,7 +117,7 @@ namespace NuGetGallery.Diagnostics
                     .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.On, policy.Execute(policyContext.Object, context.Object));
+                Assert.Equal(RuntimePolicy.On, policy.Execute(context.Object));
             }
 
             [Fact]
@@ -138,7 +133,6 @@ namespace NuGetGallery.Diagnostics
                        .Returns(false);
                 context.Setup(c => c.User.IsInRole(Constants.AdminRoleName))
                        .Returns(false);
-                var policyContext = new Mock<IRuntimePolicyContext>();
                 var policy = new TestableGlimpseRuntimePolicy();
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
@@ -148,7 +142,7 @@ namespace NuGetGallery.Diagnostics
                     .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.On, policy.Execute(policyContext.Object, context.Object));
+                Assert.Equal(RuntimePolicy.On, policy.Execute(context.Object));
             }
         }
 

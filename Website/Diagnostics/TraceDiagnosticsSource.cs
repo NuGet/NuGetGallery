@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.IO;
+using System.Globalization;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -24,7 +25,7 @@ namespace NuGetGallery.Diagnostics
             _source.Listeners.AddRange(Trace.Listeners);
         }
 
-        public void Event(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0)
+        public void TraceEvent(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0)
         {
             if (_source == null)
             {
@@ -32,7 +33,7 @@ namespace NuGetGallery.Diagnostics
             }
             if (String.IsNullOrEmpty(message))
             {
-                throw new ArgumentException(String.Format(Strings.ParameterCannotBeNullOrEmpty, "message"), "message");
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "message"), "message");
             }
             
             _source.TraceEvent(type, id, FormatMessage(message, member, file, line));
@@ -44,11 +45,12 @@ namespace NuGetGallery.Diagnostics
             _source.Flush();
             _source.Close();
             _source = null;
+            GC.SuppressFinalize(this); // FxCop says so.
         }
 
-        private string FormatMessage(string message, string member, string file, int line)
+        private static string FormatMessage(string message, string member, string file, int line)
         {
-            return String.Format("[{0}:{1} in {2}] {3}", file, line, member, message);
+            return String.Format(CultureInfo.CurrentCulture, "[{0}:{1} in {2}] {3}", file, line, member, message);
         }
     }
 }
