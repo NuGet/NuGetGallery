@@ -15,23 +15,20 @@ namespace NuGetGallery.Diagnostics
         public class TheExecuteMethod
         {
             [Fact]
-            public void UsesConfigDefaultPolicyIfUserNotLoggedInAndNoCookie()
+            public void DisablesGlimpseIfUserNotLoggedInAndNoCookie()
             {
                 // Arrange
                 var context = new Mock<HttpContextBase>();
                 context.Setup(c => c.Request.IsAuthenticated)
                        .Returns(false);
                 var policy = new TestableGlimpseRuntimePolicy();
-                policy.MockConfiguration
-                    .Setup(c => c.UserGlimpsePolicy)
-                    .Returns(RuntimePolicy.ModifyResponseBody);
-
+                
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.ModifyResponseBody, policy.Execute(context.Object));
+                Assert.Equal(RuntimePolicy.Off, policy.Execute(context.Object));
             }
 
             [Fact]
-            public void UsesConfigDefaultPolicyIfSSLRequiredAndConnectionIsNotSecureAndNoCookie()
+            public void DisablesGlimpseIfSSLRequiredAndConnectionIsNotSecureAndNoCookie()
             {
                 // Arrange
                 var context = new Mock<HttpContextBase>();
@@ -43,16 +40,13 @@ namespace NuGetGallery.Diagnostics
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
                     .Returns(true);
-                policy.MockConfiguration
-                    .Setup(c => c.UserGlimpsePolicy)
-                    .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.ModifyResponseBody, policy.Execute(context.Object));
+                Assert.Equal(RuntimePolicy.Off, policy.Execute(context.Object));
             }
 
             [Fact]
-            public void UsesConfigDefaultPolicyIfUserIsNotAdminAndNoCookie()
+            public void DisablesGlimpseIfUserIsNotAdminAndNoCookie()
             {
                 // Arrange
                 var context = new Mock<HttpContextBase>();
@@ -66,12 +60,9 @@ namespace NuGetGallery.Diagnostics
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
                     .Returns(true);
-                policy.MockConfiguration
-                    .Setup(c => c.UserGlimpsePolicy)
-                    .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.ModifyResponseBody, policy.Execute(context.Object));
+                Assert.Equal(RuntimePolicy.Off, policy.Execute(context.Object));
             }
 
             [Fact]
@@ -89,9 +80,6 @@ namespace NuGetGallery.Diagnostics
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
                     .Returns(true);
-                policy.MockConfiguration
-                    .Setup(c => c.UserGlimpsePolicy)
-                    .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
                 Assert.Equal(RuntimePolicy.On, policy.Execute(context.Object));
@@ -112,9 +100,6 @@ namespace NuGetGallery.Diagnostics
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
                     .Returns(false);
-                policy.MockConfiguration
-                    .Setup(c => c.UserGlimpsePolicy)
-                    .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
                 Assert.Equal(RuntimePolicy.On, policy.Execute(context.Object));
@@ -137,9 +122,6 @@ namespace NuGetGallery.Diagnostics
                 policy.MockConfiguration
                     .Setup(c => c.RequireSSL)
                     .Returns(true);
-                policy.MockConfiguration
-                    .Setup(c => c.UserGlimpsePolicy)
-                    .Returns(RuntimePolicy.ModifyResponseBody);
 
                 // Act/Assert
                 Assert.Equal(RuntimePolicy.On, policy.Execute(context.Object));

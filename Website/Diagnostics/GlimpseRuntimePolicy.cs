@@ -40,7 +40,7 @@ namespace NuGetGallery.Diagnostics
             {
                 return RuntimePolicy.On;
             }
-            return Configuration.UserGlimpsePolicy;
+            return RuntimePolicy.Off;
         }
     }
 }

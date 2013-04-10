@@ -35,7 +35,5 @@ namespace NuGetGallery
         string GetSiteRoot(bool useHttps);
 
         bool ReadOnlyMode { get; }
-
-        RuntimePolicy UserGlimpsePolicy { get; }
     }
 }

@@ -168,7 +168,6 @@
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Diagnostics\DiagnosticsServiceFacts.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicyFacts.cs" />
-    <Compile Include="GlimpseSecurityPolicy.cs" />
     <Compile Include="Entities\EntitiesContextFacts.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Infrastructure\AnalysisHelperFacts.cs" />

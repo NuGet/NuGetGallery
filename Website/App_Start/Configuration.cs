@@ -169,11 +169,6 @@ namespace NuGetGallery
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
         }
 
-        public RuntimePolicy UserGlimpsePolicy
-        {
-            get { return ReadAppSettings("UserGlimpsePolicy", RuntimePolicy.Off); }
-        }
-
         public static TEnum ReadAppSettings<TEnum>(string key, TEnum defaultValue) where TEnum : struct
         {
             // Can't do 'where TEnum : enum' so assert that it's an enum here

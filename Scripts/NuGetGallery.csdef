@@ -27,7 +27,6 @@
       <Setting name="Gallery.SiteRoot" />
       <Setting name="Gallery.SSL.Required" />
       <Setting name="Gallery.HasWorker" />
-      <Setting name="Gallery.UserGlimpsePolicy" />
       <!-- Set this to enable Google Analytics -->
       <Setting name="Gallery.GoogleAnalyticsPropertyId" />
       <!-- Set this to enable Facebook Buttons with a specific App ID -->

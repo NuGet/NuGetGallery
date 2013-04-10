@@ -17,13 +17,6 @@ namespace NuGetGallery.Diagnostics
         private ConcurrentQueue<GlimpseRequest> _requests = new ConcurrentQueue<GlimpseRequest>();
         private int _bufferSize;
 
-        // Lock to be taken ONLY WHEN NECESSARY. Why use a lock when we're also using ConcurrentQueue?
-        // We only need to lock to prevent multiple threads En/Dequeueing objects at the same time. While
-        // a thread is En/Dequeueing, other threads can read from a ConcurrentQueue because it uses snapshots,
-        // which is not true of a regular Queue.
-        // NOTE: We could also use the new ImmutableQueue in the Immutable Collections package on NuGet...
-        private object _lock = new object(); 
-        
         public ConcurrentInMemoryPersistenceStore() : this(DefaultBufferSize) { }
 
         public ConcurrentInMemoryPersistenceStore(int bufferSize)
@@ -38,15 +31,13 @@ namespace NuGetGallery.Diagnostics
 
         public virtual void Save(GlimpseRequest request)
         {
-            lock (_lock)
+            // There's a race here that could end up with the buffer being over-cleaned, but I think we're OK with that.
+            GlimpseRequest _;
+            while (_requests.Count > _bufferSize)
             {
-                GlimpseRequest _;
-                while (_requests.Count > _bufferSize)
-                {
-                    _requests.TryDequeue(out _);
-                }
-                _requests.Enqueue(request);
+                _requests.TryDequeue(out _);
             }
+            _requests.Enqueue(request);
         }
 
         public virtual GlimpseRequest GetByRequestId(Guid requestId)

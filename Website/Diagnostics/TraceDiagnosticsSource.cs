@@ -42,9 +42,12 @@ namespace NuGetGallery.Diagnostics
         public void Dispose()
         {
             // If we don't do this, it's not the end of the world, but if consumers do dispose us, flush and close the source
-            _source.Flush();
-            _source.Close();
-            _source = null;
+            if (_source != null)
+            {
+                _source.Flush();
+                _source.Close();
+                _source = null;
+            }
             GC.SuppressFinalize(this); // FxCop says so.
         }
 

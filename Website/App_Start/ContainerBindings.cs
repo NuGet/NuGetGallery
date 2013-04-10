@@ -21,12 +21,6 @@ namespace NuGetGallery
 {
     public class ContainerBindings : NinjectModule
     {
-        public static IEnumerable<NinjectModule> GetModules()
-        {
-            yield return new ContainerBindings();
-            yield return new DiagnosticsNinjectModule();
-        }
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         public override void Load()
         {
