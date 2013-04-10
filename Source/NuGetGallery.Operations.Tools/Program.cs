@@ -83,13 +83,15 @@ namespace NuGetGallery.Operations.Tools
                 {
                     message = ExceptionUtility.Unwrap(exception).Message;
                 }
-                _logger.ErrorException(message, exception);
+                _logger.Error("{0}: {1}", unwrappedEx.GetType().Name, message);
+                _logger.Error(" Stack Trace: " + unwrappedEx.StackTrace);
                 return 1;
             }
             catch (Exception e)
             {
                 var ex = ExceptionUtility.Unwrap(e);
-                _logger.ErrorException(ex.Message, ex);
+                _logger.Error("{0}: {1}", ex.GetType().Name, ex.Message);
+                _logger.Error(" Stack Trace: " + ex.StackTrace);
                 return 1;
             }
             return 0;
