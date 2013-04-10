@@ -1,5 +1,5 @@
 param(
-    [Parameter(Mandatory=$false)][string]$Configuration = "Release")
+    [Parameter(Mandatory=$false)][string]$Configuration = "Debug")
 
 $MyPath = Split-Path $MyInvocation.MyCommand.Path
 $ScriptsDir = Join-Path $MyPath Scripts
