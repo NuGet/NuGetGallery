@@ -5,7 +5,7 @@ using Xunit.Extensions;
 
 namespace NuGetGallery.Infrastructure
 {
-    public class LuceneIndexingServiceFacts
+    public class PackageIndexEntityFacts
     {
         [Theory]
         [InlineData("NHibernate", new[] { "NHibernate" })]
@@ -24,7 +24,7 @@ namespace NuGetGallery.Infrastructure
         public void CamelCaseTokenizer(string term, IEnumerable<string> tokens)
         {
             // Act
-            var result = LuceneIndexingService.TokenizeId(term);
+            var result = PackageIndexEntity.TokenizeId(term);
 
             // Assert
             Assert.Equal(tokens.OrderBy(p => p), result.OrderBy(p => p));
@@ -38,7 +38,7 @@ namespace NuGetGallery.Infrastructure
         [InlineData("JQuery.UI.Combined", "JQuery UI Combined")]
         public void IdSplitter(string term, string tokens)
         {
-            var result = LuceneIndexingService.SplitId(term);
+            var result = PackageIndexEntity.SplitId(term);
             Assert.Equal(result, tokens);
         }
 
@@ -54,7 +54,7 @@ namespace NuGetGallery.Infrastructure
         [InlineData("SignalR.Hosting.AspNet", "SignalR Hosting Asp Net")]
         public void CamelIdSplitter(string term, string tokens)
         {
-            var result = LuceneIndexingService.CamelSplitId(term);
+            var result = PackageIndexEntity.CamelSplitId(term);
             Assert.Equal(result, tokens);
         }
     }

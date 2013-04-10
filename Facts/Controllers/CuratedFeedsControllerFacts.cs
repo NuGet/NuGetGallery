@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+using System.Web;
 using System.Web.Mvc;
 using Moq;
 using Xunit;
@@ -24,10 +25,18 @@ namespace NuGetGallery
                 StubCuratedFeedByNameQry
                     .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
                     .Returns(StubCuratedFeed);
+
+                StubCuratedFeedService = new Mock<ICuratedFeedService>();
+                CuratedFeedService = StubCuratedFeedService.Object;
+
+                StubSearchService = new Mock<ISearchService>();
+                SearchService = StubSearchService.Object;
             }
 
             public CuratedFeed StubCuratedFeed { get; set; }
             public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
+            public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
+            public Mock<ISearchService> StubSearchService { get; private set; }
             public Mock<IIdentity> StubIdentity { get; private set; }
 
             protected override IIdentity Identity
@@ -163,6 +172,62 @@ namespace NuGetGallery
                 Assert.NotNull(viewModel);
                 Assert.Equal(1, viewModel.ExcludedPackages.Count());
                 Assert.Equal("theExcludedId", viewModel.ExcludedPackages.First());
+            }
+        }
+
+        public class TheListPackagesAction
+        {
+            [Fact]
+            public void WillSearchForAPackage()
+            {
+                var controller = new TestableCuratedFeedsController();
+
+                var redPill = new PackageRegistration
+                {
+                    Id = "RedPill",
+                    Key = 2,
+                    DownloadCount = 0,
+                    Packages = new []
+                    {
+                        new Package
+                        {
+                            Key = 89932,
+                        }
+                    },
+                    Owners = new [] 
+                    {
+                        new User
+                        {
+                            Key = 66,
+                            Username = "Morpheus",
+                        }
+                    }
+                };
+
+                redPill.Packages.ElementAt(0).PackageRegistration = redPill;
+
+                var mockPackageRegistrations = new [] { redPill }.AsQueryable();
+                var mockPackages = new[] { redPill.Packages.ElementAt(0) }.AsQueryable();
+
+                controller.StubCuratedFeedService
+                    .Setup(stub => stub.GetKey("TheMatrix"))
+                    .Returns(2);
+
+                int totalHits;
+                controller.StubSearchService
+                    .Setup(stub => stub.Search(It.IsAny<SearchFilter>(), out totalHits))
+                    .Returns(mockPackages);
+
+                var mockHttpContext = new Mock<HttpContextBase>();
+                TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
+
+                // Act
+                var result = controller.ListPackages("TheMatrix", "");
+
+                Assert.IsType<ViewResult>(result);
+                Assert.IsType<PackageListViewModel>(((ViewResult)result).Model);
+                var model = (result as ViewResult).Model as PackageListViewModel;
+                Assert.Equal(1, model.Items.Count());
             }
         }
     }

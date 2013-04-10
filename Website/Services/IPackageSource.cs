@@ -5,6 +5,6 @@ namespace NuGetGallery
 {
     public interface IPackageSource
     {
-        IQueryable<Package> GetPackagesForIndexing(DateTime? newerThan);
+        IQueryable<PackageIndexEntity> GetPackagesForIndexing(DateTime? newerThan);
     }
 }
