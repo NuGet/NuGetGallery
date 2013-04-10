@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -13,6 +14,7 @@ using Microsoft.WindowsAzure.Storage;
 using Ninject;
 using Ninject.Modules;
 using Ninject.Web.Mvc.Filter;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery

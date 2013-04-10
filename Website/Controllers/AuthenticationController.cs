@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web.Helpers;
 using System.Web.Mvc;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {

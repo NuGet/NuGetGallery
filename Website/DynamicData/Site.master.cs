@@ -15,7 +15,7 @@ namespace DynamicDataEFCodeFirst
                 Response.End();
             }
 
-            if (!Request.IsLocal && !Page.User.IsInRole(Constants.AdminRoleName))
+            if (!Request.IsLocal && !Page.User.IsAdministrator())
             {
                 Response.StatusCode = (int)HttpStatusCode.Forbidden;
                 Response.End();
