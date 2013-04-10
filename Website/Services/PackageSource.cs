@@ -7,27 +7,31 @@ namespace NuGetGallery
 {
     public class PackageSource : IPackageSource
     {
-        private readonly IEntityRepository<Package> _packageSet;
+        private readonly IEntityRepository<Package> _packageRepository;
         private readonly IEntityRepository<CuratedPackage> _curatedPackageRepository;
+        private readonly IEntityRepository<PackageFavorite> _favoritesRepository;
 
         public PackageSource(EntitiesContext entitiesContext)
         {
-            _packageSet = new EntityRepository<Package>(entitiesContext);
+            _packageRepository = new EntityRepository<Package>(entitiesContext);
             _curatedPackageRepository = new EntityRepository<CuratedPackage>(entitiesContext);
+            _favoritesRepository = new EntityRepository<PackageFavorite>(entitiesContext);
         }
 
         [Ninject.Inject]
         public PackageSource(
             IEntityRepository<Package> packageRepo,
-            IEntityRepository<CuratedPackage> curatedPackageRepo)
+            IEntityRepository<CuratedPackage> curatedPackageRepo,
+            IEntityRepository<PackageFavorite> favoritesRepo)
         {
-            _packageSet = packageRepo;
+            _packageRepository = packageRepo;
             _curatedPackageRepository = curatedPackageRepo;
+            _favoritesRepository = favoritesRepo;
         }
 
         public IQueryable<PackageIndexEntity> GetPackagesForIndexing(DateTime? newerThan)
         {
-            IQueryable<Package> set = _packageSet.GetAll()
+            IQueryable<Package> set = _packageRepository.GetAll()
                 .Where(p => p.IsLatest || p.IsLatestStable)  // which implies that p.IsListed by the way!
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
@@ -41,24 +45,54 @@ namespace NuGetGallery
                 set = set.Where(p => p.PackageRegistration.Packages.Any(p2 => p2.LastUpdated > newerThan));
             }
 
-            var list = set.ToList();
+            var list1 = set.ToList();
 
+            // Find all favorite relationships that have been updated
+            // Build a representative package set corresponding to the list
+            var updatedFavoritePackages = _favoritesRepository.GetAll()
+                .Where(f => f.LastModified >= newerThan)
+                .GroupBy(f => f.PackageRegistrationKey)
+                .ToDictionary(group => group.Key);
+
+            var updatedPackageRegistrationKeys = updatedFavoritePackages.Keys.ToArray();
+
+            var updatedPackageRepresentatives = _packageRepository.GetAll()
+                .Where(p => p.IsLatest || p.IsLatestStable)
+                .Where(p => updatedPackageRegistrationKeys.Contains(p.PackageRegistrationKey))
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .Include(p => p.SupportedFrameworks);
+
+            var list2 = updatedPackageRepresentatives.ToList();
+
+            // Merge the lists of packages to reindex
+            Dictionary<int, Package> finalSet = new Dictionary<int,Package>();
+            foreach (var p in list1.Concat(list2))
+            {
+                finalSet[p.PackageRegistrationKey] = p;
+            }
+
+            var list = finalSet.Values;
+
+            // Look up which curatedFeeds and which favorites refer to which package, 
+            // and attach that information to the package for indexing
             var curatedFeedsPerPackageRegistration = _curatedPackageRepository.GetAll()
                 .Select(cp => new { cp.PackageRegistrationKey, cp.CuratedFeedKey })
                 .GroupBy(x => x.PackageRegistrationKey)
-                .ToDictionary(group => group.Key, element => element.Select(x => x.CuratedFeedKey).Distinct());
+                .ToDictionary(group => group.Key, element => element.Select(x => x.CuratedFeedKey));
 
-            Func<int, IEnumerable<int>> GetFeeds = packageRegistrationKey =>
-            {
-                IEnumerable<int> ret = null;
-                curatedFeedsPerPackageRegistration.TryGetValue(packageRegistrationKey, out ret);
-                return ret;
-            };
+            var favoritersPerPackageRegistration = _favoritesRepository.GetAll()
+                .Where(fav => fav.IsFavorited)
+                .Select(fav => new { fav.PackageRegistrationKey, fav.User.Username })
+                .GroupBy(x => x.PackageRegistrationKey)
+                .ToDictionary(group => group.Key, element => element.Select(x => x.Username));
 
             var entities = list.Select(
                 p => new PackageIndexEntity 
                 {
-                    Package = p, CuratedFeedKeys = GetFeeds(p.PackageRegistrationKey)
+                    Package = p, 
+                    CuratedFeedKeys = curatedFeedsPerPackageRegistration.GetValueOrDefault(p.PackageRegistrationKey),
+                    Favoriters = favoritersPerPackageRegistration.GetValueOrDefault(p.PackageRegistrationKey),
                 });
 
             return entities.AsQueryable();

@@ -84,8 +84,9 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
+            string username = GetUserName();
             IQueryable<Package> curatedPackages = GetPackages();
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, filterToPackageSet: curatedPackages)
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: null, favoritedBy: username)
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
