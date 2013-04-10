@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using Ninject;
 
@@ -10,12 +11,20 @@ namespace NuGetGallery
     /// </summary>
     public class EntitiesContextFactory : IDbContextFactory<EntitiesContext>
     {
+        // Used by GalleryGateway
+        internal static string OverrideConnectionString { get; set; }
+
         public EntitiesContext Create()
         {
+            if (String.IsNullOrEmpty(OverrideConnectionString))
+            {
+                throw new InvalidOperationException("EntitiesContextFactory must be used via GalleryGateway. Use GalleryGateway to get a DbMigrator if you need one.");
+            }
+
             // readOnly: false - without read access, database migrations will fail and 
             // the whole site will be down (even when migrations are a no-op apparently).
             return new EntitiesContext(
-                Container.Kernel.Get<IConfiguration>().SqlConnectionString, 
+                OverrideConnectionString,
                 readOnly: false);
         }
     }

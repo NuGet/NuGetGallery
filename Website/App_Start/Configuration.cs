@@ -178,7 +178,13 @@ namespace NuGetGallery
         {
             // Read from connection strings and app settings, with app settings winning (to allow us to put the CS in azure config)
             string value = ReadAppSettings("Sql." + connectionStringName);
-            return String.IsNullOrEmpty(value) ? ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString : value;
+            if(String.IsNullOrEmpty(value)) {
+                var connStr = ConfigurationManager.ConnectionStrings[connectionStringName];
+                if(connStr != null) {
+                    return connStr.ConnectionString;
+                }
+            }
+            return value;
         }
 
         public static T ReadAppSettings<T>(
