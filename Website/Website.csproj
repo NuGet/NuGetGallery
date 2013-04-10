@@ -516,6 +516,9 @@
     <Compile Include="CuratedPackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="DataServices\V2FavoritesFeed.svc.cs">
+      <DependentUpon>V2FavoritesFeed.svc</DependentUpon>
+    </Compile>
     <Compile Include="DataServices\ODataRemoveVersionSorter.cs" />
     <Compile Include="DataServices\CountInterceptor.cs">
       <SubType>Code</SubType>
@@ -1030,6 +1033,7 @@
     <Content Include="Content\SyntaxHighlighter\shThemeMDUltra.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeMidnight.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeRDark.css" />
+    <Content Include="DataServices\V2FavoritesFeed.svc" />
     <Content Include="DataServices\V2CuratedFeed.svc" />
     <Content Include="DataServices\V1Feed.svc" />
     <Content Include="DataServices\V2Feed.svc" />

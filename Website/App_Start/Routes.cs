@@ -330,6 +330,11 @@ namespace NuGetGallery
                 typeof(V2CuratedFeed));
 
             routes.MapServiceRoute(
+                "v2" + RouteName.FavoritePackagesFeed,
+                "api/v2/favorites",
+                typeof(V2FavoritesFeed));
+
+            routes.MapServiceRoute(
                 RouteName.V2ApiFeed,
                 "api/v2/",
                 typeof(V2Feed));
