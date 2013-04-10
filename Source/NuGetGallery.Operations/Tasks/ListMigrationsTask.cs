@@ -17,14 +17,14 @@ namespace NuGetGallery.Operations.Tasks
 
             foreach (var migration in migrator.GetDatabaseMigrations())
             {
-                Log.Info("✓ {0}", migration);
+                Log.Info("A {0}", migration);
             }
 
             foreach (var migration in migrator.GetPendingMigrations())
             {
-                Log.Info("! {0}", migration);
+                Log.Info("  {0}", migration);
             }
-            Log.Info("✓ = Applied, ! = Not Yet Applied");
+            Log.Info("A = Applied");
         }
     }
 }
