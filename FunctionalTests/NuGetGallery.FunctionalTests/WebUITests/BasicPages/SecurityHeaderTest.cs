@@ -8,7 +8,7 @@
     using NuGetGallery.FunctionTests.Helpers;
 
     /// <summary>
-    /// Sends http request to gallery home page checks for the default home page text in the reponse.
+    ///     Verify that an expected series of security headers is returned as part of the response.
     /// </summary>
     public class SecurityHeaderTest : WebTest
     {

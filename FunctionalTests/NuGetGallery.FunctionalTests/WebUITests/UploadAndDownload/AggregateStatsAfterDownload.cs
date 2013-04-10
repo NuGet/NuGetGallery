@@ -68,7 +68,6 @@
             extractDownLoadCount.ExtractRandomMatch = false;
             extractDownLoadCount.Index = 0;
             extractDownLoadCount.HtmlDecode = true;
-            extractDownLoadCount.SearchInHeaders = false;
             extractDownLoadCount.ContextParameterName = "DownloadCount";
             return extractDownLoadCount;
         }
