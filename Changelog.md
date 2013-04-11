@@ -2,9 +2,9 @@
 
 *Top 500 packages exposed in the feed*:
 
-   The api/v2 feed now exposes the top downloaded packages (over the last 6 weeks).This can accessed be via url api/v2/stats/downloads. By default the top 500 packages would be shown.
-   You can get the specific count of packages using ?count in the query string.
-   Say, api/v2/stats/downloads?count=10 would return the top 10 downloaded packages in last 6 weeks - with information like download count, gallery url and feed url for that package.
+   The nuget.org API(V2) feed now exposes the top downloaded packages (over the last 6 weeks). This can accessed be via url api/v2/stats/downloads. By default the top 500 packages are shown.
+   You can limit the numbers of results using ?count in the query string.
+   Say,for example,api/v2/stats/downloads?count=10 would return the top 10 downloaded packages in last 6 weeks - with information like download count, gallery url and feed url for that package.
 
 *Numeric rank for packages stats*:
 
