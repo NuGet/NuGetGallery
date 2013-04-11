@@ -188,6 +188,8 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
+            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
             var model = (StatisticsPackagesViewModel)((ViewResult) await controller.PackageDownloadsByVersion(PackageId, new string[] { "Version" })).Model;
 
             int sum = 0;

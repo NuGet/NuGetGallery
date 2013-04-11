@@ -377,7 +377,7 @@ namespace NuGetGallery
 
         [ActionName("StatisticsDownloadsApi")]
         [HttpGet]
-        public virtual async Task<ActionResult> GetStatsDownloads()
+        public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
             if (_statisticsService != null)
             {
@@ -385,6 +385,8 @@ namespace NuGetGallery
 
                 if (isAvailable)
                 {
+                    int i = 0;
+
                     JArray content = new JArray();
                     foreach (StatisticsPackagesItemViewModel row in _statisticsService.DownloadPackageVersionsAll)
                     {
@@ -392,11 +394,18 @@ namespace NuGetGallery
 
                         item.Add("PackageId", row.PackageId);
                         item.Add("PackageVersion", row.PackageVersion);
-                        item.Add("Gallery", "http://nuget.org/packages/" + row.PackageId + "/" + row.PackageVersion);
-                        item.Add("Package", "http://nuget.org/package/api/v2/"  + row.PackageId + "/" + row.PackageVersion);
+                        item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
+                        item.Add("Package", Url.PackageDownload(2, row.PackageId, row.PackageVersion));
                         item.Add("Downloads", row.Downloads);
 
                         content.Add(item);
+
+                        i++;
+
+                        if (count.HasValue && count.Value == i)
+                        {
+                            break;
+                        }
                     }
 
                     return new ContentResult
