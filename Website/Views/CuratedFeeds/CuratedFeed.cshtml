@@ -2,7 +2,7 @@
 @{
     ViewBag.Title = "Curated Feed: " + Model.Name;
 }
-@section TopScripts {
+@section BottomScripts {
     <script>
         var urlFormat = "@Url.RouteUrl(RouteName.CuratedPackage, new { curatedFeedName = Model.Name, curatedPackageId = "PACKAGE_ID" })";
 
