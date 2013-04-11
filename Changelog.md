@@ -1,4 +1,30 @@
-# Deployment 2013.03.28-CommitID  #
+# Deployment 2013.04.11  #
+
+*Top 500 packages exposed in the feed*:
+
+   The nuget.org API(V2) feed now exposes the top downloaded packages (over the last 6 weeks). This can accessed be via url api/v2/stats/downloads. By default the top 500 packages are shown.
+   You can limit the numbers of results using ?count in the query string.
+   Say,for example,api/v2/stats/downloads?count=10 would return the top 10 downloaded packages in last 6 weeks - with information like download count, gallery url and feed url for that package.
+
+*Numeric rank for packages stats*:
+
+   The "Statistics" page now shows the numeric rank of the package (based on the download count) for the top 500 packages.
+
+*Links to gravatar in profile page*:
+
+   The edit profile page would now show a help text and link to gravatar making it easy for users to update their profile picture, if needed.
+
+*UserName optimization in DB (backend)*:
+
+   The "Users" table is optimized to have "UserName" as index for performance enhancements.
+
+*Other minor bug fixes*:
+
+   Complete list can be found here @ https://github.com/NuGet/NuGetGallery/issues?milestone=18
+   
+
+
+# Deployment 2013.03.28  #
 
 *Support for MinClientVersion*:
 
