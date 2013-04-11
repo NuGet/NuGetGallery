@@ -30,7 +30,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [OutputCache(VaryByParam = "None", Duration = 120, Location = OutputCacheLocation.Server)]
+        [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
         public virtual JsonResult Totals()
         {
             var stats = _aggregateStatsService.GetAggregateStats();
@@ -49,21 +49,42 @@ namespace NuGetGallery
 
         private CultureInfo DetermineClientLocale()
         {
-            CultureInfo clientCulture = null;
-
             string[] languages = Request.UserLanguages;
-            if (languages != null && languages.Length > 0)
+            if (languages == null)
             {
+                return null;
+            }
+
+            foreach (string language in languages)
+            {
+                string lang = language.ToLowerInvariant().Trim();
                 try
                 {
-                    clientCulture = CultureInfo.GetCultureInfo(languages[0].ToLowerInvariant().Trim());
+                    return CultureInfo.GetCultureInfo(lang);
                 }
                 catch (CultureNotFoundException)
                 {
                 }
             }
 
-            return clientCulture;
+
+            foreach (string language in languages)
+            {
+                string lang = language.ToLowerInvariant().Trim();
+                if (lang.Length > 2)
+                {
+                    string lang2 = lang.Substring(0, 2);
+                    try
+                    {
+                        return CultureInfo.GetCultureInfo(lang2);
+                    }
+                    catch (CultureNotFoundException)
+                    {
+                    }
+                }
+            }
+
+            return null;
         }
 
         //

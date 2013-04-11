@@ -80,6 +80,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NuGet.Core.2.3.0-alpha003\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
@@ -177,10 +181,15 @@
     <Compile Include="Services\ODataRemoveVersionSorterFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
     <Compile Include="Services\UploadFileServiceFacts.cs" />
-    <Compile Include="Services\UsersServiceFacts.cs" />
+    <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
-    <Compile Include="TaskAssert.cs" />
-    <Compile Include="TestUtility.cs" />
+    <Compile Include="TestUtils\ContractAssert.cs" />
+    <Compile Include="TestUtils\MockExtensions.cs" />
+    <Compile Include="TestUtils\ModelStateAssert.cs" />
+    <Compile Include="TestUtils\ResultAssert.cs" />
+    <Compile Include="TestUtils\TaskAssert.cs" />
+    <Compile Include="TestUtils\TestCryptoService.cs" />
+    <Compile Include="TestUtils\TestUtility.cs" />
     <Compile Include="UrlExtensionsFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />

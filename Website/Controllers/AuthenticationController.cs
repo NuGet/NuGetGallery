@@ -1,21 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Web.Helpers;
 using System.Web.Mvc;
 
 namespace NuGetGallery
 {
     public partial class AuthenticationController : Controller
     {
-        private readonly IFormsAuthenticationService _formsAuthService;
-        private readonly IUserService _userService;
+        public IFormsAuthenticationService FormsAuth { get; protected set; }
+        public IUserService Users { get; protected set; }
+        
+        // For sub-classes to initialize services themselves
+        protected AuthenticationController()
+        {
+        }
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthService,
             IUserService userService)
         {
-            _formsAuthService = formsAuthService;
-            _userService = userService;
+            FormsAuth = formsAuthService;
+            Users = userService;
         }
 
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -23,7 +30,6 @@ namespace NuGetGallery
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
-
             return View();
         }
 
@@ -42,7 +48,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            var user = _userService.FindByUsernameOrEmailAddressAndPassword(
+            var user = Users.FindByUsernameOrEmailAddressAndPassword(
                 request.UserNameOrEmail,
                 request.Password);
 
@@ -67,7 +73,7 @@ namespace NuGetGallery
                 roles = user.Roles.Select(r => r.Name);
             }
 
-            _formsAuthService.SetAuthCookie(
+            FormsAuth.SetAuthCookie(
                 user.Username,
                 true,
                 roles);
@@ -79,7 +85,7 @@ namespace NuGetGallery
         {
             // TODO: this should really be a POST
 
-            _formsAuthService.SignOut();
+            FormsAuth.SignOut();
 
             return SafeRedirect(returnUrl);
         }

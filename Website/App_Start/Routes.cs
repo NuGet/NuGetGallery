@@ -233,6 +233,12 @@ namespace NuGetGallery
                 MVC.Api.GetPackageVersions());
 
             routes.MapRoute(
+                RouteName.StatisticsDownloadsApi,
+                "api/v2/stats/downloads",
+                defaults: new { controller = MVC.Api.Name, action = "StatisticsDownloadsApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
                 new { controller = MVC.Api.Name, action = "GetNuGetExeApi" });

@@ -4,7 +4,7 @@ namespace NuGetGallery.Migrations
     using System.Data.Entity.Migrations;
     using System.Data.Entity.Migrations.Infrastructure;
     
-    public sealed partial class AddMinRequiredVersionColumn : IMigrationMetadata
+    public sealed partial class AddMinRequiredVerisonColumn : IMigrationMetadata
     {
         string IMigrationMetadata.Id
         {

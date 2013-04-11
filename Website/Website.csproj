@@ -313,6 +313,7 @@
     <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
     <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
+    <Compile Include="Infrastructure\SubtextAttribute.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadModule.cs" />
@@ -473,9 +474,13 @@
     <Compile Include="Migrations\201302072118537_MovingGallerySettingsToConfiguration.Designer.cs">
       <DependentUpon>201302072118537_MovingGallerySettingsToConfiguration.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.cs" />
-    <Compile Include="Migrations\201302282115583_AddMinRequiredVersionColumn.Designer.cs">
-      <DependentUpon>201302282115583_AddMinRequiredVersionColumn.cs</DependentUpon>
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVerisonColumn.cs" />
+    <Compile Include="Migrations\201302282115583_AddMinRequiredVerisonColumn.Designer.cs">
+      <DependentUpon>201302282115583_AddMinRequiredVerisonColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201304020006512_UserLookupOptimization.cs" />
+    <Compile Include="Migrations\201304020006512_UserLookupOptimization.Designer.cs">
+      <DependentUpon>201304020006512_UserLookupOptimization.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -872,6 +877,7 @@
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
     <Content Include="Content\Images\managePackages.png" />
+    <Content Include="Content\Images\outercurve.png" />
     <Content Include="Content\Images\treeview\ajax-loader.gif" />
     <Content Include="Content\Images\treeview\file.gif" />
     <Content Include="Content\Images\treeview\folder-closed.gif" />
