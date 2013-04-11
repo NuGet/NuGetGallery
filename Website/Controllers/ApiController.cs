@@ -116,7 +116,7 @@ namespace NuGetGallery
                 QuietlyLogException(e);
             }
 
-            // Fall back to constructing the URL based on the packageRegistration version and ID.
+            // Fall back to constructing the URL based on the package version and ID.
 
             return await _packageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, id, version);
         }

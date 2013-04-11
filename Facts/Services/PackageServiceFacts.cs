@@ -346,9 +346,9 @@ namespace NuGetGallery
                 var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 // Yes, I know this is a lot of asserts. Yes, I know I broke the golden, one assert per test rule. 
-                // That said, it's still asserting one "thing": that the packageRegistration data was read. 
+                // That said, it's still asserting one "thing": that the package data was read. 
                 // I'm sorry, but I just can't imagine adding a test per property.
-                // Note that there is no assertion on packageRegistration identifier, because that's at the packageRegistration registration level (and covered in another test).
+                // Note that there is no assertion on package identifier, because that's at the package registration level (and covered in another test).
                 Assert.Equal("1.0.42.0", package.Version);
                 Assert.Equal("theFirstAuthor", package.Authors.ElementAt(0).Name);
                 Assert.Equal("theSecondAuthor", package.Authors.ElementAt(1).Name);

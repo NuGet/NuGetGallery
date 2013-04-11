@@ -232,7 +232,7 @@ namespace NuGetGallery
             Bind<IUploadFileService>()
                 .To<UploadFileService>();
 
-            // todo: bind all packageRegistration curators by convention
+            // todo: bind all package curators by convention
             Bind<IAutomaticPackageCurator>()
                 .To<WebMatrixPackageCurator>();
             Bind<IAutomaticPackageCurator>()
