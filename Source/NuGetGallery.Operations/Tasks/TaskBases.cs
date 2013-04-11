@@ -6,6 +6,7 @@ using System.Reflection;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
+using System.Data.Entity.Migrations.Infrastructure;
 
 namespace NuGetGallery.Operations
 {
@@ -137,7 +138,7 @@ namespace NuGetGallery.Operations
             ExecuteCommandCore(migrator);
         }
 
-        protected abstract void ExecuteCommandCore(DbMigrator migrator);
+        protected abstract void ExecuteCommandCore(MigratorBase migrator);
     }
 
     public abstract class DatabaseAndStorageTask : StorageTask
