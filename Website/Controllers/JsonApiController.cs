@@ -83,7 +83,6 @@ namespace NuGetGallery
         {
             string username = HttpContext.User.Identity.Name;
             _userService.Follow(username, id, saveChanges: true);
-            _indexingService.UpdateIndex();
             return new { success = true };
         }
 
@@ -93,7 +92,6 @@ namespace NuGetGallery
         {
             string username = HttpContext.User.Identity.Name;
             _userService.Unfollow(username, id, saveChanges: true);
-            _indexingService.UpdateIndex();
             return new { success = true };
         }
 
