@@ -156,7 +156,7 @@ namespace NuGetGallery
         }
 
         //
-        // GET: /stats/packageRegistration/{id}
+        // GET: /stats/package/{id}
 
         public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string[] groupby)
         {
@@ -177,7 +177,7 @@ namespace NuGetGallery
         }
 
         //
-        // GET: /stats/packageRegistration/{id}/{version}
+        // GET: /stats/package/{id}/{version}
 
         public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version, string[] groupby)
         {

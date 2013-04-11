@@ -16,25 +16,25 @@ namespace NuGetGallery
         int CountFollowers(PackageRegistration packageRegistration);
 
         /// <summary>
-        /// Populate the related database tables to create the specified packageRegistration for the specified user.
+        /// Populate the related database tables to create the specified package for the specified user.
         /// </summary>
         /// <remarks>
-        /// This method doesn't upload the packageRegistration binary to the blob storage. The caller must do it after this call.
+        /// This method doesn't upload the package binary to the blob storage. The caller must do it after this call.
         /// </remarks>
-        /// <param name="nugetPackage">The packageRegistration to be created.</param>
-        /// <param name="currentUser">The owner of the packageRegistration</param>
+        /// <param name="nugetPackage">The package to be created.</param>
+        /// <param name="currentUser">The owner of the package</param>
         /// <param name="commitChanges">Specifies whether to commit the changes to database.</param>
-        /// <returns>The created packageRegistration entity.</returns>
+        /// <returns>The created package entity.</returns>
         Package CreatePackage(INupkg nugetPackage, User user, bool commitChanges = true);
 
         /// <summary>
-        /// Delete all related data from database for the specified packageRegistration id and version.
+        /// Delete all related data from database for the specified package id and version.
         /// </summary>
         /// <remarks>
-        /// This method doesn't delete the packageRegistration binary from the blob storage. The caller must do it after this call.
+        /// This method doesn't delete the package binary from the blob storage. The caller must do it after this call.
         /// </remarks>
-        /// <param name="id">Id of the packageRegistration to be deleted.</param>
-        /// <param name="version">Version of the packageRegistration to be deleted.</param>
+        /// <param name="id">Id of the package to be deleted.</param>
+        /// <param name="version">Version of the package to be deleted.</param>
         /// <param name="commitChanges">Specifies whether to commit the changes to database.</param>
         void DeletePackage(string id, string version, bool commitChanges = true);
 

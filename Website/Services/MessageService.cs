@@ -279,10 +279,10 @@ The {2} Team";
 
             const string subject = "[{0}] The user '{1}' wants to add you as an owner of the package '{2}'.";
 
-            string body = @"The user '{0}' wants to add you as an owner of the packageRegistration '{1}'. 
-If you do not want to be listed as an owner of this packageRegistration, simply delete this email.
+            string body = @"The user '{0}' wants to add you as an owner of the package '{1}'. 
+If you do not want to be listed as an owner of this package, simply delete this email.
 
-To accept this request and become a listed owner of the packageRegistration, click the following URL:
+To accept this request and become a listed owner of the package, click the following URL:
 
 [{2}]({2})
 

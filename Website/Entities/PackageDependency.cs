@@ -8,7 +8,7 @@ namespace NuGetGallery
         public int PackageKey { get; set; }
 
         /// <remarks>
-        ///     We insert a record with a null Id to indicate an empty packageRegistration dependency set. In such a case, the Id would be empty and hence
+        ///     We insert a record with a null Id to indicate an empty package dependency set. In such a case, the Id would be empty and hence
         ///     we cannot mandate that it is required.
         /// </remarks>
         [StringLength(128)]

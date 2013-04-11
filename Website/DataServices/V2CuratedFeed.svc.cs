@@ -10,7 +10,7 @@ using NuGetGallery;
 
 namespace NuGetGallery
 {
-    // TODO : Have V2CuratedFeed derive from V2Feed?
+    // TODO : Have V2CuratedFeed derive from V2Feed
     public class V2CuratedFeed : FeedServiceBase<V2FeedPackage>
     {
         private const int FeedVersion = 2;

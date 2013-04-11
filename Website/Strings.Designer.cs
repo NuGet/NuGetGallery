@@ -88,7 +88,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to read the packageRegistration file..
+        ///   Looks up a localized string similar to Failed to read the package file..
         /// </summary>
         public static string FailedToReadUploadFile {
             get {
@@ -106,7 +106,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A nuget packageRegistration&apos;s {0} property may not be more than {1} characters long..
+        ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
         public static string NuGetPackagePropertyTooLong {
             get {
@@ -115,7 +115,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A packageRegistration with id &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
+        ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
         /// </summary>
         public static string PackageExistsAndCannotBeModified {
             get {
@@ -124,7 +124,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The packageRegistration ID &apos;{0}&apos; is not available..
+        ///   Looks up a localized string similar to The package ID &apos;{0}&apos; is not available..
         /// </summary>
         public static string PackageIdNotAvailable {
             get {
@@ -133,7 +133,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The packageRegistration is already curated..
+        ///   Looks up a localized string similar to The package is already curated..
         /// </summary>
         public static string PackageIsAlreadyCurated {
             get {
@@ -142,7 +142,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A packageRegistration with id &apos;{0}&apos; and version &apos;{1}&apos; does not exist..
+        ///   Looks up a localized string similar to A package with id &apos;{0}&apos; and version &apos;{1}&apos; does not exist..
         /// </summary>
         public static string PackageWithIdAndVersionNotFound {
             get {
@@ -151,7 +151,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No packageRegistration with this ID exists..
+        ///   Looks up a localized string similar to No package with this ID exists..
         /// </summary>
         public static string PackageWithIdDoesNotExist {
             get {
@@ -187,7 +187,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A packageRegistration file is required..
+        ///   Looks up a localized string similar to A package file is required..
         /// </summary>
         public static string UploadFileIsRequired {
             get {

@@ -34,7 +34,7 @@ namespace NuGetGallery
         {
             get
             {
-                // A packageRegistration can be identified as the latest available a few different ways
+                // A package can be identified as the latest available a few different ways
                 // First, if it's marked as the latest stable version
                 return LatestStableVersion
                        // Or if it's marked as the latest version (pre-release)

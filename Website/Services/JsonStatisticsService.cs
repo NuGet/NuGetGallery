@@ -13,8 +13,8 @@ namespace NuGetGallery
         private enum Reports
         {
             RecentPopularity,           //  most frequently downloaded package registration in last 6 weeks
-            RecentPopularityDetail,     //  most frequently downloaded packageRegistration, specific to actual version
-            RecentPopularityDetail_     //  breakout by version for a packageRegistration (drill down from RecentPopularity) 
+            RecentPopularityDetail,     //  most frequently downloaded package, specific to actual version
+            RecentPopularityDetail_     //  breakout by version for a package (drill down from RecentPopularity) 
         };
 
         private IReportService _reportService;

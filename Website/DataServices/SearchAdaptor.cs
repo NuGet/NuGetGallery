@@ -79,7 +79,7 @@ namespace NuGetGallery
             string followedBy = null)
         {
             SearchFilter searchFilter;
-            // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a packageRegistration
+            // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
             // and specific sort orders that we have in the index.
             if (TryReadSearchFilter(request, siteRoot, out searchFilter))
             {

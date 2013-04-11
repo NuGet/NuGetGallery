@@ -75,7 +75,7 @@ namespace NuGetGallery
 
             if (commitChanges)
             {
-                // we don't need to call _packageRegistrationRepository.CommitChanges() here because 
+                // we don't need to call _packageRepository.CommitChanges() here because 
                 // it shares the same EntityContext as _packageRepository.
                 _packageRepository.CommitChanges();
 

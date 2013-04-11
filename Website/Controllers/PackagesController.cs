@@ -18,7 +18,7 @@ namespace NuGetGallery
 {
     public partial class PackagesController : Controller
     {
-        // TODO: add support for URL-based packageRegistration submission
+        // TODO: add support for URL-based package submission
         // TODO: add support for uploading logos and screenshots
         // TODO: improve validation summary emphasis
 
@@ -645,14 +645,14 @@ namespace NuGetGallery
 
                 _autoCuratedPackageCmd.Execute(package, nugetPackage, commitChanges: false);
 
-                // save packageRegistration to blob storage
+                // save package to blob storage
                 uploadFile.Position = 0;
                 await _packageFileService.SavePackageFileAsync(package, uploadFile);
 
                 // commit all changes to database as an atomic transaction
                 _entitiesContext.SaveChanges();
 
-                // tell Lucene to update index for the new packageRegistration
+                // tell Lucene to update index for the new package
                 _indexingService.UpdateIndex();
 
                 // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.

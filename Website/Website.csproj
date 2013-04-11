@@ -742,9 +742,9 @@
     <Compile Include="Migrations\201304020006512_UserLookupOptimization.Designer.cs">
       <DependentUpon>201304020006512_UserLookupOptimization.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201304101823473_Favorites.cs" />
-    <Compile Include="Migrations\201304101823473_Favorites.Designer.cs">
-      <DependentUpon>201304101823473_Favorites.cs</DependentUpon>
+    <Compile Include="Migrations\201304110917389_FollowPackages.cs" />
+    <Compile Include="Migrations\201304110917389_FollowPackages.Designer.cs">
+      <DependentUpon>201304110917389_FollowPackages.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1050,6 +1050,7 @@
     <Content Include="Scripts\async-file-upload.js" />
     <Content Include="Scripts\knockout-2.2.1.debug.js" />
     <Content Include="Scripts\knockout-2.2.1.js" />
+    <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />

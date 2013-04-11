@@ -8,12 +8,12 @@ namespace NuGetGallery
     public interface IPackageFileService
     {
         /// <summary>
-        ///     Creates an ActionResult that allows a third-party client to download the nupkg for the packageRegistration.
+        ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
         Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package);
 
         /// <summary>
-        ///     Creates an ActionResult that allows a third-party client to download the nupkg for the packageRegistration.
+        ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
         Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
 
@@ -23,12 +23,12 @@ namespace NuGetGallery
         Task DeletePackageFileAsync(string id, string version);
 
         /// <summary>
-        ///     Saves the contents of the packageRegistration represented by the stream into the file storage.
+        ///     Saves the contents of the package represented by the stream into the file storage.
         /// </summary>
         Task SavePackageFileAsync(Package package, Stream packageFile);
 
         /// <summary>
-        ///     Downloads the packageRegistration from the file storage and reads it into a Stream asynchronously.
+        ///     Downloads the package from the file storage and reads it into a Stream asynchronously.
         /// </summary>
         Task<Stream> DownloadPackageFileAsync(Package packge);
     }

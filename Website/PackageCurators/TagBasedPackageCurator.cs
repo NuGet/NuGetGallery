@@ -8,12 +8,12 @@ namespace NuGetGallery
     public abstract class TagBasedPackageCurator : AutomaticPackageCurator
     {
         /// <summary>
-        ///     Gets a list of tags required for a packageRegistration to be selected by this curator. A packageRegistration MUST have ONE of the specified tags to be curated.
+        ///     Gets a list of tags required for a package to be selected by this curator. A package MUST have ONE of the specified tags to be curated.
         /// </summary>
         protected abstract IEnumerable<string> RequiredTags { get; }
 
         /// <summary>
-        ///     Gets the name of the curated feed to add the packageRegistration to.
+        ///     Gets the name of the curated feed to add the package to.
         /// </summary>
         protected abstract string CuratedFeedName { get; }
 
@@ -26,11 +26,11 @@ namespace NuGetGallery
                 // Break the tags up so we can be sure we don't catch any partial matches (i.e. "foobar" when we're looking for "foo")
                 string[] tags = galleryPackage.Tags.Split();
 
-                // Check if this packageRegistration should be curated
+                // Check if this package should be curated
                 if (tags.Any(tag => RequiredTags.Contains(tag, StringComparer.OrdinalIgnoreCase)))
                 {
                     // It should!
-                    // But now we need to ensure that the packageRegistration's dependencies are also curated
+                    // But now we need to ensure that the package's dependencies are also curated
                     if (DependenciesAreCurated(galleryPackage, feed))
                     {
                         GetService<ICreateCuratedPackageCommand>().Execute(
