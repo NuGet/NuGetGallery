@@ -16,8 +16,44 @@ namespace NuGetGallery
         [Fact]
         public async void StatisticsHomePage_ValidateReportStructureAndAvailability()
         {
-            var fakePackageReport = "[{\"PackageId\":\"A\",\"Downloads\":1},{\"PackageId\":\"B\",\"Downloads\":2}]";
-            var fakePackageVersionReport = "[{\"PackageId\":\"A\",\"PackageVersion\":\"1.0\",\"Downloads\":3},{\"PackageId\":\"A\",\"PackageVersion\":\"1.1\",\"Downloads\":4},{\"PackageId\":\"B\",\"PackageVersion\":\"1.0\",\"Downloads\":5}]";
+            JArray report1 = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "Downloads", 1 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "Downloads", 2 },
+                }
+            };
+
+            JArray report2 = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 3 },
+                },
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.1" },
+                    { "Downloads", 4 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 5 },
+                }
+            };
+
+            var fakePackageReport = report1.ToString();
+            var fakePackageVersionReport = report2.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -52,8 +88,44 @@ namespace NuGetGallery
         [Fact]
         public async void StatisticsHomePage_ValidateFullReportStructureAndAvailability()
         {
-            var fakePackageReport = "[{\"PackageId\":\"A\",\"Downloads\":1},{\"PackageId\":\"B\",\"Downloads\":2}]";
-            var fakePackageVersionReport = "[{\"PackageId\":\"A\",\"PackageVersion\":\"1.0\",\"Downloads\":3},{\"PackageId\":\"A\",\"PackageVersion\":\"1.1\",\"Downloads\":4},{\"PackageId\":\"B\",\"PackageVersion\":\"1.0\",\"Downloads\":5}]";
+            JArray report1 = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "Downloads", 1 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "Downloads", 2 },
+                }
+            };
+
+            JArray report2 = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 3 },
+                },
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.1" },
+                    { "Downloads", 4 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 5 },
+                }
+            };
+
+            var fakePackageReport = report1.ToString();
+            var fakePackageVersionReport = report2.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -104,7 +176,21 @@ namespace NuGetGallery
         [Fact]
         public async void StatisticsHomePage_Packages_ValidateReportStructureAndAvailability()
         {
-            var fakePackageReport = "[{\"PackageId\":\"A\",\"Downloads\":42},{\"PackageId\":\"B\",\"Downloads\":64}]";
+            JArray report = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "Downloads", 42 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "Downloads", 64 },
+                }
+            };
+
+            var fakePackageReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -127,7 +213,29 @@ namespace NuGetGallery
         [Fact]
         public async void StatisticsHomePage_PackageVersions_ValidateReportStructureAndAvailability()
         {
-            var fakePackageVersionReport = "[{\"PackageId\":\"A\",\"PackageVersion\":\"1.0\",\"Downloads\":22},{\"PackageId\":\"A\",\"PackageVersion\":\"1.1\",\"Downloads\":20},{\"PackageId\":\"B\",\"PackageVersion\":\"1.0\",\"Downloads\":64}]";
+            JArray report = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 22 },
+                },
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.1" },
+                    { "Downloads", 20 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 64 },
+                }
+            };
+
+            var fakePackageVersionReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -152,30 +260,53 @@ namespace NuGetGallery
         {
             string PackageId = "A";
 
-            JArray client1 = new JArray();
-            client1.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.1"), new JProperty("Operation", "Install"), new JProperty("Downloads", 101)));
-
-            JObject item1 = new JObject();
-            item1.Add("Version", "1.0");
-            item1.Add("Downloads", 101);
-            item1.Add("Items", client1);
-
-            JArray client2 = new JArray();
-            client2.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.1"), new JProperty("Operation", "Install"), new JProperty("Downloads", 201)));
-            client2.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.2"), new JProperty("Operation", "unknown"), new JProperty("Downloads", 301)));
-
-            JObject item2 = new JObject();
-            item2.Add("Version", "2.0");
-            item2.Add("Downloads", 502);
-            item2.Add("Items", client2);
-
-            JArray items = new JArray();
-            items.Add(item1);
-            items.Add(item2);
-
-            JObject report = new JObject();
-            report.Add("Downloads", 603);
-            report.Add("Items", items);
+            JObject report = new JObject
+            {
+                { "Downloads", 603 },
+                { "Items", new JArray
+                    {
+                        new JObject
+                        {
+                            { "Version", "1.0" },
+                            { "Downloads", 101 },
+                            { "Items", new JArray 
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 101 }
+                                    },
+                                }
+                            }
+                        },
+                        new JObject
+                        {
+                            { "Version", "2.0" },
+                            { "Downloads", 502 },
+                            { "Items", new JArray
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 201 }
+                                    },
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "unknow" },
+                                        { "Downloads", 301 }
+                                    }
+                                }
+                            }
+                        },
+                    }
+                }
+            };
 
             var fakeReport = report.ToString();
 
@@ -209,30 +340,53 @@ namespace NuGetGallery
             string PackageId = "A";
             string PackageVersion = "2.0";
 
-            JArray client1 = new JArray();
-            client1.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.1"), new JProperty("Operation", "Install"), new JProperty("Downloads", 101)));
-
-            JObject item1 = new JObject();
-            item1.Add("Version", "1.0");
-            item1.Add("Downloads", 101);
-            item1.Add("Items", client1);
-
-            JArray client2 = new JArray();
-            client2.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.1"), new JProperty("Operation", "Install"), new JProperty("Downloads", 201)));
-            client2.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.2"), new JProperty("Operation", "unknown"), new JProperty("Downloads", 301)));
-
-            JObject item2 = new JObject();
-            item2.Add("Version", "2.0");
-            item2.Add("Downloads", 502);
-            item2.Add("Items", client2);
-
-            JArray items = new JArray();
-            items.Add(item1);
-            items.Add(item2);
-
-            JObject report = new JObject();
-            report.Add("Downloads", 603);
-            report.Add("Items", items);
+            JObject report = new JObject
+            {
+                { "Downloads", 603 },
+                { "Items", new JArray
+                    {
+                        new JObject
+                        {
+                            { "Version", "1.0" },
+                            { "Downloads", 101 },
+                            { "Items", new JArray 
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 101 }
+                                    },
+                                }
+                            }
+                        },
+                        new JObject
+                        {
+                            { "Version", "2.0" },
+                            { "Downloads", 502 },
+                            { "Items", new JArray
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 201 }
+                                    },
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "unknow" },
+                                        { "Downloads", 301 }
+                                    }
+                                }
+                            }
+                        },
+                    }
+                }
+            };
 
             var fakeReport = report.ToString();
 
@@ -263,6 +417,15 @@ namespace NuGetGallery
         [Fact]
         public async void StatisticsHomePage_Packages_Negative_ValidateThrowOnInvalidStructure()
         {
+            JArray report = new JArray
+            {
+                new JObject
+                {
+                    { "Lala", "A" },
+                    { "Downloads", 303 }
+                }
+            };
+
             var fakePackageReport = "[{\"Lala\":\"A\",\"Downloads\":303}]";
 
             var fakeReportService = new Mock<IReportService>();

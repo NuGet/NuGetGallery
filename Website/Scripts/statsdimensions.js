@@ -1,5 +1,5 @@
 ﻿
-var test = function () {
+var groupbyNavigation = function () {
 
     $('.dimension-checkbox').click(function () {
 

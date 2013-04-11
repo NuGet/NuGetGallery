@@ -5,8 +5,8 @@ using System.Globalization;
 
 //  The implementation here is generic with respect to the specific properties in the data
 //  if can produce any pivot from any data. The result of the pivot is a 2-d array because
-//  that is easier to product html tables from. The intermediary data structure is decorated is
-//  decorated with sub-totals and sub-counts at every level. The sub-counts are there to simplify
+//  that is easier to produce html tables from. The intermediary data structure is decorated
+//  with sub-totals and sub-counts at every level. The sub-counts are there to simplify
 //  the creation of html table rowspans.
 
 namespace NuGetGallery
@@ -15,11 +15,13 @@ namespace NuGetGallery
     {
         public static Tuple<TableEntry[][], int> GroupBy(IList<StatisticsFact> facts, string[] pivot)
         {
-            //  firstly take the facts and the pivot vector and produce a tree structure
+            // Firstly take the facts and the pivot vector and produce a tree structure
 
             Level level = InnerGroupBy(facts, pivot);
 
-            //  secondly print this tree structure into a sparse 2-d array (for creating html tables)
+            // Secondly print this tree structure into a sparse 2-dimensional structure (for creating html tables)
+            // the structure is rectangular and not jagged. Logically this is a 2-d array however coding conventions
+            // dictate the preference for jagged array structures. (Note generally this is only slightly sparse in our data.)
 
             TableEntry[][] table = new TableEntry[level.Count][];
             for (int i = 0; i < level.Count; i++)
@@ -30,16 +32,6 @@ namespace NuGetGallery
             PopulateTable(level, table);
 
             return new Tuple<TableEntry[][], int>(table, level.Total);
-        }
-
-        public static int Total(IList<StatisticsFact> facts)
-        {
-            int total = 0;
-            foreach (StatisticsFact fact in facts)
-            {
-                total += fact.Amount;
-            }
-            return total;
         }
 
         private static void InnerPopulateTable(Level level, TableEntry[][] table, ref int row, int col)
@@ -124,6 +116,9 @@ namespace NuGetGallery
             }
         }
 
+        // The count in the tree is the count of values. It is equivallent to the count of rows if we
+        // were to represent this in a table.
+
         private static int Count(Level level)
         {
             int count = 0;
@@ -144,6 +139,9 @@ namespace NuGetGallery
             return count;
         }
 
+        // The total in a pivot can be found by adding up all the leaf nodes
+        // The subtotals are also stored in the tree.
+
         private static int Total(Level level)
         {
             int total = 0;
@@ -151,6 +149,8 @@ namespace NuGetGallery
             {
                 if (item.Value.Next == null)
                 {
+                    //  Next is null this must therefore be a leaf node in the tree
+
                     total += item.Value.Amount;
                 }
                 else
@@ -170,6 +170,13 @@ namespace NuGetGallery
             public int Rowspan { get; set; }
             public string Uri { get; set; }
         }
+
+        // This is for an internal data structure that represents the pivot as a tree.
+        // An instance of a Level is a node in that tree. The Level can either contain
+        // a dictionary of next Levels or an Amount. If Next is null then the Amount is valid
+        // and the Level is a leaf node in the tree. The Count and Total fields are calculated 
+        // and added to the tree after it has been constructed. They are correct with respect
+        // to their subtree. The Count is useful for formatting RowSpan in HTML tables.
 
         private class Level
         {

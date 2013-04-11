@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -218,12 +219,14 @@ namespace NuGetGallery
 
                 if (dim == 0)
                 {
-                    //  no recognized fields so just fall into the null logic
+                    // no recognized fields so just fall into the null logic
 
                     groupby = null;
                 }
                 else
                 {
+                    // the pivot array is used as the Columns in the report so we resize because this was the final set of columns 
+
                     Array.Resize(ref pivot, dim);
                 }
 
@@ -231,7 +234,7 @@ namespace NuGetGallery
 
                 if (id != null)
                 {
-                    int col = Array.FindIndex(pivot, (s) => s.Equals("Version"));
+                    int col = Array.FindIndex(pivot, (s) => s.Equals("Version", StringComparison.Ordinal));
                     if (col >= 0)
                     {
                         for (int row = 0; row < result.Item1.GetLength(0); row++)
@@ -260,13 +263,13 @@ namespace NuGetGallery
                 }
 
                 report.Table = null;
-                report.Total = StatisticsPivot.Total(report.Facts);
+                report.Total = report.Facts.Sum(fact => fact.Amount);
             }
         }
 
         private static void CheckGroupBy(string[] groupby, string name, string[] pivot, ref int dimension, StatisticsPackagesReport report)
         {
-            if (Array.Exists(groupby, (s) => s.Equals(name)))
+            if (Array.Exists(groupby, (s) => s.Equals(name, StringComparison.OrdinalIgnoreCase)))
             {
                 pivot[dimension++] = name;
                 report.Dimensions.Add(new StatisticsDimension { Name = name, IsChecked = true });
