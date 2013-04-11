@@ -166,33 +166,71 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
 
-            if (report != null)
+            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
+
+            StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
+
+            model.SetPackageDownloadsByVersion(id, report);
+
+            return View(model);
+        }
+
+        //
+        // GET: /stats/package/{id}/{version}
+
+        public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version, string[] groupby)
+        {
+            if (_statisticsService == null)
             {
-                string[] pivot = new string[4];
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
 
-                if (groupby != null)
+            StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
+
+            ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });
+
+            var model = new StatisticsPackagesViewModel();
+
+            model.SetPackageVersionDownloadsByClient(id, version, report);
+
+            return View(model);
+        }
+
+        private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id = null)
+        {
+            if (report == null)
+            {
+                return;
+            }
+
+            string[] pivot = new string[4];
+
+            if (groupby != null)
+            {
+                //  process and validate the groupby query. unrecognized fields are ignored. others fields regarded for existance
+
+                int dim = 0;
+
+                foreach (string dimension in dimensions)
                 {
-                    //  process and validate teh groupby query. unrecognized fields are ignored. others regarded for existance
+                    CheckGroupBy(groupby, dimension, pivot, ref dim, report);
+                }
 
-                    int dimension = 0;
+                if (dim == 0)
+                {
+                    //  no recognized fields so just fall into the null logic
 
-                    CheckGroupBy(groupby, "Version", pivot, ref dimension, report);
-                    CheckGroupBy(groupby, "Client", pivot, ref dimension, report);
-                    CheckGroupBy(groupby, "Operation", pivot, ref dimension, report);
+                    groupby = null;
+                }
+                else
+                {
+                    Array.Resize(ref pivot, dim);
+                }
 
-                    if (dimension == 0)
-                    {
-                        //  no recognized fields so just fall into the null logic
+                Tuple<StatisticsPivot.TableEntry[][], int> result = StatisticsPivot.GroupBy(report.Facts, pivot);
 
-                        groupby = null;
-                    }
-                    else
-                    {
-                        Array.Resize(ref pivot, dimension);
-                    }
-
-                    Tuple<StatisticsPivot.TableEntry[][], int> result = StatisticsPivot.GroupBy(report.Facts, pivot);
-
+                if (id != null)
+                {
                     int col = Array.FindIndex(pivot, (s) => s.Equals("Version"));
                     if (col >= 0)
                     {
@@ -205,51 +243,25 @@ namespace NuGetGallery
                             }
                         }
                     }
-
-                    report.Table = result.Item1;
-                    report.Total = result.Item2;
-                    report.Columns = pivot;
                 }
 
-                if (groupby == null)
-                {
-                    //  degenerate case (but still logically valid)
-
-                    report.Dimensions.Add(new StatisticsDimension { Name = "Version", IsChecked = false });
-                    report.Dimensions.Add(new StatisticsDimension { Name = "Client", IsChecked = false });
-                    report.Dimensions.Add(new StatisticsDimension { Name = "Operation", IsChecked = false });
-
-                    report.Table = null;
-                    report.Total = StatisticsPivot.Total(report.Facts);
-                }
+                report.Table = result.Item1;
+                report.Total = result.Item2;
+                report.Columns = pivot;
             }
 
-            StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
-
-            model.SetPackageDownloadsByVersion(id, report);
-
-            return View(model);
-        }
-
-        // the following should be dead now
-
-        //
-        // GET: /stats/package/{id}/{version}
-
-        public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version)
-        {
-            if (_statisticsService == null)
+            if (groupby == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                //  degenerate case (but still logically valid)
+
+                foreach (string dimension in dimensions)
+                {
+                    report.Dimensions.Add(new StatisticsDimension { Name = dimension, IsChecked = false });
+                }
+
+                report.Table = null;
+                report.Total = StatisticsPivot.Total(report.Facts);
             }
-
-            StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
-
-            var model = new StatisticsPackagesViewModel();
-
-            model.SetPackageVersionDownloadsByClient(id, version, report);
-
-            return View(model);
         }
 
         private static void CheckGroupBy(string[] groupby, string name, string[] pivot, ref int dimension, StatisticsPackagesReport report)

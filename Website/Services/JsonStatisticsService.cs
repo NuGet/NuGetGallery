@@ -207,29 +207,6 @@ namespace NuGetGallery
 
                 report.Facts = CreateFacts(content);
 
-                /*
-                //  the report blob was there but it might be empty
-
-                JToken downloads;
-                if (content.TryGetValue("Downloads", out downloads))
-                {
-                    report.Total = (int)downloads;
-
-                    JArray items = (JArray)content["Items"];
-
-                    foreach (JObject item in items)
-                    {
-                        StatisticsPackagesItemViewModel row = new StatisticsPackagesItemViewModel
-                        {
-                            PackageVersion = (string)item["Version"],
-                            Downloads = (int)item["Downloads"]
-                        };
-
-                        ((List<StatisticsPackagesItemViewModel>)report.Rows).Add(row);
-                    }
-                }
-                */
-
                 return report;
             }
             catch (JsonReaderException e)
@@ -273,43 +250,17 @@ namespace NuGetGallery
 
                 StatisticsPackagesReport report = new StatisticsPackagesReport();
 
-                JToken packageVersionItems;
-                if (content.TryGetValue("Items", out packageVersionItems))
+                IList<StatisticsFact> facts = new List<StatisticsFact>();
+
+                foreach (StatisticsFact fact in CreateFacts(content))
                 {
-                    // firstly find the right version - its an array and we will serach from the top (the list shouldn't be long)
-
-                    JArray items = null;
-                    foreach (JToken versionItem in (JArray)packageVersionItems)
+                    if (fact.Dimensions["Version"] == packageVersion)
                     {
-                        if (packageVersion == (string)versionItem["Version"])
-                        {
-                            items = (JArray)versionItem["Items"];
-                            report.Total = (int)versionItem["Downloads"];
-                            break;
-                        }
-                    }
-
-                    // if we couldn't find the item just return the empty report 
-
-                    if (items == null)
-                    {
-                        return report;
-                    }
-
-                    // secondly create the model from the json
-
-                    foreach (JObject item in items)
-                    {
-                        StatisticsPackagesItemViewModel row = new StatisticsPackagesItemViewModel
-                        {
-                            Client = (string)item["Client"],
-                            Operation = (string)item["Operation"] == null ? "unknown" : (string)item["Operation"],
-                            Downloads = (int)item["Downloads"]
-                        };
-
-                        ((List<StatisticsPackagesItemViewModel>)report.Rows).Add(row);
+                        facts.Add(fact);
                     }
                 }
+
+                report.Facts = facts;
 
                 return report;
             }
@@ -340,7 +291,8 @@ namespace NuGetGallery
 
                 foreach (JObject perClient in perVersion["Items"])
                 {
-                    string client = (string)perClient["Client"];
+                    string clientName = (string)perClient["ClientName"];
+                    string clientVersion = (string)perClient["ClientVersion"];
 
                     string operation = "unknown";
 
@@ -352,16 +304,22 @@ namespace NuGetGallery
 
                     int downloads = (int)perClient["Downloads"];
 
-                    facts.Add(new StatisticsFact(CreateDimensions(version, client, operation), downloads));
+                    facts.Add(new StatisticsFact(CreateDimensions(version, clientName, clientVersion, operation), downloads));
                 }
             }
 
             return facts;
         }
 
-        private static IDictionary<string, string> CreateDimensions(string version, string client, string operation)
+        private static IDictionary<string, string> CreateDimensions(string version, string clientName, string clientVersion, string operation)
         {
-            return new Dictionary<string, string> { { "Version", version }, { "Client", client }, { "Operation", operation } };
+            return new Dictionary<string, string> 
+            { 
+                { "Version", version },
+                { "ClientName", clientName },
+                { "ClientVersion", clientVersion },
+                { "Operation", operation }
+            };
         }
     }
 }

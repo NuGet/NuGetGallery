@@ -1101,6 +1101,7 @@
     <Content Include="Views\Packages\ReportMyPackage.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
+    <Content Include="Views\Statistics\_PivotTable.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DynamicData\CustomPages\" />

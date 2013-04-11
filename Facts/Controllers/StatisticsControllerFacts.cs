@@ -153,7 +153,7 @@ namespace NuGetGallery
             string PackageId = "A";
 
             JArray client1 = new JArray();
-            client1.Add(new JObject(new JProperty("Client", "NuGet"), new JProperty("Operation", "Install"), new JProperty("Downloads", 101)));
+            client1.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.1"), new JProperty("Operation", "Install"), new JProperty("Downloads", 101)));
 
             JObject item1 = new JObject();
             item1.Add("Version", "1.0");
@@ -161,12 +161,12 @@ namespace NuGetGallery
             item1.Add("Items", client1);
 
             JArray client2 = new JArray();
-            client2.Add(new JObject(new JProperty("Client", "NuGet"), new JProperty("Operation", "Install"), new JProperty("Downloads", 101)));
-            client2.Add(new JObject(new JProperty("Client", "NuGet"), new JProperty("Operation", "unknown"), new JProperty("Downloads", 101)));
+            client2.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.1"), new JProperty("Operation", "Install"), new JProperty("Downloads", 201)));
+            client2.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.2"), new JProperty("Operation", "unknown"), new JProperty("Downloads", 301)));
 
             JObject item2 = new JObject();
             item2.Add("Version", "2.0");
-            item2.Add("Downloads", 202);
+            item2.Add("Downloads", 502);
             item2.Add("Items", client2);
 
             JArray items = new JArray();
@@ -174,7 +174,7 @@ namespace NuGetGallery
             items.Add(item2);
 
             JObject report = new JObject();
-            report.Add("Downloads", 303);
+            report.Add("Downloads", 603);
             report.Add("Items", items);
 
             var fakeReport = report.ToString();
@@ -199,23 +199,42 @@ namespace NuGetGallery
                 sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
-            Assert.Equal<int>(303, sum);
-            Assert.Equal<int>(303, model.Report.Total);
+            Assert.Equal<int>(603, sum);
+            Assert.Equal<int>(603, model.Report.Total);
         }
 
         [Fact]
         public async void Statistics_By_Client_Operation_ValidateReportStructureAndAvailability()
         {
             string PackageId = "A";
-            string PackageVersion = "2.1";
+            string PackageVersion = "2.0";
 
-            var fakeReport = "{\"Downloads\":303, Items:[";
-            fakeReport += "{\"Version\":\"1.0\", \"Downloads\":101},";
-            fakeReport += "{\"Version\":\"2.1\", \"Downloads\":70, Items:[";
-            fakeReport += "{\"Client\":\"Package Manager\", \"Operation\":\"Install\", Downloads:45},";
-            fakeReport += "{\"Client\":\"Package Manager\", \"Operation\":\"Restore\", Downloads:25},";
-            fakeReport += "]}";
-            fakeReport += "]}";
+            JArray client1 = new JArray();
+            client1.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.1"), new JProperty("Operation", "Install"), new JProperty("Downloads", 101)));
+
+            JObject item1 = new JObject();
+            item1.Add("Version", "1.0");
+            item1.Add("Downloads", 101);
+            item1.Add("Items", client1);
+
+            JArray client2 = new JArray();
+            client2.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.1"), new JProperty("Operation", "Install"), new JProperty("Downloads", 201)));
+            client2.Add(new JObject(new JProperty("ClientName", "NuGet"), new JProperty("ClientVersion", "2.2"), new JProperty("Operation", "unknown"), new JProperty("Downloads", 301)));
+
+            JObject item2 = new JObject();
+            item2.Add("Version", "2.0");
+            item2.Add("Downloads", 502);
+            item2.Add("Items", client2);
+
+            JArray items = new JArray();
+            items.Add(item1);
+            items.Add(item2);
+
+            JObject report = new JObject();
+            report.Add("Downloads", 603);
+            report.Add("Items", items);
+
+            var fakeReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -226,17 +245,19 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion)).Model;
+            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion, new string[] { "ClientName" })).Model;
 
             int sum = 0;
 
-            foreach (var item in model.Report.Rows)
+            foreach (var row in model.Report.Table)
             {
-                sum += item.Downloads;
+                sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
-            Assert.Equal<int>(70, sum);
-            Assert.Equal<int>(70, model.Report.Total);
+            Assert.Equal<int>(502, sum);
+            Assert.Equal<int>(502, model.Report.Total);
         }
 
         [Fact]

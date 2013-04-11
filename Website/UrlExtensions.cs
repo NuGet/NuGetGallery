@@ -47,7 +47,9 @@ namespace NuGetGallery
 
         public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version)
         {
-            return url.RouteUrl(RouteName.StatisticsPackageDownloadsDetail, new { id, version });
+            string result = url.RouteUrl(RouteName.StatisticsPackageDownloadsDetail, new { id, version });
+
+            return result + "?groupby=ClientName";
         }
 
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm, bool prerelease)

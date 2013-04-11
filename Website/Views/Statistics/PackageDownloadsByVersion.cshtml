@@ -7,98 +7,7 @@
 <h2>Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (Over the Last 6 Weeks)</h2>
 @if (Model.IsReportAvailable)
 {
-    <div class="statistics-sidebar">
-
-        <table class="statistics-dimensions-table">
-
-            @foreach (var item in Model.Report.Dimensions)
-            {
-                <tr>
-                    <td>
-                        @item.Name
-                    </td>
-                    <td>
-                        @if (item.IsChecked)
-                        {
-                            <input class="dimension-checkbox" id="@item.Id" type="checkbox" checked>
-                        }
-                        else
-                        {
-                            <input class="dimension-checkbox" id="@item.Id" type="checkbox">
-                        }
-                    </td>
-                </tr>
-            }
-
-        </table>
-
-    </div>
-    <div class="statistics-data">
-
-        @if (Model.Report.Table != null)
-        {
-            <table class="sexy-table">
-                <thead>
-                    <tr>
-                        @foreach (var column in Model.Report.Columns)
-                        {
-                            var id = column + "-column";
-                        
-                            <th class="dimension-column" id="@id">@column</th>
-                        }
-                        <th>Downloads</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @{
-                    foreach (var row in Model.Report.Table)
-                    {
-                        <tr>
-
-                        @foreach (var entry in row)
-                        {
-                            if (entry != null)
-                            {
-                                if (entry.Rowspan > 1)
-                                {
-                                    <td rowspan="@entry.Rowspan" style="vertical-align:top">
-                                        @if (entry.Uri == null)
-                                        {
-                                            @entry.Data
-                                        }
-                                        else
-                                        {
-                                            <a href="@entry.Uri">@entry.Data</a>
-                                        }
-                                    </td>
-                                }
-                                else
-                                {
-                                    <td>
-                                        @if (entry.Uri == null)
-                                        {
-                                            @entry.Data
-                                        }
-                                        else
-                                        {
-                                            <a href="@entry.Uri">@entry.Data</a>
-                                        }
-                                    </td>
-                                }
-                            }
-                        }
-
-                        </tr>
-                    }
-                }
-                </tbody>
-            </table>
-        }
-
-        <div class="statistics-total-div">
-            <span class="statistics-total">Total:@Model.Report.Total</span>
-        </div>
-    </div>
+    @Html.Partial("_PivotTable", Model.Report)
 }
 else
 {
@@ -106,7 +15,6 @@ else
         Download statistics are not currently available for this package, please check back later. 
     </p>
 }
-
 @section BottomScripts
 {
     @Scripts.Render("~/Scripts/statsdimensions.js")
