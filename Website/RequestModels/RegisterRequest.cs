@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
@@ -12,8 +13,9 @@ namespace NuGetGallery
             @"(?i)^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|([-a-z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-z0-9][\w\.-]*[a-z0-9]\.[a-z][a-z\.]*[a-z]$",
             ErrorMessage = "This doesn't appear to be a valid email address.")]
         [Hint(
-            "Your email will not be public unless you choose to disclose it. It is required to verify your registration and for password retrieval, important notifications, etc."
-            )]
+            "Your email will not be public unless you choose to disclose it. " +
+            "It is required to verify your registration and for password retrieval, important notifications, etc. ")]
+        [Subtext("We use <a href=\"http://www.gravatar.com\" target=\"_blank\">Gravatar</a> to get your profile picture", AllowHtml = true)]
         public string EmailAddress { get; set; }
 
         [Required]

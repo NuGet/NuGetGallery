@@ -10,17 +10,24 @@
 <table class="sexy-table">
     <thead>
         <tr>
-            <th class="first">Client</th><th>Operation</th><th>Downloads</th>
+            <th></th><th class="first">Client</th><th>Operation</th><th>Downloads</th>
         </tr>
     </thead>
     <tbody>
-    @foreach (var item in Model.Report.Rows)
-    {
-        <tr>
-            <td>@item.Client</td>
-            <td>@item.Operation</td>
-            <td>@item.Downloads</td>
-        </tr>
+    @{
+        var index = 0;
+        
+        foreach (var item in Model.Report.Rows)
+        {
+            index++;
+            
+            <tr>
+                <td class="statistics-rank">@index</td>
+                <td>@item.Client</td>
+                <td>@item.Operation</td>
+                <td>@item.Downloads</td>
+            </tr>
+        }
     }
         <tr>
             <td><span class="statistics-total">Total:</span></td>

@@ -334,7 +334,7 @@ namespace NuGetGallery
                 );
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
-            return RedirectToAction(MVC.Packages.DisplayPackage(id, version));
+            return Redirect(Url.Package(id, version));
         }
 
         [HttpPost]
@@ -369,7 +369,7 @@ namespace NuGetGallery
                 });
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
-            return RedirectToAction(MVC.Packages.DisplayPackage(id, version));
+            return Redirect(Url.Package(id, version));
         }
 
         [Authorize]
