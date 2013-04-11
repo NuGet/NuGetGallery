@@ -1000,12 +1000,40 @@ ul.pager li.next { padding-left: 10px; }
     font-weight:bold;
 }
 
+.statistics-total-div {
+    height:100px;
+    width:300px;
+}
+
 .statistics-total {
     font-weight:bold;
+    font-size: 1.5em;
+    position:relative;
+    top:30px;
+    left:60px;
 }
 
 .statistics-rank {
     font-size: 0.8em;
+}
+
+.statistics-sidebar
+{
+    float:left;
+    width:190px;
+    height:300px;
+    font-size: 1.25em;
+    font-weight: normal;
+    padding: 5px 15px 0px 0px;
+}
+.statistics-data
+{
+    float:left;
+}
+.statistics-dimensions-table
+{
+    position:relative;
+    top:50px;
 }
 
     /* NuGet Badge */
@@ -1272,3 +1300,4 @@ form .async-upload-progress-advance
     display: block;
     background-color: green;
 }
+

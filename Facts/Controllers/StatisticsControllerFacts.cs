@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace NuGetGallery
@@ -151,7 +152,32 @@ namespace NuGetGallery
         {
             string PackageId = "A";
 
-            var fakeReport = "{\"Downloads\":303, Items:[{\"Version\":\"1.0\",\"Downloads\":101},{\"Version\":\"2.1\",\"Downloads\":202}]}";
+            JArray client1 = new JArray();
+            client1.Add(new JObject(new JProperty("Client", "NuGet"), new JProperty("Operation", "Install"), new JProperty("Downloads", 101)));
+
+            JObject item1 = new JObject();
+            item1.Add("Version", "1.0");
+            item1.Add("Downloads", 101);
+            item1.Add("Items", client1);
+
+            JArray client2 = new JArray();
+            client2.Add(new JObject(new JProperty("Client", "NuGet"), new JProperty("Operation", "Install"), new JProperty("Downloads", 101)));
+            client2.Add(new JObject(new JProperty("Client", "NuGet"), new JProperty("Operation", "unknown"), new JProperty("Downloads", 101)));
+
+            JObject item2 = new JObject();
+            item2.Add("Version", "2.0");
+            item2.Add("Downloads", 202);
+            item2.Add("Items", client2);
+
+            JArray items = new JArray();
+            items.Add(item1);
+            items.Add(item2);
+
+            JObject report = new JObject();
+            report.Add("Downloads", 303);
+            report.Add("Items", items);
+
+            var fakeReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -162,13 +188,13 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult) await controller.PackageDownloadsByVersion(PackageId)).Model;
+            var model = (StatisticsPackagesViewModel)((ViewResult) await controller.PackageDownloadsByVersion(PackageId, new string[] { "Version" })).Model;
 
             int sum = 0;
 
-            foreach (var item in model.Report.Rows)
+            foreach (var row in model.Report.Table)
             {
-                sum += item.Downloads;
+                sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
             Assert.Equal<int>(303, sum);

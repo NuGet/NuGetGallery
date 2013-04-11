@@ -205,6 +205,9 @@ namespace NuGetGallery
 
                 StatisticsPackagesReport report = new StatisticsPackagesReport();
 
+                report.Facts = CreateFacts(content);
+
+                /*
                 //  the report blob was there but it might be empty
 
                 JToken downloads;
@@ -225,6 +228,7 @@ namespace NuGetGallery
                         ((List<StatisticsPackagesItemViewModel>)report.Rows).Add(row);
                     }
                 }
+                */
 
                 return report;
             }
@@ -324,6 +328,40 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(e);
                 return null;
             }
+        }
+
+        private static IList<StatisticsFact> CreateFacts(JObject data)
+        {
+            IList<StatisticsFact> facts = new List<StatisticsFact>();
+
+            foreach (JObject perVersion in data["Items"])
+            {
+                string version = (string)perVersion["Version"];
+
+                foreach (JObject perClient in perVersion["Items"])
+                {
+                    string client = (string)perClient["Client"];
+
+                    string operation = "unknown";
+
+                    JToken opt;
+                    if (perClient.TryGetValue("Operation", out opt))
+                    {
+                        operation = (string)opt;
+                    }
+
+                    int downloads = (int)perClient["Downloads"];
+
+                    facts.Add(new StatisticsFact(CreateDimensions(version, client, operation), downloads));
+                }
+            }
+
+            return facts;
+        }
+
+        private static IDictionary<string, string> CreateDimensions(string version, string client, string operation)
+        {
+            return new Dictionary<string, string> { { "Version", version }, { "Client", client }, { "Operation", operation } };
         }
     }
 }

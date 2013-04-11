@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -155,7 +157,7 @@ namespace NuGetGallery
         //
         // GET: /stats/package/{id}
 
-        public virtual async Task<ActionResult> PackageDownloadsByVersion(string id)
+        public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string[] groupby)
         {
             if (_statisticsService == null)
             {
@@ -164,12 +166,72 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
 
-            var model = new StatisticsPackagesViewModel();
+            if (report != null)
+            {
+                string[] pivot = new string[4];
+
+                if (groupby != null)
+                {
+                    //  process and validate teh groupby query. unrecognized fields are ignored. others regarded for existance
+
+                    int dimension = 0;
+
+                    CheckGroupBy(groupby, "Version", pivot, ref dimension, report);
+                    CheckGroupBy(groupby, "Client", pivot, ref dimension, report);
+                    CheckGroupBy(groupby, "Operation", pivot, ref dimension, report);
+
+                    if (dimension == 0)
+                    {
+                        //  no recognized fields so just fall into the null logic
+
+                        groupby = null;
+                    }
+                    else
+                    {
+                        Array.Resize(ref pivot, dimension);
+                    }
+
+                    Tuple<StatisticsPivot.TableEntry[][], int> result = StatisticsPivot.GroupBy(report.Facts, pivot);
+
+                    int col = Array.FindIndex(pivot, (s) => s.Equals("Version"));
+                    if (col >= 0)
+                    {
+                        for (int row = 0; row < result.Item1.GetLength(0); row++)
+                        {
+                            StatisticsPivot.TableEntry entry = result.Item1[row][col];
+                            if (entry != null)
+                            {
+                                entry.Uri = Url.Package(id, entry.Data);
+                            }
+                        }
+                    }
+
+                    report.Table = result.Item1;
+                    report.Total = result.Item2;
+                    report.Columns = pivot;
+                }
+
+                if (groupby == null)
+                {
+                    //  degenerate case (but still logically valid)
+
+                    report.Dimensions.Add(new StatisticsDimension { Name = "Version", IsChecked = false });
+                    report.Dimensions.Add(new StatisticsDimension { Name = "Client", IsChecked = false });
+                    report.Dimensions.Add(new StatisticsDimension { Name = "Operation", IsChecked = false });
+
+                    report.Table = null;
+                    report.Total = StatisticsPivot.Total(report.Facts);
+                }
+            }
+
+            StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
 
             model.SetPackageDownloadsByVersion(id, report);
 
             return View(model);
         }
+
+        // the following should be dead now
 
         //
         // GET: /stats/package/{id}/{version}
@@ -188,6 +250,19 @@ namespace NuGetGallery
             model.SetPackageVersionDownloadsByClient(id, version, report);
 
             return View(model);
+        }
+
+        private static void CheckGroupBy(string[] groupby, string name, string[] pivot, ref int dimension, StatisticsPackagesReport report)
+        {
+            if (Array.Exists(groupby, (s) => s.Equals(name)))
+            {
+                pivot[dimension++] = name;
+                report.Dimensions.Add(new StatisticsDimension { Name = name, IsChecked = true });
+            }
+            else
+            {
+                report.Dimensions.Add(new StatisticsDimension { Name = name, IsChecked = false });
+            }
         }
     }
 }
