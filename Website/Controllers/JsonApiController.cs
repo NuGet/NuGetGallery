@@ -67,7 +67,7 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(ids))
             {
-                return new { success = true, packages = new string[0] };
+                return new { success = true, ids = new string[0] };
             }
 
             string username = HttpContext.User.Identity.Name;

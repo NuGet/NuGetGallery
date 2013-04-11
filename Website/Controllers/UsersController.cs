@@ -392,7 +392,7 @@ namespace NuGetGallery
                 {
                     Username = user.Username,
                     EmailAddress = user.EmailAddress,
-                    OwnedPackages = ownedPackages,
+                    Packages = ownedPackages,
                     FollowedPackages = followedPackages,
                     TotalPackageDownloadCount = ownedPackages.Sum(p => p.TotalDownloadCount)
                 };
