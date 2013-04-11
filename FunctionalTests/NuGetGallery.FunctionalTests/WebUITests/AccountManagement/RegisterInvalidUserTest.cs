@@ -26,6 +26,8 @@ namespace NuGetGallery.FunctionalTests
             registerPageRequest = null;
 
             WebTestRequest registerPagePostRequest = new WebTestRequest(UrlHelper.RegisterPageUrl);
+            //create a form and set the UserName, Email and password as form post parameters.  
+            //We just need to set some unique user name and Email.  
             registerPagePostRequest.Method = "POST";
             registerPagePostRequest.ExpectedResponseUrl = UrlHelper.RegistrationPendingPageUrl;
             FormPostHttpBody registerNewUserFormPost = new FormPostHttpBody();
@@ -54,11 +56,9 @@ namespace NuGetGallery.FunctionalTests
             //Validate the response to make sure that it lacks the pending confirmation text.           
             PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.RegisterNewUserPendingConfirmationText, false);
             registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);
-            yield return registerPagePostRequest;
-            registerPagePostRequest = null;
-            //Validate that the            
-            PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.UserAlreadyExistsText);
-            registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(PendingConfirmationTextRule.Validate);
+            //Validate the error is handled.  We should end up on the same page again.     
+            ValidationRuleFindText ErrorHandledTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.CreateNewAccountText);
+            registerPagePostRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(ErrorHandledTextRule.Validate);
             yield return registerPagePostRequest;
             registerPagePostRequest = null;
         }
