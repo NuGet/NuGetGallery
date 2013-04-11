@@ -43,20 +43,30 @@ namespace NuGetGallery.Operations.Tasks
         {
             var scriptingMigrator = new MigratorScriptingDecorator(migrator);
 
-            // Determine the start migration
-            var start = migrator.GetDatabaseMigrations().FirstOrDefault();
+            string start;
+            string target;
+            if (migrator.GetDatabaseMigrations().Any(s => IsMigration(s, TargetMigration)))
+            {
+                // Down migration, start is null, target is the target
+                start = null;
+                target = migrator.GetDatabaseMigrations().Single(s => IsMigration(s, TargetMigration));
+            }
+            else
+            {
+                // Up migration, go from start to target.
+                start = migrator.GetDatabaseMigrations().FirstOrDefault();
+                target = migrator.GetLocalMigrations().Single(s => IsMigration(s, TargetMigration));
+            }
 
-            // Determine the target
-            var target = migrator.GetLocalMigrations().Single(s => IsMigration(s, TargetMigration));
-
-            string scriptFileName = String.Format("{0}-{1}.sql", start ?? "0", target);
+            string startName = start ?? migrator.GetDatabaseMigrations().FirstOrDefault();
+            string scriptFileName = String.Format("{0}-{1}.sql", startName, target);
             if(File.Exists(scriptFileName)) {
                 Log.Error("File already exists: {0}", scriptFileName);
                 return;
             }
 
             // Generate script
-            Log.Info("Scripting migration from {0} to {1}", start ?? "<Nothing>", target);
+            Log.Info("Scripting migration from {0} to {1}", startName, target);
             if (!WhatIf)
             {
                 string script = scriptingMigrator.ScriptUpdate(start, target);
@@ -85,7 +95,7 @@ namespace NuGetGallery.Operations.Tasks
 
             if (!toApply.Any(s => IsMigration(s, TargetMigration)))
             {
-                Log.Error("{0} is not a pending migration. Only the UP direction is supported at the moment.", TargetMigration);
+                Log.Error("{0} is not a pending migration. Only the UP direction can be run in this way. Use the -Sql option to script downwards migrations.", TargetMigration);
                 return;
             }
 

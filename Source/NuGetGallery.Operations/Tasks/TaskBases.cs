@@ -124,7 +124,7 @@ namespace NuGetGallery.Operations
             Type configType = asm.GetType(GatewayType);
             if (configType == null)
             {
-                Log.Error("Could not find gateway type: {0}", configType.FullName);
+                Log.Error("Could not find gateway type: {0}", GatewayType);
                 return;
             }
 
