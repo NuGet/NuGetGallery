@@ -1,16 +1,16 @@
 ﻿@model PackageListViewModel
 
 @{
-    ViewBag.Title = "Favorite Packages";
+    ViewBag.Title = "Followed Packages";
 }
 
 @if (Model.Items.Count == 0)
 {
-    <p>You currently have no favorite packages.</p>
-    <p><a href="@Url.PackageList()">Go Find some packages!</a></p>
+    <p>You currently are not following any packages.</p>
+    <p><a href="@Url.PackageList()">Go find some packages!</a></p>
 }
 
-<ul id="favorites" style="list-style: none">
+<ul id="followedPackages" style="list-style: none">
     @foreach (var package in Model.Items)
     {
         <li>
@@ -35,12 +35,12 @@
     @* NuGet JSON API *@
     <script src="@Url.Content("~/json/JsonApi?json")"></script>
     
-    @* NuGet Favorite Button *@
-    <script src="@Href("~/Scripts/favorites.js")"></script>
+    @* NuGet Follow Buttons *@
+    <script src="@Href("~/Scripts/follow.js")"></script>
     <script>
         $(function () {
-            showFavorites("@String.Join("|", Model.Items.Select(item => item.Id))");
-            bindFavoriteButtons();
+            showFollowButtons("@String.Join("|", Model.Items.Select(item => item.Id))");
+            bindFollowButtons();
         });
     </script>
 }

@@ -18,14 +18,14 @@ namespace NuGetGallery
 
             cryptoService = cryptoService ?? new Mock<ICryptographyService>();
             userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
-            var favoritesRepo = new Mock<IEntityRepository<PackageFavorite>>();
+            var followsRepo = new Mock<IEntityRepository<PackageFollow>>();
             var packageRegRepo = new Mock<IEntityRepository<PackageRegistration>>();
 
             var userService = new Mock<UserService>(
                 config.Object,
                 cryptoService.Object,
                 userRepo.Object,
-                favoritesRepo.Object,
+                followsRepo.Object,
                 packageRegRepo.Object)
             {
                 CallBase = true
@@ -767,16 +767,16 @@ namespace NuGetGallery
             }
         }
 
-        public class TheWhereIsFavoriteMethod
+        public class TheWhereIsFollowingMethod
         {
             [Fact]
             public void GetsAListOfPackageIds()
             {
                 var user = new User { EmailAddress = "old@example.com", Key = 1400, Username = "Bill" };
                 var allUsers = (new[] { user });
-                var allFavorites = new []
+                var allFollows = new []
                 {
-                    new PackageFavorite
+                    new PackageFollow
                     {
                         UserKey = 1400,
                         PackageRegistrationKey = 1,
@@ -786,7 +786,7 @@ namespace NuGetGallery
                             Id = "Package1",
                         },
                         User = user,
-                        IsFavorited = true,
+                        IsFollowing = true,
                     }
                 };
 
@@ -794,11 +794,11 @@ namespace NuGetGallery
                 service.MockUserRepository
                     .Setup(repo => repo.GetAll())
                     .Returns(allUsers.AsQueryable());
-                service.MockFavoritesRepository
+                service.MockFollowsRepository
                     .Setup(repo => repo.GetAll())
-                    .Returns(allFavorites.AsQueryable());
+                    .Returns(allFollows.AsQueryable());
 
-                string[] results = service.WhereIsFavorite("Bill", new[] { "Package1", "Package2" }).ToArray();
+                string[] results = service.WhereIsFollowing("Bill", new[] { "Package1", "Package2" }).ToArray();
                 Assert.Equal(1, results.Length);
                 Assert.Equal("Package1", results[0]);
             }
@@ -812,7 +812,7 @@ namespace NuGetGallery
                     .Returns(new User[0].AsQueryable());
 
                 Assert.Throws<UserNotFoundException>(() =>
-                    service.WhereIsFavorite("Bill", new[] { "Package1" })
+                    service.WhereIsFollowing("Bill", new[] { "Package1" })
                 );
             }
         }
@@ -822,14 +822,14 @@ namespace NuGetGallery
             public Mock<ICryptographyService> MockCrypto { get; protected set; }
             public Mock<IConfiguration> MockConfig { get; protected set; }
             public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
-            public Mock<IEntityRepository<PackageFavorite>> MockFavoritesRepository { get; protected set; }
+            public Mock<IEntityRepository<PackageFollow>> MockFollowsRepository { get; protected set; }
 
             public TestableUserService()
             {
                 CryptoService = (MockCrypto = new Mock<ICryptographyService>()).Object;
                 Config = (MockConfig = new Mock<IConfiguration>()).Object;
                 UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
-                FavoritesRepository = (MockFavoritesRepository = new Mock<IEntityRepository<PackageFavorite>>()).Object;
+                FollowsRepository = (MockFollowsRepository = new Mock<IEntityRepository<PackageFollow>>()).Object;
 
                 // Set ConfirmEmailAddress to a default of true
                 MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);

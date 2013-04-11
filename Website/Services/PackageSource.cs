@@ -9,24 +9,24 @@ namespace NuGetGallery
     {
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IEntityRepository<CuratedPackage> _curatedPackageRepository;
-        private readonly IEntityRepository<PackageFavorite> _favoritesRepository;
+        private readonly IEntityRepository<PackageFollow> _followsRepository;
 
         public PackageSource(EntitiesContext entitiesContext)
         {
             _packageRepository = new EntityRepository<Package>(entitiesContext);
             _curatedPackageRepository = new EntityRepository<CuratedPackage>(entitiesContext);
-            _favoritesRepository = new EntityRepository<PackageFavorite>(entitiesContext);
+            _followsRepository = new EntityRepository<PackageFollow>(entitiesContext);
         }
 
         [Ninject.Inject]
         public PackageSource(
             IEntityRepository<Package> packageRepo,
             IEntityRepository<CuratedPackage> curatedPackageRepo,
-            IEntityRepository<PackageFavorite> favoritesRepo)
+            IEntityRepository<PackageFollow> followsRepo)
         {
             _packageRepository = packageRepo;
             _curatedPackageRepository = curatedPackageRepo;
-            _favoritesRepository = favoritesRepo;
+            _followsRepository = followsRepo;
         }
 
         public IQueryable<PackageIndexEntity> GetPackagesForIndexing(DateTime? newerThan)
@@ -47,14 +47,14 @@ namespace NuGetGallery
 
             var list1 = set.ToList();
 
-            // Find all favorite relationships that have been updated
+            // Find all follow relationships that have been updated
             // Build a representative package set corresponding to the list
-            var updatedFavoritePackages = _favoritesRepository.GetAll()
+            var updatedFollowedPackages = _followsRepository.GetAll()
                 .Where(f => f.LastModified >= newerThan)
                 .GroupBy(f => f.PackageRegistrationKey)
                 .ToDictionary(group => group.Key);
 
-            var updatedPackageRegistrationKeys = updatedFavoritePackages.Keys.ToArray();
+            var updatedPackageRegistrationKeys = updatedFollowedPackages.Keys.ToArray();
 
             var updatedPackageRepresentatives = _packageRepository.GetAll()
                 .Where(p => p.IsLatest || p.IsLatestStable)
@@ -74,16 +74,16 @@ namespace NuGetGallery
 
             var list = finalSet.Values;
 
-            // Look up which curatedFeeds and which favorites refer to which package, 
+            // Look up which curatedFeeds and which followers refer to which package, 
             // and attach that information to the package for indexing
             var curatedFeedsPerPackageRegistration = _curatedPackageRepository.GetAll()
                 .Select(cp => new { cp.PackageRegistrationKey, cp.CuratedFeedKey })
                 .GroupBy(x => x.PackageRegistrationKey)
                 .ToDictionary(group => group.Key, element => element.Select(x => x.CuratedFeedKey));
 
-            var favoritersPerPackageRegistration = _favoritesRepository.GetAll()
-                .Where(fav => fav.IsFavorited)
-                .Select(fav => new { fav.PackageRegistrationKey, fav.User.Username })
+            var followersPerPackageRegistration = _followsRepository.GetAll()
+                .Where(f => f.IsFollowing)
+                .Select(f => new { f.PackageRegistrationKey, f.User.Username })
                 .GroupBy(x => x.PackageRegistrationKey)
                 .ToDictionary(group => group.Key, element => element.Select(x => x.Username));
 
@@ -92,7 +92,7 @@ namespace NuGetGallery
                 {
                     Package = p, 
                     CuratedFeedKeys = curatedFeedsPerPackageRegistration.GetValueOrDefault(p.PackageRegistrationKey),
-                    Favoriters = favoritersPerPackageRegistration.GetValueOrDefault(p.PackageRegistrationKey),
+                    Followers = followersPerPackageRegistration.GetValueOrDefault(p.PackageRegistrationKey),
                 });
 
             return entities.AsQueryable();

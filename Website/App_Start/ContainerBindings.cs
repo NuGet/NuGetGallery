@@ -115,8 +115,8 @@ namespace NuGetGallery
                 .To<EntityRepository<PackageStatistics>>()
                 .InRequestScope();
 
-            Bind<IEntityRepository<PackageFavorite>>()
-                .To<EntityRepository<PackageFavorite>>()
+            Bind<IEntityRepository<PackageFollow>>()
+                .To<EntityRepository<PackageFollow>>()
                 .InRequestScope();
 
             Bind<ICuratedFeedService>()

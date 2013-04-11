@@ -9,7 +9,7 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void UnderstandsPhraseQueries()
         {
-            var query = DoAnalysis(new NuGetSearchTerm {Field = "Description", TermOrPhrase = "packageRegistration manager"});
+            var query = DoAnalysis(new NuGetSearchTerm { Field = "Description", TermOrPhrase = "package manager" });
             Assert.IsType<PhraseQuery>(query);
         }
 

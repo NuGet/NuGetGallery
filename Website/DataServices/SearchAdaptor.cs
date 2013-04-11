@@ -76,7 +76,7 @@ namespace NuGetGallery
             string targetFramework, 
             bool includePrerelease,
             int? curatedFeedKey,
-            string favoritedBy = null)
+            string followedBy = null)
         {
             SearchFilter searchFilter;
             // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a packageRegistration
@@ -86,7 +86,7 @@ namespace NuGetGallery
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
                 searchFilter.CuratedFeedKey = curatedFeedKey;
-                searchFilter.FavoritedBy = favoritedBy;
+                searchFilter.FollowedBy = followedBy;
 
                 Trace.WriteLine("TODO: use target framework parameter - see #856" + targetFramework);
 

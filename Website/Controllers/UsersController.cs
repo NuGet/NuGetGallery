@@ -169,12 +169,12 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public virtual ActionResult MyFavorites()
+        public virtual ActionResult MyFollowedPackages()
         {
             var user = UserService.FindByUsername(CurrentUser.Identity.Name);
-            var favorites = UserService.GetFavoritePackages(user);
+            var followedPackages = UserService.GetFollowedPackages(user);
 
-            var packages = favorites
+            var packages = followedPackages
                 .Select(f => f.PackageRegistration.Packages.Where(p => p.Listed)
                                                .OrderBy(p => p.LastUpdated)
                                                .FirstOrDefault())
@@ -184,7 +184,7 @@ namespace NuGetGallery
                 packages, 
                 searchTerm: null, 
                 sortOrder: null, 
-                totalCount: favorites.Count(), 
+                totalCount: followedPackages.Count(), 
                 pageIndex: 0, 
                 pageSize: 50, 
                 url: Url, 
@@ -370,15 +370,15 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = (from p in PackageService.FindPackagesByOwner(user)
+            var ownedPackages = (from p in PackageService.FindPackagesByOwner(user)
                             where p.Listed
                             orderby p.Version descending
                             group p by p.PackageRegistration.Id)
                 .Select(c => new PackageViewModel(c.First()))
                 .ToList();
 
-            var currentFavoritePackages = UserService.GetFavoritePackages(user)
-                .Where(f => f.IsFavorited)
+            var followedPackages = UserService.GetFollowedPackages(user)
+                .Where(f => f.IsFollowing)
                 .Select(f => f.PackageRegistration.Packages.Where(p => p.Listed)
                                                .OrderBy(p => p.LastUpdated)
                                                .FirstOrDefault())
@@ -392,9 +392,9 @@ namespace NuGetGallery
                 {
                     Username = user.Username,
                     EmailAddress = user.EmailAddress,
-                    Packages = packages,
-                    FavoritePackages = currentFavoritePackages,
-                    TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount)
+                    OwnedPackages = ownedPackages,
+                    FollowedPackages = followedPackages,
+                    TotalPackageDownloadCount = ownedPackages.Sum(p => p.TotalDownloadCount)
                 };
 
             return View(model);

@@ -24,7 +24,7 @@ namespace NuGetGallery
         [Display(Name = "Contacted Owner")]
         public bool AlreadyContactedOwner { get; set; }
 
-        [Required(ErrorMessage = "You must select a reason for reporting the packageRegistration")]
+        [Required(ErrorMessage = "You must select a reason for reporting the package")]
         [Display(Name = "Reason")]
         public string Reason { get; set; }
 
@@ -50,13 +50,13 @@ namespace NuGetGallery
         public static readonly Dictionary<ReportPackageReason, string> ReasonDescriptions = new Dictionary<ReportPackageReason, string>
         {
             {ReportPackageReason.Other, "Other" },
-            {ReportPackageReason.HasABug, "The packageRegistration has a bug" },
-            {ReportPackageReason.ContainsMaliciousCode, "The packageRegistration contains malicious code" },
-            {ReportPackageReason.ViolatesALicenseIOwn, "The packageRegistration violates a license I own" },
-            {ReportPackageReason.IsFraudulent, "The packageRegistration owner is fraudulently claiming authorship" },
-            {ReportPackageReason.ContainsPrivateAndConfidentialData, "The packageRegistration contains private/confidential data" },
-            {ReportPackageReason.PublishedWithWrongVersion, "The packageRegistration was published as the wrong version" },
-            {ReportPackageReason.ReleasedInPublicByAccident, "The packageRegistration was not intended to be published publically on nuget.org"},
+            {ReportPackageReason.HasABug, "The package has a bug" },
+            {ReportPackageReason.ContainsMaliciousCode, "The package contains malicious code" },
+            {ReportPackageReason.ViolatesALicenseIOwn, "The package violates a license I own" },
+            {ReportPackageReason.IsFraudulent, "The package owner is fraudulently claiming authorship" },
+            {ReportPackageReason.ContainsPrivateAndConfidentialData, "The package contains private/confidential data" },
+            {ReportPackageReason.PublishedWithWrongVersion, "The package was published as the wrong version" },
+            {ReportPackageReason.ReleasedInPublicByAccident, "The package was not intended to be published publically on nuget.org"},
         };
 
         public ReportAbuseViewModel()

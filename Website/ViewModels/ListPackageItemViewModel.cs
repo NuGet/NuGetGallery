@@ -20,7 +20,6 @@ namespace NuGetGallery
         public IEnumerable<PackageAuthor> Authors { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public string MinClientVersion { get; set; }
-        public bool IsFavorited { get; set; }
 
         public bool UseVersion
         {

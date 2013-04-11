@@ -16,9 +16,9 @@
                 is different.
             </p>
         </li>
-        <li id="seeFavorites">
-            <h2><a href="@Url.Action(MVC.Users.MyFavorites())">My Favorite Packages</a></h2>
-            <p>Your favorite packages are publically visible on your user profile page.</p>
+        <li id="followedPackages">
+            <h2><a href="@Url.Action(MVC.Users.MyFollowedPackages())">My Followed Packages</a></h2>
+            <p>Your followed packages are publically visible on your user profile page.</p>
         </li>
         @if (Model.CuratedFeeds.Any())
         {

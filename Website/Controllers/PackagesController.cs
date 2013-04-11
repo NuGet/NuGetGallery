@@ -170,7 +170,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
             var model = new DisplayPackageViewModel(package);
-            model.NumFavorites = _packageService.CountFavorites(package.PackageRegistration);
+            model.NumFollowers = _packageService.CountFollowers(package.PackageRegistration);
             ViewBag.FacebookAppID = _config.FacebookAppID;
             return View(model);
         }

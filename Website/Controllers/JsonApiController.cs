@@ -55,44 +55,44 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public object IsFavorite(string id)
+        public object IsFollowing(string id)
         {
             string username = HttpContext.User.Identity.Name;
-            var result = _userService.HasFavorite(username, id);
-            return new { success = true, favorite = result };
+            var result = _userService.IsFollowing(username, id);
+            return new { success = true, id = result };
         }
 
         [Authorize]
-        public object WhereIsFavorite(string ids)
+        public object WhereIsFollowing(string ids)
         {
             if (string.IsNullOrEmpty(ids))
             {
-                return new { success = true, favorites = new string[0] };
+                return new { success = true, packages = new string[0] };
             }
 
             string username = HttpContext.User.Identity.Name;
             string[] idArray = ids.Split('|');
 
-            var result = _userService.WhereIsFavorite(username, idArray);
-            return new { success = true, favorites = result };
+            var result = _userService.WhereIsFollowing(username, idArray);
+            return new { success = true, ids = result };
         }
 
         [Authorize]
         [HttpPost]
-        public object FavoritePackage(string id)
+        public object FollowPackage(string id)
         {
             string username = HttpContext.User.Identity.Name;
-            _userService.Favorite(username, id, saveChanges: true);
+            _userService.Follow(username, id, saveChanges: true);
             _indexingService.UpdateIndex();
             return new { success = true };
         }
 
         [Authorize]
         [HttpPost]
-        public object UnfavoritePackage(string id)
+        public object UnfollowPackage(string id)
         {
             string username = HttpContext.User.Identity.Name;
-            _userService.Unfavorite(username, id, saveChanges: true);
+            _userService.Unfollow(username, id, saveChanges: true);
             _indexingService.UpdateIndex();
             return new { success = true };
         }
@@ -107,7 +107,7 @@ namespace NuGetGallery
             }
             if (!package.IsOwner(HttpContext.User))
             {
-                return new { success = false, message = "You are not the packageRegistration owner." };
+                return new { success = false, message = "You are not the package owner." };
             }
             var user = _userService.FindByUsername(username);
             if (user == null)
@@ -134,7 +134,7 @@ namespace NuGetGallery
             }
             if (!package.IsOwner(HttpContext.User))
             {
-                return new { success = false, message = "You are not the packageRegistration owner." };
+                return new { success = false, message = "You are not the package owner." };
             }
             var user = _userService.FindByUsername(username);
             if (user == null)

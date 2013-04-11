@@ -784,19 +784,19 @@ fieldset.search label {
     padding: 0;
 }
 
-    /* Profile Page Favorites */
+    /* Profile Page FollowedPackages */
 
-#favoriteList {
+#followedPackages {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-    /* Favorite Buttons */
+    /* Follow Buttons */
 
-a.favoritebtn,
-a.unfavoritebtn,
-a.favoriteloginbtn {
+a.followbtn,
+a.unfollowbtn,
+a.followloginbtn {
   font-family: FontAwesome;
   display: table;
   font-size: 12px;
@@ -812,31 +812,31 @@ a.favoriteloginbtn {
   display: none;
 }
 
-a.favoritebtn {
+a.followbtn {
   background-color: #e4f1f7;
 }
 
-a.unfavoritebtn {
+a.unfollowbtn {
   background-color: #fffedc;
   box-shadow: 0px 0px 3px #222;
 }
 
-a.favoriteloginbtn {
+a.followloginbtn {
     display: inline;
 }
 
-a.favoritebtn i:before,
-a.favoriteloginbtn i:before {
+a.followbtn i:before,
+a.followloginbtn i:before {
   content: "\f006";
 }
 
-a.unfavoritebtn i:before {
+a.unfollowbtn i:before {
   content: "\f005";
 }
 
-a.favoritebtn i,
-a.unfavoritebtn i,
-a.favoriteloginbtn i {
+a.followbtn i,
+a.unfollowbtn i,
+a.followloginbtn i {
   font-family: FontAwesome;
   font-weight: inherit;
   font-style: inherit;

@@ -3,9 +3,9 @@
     public static class Constants
     {
         public const string AdminRoleName = "Admins";
-        public const string AlphabeticSortOrder = "packageRegistration-title";
+        public const string AlphabeticSortOrder = "package-title";
         public const int DefaultPackageListPageSize = 20;
-        public const string DefaultPackageListSortOrder = "packageRegistration-download-count";
+        public const string DefaultPackageListSortOrder = "package-download-count";
         public const int DefaultPasswordResetTokenExpirationHours = 24;
         public const int MaxEmailSubjectLength = 255;
         public const string PackageContentType = "application/zip";
@@ -17,8 +17,8 @@
         public const string PackagesFolderName = "packages";
         public const string DownloadsFolderName = "downloads";
 
-        public const string PopularitySortOrder = "packageRegistration-download-count";
-        public const string RecentSortOrder = "packageRegistration-created";
+        public const string PopularitySortOrder = "package-download-count";
+        public const string RecentSortOrder = "package-created";
         public const string RelevanceSortOrder = "relevance";
 
         public const string Sha1HashAlgorithmId = "SHA1";

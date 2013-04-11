@@ -32,14 +32,14 @@ namespace NuGetGallery
 
         bool ResetPasswordWithToken(string username, string token, string newPassword);
 
-        void Favorite(string username, string packageId, bool saveChanges);
+        void Follow(string username, string packageId, bool saveChanges);
 
-        void Unfavorite(string username, string packageId, bool saveChanges);
+        void Unfollow(string username, string packageId, bool saveChanges);
 
-        bool HasFavorite(string username, string packageId);
+        bool IsFollowing(string username, string packageId);
 
-        IEnumerable<string> WhereIsFavorite(string username, string[] packageIds);
+        IEnumerable<string> WhereIsFollowing(string username, string[] packageIds);
 
-        IQueryable<PackageFavorite> GetFavoritePackages(User user);
+        IQueryable<PackageFollow> GetFollowedPackages(User user);
     }
 }

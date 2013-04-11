@@ -69,12 +69,12 @@ namespace NuGetGallery
                 filterQuery = conjunctionQuery;
             }
 
-            if (searchFilter.FavoritedBy != null)
+            if (searchFilter.FollowedBy != null)
             {
-                var favoriteFilterQuery = new TermQuery(new Term("FavoritedBy", searchFilter.FavoritedBy));
+                var isFollowingFilterQuery = new TermQuery(new Term("FollowedBy", searchFilter.FollowedBy));
                 BooleanQuery conjunctionQuery = new BooleanQuery();
                 conjunctionQuery.Add(filterQuery, BooleanClause.Occur.MUST);
-                conjunctionQuery.Add(favoriteFilterQuery, BooleanClause.Occur.MUST);
+                conjunctionQuery.Add(isFollowingFilterQuery, BooleanClause.Occur.MUST);
                 filterQuery = conjunctionQuery;
             }
 

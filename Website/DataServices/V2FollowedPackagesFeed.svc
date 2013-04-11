@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Service="NuGetGallery.V2FollowedPackagesFeed" CodeBehind="V2FollowedPackagesFeed.svc.cs" %>

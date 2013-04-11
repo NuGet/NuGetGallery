@@ -61,9 +61,9 @@
 
 <hr />
 
-<h2>@Model.Username's Favorite Packages</h2>
-<ul id="favoriteList">
-    @foreach (var package in Model.FavoritePackages)
+<h2>@Model.Username's Followed Packages</h2>
+<ul id="followedPackages">
+    @foreach (var package in Model.FollowedPackages)
     {
         <li>
             @Html.Partial(MVC.Packages.Views._ShortPackageInfo, package)

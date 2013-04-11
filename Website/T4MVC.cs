@@ -332,7 +332,7 @@ namespace Links {
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
         public static readonly string async_file_upload_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/async-file-upload.min.js") ? Url("async-file-upload.min.js") : Url("async-file-upload.js");
                       
-        public static readonly string favorites_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/favorites.min.js") ? Url("favorites.min.js") : Url("favorites.js");
+        public static readonly string follow_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/follow.min.js") ? Url("follow.min.js") : Url("follow.js");
                       
         public static readonly string jquery_1_6_2_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2-vsdoc.min.js") ? Url("jquery-1.6.2-vsdoc.min.js") : Url("jquery-1.6.2-vsdoc.js");
                       

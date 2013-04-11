@@ -168,7 +168,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("packageRegistration");
+                throw new ArgumentNullException("package");
             }
             if (user == null || user.Identity == null)
             {
@@ -181,7 +181,7 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("packageRegistration");
+                throw new ArgumentNullException("package");
             }
             if (user == null)
             {

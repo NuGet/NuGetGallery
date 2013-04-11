@@ -15,7 +15,7 @@ namespace NuGetGallery
 
         public IEnumerable<int> CuratedFeedKeys { get; set; }
 
-        public IEnumerable<string> Favoriters { get; set; }
+        public IEnumerable<string> Followers { get; set; }
 
         public PackageIndexEntity() { }
 
@@ -44,11 +44,11 @@ namespace NuGetGallery
                 }
             }
 
-            if (Favoriters != null)
+            if (Followers != null)
             {
-                foreach (var username in Favoriters)
+                foreach (var username in Followers)
                 {
-                    document.Add(new Field("FavoritedBy", username, Field.Store.NO, Field.Index.NOT_ANALYZED));
+                    document.Add(new Field("FollowedBy", username, Field.Store.NO, Field.Index.NOT_ANALYZED));
                 }
             }
 

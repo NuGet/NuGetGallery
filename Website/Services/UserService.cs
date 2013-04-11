@@ -10,7 +10,7 @@ namespace NuGetGallery
         public ICryptographyService CryptoService { get; protected set; }
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
-        public IEntityRepository<PackageFavorite> FavoritesRepository { get; protected set; }
+        public IEntityRepository<PackageFollow> FollowsRepository { get; protected set; }
         public IEntityRepository<PackageRegistration> PackageRegistrationRepository { get; protected set; }
 
         protected UserService() {}
@@ -19,13 +19,13 @@ namespace NuGetGallery
             IConfiguration config,
             ICryptographyService cryptoService,
             IEntityRepository<User> userRepository,
-            IEntityRepository<PackageFavorite> favoritesRepository,
+            IEntityRepository<PackageFollow> followsRepository,
             IEntityRepository<PackageRegistration> packageRegistrationRepository)
         {
             Config = config;
             CryptoService = cryptoService;
             UserRepository = userRepository;
-            FavoritesRepository = favoritesRepository;
+            FollowsRepository = followsRepository;
             PackageRegistrationRepository = packageRegistrationRepository;
         }
 
@@ -292,86 +292,86 @@ namespace NuGetGallery
         }
         
 
-        public void Favorite(string username, string packageId, bool saveChanges)
+        public void Follow(string username, string packageId, bool saveChanges)
         {
-            PackageFavorite favorite = GetFavorite(username, packageId);
-            if (favorite == null)
+            PackageFollow follow = GetFollow(username, packageId);
+            if (follow == null)
             {
                 var userKey = GetUserKey(username);
                 var packageRegistrationKey = GetPackageRegistrationKey(packageId);
-                favorite = PackageFavorite.Create(userKey, packageRegistrationKey);
-                FavoritesRepository.InsertOnCommit(favorite);
+                follow = PackageFollow.Create(userKey, packageRegistrationKey);
+                FollowsRepository.InsertOnCommit(follow);
             }
 
-            favorite.IsFavorited = true;
-            favorite.LastModified = DateTime.UtcNow;
+            follow.IsFollowing = true;
+            follow.LastModified = DateTime.UtcNow;
 
             if (saveChanges)
             {
-                FavoritesRepository.CommitChanges();
+                FollowsRepository.CommitChanges();
             }
         }
 
-        public void Unfavorite(string username, string packageId, bool saveChanges)
+        public void Unfollow(string username, string packageId, bool saveChanges)
         {
-            PackageFavorite favorite = GetFavorite(username, packageId);
-            if (favorite == null)
+            PackageFollow follow = GetFollow(username, packageId);
+            if (follow == null)
             {
-                return; // unfavoriting something you never favorited is a no-op 
+                return; // unfollowing something you never followed is a no-op 
             }
 
-            favorite.IsFavorited = false;
-            favorite.LastModified = DateTime.UtcNow;
+            follow.IsFollowing = false;
+            follow.LastModified = DateTime.UtcNow;
 
             if (saveChanges)
             {
-                FavoritesRepository.CommitChanges();
+                FollowsRepository.CommitChanges();
             }
         }
 
-        public bool HasFavorite(string username, string packageId)
+        public bool IsFollowing(string username, string packageId)
         {
-            PackageFavorite favorite = GetFavorite(username, packageId);
-            if (favorite == null)
+            PackageFollow follow = GetFollow(username, packageId);
+            if (follow == null)
             {
                 return false;
             }
 
-            return favorite.IsFavorited;
+            return follow.IsFollowing;
         }
 
-        public IEnumerable<string> WhereIsFavorite(string username, string[] packageIds)
+        public IEnumerable<string> WhereIsFollowing(string username, string[] packageIds)
         {
             int userKey = GetUserKey(username);
 
-            var favoriteIds = FavoritesRepository
+            var followedPackageIds = FollowsRepository
                 .GetAll()
                 .Include(f => f.PackageRegistration)
                 .Where(
                     f => f.UserKey == userKey && 
-                    f.IsFavorited &&
+                    f.IsFollowing &&
                     packageIds.Contains(f.PackageRegistration.Id))
                 .Select(f => f.PackageRegistration.Id);
 
-            return favoriteIds.ToList();
+            return followedPackageIds.ToList();
         }
 
-        public IQueryable<PackageFavorite> GetFavoritePackages(User user)
+        public IQueryable<PackageFollow> GetFollowedPackages(User user)
         {
             if (user == null)
             {
                 throw new ArgumentNullException("user");
             }
 
-            return FavoritesRepository.GetAll()
-                .Where(f => f.UserKey == user.Key && f.IsFavorited);
+            return FollowsRepository.GetAll()
+                .Where(f => f.UserKey == user.Key && f.IsFollowing);
         }
 
-        private PackageFavorite GetFavorite(string username, string packageId)
+        private PackageFollow GetFollow(string username, string packageId)
         {
             int userKey = GetUserKey(username);
             int packageRegistrationKey = GetPackageRegistrationKey(packageId);
-            return FavoritesRepository.GetAll()
+            return FollowsRepository.GetAll()
                 .FirstOrDefault(f => f.UserKey == userKey && f.PackageRegistrationKey == packageRegistrationKey);
         }
 

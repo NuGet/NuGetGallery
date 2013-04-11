@@ -89,14 +89,14 @@ namespace NuGetGallery
         {
             if (package == null)
             {
-                throw new ArgumentNullException("packageRegistration");
+                throw new ArgumentNullException("package");
             }
 
             if (package.PackageRegistration == null || 
                 String.IsNullOrWhiteSpace(package.PackageRegistration.Id) || 
                 String.IsNullOrWhiteSpace(package.Version))
             {
-                throw new ArgumentException("The packageRegistration is missing required data.", "packageRegistration");
+                throw new ArgumentException("The package is missing required data.", "package");
             }
 
             return BuildFileName(package.PackageRegistration.Id, package.Version);

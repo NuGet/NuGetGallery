@@ -82,12 +82,12 @@
     @* NuGet JSON API *@
     <script src="@Url.Content("~/json/JsonApi?json")"></script>
 
-    @* NuGet Favorite Button *@
-    <script src="@Href("~/Scripts/favorites.js")"></script>
+    @* NuGet Follow Buttons *@
+    <script src="@Href("~/Scripts/follow.js")"></script>
     <script>
         $(function() {
-            showFavorites("@String.Join("|", Model.Items.Select(item => item.Id))");
-            bindFavoriteButtons();
+            showFollowButtons("@String.Join("|", Model.Items.Select(item => item.Id))");
+            bindFollowButtons();
         });
     </script>
 }

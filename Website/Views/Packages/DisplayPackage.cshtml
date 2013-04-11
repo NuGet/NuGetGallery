@@ -22,12 +22,12 @@
     @* NuGet JSON API *@
     <script src="@Url.Content("~/json/JsonApi?json")"></script>
 
-    @* NuGet Favorite Button *@
-    <script src="@Href("~/Scripts/favorites.js")"></script>
+    @* NuGet Follow Buttons *@
+    <script src="@Href("~/Scripts/follow.js")"></script>
     <script> 
         $(function() {
-            showFavorites("@Model.Id");
-            bindFavoriteButtons();
+            showFollowButtons("@Model.Id");
+            bindFollowButtons();
         });
 
     </script>
@@ -75,9 +75,9 @@
                 Downloads of v @Model.Version</p>
         </div>
         <div class="stat">
-            <p class="stat-number">@Model.NumFavorites.ToString("n0")</p>
+            <p class="stat-number">@Model.NumFollowers.ToString("n0")</p>
             <p class="stat-label">
-                <span style="font-family: FontAwesome"> @("\uf005")</span> Favorites
+                Followers
             </p>
         </div>
         <div class="stat">
@@ -182,15 +182,15 @@
     }
     <div id="socialbuttons" style="height: 75px; display: block;" >
         <div style="min-height: 23px; display: block">
-            @* Favorite Package *@
+            @* Follow Package *@
             @if (User.Identity.IsAuthenticated)
             {
-                <a class="unfavoritebtn" id="unfavorite-@Model.Id" title="You have favorited this package"><i>&nbsp;You have favorited this package</i></a>
-                <a class="favoritebtn" id="favorite-@Model.Id" title="Click to favorite this package"><i>&nbsp;Click to favorite this package</i></a>
+                <a class="unfollowbtn" id="unfollow-@Model.Id" title="You have followed this package"><i>&nbsp;You have followed this package</i></a>
+                <a class="followbtn" id="follow-@Model.Id" title="Click to followed this package"><i>&nbsp;Click to follow this package</i></a>
             }
             else
             {
-                <a class="favoriteloginbtn" href="@Url.Action(MVC.Authentication.LogOn(returnUrl: Request.RawUrl))"><i>&nbsp;Log in to favorite this package</i></a>
+                <a class="followloginbtn" href="@Url.Action(MVC.Authentication.LogOn(returnUrl: Request.RawUrl))"><i>&nbsp;Log in to follow this package</i></a>
             }
         </div>
         <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>

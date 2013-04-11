@@ -117,7 +117,7 @@ namespace NuGetGallery
 
             if (manifestEntry == null)
             {
-                throw new InvalidOperationException("The packageRegistration does not contain a manifest.");
+                throw new InvalidOperationException("The package does not contain a manifest.");
             }
 
             using (var safeStream = GetSizeVerifiedFileStream(manifestEntry, MaxManifestSize))

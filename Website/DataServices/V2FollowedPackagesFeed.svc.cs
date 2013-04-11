@@ -9,30 +9,30 @@ using System.Web.Routing;
 
 namespace NuGetGallery
 {
-    public class V2FavoritesFeed : FeedServiceBase<V2FeedPackage>
+    public class V2FollowedPackagesFeed : FeedServiceBase<V2FeedPackage>
     {
         private const int FeedVersion = 2;
 
-        protected IEntityRepository<PackageFavorite> FavoritesRepository { get; set; }
+        protected IEntityRepository<PackageFollow> FollowRepository { get; set; }
 
-        public V2FavoritesFeed()
-            : this(DependencyResolver.Current.GetService<IEntityRepository<PackageFavorite>>())
+        public V2FollowedPackagesFeed()
+            : this(DependencyResolver.Current.GetService<IEntityRepository<PackageFollow>>())
         {
         }
 
-        public V2FavoritesFeed(IEntityRepository<PackageFavorite> favoritesRepo)
+        public V2FollowedPackagesFeed(IEntityRepository<PackageFollow> followRepo)
             : base()
         {
-            this.FavoritesRepository = favoritesRepo;
+            this.FollowRepository = followRepo;
         }
 
-        public V2FavoritesFeed(IEntitiesContext entities, 
+        public V2FollowedPackagesFeed(IEntitiesContext entities, 
             IEntityRepository<Package> repo,
-            IEntityRepository<PackageFavorite> favoritesRepo,
+            IEntityRepository<PackageFollow> followRepo,
             IConfiguration configuration, ISearchService searchService)
             : base(entities, repo, configuration, searchService)
         {
-            FavoritesRepository = favoritesRepo;
+            FollowRepository = followRepo;
         }
 
         protected override FeedContext<V2FeedPackage> CreateDataSource()
@@ -49,8 +49,8 @@ namespace NuGetGallery
         {
             string username = GetUserName();
 
-            var packages = FavoritesRepository.GetAll()
-                .Where(f => f.User.Username == username && f.IsFavorited)
+            var packages = FollowRepository.GetAll()
+                .Where(f => f.User.Username == username && f.IsFollowing)
                 .SelectMany(f => f.PackageRegistration.Packages);
 
             return packages;
@@ -86,7 +86,7 @@ namespace NuGetGallery
         {
             string username = GetUserName();
             IQueryable<Package> curatedPackages = GetPackages();
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: null, favoritedBy: username)
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: null, followedBy: username)
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
@@ -112,9 +112,9 @@ namespace NuGetGallery
             // Without this, the URIs in the data service will be wrong, and won't work if a client tried to use them.
 
             var fixedUpSeriveUri = operationContext.AbsoluteServiceUri.AbsoluteUri.Replace(
-                "/api/v2/favorites/", "/api/v2/favorites/" + curatedFeedName + "/");
+                "/api/v2/followed-packages/", "/api/v2/followed-packages/" + curatedFeedName + "/");
             var fixedUpRequestUri = operationContext.AbsoluteRequestUri.AbsoluteUri.Replace(
-                "/api/v2/favorites/", "/api/v2/favorites/" + curatedFeedName + "/");
+                "/api/v2/followed-packages/", "/api/v2/followed-packages/" + curatedFeedName + "/");
 
             // The URI needs to be fixed up both on the actual IDataService host (hostInterface) and the service host wrapper (hostWrapper)
             // Null checks aren't really worth much here. If it does break, it'll result in a 500 to the client.

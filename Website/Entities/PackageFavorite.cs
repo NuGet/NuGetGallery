@@ -3,12 +3,12 @@
 namespace NuGetGallery
 {
     // Design notes:
-    // IsFavorited flag + LastModified timestamp for 'creating' and 'deleting' the favorite relationship in a way we can batch process
-    public class PackageFavorite : IEntity
+    // IsFollowing flag + LastModified timestamp for 'creating' and 'deleting' the follow relationship in a way we can batch process
+    public class PackageFollow : IEntity
     {
-        public static PackageFavorite Create(int userKey, int packageRegistrationKey)
+        public static PackageFollow Create(int userKey, int packageRegistrationKey)
         {
-            return new PackageFavorite
+            return new PackageFollow
             {
                 UserKey = userKey,
                 PackageRegistrationKey = packageRegistrationKey,
@@ -24,7 +24,7 @@ namespace NuGetGallery
         public int PackageRegistrationKey { get; set; }
         public PackageRegistration PackageRegistration { get; set; }
 
-        public bool IsFavorited { get; set; }
+        public bool IsFollowing { get; set; }
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
     }

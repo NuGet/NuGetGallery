@@ -65,11 +65,11 @@ namespace NuGetGallery
                            .MapLeftKey("UserKey")
                            .MapRightKey("RoleKey"));
 
-            modelBuilder.Entity<PackageFavorite>()
+            modelBuilder.Entity<PackageFollow>()
                 .HasKey(f => f.Key)
                 .HasRequired(f => f.User);
 
-            modelBuilder.Entity<PackageFavorite>()
+            modelBuilder.Entity<PackageFollow>()
                 .HasRequired(f => f.PackageRegistration);
 
             modelBuilder.Entity<Role>()

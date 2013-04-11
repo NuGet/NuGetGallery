@@ -19,10 +19,13 @@ namespace NuGetGallery.Controllers
             repository = repository ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
             messageService = messageService ?? new Mock<IMessageService>();
             currentUser = currentUser ?? new Mock<IPrincipal>();
+            var indexingService = new Mock<IIndexingService>();
 
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(c => c.User).Returns(currentUser.Object);
-            var controller = new JsonApiController(packageService.Object, userService.Object, repository.Object, messageService.Object);
+
+
+            var controller = new JsonApiController(packageService.Object, userService.Object, repository.Object, messageService.Object, indexingService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller);
             return controller;
         }
@@ -50,7 +53,7 @@ namespace NuGetGallery.Controllers
                 var result = controller.AddPackageOwner("foo", "steve");
 
                 Assert.False(TestUtility.GetAnonymousPropertyValue<bool>(result, "success"));
-                Assert.Equal("You are not the packageRegistration owner.", TestUtility.GetAnonymousPropertyValue<string>(result, "message"));
+                Assert.Equal("You are not the package owner.", TestUtility.GetAnonymousPropertyValue<string>(result, "message"));
             }
 
             [Fact]

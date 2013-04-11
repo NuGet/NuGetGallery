@@ -30,7 +30,7 @@ namespace NuGetGallery
             var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.Key == curatedPackageKey);
             if (curatedPackage == null)
             {
-                throw new InvalidOperationException("The curated packageRegistration does not exist.");
+                throw new InvalidOperationException("The curated package does not exist.");
             }
 
             Entities.CuratedPackages.Remove(curatedPackage);

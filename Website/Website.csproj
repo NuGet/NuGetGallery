@@ -516,8 +516,8 @@
     <Compile Include="CuratedPackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="DataServices\V2FavoritesFeed.svc.cs">
-      <DependentUpon>V2FavoritesFeed.svc</DependentUpon>
+    <Compile Include="DataServices\V2FollowedPackagesFeed.svc.cs">
+      <DependentUpon>V2FollowedPackagesFeed.svc</DependentUpon>
     </Compile>
     <Compile Include="DataServices\ODataRemoveVersionSorter.cs" />
     <Compile Include="DataServices\CountInterceptor.cs">
@@ -1034,7 +1034,7 @@
     <Content Include="Content\SyntaxHighlighter\shThemeMDUltra.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeMidnight.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeRDark.css" />
-    <Content Include="DataServices\V2FavoritesFeed.svc" />
+    <Content Include="DataServices\V2FollowedPackagesFeed.svc" />
     <Content Include="DataServices\V2CuratedFeed.svc" />
     <Content Include="DataServices\V1Feed.svc" />
     <Content Include="DataServices\V2Feed.svc" />
@@ -1045,6 +1045,7 @@
     <Content Include="robots.txt" />
     <Content Include="Scripts\statsdimensions.js" />
     <Content Include="Scripts\favorites.js" />
+    <Content Include="Scripts\follow.js" />
     <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\async-file-upload.js" />
     <Content Include="Scripts\knockout-2.2.1.debug.js" />
@@ -1161,6 +1162,7 @@
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Statistics\_PivotTable.cshtml" />
     <Content Include="Views\Users\MyFavorites.cshtml" />
+    <Content Include="Views\Users\MyFollowedPackages.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />

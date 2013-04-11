@@ -27,7 +27,7 @@ namespace NuGetGallery.Infrastructure
                             Id = "Package #1",
                         },
                         Title = "Package #1 4.2.0",
-                        Description = "Package #1 is an awesome packageRegistration",
+                        Description = "Package #1 is an awesome package",
                         Listed = true,
                         IsLatestStable = true,
                         IsLatest = true,
@@ -204,7 +204,7 @@ namespace NuGetGallery.Infrastructure
                                 DownloadCount = 25,
                             },
                             Description =
-                                "This isn't really NuGet.Core. The confusing packageRegistration ID is the test!",
+                                "This isn't really NuGet.Core. The confusing package ID is the test!",
                             DownloadCount = 3,
                             Listed = true,
                             IsLatest = true,

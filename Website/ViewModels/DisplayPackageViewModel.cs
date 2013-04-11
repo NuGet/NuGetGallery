@@ -28,7 +28,7 @@ namespace NuGetGallery
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
-        public int NumFavorites { get; set; }
+        public int NumFollowers { get; set; }
 
         public bool IsLatestVersionAvailable
         {
