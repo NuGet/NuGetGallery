@@ -20,7 +20,7 @@ namespace NuGetGallery
         public override void Curate(Package galleryPackage, INupkg nugetPackage, bool commitChanges)
         {
             // Make sure the target feed exists
-            CuratedFeed feed = GetService<ICuratedFeedByNameQuery>().Execute(CuratedFeedName, includePackages: true);
+            CuratedFeed feed = GetService<ICuratedFeedService>().GetFeedByName(CuratedFeedName, includePackages: true);
             if (feed != null && galleryPackage.Tags != null)
             {
                 // Break the tags up so we can be sure we don't catch any partial matches (i.e. "foobar" when we're looking for "foo")

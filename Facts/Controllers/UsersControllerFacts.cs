@@ -44,8 +44,8 @@ namespace NuGetGallery
                 controller.Account();
 
                 // verify
-                controller.MockFeedsQuery
-                          .Verify(query => query.Execute(42));
+                controller.MockCuratedFeedService
+                          .Verify(query => query.GetFeedsForManager(42));
             }
 
             [Fact]
@@ -71,8 +71,8 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(new User { Key = 42 });
-                controller.MockFeedsQuery
-                          .Setup(stub => stub.Execute(It.IsAny<int>()))
+                controller.MockCuratedFeedService
+                          .Setup(stub => stub.GetFeedsForManager(It.IsAny<int>()))
                           .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
                 
                 // act
@@ -586,7 +586,7 @@ namespace NuGetGallery
 
         public class TestableUsersController : UsersController
         {
-            public Mock<ICuratedFeedsByManagerQuery> MockFeedsQuery { get; protected set; }
+            public Mock<ICuratedFeedService> MockCuratedFeedService { get; protected set; }
             public Mock<IPrincipal> MockCurrentUser { get; protected set; }
             public Mock<IIdentity> MockCurrentIdentity { get; protected set; }
             public Mock<IMessageService> MockMessageService { get; protected set; }
@@ -596,7 +596,7 @@ namespace NuGetGallery
             
             public TestableUsersController()
             {
-                FeedsQuery = (MockFeedsQuery = new Mock<ICuratedFeedsByManagerQuery>()).Object;
+                CuratedFeedService = (MockCuratedFeedService = new Mock<ICuratedFeedService>()).Object;
                 CurrentUser = (MockCurrentUser = new Mock<IPrincipal>()).Object;
                 MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
                 PackageService = (MockPackageService = new Mock<IPackageService>()).Object;

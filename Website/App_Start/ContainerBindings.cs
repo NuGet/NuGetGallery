@@ -240,14 +240,8 @@ namespace NuGetGallery
                 .InRequestScope();
 
             // todo: bind all queries by convention
-            Bind<ICuratedFeedByKeyQuery>()
-                .To<CuratedFeedByKeyQuery>()
-                .InRequestScope();
-            Bind<ICuratedFeedByNameQuery>()
-                .To<CuratedFeedByNameQuery>()
-                .InRequestScope();
-            Bind<ICuratedFeedsByManagerQuery>()
-                .To<CuratedFeedsByManagerQuery>()
+            Bind<ICuratedFeedService>()
+                .To<CuratedFeedService>()
                 .InRequestScope();
             Bind<IPackageRegistrationByKeyQuery>()
                 .To<PackageRegistrationByKeyQuery>()
