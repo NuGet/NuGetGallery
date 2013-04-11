@@ -14,7 +14,8 @@ namespace NuGetGallery.Operations.Tasks
     [Command("runmigrations", "Executes migrations against a database", AltName = "rm", MaxArgs = 0)]
     public class RunMigrationsTask : MigrationsTask
     {
-        private static readonly Regex MigrationIdRegex = new Regex(@"(?<timestamp>\d+)_(?<name>.*)");
+        private static readonly Regex MigrationIdRegex = new Regex(@"^(?<timestamp>\d+)_(?<name>.*)$");
+
         [Option("The target to migrate the database to. Timestamp does not need to be specified.", AltName = "m")]
         public string TargetMigration { get; set; }
 
