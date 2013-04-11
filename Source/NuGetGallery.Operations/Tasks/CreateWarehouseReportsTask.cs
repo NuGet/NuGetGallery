@@ -314,10 +314,14 @@ namespace NuGetGallery.Operations
                 if (row[1].ToString() == "NuGet" || row[1].ToString() == "WebMatrix")
                 {
                     obj.Add("Client", string.Format("{0} {1}.{2}", row[2], row[3], row[4]));
+                    obj.Add("ClientName", row[2].ToString());
+                    obj.Add("ClientVersion", string.Format("{0}.{1}", row[3], row[4]));
                 }
                 else
                 {
                     obj.Add("Client", row[2].ToString());
+                    obj.Add("ClientName", row[2].ToString());
+                    obj.Add("ClientVersion", "");
                 }
 
                 if (row[5].ToString() != "(unknown)")
