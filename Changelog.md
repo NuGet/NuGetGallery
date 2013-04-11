@@ -20,7 +20,7 @@
 
 *Other minor bug fixes*:
 
-    Complete list can be found here @ https://github.com/NuGet/NuGetGallery/issues?milestone=18
+   Complete list can be found here @ https://github.com/NuGet/NuGetGallery/issues?milestone=18
    
 
 
