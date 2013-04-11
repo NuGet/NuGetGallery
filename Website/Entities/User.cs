@@ -33,6 +33,7 @@ namespace NuGetGallery
 
         // TEST: If you see this in a mainline branch (dev, qa, staging, master). Let 'anurse' know! It shouldn't be here.
         public string NewColumn { get; set; }
+        public string AnotherNewColumn { get; set; }
 
         // Would declare max length of this too, but EF is buggy, see http://entityframework.codeplex.com/workitem/452
         public string PasswordHashAlgorithm { get; set; }
