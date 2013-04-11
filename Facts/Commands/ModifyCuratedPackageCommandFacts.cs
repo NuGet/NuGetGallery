@@ -12,25 +12,25 @@ namespace NuGetGallery.Commands
                 : base(null)
             {
                 StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName", };
-                StubCuratedFeedByKeyQry = new Mock<ICuratedFeedByKeyQuery>();
+                StubCuratedFeedService = new Mock<ICuratedFeedService>();
                 StubEntitiesContext = new Mock<IEntitiesContext>();
 
-                StubCuratedFeedByKeyQry
-                    .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
+                StubCuratedFeedService
+                    .Setup(stub => stub.GetFeedByKey(It.IsAny<int>(), It.IsAny<bool>()))
                     .Returns(StubCuratedFeed);
 
                 Entities = StubEntitiesContext.Object;
             }
 
             public CuratedFeed StubCuratedFeed { get; set; }
-            public Mock<ICuratedFeedByKeyQuery> StubCuratedFeedByKeyQry { get; set; }
+            public Mock<ICuratedFeedService> StubCuratedFeedService { get; set; }
             public Mock<IEntitiesContext> StubEntitiesContext { get; private set; }
 
             protected override T GetService<T>()
             {
-                if (typeof(T) == typeof(ICuratedFeedByKeyQuery))
+                if (typeof(T) == typeof(ICuratedFeedService))
                 {
-                    return (T)StubCuratedFeedByKeyQry.Object;
+                    return (T)StubCuratedFeedService.Object;
                 }
 
                 throw new Exception("Tried to get unexpected service");
@@ -43,8 +43,8 @@ namespace NuGetGallery.Commands
             public void WillThrowWhenCuratedFeedDoesNotExist()
             {
                 var cmd = new TestableModifyCuratedPackageCommand();
-                cmd.StubCuratedFeedByKeyQry
-                    .Setup(stub => stub.Execute(It.IsAny<int>(), It.IsAny<bool>()))
+                cmd.StubCuratedFeedService
+                    .Setup(stub => stub.GetFeedByKey(It.IsAny<int>(), It.IsAny<bool>()))
                     .Returns((CuratedFeed)null);
 
                 Assert.Throws<InvalidOperationException>(

@@ -11,7 +11,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult CuratedFeed(string name)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(name, includePackages: true);
+            var curatedFeed = GetService<ICuratedFeedService>().GetFeedByName(name, includePackages: true);
             if (curatedFeed == null)
             {
                 return HttpNotFound();

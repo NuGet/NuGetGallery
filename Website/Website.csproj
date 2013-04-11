@@ -505,13 +505,11 @@
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
-    <Compile Include="Queries\CuratedFeedByKeyQuery.cs" />
-    <Compile Include="Queries\CuratedFeedByNameQuery.cs" />
-    <Compile Include="Queries\CuratedFeedsByManagerKeyQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
+    <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />

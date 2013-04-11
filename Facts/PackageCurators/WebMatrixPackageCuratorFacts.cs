@@ -13,16 +13,16 @@ namespace NuGetGallery.PackageCurators
             {
                 StubCreatedCuratedPackageCmd = new Mock<ICreateCuratedPackageCommand>();
                 StubCuratedFeed = new CuratedFeed { Key = 0 };
-                StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
+                StubCuratedFeedService = new Mock<ICuratedFeedService>();
 
-                StubCuratedFeedByNameQry
-                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                StubCuratedFeedService
+                    .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
                     .Returns(StubCuratedFeed);
             }
 
             public Mock<ICreateCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
             public CuratedFeed StubCuratedFeed { get; private set; }
-            public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
+            public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
 
             protected override T GetService<T>()
             {
@@ -31,9 +31,9 @@ namespace NuGetGallery.PackageCurators
                     return (T)StubCreatedCuratedPackageCmd.Object;
                 }
 
-                if (typeof(T) == typeof(ICuratedFeedByNameQuery))
+                if (typeof(T) == typeof(ICuratedFeedService))
                 {
-                    return (T)StubCuratedFeedByNameQry.Object;
+                    return (T)StubCuratedFeedService.Object;
                 }
 
                 throw new Exception("Tried to get an unexpected service.");
@@ -46,7 +46,7 @@ namespace NuGetGallery.PackageCurators
             public void WillNotIncludeThePackageWhenTheWebMatrixCuratedFeedDoesNotExist()
             {
                 var curator = new TestableWebMatrixPackageCurator();
-                curator.StubCuratedFeedByNameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+                curator.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
 
                 curator.Curate(CreateStubGalleryPackage(), null, commitChanges: true);
 

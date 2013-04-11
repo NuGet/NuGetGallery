@@ -21,7 +21,7 @@ namespace NuGetGallery
             int curatedFeedKey,
             int curatedPackageKey)
         {
-            var curatedFeed = GetService<ICuratedFeedByKeyQuery>().Execute(curatedFeedKey, includePackages: true);
+            var curatedFeed = GetService<ICuratedFeedService>().GetFeedByKey(curatedFeedKey, includePackages: true);
             if (curatedFeed == null)
             {
                 throw new InvalidOperationException("The curated feed does not exist.");
