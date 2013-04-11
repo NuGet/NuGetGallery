@@ -11,6 +11,18 @@ $NuGetOpsVersion =
 	where { $_ -match "\[assembly:\s+AssemblyInformationalVersion\(`"(?<ver>[^`"]*)`"\)\]" } | 
 	foreach { $matches["ver"] }
 
+# Find the Azure SDK
+$SDKParent = "$env:ProgramFiles\Microsoft SDKs\Windows Azure\.NET SDK"
+$Global:AzureSDKRoot = $null;
+if(Test-Path $SDKParent) {
+	# Pick the latest
+	$AzureSDKRoot = (dir $SDKParent | sort Name -desc | select -first 1).FullName
+}
+
+if(!$AzureSDKRoot) {
+	Write-Warning "Couldn't find the Azure SDK. Some commands may not work."
+}
+
 # Check for v0.2 level environment scripts
 $Global:Environments = @{}
 if($EnvironmentsList -and (Test-Path $EnvironmentsList)) {
