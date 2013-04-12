@@ -10,7 +10,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 {
     public class DynamicDataManager
     {
-        public static MetaModel DefaultModel = new MetaModel() { DynamicDataFolderVirtualPath = "~/Areas/Admin/DynamicData" };
+        public static readonly MetaModel DefaultModel = new MetaModel() { DynamicDataFolderVirtualPath = "~/Areas/Admin/DynamicData" };
 
         private static DynamicDataRoute _route;
         

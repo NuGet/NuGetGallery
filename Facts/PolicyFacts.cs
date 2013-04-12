@@ -16,7 +16,7 @@ namespace NuGetGallery
     public class PolicyFacts
     {
         [Fact]
-        public void AllAdminControllersHaveAuthorizeAttributeOnClass()
+        public void AllAdminControllersHaveAuthorizeAttributeOnClassSettingAllowedRolesToAdmins()
         {
             var failingTypes = (from t in TypesInTheSameNamespaceAs(typeof(AdminControllerBase))
                                 where t.GetInterfaces().Contains(typeof(IController))
