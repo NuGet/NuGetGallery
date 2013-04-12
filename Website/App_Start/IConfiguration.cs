@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using Glimpse.Core.Extensibility;
-namespace NuGetGallery
+﻿namespace NuGetGallery
 {
     public interface IConfiguration
     {

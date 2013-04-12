@@ -211,7 +211,6 @@ namespace NuGetGallery
 
         public void AddDownloadStatistics(Package package, string userHostAddress, string userAgent, string operation)
         {
-            // Profile: We used to record this block in MiniProfiler: Updating package stats
             _packageStatsRepository.InsertOnCommit(
                 new PackageStatistics
                     {
@@ -226,7 +225,6 @@ namespace NuGetGallery
                     });
 
             _packageStatsRepository.CommitChanges();
-            // End Profile Block
         }
 
         public void AddPackageOwner(PackageRegistration package, User user)

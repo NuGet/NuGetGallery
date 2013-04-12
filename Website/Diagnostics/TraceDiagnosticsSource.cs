@@ -25,7 +25,7 @@ namespace NuGetGallery.Diagnostics
             _source.Listeners.AddRange(Trace.Listeners);
         }
 
-        public void TraceEvent(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0)
+        public virtual void TraceEvent(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0)
         {
             if (_source == null)
             {
@@ -39,7 +39,8 @@ namespace NuGetGallery.Diagnostics
             _source.TraceEvent(type, id, FormatMessage(message, member, file, line));
         }
 
-        public void Dispose()
+        // The "protected virtual Dispose(bool)" pattern is for objects with unmanaged resources. We have none, so a virtual Dispose is enough.
+        public virtual void Dispose()
         {
             // If we don't do this, it's not the end of the world, but if consumers do dispose us, flush and close the source
             if (_source != null)
@@ -48,7 +49,9 @@ namespace NuGetGallery.Diagnostics
                 _source.Close();
                 _source = null;
             }
-            GC.SuppressFinalize(this); // FxCop says so.
+
+            // We don't have a finalizer, but subclasses might. Those subclasses should have their Finalizer call Dispose, so suppress finalization
+            GC.SuppressFinalize(this);
         }
 
         private static string FormatMessage(string message, string member, string file, int line)
