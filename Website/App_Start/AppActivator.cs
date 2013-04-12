@@ -5,7 +5,6 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using DynamicDataEFCodeFirst;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
@@ -15,6 +14,9 @@ using NuGetGallery;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
+using NuGetGallery.Migrations;
+using StackExchange.Profiling;
+using StackExchange.Profiling.MVCHelpers;
 using WebActivator;
 using WebBackgrounder;
 
