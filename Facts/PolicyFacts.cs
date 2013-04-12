@@ -18,10 +18,12 @@ namespace NuGetGallery
         [Fact]
         public void AllAdminControllersHaveAuthorizeAttributeOnClass()
         {
-            var failingTypes = TypesInTheSameNamespaceAs(typeof(AdminControllerBase))
-                .Where(t => t.GetInterfaces().Contains(typeof(IController)))
-                .Where(t => t.GetCustomAttribute<AuthorizeAttribute>(inherit: true) == null)
-                .ToList();
+            var failingTypes = (from t in TypesInTheSameNamespaceAs(typeof(AdminControllerBase))
+                                where t.GetInterfaces().Contains(typeof(IController))
+                                let a = t.GetCustomAttribute<AuthorizeAttribute>(inherit: true)
+                                where a == null || !String.Equals(a.Roles, Constants.AdminRoleName)
+                                select t)
+                               .ToList();
 
             Assert.False(failingTypes.Any(),
                          "The following Admin controllers are unsecured:" + Environment.NewLine +
