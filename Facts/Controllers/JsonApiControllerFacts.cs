@@ -19,13 +19,11 @@ namespace NuGetGallery.Controllers
             repository = repository ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
             messageService = messageService ?? new Mock<IMessageService>();
             currentUser = currentUser ?? new Mock<IPrincipal>();
-            var indexingService = new Mock<IIndexingService>();
 
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(c => c.User).Returns(currentUser.Object);
 
-
-            var controller = new JsonApiController(packageService.Object, userService.Object, repository.Object, messageService.Object, indexingService.Object);
+            var controller = new JsonApiController(packageService.Object, userService.Object, repository.Object, messageService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller);
             return controller;
         }

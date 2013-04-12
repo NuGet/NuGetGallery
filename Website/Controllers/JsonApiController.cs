@@ -10,20 +10,17 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
-        private readonly IIndexingService _indexingService;
 
         public JsonApiController(
             IPackageService packageService,
             IUserService userService,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
-            IMessageService messageService,
-            IIndexingService indexingService)
+            IMessageService messageService)
         {
             _packageService = packageService;
             _userService = userService;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _messageService = messageService;
-            _indexingService = indexingService;
         }
 
         [Authorize]

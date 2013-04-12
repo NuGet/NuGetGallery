@@ -110,6 +110,12 @@ namespace NuGetGallery
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
+        public static string PackageFollowers(this UrlHelper url, string id)
+        {
+            string result = url.RouteUrl(RouteName.PackageFollowers, new { Id = id });
+            return EnsureTrailingSlash(result);
+        }
+
         public static string LogOn(this UrlHelper url)
         {
             return url.RouteUrl(RouteName.Authentication, new { action = "LogOn" });

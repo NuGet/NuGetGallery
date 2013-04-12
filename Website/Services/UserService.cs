@@ -356,6 +356,18 @@ namespace NuGetGallery
             return followedPackageIds.ToList();
         }
 
+        public IQueryable<User> GetPackageFollowers(string packageId)
+        {
+            if (packageId == null)
+            {
+                throw new ArgumentNullException("packageId");
+            }
+
+            return FollowsRepository.GetAll()
+                .Where(f => f.PackageRegistration.Id == packageId && f.IsFollowing)
+                .Select(f => f.User);
+        }
+
         public IQueryable<PackageFollow> GetFollowedPackages(User user)
         {
             if (user == null)

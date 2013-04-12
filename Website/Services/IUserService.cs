@@ -40,6 +40,8 @@ namespace NuGetGallery
 
         IEnumerable<string> WhereIsFollowing(string username, string[] packageIds);
 
+        IQueryable<User> GetPackageFollowers(string packageId);
+
         IQueryable<PackageFollow> GetFollowedPackages(User user);
     }
 }

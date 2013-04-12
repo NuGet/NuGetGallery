@@ -38,6 +38,11 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult Followers() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.Followers);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult ListPackages() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ListPackages);
         }
@@ -91,6 +96,7 @@ namespace NuGetGallery {
         public class ActionNamesClass {
             public readonly string UploadPackageProgress = "UploadPackageProgress";
             public readonly string DisplayPackage = "DisplayPackage";
+            public readonly string Followers = "Followers";
             public readonly string ListPackages = "ListPackages";
             public readonly string ReportAbuse = "ReportAbuse";
             public readonly string ReportMyPackage = "ReportMyPackage";
@@ -117,6 +123,7 @@ namespace NuGetGallery {
             public readonly string DisplayPackage = "~/Views/Packages/DisplayPackage.cshtml";
             public readonly string Download = "~/Views/Packages/Download.cshtml";
             public readonly string Edit = "~/Views/Packages/Edit.cshtml";
+            public readonly string Followers = "~/Views/Packages/Followers.cshtml";
             public readonly string ListPackages = "~/Views/Packages/ListPackages.cshtml";
             public readonly string ManagePackageOwners = "~/Views/Packages/ManagePackageOwners.cshtml";
             public readonly string ReportAbuse = "~/Views/Packages/ReportAbuse.cshtml";
@@ -140,6 +147,12 @@ namespace NuGetGallery {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.DisplayPackage);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Followers(string id) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Followers);
+            callInfo.RouteValueDictionary.Add("id", id);
             return callInfo;
         }
 

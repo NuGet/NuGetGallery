@@ -828,6 +828,7 @@
     <Compile Include="ViewModels\StatisticsFact.cs" />
     <Compile Include="ViewModels\StatisticsPivot.cs" />
     <Compile Include="ViewModels\StatisticsDimension.cs" />
+    <Compile Include="ViewModels\PackageFollowersViewModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
@@ -915,6 +916,7 @@
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\VerifyPackageViewModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
+    <Content Include="Views\Packages\Followers.cshtml" />
     <None Include="Views\Packages\_ShortPackageInfo.cshtml" />
   </ItemGroup>
   <ItemGroup>

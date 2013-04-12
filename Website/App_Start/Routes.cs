@@ -77,6 +77,11 @@ namespace NuGetGallery
                 new { controller = MVC.Packages.Name, action = "CancelUpload"});
 
             routes.MapRoute(
+                RouteName.PackageFollowers,
+                "packages/{id}/followers",
+                new { controller = MVC.Packages.Name, action = "Followers" });
+
+            routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
                 "packages/{id}/owners/{username}/confirm/{token}",
                 new { controller = MVC.Packages.Name, action = "ConfirmOwner" });
