@@ -36,9 +36,9 @@ The minclientVersion of the package will shown in the package home page right ne
 
 The "Report Abuse" page has been revamped to enable users to chose the specific issue with the package they are reporting. It also guides the user to differentiate between "Contact Owners" and "Report Abuse".   
 
-### Improvised Package statistics
+### Improved package statistics
    
-The package statistics now shows the break down of downloads based on the NuGet client (like NuGet CommandLine 2.1, NuGet Package Manager console 2.2 and so on and it also shows the split of the type of download operation (like Install, Restore, Update)
+The package statistics now shows the break down of downloads based on the NuGet client (like NuGet CommandLine 2.1, NuGet Package Manager console 2.2 and so on.  It also shows the split of the type of download operation (like Install, Restore, Update).
 
 ### Other minor bug fixes
 
