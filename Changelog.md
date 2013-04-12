@@ -22,7 +22,7 @@ The "Users" table is optimized to have "UserName" as index for performance enhan
 
 ### Other minor bug fixes
 
-Complete list can be found here @ https://github.com/NuGet/NuGetGallery/issues?milestone=18
+Complete list can be found here: [Production Deployment 4/12](https://github.com/NuGet/NuGetGallery/issues?milestone=18&state=closed)
 
 # March 28, 2013
 
@@ -42,6 +42,6 @@ The package statistics now shows the break down of downloads based on the NuGet 
 
 ### Other minor bug fixes
 
-Complete list can be found here @ https://github.com/NuGet/NuGetGallery/issues?milestone=17
+Complete list can be found here: [Production Deployment 3/28](https://github.com/NuGet/NuGetGallery/issues?milestone=17&state=closed)
 
 
