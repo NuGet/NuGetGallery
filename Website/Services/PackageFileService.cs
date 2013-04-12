@@ -54,10 +54,10 @@ namespace NuGetGallery
             return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile);
         }
 
-        public Task<Stream> DownloadPackageFileAsync(Package package)
+        public async Task<Stream> DownloadPackageFileAsync(Package package)
         {
             var fileName = BuildFileName(package);
-            return _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName);
+            return (await _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName));
         }
 
         private static string BuildFileName(string id, string version)

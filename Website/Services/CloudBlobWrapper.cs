@@ -24,6 +24,21 @@ namespace NuGetGallery
             get { return _blob.Uri; }
         }
 
+        public string Name
+        {
+            get { return _blob.Name; }
+        }
+
+        public DateTime LastModifiedUtc
+        {
+            get { return _blob.Properties.LastModified.HasValue ? _blob.Properties.LastModified.Value.UtcDateTime : DateTime.MinValue; }
+        }
+
+        public string ETag
+        {
+            get { return _blob.Properties.ETag; }
+        }
+
         public Task DeleteIfExistsAsync()
         {
             return Task.Factory.FromAsync<bool>(_blob.BeginDeleteIfExists(null, null), _blob.EndDeleteIfExists);

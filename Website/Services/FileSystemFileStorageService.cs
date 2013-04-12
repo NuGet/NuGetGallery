@@ -97,6 +97,11 @@ namespace NuGetGallery
             return Task.FromResult(fileStream);
         }
 
+        public Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
             if (String.IsNullOrWhiteSpace(folderName))

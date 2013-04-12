@@ -9,6 +9,9 @@ namespace NuGetGallery
     {
         BlobProperties Properties { get; }
         Uri Uri { get; }
+        string Name { get; }
+        DateTime LastModifiedUtc { get; }
+        string ETag { get; }
 
         Task DeleteIfExistsAsync();
         Task DownloadToStreamAsync(Stream target);

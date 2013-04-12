@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -95,6 +96,11 @@ namespace NuGetGallery
 
             stream.Position = 0;
             return stream;
+        }
+
+        public Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)

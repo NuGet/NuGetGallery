@@ -26,7 +26,7 @@ namespace NuGetGallery
             return _fileStorageService.DeleteFileAsync(Constants.UploadsFolderName, uploadFileName);
         }
 
-        public Task<Stream> GetUploadFileAsync(int userKey)
+        public async Task<Stream> GetUploadFileAsync(int userKey)
         {
             if (userKey < 1)
             {
@@ -34,7 +34,7 @@ namespace NuGetGallery
             }
 
             var uploadFileName = BuildFileName(userKey);
-            return _fileStorageService.GetFileAsync(Constants.UploadsFolderName, uploadFileName);
+            return (await _fileStorageService.GetFileAsync(Constants.UploadsFolderName, uploadFileName));
         }
 
         public Task SaveUploadFileAsync(int userKey, Stream packageFileStream)
