@@ -18,7 +18,6 @@ namespace NuGetGallery.Services
 
         private static readonly Markdown MarkdownProcessor = new Markdown();
         
-        public static readonly string ContentFolderName = "content";
         public static readonly string ContentFileExtension = ".md";
 
         public IFileStorageService FileStorage { get; protected set; }
@@ -57,20 +56,33 @@ namespace NuGetGallery.Services
 
             // Get the file from the content service
             string fileName = name + ContentFileExtension;
-            var reference = await FileStorage.GetFileReferenceAsync(ContentFolderName, fileName, ifNoneMatch: item == null ? null : item.ContentId);
+            var reference = await FileStorage.GetFileReferenceAsync(
+                Constants.ContentFolderName, 
+                fileName, 
+                ifNoneMatch: item == null ? null : item.ContentId);
 
-            // Process the file
-            using (var reader = new StreamReader(reference.OpenRead()))
+            // Check the content ID to see if it's different
+            HtmlString result;
+            if (item != null && String.Equals(item.ContentId, reference.ContentId, StringComparison.Ordinal))
             {
-                var result = new HtmlString(MarkdownProcessor.Transform(await reader.ReadToEndAsync()).Trim());
-
-                // Store the content in the cache
-                item = new ContentItem(result, expiresIn, reference.ContentId, DateTime.UtcNow);
-                ContentCache.AddOrSet(name, item);
-
-                // Return the result
-                return result;
+                // No change, just use the cache.
+                result = item.Content;
             }
+            else
+            {
+                // Process the file
+                using (var reader = new StreamReader(reference.OpenRead()))
+                {
+                    result = new HtmlString(MarkdownProcessor.Transform(await reader.ReadToEndAsync()).Trim());
+                }
+            }
+
+            // Prep the new item for the cache
+            item = new ContentItem(result, expiresIn, reference.ContentId, DateTime.UtcNow);
+            ContentCache.AddOrSet(name, item);
+
+            // Return the result
+            return result;
         }
 
         public class ContentItem

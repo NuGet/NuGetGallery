@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace NuGetGallery
@@ -41,27 +42,55 @@ namespace NuGetGallery
 
         public Task DeleteIfExistsAsync()
         {
-            return Task.Factory.FromAsync<bool>(_blob.BeginDeleteIfExists(null, null), _blob.EndDeleteIfExists);
+            return Task.Factory.FromAsync<bool>(
+                (cb, state) => _blob.BeginDeleteIfExists(cb, state), 
+                ar => _blob.EndDeleteIfExists(ar),
+                state: null);
         }
 
         public Task DownloadToStreamAsync(Stream target)
         {
-            return Task.Factory.FromAsync(_blob.BeginDownloadToStream(target, null, null), _blob.EndDownloadToStream);
+            return DownloadToStreamAsync(target, accessCondition: null);
+        }
+
+        public Task DownloadToStreamAsync(Stream target, AccessCondition accessCondition)
+        {
+            // Note: Overloads of FromAsync that take an AsyncCallback and State to pass through are more efficient:
+            //  http://blogs.msdn.com/b/pfxteam/archive/2009/06/09/9716439.aspx
+            return Task.Factory.FromAsync(
+                (cb, state) => _blob.BeginDownloadToStream(
+                    target, 
+                    accessCondition,
+                    options: null,
+                    operationContext: null,
+                    callback: cb, 
+                    state: state), 
+                ar => _blob.EndDownloadToStream(ar),
+                state: null);
         }
 
         public Task<bool> ExistsAsync()
         {
-            return Task.Factory.FromAsync<bool>(_blob.BeginExists(null, null), _blob.EndExists);
+            return Task.Factory.FromAsync(
+                (cb, state) => _blob.BeginExists(cb, state), 
+                ar => _blob.EndExists(ar),
+                state: null);
         }
 
         public Task SetPropertiesAsync()
         {
-            return Task.Factory.FromAsync(_blob.BeginSetProperties(null, null), _blob.EndSetProperties);
+            return Task.Factory.FromAsync(
+                (cb, state) => _blob.BeginSetProperties(cb, state), 
+                ar => _blob.EndSetProperties(ar),
+                state: null);
         }
 
         public Task UploadFromStreamAsync(Stream packageFile)
         {
-            return Task.Factory.FromAsync(_blob.BeginUploadFromStream(packageFile, null, null), _blob.EndUploadFromStream);
+            return Task.Factory.FromAsync(
+                (cb, state) => _blob.BeginUploadFromStream(packageFile, cb, state), 
+                ar => _blob.EndUploadFromStream(ar),
+                state: null);
         }
     }
 }

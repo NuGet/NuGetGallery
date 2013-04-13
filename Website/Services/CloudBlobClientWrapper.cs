@@ -19,7 +19,6 @@ namespace NuGetGallery
             {
                 _blobClient = CloudStorageAccount.Parse(_storageConnectionString).CreateCloudBlobClient();
             }
-
             return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
         }
     }

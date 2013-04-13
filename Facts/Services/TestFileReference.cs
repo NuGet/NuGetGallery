@@ -15,37 +15,23 @@ namespace NuGetGallery.Services
 
         public int OpenCount { get { return _openCount; } }
 
-        public bool HasChanged
-        {
-            get;
-            private set;
-        }
-
         public string ContentId
         {
             get;
             private set;
         }
 
-        public TestFileReference(byte[] content, string contentId, bool hasChanged)
+        public TestFileReference(byte[] content, string contentId)
         {
             _content = content;
             ContentId = contentId;
-            HasChanged = hasChanged;
         }
 
-        public static TestFileReference CreateUnchanged(string content)
+        public static TestFileReference Create(string content)
         {
             byte[] contentBytes = Encoding.UTF8.GetBytes(content);
             string hash = Crypto.Hash(contentBytes);
-            return new TestFileReference(new byte[0], hash, hasChanged: true);
-        }
-
-        public static TestFileReference CreateChanged(string content)
-        {
-            byte[] contentBytes = Encoding.UTF8.GetBytes(content);
-            string hash = Crypto.Hash(contentBytes);
-            return new TestFileReference(contentBytes, hash, hasChanged: true);
+            return new TestFileReference(contentBytes, hash);
         }
 
         public Stream OpenRead()

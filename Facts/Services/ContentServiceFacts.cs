@@ -25,7 +25,9 @@ namespace NuGetGallery.Services
         {
             const string FileContent = "This is **a** test of http://nuget.org markdown content.";
             const string RenderedFileContent = "<p>This is <strong>a</strong> test of http://nuget.org markdown content.</p>";
-            const string CachedContent = "<p>This is <strong>a</strong> test of http://nuget.org markdown content.</p>";
+            const string CachedContent = "<p>This is <strong>cached</strong> markdown content.</p>";
+            const string NewContent = "This is new content!";
+            const string RenderedNewContent = "<p>This is new content!</p>";
 
             [Fact]
             public void GivenANullOrEmptyName_ItShouldThrow()
@@ -37,10 +39,10 @@ namespace NuGetGallery.Services
             public async Task GivenAContentItemNameAndAnEmptyCache_ItShouldFetchThatItemFromFileStorage()
             {
                 // Arrange
-                var file = TestFileReference.Create(FileContent, "TestContentItem.md", DateTime.UtcNow);
+                var file = TestFileReference.Create(FileContent);
                 var contentService = new TestableContentService();
                 contentService.MockFileStorage
-                              .Setup(fs => fs.GetFileReferenceAsync(ContentService.ContentFolderName, "TestContentItem.md"))
+                              .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", null))
                               .Returns(Task.FromResult<IFileReference>(file));
 
                 // Act
@@ -55,10 +57,10 @@ namespace NuGetGallery.Services
             {
                 // Arrange
                 var testStart = DateTime.UtcNow;
-                var file = TestFileReference.Create(FileContent, "TestContentItem.md", DateTime.UtcNow);
+                var file = TestFileReference.Create(FileContent);
                 var contentService = new TestableContentService();
                 contentService.MockFileStorage
-                              .Setup(fs => fs.GetFileReferenceAsync(ContentService.ContentFolderName, "TestContentItem.md"))
+                              .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", null))
                               .Returns(Task.FromResult<IFileReference>(file));
 
                 // Act
@@ -67,7 +69,7 @@ namespace NuGetGallery.Services
                 // Assert
                 var cached = contentService.GetCached("TestContentItem");
                 Assert.NotNull(cached);
-                Assert.Equal(CachedContent, cached.Content.ToString());
+                Assert.Equal(RenderedFileContent, cached.Content.ToString());
                 Assert.Equal(file.ContentId, cached.ContentId);
                 Assert.Equal(TimeSpan.FromSeconds(42), cached.ExpiresIn);
                 Assert.True(cached.RetrievedUtc >= testStart);
@@ -77,7 +79,7 @@ namespace NuGetGallery.Services
             public async Task GivenAContentItemNameAndACachedValueThatHasNotExpired_ItShouldFetchThatItemFromCache()
             {
                 // Arrange
-                var file = TestFileReference.Create("This is **a** test of http://nuget.org markdown content.", "TestContentItem.md", DateTime.UtcNow);
+                var file = TestFileReference.Create(FileContent);
                 var contentService = new TestableContentService();
                 contentService.SetCached("TestContentItem", CachedContent, TimeSpan.FromDays(365d), DateTime.UtcNow);
                 
@@ -88,7 +90,7 @@ namespace NuGetGallery.Services
                 Assert.Equal(CachedContent, actual.ToString());
                 contentService.MockFileStorage
                               .Verify(
-                                fs => fs.GetFileReferenceAsync(ContentService.ContentFolderName, "TestContentItem.md"),
+                                fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", It.IsAny<string>()),
                                 Times.Never());
             }
 
@@ -97,28 +99,58 @@ namespace NuGetGallery.Services
             {
                 // Arrange
                 var testStart = DateTime.UtcNow;
-                var file = TestFileReference.CreateUnchanged("<p>This is uncached <em>HTML</em> content!</p>");
+                var file = TestFileReference.Create(CachedContent);
                 var contentService = new TestableContentService();
                 var cachedContentId = 
                     contentService.SetCached("TestContentItem", CachedContent, TimeSpan.FromSeconds(1), testStart.AddDays(-1d));
                 contentService.MockFileStorage
-                              .Setup(fs => fs.GetFileReferenceAsync(ContentService.ContentFolderName, "TestContentItem.md", cachedContentId))
+                              .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", cachedContentId))
                               .Returns(Task.FromResult<IFileReference>(file));
                 
                 // Act
                 var actual = await contentService.GetContentItemAsync("TestContentItem", TimeSpan.FromHours(12));
 
                 // Assert
-                Assert.Equal("<p>This is cached <em>HTML</em> content!</p>", actual.ToString());
+                Assert.Equal(CachedContent, actual.ToString());
                 contentService.MockFileStorage
-                              .Verify(fs => fs.GetFileReferenceAsync(ContentService.ContentFolderName, "TestContentItem.md", cachedContentId));
+                              .Verify(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", cachedContentId));
                 Assert.Equal(0, file.OpenCount); // Make sure we never tried to open the file.
                 
                 var updatedCache = contentService.GetCached("TestContentItem");
                 Assert.NotNull(updatedCache);
                 Assert.Equal(CachedContent, updatedCache.Content.ToString());
                 Assert.Equal(file.ContentId, updatedCache.ContentId);
-                Assert.Equal(TimeSpan.FromSeconds(1), updatedCache.ExpiresIn);
+                Assert.Equal(TimeSpan.FromHours(12), updatedCache.ExpiresIn);
+                Assert.True(updatedCache.RetrievedUtc > testStart);
+            }
+
+            [Fact]
+            public async Task GivenAContentItemAndACachedValueThatHasExpiredAndChanged_ItShouldUseTheFileContent()
+            {
+                // Arrange
+                var testStart = DateTime.UtcNow;
+                var file = TestFileReference.Create(NewContent);
+                var contentService = new TestableContentService();
+                var cachedContentId =
+                    contentService.SetCached("TestContentItem", CachedContent, TimeSpan.FromSeconds(1), testStart.AddDays(-1d));
+                contentService.MockFileStorage
+                              .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", cachedContentId))
+                              .Returns(Task.FromResult<IFileReference>(file));
+
+                // Act
+                var actual = await contentService.GetContentItemAsync("TestContentItem", TimeSpan.FromHours(12));
+
+                // Assert
+                Assert.Equal(RenderedNewContent, actual.ToString());
+                contentService.MockFileStorage
+                              .Verify(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", cachedContentId));
+                Assert.Equal(1, file.OpenCount); // Make sure we never tried to open the file.
+
+                var updatedCache = contentService.GetCached("TestContentItem");
+                Assert.NotNull(updatedCache);
+                Assert.Equal(RenderedNewContent, updatedCache.Content.ToString());
+                Assert.Equal(file.ContentId, updatedCache.ContentId);
+                Assert.Equal(TimeSpan.FromHours(12), updatedCache.ExpiresIn);
                 Assert.True(updatedCache.RetrievedUtc > testStart);
             }
         }

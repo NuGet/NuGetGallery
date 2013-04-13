@@ -48,7 +48,22 @@ namespace NuGetGallery
             return await blob.ExistsAsync();
         }
 
-        public async Task<Stream> GetFileAsync(string folderName, string fileName)
+        public Task<Stream> GetFileAsync(string folderName, string fileName)
+        {
+            if (String.IsNullOrWhiteSpace(folderName))
+            {
+                throw new ArgumentNullException("folderName");
+            }
+
+            if (String.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException("fileName");
+            }
+
+            return GetBlobContentAsync(folderName, fileName);
+        }
+
+        public async Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -61,46 +76,9 @@ namespace NuGetGallery
             }
 
             ICloudBlobContainer container = await GetContainer(folderName);
-
             var blob = container.GetBlobReference(fileName);
-
-            var stream = new MemoryStream();
-            try
-            {
-                await blob.DownloadToStreamAsync(stream);
-            }
-            catch (StorageException ex)
-            {
-                stream.Dispose();
-
-                if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
-                {
-                    return null;
-                }
-
-                throw;
-            }
-            catch (TestableStorageClientException ex)
-            {
-                // This is for unit test only, because we can't construct an 
-                // StorageException object with the required ErrorCode
-                stream.Dispose();
-
-                if (ex.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
-                {
-                    return null;
-                }
-
-                throw;
-            }
-
-            stream.Position = 0;
-            return stream;
-        }
-
-        public Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName)
-        {
-            throw new NotImplementedException();
+            var stream = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
+            return new CloudFileReference(blob, stream);
         }
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
@@ -129,6 +107,7 @@ namespace NuGetGallery
                     creationTask = PrepareContainer(folderName, isPublic: true);
                     break;
 
+                case Constants.ContentFolderName:
                 case Constants.UploadsFolderName:
                     creationTask = PrepareContainer(folderName, isPublic: false);
                     break;
@@ -141,6 +120,51 @@ namespace NuGetGallery
             container = await creationTask;
             _containers[folderName] = container;
             return container;
+        }
+
+        private async Task<Stream> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
+        {
+            ICloudBlobContainer container = await GetContainer(folderName);
+
+            var blob = container.GetBlobReference(fileName);
+
+            var stream = new MemoryStream();
+            try
+            {
+                await blob.DownloadToStreamAsync(
+                    stream, 
+                    accessCondition: 
+                        ifNoneMatch == null ? 
+                        null : 
+                        AccessCondition.GenerateIfNoneMatchCondition(ifNoneMatch));
+            }
+            catch (StorageException ex)
+            {
+                stream.Dispose();
+                
+                if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+                {
+                    return null;
+                }
+
+                throw;
+            }
+            catch (TestableStorageClientException ex)
+            {
+                // This is for unit test only, because we can't construct an 
+                // StorageException object with the required ErrorCode
+                stream.Dispose();
+
+                if (ex.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+                {
+                    return null;
+                }
+
+                throw;
+            }
+
+            stream.Position = 0;
+            return stream;
         }
 
         private static string GetContentType(string folderName)

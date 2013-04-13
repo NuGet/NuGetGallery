@@ -16,6 +16,7 @@
 
         public const string PackagesFolderName = "packages";
         public const string DownloadsFolderName = "downloads";
+        public const string ContentFolderName = "content";
 
         public const string PopularitySortOrder = "package-download-count";
         public const string RecentSortOrder = "package-created";

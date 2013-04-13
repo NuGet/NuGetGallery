@@ -10,24 +10,9 @@ namespace NuGetGallery
     {
         private FileInfo _file;
 
-        public string FullName
-        {
-            get { return _file.FullName; }
-        }
-
-        public string Name
-        {
-            get { return _file.Name; }
-        }
-
-        public DateTime LastModifiedUtc
-        {
-            get { return _file.LastWriteTimeUtc; }
-        }
-
         public string ContentId
         {
-            get { return FullName + "@" + LastModifiedUtc.ToString(); }
+            get { return _file.LastAccessTimeUtc.ToString("O"); }
         }
 
         public LocalFileReference(FileInfo file)
