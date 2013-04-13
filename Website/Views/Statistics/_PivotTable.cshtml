@@ -1,27 +1,27 @@
 ﻿<div class="statistics-sidebar">
 
-    <table class="statistics-dimensions-table">
-
-        @foreach (var item in Model.Dimensions)
-        {
-            <tr>
-                <td>
-                    @item.Name
-                </td>
-                <td>
-                    @if (item.IsChecked)
-                    {
-                        <input class="dimension-checkbox" id="@item.Id" type="checkbox" checked>
-                    }
-                    else
-                    {
-                        <input class="dimension-checkbox" id="@item.Id" type="checkbox">
-                    }
-                </td>
-            </tr>
-        }
-
-    </table>
+    <form id="dimension-form">
+        <table class="statistics-dimensions-table">
+            @foreach (var item in Model.Dimensions)
+            {
+                <tr>
+                    <td>
+                        @item.DisplayName
+                    </td>
+                    <td>
+                        @if (item.IsChecked)
+                        {
+                            <input class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox" checked>
+                        }
+                        else
+                        {
+                            <input class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox">
+                        }
+                    </td>
+                </tr>
+            }
+        </table>
+    </form>
 
 </div>
 <div class="statistics-data">

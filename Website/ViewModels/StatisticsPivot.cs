@@ -190,9 +190,17 @@ namespace NuGetGallery
                 Next = next;
             }
 
+            // Either Next is not null or this is a leaf in the pivot tree, in which case Amount is valid
+
             public IDictionary<string, Level> Next { get; set; }
             public int Amount { get; set; }
+
+            // Count is the count of child nodes in the tree - recursively so grandchildren etc. also get counted
+
             public int Count { get; set; }
+
+            // Total is the sum Total of all the Amounts in all the decendents. (See Total function above.)
+
             public int Total { get; set; }
         }
     }

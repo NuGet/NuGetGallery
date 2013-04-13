@@ -250,7 +250,7 @@ namespace NuGetGallery
 
                 report.Table = result.Item1;
                 report.Total = result.Item2;
-                report.Columns = pivot;
+                report.Columns = pivot.Select(GetDimensionDisplayName);
             }
 
             if (groupby == null)
@@ -259,7 +259,7 @@ namespace NuGetGallery
 
                 foreach (string dimension in dimensions)
                 {
-                    report.Dimensions.Add(new StatisticsDimension { Name = dimension, IsChecked = false });
+                    report.Dimensions.Add(new StatisticsDimension { Value = dimension, DisplayName = GetDimensionDisplayName(dimension), IsChecked = false });
                 }
 
                 report.Table = null;
@@ -272,11 +272,24 @@ namespace NuGetGallery
             if (Array.Exists(groupby, (s) => s.Equals(name, StringComparison.OrdinalIgnoreCase)))
             {
                 pivot[dimension++] = name;
-                report.Dimensions.Add(new StatisticsDimension { Name = name, IsChecked = true });
+                report.Dimensions.Add(new StatisticsDimension { Value = name, DisplayName = GetDimensionDisplayName(name), IsChecked = true });
             }
             else
             {
-                report.Dimensions.Add(new StatisticsDimension { Name = name, IsChecked = false });
+                report.Dimensions.Add(new StatisticsDimension { Value = name, DisplayName = GetDimensionDisplayName(name), IsChecked = false });
+            }
+        }
+
+        private static string GetDimensionDisplayName(string name)
+        {
+            switch (name)
+            {
+                case "ClientName":
+                    return "Client Name";
+                case "ClientVersion":
+                    return "Client Version";
+                default:
+                    return name;
             }
         }
     }
