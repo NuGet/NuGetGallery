@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Web.DynamicData;
 using System.Web.Routing;
@@ -10,6 +11,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 {
     public class DynamicDataManager
     {
+        [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = "We do treat this as immutable.")]
         public static readonly MetaModel DefaultModel = new MetaModel() { DynamicDataFolderVirtualPath = "~/Areas/Admin/DynamicData" };
 
         private static DynamicDataRoute _route;
