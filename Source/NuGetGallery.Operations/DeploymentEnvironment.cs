@@ -23,13 +23,13 @@ namespace NuGetGallery.Operations
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
         {
             Settings = deploymentSettings;
-            MainDatabase = new SqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Primary"]);
-            WarehouseDatabase = new SqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Warehouse"]);
-            BackupSourceDatabase = new SqlConnectionStringBuilder(deploymentSettings["Operations.Sql.BackupSource"]);
+            MainDatabase = GetSqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Primary"]);
+            WarehouseDatabase = GetSqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Warehouse"]);
+            BackupSourceDatabase = GetSqlConnectionStringBuilder(deploymentSettings["Operations.Sql.BackupSource"]);
 
-            MainStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Primary"]);
-            ReportStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Reports"]);
-            BackupSourceStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.BackupSource"]);
+            MainStorage = GetCloudStorageAccount(deploymentSettings["Operations.Storage.Primary"]);
+            ReportStorage = GetCloudStorageAccount(deploymentSettings["Operations.Storage.Reports"]);
+            BackupSourceStorage = GetCloudStorageAccount(deploymentSettings["Operations.Storage.BackupSource"]);
         }
 
         public static DeploymentEnvironment FromConfigFile(string configFile)
@@ -42,6 +42,16 @@ namespace NuGetGallery.Operations
 
             // Construct the deployment environment
             return new DeploymentEnvironment(settings);
+        }
+
+        private CloudStorageAccount GetCloudStorageAccount(string connectionString)
+        {
+            return String.IsNullOrEmpty(connectionString) ? null : CloudStorageAccount.Parse(connectionString);
+        }
+
+        private SqlConnectionStringBuilder GetSqlConnectionStringBuilder(string connectionString)
+        {
+            return String.IsNullOrEmpty(connectionString) ? null : new SqlConnectionStringBuilder(connectionString);
         }
 
         private static IDictionary<string, string> BuildSettingsDictionary(XDocument doc)
