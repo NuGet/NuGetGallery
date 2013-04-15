@@ -40,6 +40,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\AnglicanGeek.DbExecutor.0.1.2\lib\net40\AnglicanGeek.DbExecutor.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.0.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.Edm.5.0.2\lib\net40\Microsoft.Data.Edm.dll</HintPath>
@@ -67,7 +70,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
     <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.Net.Http">
       <Private>True</Private>
@@ -168,8 +173,10 @@
     <Compile Include="Tasks\ReplicatePackageStatisticsTask.cs" />
     <Compile Include="Tasks\RestoreDatabaseTask.cs" />
     <Compile Include="Tasks\RestorePackagesTask.cs" />
+    <Compile Include="Tasks\RunMigrationsTask.cs" />
     <Compile Include="Tasks\TaskBases.cs" />
     <Compile Include="Tasks\SynchronizePackageBackupsTask.cs" />
+    <Compile Include="Tasks\ListMigrationsTask.cs" />
     <Compile Include="Tasks\UploadPackageTask.cs" />
     <Compile Include="User.cs" />
     <Compile Include="Util.cs" />
