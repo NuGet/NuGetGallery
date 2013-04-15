@@ -16,10 +16,6 @@
                 is different.
             </p>
         </li>
-        <li id="followedPackages">
-            <h2><a href="@Url.Action(MVC.Users.MyFollowedPackages())">My Followed Packages</a></h2>
-            <p>Your followed packages are publically visible on your user profile page.</p>
-        </li>
         @if (Model.CuratedFeeds.Any())
         {
             <li id="manageCuratedFeeds">
@@ -36,6 +32,12 @@
         <li id="managePackages">
             <h2><a href="@Url.Action(MVC.Users.Packages())">Manage My Packages</a></h2>
             <p>Edit package details or Remove packages that you have previously uploaded.</p>
+        </li>
+        <li id="followedPackages">
+            <h2><a href="@Url.Action(MVC.Users.MyFollowedPackages())">My Followed Packages</a></h2>
+            <p>
+                Your followed packages are publically visible on your user profile page.
+            </p>
         </li>
         <li id="editProfile">
             <h2><a href="@Url.Action(MVC.Users.Edit())">Edit Profile</a></h2>
