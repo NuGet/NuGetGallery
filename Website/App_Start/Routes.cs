@@ -334,10 +334,11 @@ namespace NuGetGallery
                 "api/v2/curated-feed",
                 typeof(V2CuratedFeed));
 
-            routes.MapServiceRoute(
-                "v2" + RouteName.FollowedPackagesFeed,
-                "api/v2/followed-packages",
-                typeof(V2FollowedPackagesFeed));
+            // Disabling followed packages feed until we work out where we want it.
+            // routes.MapServiceRoute(
+            //     "v2" + RouteName.FollowedPackagesFeed,
+            //     "api/v2/followed-packages",
+            //     typeof(V2FollowedPackagesFeed));
 
             routes.MapServiceRoute(
                 RouteName.V2ApiFeed,

@@ -75,7 +75,7 @@
                 Downloads of v @Model.Version</p>
         </div>
         <div class="stat">
-            <p class="stat-number">@Model.NumFollowers.ToString("n0")</p>
+            <p class="stat-number" id="num-followers">@Model.NumFollowers.ToString("n0")</p>
             <p class="stat-label">
                 <a href="@Url.PackageFollowers(Model.Id)">Followers</a>
             </p>
@@ -185,8 +185,8 @@
             @* Follow Package *@
             @if (User.Identity.IsAuthenticated)
             {
-                <a class="unfollowbtn" id="unfollow-@Model.Id" title="You have followed this package"><i>&nbsp;You have followed this package</i></a>
-                <a class="followbtn" id="follow-@Model.Id" title="Click to followed this package"><i>&nbsp;Click to follow this package</i></a>
+                <a class="unfollowbtn" id="unfollow-@Model.Id" title="You have followed this package"><i>&nbsp;Following</i></a>
+                <a class="followbtn" id="follow-@Model.Id" title="Click to follow this package"><i>&nbsp;Follow</i></a>
             }
             else
             {

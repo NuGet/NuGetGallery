@@ -534,9 +534,8 @@ hgroup.page-heading h2 { padding-left: 7px; }
     padding-left: 20px;
 }
 
-#actions li#followedPackages h2 {
+#actions li#managedFollowedPackages h2 {
     background: url(../Content/Images/managePackages.png) no-repeat 0 50%;
-    font-size: 1.7em;
     padding-left: 20px;
 }
 
@@ -889,6 +888,14 @@ section.package .downloads {
     display: inline;
     font-size: 1.25em;
     font-weight: 600;
+}
+
+section.package div.favorites {
+    border-left: 1px solid #ccc;
+    display: inline;
+    margin-left: 10px;
+    padding-left: 10px;
+    min-height: 16px;
 }
 
 section.package div.tags {

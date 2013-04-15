@@ -5,13 +5,6 @@
         <a href="@Url.Package(Model)" title="View more about @Model.Title">
             <img src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_50x50_png)" alt="@Model.Id icon" onerror="this.src = '@Content.Images.packageDefaultIcon_50x50_png';" />
         </a><br/>
-        @if (User.Identity.IsAuthenticated)
-        {
-            <span style="min-height: 20px; display: block">
-                <a class="btn unfollowbtn" id="unfollow-@Model.Id" title="You have followed this package"><i class=" icon-star" ></i></a>
-                <a class="btn followbtn" id="follow-@Model.Id" title="Click to follow this package"><i class=" icon-star-empty" ></i></a>
-            </span>
-        }
     </div>
     <div class="main">
         <header>
@@ -51,6 +44,14 @@
             <p class="downloads">
                 @Model.TotalDownloadCount.ToString("n0") downloads
             </p>
+
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="favorites">
+                    <a class="btn unfollowbtn" id="unfollow-@Model.Id" title="You are following this package"><i class=" icon-star" ></i> Following</a>
+                    <a class="btn followbtn" id="follow-@Model.Id" title="Click to follow this package"><i class=" icon-star-empty" ></i> Follow</a>
+                </div>
+            }
             
             @if (@Model.Tags.AnySafe())
             {
