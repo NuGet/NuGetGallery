@@ -126,13 +126,8 @@ namespace NuGetGallery
 
         private static void DbMigratorPostStart()
         {
-            // After upgrading to EF 4.3 and MiniProfile 1.9, there is a bug that causes several 
-            // 'Invalid object name 'dbo.__MigrationHistory' to be thrown when the database is first created; 
-            // it seems these can safely be ignored, and the database will still be created.
-
-            // To make app startup not directly depend on the database,
-            // we set the migrations to run when the database is first used, instead of doing it up-front.
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext, MigrationsConfiguration>());
+            // Don't run migrations, ever!
+            Database.SetInitializer<EntitiesContext>(null);
         }
 
         private static void NinjectPreStart()
