@@ -26,9 +26,6 @@ namespace NuGetGallery.Operations
         [Option("Re-create all reports", AltName = "all")]
         public bool All { get; set; }
 
-        [Option("Re-create just detail reports", AltName = "new")]
-        public bool New { get; set; }
-
         public override void ExecuteCommand()
         {
             Log.Info("Generate reports begin");
@@ -233,34 +230,6 @@ namespace NuGetGallery.Operations
         private void CreatePackageReport(string packageId)
         {
             Log.Info(string.Format("CreatePackageReport for {0}", packageId));
-
-            if (New)
-            {
-                CreatePackageReportNew(packageId);
-            }
-            else
-            {
-                CreatePackageReportOld(packageId);
-                CreatePackageReportNew(packageId);
-            }
-        }
-
-        private void CreatePackageReportOld(string packageId)
-        {
-            Log.Info(string.Format("CreatePackageReportOld for {0}", packageId));
-
-            // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
-
-            string name = PackageReportBaseName + packageId.ToLowerInvariant();
-
-            Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityByPackage.sql", new Tuple<string, int, string>("@packageId", 128, packageId));
-
-            CreateBlob(name + ".json", JsonContentType, ReportHelpers.ToJson(report));
-        }
-
-        private void CreatePackageReportNew(string packageId)
-        {
-            Log.Info(string.Format("CreatePackageReportNew for {0}", packageId));
 
             // All blob names use lower case identifiers in the NuGet Gallery Azure Blob Storage 
 
