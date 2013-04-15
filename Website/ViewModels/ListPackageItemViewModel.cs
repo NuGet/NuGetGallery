@@ -40,7 +40,7 @@ namespace NuGetGallery
             {
                 return false;
             }
-            return user.IsInRole(Constants.AdminRoleName) || Owners.Any(u => u.Username == user.Identity.Name);
+            return user.IsAdministrator() || Owners.Any(u => u.Username == user.Identity.Name);
         }
     }
 }

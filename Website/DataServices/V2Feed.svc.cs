@@ -48,7 +48,7 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, packages, searchTerm, targetFramework, includePrerelease).ToV2FeedPackageQuery(GetSiteRoot());
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, packages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: null).ToV2FeedPackageQuery(GetSiteRoot());
         }
 
         [WebGet]

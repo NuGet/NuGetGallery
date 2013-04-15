@@ -13,7 +13,7 @@ namespace NuGetGallery.Infrastructure
 {
         public class ErrorEntity : ITableEntity
         {
-            public string SerializedError { get; set; }
+            public Error Error { get; set; }
 
             string ITableEntity.ETag
             {
@@ -54,19 +54,85 @@ namespace NuGetGallery.Infrastructure
 
             public ErrorEntity(Error error)
             {
-                this.SerializedError = ErrorXml.EncodeString(error);
+                Error = error;
             }
 
             void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, Microsoft.WindowsAzure.Storage.OperationContext operationContext)
             {
-                this.SerializedError = properties["SerializedError"].StringValue;
+                // This can occasionally fail because someone didn't finish creating the entity yet.
+
+                EntityProperty value;
+                if (properties.TryGetValue("SerializedError", out value))
+                {
+                    Error = ErrorXml.DecodeString(value.StringValue);
+                }
+                else
+                {
+                    Error = new Error
+                    {
+                        ApplicationName = "TableErrorLog",
+                        StatusCode = 999,
+                        HostName = Environment.MachineName,
+                        Time = DateTime.UtcNow,
+                        Type = typeof(Exception).FullName,
+                        Detail = "Error Log Entry is Corrupted/Missing in Table Store"
+                    };
+
+                    return;
+                }
+
+                if (properties.TryGetValue("Detail", out value))
+                {
+                    Error.Detail = value.StringValue;
+                }
+
+                if (properties.TryGetValue("WebHostHtmlMessage", out value))
+                {
+                    Error.WebHostHtmlMessage = value.StringValue;
+                }
             }
 
             IDictionary<string, EntityProperty> ITableEntity.WriteEntity(OperationContext operationContext)
             {
+                // Table storage has a limitation on property lengths - 64KiB.
+                // Strings will be encoded as UTF-16, apparently?
+
+                const int MaxChars = 32 * 1000;
+
+                var detail = Error.Detail;
+                if (detail.Length > MaxChars)
+                {
+                    detail = detail.Substring(0, MaxChars);
+                }
+
+                var htmlMessage = Error.WebHostHtmlMessage;
+                if (htmlMessage.Length > MaxChars)
+                {
+                    htmlMessage = htmlMessage.Substring(0, MaxChars);
+                }
+
+                Error.Detail = null;
+                Error.WebHostHtmlMessage = null;
+                string serializedError = ErrorXml.EncodeString(Error);
+
+                if (serializedError.Length > MaxChars)
+                {
+                    serializedError = ErrorXml.EncodeString(
+                        new Error
+                        {
+                            ApplicationName = "TableErrorLog",
+                            StatusCode = 888,
+                            HostName = Environment.MachineName,
+                            Time = DateTime.UtcNow,
+                            Detail = "Error Log Entry Will Not Fit In Table Store: " + serializedError.Substring(0, 4000)
+                        });
+                }
+
                 return new Dictionary<string, EntityProperty>
                 {
-                    { "SerializedError", EntityProperty.GeneratePropertyForString(this.SerializedError) }
+                    { "SerializedError", EntityProperty.GeneratePropertyForString(serializedError) },
+                    { "Detail", EntityProperty.GeneratePropertyForString(detail) },
+                    { "WebHostHtmlMessage", EntityProperty.GeneratePropertyForString(htmlMessage) },
                 };
             }
         }
@@ -100,7 +166,7 @@ namespace NuGetGallery.Infrastructure
                 long pos = Int64.Parse(id, CultureInfo.InvariantCulture);
                 var error = _entityList[pos];
                 Debug.Assert(id == pos.ToString(CultureInfo.InvariantCulture));
-                return new ErrorLogEntry(this, id, ErrorXml.DecodeString(error.SerializedError));
+                return new ErrorLogEntry(this, id, error.Error);
             }
 
             public override int GetErrors(int pageIndex, int pageSize, IList errorEntryList)
@@ -119,7 +185,7 @@ namespace NuGetGallery.Infrastructure
                 foreach (var error in results)
                 {
                     string id = error.LogicalIndex.ToString(CultureInfo.InvariantCulture);
-                    errorEntryList.Add(new ErrorLogEntry(this, id, ErrorXml.DecodeString(error.SerializedError)));
+                    errorEntryList.Add(new ErrorLogEntry(this, id, error.Error));
                 }
 
                 return _entityList.Count;

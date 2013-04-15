@@ -25,48 +25,32 @@ namespace NuGetGallery
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, _config);
 
-            const string userSection = @"
-**User:**
-
-{Username} - {UserUrl}
-";
-
             const string bodyTemplate = @"
-**Email:**
+**Email:** {Name} ({Address})
 
-{Name} ({Address})
+**Package:** {Id}
+{PackageUrl}
 
-**Package:**
-
-{Id} - {PackageUrl}
-
-**Version:**
-
-{Version} - {VersionUrl}
+**Version:** {Version}
+{VersionUrl}
 
 **Owners:**
-
 {OwnerList}
 
-**Reason:**
+**User:** {Username} ({UserAddress})
+{UserUrl}
 
+**Reason:**
 {Reason}
 
 **Has the package owner been contacted?:**
-
 {AlreadyContactedOwners}
 
 **Message:**
-
 {Message}
 ";
 
             var body = new StringBuilder("");
-            if (request.RequestingUser != null)
-            {
-                body.Append(request.FillIn(userSection, _config));
-            }
-
             body.Append(request.FillIn(bodyTemplate, _config));
             body.AppendFormat(CultureInfo.InvariantCulture, @"
 
@@ -88,32 +72,24 @@ namespace NuGetGallery
             subject = request.FillIn(subject, _config);
 
             const string bodyTemplate = @"
-**User:**
+**Email:** {Name} ({Address})
 
-{Username} - {UserUrl}
+**Package:** {Id}
+{PackageUrl}
 
-**Email:**
-
-{Name} ({Address})
-
-**Package:**
-
-{Id} - {PackageUrl}
-
-**Version:**
-
-{Version} - {VersionUrl}
+**Version:** {Version}
+{VersionUrl}
 
 **Owners:**
-
 {OwnerList}
 
-**Reason:**
+**User:** {Username} ({UserAddress})
+{UserUrl}
 
+**Reason:**
 {Reason}
 
 **Message:**
-
 {Message}
 ";
 

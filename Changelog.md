@@ -29,7 +29,7 @@
 *Support for MinClientVersion*:
 
    You can now upload packages with "[minclientVersion](http://nuget.codeplex.com/wikipage?title=NuGet%202.5%20list%20of%20features%20for%20Testing%20days%203%2f27%20to%203%2f29%20%2c%202013 )" to the NuGetGallery.
-   The minclientVersion of the package will shown in the package home page right next to the package description.
+   The minclientVersion of the package will be shown in the package home page right next to the package description.
 
 *Contacting support*:
 
@@ -37,7 +37,7 @@
 
 *Improvised Package statistics*:
    
-   The package statistics now shows the break down of downloads based on the NuGet client (like NuGet CommandLine 2.1, NuGet Package Manager console 2.2 and so on and it also shows the split of the type of download operation (like Install, Restore, Update)
+   The package statistics page now shows the break down of downloads based on the NuGet client (like NuGet CommandLine 2.1, NuGet Package Manager console 2.2 and so on and it also shows the split of the type of download operation (like Install, Restore, Update)
 
 *Other minor bug fixes*:
 

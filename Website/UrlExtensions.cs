@@ -42,13 +42,14 @@ namespace NuGetGallery
         {
             string result = url.RouteUrl(RouteName.StatisticsPackageDownloadsByVersion, new { id });
 
-            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
-            return EnsureTrailingSlash(result);
+            return result + "?groupby=Version";
         }
 
         public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version)
         {
-            return url.RouteUrl(RouteName.StatisticsPackageDownloadsDetail, new { id, version });
+            string result = url.RouteUrl(RouteName.StatisticsPackageDownloadsDetail, new { id, version });
+
+            return result + "?groupby=ClientName";
         }
 
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm, bool prerelease)
@@ -115,7 +116,19 @@ namespace NuGetGallery
 
         public static string LogOff(this UrlHelper url)
         {
-            return url.Action(MVC.Authentication.LogOff(url.Current()));
+            string returnUrl = url.Current();
+            // If we're logging off from the Admin Area, don't set a return url
+            if (String.Equals(url.RequestContext.RouteData.DataTokens["area"].ToStringOrNull(), "Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                returnUrl = String.Empty;
+            }
+            var originalResult = MVC.Authentication.LogOff(returnUrl);
+            var result = originalResult.GetT4MVCResult();
+            
+            // T4MVC doesn't set area to "", but we need it to, otherwise it thinks this is an intra-area link.
+            result.RouteValueDictionary["area"] = "";
+
+            return url.Action(originalResult);
         }
 
         public static string Search(this UrlHelper url, string searchTerm)

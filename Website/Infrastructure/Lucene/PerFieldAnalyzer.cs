@@ -42,7 +42,7 @@ namespace NuGetGallery
             {
                 // Split the title based on IdSeparators, then run it through the innerAnalyzer
                 string title = reader.ReadToEnd();
-                string partiallyTokenized = String.Join(" ", title.Split(LuceneIndexingService.IdSeparators, StringSplitOptions.RemoveEmptyEntries));
+                string partiallyTokenized = String.Join(" ", title.Split(PackageIndexEntity.IdSeparators, StringSplitOptions.RemoveEmptyEntries));
                 return innerAnalyzer.TokenStream(fieldName, new StringReader(partiallyTokenized));
             }
         }
