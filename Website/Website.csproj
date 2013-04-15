@@ -566,8 +566,6 @@
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\PrincipalExtensions.cs" />
     <Compile Include="Infrastructure\GalleryGateway.cs" />
-    <Compile Include="Infrastructure\Lucene\IntersectionFilter.cs" />
-    <Compile Include="Infrastructure\Lucene\PackageSetFilter.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
