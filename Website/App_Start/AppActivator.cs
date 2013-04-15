@@ -5,7 +5,6 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using DynamicDataEFCodeFirst;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
@@ -44,7 +43,6 @@ namespace NuGetGallery
             DbMigratorPostStart();
             BackgroundJobsPostStart(config);
             AppPostStart();
-            DynamicDataPostStart(config);
             BundlingPostStart();
         }
 
@@ -88,6 +86,8 @@ namespace NuGetGallery
         {
             Routes.RegisterRoutes(RouteTable.Routes);
             Routes.RegisterServiceRoutes(RouteTable.Routes);
+            AreaRegistration.RegisterAllAreas();
+            
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
@@ -133,11 +133,6 @@ namespace NuGetGallery
             // To make app startup not directly depend on the database,
             // we set the migrations to run when the database is first used, instead of doing it up-front.
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext, MigrationsConfiguration>());
-        }
-
-        private static void DynamicDataPostStart(IConfiguration configuration)
-        {
-            Registration.Register(RouteTable.Routes, configuration);
         }
 
         private static void NinjectPreStart()
