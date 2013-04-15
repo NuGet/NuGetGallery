@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -9,10 +8,8 @@ using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
 using Ninject;
 using Ninject.Modules;
-using Ninject.Web.Mvc.Filter;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery

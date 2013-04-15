@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
-using StackExchange.Profiling;
 
 namespace NuGetGallery
 {
@@ -18,12 +17,9 @@ namespace NuGetGallery
             bool includePrerelease)
         {
             // TODO: Implement actual sorting
-            IEnumerable<ListPackageItemViewModel> items;
-            using (MiniProfiler.Current.Step("Querying and mapping packages to list"))
-            {
-                items = packages.ToList()
-                    .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
-            }
+            IEnumerable<ListPackageItemViewModel> items = 
+                packages.ToList()
+                        .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = totalCount;

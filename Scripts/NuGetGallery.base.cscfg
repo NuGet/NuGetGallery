@@ -31,6 +31,7 @@
       <Setting name="Gallery.ReadOnlyMode" value="" /><!-- set value 'true' to put the gallery in read only mode -->
       <Setting name="Gallery.SiteRoot" value="" />
       <Setting name="Gallery.SSL.Required" value="true" />
+      <Setting name="Gallery.UserGlimpsePolicy" value="Off" />
       
       <!-- Set this to enable Google Analytics -->
       <Setting name="Gallery.GoogleAnalyticsPropertyId" value="" />

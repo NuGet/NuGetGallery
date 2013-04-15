@@ -4,7 +4,6 @@ using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Versioning;
 using NuGet;
-using StackExchange.Profiling;
 
 namespace NuGetGallery
 {
@@ -18,11 +17,11 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
 
         public PackageService(
-            ICryptographyService cryptoService, 
-            IEntityRepository<PackageRegistration> packageRegistrationRepository, 
-            IEntityRepository<Package> packageRepository, 
-            IEntityRepository<PackageStatistics> packageStatsRepository, 
-            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository, 
+            ICryptographyService cryptoService,
+            IEntityRepository<PackageRegistration> packageRegistrationRepository,
+            IEntityRepository<Package> packageRepository,
+            IEntityRepository<PackageStatistics> packageStatsRepository,
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IIndexingService indexingService)
         {
             _cryptoService = cryptoService;
@@ -63,7 +62,7 @@ namespace NuGetGallery
 
             var packageRegistration = package.PackageRegistration;
             _packageRepository.DeleteOnCommit(package);
-                
+
             UpdateIsLatest(packageRegistration);
 
             if (packageRegistration.Packages.Count == 0)
@@ -212,23 +211,20 @@ namespace NuGetGallery
 
         public void AddDownloadStatistics(Package package, string userHostAddress, string userAgent, string operation)
         {
-            using (MiniProfiler.Current.Step("Updating package stats"))
-            {
-                _packageStatsRepository.InsertOnCommit(
-                    new PackageStatistics
-                        {
-                            // IMPORTANT: Timestamp is managed by the database.
+            _packageStatsRepository.InsertOnCommit(
+                new PackageStatistics
+                    {
+                        // IMPORTANT: Timestamp is managed by the database.
 
-                            // IMPORTANT: Until we understand privacy implications of storing IP Addresses thoroughly,
-                            // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
-                            IPAddress = "unknown",
-                            UserAgent = userAgent,
-                            Package = package,
-                            Operation = operation
-                        });
+                        // IMPORTANT: Until we understand privacy implications of storing IP Addresses thoroughly,
+                        // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
+                        IPAddress = "unknown",
+                        UserAgent = userAgent,
+                        Package = package,
+                        Operation = operation
+                    });
 
-                _packageStatsRepository.CommitChanges();
-            }
+            _packageStatsRepository.CommitChanges();
         }
 
         public void AddPackageOwner(PackageRegistration package, User user)
