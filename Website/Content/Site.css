@@ -143,7 +143,7 @@ pre, code, tt {
 header, footer,
 nav, section { display: block; }
 
-#environment-warning-banner {
+.banner-yellow {
     padding: 0.25em;
     font-size: 14pt;
     text-align: center;
