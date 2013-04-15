@@ -18,7 +18,7 @@ namespace NuGetGallery.Areas.Admin
         {
             var config = Container.Kernel.Get<IConfiguration>();
 
-            context.Routes.Ignore("Admin/Errors/{*pathInfo}"); // ELMAH owns this root
+            context.Routes.Ignore("Admin/Errors.axd/{*pathInfo}"); // ELMAH owns this root
             DynamicDataManager.Register(context.Routes, "Admin/Database", config);
 
             context.MapRoute(
