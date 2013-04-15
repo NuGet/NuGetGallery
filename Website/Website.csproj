@@ -811,6 +811,9 @@
     </Compile>
     <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
+    <Compile Include="ViewModels\StatisticsFact.cs" />
+    <Compile Include="ViewModels\StatisticsPivot.cs" />
+    <Compile Include="ViewModels\StatisticsDimension.cs" />
     <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
@@ -1020,6 +1023,7 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="robots.txt" />
+    <Content Include="Scripts\statsdimensions.js" />
     <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\async-file-upload.js" />
     <Content Include="Scripts\knockout-2.2.1.debug.js" />
@@ -1131,6 +1135,7 @@
     <Content Include="Views\Packages\ReportMyPackage.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
+    <Content Include="Views\Statistics\_PivotTable.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
