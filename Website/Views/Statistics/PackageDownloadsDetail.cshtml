@@ -7,38 +7,18 @@
 <h2>Package Downloads for <a href="@Url.Package(Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a> (Over the Last 6 Weeks)</h2>
 @if (Model.IsReportAvailable)
 {
-<table class="sexy-table">
-    <thead>
-        <tr>
-            <th></th><th class="first">Client</th><th>Operation</th><th>Downloads</th>
-        </tr>
-    </thead>
-    <tbody>
-    @{
-        var index = 0;
-        
-        foreach (var item in Model.Report.Rows)
-        {
-            index++;
-            
-            <tr>
-                <td class="statistics-rank">@index</td>
-                <td>@item.Client</td>
-                <td>@item.Operation</td>
-                <td>@item.Downloads</td>
-            </tr>
-        }
-    }
-        <tr>
-            <td><span class="statistics-total">Total:</span></td>
-            <td><span class="statistics-total">@Model.Report.Total</span></td>
-        </tr>
-    </tbody>
-</table>
+    @Html.Partial("_PivotTable", Model.Report)
 }
 else
 {
     <p>
         Download statistics are not currently available for this package, please check back later. 
     </p>
+}
+@section BottomScripts
+{
+    @Scripts.Render("~/Scripts/statsdimensions.js")
+    <script>
+        $(document).ready(groupbyNavigation);
+    </script>
 }

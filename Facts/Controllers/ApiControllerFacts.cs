@@ -774,14 +774,17 @@ namespace NuGetGallery
 
                 var controller = new ApiController(null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
 
-                ActionResult actionResult = await controller.GetStatsDownloads();
+                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+                ActionResult actionResult = await controller.GetStatsDownloads(null);
 
                 ContentResult contentResult = (ContentResult)actionResult;
 
                 JArray result = JArray.Parse(contentResult.Content);
 
-                Assert.True((string)result[0]["Package"] == "http://nuget.org/package/api/v2/A/1.0", "unexpected content");
-                Assert.True((string)result[3]["Package"] == "http://nuget.org/package/api/v2/B/1.1", "unexpected content");
+                Assert.True((string)result[0]["Package"] == "http://nuget.org/api/v2/package/A/1.0", "unexpected content result[0].Package");
+                Assert.True((string)result[3]["Package"] == "http://nuget.org/api/v2/package/B/1.1", "unexpected content result[3].Package");
+                Assert.True((string)result[3]["Gallery"] == "http://nuget.org/packages/B/1.1", "unexpected content result[3].Gallery");
                 Assert.True((int)result[2]["Downloads"] == 5, "unexpected content");
             }
 
@@ -794,11 +797,43 @@ namespace NuGetGallery
 
                 var controller = new ApiController(null, null, null, null, fakeStatisticsService.Object);
 
-                ActionResult actionResult = await controller.GetStatsDownloads();
+                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+                ActionResult actionResult = await controller.GetStatsDownloads(null);
 
                 HttpStatusCodeResult httpStatusResult = (HttpStatusCodeResult)actionResult;
 
                 Assert.True(httpStatusResult.StatusCode == (int)HttpStatusCode.NotFound, "unexpected StatusCode");
+            }
+
+            [Fact]
+            public async void VerifyRecentPopularityStatsDownloadsCount()
+            {
+                JArray report = new JArray();
+                report.Add(new JObject(new JProperty("PackageId", "A"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 3)));
+                report.Add(new JObject(new JProperty("PackageId", "A"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 4)));
+                report.Add(new JObject(new JProperty("PackageId", "B"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 5)));
+                report.Add(new JObject(new JProperty("PackageId", "B"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 6)));
+                report.Add(new JObject(new JProperty("PackageId", "C"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 7)));
+                report.Add(new JObject(new JProperty("PackageId", "C"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 8)));
+
+                var fakePackageVersionReport = report.ToString();
+
+                var fakeReportService = new Mock<IReportService>();
+
+                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+
+                var controller = new ApiController(null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
+
+                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+                ActionResult actionResult = await controller.GetStatsDownloads(3);
+
+                ContentResult contentResult = (ContentResult)actionResult;
+
+                JArray result = JArray.Parse(contentResult.Content);
+
+                Assert.True(result.Count == 3, "unexpected content");
             }
         }
     }

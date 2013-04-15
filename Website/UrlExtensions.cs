@@ -42,13 +42,14 @@ namespace NuGetGallery
         {
             string result = url.RouteUrl(RouteName.StatisticsPackageDownloadsByVersion, new { id });
 
-            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
-            return EnsureTrailingSlash(result);
+            return result + "?groupby=Version";
         }
 
         public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version)
         {
-            return url.RouteUrl(RouteName.StatisticsPackageDownloadsDetail, new { id, version });
+            string result = url.RouteUrl(RouteName.StatisticsPackageDownloadsDetail, new { id, version });
+
+            return result + "?groupby=ClientName";
         }
 
         public static string PackageList(this UrlHelper url, int page, string sortOrder, string searchTerm, bool prerelease)
@@ -87,6 +88,15 @@ namespace NuGetGallery
         public static string Package(this UrlHelper url, PackageRegistration package)
         {
             return url.Package(package.Id);
+        }
+
+        public static string PackageGallery(this UrlHelper url, string id, string version)
+        {
+            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            string result = url.RouteUrl(RouteName.DisplayPackage, new { Id = id, Version = version }, protocol: protocol);
+
+            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
+            return version == null ? EnsureTrailingSlash(result) : result;
         }
 
         public static string PackageDownload(this UrlHelper url, int feedVersion, string id, string version)
