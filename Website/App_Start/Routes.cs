@@ -239,7 +239,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.StatisticsDownloadsApi,
-                "api/v2/stats/downloads",
+                "api/v2/stats/downloads/last6weeks",
                 defaults: new { controller = MVC.Api.Name, action = "StatisticsDownloadsApi" },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
