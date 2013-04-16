@@ -17,17 +17,17 @@ namespace NuGetGallery.Operations.Common
             return stream;
         }
 
-        public static Stream ToJson(Tuple<string[], List<string[]>> report)
+        public static Stream ToJson(Tuple<string[], List<object[]>> report)
         {
             JArray jArray = new JArray();
 
-            foreach (string[] row in report.Item2)
+            foreach (object[] row in report.Item2)
             {
                 JObject jObject = new JObject();
 
                 for (int i = 0; i < report.Item1.Length; i++)
                 {
-                    jObject.Add(report.Item1[i], row[i]);
+                    jObject.Add(report.Item1[i], new JValue(row[i]));
                 }
 
                 jArray.Add(jObject);

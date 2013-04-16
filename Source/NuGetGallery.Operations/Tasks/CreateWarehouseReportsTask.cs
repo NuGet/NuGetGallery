@@ -51,7 +51,7 @@ namespace NuGetGallery.Operations
         {
             Log.Info("CreateReport_PerMonth");
 
-            Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_PerMonth.sql");
+            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_PerMonth.sql");
 
             CreateBlob(PerMonth + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
@@ -60,7 +60,7 @@ namespace NuGetGallery.Operations
         {
             Log.Info("CreateReport_RecentPopularityDetail");
 
-            Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetail.sql");
+            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetail.sql");
 
             CreateBlob(RecentPopularityDetail + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
@@ -69,14 +69,14 @@ namespace NuGetGallery.Operations
         {
             Log.Info("CreateReport_RecentPopularity");
 
-            Tuple<string[], List<string[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularity.sql");
+            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularity.sql");
 
             CreateBlob(RecentPopularity + ".json", JsonContentType, ReportHelpers.ToJson(report));
 
             CreatePerPackageReports(report);
         }
 
-        private void CreatePerPackageReports(Tuple<string[], List<string[]>> report)
+        private void CreatePerPackageReports(Tuple<string[], List<object[]>> report)
         {
             Log.Info(string.Format("CreatePerPackageReports (count = {0})", report.Item2.Count));
 
@@ -95,9 +95,9 @@ namespace NuGetGallery.Operations
                 throw new InvalidOperationException("expected PackageId in result");
             }
 
-            foreach (string[] row in report.Item2)
+            foreach (object[] row in report.Item2)
             {
-                string packageId = row[indexOfPackageId];
+                string packageId = row[indexOfPackageId].ToString();
                 WithRetry(() =>
                 {
                     CreatePackageReport(packageId);
@@ -242,7 +242,7 @@ namespace NuGetGallery.Operations
 
         private JObject CreateJsonContent(string packageId)
         {
-            Tuple<string[], List<object[]>> data = ExecuteSqlNew("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetailByPackage.sql", new Tuple<string, int, string>("@packageId", 128, packageId));
+            Tuple<string[], List<object[]>> data = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_RecentPopularityDetailByPackage.sql", new Tuple<string, int, string>("@packageId", 128, packageId));
             JObject content = MakeReportJson(data);
             TotalDownloads(content);
             SortItems(content);
@@ -435,55 +435,7 @@ namespace NuGetGallery.Operations
             }
         }
 
-        private Tuple<string[], List<string[]>> ExecuteSql(string filename, params Tuple<string, int, string>[] parameters)
-        {
-            string sql = ResourceHelper.GetBatchFromSqlFile(filename);
-
-            List<string[]> rows = new List<string[]>();
-            string[] columns;
-
-            using (SqlConnection connection = new SqlConnection(ConnectionString.ConnectionString))
-            {
-                connection.Open();
-
-                SqlCommand command = new SqlCommand(sql, connection);
-                command.CommandType = CommandType.Text;
-                command.CommandTimeout = 60 * 5;
-
-                foreach (Tuple<string, int, string> parameter in parameters)
-                {
-                    command.Parameters.Add(parameter.Item1, SqlDbType.NVarChar, parameter.Item2).Value = parameter.Item3;
-                }
-
-                SqlDataReader reader = command.ExecuteReader();
-
-                columns = new string[reader.FieldCount];
-
-                for (int i = 0; i < reader.FieldCount; i++)
-                {
-                    columns[i] = reader.GetName(i);
-                }
-
-                while (reader.Read())
-                {
-                    string[] row = new string[reader.FieldCount];
-
-                    for (int i = 0; i < reader.FieldCount; i++)
-                    {
-                        row[i] = reader.GetValue(i).ToString();
-                    }
-
-                    rows.Add(row);
-                }
-            }
-
-            return new Tuple<string[], List<string[]>>(columns, rows);
-        }
-
-        //  this is basically the same function as ExecuteSql but preserves the types in the results
-        //  we should port the calls across to this after we release this one.
-
-        private Tuple<string[], List<object[]>> ExecuteSqlNew(string filename, params Tuple<string, int, string>[] parameters)
+        private Tuple<string[], List<object[]>> ExecuteSql(string filename, params Tuple<string, int, string>[] parameters)
         {
             string sql = ResourceHelper.GetBatchFromSqlFile(filename);
 

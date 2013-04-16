@@ -6,6 +6,10 @@ GO
 CREATE PROCEDURE [dbo].[AddDownloadFact]
 @PackageId NVARCHAR(128),
 @PackageVersion NVARCHAR(64),
+@PackageListed INT,
+@PackageTitle NVARCHAR(256),
+@PackageDescription NVARCHAR(MAX),
+@PackageIconUrl NVARCHAR(MAX),
 @DownloadUserAgent NVARCHAR(max),
 @DownloadOperation NVARCHAR(16),
 @DownloadTimestamp DATETIME,
@@ -30,11 +34,37 @@ BEGIN
 
         IF (@Dimension_PackageId IS NULL)
         BEGIN
-            INSERT Dimension_Package ( PackageId, PackageVersion )
-            VALUES ( @PackageId, @PackageVersion );
+            INSERT Dimension_Package
+			( 
+				PackageId,
+				PackageVersion,
+				PackageListed,
+				PackageTitle,
+				PackageDescription,
+				PackageIconUrl
+			)
+            VALUES 
+			( 
+				@PackageId,
+				@PackageVersion,
+				@PackageListed,
+				@PackageTitle,
+				@PackageDescription,
+				@PackageIconUrl
+			);
 
             SELECT @Dimension_PackageId = SCOPE_IDENTITY();
         END
+		ELSE
+		BEGIN
+            UPDATE Dimension_Package
+			SET 
+				PackageListed = @PackageListed,
+				PackageTitle = @PackageTitle,
+				PackageDescription = @PackageDescription,
+				PackageIconUrl = @PackageIconUrl
+			WHERE Id = @Dimension_PackageId
+		END
 
         DECLARE @Dimension_UserAgentId INT;
 
