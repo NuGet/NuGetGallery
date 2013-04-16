@@ -191,7 +191,7 @@ namespace NuGetGallery
             {
                 return token.ToString();
             }
-            return string.Empty;
+            return null;
         }
 
         public async Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId)
