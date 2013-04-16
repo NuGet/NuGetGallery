@@ -890,7 +890,7 @@ section.package .downloads {
     font-weight: 600;
 }
 
-section.package div.favorites {
+section.package div.follows {
     border-left: 1px solid #ccc;
     display: inline;
     margin-left: 10px;

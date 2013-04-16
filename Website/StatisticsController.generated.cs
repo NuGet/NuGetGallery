@@ -53,6 +53,7 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string _PivotTable = "~/Views/Statistics/_PivotTable.cshtml";
             public readonly string Index = "~/Views/Statistics/Index.cshtml";
             public readonly string PackageDownloadsByVersion = "~/Views/Statistics/PackageDownloadsByVersion.cshtml";
             public readonly string PackageDownloadsDetail = "~/Views/Statistics/PackageDownloadsDetail.cshtml";

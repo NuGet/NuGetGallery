@@ -17,11 +17,8 @@ namespace NuGetGallery
             bool includePrerelease)
         {
             IList<ListPackageItemViewModel> items;
-            using (MiniProfiler.Current.Step("Querying and mapping packages to list"))
-            {
-                items = packages.ToList()
+            items = packages.ToList()
                     .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false)).ToList();
-            }
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = totalCount;

@@ -776,8 +776,6 @@
     <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\Exceptions\PackageNotFoundException.cs" />
     <Compile Include="Services\Exceptions\UserNotFoundException.cs" />
-    <Compile Include="Services\CuratedFeedService.cs" />
-    <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />
@@ -1046,7 +1044,6 @@
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="robots.txt" />
     <Content Include="Scripts\statsdimensions.js" />
-    <Content Include="Scripts\favorites.js" />
     <Content Include="Scripts\follow.js" />
     <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\async-file-upload.js" />
@@ -1164,7 +1161,6 @@
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Statistics\_PivotTable.cshtml" />
-    <Content Include="Views\Users\MyFavorites.cshtml" />
     <Content Include="Views\Users\MyFollowedPackages.cshtml" />
   </ItemGroup>
   <ItemGroup>

@@ -355,6 +355,8 @@ namespace Links {
                       
         public static readonly string stats_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/stats.min.js") ? Url("stats.min.js") : Url("stats.js");
                       
+        public static readonly string statsdimensions_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/statsdimensions.min.js") ? Url("statsdimensions.min.js") : Url("statsdimensions.js");
+                      
         public static readonly string ZeroClipboard_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/ZeroClipboard.min.js") ? Url("ZeroClipboard.min.js") : Url("ZeroClipboard.js");
                       
         public static readonly string ZeroClipboard_swf = Url("ZeroClipboard.swf");

@@ -47,7 +47,7 @@
 
             @if (User.Identity.IsAuthenticated)
             {
-                <div class="favorites">
+                <div class="follows">
                     <a class="btn unfollowbtn" id="unfollow-@Model.Id" title="You are following this package"><i class=" icon-star" ></i> Following</a>
                     <a class="btn followbtn" id="follow-@Model.Id" title="Click to follow this package"><i class=" icon-star-empty" ></i> Follow</a>
                 </div>

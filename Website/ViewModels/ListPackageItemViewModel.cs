@@ -29,14 +29,5 @@ namespace NuGetGallery
                 return !(LatestVersion && LatestStableVersion);
             }
         }
-
-        public bool IsOwner(IPrincipal user)
-        {
-            if (user == null || user.Identity == null)
-            {
-                return false;
-            }
-            return user.IsAdministrator() || Owners.Any(u => u.Username == user.Identity.Name);
-        }
     }
 }
