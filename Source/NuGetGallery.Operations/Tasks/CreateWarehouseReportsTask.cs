@@ -30,6 +30,8 @@ namespace NuGetGallery.Operations
         {
             Log.Info("Generate reports begin");
 
+            CreateContainerIfNotExists();
+
             CreateReport_PerMonth();
             CreateReport_RecentPopularityDetail();
             CreateReport_RecentPopularity();
@@ -470,7 +472,7 @@ namespace NuGetGallery.Operations
 
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
-                        row[i] = reader.GetValue(i);
+                        row[i] = reader.IsDBNull(i) ? null : reader.GetValue(i);
                     }
 
                     rows.Add(row);
@@ -478,6 +480,16 @@ namespace NuGetGallery.Operations
             }
 
             return new Tuple<string[], List<object[]>>(columns, rows);
+        }
+
+        private void CreateContainerIfNotExists()
+        {
+            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference("stats");
+            
+            container.CreateIfNotExists();  // this can throw if the container was just deleted a few seconds ago
+            
+            container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
         }
 
         private Uri CreateBlob(string name, string contentType, Stream content)

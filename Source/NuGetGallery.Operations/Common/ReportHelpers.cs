@@ -27,7 +27,11 @@ namespace NuGetGallery.Operations.Common
 
                 for (int i = 0; i < report.Item1.Length; i++)
                 {
-                    jObject.Add(report.Item1[i], new JValue(row[i]));
+                    if (row[i] != null)
+                    {
+                        jObject.Add(report.Item1[i], new JValue(row[i]));
+                    }
+                    // ELSE treat null by not defining the property in our internal JSON (aka undefined)
                 }
 
                 jArray.Add(jObject);

@@ -1,10 +1,10 @@
 ﻿
 SELECT TOP(500) 
-	Dimension_Package.PackageId 'PackageId',
-	Dimension_Package.PackageVersion 'PackageVersion',
-	ISNULL(Dimension_Package.PackageTitle, '') 'PackageTitle',
-	ISNULL(Dimension_Package.PackageDescription, '') 'PackageDescription',
-	ISNULL(Dimension_Package.PackageIconUrl, '') 'PackageIconUrl',
+	Dimension_Package.PackageId,
+	Dimension_Package.PackageVersion,
+	Dimension_Package.PackageTitle,
+	Dimension_Package.PackageDescription,
+	Dimension_Package.PackageIconUrl,
 	SUM(DownloadCount) 'Downloads'
 FROM Fact_Download
 INNER JOIN Dimension_Package ON Dimension_Package.Id = Fact_Download.Dimension_Package_Id
@@ -15,7 +15,7 @@ WHERE Dimension_Date.[Date] >= CONVERT(DATE, DATEADD(day, -42, GETDATE()))
 GROUP BY 
 	Dimension_Package.PackageId, 
 	Dimension_Package.PackageVersion,
-	ISNULL(Dimension_Package.PackageTitle, ''),
-	ISNULL(Dimension_Package.PackageDescription, ''),
-	ISNULL(Dimension_Package.PackageIconUrl, '')
+	Dimension_Package.PackageTitle,
+	Dimension_Package.PackageDescription,
+	Dimension_Package.PackageIconUrl
 ORDER BY SUM(DownloadCount) DESC
