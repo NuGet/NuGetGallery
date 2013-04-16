@@ -10,7 +10,7 @@ using NuGetGallery;
 
 namespace NuGetGallery
 {
-    // TODO : Have V2CuratedFeed derive from V2Feed?
+    // TODO : Have V2CuratedFeed derive from V2Feed
     public class V2CuratedFeed : FeedServiceBase<V2FeedPackage>
     {
         private const int FeedVersion = 2;
@@ -105,6 +105,20 @@ namespace NuGetGallery
         {
             var curatedFeedName = HttpContext.Request.QueryString["name"];
             return curatedFeedName;
+        }
+
+        private IQueryable<Package> GetPackages()
+        {
+            var curatedFeedName = GetCuratedFeedName();
+
+            var packages = Entities.CuratedFeeds
+                .Where(cf => cf.Name == curatedFeedName)
+                .Include(cf => cf.Packages.Select(cp => cp.PackageRegistration.Packages))
+                .SelectMany(cf => cf.Packages.SelectMany(cp => cp.PackageRegistration.Packages.Select(p => p)));
+
+            // The curated feeds table has duplicate entries for feed, package registration pairs. Consequently
+            // we have to apply a distinct on the results.
+            return packages.Distinct();
         }
 
         protected override void OnStartProcessingRequest(ProcessRequestArgs args)

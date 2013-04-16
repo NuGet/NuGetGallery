@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -162,13 +164,33 @@ namespace NuGetGallery
         public virtual ActionResult DisplayPackage(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
-
             if (package == null)
             {
                 return HttpNotFound();
             }
+
             var model = new DisplayPackageViewModel(package);
+            model.NumFollowers = _packageService.CountFollowers(package.PackageRegistration);
             ViewBag.FacebookAppID = _config.FacebookAppID;
+            return View(model);
+        }
+
+        public virtual ActionResult Followers(string id)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, null);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var packageFollowers = _userService.GetPackageFollowers(package.PackageRegistration.Id);
+            string title = String.IsNullOrWhiteSpace(package.Title) ? package.PackageRegistration.Id : package.Title;
+            var model = new PackageFollowersViewModel
+            {
+                PackageId = package.PackageRegistration.Id,
+                PackageTitle = title,
+                Followers = packageFollowers.ToList()
+            };
             return View(model);
         }
 
@@ -238,7 +260,7 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+                var user = _userService.FindByUsername(GetIdentity().Name);
 
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
                 if (package.IsOwner(user))

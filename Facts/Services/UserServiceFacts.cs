@@ -18,11 +18,15 @@ namespace NuGetGallery
 
             cryptoService = cryptoService ?? new Mock<ICryptographyService>();
             userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
-            
+            var followsRepo = new Mock<IEntityRepository<PackageFollow>>();
+            var packageRegRepo = new Mock<IEntityRepository<PackageRegistration>>();
+
             var userService = new Mock<UserService>(
                 config.Object,
                 cryptoService.Object,
-                userRepo.Object)
+                userRepo.Object,
+                followsRepo.Object,
+                packageRegRepo.Object)
             {
                 CallBase = true
             };
@@ -763,17 +767,69 @@ namespace NuGetGallery
             }
         }
 
+        public class TheWhereIsFollowingMethod
+        {
+            [Fact]
+            public void GetsAListOfPackageIds()
+            {
+                var user = new User { EmailAddress = "old@example.com", Key = 1400, Username = "Bill" };
+                var allUsers = (new[] { user });
+                var allFollows = new []
+                {
+                    new PackageFollow
+                    {
+                        UserKey = 1400,
+                        PackageRegistrationKey = 1,
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Key = 1,
+                            Id = "Package1",
+                        },
+                        User = user,
+                        IsFollowing = true,
+                    }
+                };
+
+                var service = new TestableUserService();
+                service.MockUserRepository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(allUsers.AsQueryable());
+                service.MockFollowsRepository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(allFollows.AsQueryable());
+
+                string[] results = service.WhereIsFollowing("Bill", new[] { "Package1", "Package2" }).ToArray();
+                Assert.Equal(1, results.Length);
+                Assert.Equal("Package1", results[0]);
+            }
+
+            [Fact]
+            public void CanThrowUserNotFound()
+            {
+                var service = new TestableUserService();
+                service.MockUserRepository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new User[0].AsQueryable());
+
+                Assert.Throws<UserNotFoundException>(() =>
+                    service.WhereIsFollowing("Bill", new[] { "Package1" })
+                );
+            }
+        }
+
         public class TestableUserService : UserService
         {
             public Mock<ICryptographyService> MockCrypto { get; protected set; }
             public Mock<IConfiguration> MockConfig { get; protected set; }
             public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
+            public Mock<IEntityRepository<PackageFollow>> MockFollowsRepository { get; protected set; }
 
             public TestableUserService()
             {
-                Crypto = (MockCrypto = new Mock<ICryptographyService>()).Object;
+                CryptoService = (MockCrypto = new Mock<ICryptographyService>()).Object;
                 Config = (MockConfig = new Mock<IConfiguration>()).Object;
                 UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
+                FollowsRepository = (MockFollowsRepository = new Mock<IEntityRepository<PackageFollow>>()).Object;
 
                 // Set ConfirmEmailAddress to a default of true
                 MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);

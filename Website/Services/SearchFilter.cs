@@ -12,6 +12,8 @@
 
         public int? CuratedFeedKey { get; set; }
 
+        public string FollowedBy { get; set; }
+
         public SortProperty SortProperty { get; set; }
 
         public SortDirection SortDirection { get; set; }

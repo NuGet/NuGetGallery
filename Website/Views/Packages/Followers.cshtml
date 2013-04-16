@@ -1,0 +1,10 @@
+﻿@using Links
+@model PackageFollowersViewModel
+@{
+    ViewBag.Tab = "Packages";
+    ViewBag.Title = Model.PackageTitle + ": Followers"; 
+}
+
+<h3 class="page-heading"><a href="@Url.Package(Model.PackageId)">@Model.PackageTitle</a> Followers:</h3>
+
+@ViewHelpers.OwnersGravatar(Model.Followers, 32, Url)

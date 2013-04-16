@@ -51,6 +51,48 @@ namespace NuGetGallery
             return owners.Union(pending);
         }
 
+        [Authorize]
+        public object IsFollowing(string id)
+        {
+            string username = HttpContext.User.Identity.Name;
+            var result = _userService.IsFollowing(username, id);
+            return new { success = true, id = result };
+        }
+
+        [Authorize]
+        public object WhereIsFollowing(string ids)
+        {
+            if (string.IsNullOrEmpty(ids))
+            {
+                return new { success = true, ids = new string[0] };
+            }
+
+            string username = HttpContext.User.Identity.Name;
+            string[] idArray = ids.Split('|');
+
+            var result = _userService.WhereIsFollowing(username, idArray);
+            return new { success = true, ids = result };
+        }
+
+        [Authorize]
+        [HttpPost]
+        public object FollowPackage(string id)
+        {
+            string username = HttpContext.User.Identity.Name;
+            _userService.Follow(username, id, saveChanges: true);
+            return new { success = true };
+        }
+
+        [Authorize]
+        [HttpPost]
+        public object UnfollowPackage(string id)
+        {
+            string username = HttpContext.User.Identity.Name;
+            _userService.Unfollow(username, id, saveChanges: true);
+            return new { success = true };
+        }
+
+        [Authorize]
         public object AddPackageOwner(string id, string username)
         {
             var package = _packageService.FindPackageRegistrationById(id);
@@ -97,6 +139,24 @@ namespace NuGetGallery
 
             _packageService.RemovePackageOwner(package, user);
             return new { success = true };
+        }
+
+        protected override void OnException(ExceptionContext filterContext)
+        {
+            if (!filterContext.ExceptionHandled)
+            {
+                if (filterContext.Exception is UserNotFoundException)
+                {
+                    filterContext.ExceptionHandled = true;
+                    filterContext.Result =
+                        new JsonResult
+                        {
+                            Data = new { success = false, message = "User not found" },
+                            JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                        };
+                }
+            }
+            base.OnException(filterContext);
         }
 
         public class OwnerModel

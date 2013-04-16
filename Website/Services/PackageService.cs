@@ -15,13 +15,15 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
+        private readonly IEntityRepository<PackageFollow> _followRepository;
 
         public PackageService(
-            ICryptographyService cryptoService,
-            IEntityRepository<PackageRegistration> packageRegistrationRepository,
-            IEntityRepository<Package> packageRepository,
-            IEntityRepository<PackageStatistics> packageStatsRepository,
+            ICryptographyService cryptoService, 
+            IEntityRepository<PackageRegistration> packageRegistrationRepository, 
+            IEntityRepository<Package> packageRepository, 
+            IEntityRepository<PackageStatistics> packageStatsRepository, 
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
+            IEntityRepository<PackageFollow> PackageFollowRepository, 
             IIndexingService indexingService)
         {
             _cryptoService = cryptoService;
@@ -29,6 +31,7 @@ namespace NuGetGallery
             _packageRepository = packageRepository;
             _packageStatsRepository = packageStatsRepository;
             _packageOwnerRequestRepository = packageOwnerRequestRepository;
+            _followRepository = PackageFollowRepository;
             _indexingService = indexingService;
         }
 
@@ -72,7 +75,7 @@ namespace NuGetGallery
 
             if (commitChanges)
             {
-                // we don't need to call _packageRegistrationRepository.CommitChanges() here because 
+                // we don't need to call _packageRepository.CommitChanges() here because 
                 // it shares the same EntityContext as _packageRepository.
                 _packageRepository.CommitChanges();
 
@@ -359,6 +362,12 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        public int CountFollowers(PackageRegistration packageRegistration)
+        {
+            return _followRepository.GetAll()
+                .Count(f => f.PackageRegistrationKey == packageRegistration.Key && f.IsFollowing);
         }
 
         private PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackageMetadata nugetPackage)

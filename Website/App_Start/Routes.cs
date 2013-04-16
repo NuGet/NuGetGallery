@@ -77,6 +77,11 @@ namespace NuGetGallery
                 new { controller = MVC.Packages.Name, action = "CancelUpload"});
 
             routes.MapRoute(
+                RouteName.PackageFollowers,
+                "packages/{id}/followers",
+                new { controller = MVC.Packages.Name, action = "Followers" });
+
+            routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
                 "packages/{id}/owners/{username}/confirm/{token}",
                 new { controller = MVC.Packages.Name, action = "ConfirmOwner" });
@@ -328,6 +333,12 @@ namespace NuGetGallery
                 RouteName.V2ApiCuratedFeed,
                 "api/v2/curated-feed",
                 typeof(V2CuratedFeed));
+
+            // Disabling followed packages feed until we work out where we want it.
+            // routes.MapServiceRoute(
+            //     "v2" + RouteName.FollowedPackagesFeed,
+            //     "api/v2/followed-packages",
+            //     typeof(V2FollowedPackagesFeed));
 
             routes.MapServiceRoute(
                 RouteName.V2ApiFeed,

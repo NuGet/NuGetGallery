@@ -7,7 +7,8 @@
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 }
 @section OpenGraph {
-    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
+    @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
+    {
         <meta property="fb:app_id" content="@ViewBag.FacebookAppID" /> 
     }
     <meta property="og:title"       content="@Model.Title" />
@@ -18,22 +19,47 @@
     <meta property="og:image"       content="@(Model.IconUrl ?? Url.Absolute(Links.Content.Images.packageDefaultIcon_png))" />
 }
 @section BottomScripts {
+    @* NuGet JSON API *@
+    <script src="@Url.Content("~/json/JsonApi?json")"></script>
+
+    @* NuGet Follow Buttons *@
+    <script src="@Href("~/Scripts/follow.js")"></script>
+    <script> 
+        $(function() {
+            showFollowButtons("@Model.Id");
+            bindFollowButtons();
+        });
+
+    </script>
+
     @* Facebook SDK *@
-    <div id="fb-root"></div>
-    <script>(function (d, s, id) {
+    <div id="fb-root" ></div>
+    <script> (function(d, s, id) {
         var js, fjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) return;
-        js = d.createElement(s); js.id = id;
-    @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
-        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
-    } else {
-        @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-    }
+        js = d.createElement(s);
+        js.id = id;
+        @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
+        {
+            @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=@ViewBag.FacebookAppID";
+        }
+        else
+        {
+            @:js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+        }
         fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));</script>
+    }(document, 'script', 'facebook-jssdk')); </script>
 
     @* Twitter SDK *@
-    <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = "//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "twitter-wjs");</script>
+    <script> !function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (!d.getElementById(id)) {
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "//platform.twitter.com/widgets.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }
+    }(document, "script", "twitter-wjs"); </script>
 }
 @section SideColumn {
     <img class="logo" src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src = '@Content.Images.packageDefaultIcon_png';" />
@@ -47,6 +73,12 @@
             <p class="stat-number">@Model.DownloadCount.ToString("n0")</p>
             <p class="stat-label">
                 Downloads of v @Model.Version</p>
+        </div>
+        <div class="stat">
+            <p class="stat-number" id="num-followers">@Model.NumFollowers.ToString("n0")</p>
+            <p class="stat-label">
+                <a href="@Url.PackageFollowers(Model.Id)">Followers</a>
+            </p>
         </div>
         <div class="stat">
             <p class="stat-number">@Model.LastUpdated.ToShortDateString()</p>
@@ -144,12 +176,26 @@
                     <text> -Pre </text>
                 }</code></p>
     </div>
-    @if (!String.IsNullOrEmpty(Model.MinClientVersion)) 
+    @if (!String.IsNullOrEmpty(Model.MinClientVersion))
     { 
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
-    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
-    <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+    <div id="socialbuttons" style="height: 75px; display: block;" >
+        <div style="min-height: 23px; display: block">
+            @* Follow Package *@
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a class="unfollowbtn" id="unfollow-@Model.Id" title="You have followed this package"><i>&nbsp;Following</i></a>
+                <a class="followbtn" id="follow-@Model.Id" title="Click to follow this package"><i>&nbsp;Follow</i></a>
+            }
+            else
+            {
+                <a class="followloginbtn" href="@Url.Action(MVC.Authentication.LogOn(returnUrl: Request.RawUrl))"><i>&nbsp;Log in to follow this package</i></a>
+            }
+        </div>
+        <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
+        <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+    </div>
 
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {

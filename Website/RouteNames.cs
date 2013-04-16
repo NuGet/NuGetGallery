@@ -3,12 +3,14 @@
     public static class RouteName
     {
         public const string V2ApiCuratedFeed = "V2ApiCuratedFeed";
+        public const string FollowedPackagesFeed = "FollowedPackagesFeed";
         public const string V1ApiFeed = "V1ApiFeed";
         public const string V2ApiFeed = "V2ApiFeed";
         public const string ApiFeed = "ApiFeed";
         public const string Account = "Account";
         public const string Profile = "Profile";
         public const string DisplayPackage = "package-route";
+        public const string PackageFollowers = "PackageFollowers";
         public const string DownloadPackage = "DownloadPackage";
         public const string DownloadNuGetExe = "DownloadNuGetExe";
         public const string Home = "Home";

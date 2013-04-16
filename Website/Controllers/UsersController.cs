@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -165,6 +166,31 @@ namespace NuGetGallery
                 var model = new EmailConfirmationModel { SuccessfulConfirmation = true, ConfirmingNewAccount = true };
                 return View("Confirm", model);
             }
+        }
+
+        [Authorize]
+        public virtual ActionResult MyFollowedPackages()
+        {
+            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var followedPackages = UserService.GetFollowedPackages(user);
+
+            var packages = followedPackages
+                .Select(f => f.PackageRegistration.Packages.Where(p => p.Listed)
+                                               .OrderBy(p => p.LastUpdated)
+                                               .FirstOrDefault())
+                .Include(p => p.PackageRegistration.Owners);
+
+            var model = new PackageListViewModel(
+                packages, 
+                searchTerm: null, 
+                sortOrder: null, 
+                totalCount: followedPackages.Count(), 
+                pageIndex: 0, 
+                pageSize: 50, 
+                url: Url, 
+                includePrerelease: false);
+
+            return View(model);
         }
 
         [Authorize]
@@ -344,19 +370,31 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = (from p in PackageService.FindPackagesByOwner(user)
+            var ownedPackages = (from p in PackageService.FindPackagesByOwner(user)
                             where p.Listed
                             orderby p.Version descending
                             group p by p.PackageRegistration.Id)
                 .Select(c => new PackageViewModel(c.First()))
                 .ToList();
 
+            var followedPackages = UserService.GetFollowedPackages(user)
+                .Where(f => f.IsFollowing)
+                .Select(f => f.PackageRegistration.Packages.Where(p => p.Listed)
+                                               .OrderBy(p => p.LastUpdated)
+                                               .FirstOrDefault())
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .ToList()
+                .Select(p => new PackageViewModel(p))
+                .ToList();
+
             var model = new UserProfileModel
                 {
                     Username = user.Username,
                     EmailAddress = user.EmailAddress,
-                    Packages = packages,
-                    TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount)
+                    Packages = ownedPackages,
+                    FollowedPackages = followedPackages,
+                    TotalPackageDownloadCount = ownedPackages.Sum(p => p.TotalDownloadCount)
                 };
 
             return View(model);

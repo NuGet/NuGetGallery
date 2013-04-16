@@ -59,12 +59,22 @@ namespace NuGetGallery
 
             var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
             Query filterQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
+
             if (searchFilter.CuratedFeedKey.HasValue)
             {
                 var feedFilterQuery = new TermQuery(new Term("CuratedFeedKey", searchFilter.CuratedFeedKey.Value.ToString(CultureInfo.InvariantCulture)));
                 BooleanQuery conjunctionQuery = new BooleanQuery();
                 conjunctionQuery.Add(filterQuery, BooleanClause.Occur.MUST);
                 conjunctionQuery.Add(feedFilterQuery, BooleanClause.Occur.MUST);
+                filterQuery = conjunctionQuery;
+            }
+
+            if (searchFilter.FollowedBy != null)
+            {
+                var isFollowingFilterQuery = new TermQuery(new Term("FollowedBy", searchFilter.FollowedBy));
+                BooleanQuery conjunctionQuery = new BooleanQuery();
+                conjunctionQuery.Add(filterQuery, BooleanClause.Occur.MUST);
+                conjunctionQuery.Add(isFollowingFilterQuery, BooleanClause.Occur.MUST);
                 filterQuery = conjunctionQuery;
             }
 

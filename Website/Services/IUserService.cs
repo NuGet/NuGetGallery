@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -29,5 +31,17 @@ namespace NuGetGallery
         User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes);
 
         bool ResetPasswordWithToken(string username, string token, string newPassword);
+
+        void Follow(string username, string packageId, bool saveChanges);
+
+        void Unfollow(string username, string packageId, bool saveChanges);
+
+        bool IsFollowing(string username, string packageId);
+
+        IEnumerable<string> WhereIsFollowing(string username, string[] packageIds);
+
+        IQueryable<User> GetPackageFollowers(string packageId);
+
+        IQueryable<PackageFollow> GetFollowedPackages(User user);
     }
 }

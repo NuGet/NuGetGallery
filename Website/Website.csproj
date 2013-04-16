@@ -516,6 +516,9 @@
     <Compile Include="CuratedPackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="DataServices\V2FollowedPackagesFeed.svc.cs">
+      <DependentUpon>V2FollowedPackagesFeed.svc</DependentUpon>
+    </Compile>
     <Compile Include="DataServices\ODataRemoveVersionSorter.cs" />
     <Compile Include="DataServices\CountInterceptor.cs">
       <SubType>Code</SubType>
@@ -552,11 +555,14 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\IEntitiesContext.cs" />
+    <Compile Include="Entities\PackageFavorite.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
+    <Compile Include="Helpers\DictionaryHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
+    <Compile Include="Helpers\EnumerableHelper.cs" />
     <Compile Include="Helpers\QuietLog.cs" />
     <Compile Include="Helpers\StringHelper.cs" />
     <Compile Include="Helpers\StatisticsHelper.cs" />
@@ -736,6 +742,10 @@
     <Compile Include="Migrations\201304020006512_UserLookupOptimization.Designer.cs">
       <DependentUpon>201304020006512_UserLookupOptimization.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201304110917389_FollowPackages.cs" />
+    <Compile Include="Migrations\201304110917389_FollowPackages.Designer.cs">
+      <DependentUpon>201304110917389_FollowPackages.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -764,6 +774,8 @@
     <Compile Include="Services\CloudCacheService.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
+    <Compile Include="Services\Exceptions\PackageNotFoundException.cs" />
+    <Compile Include="Services\Exceptions\UserNotFoundException.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />
@@ -814,6 +826,7 @@
     <Compile Include="ViewModels\StatisticsFact.cs" />
     <Compile Include="ViewModels\StatisticsPivot.cs" />
     <Compile Include="ViewModels\StatisticsDimension.cs" />
+    <Compile Include="ViewModels\PackageFollowersViewModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
@@ -901,6 +914,8 @@
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\VerifyPackageViewModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
+    <Content Include="Views\Packages\Followers.cshtml" />
+    <None Include="Views\Packages\_ShortPackageInfo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -945,6 +960,10 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
     <Content Include="Areas\Admin\DynamicData\Site.css" />
+    <Content Include="Content\font-awesome-ie7.min.css" />
+    <Content Include="Content\font-awesome.css" />
+    <Content Include="Content\font-awesome.min.css" />
+    <Content Include="Content\font\fontawesome-webfont.svg" />
     <Content Include="Content\Images\changePassword.png" />
     <Content Include="Content\Images\copy.png" />
     <Content Include="Content\Images\errorPage.png" />
@@ -1015,6 +1034,7 @@
     <Content Include="Content\SyntaxHighlighter\shThemeMDUltra.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeMidnight.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeRDark.css" />
+    <Content Include="DataServices\V2FollowedPackagesFeed.svc" />
     <Content Include="DataServices\V2CuratedFeed.svc" />
     <Content Include="DataServices\V1Feed.svc" />
     <Content Include="DataServices\V2Feed.svc" />
@@ -1024,10 +1044,12 @@
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="robots.txt" />
     <Content Include="Scripts\statsdimensions.js" />
+    <Content Include="Scripts\follow.js" />
     <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\async-file-upload.js" />
     <Content Include="Scripts\knockout-2.2.1.debug.js" />
     <Content Include="Scripts\knockout-2.2.1.js" />
+    <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\jquery-1.6.2-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.2.js" />
@@ -1036,7 +1058,6 @@
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\ZeroClipboard.js" />
     <Content Include="Scripts\ZeroClipboard.swf" />
     <Content Include="Web.config">
@@ -1119,6 +1140,10 @@
     <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="Content\font\fontawesome-webfont.woff" />
+    <Content Include="Content\font\fontawesome-webfont.ttf" />
+    <Content Include="Content\font\fontawesome-webfont.eot" />
+    <Content Include="Content\font\FontAwesome.otf" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
@@ -1136,6 +1161,7 @@
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Statistics\_PivotTable.cshtml" />
+    <Content Include="Views\Users\MyFollowedPackages.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />

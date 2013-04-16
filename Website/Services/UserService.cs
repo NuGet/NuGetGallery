@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 
@@ -6,20 +7,26 @@ namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        public ICryptographyService Crypto { get; protected set; }
+        public ICryptographyService CryptoService { get; protected set; }
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
+        public IEntityRepository<PackageFollow> FollowsRepository { get; protected set; }
+        public IEntityRepository<PackageRegistration> PackageRegistrationRepository { get; protected set; }
 
         protected UserService() {}
 
         public UserService(
             IConfiguration config,
-            ICryptographyService crypto,
-            IEntityRepository<User> userRepository) : this()
+            ICryptographyService cryptoService,
+            IEntityRepository<User> userRepository,
+            IEntityRepository<PackageFollow> followsRepository,
+            IEntityRepository<PackageRegistration> packageRegistrationRepository)
         {
             Config = config;
-            Crypto = crypto;
+            CryptoService = cryptoService;
             UserRepository = userRepository;
+            FollowsRepository = followsRepository;
+            PackageRegistrationRepository = packageRegistrationRepository;
         }
 
         public virtual User Create(
@@ -42,7 +49,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
             }
 
-            var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = CryptoService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
             var newUser = new User(
                 username,
@@ -51,7 +58,7 @@ namespace NuGetGallery
                     ApiKey = Guid.NewGuid(),
                     EmailAllowed = true,
                     UnconfirmedEmailAddress = emailAddress,
-                    EmailConfirmationToken = Crypto.GenerateToken(),
+                    EmailConfirmationToken = CryptoService.GenerateToken(),
                     PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                 };
 
@@ -81,7 +88,7 @@ namespace NuGetGallery
                     throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
                 }
                 user.UnconfirmedEmailAddress = emailAddress;
-                user.EmailConfirmationToken = Crypto.GenerateToken();
+                user.EmailConfirmationToken = CryptoService.GenerateToken();
             }
 
             user.EmailAllowed = emailAllowed;
@@ -127,7 +134,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (!Crypto.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!CryptoService.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
             {
                 return null;
             }
@@ -147,11 +154,12 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (!Crypto.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
+            if (!CryptoService.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
             {
                 return null;
             }
-            else if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
+            
+            if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
             {
                 // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
                 ChangePasswordInternal(user, password);
@@ -241,7 +249,7 @@ namespace NuGetGallery
                 return user;
             }
 
-            user.PasswordResetToken = Crypto.GenerateToken();
+            user.PasswordResetToken = CryptoService.GenerateToken();
             user.PasswordResetTokenExpirationDate = DateTime.UtcNow.AddMinutes(tokenExpirationMinutes);
 
             UserRepository.CommitChanges();
@@ -278,9 +286,125 @@ namespace NuGetGallery
 
         private void ChangePasswordInternal(User user, string newPassword)
         {
-            var hashedPassword = Crypto.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
+            var hashedPassword = CryptoService.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
             user.HashedPassword = hashedPassword;
+        }
+        
+
+        public void Follow(string username, string packageId, bool saveChanges)
+        {
+            PackageFollow follow = GetFollow(username, packageId);
+            if (follow == null)
+            {
+                var userKey = GetUserKey(username);
+                var packageRegistrationKey = GetPackageRegistrationKey(packageId);
+                follow = PackageFollow.Create(userKey, packageRegistrationKey);
+                FollowsRepository.InsertOnCommit(follow);
+            }
+
+            follow.IsFollowing = true;
+            follow.LastModified = DateTime.UtcNow;
+
+            if (saveChanges)
+            {
+                FollowsRepository.CommitChanges();
+            }
+        }
+
+        public void Unfollow(string username, string packageId, bool saveChanges)
+        {
+            PackageFollow follow = GetFollow(username, packageId);
+            if (follow == null)
+            {
+                return; // unfollowing something you never followed is a no-op 
+            }
+
+            follow.IsFollowing = false;
+            follow.LastModified = DateTime.UtcNow;
+
+            if (saveChanges)
+            {
+                FollowsRepository.CommitChanges();
+            }
+        }
+
+        public bool IsFollowing(string username, string packageId)
+        {
+            PackageFollow follow = GetFollow(username, packageId);
+            if (follow == null)
+            {
+                return false;
+            }
+
+            return follow.IsFollowing;
+        }
+
+        public IEnumerable<string> WhereIsFollowing(string username, string[] packageIds)
+        {
+            int userKey = GetUserKey(username);
+
+            var followedPackageIds = FollowsRepository
+                .GetAll()
+                .Include(f => f.PackageRegistration)
+                .Where(
+                    f => f.UserKey == userKey && 
+                    f.IsFollowing &&
+                    packageIds.Contains(f.PackageRegistration.Id))
+                .Select(f => f.PackageRegistration.Id);
+
+            return followedPackageIds.ToList();
+        }
+
+        public IQueryable<User> GetPackageFollowers(string packageId)
+        {
+            if (packageId == null)
+            {
+                throw new ArgumentNullException("packageId");
+            }
+
+            return FollowsRepository.GetAll()
+                .Where(f => f.PackageRegistration.Id == packageId && f.IsFollowing)
+                .Select(f => f.User);
+        }
+
+        public IQueryable<PackageFollow> GetFollowedPackages(User user)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            return FollowsRepository.GetAll()
+                .Where(f => f.UserKey == user.Key && f.IsFollowing);
+        }
+
+        private PackageFollow GetFollow(string username, string packageId)
+        {
+            int userKey = GetUserKey(username);
+            int packageRegistrationKey = GetPackageRegistrationKey(packageId);
+            return FollowsRepository.GetAll()
+                .FirstOrDefault(f => f.UserKey == userKey && f.PackageRegistrationKey == packageRegistrationKey);
+        }
+
+        private int GetUserKey(string username)
+        {
+            var result = UserRepository.GetAll()
+                .Where(u => u.Username == username)
+                .Select(u => u.Key)
+                .SingleOrThrow(() => new UserNotFoundException());
+
+            return result;
+        }
+
+        private int GetPackageRegistrationKey(string packageId)
+        {
+            var result = PackageRegistrationRepository.GetAll()
+                .Where(pr => pr.Id == packageId)
+                .Select(u => u.Key)
+                .SingleOrThrow(() => new PackageNotFoundException());
+
+            return result;
         }
     }
 }

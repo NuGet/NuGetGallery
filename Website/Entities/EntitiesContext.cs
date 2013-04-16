@@ -65,6 +65,13 @@ namespace NuGetGallery
                            .MapLeftKey("UserKey")
                            .MapRightKey("RoleKey"));
 
+            modelBuilder.Entity<PackageFollow>()
+                .HasKey(f => f.Key)
+                .HasRequired(f => f.User);
+
+            modelBuilder.Entity<PackageFollow>()
+                .HasRequired(f => f.PackageRegistration);
+
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
 

@@ -524,26 +524,31 @@ hgroup.page-heading h2 { padding-left: 7px; }
 #actions li h2 { font-size: 1.5em; }
 
 #actions li#uploadPackage h2 {
-    background: url("Images/uploadPackage.png") no-repeat 0 50%;
+    background: url(../Content/Images/uploadPackage.png) no-repeat 0 50%;
     font-size: 1.7em;
     padding-left: 20px;
 }
 
-#actions li#changePassword h2 {
-    background: url("Images/changePassword.png") no-repeat 0 50%;
+#actions li#managePackages h2 {
+    background: url(../Content/Images/managePackages.png) no-repeat 0 50%;
     padding-left: 20px;
 }
 
-#actions li#managePackages h2 {
-    background: url("Images/managePackages.png") no-repeat 0 50%;
+#actions li#managedFollowedPackages h2 {
+    background: url(../Content/Images/managePackages.png) no-repeat 0 50%;
     padding-left: 20px;
 }
 
 #actions li#editProfile h2 {
-    background: url("Images/editProfile.png") no-repeat 0 50%;
+    background: url(../Content/Images/editProfile.png) no-repeat 0 50%;
     padding-left: 20px;
 }
-    
+
+#actions li#changePassword h2 {
+    background: url(../Content/Images/changePassword.png) no-repeat 0 50%;
+    padding-left: 20px;
+}
+
     /* Account/API Key */
 
 #apiKey h1 { font-size: 2em; }
@@ -784,6 +789,66 @@ fieldset.search label {
     padding: 0;
 }
 
+    /* Profile Page FollowedPackages */
+
+#followedPackages {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+    /* Follow Buttons */
+
+a.followbtn,
+a.unfollowbtn,
+a.followloginbtn {
+  font-family: FontAwesome;
+  display: table;
+  font-size: 12px;
+  font-weight: bold;
+  font-style: normal;
+  text-decoration: none;
+  -webkit-font-smoothing: antialiased;
+  border: thin;
+  border-color: lightgray;
+  padding: 2px 2px 2px 2px;
+  border-radius: 2px;
+  box-shadow: 1px 1px 3px #222;
+  display: none;
+}
+
+a.followbtn {
+  background-color: #e4f1f7;
+}
+
+a.unfollowbtn {
+  background-color: #fffedc;
+  box-shadow: 0px 0px 3px #222;
+}
+
+a.followloginbtn {
+    display: inline;
+}
+
+a.followbtn i:before,
+a.followloginbtn i:before {
+  content: "\f006";
+}
+
+a.unfollowbtn i:before {
+  content: "\f005";
+}
+
+a.followbtn i,
+a.unfollowbtn i,
+a.followloginbtn i {
+  font-family: FontAwesome;
+  font-weight: inherit;
+  font-style: inherit;
+  text-decoration: inherit;
+  -webkit-font-smoothing: antialiased;
+}
+
     /* List Package */
 
 section.package {
@@ -823,6 +888,14 @@ section.package .downloads {
     display: inline;
     font-size: 1.25em;
     font-weight: 600;
+}
+
+section.package div.follows {
+    border-left: 1px solid #ccc;
+    display: inline;
+    margin-left: 10px;
+    padding-left: 10px;
+    min-height: 16px;
 }
 
 section.package div.tags {
@@ -1276,6 +1349,10 @@ footer#footer ul.recommended li p { font-size: .9em; }
 footer#footer div.license {
     clear: both;
     font-size: .7em;
+}
+
+.footer-acknowledgements {
+    font-size: .7em
 }
 
 /* async upload */

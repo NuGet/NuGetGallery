@@ -1,0 +1,47 @@
+﻿@model PackageListViewModel
+
+@{
+    ViewBag.Title = "Followed Packages";
+}
+
+@if (Model.Items.Count == 0)
+{
+    <p>You currently are not following any packages.</p>
+    <p><a href="@Url.PackageList()">Go find some packages!</a></p>
+}
+
+<ul id="followedPackages" style="list-style: none">
+    @foreach (var package in Model.Items)
+    {
+        <li>
+            @Html.Partial(MVC.Packages.Views._ListPackage, package)
+        </li>
+    }
+</ul>
+
+<p>Note: if you want to see this list updated after you made changes, please refresh this page.</p>
+
+@ViewHelpers.PreviousNextPager(Model.Pager)
+
+@section BottomScripts {
+    <script>
+        $(function() {
+            $("#sortOrder,#prerelease").change(function() {
+                $(this).closest("form").submit();
+            });
+        });
+    </script>
+
+    @* NuGet JSON API *@
+    <script src="@Url.Content("~/json/JsonApi?json")"></script>
+    
+    @* NuGet Follow Buttons *@
+    <script src="@Href("~/Scripts/follow.js")"></script>
+    <script>
+        $(function () {
+            showFollowButtons("@String.Join("|", Model.Items.Select(item => item.Id))");
+            bindFollowButtons();
+        });
+    </script>
+}
+

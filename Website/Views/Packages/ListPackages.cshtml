@@ -4,8 +4,6 @@
     ViewBag.Tab = "Packages";
 }
 
-
-
 <hgroup class="search">
     @if (!String.IsNullOrEmpty(Model.SearchTerm))
     {
@@ -78,6 +76,18 @@
             $("#sortOrder,#prerelease").change(function() {
                 $(this).closest("form").submit();
             });
+        });
+    </script>
+
+    @* NuGet JSON API *@
+    <script src="@Url.Content("~/json/JsonApi?json")"></script>
+
+    @* NuGet Follow Buttons *@
+    <script src="@Href("~/Scripts/follow.js")"></script>
+    <script>
+        $(function() {
+            showFollowButtons("@String.Join("|", Model.Items.Select(item => item.Id))");
+            bindFollowButtons();
         });
     </script>
 }

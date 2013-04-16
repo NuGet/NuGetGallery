@@ -22,6 +22,7 @@ namespace NuGetGallery.Controllers
 
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(c => c.User).Returns(currentUser.Object);
+
             var controller = new JsonApiController(packageService.Object, userService.Object, repository.Object, messageService.Object);
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, controller);
             return controller;

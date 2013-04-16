@@ -31,7 +31,13 @@
         }
         <li id="managePackages">
             <h2><a href="@Url.Action(MVC.Users.Packages())">Manage My Packages</a></h2>
-            <p>Edit package details or Remove packages that you have previously uploaded.</p>
+            <p>Edit package details or remove packages that you have previously uploaded.</p>
+        </li>
+        <li id="managedFollowedPackages">
+            <h2><a href="@Url.Action(MVC.Users.MyFollowedPackages())">Manage Followed Packages</a></h2>
+            <p>
+                Review your followed packages. Packages you follow are shown in your public profile.
+            </p>
         </li>
         <li id="editProfile">
             <h2><a href="@Url.Action(MVC.Users.Edit())">Edit Profile</a></h2>

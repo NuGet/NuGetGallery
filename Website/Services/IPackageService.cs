@@ -13,6 +13,8 @@ namespace NuGetGallery
         IEnumerable<Package> FindPackagesByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);
 
+        int CountFollowers(PackageRegistration packageRegistration);
+
         /// <summary>
         /// Populate the related database tables to create the specified package for the specified user.
         /// </summary>

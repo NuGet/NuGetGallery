@@ -15,6 +15,8 @@ namespace NuGetGallery
 
         public IEnumerable<int> CuratedFeedKeys { get; set; }
 
+        public IEnumerable<string> Followers { get; set; }
+
         public PackageIndexEntity() { }
 
         public PackageIndexEntity(Package package)
@@ -39,6 +41,14 @@ namespace NuGetGallery
                 foreach (var feedKey in CuratedFeedKeys)
                 {
                     document.Add(new Field("CuratedFeedKey", feedKey.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
+                }
+            }
+
+            if (Followers != null)
+            {
+                foreach (var username in Followers)
+                {
+                    document.Add(new Field("FollowedBy", username, Field.Store.NO, Field.Index.NOT_ANALYZED));
                 }
             }
 

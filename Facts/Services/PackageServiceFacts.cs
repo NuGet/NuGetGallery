@@ -98,6 +98,7 @@ namespace NuGetGallery
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
             packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
+            var followsRepository = new Mock<IEntityRepository<PackageFollow>>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
 
             var packageService = new Mock<PackageService>(
@@ -106,6 +107,7 @@ namespace NuGetGallery
                 packageRepository.Object,
                 packageStatsRepo.Object,
                 packageOwnerRequestRepo.Object,
+                followsRepository.Object,
                 indexingService.Object);
 
             packageService.CallBase = true;
