@@ -142,6 +142,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
+    <Compile Include="Model\DatabaseBackup.cs" />
     <Compile Include="Tasks\BackupDatabaseTask.cs" />
     <Compile Include="Tasks\BackupPackageFileTask.cs" />
     <Compile Include="Tasks\BackupPackagesTask.cs" />
