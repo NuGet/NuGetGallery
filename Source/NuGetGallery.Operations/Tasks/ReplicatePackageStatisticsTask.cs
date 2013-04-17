@@ -91,6 +91,10 @@ namespace NuGetGallery.Operations
                           PackageStatistics.[Key] 'OriginalKey', 
                           PackageRegistrations.[Id] 'PackageId', 
                           Packages.[Version] 'PackageVersion', 
+	                      Packages.[Listed] 'PackageListed',
+                          Packages.[Title] 'PackageTitle',
+                          Packages.[Description] 'PackageDescription',
+                          Packages.[IconUrl] 'PackageIconUrl',
                           ISNULL(PackageStatistics.[UserAgent], '') 'DownloadUserAgent', 
                           ISNULL(PackageStatistics.[Operation], '') 'DownloadOperation', 
                           PackageStatistics.[Timestamp] 'DownloadTimestamp' 
@@ -144,6 +148,12 @@ namespace NuGetGallery.Operations
                         command.Parameters.AddWithValue("@OriginalKey", row.OriginalKey);
                         command.Parameters.AddWithValue("@PackageId", row.PackageId);
                         command.Parameters.AddWithValue("@PackageVersion", row.PackageVersion);
+
+                        command.Parameters.AddWithValue("@PackageListed", row.PackageListed ? 1 : 0);
+                        command.Parameters.AddWithValue("@PackageTitle", AddNullableString(row.PackageTitle));
+                        command.Parameters.AddWithValue("@PackageDescription", AddNullableString(row.PackageDescription));
+                        command.Parameters.AddWithValue("@PackageIconUrl", AddNullableString(row.PackageIconUrl));
+
                         command.Parameters.AddWithValue("@DownloadUserAgent", row.DownloadUserAgent);
                         command.Parameters.AddWithValue("@DownloadOperation", row.DownloadOperation);
                         command.Parameters.AddWithValue("@DownloadTimestamp", row.DownloadTimestamp);
@@ -154,9 +164,18 @@ namespace NuGetGallery.Operations
             }
             catch (Exception e)
             {
-                string msg = string.Format("Exception in PutDownloadRecords (warehouse side): {0}", e.Message);
+                string msg = string.Format("(DEBUG) Exception in PutDownloadRecords (warehouse side): {0}", e.Message);
                 throw new ApplicationException(msg, e);
             }
+        }
+
+        private static object AddNullableString(string value)
+        {
+            if (value == null)
+            {
+                return DBNull.Value;
+            }
+            return value;
         }
 
         private int Replicate(string source, string destination, int batchSize, int expectedSourceMaxQueryTime, int pauseDuration)
@@ -221,6 +240,10 @@ namespace NuGetGallery.Operations
                 OriginalKey = reader.GetInt32(reader.GetOrdinal("OriginalKey"));
                 PackageId = reader.GetString(reader.GetOrdinal("PackageId"));
                 PackageVersion = reader.GetString(reader.GetOrdinal("PackageVersion"));
+                PackageListed = reader.GetBoolean(reader.GetOrdinal("PackageListed"));
+                PackageTitle = GetNullableField(reader, reader.GetOrdinal("PackageTitle"));
+                PackageDescription = GetNullableField(reader, reader.GetOrdinal("PackageDescription"));
+                PackageIconUrl = GetNullableField(reader, reader.GetOrdinal("PackageIconUrl"));
                 DownloadUserAgent = reader.GetString(reader.GetOrdinal("DownloadUserAgent"));
                 DownloadOperation = reader.GetString(reader.GetOrdinal("DownloadOperation"));
                 DownloadTimestamp = reader.GetSqlDateTime(reader.GetOrdinal("DownloadTimestamp"));
@@ -229,9 +252,22 @@ namespace NuGetGallery.Operations
             public int OriginalKey { get; private set; }
             public string PackageId { get; private set; }
             public string PackageVersion { get; private set; }
+            public bool PackageListed { get; private set; }
+            public string PackageTitle { get; private set; }
+            public string PackageDescription { get; private set; }
+            public string PackageIconUrl { get; private set; }
             public string DownloadUserAgent { get; private set; } 
             public string DownloadOperation { get; private set; }
             public SqlDateTime DownloadTimestamp { get; private set; }
+
+            private static string GetNullableField(SqlDataReader reader, int ordinal)
+            {
+                if (reader.IsDBNull(ordinal))
+                {
+                    return null;
+                }
+                return reader.GetString(ordinal);
+            }
         }
 
         private class DownloadBatch

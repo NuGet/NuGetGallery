@@ -32,9 +32,13 @@ GO
 IF OBJECT_ID('[dbo].[Dimension_Package]') IS NULL
     CREATE TABLE [dbo].[Dimension_Package]
     (
-        [Id]				INT IDENTITY,
-        [PackageId]			NVARCHAR(128),
-        [PackageVersion]	NVARCHAR(64),
+        [Id]				 INT IDENTITY,
+        [PackageId]			 NVARCHAR(128),
+        [PackageVersion]	 NVARCHAR(64),
+        [PackageListed]      BIT,
+        [PackageTitle]       NVARCHAR(256),
+        [PackageDescription] NVARCHAR(MAX),
+        [PackageIconUrl]     NVARCHAR(MAX),
         CONSTRAINT [PK_Dimension_Package] PRIMARY KEY CLUSTERED ([Id])
     )
 GO
@@ -134,7 +138,7 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Fact_Download_NCI_Downloa
 GO
 
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Fact_Download_NCI_Package_Id')
-	CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Package_Id] ON [dbo].[Fact_Download] ( [Dimension_Package_Id] ) INCLUDE ( [Dimension_Date_Id], [DownloadCount] )
+	CREATE NONCLUSTERED INDEX [Fact_Download_NCI_Package_Id] ON [dbo].[Fact_Download] ( [Dimension_Package_Id] ) INCLUDE ( [Dimension_UserAgent_Id], [Dimension_Date_Id], [Dimension_Operation_Id], [DownloadCount] )
 GO
 
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Fact_Download_NCI_Date_Id')
