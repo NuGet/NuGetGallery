@@ -149,7 +149,10 @@ namespace NuGetGallery
                     {
                         PackageId = item["PackageId"].ToString(),
                         PackageVersion = item["PackageVersion"].ToString(),
-                        Downloads = item["Downloads"].Value<int>()
+                        Downloads = item["Downloads"].Value<int>(),
+                        PackageTitle = GetOptionalProperty("PackageTitle", item),
+                        PackageDescription = GetOptionalProperty("PackageDescription", item),
+                        PackageIconUrl = GetOptionalProperty("PackageIconUrl", item)
                     });
                 }
 
@@ -179,6 +182,16 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(e);
                 return false;
             }
+        }
+
+        private static string GetOptionalProperty(string propertyName, JObject obj)
+        {
+            JToken token;
+            if (obj.TryGetValue(propertyName, out token))
+            {
+                return token.ToString();
+            }
+            return null;
         }
 
         public async Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId)
