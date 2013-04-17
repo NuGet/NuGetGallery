@@ -154,10 +154,9 @@
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {
         <h3>Release Notes</h3>
-        foreach (var note in Model.ReleaseNotes.Split('\n'))
-        {
-            <p>@note</p>
-        }
+        <p>
+            @Html.Raw(HttpUtility.HtmlEncode(Model.ReleaseNotes).Replace("\n", "<br />").Replace("  ", "&nbsp; "))
+        </p>
     }
 
     <h3>Owners</h3>
