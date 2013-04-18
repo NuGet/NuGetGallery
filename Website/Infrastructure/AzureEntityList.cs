@@ -213,6 +213,14 @@ namespace NuGetGallery.Infrastructure
             }
         }
 
+        public static long GetLogicalIndex(T entity)
+        {
+            // Chop off leading "Page_"
+            long page = Int64.Parse(entity.PartitionKey.Substring(5), CultureInfo.InvariantCulture);
+            long offset = Int32.Parse(entity.RowKey, CultureInfo.InvariantCulture);
+            return (1000 * page) + offset;
+        }
+
         private long AtomicIncrementCount()
         {
             // 1) retrieve count
