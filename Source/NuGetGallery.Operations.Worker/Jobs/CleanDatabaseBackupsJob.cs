@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 namespace NuGetGallery.Operations.Worker.Jobs
 {
     [Export(typeof(WorkerJob))]
-    public class DeleteOldDatabaseBackupsJob : WorkerJob
+    public class CleanDatabaseBackupsJob : WorkerJob
     {
         public override TimeSpan Period
         {
@@ -18,8 +18,10 @@ namespace NuGetGallery.Operations.Worker.Jobs
         public override void RunOnce()
         {
             Logger.Info("Starting delete old database backup task.");
-            new DeleteOldDatabaseBackupsTask
+            new CleanOnlineDatabaseBackupsTask
             {
+                DestinationStorage = Settings.BackupStorage,
+                SqlDacEndpoint = Settings.SqlDac,
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 WhatIf = Settings.WhatIf
             }.Execute();

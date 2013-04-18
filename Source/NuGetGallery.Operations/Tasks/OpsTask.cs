@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NLog;
 using NuGetGallery.Operations.Common;
+using NuGetGallery.Operations.Infrastructure;
 
 namespace NuGetGallery.Operations
 {
@@ -71,6 +72,13 @@ namespace NuGetGallery.Operations
 
         [Option("Instead of performing any write operations, the command will just output what it WOULD do. Read operations are still performed.", AltName = "!")]
         public bool WhatIf { get; set; }
+
+        protected internal IDbExecutorFactory DbFactory { get; set; }
+
+        protected OpsTask()
+        {
+            DbFactory = new SqlDbExecutorFactory();
+        }
 
         public void Execute()
         {

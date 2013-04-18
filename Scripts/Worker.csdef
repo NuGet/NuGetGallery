@@ -7,10 +7,7 @@
       <Setting name="Operations.Sql.BackupSource" />
       <Setting name="Operations.Sql.Warehouse" />
       <Setting name="Operations.Storage.Primary" />
-      <Setting name="Operations.Storage.BackupSource" />
-      <Setting name="Operations.Storage.Diagnostics" />
-      <Setting name="Operations.Storage.Reports" />
-      <Setting name="Operations.Storage.Developer" />
+      <Setting name="Operations.Storage.Backup" />
       <Setting name="Operations.SqlDac" />
     </ConfigurationSettings>
     <Imports>

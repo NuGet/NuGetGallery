@@ -11,18 +11,25 @@ namespace NuGetGallery.Operations.Worker
         private IDictionary<string, string> _overrideSettings = new Dictionary<string, string>();
 
         private CloudStorageAccount _mainStorage;
-        private CloudStorageAccount _backupSourceStorage;
-        private CloudStorageAccount _diagStorage;
-        private CloudStorageAccount _reportStorage;
+        private CloudStorageAccount _backupStorage;
+        private Uri _sqlDac;
 
-        public virtual string EnvironmentName { get { return GetSetting("EnvironmentName", "NUGET_GALLERY_ENV"); } }
-        public virtual string MainConnectionString { get { return GetSetting("Sql.Primary", "NUGET_GALLERY_MAIN_CONNECTION_STRING"); } }
-        public virtual string BackupSourceConnectionString { get { return GetSetting("Sql.BackupSource", "NUGET_GALLERY_BACKUP_SOURCE_CONNECTION_STRING"); } }
-        public virtual string WarehouseConnectionString { get { return GetSetting("Sql.Warehouse", "NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING"); } }
-        
+        public virtual string EnvironmentName { get { return GetSetting("EnvironmentName"); } }
+        public virtual string MainConnectionString { get { return GetSetting("Sql.Primary"); } }
+        public virtual string WarehouseConnectionString { get { return GetSetting("Sql.Warehouse"); } }
+
         public virtual bool WhatIf
         {
-            get { return String.Equals("true", GetSetting("WhatIf", "NUGET_GALLERY_WHATIF"), StringComparison.OrdinalIgnoreCase); }
+            get { return String.Equals("true", GetSetting("WhatIf"), StringComparison.OrdinalIgnoreCase); }
+        }
+
+        public virtual Uri SqlDac
+        {
+            get
+            {
+                return _sqlDac ??
+                    (_sqlDac = new Uri(GetSetting("SqlDac")));
+            }
         }
 
         public virtual CloudStorageAccount MainStorage
@@ -30,34 +37,16 @@ namespace NuGetGallery.Operations.Worker
             get
             {
                 return _mainStorage ??
-                    (_mainStorage = GetCloudStorageAccount("Storage.Primary", "NUGET_GALLERY_MAIN_STORAGE"));
+                    (_mainStorage = GetCloudStorageAccount("Storage.Primary"));
             }
         }
 
-        public virtual CloudStorageAccount BackupSourceStorage
+        public virtual CloudStorageAccount BackupStorage
         {
             get
             {
-                return _backupSourceStorage ??
-                    (_backupSourceStorage = GetCloudStorageAccount("Storage.BackupSource", "NUGET_GALLERY_BACKUP_SOURCE_STORAGE"));
-            }
-        }
-
-        public virtual CloudStorageAccount DiagnosticsStorage
-        {
-            get
-            {
-                return _diagStorage ??
-                    (_diagStorage = GetCloudStorageAccount("Storage.Diagnostics", "NUGET_GALLERY_DIAGNOSTICS_STORAGE"));
-            }
-        }
-
-        public virtual CloudStorageAccount ReportStorage
-        {
-            get
-            {
-                return _reportStorage ??
-                    (_reportStorage = GetCloudStorageAccount("Storage.Reports", "NUGET_GALLERY_REPORTS_STORAGE"));
+                return _backupStorage ??
+                    (_backupStorage = GetCloudStorageAccount("Storage.Backup"));
             }
         }
 
@@ -67,27 +56,23 @@ namespace NuGetGallery.Operations.Worker
             _overrideSettings = overrideSettings;
         }
 
-        public virtual string GetSetting(string name, string environmentVariableName)
+        public virtual string GetSetting(string name)
         {
             string val;
             if (!_overrideSettings.TryGetValue(name, out val))
             {
-                val = Environment.GetEnvironmentVariable(environmentVariableName);
                 name = "Operations." + name;
-                if (String.IsNullOrWhiteSpace(val))
+                // Try Azure Config
+                try
                 {
-                    // Try Azure Config
-                    try
+                    if (RoleEnvironment.IsAvailable)
                     {
-                        if (RoleEnvironment.IsAvailable)
-                        {
-                            val = RoleEnvironment.GetConfigurationSettingValue(name);
-                        }
+                        val = RoleEnvironment.GetConfigurationSettingValue(name);
                     }
-                    catch
-                    {
-                        val = null;
-                    }
+                }
+                catch
+                {
+                    val = null;
                 }
                 if (String.IsNullOrWhiteSpace(val))
                 {
@@ -97,9 +82,9 @@ namespace NuGetGallery.Operations.Worker
             return val;
         }
 
-        public virtual CloudStorageAccount GetCloudStorageAccount(string name, string environmentVariableName)
+        public virtual CloudStorageAccount GetCloudStorageAccount(string name)
         {
-            return CloudStorageAccount.Parse(GetSetting(name, environmentVariableName));
+            return CloudStorageAccount.Parse(GetSetting(name));
         }
     }
 }

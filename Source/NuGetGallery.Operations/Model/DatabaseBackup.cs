@@ -47,13 +47,15 @@ namespace NuGetGallery.Operations.Model
         private static DateTimeOffset ParseOldTimestamp(string timestamp)
         {
             return new DateTimeOffset(
-                DateTime.ParseExact(timestamp, "yyyyMMddHHmmss", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal));
+                DateTime.ParseExact(timestamp, "yyyyMMddHHmmss", CultureInfo.CurrentCulture),
+                TimeSpan.Zero);
         }
 
         private static DateTimeOffset ParseNewTimestamp(string timestamp)
         {
             return new DateTimeOffset(
-                DateTime.ParseExact(timestamp, "yyyyMMMdd_HHmm", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal));
+                DateTime.ParseExact(timestamp, "yyyyMMMdd_HHmm", CultureInfo.CurrentCulture),
+                TimeSpan.Zero);
         }
     }
 }

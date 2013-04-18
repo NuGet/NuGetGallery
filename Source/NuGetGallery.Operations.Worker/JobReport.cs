@@ -25,7 +25,7 @@ namespace NuGetGallery.Operations.Worker
         {
             lock (LockObject)
             {
-                CloudBlobClient blobClient = settings.ReportStorage.CreateCloudBlobClient();
+                CloudBlobClient blobClient = settings.MainStorage.CreateCloudBlobClient();
                 CloudBlobContainer blobContainer = blobClient.GetContainerReference("ops");
                 blobContainer.CreateIfNotExists();
 
@@ -122,7 +122,7 @@ namespace NuGetGallery.Operations.Worker
         {
             lock (LockObject)
             {
-                CloudBlobClient blobClient = settings.ReportStorage.CreateCloudBlobClient();
+                CloudBlobClient blobClient = settings.MainStorage.CreateCloudBlobClient();
                 CloudBlobContainer blobContainer = blobClient.GetContainerReference("ops");
                 blobContainer.CreateIfNotExists();
 

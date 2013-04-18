@@ -13,7 +13,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
 using NuGetGallery.Operations.SqlDac;
 
-namespace NuGetGallery.Operations.Tasks
+namespace NuGetGallery.Operations
 {
     [Command("exportdatabase", "Exports a copy of the database to blob storage", AltName = "xdb", MinArgs = 0, MaxArgs = 0)]
     public class ExportDatabaseTask : DatabaseTask

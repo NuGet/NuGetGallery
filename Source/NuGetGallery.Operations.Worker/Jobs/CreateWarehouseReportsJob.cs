@@ -21,7 +21,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             new CreateWarehouseReportsTask
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
-                ReportStorage = Settings.ReportStorage,
+                ReportStorage = Settings.MainStorage,
                 WhatIf = Settings.WhatIf
             }.Execute();
             Logger.Info("Finished create warehouse reports task.");

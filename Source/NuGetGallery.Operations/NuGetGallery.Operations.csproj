@@ -137,7 +137,9 @@
     <Compile Include="DeploymentEnvironment.cs" />
     <Compile Include="ImportExportHelper.cs" />
     <Compile Include="Infrastructure\CommandLineParser.cs" />
+    <Compile Include="Infrastructure\IDbExecutorFactory.cs" />
     <Compile Include="Infrastructure\ImportExportHelper.cs" />
+    <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
     <Compile Include="Model\DatabaseBackup.cs" />
     <Compile Include="Service References\SqlDac\Reference.cs">
       <AutoGen>True</AutoGen>
@@ -179,7 +181,7 @@
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
     <Compile Include="Tasks\DeleteOldWarehouseBackupsTask.cs" />
     <Compile Include="Tasks\CreateWarehouseArtifactsTask.cs" />
-    <Compile Include="Tasks\DeleteOldDatabaseBackupsTask.cs" />
+    <Compile Include="Tasks\CleanOnlineDatabaseBackupsTask.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Infrastructure\ICommand.cs" />
     <Compile Include="Infrastructure\ICommandManager.cs" />
