@@ -8,6 +8,7 @@ using System.Web.Routing;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
+using Mindscape.Raygun4Net;
 using Ninject;
 using Ninject.Web.Mvc;
 using NuGetGallery;
@@ -17,6 +18,7 @@ using NuGetGallery.Jobs;
 using NuGetGallery.Migrations;
 using WebActivator;
 using WebBackgrounder;
+using NuGetGallery.App_Start;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
 [assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
@@ -34,6 +36,7 @@ namespace NuGetGallery
             NinjectPreStart();
             ElmahPreStart();
             GlimpsePreStart();
+            DynamicModuleUtility.RegisterModule(typeof(NuGetRaygunModule));
         }
 
         public static void PostStart()

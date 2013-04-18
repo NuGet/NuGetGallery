@@ -76,19 +76,20 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public async virtual Task<ActionResult> UploadPackage()
+        public virtual Task<ActionResult> UploadPackage()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            throw new Exception("Bogus dude!");
+            //var currentUser = _userService.FindByUsername(GetIdentity().Name);
 
-            using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
-            {
-                if (existingUploadFile != null)
-                {
-                    return RedirectToRoute(RouteName.VerifyPackage);
-                }
-            }
+            //using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
+            //{
+            //    if (existingUploadFile != null)
+            //    {
+            //        return RedirectToRoute(RouteName.VerifyPackage);
+            //    }
+            //}
 
-            return View();
+            //return View();
         }
 
         [Authorize]
