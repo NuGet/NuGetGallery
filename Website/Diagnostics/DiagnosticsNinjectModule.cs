@@ -30,6 +30,7 @@ namespace NuGetGallery.Diagnostics
                 .WithConstructorArgument("uriBlackList", new List<Regex> {
                     new Regex(@"^.*/Content/.*$"),
                     new Regex(@"^.*/Scripts/.*$"),
+                    new Regex(@"^.*(Web|Script)Resource\.axd.*$")
                 });
 
             Bind<IDiagnosticsService>()
