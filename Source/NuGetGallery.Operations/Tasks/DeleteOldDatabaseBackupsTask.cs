@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using AnglicanGeek.DbExecutor;
+using NuGetGallery.Operations.Model;
 
 namespace NuGetGallery.Operations
 {
@@ -24,17 +25,34 @@ namespace NuGetGallery.Operations
 
                 var dbs = dbExecutor.Query<Database>(
                     "SELECT name FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
-                    new { state = Util.OnlineState }).ToArray();
+                    new { state = Util.OnlineState })
+                   .Select(d => new DatabaseBackup(dbServer, d.Name))
+                   .Where(d => d.Timestamp.HasValue)
+                   .OrderByDescending(d => d.Timestamp)
+                   .ToList();
 
-                // Policy #1: retain last backup each day for last week [day = UTC day]
-                // Policy #2: retain the last 5 backups
-                var dailyBackups = dbs.OrderByDescending(GetTimestamp).GroupBy(GetDay).Take(8).Select(Enumerable.Last);
-                var latestBackups = dbs.OrderByDescending(GetTimestamp).Take(5);
+                
+                // Get back to the previous midnight
+                var yesterday = DateTimeOffset.UtcNow.AddDays(-1d);
+                var startPoint = new DateTimeOffset(yesterday.Year, yesterday.Month, yesterday.Day, 23, 59, 59, TimeSpan.Zero);
 
-                var dbsToSave = new HashSet<Database>();
-                dbsToSave.UnionWith(dailyBackups);
-                dbsToSave.UnionWith(latestBackups);
+                // Set up the list of saved DBs
+                var dbsToSave = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                
+                // Save all databases after the start point
+                dbsToSave
+                    .AddRange(dbs
+                        .Where(d => d.Timestamp.Value > startPoint)
+                        .Select(d => d.DatabaseName));
+                dbs = dbs.Where(d => d.Timestamp.Value < startPoint).ToList();
 
+                // Save all databases on the same day as the start point
+                dbsToSave
+                    .AddRange(dbs
+                        .Where(d => (startPoint - d.Timestamp.Value).TotalDays <= 1.0)
+                        .Select(d => d.DatabaseName));
+                    
+                
                 if (dbsToSave.Count <= 0)
                 {
                     throw new ApplicationException("Abort - sanity check failed - we are about to delete all backups");
@@ -54,24 +72,10 @@ namespace NuGetGallery.Operations
             }
         }
 
-        private static DateTime GetTimestamp(Database db)
+        private static readonly DateTimeOffset StartPoint = new DateTimeOffset(2000, 1, 1, 0, 0, 0, 0, TimeSpan.Zero);
+        private int GetDay(DatabaseBackup db)
         {
-            var timestamp = Util.GetDatabaseNameTimestamp(db);
-            var date = Util.GetDateTimeFromTimestamp(timestamp);
-            return date;
-        }
-
-        private static int GetDay(Database db)
-        {
-            var timestamp = Util.GetDatabaseNameTimestamp(db);
-            var date = Util.GetDateTimeFromTimestamp(timestamp);
-            if (date.Kind != DateTimeKind.Utc)
-            {
-                throw new InvalidDataException("DateTime must be Utc");
-            }
-
-            var daysSinceMillenium = (int)date.Subtract(new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalDays;
-            return daysSinceMillenium;
+            return (db.Timestamp.Value - StartPoint).Days;
         }
 
         private void DeleteDatabaseBackup(Database db, SqlExecutor dbExecutor)

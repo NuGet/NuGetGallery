@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 
 namespace NuGetGallery.Operations.Worker.Jobs
 {
-    [Export(typeof(WorkerJob))]
+    //[Export(typeof(WorkerJob))]
     public class PurgePackageStatisticsJob : WorkerJob
     {
         public override TimeSpan Period

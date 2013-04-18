@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="063f13e7-8897-4369-92d5-8f36333f195e" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="c56f6c6b-1b77-4281-b585-86f803ebeaba" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
   <ClientOptions>
     <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
     <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
@@ -7,19 +7,21 @@
     <ExcludedTypes />
     <ImportXmlTypes>false</ImportXmlTypes>
     <GenerateInternalTypes>false</GenerateInternalTypes>
-    <GenerateMessageContracts>true</GenerateMessageContracts>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
     <NamespaceMappings />
-    <CollectionMappings />
+    <CollectionMappings>
+      <CollectionMapping TypeName="System.Collections.Generic.List`1" Category="List" />
+    </CollectionMappings>
     <GenerateSerializableTypes>true</GenerateSerializableTypes>
     <Serializer>Auto</Serializer>
     <UseSerializerForFaults>true</UseSerializerForFaults>
     <ReferenceAllAssemblies>false</ReferenceAllAssemblies>
     <ReferencedAssemblies>
       <ReferencedAssembly AssemblyName="AnglicanGeek.DbExecutor" />
+      <ReferencedAssembly AssemblyName="EntityFramework" />
       <ReferencedAssembly AssemblyName="Microsoft.CSharp" />
       <ReferencedAssembly AssemblyName="Microsoft.Data.Edm" />
       <ReferencedAssembly AssemblyName="Microsoft.Data.OData" />
-      <ReferencedAssembly AssemblyName="Microsoft.Web.Infrastructure" />
       <ReferencedAssembly AssemblyName="Microsoft.WindowsAzure.Configuration" />
       <ReferencedAssembly AssemblyName="Microsoft.WindowsAzure.Storage" />
       <ReferencedAssembly AssemblyName="mscorlib" />
@@ -27,22 +29,17 @@
       <ReferencedAssembly AssemblyName="NuGet.Core" />
       <ReferencedAssembly AssemblyName="System" />
       <ReferencedAssembly AssemblyName="System.ComponentModel.Composition" />
+      <ReferencedAssembly AssemblyName="System.ComponentModel.DataAnnotations" />
       <ReferencedAssembly AssemblyName="System.Core" />
       <ReferencedAssembly AssemblyName="System.Data" />
       <ReferencedAssembly AssemblyName="System.Data.DataSetExtensions" />
+      <ReferencedAssembly AssemblyName="System.Data.Entity" />
       <ReferencedAssembly AssemblyName="System.Data.Services.Client" />
       <ReferencedAssembly AssemblyName="System.Net.Http" />
       <ReferencedAssembly AssemblyName="System.Net.Http.WebRequest" />
-      <ReferencedAssembly AssemblyName="System.Runtime.Serialization" />
-      <ReferencedAssembly AssemblyName="System.ServiceModel" />
       <ReferencedAssembly AssemblyName="System.Spatial" />
       <ReferencedAssembly AssemblyName="System.Transactions" />
       <ReferencedAssembly AssemblyName="System.Web" />
-      <ReferencedAssembly AssemblyName="System.Web.Helpers" />
-      <ReferencedAssembly AssemblyName="System.Web.Razor" />
-      <ReferencedAssembly AssemblyName="System.Web.WebPages" />
-      <ReferencedAssembly AssemblyName="System.Web.WebPages.Deployment" />
-      <ReferencedAssembly AssemblyName="System.Web.WebPages.Razor" />
       <ReferencedAssembly AssemblyName="System.Xml" />
       <ReferencedAssembly AssemblyName="System.Xml.Linq" />
     </ReferencedAssemblies>
@@ -53,11 +50,11 @@
     <MetadataSource Address="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" Protocol="mex" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="service.wsdl" MetadataType="Wsdl" ID="d6ae88b4-e0fc-45ce-bfc1-7784518849c0" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
-    <MetadataFile FileName="Microsoft.SqlServer.Management.Dac.Services.wsdl" MetadataType="Wsdl" ID="0ea5fce1-03be-4a5b-8e1f-083754eef1ea" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
-    <MetadataFile FileName="service.xsd" MetadataType="Schema" ID="e11136c5-edb5-4675-9199-169c89dd064a" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
-    <MetadataFile FileName="service1.xsd" MetadataType="Schema" ID="ff50b24d-2192-4f7e-ba5c-bd44a150d232" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
-    <MetadataFile FileName="Microsoft.SqlServer.Management.Dac.ServiceTypes.xsd" MetadataType="Schema" ID="fb05a4c3-2a7f-4d22-8a19-2d55ed20a9d3" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
+    <MetadataFile FileName="service.wsdl" MetadataType="Wsdl" ID="74887d55-ef29-4d07-8835-8ccfe12a4924" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
+    <MetadataFile FileName="Microsoft.SqlServer.Management.Dac.Services.wsdl" MetadataType="Wsdl" ID="5cf8b934-f4e0-4c79-93f7-cbb2f23a23b9" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
+    <MetadataFile FileName="service.xsd" MetadataType="Schema" ID="37944cf9-0dd3-4147-9d06-61f89d8b8e9f" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
+    <MetadataFile FileName="service1.xsd" MetadataType="Schema" ID="010d0cad-f0be-4367-8734-66976badff1e" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
+    <MetadataFile FileName="Microsoft.SqlServer.Management.Dac.ServiceTypes.xsd" MetadataType="Schema" ID="1b5f77d3-b6d2-485f-8eda-b972c3433588" SourceId="1" SourceUrl="https://ch1prod-dacsvc.azure.com/DACWebService.svc/mex" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />

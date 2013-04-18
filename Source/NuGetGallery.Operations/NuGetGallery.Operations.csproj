@@ -137,12 +137,13 @@
     <Compile Include="DeploymentEnvironment.cs" />
     <Compile Include="ImportExportHelper.cs" />
     <Compile Include="Infrastructure\CommandLineParser.cs" />
+    <Compile Include="Infrastructure\ImportExportHelper.cs" />
+    <Compile Include="Model\DatabaseBackup.cs" />
     <Compile Include="Service References\SqlDac\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
-    <Compile Include="Model\DatabaseBackup.cs" />
     <Compile Include="Tasks\BackupDatabaseTask.cs" />
     <Compile Include="Tasks\BackupPackageFileTask.cs" />
     <Compile Include="Tasks\BackupPackagesTask.cs" />
@@ -225,22 +226,7 @@
     <None Include="Service References\SqlDac\Microsoft.SqlServer.Management.Dac.ServiceTypes.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Service References\SqlDac\NuGetGallery.Operations.SqlDac.ExportResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\SqlDac\NuGetGallery.Operations.SqlDac.GetStatusResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\SqlDac\NuGetGallery.Operations.SqlDac.ImportResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\SqlDac\NuGetGallery.Operations.SqlDac.PostStatusResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\SqlDac\NuGetGallery.Operations.SqlDac.SelectiveExportResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\SqlDac\NuGetGallery.Operations.SqlDac.TestResponse.datasource">
+    <None Include="Service References\SqlDac\NuGetGallery.Operations.SqlDac.StatusInfo.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\SqlDac\service.wsdl" />

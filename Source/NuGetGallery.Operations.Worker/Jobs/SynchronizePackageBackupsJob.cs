@@ -3,7 +3,7 @@ using System.ComponentModel.Composition;
 
 namespace NuGetGallery.Operations.Worker.Jobs
 {
-    [Export(typeof(WorkerJob))]
+    //[Export(typeof(WorkerJob))]
     public class SynchronizePackageBackupsJob : WorkerJob
     {
         public override TimeSpan Period

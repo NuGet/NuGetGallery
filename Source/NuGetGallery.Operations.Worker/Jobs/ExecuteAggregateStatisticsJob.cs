@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace NuGetGallery.Operations.Worker.Jobs
 {
-    [Export(typeof(WorkerJob))]
+    //[Export(typeof(WorkerJob))]
     public class ExecuteAggregateStatisticsJob : WorkerJob
     {
         ExecuteAggregateStatisticsJob()

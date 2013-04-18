@@ -15,25 +15,26 @@ using NuGetGallery.Operations.SqlDac;
 
 namespace NuGetGallery.Operations.Tasks
 {
-    [Command("exportdatabase", "Exports a sanitized copy of the database to blob storage", AltName = "xdb", MinArgs = 0, MaxArgs = 0)]
+    [Command("exportdatabase", "Exports a copy of the database to blob storage", AltName = "xdb", MinArgs = 0, MaxArgs = 0)]
     public class ExportDatabaseTask : DatabaseTask
     {
+        private IList<string> _unsanitizedUsers = new List<string>();
+
         [Option("Azure Storage Account in which the exported database should be placed", AltName = "s")]
         public CloudStorageAccount DestinationStorage { get; set; }
+
+        [Option("Blob container in which the backup should be placed", AltName = "c")]
+        public string DestinationContainer { get; set; }
+
+        [Option("The name of the database to export (if not specified, the one in the connection string will be used)", AltName = "dbname")]
+        public string DatabaseName { get; set; }
 
         [Option("URL of the SQL DAC endpoint to talk to", AltName = "dac")]
         public Uri SqlDacEndpoint { get; set; }
 
-        [Option("Domain name to use for sanitized email addresses, username@[emaildomain]", AltName = "e")]
-        public string EmailDomain { get; set; }
-
         public override void ValidateArguments()
         {
             base.ValidateArguments();
-
-            EmailDomain = String.IsNullOrEmpty(EmailDomain) ?
-                "example.com" :
-                EmailDomain;
 
             if (CurrentEnvironment != null)
             {
@@ -43,52 +44,23 @@ namespace NuGetGallery.Operations.Tasks
                 }
                 if (SqlDacEndpoint == null)
                 {
-                    SqlDacEndpoint = CurrentEnvironment.SqlDac;
+                    SqlDacEndpoint = CurrentEnvironment.SqlDacEndpoint;
                 }
             }
 
             ArgCheck.RequiredOrConfig(DestinationStorage, "DestinationStorage");
             ArgCheck.RequiredOrConfig(SqlDacEndpoint, "SqlDacEndpoint");
+            ArgCheck.Required(DestinationContainer, "DestinationContainer");
         }
 
         public override void ExecuteCommand()
         {
-            // Phase 1. Create a copy of the database
-            Log.Info("*** PHASE 1: Creating Database Copy ***");
-            string name = "Export_" + Util.GetTimestamp();
-            var backupJob = new BackupDatabaseTask()
+            if (!String.IsNullOrEmpty(DatabaseName))
             {
-                ConnectionString = ConnectionString,
-                BackupName = name,
-                Force = true,
-                WhatIf = WhatIf
-            };
-            backupJob.Execute();
-            if (!WhatIf)
-            {
-                DatabaseBackupHelper.WaitForCompletion(backupJob);
+                ConnectionString.InitialCatalog = DatabaseName;
             }
+            Log.Info("Exporting {0} on {1} to {2}", ConnectionString.InitialCatalog, Util.GetDatabaseServerName(ConnectionString), DestinationStorage.Credentials.AccountName);
 
-            // For extra safety, rewrite the connection string to target the backup
-            ConnectionString = new SqlConnectionStringBuilder(ConnectionString.ConnectionString)
-            {
-                InitialCatalog = name
-            };
-
-            // Phase 2. Sanitize the database
-            Log.Info("*** PHASE 2: Sanitizing the Copy ***");
-            var sanitizeJob = new SanitizeDatabaseTask()
-            {
-                ConnectionString = ConnectionString,
-                DatabaseName = name,
-                EmailDomain = EmailDomain,
-                WhatIf = WhatIf,
-                Force = false
-            };
-            sanitizeJob.Execute();
-
-            // Phase 3. Export the sanitized database to blob storage
-            Log.Info("*** PHASE 3: Exporting to Blob Storage ***");
             string serverName = ConnectionString.DataSource;
             if (serverName.StartsWith("tcp:"))
             {
@@ -98,7 +70,7 @@ namespace NuGetGallery.Operations.Tasks
             WASDImportExport.ImportExportHelper helper = new WASDImportExport.ImportExportHelper(Log)
             {
                 EndPointUri = SqlDacEndpoint.AbsoluteUri,
-                DatabaseName = name,
+                DatabaseName = ConnectionString.InitialCatalog,
                 ServerName = serverName,
                 UserName = ConnectionString.UserID,
                 Password = ConnectionString.Password,
@@ -107,9 +79,10 @@ namespace NuGetGallery.Operations.Tasks
             
             // Prep the blob
             var client = DestinationStorage.CreateCloudBlobClient();
-            var container = client.GetContainerReference("database-exports");
+            var container = client.GetContainerReference(DestinationContainer);
             container.CreateIfNotExists();
-            var blob = container.GetBlockBlobReference(name + ".bacpac");
+            var blob = container.GetBlockBlobReference(ConnectionString.InitialCatalog + ".bacpac");
+            Log.Info("Starting export to {0}", blob.Uri.AbsoluteUri);
 
             // Export!
             string blobUrl = helper.DoExport(blob.Uri.AbsoluteUri, WhatIf);
