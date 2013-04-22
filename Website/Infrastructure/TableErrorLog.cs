@@ -43,10 +43,7 @@ namespace NuGetGallery.Infrastructure
             {
                 get
                 {
-                    // Chop off leading "Page_"
-                    long page = Int64.Parse(((ITableEntity)this).PartitionKey.Substring(5), CultureInfo.InvariantCulture);
-                    long offset = Int32.Parse(((ITableEntity)this).RowKey, CultureInfo.InvariantCulture);
-                    return page + offset;
+                    return AzureEntityList<ErrorEntity>.GetLogicalIndex(this);
                 }
             }
 
