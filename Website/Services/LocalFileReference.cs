@@ -12,7 +12,7 @@ namespace NuGetGallery
 
         public string ContentId
         {
-            get { return _file.LastAccessTimeUtc.ToString("O"); }
+            get { return _file.LastWriteTimeUtc.ToString("O"); }
         }
 
         public LocalFileReference(FileInfo file)
