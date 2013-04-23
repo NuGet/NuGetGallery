@@ -1,6 +1,8 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGetGallery.FunctionTests.Helpers;
+using System.Net;
+using System.IO;
 
 namespace NuGetGallery.FunctionalTests.Features
 {
@@ -36,6 +38,38 @@ namespace NuGetGallery.FunctionalTests.Features
             //check if the package is present in windows 8 feed.
             //TBD : Need to check the exact the url for curated feed.
              Assert.IsTrue(ClientSDKHelper.CheckIfPackageExistsInSource(packageId, UrlHelper.Windows8CuratedFeedUrl), "Package {0} is not found in the site {1} after uploading.", packageId, UrlHelper.Windows8CuratedFeedUrl);
+        }
+
+        [TestMethod]
+        [Description("Performs a querystring-based search of the Windows 8 curated feed.  Confirms expected packages are returned.")]
+        public void SearchWindows8CuratedFeed()
+        {
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"curated-feeds/Windows8-Packages/Search()?$filter=IsLatestVersion&$skip=0&$top=10&searchTerm='Unity'&includePrerelease=false");
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+
+            Assert.IsTrue(responseText.Contains(@"<title type=""text"">Unity</title>"), "The expected package title wasn't found in the feed.  Feed contents: " + responseText);
+            Assert.IsTrue(responseText.Contains(@"<content type=""application/zip"" src=""" + UrlHelper.V2FeedRootUrl + "curated-feeds/package/Unity/"), "The expected package URL wasn't found in the feed.  Feed contents: " + responseText);
+            Assert.IsFalse(responseText.Contains(@"jquery"), "The feed contains non-matching package names.  Feed contents: " + responseText);
+        }
+
+
+        [TestMethod]
+        [Description("Performs a querystring-based search of the WebMatrix curated feed.  Confirms expected packages are returned.")]
+        public void SearchWebMatrixCuratedFeed()
+        {
+            WebRequest request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"curated-feeds/webmatrix/Search()?$filter=IsLatestVersion&$skip=0&$top=10&searchTerm='asp.net%20web%20helpers'&targetFramework='net40'&includePrerelease=false");
+            // Get the response.          
+            WebResponse response = request.GetResponse();
+            StreamReader sr = new StreamReader(response.GetResponseStream());
+            string responseText = sr.ReadToEnd();
+
+            Assert.IsTrue(responseText.Contains(@"<title type=""text"">microsoft-web-helpers</title>"), "The expected package title wasn't found in the feed.  Feed contents: " + responseText);
+            Assert.IsTrue(responseText.Contains(@"<content type=""application/zip"" src=""" + UrlHelper.V2FeedRootUrl + "curated-feeds/package/microsoft-web-helpers/"), "The expected package URL wasn't found in the feed.  Feed contents: " + responseText);
+            Assert.IsFalse(responseText.Contains(@"jquery"), "The feed contains non-matching package names.  Feed contents: " + responseText);
+       
         }
     }
 }

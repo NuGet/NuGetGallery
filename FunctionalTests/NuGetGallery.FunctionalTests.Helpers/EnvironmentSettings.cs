@@ -33,7 +33,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                 if (string.IsNullOrEmpty(_baseurl))
                 {
                     if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl")))
-                        _baseurl = "https://preview.nuget.org/";
+                        _baseurl = "http://nugetgallery-qa.cloudapp.net/";
                     else
                         _baseurl = Environment.GetEnvironmentVariable("GalleryUrl");
                 }

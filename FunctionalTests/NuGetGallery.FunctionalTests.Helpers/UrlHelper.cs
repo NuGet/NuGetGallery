@@ -19,6 +19,14 @@ namespace NuGetGallery.FunctionTests.Helpers
             }
         }
 
+        public static string V1FeedRootUrl
+        {
+            get
+            {
+                return BaseUrl + "api/v1/";
+            }
+        }
+
         public static string V2FeedRootUrl
         {
             get
