@@ -4,19 +4,11 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Operations.Tasks
 {
-    [Command("createwarehousedatabase", "Create warehouse artifacts", AltName = "cwdb")]
-    public class CreateWarehouseArtifactsTask : OpsTask
+    [Command("createwarehousedatabase", "Create warehouse artifacts", AltName = "cwdb", IsSpecialPurpose = true)]
+    public class CreateWarehouseArtifactsTask : WarehouseTask
     {
-        [Option("Connection string to the warehouse database", AltName = "wdb")]
-        public string WarehouseConnectionString { get; set; }
-
         [Option("Force recreation of the database artifacts", AltName = "f")]
         public bool Force { get; set; }
-
-        public CreateWarehouseArtifactsTask()
-        {
-            WarehouseConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
-        }
 
         public override void ExecuteCommand()
         {
@@ -26,12 +18,6 @@ namespace NuGetGallery.Operations.Tasks
             PrePopulateDimensions();
 
             Log.Info("Warehouse artifacts successfully created");
-        }
-
-        public override void ValidateArguments()
-        {
-            base.ValidateArguments();
-            ArgCheck.RequiredOrEnv(WarehouseConnectionString, "WarehouseConnectionString", "NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
         }
 
         void AddTablesAndProcs()
@@ -68,7 +54,7 @@ namespace NuGetGallery.Operations.Tasks
             IEnumerable<string> batches = ResourceHelper.GetBatchesFromSqlFile(name);
             foreach (string batch in batches)
             {
-                SqlHelper.ExecuteBatch(WarehouseConnectionString, batch);
+                SqlHelper.ExecuteBatch(ConnectionString.ConnectionString, batch);
             }
         }
     }

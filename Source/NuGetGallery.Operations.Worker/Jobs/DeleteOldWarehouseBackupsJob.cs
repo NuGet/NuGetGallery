@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Data.SqlClient;
 
 namespace NuGetGallery.Operations.Worker.Jobs
 {
@@ -19,7 +20,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             Logger.Info("Starting delete old warehouse backup task.");
             new DeleteOldWarehouseBackupsTask
             {
-                WarehouseConnectionString = Settings.WarehouseConnectionString,
+                ConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 WhatIf = Settings.WhatIf
             }.Execute();
             Logger.Info("Finished delete old warehouse backup task.");

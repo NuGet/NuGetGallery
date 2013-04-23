@@ -20,7 +20,7 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            using (var masterDbConnection = new SqlConnection(Util.GetMasterConnectionString(ConnectionString)))
+            using (var masterDbConnection = new SqlConnection(Util.GetMasterConnectionString(ConnectionString.ConnectionString)))
             using (var masterDbExecutor = new SqlExecutor(masterDbConnection))
             {
                 masterDbConnection.Open();
@@ -28,7 +28,7 @@ namespace NuGetGallery.Operations
                 var restoreDbName = CopyDatabaseForRestore(
                     masterDbExecutor);
 
-                using (var restoreDbConnection = new SqlConnection(Util.GetConnectionString(ConnectionString, restoreDbName)))
+                using (var restoreDbConnection = new SqlConnection(Util.GetConnectionString(ConnectionString.ConnectionString, restoreDbName)))
                 using (var restoreDbExecutor = new SqlExecutor(restoreDbConnection))
                 {
                     restoreDbConnection.Open();

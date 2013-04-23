@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Data.SqlClient;
 using System.Threading;
 
 namespace NuGetGallery.Operations.Worker.Jobs
@@ -15,7 +16,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             }
             else
             {
-                if (PollStatus(backupDatabaseTask.ConnectionString, backupDatabaseTask.BackupName))
+                if (PollStatus(backupDatabaseTask.ConnectionString.ConnectionString, backupDatabaseTask.BackupName))
                 {
                     StatusMessage = string.Format("created backup '{0}'", backupDatabaseTask.BackupName);
                 }
@@ -33,7 +34,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             {
                 CheckDatabaseStatusTask checkDatabaseStatusTask = new CheckDatabaseStatusTask
                 {
-                    ConnectionString = connectionString,
+                    ConnectionString = new SqlConnectionStringBuilder(connectionString),
                     BackupName = backupName,
                     WhatIf = Settings.WhatIf
                 };

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -58,14 +59,12 @@ namespace NuGetGallery.Operations
 
         public static DateTime GetDateTimeFromTimestamp(string timestamp)
         {
-            var year = Int32.Parse(new string(timestamp.Take(4).ToArray()));
-            var month = Int32.Parse(new string(timestamp.Skip(4).Take(2).ToArray()));
-            var day = Int32.Parse(new string(timestamp.Skip(6).Take(2).ToArray()));
-            var hour = Int32.Parse(new string(timestamp.Skip(8).Take(2).ToArray()));
-            var minute = Int32.Parse(new string(timestamp.Skip(10).Take(2).ToArray()));
-            var second = Int32.Parse(new string(timestamp.Skip(12).Take(2).ToArray()));
-
-            return new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
+            DateTime result;
+            if (!DateTime.TryParseExact(timestamp, "yyyyMMddHHmmss", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out result))
+            {
+                result = DateTime.MinValue;
+            }
+            return result;
         }
 
         public static string GetDbName(string connectionString)
@@ -256,9 +255,8 @@ namespace NuGetGallery.Operations
             return hash;
         }
 
-        public static string GetDatabaseServerName(string connectionString)
+        public static string GetDatabaseServerName(SqlConnectionStringBuilder connectionStringBuilder)
         {
-            var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString);
             var dataSource = connectionStringBuilder.DataSource;
             if (dataSource.StartsWith("tcp:"))
                 dataSource = dataSource.Substring(4);

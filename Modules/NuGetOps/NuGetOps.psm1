@@ -1,32 +1,64 @@
-$Global:NuGetOpsVersion = 0.1
 $Global:OpsRoot = (Convert-Path "$PsScriptRoot\..\..")
-$EnvsRoot = $env:NUGET_OPS_ENVIRONMENTS
+$Global:EnvironmentsList = $env:NUGET_OPS_ENVIRONMENTS
 
-# Defaults for Microsoft CorpNet. If you're outside CorpNet, you'll have to VPN in. Of course, if you're hosting your own gallery, you have to build your own scripts :P
-if([String]::IsNullOrEmpty($EnvsRoot) -and (Test-Path "\\nuget\Environments")) {
-	$EnvsRoot = "\\nuget\Environments"
+$CurrentDeployment = $null
+$CurrentEnvironment = $null
+Export-ModuleMember -Variable CurrentDeployment, CurrentEnvironment
+
+# Extract Ops NuGetOpsVersion
+$NuGetOpsVersion = 
+	cat .\Source\CommonAssemblyInfo.cs | 
+	where { $_ -match "\[assembly:\s+AssemblyInformationalVersion\(`"(?<ver>[^`"]*)`"\)\]" } | 
+	foreach { $matches["ver"] }
+
+# Find the Azure SDK
+$SDKParent = "$env:ProgramFiles\Microsoft SDKs\Windows Azure\.NET SDK"
+$Global:AzureSDKRoot = $null;
+if(Test-Path $SDKParent) {
+	# Pick the latest
+	$AzureSDKRoot = (dir $SDKParent | sort Name -desc | select -first 1).FullName
 }
-$emulatorOnly = [String]::IsNullOrEmpty($EnvsRoot);
+
+if(!$AzureSDKRoot) {
+	Write-Warning "Couldn't find the Azure SDK. Some commands may not work."
+}
+
+# Check for v0.2 level environment scripts
+$Global:Environments = @{}
+if($EnvironmentsList -and (Test-Path $EnvironmentsList)) {
+	if([IO.Path]::GetExtension($EnvironmentsList) -eq ".xml") {
+		$x = [xml](cat $EnvironmentsList)
+		$Global:Environments = @{};
+		$x.environments.environment | ForEach-Object {
+			$Environments[$_.name] = New-Object PSCustomObject
+			Add-Member -NotePropertyMembers @{
+				Version = 0.2;
+				Name = $_.name;
+				Protected = $_.protected -and ([String]::Equals($_.protected, "true", "OrdinalIgnoreCase"));
+				Service = $_.service;
+				Worker = $_.worker;
+				Subscription = $_.subscription
+			} -InputObject $Environments[$_.name]
+		}
+	} else {
+		throw "Your Environments are old and busted. Upgrade to the new hotness!`r`nhttps://github.com/NuGet/NuGetOperations/wiki/Setting-up-the-Operations-Console"
+	}
+}
 
 function Get-Environment([switch]$ListAvailable) {
 	if($ListAvailable) {
-		$emulator = "  Emulator"
-		if(Test-Environment "Emulator") {
-			$Emulator = "* Emulator"
-		}
-		@(dir "$EnvsRoot\*.ps1" | Where-Object { !$_.Name.StartsWith("_") } | ForEach-Object { 
-			$envName = [IO.Path]::GetFileNameWithoutExtension($_.Name) 
-			if(Test-Environment $envName) {
-				"* $envName"
+		@($Environments.Keys | ForEach-Object { 
+			if(Test-Environment $_) {
+				"* $_"
 			} else {
-				"  $envName"
+				"  $_"
 			}
-		}) + $Emulator
+		})
 	} else {
-		if(!(Test-Path env:\NUGET_GALLERY_ENV)) {
+		if(!$CurrentEnvironment) {
 			$null;
 		} else {
-			$env:NUGET_GALLERY_ENV
+			$CurrentEnvironment.Name
 		}
 	}
 }
@@ -34,13 +66,7 @@ Export-ModuleMember -Function Get-Environment
 
 function Test-Environment([Parameter(Mandatory=$true)][String]$Environment, [Switch]$Exists) {
 	if($Exists) {
-		if($Environment.Equals("Emulator", "OrdinalIgnoreCase")) {
-			$true;
-		} elseif([String]::IsNullOrEmpty($EnvsRoot)) {
-			$false;
-		} else {
-			Test-Path (Join-Path $EnvsRoot "$Environment.ps1")
-		}
+		return $Environments.ContainsKey($Environment)
 	} else {
 		[String]::Equals((Get-Environment), $Environment, "OrdinalIgnoreCase");
 	}
@@ -48,7 +74,7 @@ function Test-Environment([Parameter(Mandatory=$true)][String]$Environment, [Swi
 Export-ModuleMember -Function Test-Environment
 
 function _IsProduction {
-	Test-Environment "Production"	
+	$CurrentEnvironment -and ($CurrentEnvironment.Protected -eq "true")
 }
 
 function _RefreshGitColors {
@@ -106,58 +132,11 @@ function _RefreshGitColors {
 	}
 }
 
-function _SetEmulatorEnvironment() {
-	del env:\NUGET*
-	$env:NUGET_GALLERY_USE_EMULATOR = $true
-	$env:NUGET_GALLERY_ENV = "Emulator"
-}
-
-function Set-Environment {
-	param([Parameter(Mandatory=$true)][string]$Name)
-	$env = Get-Environment
-	if($env -ne $Name) {
-		if([String]::IsNullOrEmpty($Name)) {
-			del env:\NUGET_*;
-			return;
-		}
-		
-		if([String]::IsNullOrEmpty($EnvsRoot) -or !(Test-Path (Join-Path $EnvsRoot "$Name*.ps1"))) {
-			if("Emulator" -like "$Name*") {
-				_SetEmulatorEnvironment
-				return;
-			}
-			throw "No such environment: $Name";
-		}
-
-
-		. "$EnvsRoot\$Name*.ps1"
-		if(_IsProduction) {
-			$host.UI.RawUI.BackgroundColor = "DarkRed";
-		} elseif(![String]::IsNullOrEmpty($Name)) {
-			$host.UI.RawUI.BackgroundColor = "Black";
-		} else {
-			$host.UI.RawUI.BackgroundColor = "DarkMagenta";
-		}
-		_RefreshGitColors
-		#cls;
-		"Environment is now $(Get-Environment)"
-	}
-}
-Export-ModuleMember -Function Set-Environment
-
-function Write-DeploymentSettings {
-	dir env:\NUGET_* | ForEach {
-		"$($_.Name) = $($_.Value)"
-	}
-}
-Set-Alias -Name settings -Value Write-DeploymentSettings
-Export-ModuleMember -Function Write-DeploymentSettings -Alias settings
-
 function env([string]$Name) {
-	if([String]::IsNUllOrEmpty($Name)) {
+	if([String]::IsNullOrEmpty($Name)) {
 		Get-Environment -ListAvailable
 	} else {
-		Set-Environment $Name
+		Set-Environment -Name $Name
 	}
 }
 Export-ModuleMember -Function env
@@ -187,22 +166,47 @@ dir $PsScriptRoot\Public\*.ps1 | foreach {
 	Export-ModuleMember -Function "$([IO.Path]::GetFileNameWithoutExtension($_.Name))"
 }
 
-if(Test-Environment -Exists Preview) {
-	Set-Environment Preview | Out-Null
-} else {
-	Set-Environment Emulator | Out-Null
-}
+
+
 Clear-Host
-Write-Host @"
- ______         ______            
-|  ___ \       / _____)      _    
-| |   | |_   _| /  ___  ____| |_  
-| |   | | | | | | (___)/ _  )  _) 
-| |   | | |_| | \____/( (/ /| |__ 
-|_|   |_|\____|\_____/ \____)\___)
+Write-Host -BackgroundColor Blue -ForegroundColor White @"
+ _____     _____     _      _____ _____ _____ 
+|   | |_ _|   __|___| |    |     |     |   __|
+| | | | | |  |  |  | - |   |  |  |  |__|__   |
+|_|___|___|_____|___|_|    |_____|__|  |_____|
+                                              
 "@
 Write-Host -ForegroundColor Black -BackgroundColor Yellow "Welcome to the NuGet Operations Console (v$NuGetOpsVersion)"
 
-if($EmulatorOnly) {
-	Write-Warning "NUGET_OPS_ENVIRONMENTS is not specified, only the built-in Emulator environment will be available"
+if($Environments.Count -eq 0) {
+	Write-Warning "No environments are available, the console will not function correctly.`r`nSee https://github.com/NuGet/NuGetOperations/wiki/Setting-up-the-Operations-Console for more info"
 }
+if(!(Test-Path "$env:ProgramFiles\Microsoft SDKs\Windows Azure\.NET SDK\")) {
+	Write-Warning "Couldn't find the Azure .NET SDK. Some operations may not work without it."
+}
+
+function Write-NuGetOpsPrompt() {
+	$envName = "<NONE>"
+	if($CurrentEnvironment) { $env = $CurrentEnvironment.Name; }
+	$host.UI.RawUI.WindowTitle = "NuGet Operations Console v$NuGetOpsVersion [Environment: $env]"
+
+	Write-Host -noNewLine "$(Get-Location)"
+	
+	$realLASTEXITCODE = $LASTEXITCODE
+
+	# Reset color, which can be messed up by Enable-GitColors
+	$Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
+	
+	Write-VcsStatus
+	
+	$global:LASTEXITCODE = $realLASTEXITCODE
+	Write-Host
+	Write-Host -noNewline "[env:"
+	if(_IsProduction) {
+		Write-Host -noNewLine -foregroundColor Yellow $env
+	} else {
+		Write-Host -noNewLine -foregroundColor Magenta $env
+	}
+	return "]> "
+}
+Export-ModuleMember -Function Write-NuGetOpsPrompt

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Data.SqlClient;
 
 namespace NuGetGallery.Operations.Worker.Jobs
 {
@@ -19,7 +20,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             Logger.Info("Starting create warehouse reports task.");
             new CreateWarehouseReportsTask
             {
-                WarehouseConnectionString = Settings.WarehouseConnectionString,
+                ConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 ReportStorage = Settings.ReportStorage,
                 WhatIf = Settings.WhatIf
             }.Execute();

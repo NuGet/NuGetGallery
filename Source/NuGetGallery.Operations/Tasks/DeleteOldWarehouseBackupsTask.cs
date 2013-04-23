@@ -6,27 +6,12 @@ using NuGetGallery.Operations.Common;
 namespace NuGetGallery.Operations
 {
     [Command("purgewarehousebackups", "Deletes old database backups", AltName = "pwh")]
-    public class DeleteOldWarehouseBackupsTask : OpsTask
+    public class DeleteOldWarehouseBackupsTask : WarehouseTask
     {
-        [Option("Connection string to the warehouse database server", AltName = "wdb")]
-        public string WarehouseConnectionString { get; set; }
-
-        public DeleteOldWarehouseBackupsTask() 
-        {
-            // Load defaults from environment
-            WarehouseConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
-        }
-
-        public override void ValidateArguments()
-        {
-            base.ValidateArguments();
-            ArgCheck.RequiredOrEnv(WarehouseConnectionString, "WarehouseConnectionString", "NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
-        }
-
         public override void ExecuteCommand()
         {
-            var dbServer = Util.GetDbServer(WarehouseConnectionString);
-            var masterConnectionString = Util.GetMasterConnectionString(WarehouseConnectionString);
+            var dbServer = ConnectionString.DataSource;
+            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
 
             Log.Trace("Deleting old warehouse backups for server '{0}':", dbServer);
 

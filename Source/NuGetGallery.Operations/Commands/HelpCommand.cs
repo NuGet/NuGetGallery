@@ -59,15 +59,15 @@ namespace NuGetGallery.Operations
             }
             else if (All)
             {
-                ViewHelpForAllCommands();
+                ViewHelp(all: true);
             }
             else
             {
-                ViewHelp();
+                ViewHelp(all: false);
             }
         }
 
-        public void ViewHelp()
+        public void ViewHelp(bool all)
         {
             Console.WriteLine("{0} Version: {1}", _productName, GetType().Assembly.GetName().Version);
             Console.WriteLine("usage: {0} <command> [args] [options] ", _commandExe);
@@ -77,6 +77,7 @@ namespace NuGetGallery.Operations
             Console.WriteLine();
 
             var commands = from c in _commandManager.GetCommands()
+                           where all || !c.CommandAttribute.IsSpecialPurpose
                            orderby c.CommandAttribute.CommandName
                            select c.CommandAttribute;
 

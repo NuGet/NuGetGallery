@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Data.SqlClient;
 using System.Threading;
 
 namespace NuGetGallery.Operations.Worker.Jobs
@@ -34,8 +35,8 @@ namespace NuGetGallery.Operations.Worker.Jobs
             Logger.Trace("Starting replicate package statistics task.");
             ReplicatePackageStatisticsTask task = new ReplicatePackageStatisticsTask()
             {
-                ConnectionString = Settings.MainConnectionString,
-                WarehouseConnectionString = Settings.WarehouseConnectionString,
+                ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
+                WarehouseConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 WhatIf = Settings.WhatIf,
                 CancellationToken = _cts.Token
             };

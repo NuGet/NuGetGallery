@@ -53,13 +53,5 @@ namespace NuGetGallery.Operations
             }
             Log.Info("Backed Up {0} {1}", PackageId, PackageVersion);
         }
-
-        public override void ValidateArguments()
-        {
-            base.ValidateArguments();
-            ArgCheck.Required(PackageId, "PackageId");
-            ArgCheck.Required(PackageVersion, "PackageVersion");
-            ArgCheck.Required(PackageHash, "PackageHash");
-        }
     }
 }

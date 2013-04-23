@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Data.SqlClient;
 
 namespace NuGetGallery.Operations.Worker.Jobs
 {
@@ -27,7 +28,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             Logger.Info("Starting synchronize package backups task.");
             new BackupPackagesTask
             {
-                ConnectionString = Settings.MainConnectionString,
+                ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 StorageAccount = Settings.MainStorage,
                 WhatIf = Settings.WhatIf
             }.Execute();

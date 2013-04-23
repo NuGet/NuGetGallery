@@ -21,6 +21,7 @@ namespace NuGetGallery.Operations
         public string UsageSummaryResourceName { get; set; }
         public string UsageDescriptionResourceName { get; set; }
         public string UsageExampleResourceName { get; set; }
+        public bool IsSpecialPurpose { get; set; }
 
         public string Description
         {

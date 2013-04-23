@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Data.SqlClient;
 using System.Threading;
 
 namespace NuGetGallery.Operations.Worker.Jobs
@@ -32,7 +33,7 @@ namespace NuGetGallery.Operations.Worker.Jobs
             Logger.Trace("Starting Execute AggregateStatistics Task.");
             ExecuteAggregateStatisticsTask task = new ExecuteAggregateStatisticsTask()
             {
-                ConnectionString = Settings.MainConnectionString,
+                ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 WhatIf = Settings.WhatIf
             };
             task.Execute();

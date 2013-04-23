@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
+using NuBot.Infrastructure;
 using NuGet;
 using NLog.Config;
 using NLog.Targets;
@@ -31,11 +32,11 @@ namespace NuGetGallery.Operations.Tools
             ConfigureLogs();
 
             // Compose
-            AggregateCatalog catalog = new AggregateCatalog(
+            var catalog = new AggregateCatalog(
                 new AssemblyCatalog(typeof(Program).Assembly),
                 new AssemblyCatalog(typeof(HelpCommand).Assembly));
-            CompositionContainer container = new CompositionContainer(catalog);
-            Program p = container.GetExportedValue<Program>();
+            var container = new CompositionContainer(catalog);
+            var p = container.GetExportedValue<Program>();
 
             // Execute
             return p.Invoke(args);
@@ -54,7 +55,7 @@ namespace NuGetGallery.Operations.Tools
                 }
 
                 // Parse the command
-                CommandLineParser parser = new CommandLineParser(Manager);
+                var parser = new CommandLineParser(Manager);
                 ICommand command = parser.ParseCommandLine(args) ?? HelpCommand;
 
                 // Fall back on help command if we failed to parse a valid command
@@ -82,13 +83,15 @@ namespace NuGetGallery.Operations.Tools
                 {
                     message = ExceptionUtility.Unwrap(exception).Message;
                 }
-                _logger.ErrorException(message, exception);
+                _logger.Error("{0}: {1}", unwrappedEx.GetType().Name, message);
+                _logger.Error(" Stack Trace: " + unwrappedEx.StackTrace);
                 return 1;
             }
             catch (Exception e)
             {
                 var ex = ExceptionUtility.Unwrap(e);
-                _logger.ErrorException(ex.Message, ex);
+                _logger.Error("{0}: {1}", ex.GetType().Name, ex.Message);
+                _logger.Error(" Stack Trace: " + ex.StackTrace);
                 return 1;
             }
             return 0;
@@ -97,29 +100,14 @@ namespace NuGetGallery.Operations.Tools
         private static void ConfigureLogs()
         {
             // Just a simple logging mechanism
-            ColoredConsoleTarget consoleTarget = new ColoredConsoleTarget
+            var consoleTarget = new SnazzyConsoleTarget()
             {
-                Layout = "${pad:padding=4:fixedLength=true:inner=${replace:searchFor=debug:replaceWith=dbg:inner=${replace:searchFor=error:replaceWith=err:inner=${level:lowercase=true}}}}: ${message}",
-                UseDefaultRowHighlightingRules = false,
-                WordHighlightingRules =
-                {
-                    new ConsoleWordHighlightingRule("info", ConsoleOutputColor.Green, ConsoleOutputColor.NoChange),
-                    new ConsoleWordHighlightingRule("err", ConsoleOutputColor.Red, ConsoleOutputColor.NoChange),
-                    new ConsoleWordHighlightingRule("dbg", ConsoleOutputColor.Magenta, ConsoleOutputColor.NoChange),
-                    new ConsoleWordHighlightingRule("Curated", ConsoleOutputColor.Green, ConsoleOutputColor.NoChange)
-                    {
-                        WholeWords = true
-                    },
-                    new ConsoleWordHighlightingRule("Ignored", ConsoleOutputColor.Gray, ConsoleOutputColor.NoChange)
-                    {
-                        WholeWords = true
-                    },
-                }
+                Layout = "${message}"
             };
 
-            LoggingConfiguration config = new LoggingConfiguration();
+            var config = new LoggingConfiguration();
             config.AddTarget("console", consoleTarget);
-            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Debug, consoleTarget));
+            config.LoggingRules.Add(new LoggingRule("*", LogLevel.Trace, consoleTarget));
 
             LogManager.Configuration = config;
         }

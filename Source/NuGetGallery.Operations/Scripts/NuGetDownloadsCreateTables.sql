@@ -32,9 +32,13 @@ GO
 IF OBJECT_ID('[dbo].[Dimension_Package]') IS NULL
     CREATE TABLE [dbo].[Dimension_Package]
     (
-        [Id]				INT IDENTITY,
-        [PackageId]			NVARCHAR(128),
-        [PackageVersion]	NVARCHAR(64),
+        [Id]				 INT IDENTITY,
+        [PackageId]			 NVARCHAR(128),
+        [PackageVersion]	 NVARCHAR(64),
+        [PackageListed]      BIT,
+        [PackageTitle]       NVARCHAR(256),
+        [PackageDescription] NVARCHAR(MAX),
+        [PackageIconUrl]     NVARCHAR(MAX),
         CONSTRAINT [PK_Dimension_Package] PRIMARY KEY CLUSTERED ([Id])
     )
 GO

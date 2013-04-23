@@ -10,32 +10,38 @@ namespace NuGetGallery.Operations
     public class CopyDatabaseBackupTask : OpsTask
     {
         [Option("Connection string to the source database server", AltName = "s")]
-        public string SourceConnectionString { get; set; }
+        public SqlConnectionStringBuilder SourceConnectionString { get; set; }
 
         [Option("Connection string to the destination database server", AltName = "d")]        
-        public string DestinationConnectionString { get; set; }
+        public SqlConnectionStringBuilder DestinationConnectionString { get; set; }
 
         [Option("Name of the backup file", AltName = "n")]
         public string BackupName { get; set; }
 
-        public CopyDatabaseBackupTask()
-        {
-            // Get default from environment
-            SourceConnectionString = Environment.GetEnvironmentVariable("NUGET_GALLERY_BACKUP_SOURCE_CONNECTION_STRING");
-            DestinationConnectionString = Environment.GetEnvironmentVariable("NUGET_GALLERY_MAIN_CONNECTION_STRING");
-        }
-
         public override void ValidateArguments()
         {
             base.ValidateArguments();
-            ArgCheck.RequiredOrEnv(SourceConnectionString, "SourceConnectionString", "NUGET_GALLERY_BACKUP_SOURCE_CONNECTION_STRING");
-            ArgCheck.RequiredOrEnv(DestinationConnectionString, "SourceConnectionString", "NUGET_GALLERY_MAIN_CONNECTION_STRING");
+
+            if (CurrentEnvironment != null)
+            {
+                if (SourceConnectionString == null)
+                {
+                    SourceConnectionString = CurrentEnvironment.BackupSourceDatabase;
+                }
+                if (DestinationConnectionString == null)
+                {
+                    DestinationConnectionString = CurrentEnvironment.MainDatabase;
+                }
+            }
+
+            ArgCheck.RequiredOrConfig(SourceConnectionString, "SourceConnectionString");
+            ArgCheck.RequiredOrConfig(DestinationConnectionString, "DestinationConnectionString");
             ArgCheck.Required(BackupName, "BackupName");
         }
 
         public override void ExecuteCommand()
         {
-            using (var destinationConnection = new SqlConnection(Util.GetMasterConnectionString(DestinationConnectionString)))
+            using (var destinationConnection = new SqlConnection(Util.GetMasterConnectionString(DestinationConnectionString.ConnectionString)))
             using (var destinationDbExecutor = new SqlExecutor(destinationConnection))
             {
                 string sourceDbServerName = Util.GetDatabaseServerName(SourceConnectionString);

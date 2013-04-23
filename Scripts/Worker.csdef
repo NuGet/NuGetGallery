@@ -10,6 +10,8 @@
       <Setting name="Operations.Storage.BackupSource" />
       <Setting name="Operations.Storage.Diagnostics" />
       <Setting name="Operations.Storage.Reports" />
+      <Setting name="Operations.Storage.Developer" />
+      <Setting name="Operations.SqlDac" />
     </ConfigurationSettings>
     <Imports>
       <Import moduleName="Diagnostics" />

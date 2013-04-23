@@ -7,12 +7,12 @@ using Microsoft.WindowsAzure.Storage;
 
 namespace NuGetGallery.Operations.Tasks
 {
-    [Command("copyexternalpackages", "Copies the nupkg file of any packages that were using ExternalPackageUrl to blob storage, in preparation for deprecating the ExternalPackageUrl feature.", AltName = "cpxp")]
+    [Command("copyexternalpackages", "Copies the nupkg file of any packages that were using ExternalPackageUrl to blob storage, in preparation for deprecating the ExternalPackageUrl feature.", AltName = "cpxp", IsSpecialPurpose = true)]
     public class CopyExternalPackagesTask : DatabaseAndStorageTask
     {
         public override void ExecuteCommand()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();

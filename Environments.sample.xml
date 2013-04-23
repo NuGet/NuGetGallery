@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<environments>
+	<!-- 
+		'name': A descriptive name (has no purpose outside of UI)
+		'protected': If present, and set to "true", this environment is considered a production environment
+		'service': Name of the Azure cloud service containing the Web Role
+		'worker': Name of the Azure cloud service containing the Worker Role
+		'subscription': Name of the Azure subscription containing the service -->
+	<environment name="Production" protected="true" service="mynugetgallery" worker="mynugetops" subscription="My Subscription" />
+</environments>

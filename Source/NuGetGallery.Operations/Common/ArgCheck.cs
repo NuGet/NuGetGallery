@@ -4,19 +4,19 @@ namespace NuGetGallery.Operations.Common
 {
     public static class ArgCheck
     {
-        public static void RequiredOrEnv(object value, string name, string envVar)
+        public static void RequiredOrConfig(object value, string name)
         {
-            if (value == null) 
+            if (value == null)
             {
-                throw CreateRequiredOrEnvEx(name, envVar);
+                throw CreateRequiredOrConfigEx(name);
             }
         }
 
-        public static void RequiredOrEnv(string value, string name, string envVar)
+        public static void RequiredOrConfig(string value, string name)
         {
-            if (String.IsNullOrWhiteSpace(value)) 
+            if (String.IsNullOrWhiteSpace(value))
             {
-                throw CreateRequiredOrEnvEx(name, envVar);
+                throw CreateRequiredOrConfigEx(name);
             }
         }
 
@@ -41,9 +41,9 @@ namespace NuGetGallery.Operations.Common
             return new CommandLineException(String.Format(CommandHelp.Option_Required, name));
         }
 
-        private static CommandLineException CreateRequiredOrEnvEx(string name, string envVar)
+        private static CommandLineException CreateRequiredOrConfigEx(string name)
         {
-            return new CommandLineException(String.Format(CommandHelp.Option_RequiredOrEnv, name, envVar));
+            return new CommandLineException(String.Format(CommandHelp.Option_RequiredOrConfig, name));
         }
     }
 }

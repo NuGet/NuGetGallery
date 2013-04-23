@@ -1,9 +1,25 @@
+<#
+.SYNOPSIS
+Tests that the NuGet Symbols exist on the specified path
+
+.PARAMETER ReleaseShare
+A share containing the NuGet Binaries
+
+.PARAMETER SymbolServer
+A specific symbol server to test
+
+.PARAMETER PublicOnly
+Test only the public Microsoft symbol server
+
+.PARAMETER InternalOnly
+Test only the internal Microsoft symbol server
+#>
 function Test-Symbols {
 	param(
 		[Parameter(Mandatory=$true)][string]$ReleaseShare,
-		[string]$SymbolServer,
-		[switch]$PublicOnly,
-		[switch]$PrivateOnly
+		[Parameter(ParameterSetName="SpecificServer")][string]$SymbolServer,
+		[Parameter(ParameterSetName="MicrosoftServers")][switch]$PublicOnly,
+		[Parameter(ParameterSetName="MicrosoftServers")][switch]$InternalOnly
 	)
 	
 	$path = $ReleaseShare
@@ -14,7 +30,7 @@ function Test-Symbols {
 		throw "Could not find release share $ReleaseShare. Checked $ReleaseShare, $path";
 	}
 	
-	if(![String]::IsNullOrEmpty($SymbolServer)) {
+	if($PsCmdlet.ParameterSetName -eq "SpecificServer") {
 		Write-Host -Foreground Black -Background Yellow "*********************************************"
 		Write-Host -Foreground Black -Background Yellow "Testing Custom Symbol Server: $SymbolServer"
 		Write-Host -Foreground Black -Background Yellow "*********************************************"
@@ -29,7 +45,7 @@ function Test-Symbols {
 			Write-Host -Foreground Black -Background Green "***********************"				
 		}
 	}
-	else {
+	elseif($PsCmdlet.ParameterSetName -eq "MicrosoftServers") {
 		if(!$PublicOnly) {
 			Write-Host -Foreground Black -Background Yellow "*********************************************"
 			Write-Host -Foreground Black -Background Yellow "Testing Internal Symbol Server: http://symweb"
@@ -46,7 +62,7 @@ function Test-Symbols {
 			}
 		}
 		
-		if(!$PrivateOnly) {
+		if(!$InternalOnly) {
 			Write-Host -Foreground Black -Background Yellow "************************************************************************"
 			Write-Host -Foreground Black -Background Yellow "Testing Public Symbol Server: http://msdl.microsoft.com/download/symbols"
 			Write-Host -Foreground Black -Background Yellow "************************************************************************"

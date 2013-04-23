@@ -10,7 +10,7 @@ using NuGet;
 
 namespace NuGetGallery.Operations
 {
-    [Command("curatewebmatrix", "Runs the WebMatrix Curator on the specified storage server", AltName = "cwm")]
+    [Command("curatewebmatrix", "Runs the WebMatrix Curator on the specified storage server", AltName = "cwm", IsSpecialPurpose = true)]
     public class CurateWebmatrixPackagesTask : DatabaseAndStorageTask
     {
         private readonly string _tempFolder;
@@ -110,7 +110,7 @@ namespace NuGetGallery.Operations
 
         IEnumerable<string> GetAlreadyCuratedPackageIds()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -125,7 +125,7 @@ namespace NuGetGallery.Operations
 
         IDictionary<string, Package> GetLatestStablePackages()
         {
-            using (var sqlConnection = new SqlConnection(ConnectionString))
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
@@ -142,7 +142,7 @@ namespace NuGetGallery.Operations
         {
             if (!WhatIf)
             {
-                using (var sqlConnection = new SqlConnection(ConnectionString))
+                using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
                 using (var dbExecutor = new SqlExecutor(sqlConnection))
                 {
                     sqlConnection.Open();

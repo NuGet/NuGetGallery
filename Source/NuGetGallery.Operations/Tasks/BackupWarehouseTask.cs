@@ -6,36 +6,25 @@ using NuGetGallery.Operations.Common;
 namespace NuGetGallery.Operations
 {
     [Command("backupwarehouse", "Backs up the warehouse", AltName = "bwh", MaxArgs = 0)]
-    public class BackupWarehouseTask: OpsTask, IBackupDatabase
+    public class BackupWarehouseTask : WarehouseTask, IBackupDatabase
     {
         [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
-        public int IfOlderThan { get; set; } 
-
-        [Option("Connection string to the warehouse database server", AltName = "wdb")]
-        public string ConnectionString { get; set; }
+        public int IfOlderThan { get; set; }
 
         public string BackupName { get; private set; }
 
         public bool SkippingBackup { get; private set; }
 
-        public BackupWarehouseTask() 
+        public BackupWarehouseTask()
         {
-            // Load defaults from environment
-            ConnectionString = Environment.GetEnvironmentVariable("NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
             IfOlderThan = 30;
-        }
-
-        public override void ValidateArguments()
-        {
-            base.ValidateArguments();
-            ArgCheck.RequiredOrEnv(ConnectionString, "ConnectionString", "NUGET_WAREHOUSE_SQL_AZURE_CONNECTION_STRING");
         }
 
         public override void ExecuteCommand()
         {
-            var dbServer = Util.GetDbServer(ConnectionString);
-            var dbName = Util.GetDbName(ConnectionString);
-            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString);
+            var dbServer = ConnectionString.DataSource;
+            var dbName = ConnectionString.InitialCatalog;
+            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
 
             Log.Trace("Connecting to server '{0}' to back up database '{1}'.", dbServer, dbName);
 
@@ -70,7 +59,10 @@ namespace NuGetGallery.Operations
 
                     BackupName = string.Format("WarehouseBackup_{0}", timestamp);
 
-                    dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF NuGetWarehouse", BackupName));
+                    if (!WhatIf)
+                    {
+                        dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", BackupName, dbName));
+                    }
 
                     Log.Info("Starting '{0}'", BackupName);
                 }

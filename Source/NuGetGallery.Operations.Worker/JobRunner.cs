@@ -152,7 +152,8 @@ namespace NuGetGallery.Operations.Worker
                     At = before.ToString(),
                     Duration = (after - before).TotalSeconds.ToString("F2"),
                     Status = "success",
-                    Message = job.StatusMessage
+                    Message = job.StatusMessage,
+                    Exception = null
                 });
             }
             catch (Exception ex)
@@ -165,7 +166,8 @@ namespace NuGetGallery.Operations.Worker
                     At = before.ToString(),
                     Duration = (after - before).TotalSeconds.ToString("F2"),
                     Status = "failure",
-                    Message = ex.Message
+                    Message = ex.Message,
+                    Exception = ex
                 });
 
                 _logger.ErrorException(String.Format("Error Executing Job '{0}', Exception: {1}", name, ex.Message), ex);

@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.Operations.Tasks
 {
-    [Command("lowercaseallpackageblobs", "Standardize all blob names as lowercase so that retrieving a package doesn't need to be case insensitive or disambiguated with use of the database", AltName = "lca", MaxArgs = 0)]
-    public class LowerCaseAllPackageBlobs : StorageTask
+    [Command("lowercaseallpackageblobs", "Standardize all blob names as lowercase so that retrieving a package doesn't need to be case insensitive or disambiguated with use of the database", AltName = "lca", MaxArgs = 0, IsSpecialPurpose = true)]
+    public class LowerCaseAllPackageBlobsTask : StorageTask
     {
         public override void ExecuteCommand()
         {

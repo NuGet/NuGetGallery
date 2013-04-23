@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="HelpCommandAll" xml:space="preserve">
-    <value>Print detailed help for all available commands.</value>
+    <value>Show all available commands, instead of hiding special purpose commands</value>
   </data>
   <data name="HelpCommandDescription" xml:space="preserve">
     <value>Displays general help information and help information about other commands.</value>
@@ -143,6 +143,9 @@ nuget push -?</value>
   </data>
   <data name="Option_Required" xml:space="preserve">
     <value>The '{0}' option is required and must be specified on the command line.</value>
+  </data>
+  <data name="Option_RequiredOrConfig" xml:space="preserve">
+    <value>The '{0}' option is required. It must be specified either on the command line or you must run galops from inside an environment in the NuGet Operations Console</value>
   </data>
   <data name="Option_RequiredOrEnv" xml:space="preserve">
     <value>The '{0}' option is required. It must be specified either on the command line or in the '{1}' environment variable.</value>
