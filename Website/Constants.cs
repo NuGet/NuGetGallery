@@ -31,7 +31,6 @@
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
-        public static readonly string AlertViewDataKey = "AlertMessage";
 
         public static class ContentNames
         {

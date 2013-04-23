@@ -1313,3 +1313,7 @@ form .async-upload-progress-advance
     background-color: green;
 }
 
+#service-alert
+{
+    display: none;
+}

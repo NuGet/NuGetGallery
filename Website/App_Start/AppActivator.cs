@@ -62,7 +62,8 @@ namespace NuGetGallery
             var scriptBundle = new ScriptBundle("~/bundles/js")
                 .Include("~/Scripts/jquery-{version}.js")
                 .Include("~/Scripts/jquery.validate.js")
-                .Include("~/Scripts/jquery.validate.unobtrusive.js");
+                .Include("~/Scripts/jquery.validate.unobtrusive.js")
+                .Include("~/Scripts/nugetgallery.js");
             BundleTable.Bundles.Add(scriptBundle);
 
             // Modernizr needs to be delivered at the top of the page but putting it in a bundle gets us a cache-buster.
@@ -91,7 +92,6 @@ namespace NuGetGallery
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
-            GlobalFilters.Filters.Add(new LoadAlertContentAttribute());
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 

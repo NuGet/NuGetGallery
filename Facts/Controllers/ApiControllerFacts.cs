@@ -772,7 +772,7 @@ namespace NuGetGallery
 
                 fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
 
-                var controller = new ApiController(null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
+                var controller = new ApiController(null, null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
@@ -795,7 +795,7 @@ namespace NuGetGallery
 
                 fakeStatisticsService.Setup(x => x.LoadDownloadPackageVersions()).Returns(Task.FromResult(false));
 
-                var controller = new ApiController(null, null, null, null, fakeStatisticsService.Object);
+                var controller = new ApiController(null, null, null, null, null, fakeStatisticsService.Object);
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
@@ -823,7 +823,7 @@ namespace NuGetGallery
 
                 fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
 
-                var controller = new ApiController(null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
+                var controller = new ApiController(null, null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 

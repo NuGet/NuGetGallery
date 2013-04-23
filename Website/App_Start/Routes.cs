@@ -244,6 +244,12 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.ServiceAlert,
+                "api/v2/service-alert",
+                defaults: new { controller = MVC.Api.Name, action = "ServiceAlert" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.DownloadNuGetExe,
                 "nuget.exe",
                 new { controller = MVC.Api.Name, action = "GetNuGetExeApi" });
