@@ -12,7 +12,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Home,
                 "",
-                MVC.Pages.Home());
+                new { controller = MVC.Pages.Name, action = "Home" }); // T4MVC doesn't work with Async Action
 
             routes.MapRoute(
                 RouteName.StatisticsHome,

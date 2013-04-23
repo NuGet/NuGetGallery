@@ -9,7 +9,6 @@ using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
-using NuGetGallery.Services;
 
 namespace NuGetGallery
 {

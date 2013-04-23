@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGetGallery.Services;
+using NuGetGallery;
 
 namespace NuGetGallery
 {

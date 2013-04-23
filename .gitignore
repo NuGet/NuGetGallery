@@ -1,6 +1,8 @@
 # NuGetGallery Specific Ignores
 Website/App_Data/*
-!Website/App_Data/Content/
+!Website/App_Data/Files/
+Website/App_Data/Files/*
+!Website/App_Data/Files/Content
 
 *.results.xml
 _AzurePackage

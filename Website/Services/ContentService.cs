@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Web;
 using MarkdownSharp;
 
-namespace NuGetGallery.Services
+namespace NuGetGallery
 {
     public class ContentService : IContentService
     {
