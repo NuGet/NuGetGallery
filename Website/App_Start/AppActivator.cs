@@ -91,6 +91,7 @@ namespace NuGetGallery
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
+            GlobalFilters.Filters.Add(new LoadAlertContentAttribute());
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 

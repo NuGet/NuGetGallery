@@ -143,7 +143,7 @@ pre, code, tt {
 header, footer,
 nav, section { display: block; }
 
-.banner-yellow {
+.banner-warning {
     padding: 0.25em;
     font-size: 14pt;
     text-align: center;
@@ -153,6 +153,18 @@ nav, section { display: block; }
     background-image: -webkit-linear-gradient(top, #ffff00, #e5e600);
     background-image: -o-linear-gradient(top, #ffff00, #e5e600);
     background-image: linear-gradient(to bottom, #ffff00, #e5e600);
+}
+
+.banner-urgent {
+    padding: 0.25em;
+    font-size: 14pt;
+    text-align: center;
+    background: red;
+    background-image: -moz-linear-gradient(top, #ff0000, #e60000);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ff0000), to(#e60000));
+    background-image: -webkit-linear-gradient(top, #ff0000, #e60000);
+    background-image: -o-linear-gradient(top, #ff0000, #e60000);
+    background-image: linear-gradient(to bottom, #ff0000, #e60000);
 }
 
 #outer-wrapper {

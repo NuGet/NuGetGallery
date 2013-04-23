@@ -12,7 +12,14 @@
         @RenderSection("TopScripts", required: false)
     </head>
     <body>
-        @ViewHelpers.NonProductionBanner()
+        @{
+            object val;
+            HtmlString alert;
+            if (ViewData.TryGetValue(Constants.AlertViewDataKey, out val) && ((alert = val as HtmlString) != null))
+            {
+                @alert
+            }
+        }
         <div id="outer-wrapper">
             <div id="content-wrapper">
                 <header class="main">

@@ -26,16 +26,22 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Home()
         {
             HtmlString announcement = null;
+            HtmlString about = null;
             if (ContentService != null)
             {
                 announcement = await ContentService.GetContentItemAsync(
                     Constants.ContentNames.FrontPageAnnouncement,
                     TimeSpan.FromMinutes(1));
+
+                about = await ContentService.GetContentItemAsync(
+                    Constants.ContentNames.FrontPageAbout,
+                    TimeSpan.FromMinutes(1));
             }
 
             return View(new HomeViewModel()
             {
-                Announcement = announcement
+                Announcement = announcement,
+                About = about
             });
         }
 

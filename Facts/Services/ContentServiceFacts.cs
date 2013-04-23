@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Helpers;
 using Moq;
+using NuGetGallery.Diagnostics;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -17,7 +18,13 @@ namespace NuGetGallery.Services
             [Fact]
             public void GivenANullFileStorageService_ItShouldThrow()
             {
-                ContractAssert.ThrowsArgNull(() => new ContentService(null), "fileStorage");
+                ContractAssert.ThrowsArgNull(() => new ContentService(null, new Mock<IDiagnosticsService>().Object), "fileStorage");
+            }
+
+            [Fact]
+            public void GivenANullDiagnosticsService_ItShouldThrow()
+            {
+                ContractAssert.ThrowsArgNull(() => new ContentService(new Mock<IFileStorageService>().Object, null), "diagnosticsService");
             }
         }
 

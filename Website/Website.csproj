@@ -261,6 +261,7 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
@@ -506,7 +507,6 @@
     <Compile Include="Commands\ModifyCuratedPackageCommand.cs" />
     <Compile Include="Commands\CreateCuratedPackageCommand.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommand.cs" />
-    <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
@@ -588,6 +588,7 @@
     <Compile Include="JsonApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="LoadAlertContentAttribute.cs" />
     <Compile Include="Migrations\201110060711357_Initial.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -1126,6 +1127,8 @@
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
     <Content Include="App_Data\Files\Content\FrontPage-Announcement.md" />
+    <Content Include="App_Data\Files\Content\FrontPage-About.md" />
+    <Content Include="App_Data\Files\Content\Alert.md" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>

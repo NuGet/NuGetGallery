@@ -31,10 +31,15 @@
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
+        public static readonly string AlertViewDataKey = "AlertMessage";
 
         public static class ContentNames
         {
             public static readonly string FrontPageAnnouncement = "FrontPage-Announcement";
+            public static readonly string FrontPageAbout = "FrontPage-About";
+
+            public static readonly string Alert = "Alert";
         }
+
     }
 }

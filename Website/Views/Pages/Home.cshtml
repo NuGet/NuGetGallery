@@ -46,6 +46,7 @@
 </section>
 }
 
+@if(Model.About != null) {
 <section class="info">
     <h3>About</h3>
     <p>When you use NuGet to install a package, it copies the library files to your solution and automatically updates your project 
@@ -56,6 +57,7 @@
         <a title="Creating and submitting a package" href="http://docs.nuget.org/docs/creating-packages/creating-and-publishing-a-package">how to 
             create and publish a package</a>. If you don&rsquo;t plan on submitting a package, there&rsquo;s no need to register.</p>
 </section>
+}
 
 @section BottomScripts
 {
