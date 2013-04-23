@@ -159,6 +159,7 @@ nav, section { display: block; }
     padding: 0.25em;
     font-size: 14pt;
     text-align: center;
+    color: white;
     background: red;
     background-image: -moz-linear-gradient(top, #ff0000, #e60000);
     background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ff0000), to(#e60000));
@@ -166,6 +167,11 @@ nav, section { display: block; }
     background-image: -o-linear-gradient(top, #ff0000, #e60000);
     background-image: linear-gradient(to bottom, #ff0000, #e60000);
 }
+    .banner-urgent a
+    {
+        color: white;
+        text-decoration: underline;
+    }
 
 #outer-wrapper {
     background: url('../Content/Images/headerbackground.png') repeat-x top left #fff;

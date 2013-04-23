@@ -320,7 +320,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> ServiceAlert()
         {
-            var alert = await _contentService.GetContentItemAsync(Constants.ContentNames.Alert, TimeSpan.FromMinutes(1));
+            var alert = await _contentService.GetContentItemAsync(Constants.ContentNames.Alert, TimeSpan.Zero);
             return Content(alert == null ? (string)null : alert.ToString(), "text/html");
         }
 
