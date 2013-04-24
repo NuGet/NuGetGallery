@@ -174,4 +174,10 @@
   <data name="ParameterCannotBeNullOrEmpty" xml:space="preserve">
     <value>'{0}' cannot be null or an empty string</value>
   </data>
+  <data name="ParameterMustBeNonNegative" xml:space="preserve">
+    <value>'{0}' must be greater than or equal to 0.</value>
+  </data>
+  <data name="InvalidSemanticVersion" xml:space="preserve">
+    <value>'{0}' is an invalid semantic version.</value>
+  </data>
 </root>

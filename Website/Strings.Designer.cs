@@ -106,6 +106,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is an invalid semantic version..
+        /// </summary>
+        public static string InvalidSemanticVersion {
+            get {
+                return ResourceManager.GetString("InvalidSemanticVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A nuget package&apos;s {0} property may not be more than {1} characters long..
         /// </summary>
         public static string NuGetPackagePropertyTooLong {
@@ -165,6 +174,15 @@ namespace NuGetGallery {
         public static string ParameterCannotBeNullOrEmpty {
             get {
                 return ResourceManager.GetString("ParameterCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; must be greater than or equal to 0..
+        /// </summary>
+        public static string ParameterMustBeNonNegative {
+            get {
+                return ResourceManager.GetString("ParameterMustBeNonNegative", resourceCulture);
             }
         }
         
