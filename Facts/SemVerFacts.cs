@@ -293,5 +293,39 @@ namespace NuGetGallery
                 Assert.Equal(-1, smaller.CompareTo(bigger));
             }
         }
+
+        public class TheFromSemanticVersionMethod
+        {
+            public static IEnumerable<object[]> Data
+            {
+                get
+                {
+                    yield return new object[] { new SemanticVersion("1.0"), new SemVer(1, 0) };
+                    yield return new object[] { new SemanticVersion("1.2"), new SemVer(1, 2) };
+                    yield return new object[] { new SemanticVersion("1.2-alpha"), new SemVer(1, 2, "alpha") };
+                    yield return new object[] { new SemanticVersion("1.2.0"), new SemVer(1, 2, 0) };
+                    yield return new object[] { new SemanticVersion("1.2.3"), new SemVer(1, 2, 3) };
+                    yield return new object[] { new SemanticVersion("1.2.3-alpha"), new SemVer(1, 2, 3, "alpha") };
+                    yield return new object[] { new SemanticVersion("1.2.3.0"), new SemVer(1, 2, 3) };
+                    yield return new object[] { new SemanticVersion("1.2.3.4"), new SemVer(1, 2, 3, 4) };
+                    yield return new object[] { new SemanticVersion("1.2.3.4-alpha"), new SemVer(1, 2, 3, 4, "alpha") };
+                    yield return new object[] { new SemanticVersion(new Version(1, 2)), new SemVer(1, 2) };
+                    yield return new object[] { new SemanticVersion(new Version(1, 2, 3)), new SemVer(1, 2, 3) };
+                    yield return new object[] { new SemanticVersion(new Version(1, 2, 3, 4)), new SemVer(1, 2, 3, 4) };
+                    yield return new object[] { new SemanticVersion(new Version(1, 2), "alpha"), new SemVer(1, 2, "alpha") };
+                    yield return new object[] { new SemanticVersion(new Version(1, 2, 3), "alpha"), new SemVer(1, 2, 3, "alpha") };
+                    yield return new object[] { new SemanticVersion(new Version(1, 2, 3, 4), "alpha"), new SemVer(1, 2, 3, 4, "alpha") };
+                    yield return new object[] { new SemanticVersion(1, 2, 3, "alpha"), new SemVer(1, 2, 3, "alpha") };
+                    yield return new object[] { new SemanticVersion(1, 2, 3, 4), new SemVer(1, 2, 3, 4) };
+                }
+            }
+
+            [Theory]
+            [PropertyData("Data")]
+            public void CorrectlyConvertsVersion(SemanticVersion nugetSemVer, SemVer expected)
+            {
+                Assert.Equal(expected, SemVer.FromSemanticVersion(nugetSemVer));
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Internal.Web.Utils;
+using NuGet;
 
 namespace NuGetGallery
 {
@@ -136,6 +137,10 @@ namespace NuGetGallery
                     ("-" + Tag));
         }
 
+        public static SemVer FromSemanticVersion(SemanticVersion nugetSemVer)
+        {
+            return SemVer.Parse(nugetSemVer.ToString());
+        }
 
         public static readonly Regex SemanticVersionFormatRegex = new Regex(@"^(?<major>\d+)\.(?<minor>\d+)(\.(?<patch>\d+)(\.(?<revision>\d+))?)?(-(?<tag>[A-Za-z0-9-\.]+))?$", RegexOptions.ExplicitCapture);
         public static SemVer Parse(string input)

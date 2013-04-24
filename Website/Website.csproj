@@ -762,7 +762,6 @@
     <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
-    <Compile Include="SemanticVersionExtensions.cs" />
     <Compile Include="SemVer.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
