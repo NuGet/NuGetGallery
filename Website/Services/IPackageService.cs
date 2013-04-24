@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet;
@@ -8,7 +9,11 @@ namespace NuGetGallery
     public interface IPackageService
     {
         PackageRegistration FindPackageRegistrationById(string id);
+        
+        // TODO: Deprecate this in the next sprint?
         Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true);
+
+        Package FindPackageByIdAndVersion(string id, SemVer? semVer, bool allowPrerelease = true);
         IQueryable<Package> GetPackagesForListing(bool includePrerelease);
         IEnumerable<Package> FindPackagesByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);

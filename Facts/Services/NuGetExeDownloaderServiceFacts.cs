@@ -48,7 +48,7 @@ namespace NuGetGallery
 
             var package = new Package { Version = "2.0.0" };
             var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-            packageService.Setup(s => s.FindPackageByIdAndVersion("NuGet.CommandLine", null, false))
+            packageService.Setup(s => s.FindPackageByIdAndVersion("NuGet.CommandLine", (string)null, false))
                 .Returns(package)
                 .Verifiable();
             var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);

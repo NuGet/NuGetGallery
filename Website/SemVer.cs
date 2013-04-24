@@ -142,6 +142,20 @@ namespace NuGetGallery
             return SemVer.Parse(nugetSemVer.ToString());
         }
 
+        /// <summary>
+        /// Normalizes a SemVer string by passing it through an instance of this class
+        /// </summary>
+        /// <remarks>
+        /// Use this ONLY if you know you want to take a string and continue using it as a string.
+        /// If you wish to work with the Semantic Version structure, use <see cref="Parse"/>.
+        /// </remarks>
+        /// <param name="version">The version string to normalize</param>
+        /// <returns>A normalized version of the string</returns>
+        public static string Normalize(string version)
+        {
+            return SemVer.Parse(version).ToString();
+        }
+
         public static readonly Regex SemanticVersionFormatRegex = new Regex(@"^(?<major>\d+)\.(?<minor>\d+)(\.(?<patch>\d+)(\.(?<revision>\d+))?)?(-(?<tag>[A-Za-z0-9-\.]+))?$", RegexOptions.ExplicitCapture);
         public static SemVer Parse(string input)
         {
@@ -151,6 +165,16 @@ namespace NuGetGallery
                 throw new FormatException(String.Format(Strings.InvalidSemanticVersion, input));
             }
             return result;
+        }
+
+        public static SemVer? TryParse(string input)
+        {
+            SemVer res;
+            if (TryParse(input, out res))
+            {
+                return res;
+            }
+            return null;
         }
 
         public static bool TryParse(string input, out SemVer result)

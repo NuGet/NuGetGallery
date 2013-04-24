@@ -26,6 +26,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual object GetPackageOwners(string id, string version)
         {
+            // SemVer.Parse may throw, but this is an internal API, so that's OK.
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {

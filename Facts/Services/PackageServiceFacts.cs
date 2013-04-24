@@ -1051,7 +1051,7 @@ namespace NuGetGallery
                 packageRepository.Setup(r => r.GetAll()).Returns(packages);
                 var service = CreateService(packageRepository: packageRepository);
 
-                var package = service.FindPackageByIdAndVersion("theId", null);
+                var package = service.FindPackageByIdAndVersion("theId", (string)null);
 
                 Assert.Equal("2.0", package.Version);
             }
@@ -1117,7 +1117,7 @@ namespace NuGetGallery
                 var service = CreateService(packageRepository: repository);
 
                 // Act
-                var result = service.FindPackageByIdAndVersion("Foo", null);
+                var result = service.FindPackageByIdAndVersion("Foo", (string)null);
 
                 // Assert
                 Assert.Equal(package, result);
@@ -1136,7 +1136,7 @@ namespace NuGetGallery
                 var service = CreateService(packageRepository: repository);
 
                 // Act
-                var result = service.FindPackageByIdAndVersion("Foo", null);
+                var result = service.FindPackageByIdAndVersion("Foo", (string)null);
 
                 // Assert
                 Assert.Equal(package, result);

@@ -135,6 +135,8 @@ namespace NuGetGallery
                     _cacheService.RemoveProgress(currentUser.Username);
                 }
 
+                // Verify the version number
+                
                 var packageRegistration = _packageService.FindPackageRegistrationById(nuGetPackage.Metadata.Id);
                 if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
                 {

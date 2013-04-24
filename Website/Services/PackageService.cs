@@ -94,6 +94,14 @@ namespace NuGetGallery
 
         public virtual Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true)
         {
+            return FindPackageByIdAndVersion(
+                id, 
+                String.IsNullOrEmpty(version) ? (SemVer?)null : SemVer.Parse(version), 
+                allowPrerelease);
+        }
+
+        public virtual Package FindPackageByIdAndVersion(string id, SemVer? semVer, bool allowPrerelease = true)
+        {
             if (String.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentNullException("id");
@@ -107,7 +115,7 @@ namespace NuGetGallery
                 .Include(p => p.Authors)
                 .Include(p => p.PackageRegistration)
                 .Where(p => (p.PackageRegistration.Id == id));
-            if (String.IsNullOrEmpty(version) && !allowPrerelease)
+            if (semVer == null && !allowPrerelease)
             {
                 // If there's a specific version given, don't bother filtering by prerelease. You could be asking for a prerelease package.
                 packagesQuery = packagesQuery.Where(p => !p.IsPrerelease);
@@ -115,7 +123,7 @@ namespace NuGetGallery
             var packageVersions = packagesQuery.ToList();
 
             Package package;
-            if (version == null)
+            if (semVer == null)
             {
                 if (allowPrerelease)
                 {
@@ -137,7 +145,7 @@ namespace NuGetGallery
             {
                 package = packageVersions.SingleOrDefault(
                     p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
-                         p.Version.Equals(version, StringComparison.OrdinalIgnoreCase));
+                         p.Version.Equals(semVer.Value.ToString(), StringComparison.OrdinalIgnoreCase));
             }
             return package;
         }
@@ -387,7 +395,8 @@ namespace NuGetGallery
 
         private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage)
         {
-            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Metadata.Version.ToString());
+            SemVer version = SemVer.FromSemanticVersion(nugetPackage.Metadata.Version);
+            var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == version.ToString());
 
             if (package != null)
             {
@@ -400,7 +409,7 @@ namespace NuGetGallery
 
             package = new Package
             {
-                Version = nugetPackage.Metadata.Version.ToString(),
+                Version = version.ToString(),
                 Description = nugetPackage.Metadata.Description,
                 ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
                 RequiresLicenseAcceptance = nugetPackage.Metadata.RequireLicenseAcceptance,
