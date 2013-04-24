@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -47,7 +48,7 @@ namespace NuGetGallery
             return await blob.ExistsAsync();
         }
 
-        public Task<Stream> GetFileAsync(string folderName, string fileName)
+        public async Task<Stream> GetFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -59,7 +60,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            return GetBlobContentAsync(folderName, fileName);
+            return (await GetBlobContentAsync(folderName, fileName)).Data;
         }
 
         public async Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null)
@@ -76,8 +77,24 @@ namespace NuGetGallery
 
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
-            var stream = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
-            return new CloudFileReference(blob, stream);
+            var result = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
+            if (result.StatusCode == HttpStatusCode.NotModified)
+            {
+                return CloudFileReference.NotModified(ifNoneMatch);
+            }
+            else if (result.StatusCode == HttpStatusCode.OK)
+            {
+                if (await blob.ExistsAsync())
+                {
+                    await blob.FetchAttributesAsync();
+                }
+                return CloudFileReference.Modified(blob, result.Data);
+            }
+            else
+            {
+                // Not found
+                return null;
+            }
         }
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
@@ -121,7 +138,7 @@ namespace NuGetGallery
             return container;
         }
 
-        private async Task<Stream> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
+        private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
             ICloudBlobContainer container = await GetContainer(folderName);
 
@@ -140,10 +157,14 @@ namespace NuGetGallery
             catch (StorageException ex)
             {
                 stream.Dispose();
-                
-                if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+
+                if (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotModified)
                 {
-                    return null;
+                    return new StorageResult(HttpStatusCode.NotModified, null);
+                }
+                else if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+                {
+                    return new StorageResult(HttpStatusCode.NotFound, null);
                 }
 
                 throw;
@@ -156,14 +177,14 @@ namespace NuGetGallery
 
                 if (ex.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
                 {
-                    return null;
+                    return new StorageResult(HttpStatusCode.NotFound, null);
                 }
 
                 throw;
             }
 
             stream.Position = 0;
-            return stream;
+            return new StorageResult(HttpStatusCode.OK, stream);
         }
 
         private static string GetContentType(string folderName)
@@ -218,6 +239,21 @@ namespace NuGetGallery
             };
 
             return urlBuilder.Uri;
+        }
+
+        private struct StorageResult
+        {
+            private HttpStatusCode _statusCode;
+            private Stream _data;
+
+            public HttpStatusCode StatusCode { get { return _statusCode; } }
+            public Stream Data { get { return _data; } }
+
+            public StorageResult(HttpStatusCode statusCode, Stream data)
+            {
+                _statusCode = statusCode;
+                _data = data;
+            }
         }
     }
 }

@@ -21,5 +21,7 @@ namespace NuGetGallery
         Task<bool> ExistsAsync();
         Task SetPropertiesAsync();
         Task UploadFromStreamAsync(Stream packageFile);
+
+        Task FetchAttributesAsync();
     }
 }

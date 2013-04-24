@@ -77,33 +77,46 @@ namespace NuGetGallery
                         fileName,
                         ifNoneMatch: item == null ? null : item.ContentId);
                 }
+                
+                HtmlString result = new HtmlString(String.Empty);
                 if (reference == null)
                 {
-                    Trace.Warning("Requested Content File Not Found: " + fileName);
-                    return null;
-                }
-
-                // Check the content ID to see if it's different
-                HtmlString result;
-                if (item != null && String.Equals(item.ContentId, reference.ContentId, StringComparison.Ordinal))
-                {
-                    Trace.Information("No change to content item. Using Cache");
-                    // No change, just use the cache.
-                    result = item.Content;
+                    Trace.Error("Requested Content File Not Found: " + fileName);
                 }
                 else
                 {
-                    // Process the file
-                    Trace.Information("Content Item changed. Updating...");
-                    using (Trace.Activity("Reading Content File: " + fileName))
-                    using (var reader = new StreamReader(reference.OpenRead()))
+                    // Check the content ID to see if it's different
+                    if (item != null && String.Equals(item.ContentId, reference.ContentId, StringComparison.Ordinal))
                     {
-                        result = new HtmlString(MarkdownProcessor.Transform(await reader.ReadToEndAsync()).Trim());
+                        Trace.Information("No change to content item. Using Cache");
+                        // No change, just use the cache.
+                        result = item.Content;
+                    }
+                    else
+                    {
+                        // Process the file
+                        Trace.Information("Content Item changed. Updating...");
+                        using (var stream = reference.OpenRead())
+                        {
+                            if (stream == null)
+                            {
+                                Trace.Error("Requested Content File Not Found: " + fileName);
+                                reference = null;
+                            }
+                            else
+                            {
+                                using (Trace.Activity("Reading Content File: " + fileName))
+                                using (var reader = new StreamReader(stream))
+                                {
+                                    result = new HtmlString(MarkdownProcessor.Transform(await reader.ReadToEndAsync()).Trim());
+                                }
+                            }
+                        }
                     }
                 }
 
                 // Prep the new item for the cache
-                item = new ContentItem(result, expiresIn, reference.ContentId, DateTime.UtcNow);
+                item = new ContentItem(result, expiresIn, reference == null ? null : reference.ContentId, DateTime.UtcNow);
                 Trace.Information(String.Format("Updating Cache: {0} expires at {1}", name, item.ExpiryUtc));
                 ContentCache.AddOrSet(name, item);
 

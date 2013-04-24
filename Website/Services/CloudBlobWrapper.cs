@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace NuGetGallery
 {
@@ -57,14 +59,19 @@ namespace NuGetGallery
         {
             // Note: Overloads of FromAsync that take an AsyncCallback and State to pass through are more efficient:
             //  http://blogs.msdn.com/b/pfxteam/archive/2009/06/09/9716439.aspx
+            var options = new BlobRequestOptions()
+            {
+                RetryPolicy = new DontRetryOnNotModifiedPolicy(new LinearRetry())
+            };
+
             return Task.Factory.FromAsync(
                 (cb, state) => _blob.BeginDownloadToStream(
-                    target, 
+                    target,
                     accessCondition,
-                    options: null,
+                    options: options,
                     operationContext: null,
-                    callback: cb, 
-                    state: state), 
+                    callback: cb,
+                    state: state),
                 ar => _blob.EndDownloadToStream(ar),
                 state: null);
         }
@@ -91,6 +98,42 @@ namespace NuGetGallery
                 (cb, state) => _blob.BeginUploadFromStream(packageFile, cb, state), 
                 ar => _blob.EndUploadFromStream(ar),
                 state: null);
+        }
+
+        public Task FetchAttributesAsync()
+        {
+            return Task.Factory.FromAsync(
+                (cb, state) => _blob.BeginFetchAttributes(cb, state),
+                ar => _blob.EndFetchAttributes(ar),
+                state: null);
+        }
+
+        private class DontRetryOnNotModifiedPolicy : IRetryPolicy
+        {
+            private IRetryPolicy _innerPolicy;
+
+            public DontRetryOnNotModifiedPolicy(IRetryPolicy policy)
+            {
+                _innerPolicy = policy;
+            }
+
+            public IRetryPolicy CreateInstance()
+            {
+                return new DontRetryOnNotModifiedPolicy(_innerPolicy.CreateInstance());
+            }
+
+            public bool ShouldRetry(int currentRetryCount, int statusCode, Exception lastException, out TimeSpan retryInterval, OperationContext operationContext)
+            {
+                if (statusCode == (int)HttpStatusCode.NotModified)
+                {
+                    retryInterval = TimeSpan.Zero;
+                    return false;
+                }
+                else
+                {
+                    return _innerPolicy.ShouldRetry(currentRetryCount, statusCode, lastException, out retryInterval, operationContext);
+                }
+            }
         }
     }
 }

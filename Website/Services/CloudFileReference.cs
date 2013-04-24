@@ -8,23 +8,33 @@ namespace NuGetGallery
 {
     public class CloudFileReference : IFileReference
     {
-        private ISimpleCloudBlob _blob;
         private Stream _stream;
+        private string _contentId;
 
         public string ContentId
         {
-            get { return _blob.ETag; }
+            get { return _contentId; }
         }
 
-        public CloudFileReference(ISimpleCloudBlob blob, Stream stream)
+        private CloudFileReference(Stream stream, string contentId)
         {
-            _blob = blob;
+            _contentId = contentId;
             _stream = stream;
         }
 
         public Stream OpenRead()
         {
             return _stream;
+        }
+
+        public static CloudFileReference NotModified(string contentId)
+        {
+            return new CloudFileReference(null, contentId);
+        }
+
+        public static CloudFileReference Modified(ISimpleCloudBlob blob, Stream data)
+        {
+            return new CloudFileReference(data, blob.ETag);
         }
     }
 }
