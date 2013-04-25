@@ -487,12 +487,17 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-
-            var model = new EditPackageViewModel
+            if (!package.IsOwner(HttpContext.User))
             {
-                EditPackageRequest = new EditPackageRequest(package),
-                Title = package.GetCurrentTitle(),
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            var model = new EditPackageRequest
+            {
+                PackageTitle = package.GetCurrentTitle(),
                 Version = package.Version,
+                EditPackageRegistrationRequest = new EditPackageRegistrationRequest(package),
+                EditPackageVersionRequest = new EditPackageVersionRequest(package),
             };
 
             return View(model);
@@ -501,15 +506,20 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(string id, string version, EditPackageRequest formData1, EditPackageVersionRequest formData2)
+        public virtual ActionResult Edit(string id, string version, EditPackageRequest formData)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
                 return HttpNotFound();
             }
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
 
-            formData1.UpdatePackageRegistration(package.PackageRegistration);
+            formData.EditPackageRegistrationRequest.UpdatePackageRegistration(package.PackageRegistration);
+            formData.EditPackageVersionRequest.UpdatePackageVersion(package, _entitiesContext);
             _entitiesContext.SaveChanges();
             return Redirect(Url.Package(id, version));
         }

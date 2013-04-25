@@ -1,4 +1,4 @@
-﻿@model EditPackageViewModel
+﻿@model EditPackageRequest
 @{
     ViewBag.Title = "Edit Package";
     ViewBag.Tab = "Packages";
@@ -7,16 +7,16 @@
 @using (Html.BeginForm())
 {
     <fieldset class="form">
-        <legend>Edit Package Description</legend>
+        <legend>Edit Package</legend>
 
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true)
-        @Html.EditorFor(model => model.EditPackageRequest)
+        @(Html.EditorFor<EditPackageRequest,EditPackageRegistrationRequest>(model => model.EditPackageRegistrationRequest))
     </fieldset>
     <fieldset class="form">
-        <legend>Edit Package Version @(model.Version)</legend>
+        <legend>Edit Package Version @(Model.Version)</legend>
 
-        @Html.EditorFor(model => model.EditPackageVersionRequest)
+        @(Html.EditorFor<EditPackageRequest,EditPackageVersionRequest>(model => model.EditPackageVersionRequest))
 
         <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
     </fieldset>

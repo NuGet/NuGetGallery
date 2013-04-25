@@ -763,6 +763,7 @@
     <Compile Include="Queries\CuratedFeedByNameQuery.cs" />
     <Compile Include="Queries\CuratedFeedsByManagerKeyQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
+    <Compile Include="RequestModels\EditPackageRegistrationRequest.cs" />
     <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
@@ -817,7 +818,6 @@
     </Compile>
     <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
-    <Compile Include="ViewModels\EditPackageViewModel.cs" />
     <Compile Include="ViewModels\StatisticsFact.cs" />
     <Compile Include="ViewModels\StatisticsPivot.cs" />
     <Compile Include="ViewModels\StatisticsDimension.cs" />
