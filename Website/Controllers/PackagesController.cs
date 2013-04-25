@@ -482,16 +482,45 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Edit(string id, string version)
         {
-            return GetPackageOwnerActionFormResult(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var model = new EditPackageViewModel
+            {
+                EditPackageRequest = new EditPackageRequest(package),
+                Title = package.GetCurrentTitle(),
+                Version = package.Version,
+            };
+
+            return View(model);
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(string id, string version, bool? listed)
+        public virtual ActionResult Edit(string id, string version, EditPackageRequest formData1, EditPackageVersionRequest formData2)
         {
-            return Edit(id, version, listed, Url.Package);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            formData1.UpdatePackageRegistration(package.PackageRegistration);
+            _entitiesContext.SaveChanges();
+            return Redirect(Url.Package(id, version));
         }
+
+        //[Authorize]
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public virtual ActionResult Edit(string id, string version, bool? listed)
+        //{
+        //    return Edit(id, version, listed, Url.Package);
+        //}
 
         [Authorize]
         public virtual ActionResult ConfirmOwner(string id, string username, string token)

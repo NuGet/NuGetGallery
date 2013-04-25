@@ -228,11 +228,12 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult Edit(string id, string version, bool? listed) {
+        public override System.Web.Mvc.ActionResult Edit(string id, string version, NuGetGallery.EditPackageRequest formData1, NuGetGallery.EditPackageVersionRequest formData2) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
-            callInfo.RouteValueDictionary.Add("listed", listed);
+            callInfo.RouteValueDictionary.Add("formData1", formData1);
+            callInfo.RouteValueDictionary.Add("formData2", formData2);
             return callInfo;
         }
 

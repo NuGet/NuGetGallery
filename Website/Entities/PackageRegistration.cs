@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
@@ -20,6 +22,10 @@ namespace NuGetGallery
         public virtual ICollection<Package> Packages { get; set; }
         public int Key { get; set; }
 
+        // Sets a default Title to use for package versions that have no Title (instead of the PackageRegistration's ID).
+        [StringLength(256)]
+        public string DefaultTitle { get; set; }
+
         // These optional fields override the Package's fields as displayed on the website, if supplied:
         public string Description { get; set; }
 
@@ -37,5 +43,8 @@ namespace NuGetGallery
 
         [StringLength(256)]
         public string IssueTrackerUrl { get; set; }
+
+        // Time the package registration data was modified, but excluding changes to 'ephemeral' data such as DownloadCount.
+        public DateTime LastUpdated { get; set; }
     }
 }

@@ -10,10 +10,11 @@ namespace NuGetGallery
         {
             _package = package;
             Version = package.Version;
-            Description = package.Description;
+            Description = package.GetCurrentDescription();
             ReleaseNotes = package.ReleaseNotes;
-            IconUrl = package.IconUrl;
-            ProjectUrl = package.ProjectUrl;
+            Title = package.GetCurrentTitle();
+            IconUrl = package.GetCurrentIconUrl();
+            ProjectUrl = package.GetCurrentProjectUrl();
             LicenseUrl = package.LicenseUrl;
             LatestVersion = package.IsLatest;
             LatestStableVersion = package.IsLatestStable;
@@ -47,10 +48,7 @@ namespace NuGetGallery
 
         public string Version { get; set; }
 
-        public string Title
-        {
-            get { return String.IsNullOrEmpty(_package.Title) ? _package.PackageRegistration.Id : _package.Title; }
-        }
+        public string Title { get; set; }
 
         public bool IsCurrent(IPackageVersionModel current)
         {
