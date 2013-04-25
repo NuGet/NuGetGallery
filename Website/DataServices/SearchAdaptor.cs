@@ -16,6 +16,57 @@ namespace NuGetGallery
         /// </summary>
         internal const int MaxPageSize = 40;
 
+        public static SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)
+        {
+            var searchFilter = new SearchFilter
+            {
+                SearchTerm = q,
+                Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
+                Take = Constants.DefaultPackageListPageSize,
+                IncludePrerelease = includePrerelease
+            };
+
+            switch (sortOrder)
+            {
+                case Constants.AlphabeticSortOrder:
+                    searchFilter.SortProperty = SortProperty.DisplayName;
+                    searchFilter.SortDirection = SortDirection.Ascending;
+                    break;
+
+                case Constants.RecentSortOrder:
+                    searchFilter.SortProperty = SortProperty.Recent;
+                    break;
+
+                case Constants.PopularitySortOrder:
+                    searchFilter.SortProperty = SortProperty.DownloadCount;
+                    break;
+
+                default:
+                    searchFilter.SortProperty = SortProperty.Relevance;
+                    break;
+            }
+
+            return searchFilter;
+        }
+
+        public static IQueryable<Package> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter)
+        {
+            int totalHits;
+            var result = searchService.Search(searchFilter, out totalHits);
+
+            // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
+            // it very fast.
+            if (searchFilter.CountOnly)
+            {
+                // At this point, we already know what the total count is. We can have it return this value very quickly without doing any SQL.
+                return result.InterceptWith(new CountInterceptor(totalHits));
+            }
+
+            // For relevance search, Lucene returns us a paged\sorted list. OData tries to apply default ordering and Take \ Skip on top of this.
+            // We avoid it by yanking these expressions out of out the tree.
+            return result.InterceptWith(new DisregardODataInterceptor());
+        }
+
         public static IQueryable<Package> SearchCore(
             ISearchService searchService,
             HttpRequestBase request,
@@ -24,7 +75,7 @@ namespace NuGetGallery
             string searchTerm, 
             string targetFramework, 
             bool includePrerelease,
-            IQueryable<Package> filterToPackageSet = null)
+            int? curatedFeedKey)
         {
             SearchFilter searchFilter;
             // We can only use Lucene if the client queries for the latest versions (IsLatest \ IsLatestStable) versions of a package
@@ -33,10 +84,11 @@ namespace NuGetGallery
             {
                 searchFilter.SearchTerm = searchTerm;
                 searchFilter.IncludePrerelease = includePrerelease;
+                searchFilter.CuratedFeedKey = curatedFeedKey;
 
                 Trace.WriteLine("TODO: use target framework parameter - see #856" + targetFramework);
 
-                var results = GetResultsFromSearchService(searchService, searchFilter, filterToPackageSet);
+                var results = GetResultsFromSearchService(searchService, searchFilter);
 
                 return results;
             }
@@ -45,6 +97,7 @@ namespace NuGetGallery
             {
                 packages = packages.Where(p => !p.IsPrerelease);
             }
+
             return packages.Search(searchTerm);
         }
 
@@ -121,24 +174,6 @@ namespace NuGetGallery
                 return false;
             }
             return true;
-        }
-
-        private static IQueryable<Package> GetResultsFromSearchService(ISearchService searchService, SearchFilter searchFilter, IQueryable<Package> filterToPackageSet)
-        {
-            int totalHits;
-            var result = searchService.Search(searchFilter, out totalHits, filterToPackageSet);
-
-            // For count queries, we can ask the SearchService to not filter the source results. This would avoid hitting the database and consequently make
-            // it very fast.
-            if (searchFilter.CountOnly)
-            {
-                // At this point, we already know what the total count is. We can have it return this value very quickly without doing any SQL.
-                return result.InterceptWith(new CountInterceptor(totalHits));
-            }
-
-            // For relevance search, Lucene returns us a paged\sorted list. OData tries to apply default ordering and Take \ Skip on top of this.
-            // We avoid it by yanking these expressions out of out the tree.
-            return result.InterceptWith(new DisregardODataInterceptor());
         }
     }
 }

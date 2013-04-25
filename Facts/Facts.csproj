@@ -41,9 +41,16 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
     </Reference>
-    <Reference Include="EntityFramework, Version=4.3.1.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\EntityFramework.4.3.1\lib\net40\EntityFramework.dll</HintPath>
+      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Glimpse.AspNet, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Glimpse.AspNet.1.2.0\lib\net45\Glimpse.AspNet.dll</HintPath>
+    </Reference>
+    <Reference Include="Glimpse.Core">
+      <HintPath>..\packages\Glimpse.1.2.0\lib\net45\Glimpse.Core.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net, Version=2.9.2.2, Culture=neutral, PublicKeyToken=d590fe6f575d2f50, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -159,18 +166,21 @@
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="Diagnostics\DiagnosticsServiceFacts.cs" />
+    <Compile Include="Diagnostics\GlimpseRuntimePolicyFacts.cs" />
     <Compile Include="Entities\EntitiesContextFacts.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Infrastructure\AnalysisHelperFacts.cs" />
     <Compile Include="Infrastructure\CookieTempDataProviderFacts.cs" />
     <Compile Include="Infrastructure\Jobs\UpdateStatisticsJobFacts.cs" />
-    <Compile Include="Infrastructure\LuceneIndexingServiceFacts.cs" />
+    <Compile Include="Infrastructure\PackageIndexEntityFacts.cs" />
     <Compile Include="Infrastructure\LuceneSearchServiceFacts.cs" />
     <Compile Include="Infrastructure\NuGetQueryParserFacts.cs" />
     <Compile Include="PackageCurators\Windows8PackageCuratorFacts.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCuratorFacts.cs" />
     <Compile Include="Packaging\NupkgFacts.cs" />
     <Compile Include="PathToTreeConverterFacts.cs" />
+    <Compile Include="PolicyFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequireRemoteHttpsAttributeFacts.cs" />
     <Compile Include="Routing\VersionRouteConstraintFacts.cs" />

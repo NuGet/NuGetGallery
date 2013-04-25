@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Web.Mvc;
+using Ninject;
 
 namespace NuGetGallery
 {
@@ -14,12 +15,12 @@ namespace NuGetGallery
 
         protected virtual T GetService<T>()
         {
-            return DependencyResolver.Current.GetService<T>();
+            return Container.Kernel.TryGet<T>();
         }
 
         protected virtual IEnumerable<T> GetServices<T>()
         {
-            return DependencyResolver.Current.GetServices<T>();
+            return Container.Kernel.GetAll<T>();
         }
     }
 }

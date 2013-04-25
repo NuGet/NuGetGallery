@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Globalization;
 using System.Web;
+using Glimpse.Core.Extensibility;
 using Microsoft.WindowsAzure.ServiceRuntime;
 
 namespace NuGetGallery
@@ -101,9 +103,7 @@ namespace NuGetGallery
         {
             get
             {
-                return ReadAppSettings(
-                    "PackageStoreType",
-                    value => (PackageStoreType)Enum.Parse(typeof(PackageStoreType), value ?? PackageStoreType.NotSpecified.ToString()));
+                return ReadAppSettings("PackageStoreType", PackageStoreType.NotSpecified);
             }
         }
 
@@ -126,7 +126,7 @@ namespace NuGetGallery
         {
             get
             {
-                string port =  ReadAppSettings("SmtpPort");
+                string port = ReadAppSettings("SmtpPort");
                 if (String.IsNullOrWhiteSpace(port))
                 {
                     return null;
@@ -169,6 +169,22 @@ namespace NuGetGallery
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
         }
 
+        public static TEnum ReadAppSettings<TEnum>(string key, TEnum defaultValue) where TEnum : struct
+        {
+            // Can't do 'where TEnum : enum' so assert that it's an enum here
+            Debug.Assert(typeof(TEnum).IsEnum);
+            return ReadAppSettings(key,
+                                   value =>
+                                   {
+                                       TEnum ret;
+                                       if (!Enum.TryParse(value, out ret))
+                                       {
+                                           ret = defaultValue;
+                                       }
+                                       return ret;
+                                   });
+        }
+
         public static string ReadAppSettings(string key)
         {
             return ReadAppSettings(key, value => value);
@@ -178,7 +194,15 @@ namespace NuGetGallery
         {
             // Read from connection strings and app settings, with app settings winning (to allow us to put the CS in azure config)
             string value = ReadAppSettings("Sql." + connectionStringName);
-            return String.IsNullOrEmpty(value) ? ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString : value;
+            if (String.IsNullOrEmpty(value))
+            {
+                var connStr = ConfigurationManager.ConnectionStrings[connectionStringName];
+                if (connStr != null)
+                {
+                    return connStr.ConnectionString;
+                }
+            }
+            return value;
         }
 
         public static T ReadAppSettings<T>(

@@ -5,7 +5,6 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using DynamicDataEFCodeFirst;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
@@ -16,8 +15,6 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
 using NuGetGallery.Migrations;
-using StackExchange.Profiling;
-using StackExchange.Profiling.MVCHelpers;
 using WebActivator;
 using WebBackgrounder;
 
@@ -35,19 +32,17 @@ namespace NuGetGallery
         public static void PreStart()
         {
             NinjectPreStart();
-            MiniProfilerPreStart();
             ElmahPreStart();
+            GlimpsePreStart();
         }
 
         public static void PostStart()
         {
             // Get configuration from the kernel
             var config = Container.Kernel.Get<IConfiguration>();
-            MiniProfilerPostStart();
             DbMigratorPostStart();
             BackgroundJobsPostStart(config);
             AppPostStart();
-            DynamicDataPostStart(config);
             BundlingPostStart();
         }
 
@@ -55,6 +50,11 @@ namespace NuGetGallery
         {
             BackgroundJobsStop();
             NinjectStop();
+        }
+
+        private static void GlimpsePreStart()
+        {
+            DynamicModuleUtility.RegisterModule(typeof(Glimpse.AspNet.HttpModule));
         }
 
         private static void BundlingPostStart()
@@ -86,6 +86,8 @@ namespace NuGetGallery
         {
             Routes.RegisterRoutes(RouteTable.Routes);
             Routes.RegisterServiceRoutes(RouteTable.Routes);
+            AreaRegistration.RegisterAllAreas();
+            
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
@@ -124,35 +126,8 @@ namespace NuGetGallery
 
         private static void DbMigratorPostStart()
         {
-            // After upgrading to EF 4.3 and MiniProfile 1.9, there is a bug that causes several 
-            // 'Invalid object name 'dbo.__MigrationHistory' to be thrown when the database is first created; 
-            // it seems these can safely be ignored, and the database will still be created.
-
-            // To make app startup not directly depend on the database,
-            // we set the migrations to run when the database is first used, instead of doing it up-front.
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<EntitiesContext, MigrationsConfiguration>());
-        }
-
-        private static void DynamicDataPostStart(IConfiguration configuration)
-        {
-            Registration.Register(RouteTable.Routes, configuration);
-        }
-
-        private static void MiniProfilerPreStart()
-        {
-            MiniProfilerEF.Initialize();
-            DynamicModuleUtility.RegisterModule(typeof(MiniProfilerStartupModule));
-            GlobalFilters.Filters.Add(new ProfilingActionFilter());
-        }
-
-        private static void MiniProfilerPostStart()
-        {
-            var copy = ViewEngines.Engines.ToList();
-            ViewEngines.Engines.Clear();
-            foreach (var item in copy)
-            {
-                ViewEngines.Engines.Add(new ProfilingViewEngine(item));
-            }
+            // Don't run migrations, ever!
+            Database.SetInitializer<EntitiesContext>(null);
         }
 
         private static void NinjectPreStart()
@@ -165,45 +140,6 @@ namespace NuGetGallery
         private static void NinjectStop()
         {
             NinjectBootstrapper.ShutDown();
-        }
-
-        private class MiniProfilerStartupModule : IHttpModule
-        {
-            public void Init(HttpApplication context)
-            {
-                context.BeginRequest += (sender, e) => MiniProfiler.Start();
-
-                context.AuthorizeRequest += (sender, e) =>
-                                                {
-                                                    bool stopProfiling;
-                                                    var httpContext = HttpContext.Current;
-
-                                                    if (httpContext == null)
-                                                    {
-                                                        stopProfiling = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        // Temporarily removing until we figure out the hammering of request we saw.
-                                                        //var userCanProfile = httpContext.User != null && HttpContext.Current.User.IsInRole(Const.AdminRoleName);
-                                                        var requestIsLocal = httpContext.Request.IsLocal;
-
-                                                        //stopProfiling = !userCanProfile && !requestIsLocal
-                                                        stopProfiling = !requestIsLocal;
-                                                    }
-
-                                                    if (stopProfiling)
-                                                    {
-                                                        MiniProfiler.Stop(true);
-                                                    }
-                                                };
-
-                context.EndRequest += (sender, e) => MiniProfiler.Stop();
-            }
-
-            public void Dispose()
-            {
-            }
         }
     }
 }

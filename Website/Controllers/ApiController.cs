@@ -395,7 +395,9 @@ namespace NuGetGallery
                         item.Add("PackageId", row.PackageId);
                         item.Add("PackageVersion", row.PackageVersion);
                         item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
-                        item.Add("Package", Url.PackageDownload(2, row.PackageId, row.PackageVersion));
+                        item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
+                        item.Add("PackageDescription", row.PackageDescription);
+                        item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDeafultIcon());
                         item.Add("Downloads", row.Downloads);
 
                         content.Add(item);

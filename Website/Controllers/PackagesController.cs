@@ -188,7 +188,7 @@ namespace NuGetGallery
                 sortOrder = q.IsEmpty() ? Constants.PopularitySortOrder : Constants.RelevanceSortOrder;
             }
 
-            var searchFilter = GetSearchFilter(q, sortOrder, page, prerelease);
+            var searchFilter = SearchAdaptor.GetSearchFilter(q, sortOrder, page, prerelease);
             int totalHits;
             IQueryable<Package> packageVersions = _searchService.Search(searchFilter, out totalHits);
             if (page == 1 && !packageVersions.Any())
@@ -690,39 +690,6 @@ namespace NuGetGallery
         protected internal virtual INupkg CreatePackage(Stream stream)
         {
             return new Nupkg(stream, leaveOpen: false);
-        }
-
-        private static SearchFilter GetSearchFilter(string q, string sortOrder, int page, bool includePrerelease)
-        {
-            var searchFilter = new SearchFilter
-            {
-                SearchTerm = q,
-                Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
-                Take = Constants.DefaultPackageListPageSize,
-                IncludePrerelease = includePrerelease
-            };
-
-            switch (sortOrder)
-            {
-                case Constants.AlphabeticSortOrder:
-                    searchFilter.SortProperty = SortProperty.DisplayName;
-                    searchFilter.SortDirection = SortDirection.Ascending;
-                    break;
-
-                case Constants.RecentSortOrder:
-                    searchFilter.SortProperty = SortProperty.Recent;
-                    break;
-
-                case Constants.PopularitySortOrder:
-                    searchFilter.SortProperty = SortProperty.DownloadCount;
-                    break;
-
-                default:
-                    searchFilter.SortProperty = SortProperty.Relevance;
-                    break;
-            }
-
-            return searchFilter;
         }
 
         private static string GetSortExpression(string sortOrder)

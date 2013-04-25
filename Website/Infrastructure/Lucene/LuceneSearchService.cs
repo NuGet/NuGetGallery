@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 using NuGetGallery.Helpers;
-using NuGetGallery.Infrastructure.Lucene;
 
 namespace NuGetGallery
 {
@@ -24,7 +23,7 @@ namespace NuGetGallery
             _directory = directory;
         }
 
-        public IQueryable<Package> Search(SearchFilter searchFilter, out int totalHits, IQueryable<Package> filterToPackageSet = null)
+        public IQueryable<Package> Search(SearchFilter searchFilter, out int totalHits)
         {
             if (searchFilter == null)
             {
@@ -41,10 +40,10 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException("searchFilter");
             }
 
-            return SearchCore(searchFilter, out totalHits, filterToPackageSet);
+            return SearchCore(searchFilter, out totalHits);
         }
 
-        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits, IQueryable<Package> filterToPackageSet)
+        private IQueryable<Package> SearchCore(SearchFilter searchFilter, out int totalHits)
         {
             int numRecords = searchFilter.Skip + searchFilter.Take;
 
@@ -59,13 +58,17 @@ namespace NuGetGallery
             }
 
             var filterTerm = searchFilter.IncludePrerelease ? "IsLatest" : "IsLatestStable";
-            var termQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
-            Filter filter = new QueryWrapperFilter(termQuery);
-            if (filterToPackageSet != null)
+            Query filterQuery = new TermQuery(new Term(filterTerm, Boolean.TrueString));
+            if (searchFilter.CuratedFeedKey.HasValue)
             {
-                filter = new IntersectionFilter(new PackageSetFilter(filterToPackageSet), filter);
+                var feedFilterQuery = new TermQuery(new Term("CuratedFeedKey", searchFilter.CuratedFeedKey.Value.ToString(CultureInfo.InvariantCulture)));
+                BooleanQuery conjunctionQuery = new BooleanQuery();
+                conjunctionQuery.Add(filterQuery, BooleanClause.Occur.MUST);
+                conjunctionQuery.Add(feedFilterQuery, BooleanClause.Occur.MUST);
+                filterQuery = conjunctionQuery;
             }
 
+            Filter filter = new QueryWrapperFilter(filterQuery);
             var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
             totalHits = results.totalHits;
 
@@ -318,7 +321,7 @@ namespace NuGetGallery
 
             if (fieldName == "Id")
             {
-                searchTerm.TermOrPhrase = LuceneIndexingService.SplitId(searchTerm.TermOrPhrase);
+                searchTerm.TermOrPhrase = PackageIndexEntity.SplitId(searchTerm.TermOrPhrase);
             }
 
             return searchTerm;

@@ -760,11 +760,45 @@ namespace NuGetGallery
             [Fact]
             public async void VerifyRecentPopularityStatsDownloads()
             {
-                JArray report = new JArray();
-                report.Add(new JObject(new JProperty("PackageId", "A"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 3)));
-                report.Add(new JObject(new JProperty("PackageId", "A"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 4)));
-                report.Add(new JObject(new JProperty("PackageId", "B"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 5)));
-                report.Add(new JObject(new JProperty("PackageId", "B"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 6)));
+                JArray report = new JArray
+                {
+                    new JObject
+                    {
+                        { "PackageId", "A" },
+                        { "PackageVersion", "1.0" },
+                        { "PackageTitle", "Package A Title" },
+                        { "PackageDescription", "Package A Description" },
+                        { "PackageIconUrl", "Package A IconUrl" },
+                        { "Downloads", 3 }
+                    },
+                    new JObject
+                    {
+                        { "PackageId", "A" },
+                        { "PackageVersion", "1.1" },
+                        { "PackageTitle", "Package A Title" },
+                        { "PackageDescription", "Package A Description" },
+                        { "PackageIconUrl", "Package A IconUrl" },
+                        { "Downloads", 4 }
+                    },
+                    new JObject
+                    {
+                        { "PackageId", "B" },
+                        { "PackageVersion", "1.0" },
+                        { "PackageTitle", "Package B Title" },
+                        { "PackageDescription", "Package B Description" },
+                        { "PackageIconUrl", "Package B IconUrl" },
+                        { "Downloads", 5 }
+                    },
+                    new JObject
+                    {
+                        { "PackageId", "B" },
+                        { "PackageVersion", "1.1" },
+                        { "PackageTitle", "Package B Title" },
+                        { "PackageDescription", "Package B Description" },
+                        { "PackageIconUrl", "Package B IconUrl" },
+                        { "Downloads", 6 }
+                    },
+                };
 
                 var fakePackageVersionReport = report.ToString();
 
@@ -782,10 +816,9 @@ namespace NuGetGallery
 
                 JArray result = JArray.Parse(contentResult.Content);
 
-                Assert.True((string)result[0]["Package"] == "http://nuget.org/api/v2/package/A/1.0", "unexpected content result[0].Package");
-                Assert.True((string)result[3]["Package"] == "http://nuget.org/api/v2/package/B/1.1", "unexpected content result[3].Package");
                 Assert.True((string)result[3]["Gallery"] == "http://nuget.org/packages/B/1.1", "unexpected content result[3].Gallery");
-                Assert.True((int)result[2]["Downloads"] == 5, "unexpected content");
+                Assert.True((int)result[2]["Downloads"] == 5, "unexpected content result[2].Downloads");
+                Assert.True((string)result[1]["PackageDescription"] == "Package A Description", "unexpected content result[1].PackageDescription");
             }
 
             [Fact]
@@ -809,13 +842,15 @@ namespace NuGetGallery
             [Fact]
             public async void VerifyRecentPopularityStatsDownloadsCount()
             {
-                JArray report = new JArray();
-                report.Add(new JObject(new JProperty("PackageId", "A"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 3)));
-                report.Add(new JObject(new JProperty("PackageId", "A"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 4)));
-                report.Add(new JObject(new JProperty("PackageId", "B"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 5)));
-                report.Add(new JObject(new JProperty("PackageId", "B"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 6)));
-                report.Add(new JObject(new JProperty("PackageId", "C"), new JProperty("PackageVersion", "1.0"), new JProperty("Downloads", 7)));
-                report.Add(new JObject(new JProperty("PackageId", "C"), new JProperty("PackageVersion", "1.1"), new JProperty("Downloads", 8)));
+                JArray report = new JArray
+                {
+                    new JObject { { "PackageId", "A" }, { "PackageVersion", "1.0" }, { "Downloads", 3 } },
+                    new JObject { { "PackageId", "A" }, { "PackageVersion", "1.1" }, { "Downloads", 4 } },
+                    new JObject { { "PackageId", "B" }, { "PackageVersion", "1.0" }, { "Downloads", 5 } },
+                    new JObject { { "PackageId", "B" }, { "PackageVersion", "1.1" }, { "Downloads", 6 } },
+                    new JObject { { "PackageId", "C" }, { "PackageVersion", "1.0" }, { "Downloads", 7 } },
+                    new JObject { { "PackageId", "C" }, { "PackageVersion", "1.1" }, { "Downloads", 8 } },
+                };
 
                 var fakePackageVersionReport = report.ToString();
 
@@ -826,6 +861,8 @@ namespace NuGetGallery
                 var controller = new ApiController(null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+                T4MVCHelpers.ProcessVirtualPath = s => s;
 
                 ActionResult actionResult = await controller.GetStatsDownloads(3);
 

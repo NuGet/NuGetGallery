@@ -1,3 +1,15 @@
+# April 25, 2013
+
+### Group by Client Name,Version and Operation for download stats
+The [package download statistics page] (//nuget.org/stats/) now allows you to group the download details based on package version, client version, client name and operation.
+
+### WebMatrix curated feed performance improvements
+The indexing of curated packages is optimized for performance so that search on a curated feed is on par with the search on regular feed. 
+
+### Other minor bug fixes
+
+Complete list can be found here: [Production Deployment 4/25](https://github.com/NuGet/NuGetGallery/issues?milestone=19)
+
 # April 11, 2013
 
 ### Top 500 packages exposed in the feed

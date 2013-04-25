@@ -6,6 +6,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace NuGetGallery
@@ -15,8 +16,44 @@ namespace NuGetGallery
         [Fact]
         public async void StatisticsHomePage_ValidateReportStructureAndAvailability()
         {
-            var fakePackageReport = "[{\"PackageId\":\"A\",\"Downloads\":1},{\"PackageId\":\"B\",\"Downloads\":2}]";
-            var fakePackageVersionReport = "[{\"PackageId\":\"A\",\"PackageVersion\":\"1.0\",\"Downloads\":3},{\"PackageId\":\"A\",\"PackageVersion\":\"1.1\",\"Downloads\":4},{\"PackageId\":\"B\",\"PackageVersion\":\"1.0\",\"Downloads\":5}]";
+            JArray report1 = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "Downloads", 1 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "Downloads", 2 },
+                }
+            };
+
+            JArray report2 = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 3 },
+                },
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.1" },
+                    { "Downloads", 4 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 5 },
+                }
+            };
+
+            var fakePackageReport = report1.ToString();
+            var fakePackageVersionReport = report2.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -51,8 +88,44 @@ namespace NuGetGallery
         [Fact]
         public async void StatisticsHomePage_ValidateFullReportStructureAndAvailability()
         {
-            var fakePackageReport = "[{\"PackageId\":\"A\",\"Downloads\":1},{\"PackageId\":\"B\",\"Downloads\":2}]";
-            var fakePackageVersionReport = "[{\"PackageId\":\"A\",\"PackageVersion\":\"1.0\",\"Downloads\":3},{\"PackageId\":\"A\",\"PackageVersion\":\"1.1\",\"Downloads\":4},{\"PackageId\":\"B\",\"PackageVersion\":\"1.0\",\"Downloads\":5}]";
+            JArray report1 = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "Downloads", 1 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "Downloads", 2 },
+                }
+            };
+
+            JArray report2 = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 3 },
+                },
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.1" },
+                    { "Downloads", 4 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 5 },
+                }
+            };
+
+            var fakePackageReport = report1.ToString();
+            var fakePackageVersionReport = report2.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -103,7 +176,21 @@ namespace NuGetGallery
         [Fact]
         public async void StatisticsHomePage_Packages_ValidateReportStructureAndAvailability()
         {
-            var fakePackageReport = "[{\"PackageId\":\"A\",\"Downloads\":42},{\"PackageId\":\"B\",\"Downloads\":64}]";
+            JArray report = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "Downloads", 42 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "Downloads", 64 },
+                }
+            };
+
+            var fakePackageReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -126,7 +213,29 @@ namespace NuGetGallery
         [Fact]
         public async void StatisticsHomePage_PackageVersions_ValidateReportStructureAndAvailability()
         {
-            var fakePackageVersionReport = "[{\"PackageId\":\"A\",\"PackageVersion\":\"1.0\",\"Downloads\":22},{\"PackageId\":\"A\",\"PackageVersion\":\"1.1\",\"Downloads\":20},{\"PackageId\":\"B\",\"PackageVersion\":\"1.0\",\"Downloads\":64}]";
+            JArray report = new JArray
+            {
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 22 },
+                },
+                new JObject
+                {
+                    { "PackageId", "A" },
+                    { "PackageVersion", "1.1" },
+                    { "Downloads", 20 },
+                },
+                new JObject
+                {
+                    { "PackageId", "B" },
+                    { "PackageVersion", "1.0" },
+                    { "Downloads", 64 },
+                }
+            };
+
+            var fakePackageVersionReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -151,7 +260,55 @@ namespace NuGetGallery
         {
             string PackageId = "A";
 
-            var fakeReport = "{\"Downloads\":303, Items:[{\"Version\":\"1.0\",\"Downloads\":101},{\"Version\":\"2.1\",\"Downloads\":202}]}";
+            JObject report = new JObject
+            {
+                { "Downloads", 603 },
+                { "Items", new JArray
+                    {
+                        new JObject
+                        {
+                            { "Version", "1.0" },
+                            { "Downloads", 101 },
+                            { "Items", new JArray 
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 101 }
+                                    },
+                                }
+                            }
+                        },
+                        new JObject
+                        {
+                            { "Version", "2.0" },
+                            { "Downloads", 502 },
+                            { "Items", new JArray
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 201 }
+                                    },
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "unknow" },
+                                        { "Downloads", 301 }
+                                    }
+                                }
+                            }
+                        },
+                    }
+                }
+            };
+
+            var fakeReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -162,32 +319,76 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult) await controller.PackageDownloadsByVersion(PackageId)).Model;
+            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+            var model = (StatisticsPackagesViewModel)((ViewResult) await controller.PackageDownloadsByVersion(PackageId, new string[] { "Version" })).Model;
 
             int sum = 0;
 
-            foreach (var item in model.Report.Rows)
+            foreach (var row in model.Report.Table)
             {
-                sum += item.Downloads;
+                sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
-            Assert.Equal<int>(303, sum);
-            Assert.Equal<int>(303, model.Report.Total);
+            Assert.Equal<int>(603, sum);
+            Assert.Equal<int>(603, model.Report.Total);
         }
 
         [Fact]
         public async void Statistics_By_Client_Operation_ValidateReportStructureAndAvailability()
         {
             string PackageId = "A";
-            string PackageVersion = "2.1";
+            string PackageVersion = "2.0";
 
-            var fakeReport = "{\"Downloads\":303, Items:[";
-            fakeReport += "{\"Version\":\"1.0\", \"Downloads\":101},";
-            fakeReport += "{\"Version\":\"2.1\", \"Downloads\":70, Items:[";
-            fakeReport += "{\"Client\":\"Package Manager\", \"Operation\":\"Install\", Downloads:45},";
-            fakeReport += "{\"Client\":\"Package Manager\", \"Operation\":\"Restore\", Downloads:25},";
-            fakeReport += "]}";
-            fakeReport += "]}";
+            JObject report = new JObject
+            {
+                { "Downloads", 603 },
+                { "Items", new JArray
+                    {
+                        new JObject
+                        {
+                            { "Version", "1.0" },
+                            { "Downloads", 101 },
+                            { "Items", new JArray 
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 101 }
+                                    },
+                                }
+                            }
+                        },
+                        new JObject
+                        {
+                            { "Version", "2.0" },
+                            { "Downloads", 502 },
+                            { "Items", new JArray
+                                {
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "Install" },
+                                        { "Downloads", 201 }
+                                    },
+                                    new JObject
+                                    {
+                                        { "ClientName", "NuGet" },
+                                        { "ClientVersion", "2.1" },
+                                        { "Operation", "unknow" },
+                                        { "Downloads", 301 }
+                                    }
+                                }
+                            }
+                        },
+                    }
+                }
+            };
+
+            var fakeReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
@@ -198,22 +399,33 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion)).Model;
+            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+
+            var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion, new string[] { "ClientName" })).Model;
 
             int sum = 0;
 
-            foreach (var item in model.Report.Rows)
+            foreach (var row in model.Report.Table)
             {
-                sum += item.Downloads;
+                sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
-            Assert.Equal<int>(70, sum);
-            Assert.Equal<int>(70, model.Report.Total);
+            Assert.Equal<int>(502, sum);
+            Assert.Equal<int>(502, model.Report.Total);
         }
 
         [Fact]
         public async void StatisticsHomePage_Packages_Negative_ValidateThrowOnInvalidStructure()
         {
+            JArray report = new JArray
+            {
+                new JObject
+                {
+                    { "Lala", "A" },
+                    { "Downloads", 303 }
+                }
+            };
+
             var fakePackageReport = "[{\"Lala\":\"A\",\"Downloads\":303}]";
 
             var fakeReportService = new Mock<IReportService>();
