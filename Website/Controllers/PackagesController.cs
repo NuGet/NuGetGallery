@@ -518,7 +518,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
-            formData.EditPackageRegistrationRequest.UpdatePackageRegistration(package.PackageRegistration);
+            formData.EditPackageRegistrationRequest.UpdatePackageRegistration(package.PackageRegistration, _entitiesContext);
             formData.EditPackageVersionRequest.UpdatePackageVersion(package, _entitiesContext);
             _entitiesContext.SaveChanges();
             return Redirect(Url.Package(id, version));

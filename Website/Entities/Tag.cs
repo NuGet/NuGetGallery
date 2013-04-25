@@ -4,13 +4,18 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
-namespace NuGetGallery.Entities
+namespace NuGetGallery
 {
     public class Tag : IEntity
     {
-        int Key { get; set; }
+        [Key]
+        public int Key { get; set; }
 
         [StringLength(64)]
-        string Text { get; set; }
+        [Required]
+        public string Name { get; set; }
+
+        [StringLength(1024)]
+        public string Description { get; set; }
     }
 }
