@@ -108,5 +108,50 @@ namespace NuGetGallery
 
         [StringLength(44)]
         public string MinClientVersion { get; set; }
+
+        internal string GetCurrentDescription()
+        {
+            string masterDescription = PackageRegistration != null ? PackageRegistration.Description : null;
+            return string.IsNullOrWhiteSpace(masterDescription) ? Description : masterDescription;
+        }
+
+        internal string GetCurrentSummary()
+        {
+            string masterSummary = PackageRegistration != null ? PackageRegistration.Summary : null;
+            return string.IsNullOrWhiteSpace(masterSummary) ? Summary : masterSummary;
+        }
+
+        internal string GetCurrentIconUrl()
+        {
+            string masterIconUrl = PackageRegistration != null ? PackageRegistration.IconUrl : null;
+            return string.IsNullOrWhiteSpace(masterIconUrl) ? IconUrl : masterIconUrl;
+        }
+
+        internal string GetCurrentProjectUrl()
+        {
+            string masterProjectUrl = PackageRegistration != null ? PackageRegistration.ProjectUrl : null;
+            return string.IsNullOrWhiteSpace(masterProjectUrl) ? ProjectUrl : masterProjectUrl;
+        }
+
+        internal string GetCurrentTags()
+        {
+            return Tags;
+        }
+
+        internal string GetCurrentTitle()
+        {
+            // This guy is an exception - version's title beats package registration's title
+            string workingTitle = Title;
+            if (PackageRegistration != null && string.IsNullOrWhiteSpace(workingTitle))
+            {
+                workingTitle = PackageRegistration.DefaultTitle;
+            }
+            if (PackageRegistration != null && string.IsNullOrWhiteSpace(workingTitle))
+            {
+                workingTitle = PackageRegistration.Id;
+            }
+
+            return workingTitle;
+        }
     }
 }
