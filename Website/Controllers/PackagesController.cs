@@ -8,6 +8,7 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using PoliteCaptcha;
@@ -163,15 +164,18 @@ namespace NuGetGallery
 
         public virtual ActionResult DisplayPackage(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-
-            if (package == null)
+            return TryCanonicalizeVersion(version, () =>
             {
-                return HttpNotFound();
-            }
-            var model = new DisplayPackageViewModel(package);
-            ViewBag.FacebookAppID = _config.FacebookAppID;
-            return View(model);
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
+
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
+                var model = new DisplayPackageViewModel(package);
+                ViewBag.FacebookAppID = _config.FacebookAppID;
+                return View(model);
+            });
         }
 
         public virtual ActionResult ListPackages(string q, string sortOrder = null, int page = 1, bool prerelease = false)
@@ -217,16 +221,18 @@ namespace NuGetGallery
         // NOTE: Intentionally NOT requiring authentication
         public virtual ActionResult ReportAbuse(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-
-            if (package == null)
+            return TryCanonicalizeVersion(version, () =>
             {
-                return HttpNotFound();
-            }
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
 
-            var model = new ReportAbuseViewModel
-            {
-                ReasonChoices = 
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var model = new ReportAbuseViewModel
+                {
+                    ReasonChoices = 
                 {
                     ReportPackageReason.IsFraudulent,
                     ReportPackageReason.ViolatesALicenseIOwn,
@@ -234,51 +240,54 @@ namespace NuGetGallery
                     ReportPackageReason.HasABug,
                     ReportPackageReason.Other
                 },
-                PackageId = id,
-                PackageVersion = package.Version,
-            };
+                    PackageId = id,
+                    PackageVersion = package.Version,
+                };
 
-            if (Request.IsAuthenticated)
-            {
-                var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
-
-                // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
-                if (package.IsOwner(user))
+                if (Request.IsAuthenticated)
                 {
-                    return RedirectToAction(ActionNames.ReportMyPackage, new {id, version});
+                    var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+
+                    // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
+                    if (package.IsOwner(user))
+                    {
+                        return RedirectToAction(ActionNames.ReportMyPackage, new { id, version });
+                    }
+
+                    if (user.Confirmed)
+                    {
+                        model.ConfirmedUser = true;
+                    }
                 }
 
-                if (user.Confirmed)
-                {
-                    model.ConfirmedUser = true;
-                }
-            }
-
-            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action(ActionNames.ReportMyPackage, new {id, version});
-            return View(model);
+                ViewData[Constants.ReturnUrlViewDataKey] = Url.Action(ActionNames.ReportMyPackage, new { id, version });
+                return View(model);
+            });
         }
 
         [Authorize]
         public virtual ActionResult ReportMyPackage(string id, string version)
         {
-            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
-
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-
-            if (package == null)
+            return TryCanonicalizeVersion(version, () =>
             {
-                return HttpNotFound();
-            }
+                var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
 
-            // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
-            if (!(HttpContext.User.IsInRole(Constants.AdminRoleName) || package.IsOwner(user)))
-            {
-                return RedirectToAction(ActionNames.ReportAbuse, new { id, version });
-            }
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
 
-            var model = new ReportAbuseViewModel
-            {
-                ReasonChoices =
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
+
+                // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
+                if (!(HttpContext.User.IsInRole(Constants.AdminRoleName) || package.IsOwner(user)))
+                {
+                    return RedirectToAction(ActionNames.ReportAbuse, new { id, version });
+                }
+
+                var model = new ReportAbuseViewModel
+                {
+                    ReasonChoices =
                 {
                     ReportPackageReason.ContainsPrivateAndConfidentialData,
                     ReportPackageReason.PublishedWithWrongVersion,
@@ -286,12 +295,13 @@ namespace NuGetGallery
                     ReportPackageReason.ContainsMaliciousCode,
                     ReportPackageReason.Other
                 },
-                ConfirmedUser = user.Confirmed,
-                PackageId = id,
-                PackageVersion = package.Version,
-            };
+                    ConfirmedUser = user.Confirmed,
+                    PackageId = id,
+                    PackageVersion = package.Version,
+                };
 
-            return View(model);
+                return View(model);
+            });
         }
 
         [HttpPost]
@@ -299,44 +309,47 @@ namespace NuGetGallery
         [ValidateSpamPrevention]
         public virtual ActionResult ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
-            if (!ModelState.IsValid)
+            return TryCanonicalizeVersion(version, () =>
             {
-                return ReportAbuse(id, version);
-            }
+                if (!ModelState.IsValid)
+                {
+                    return ReportAbuse(id, version);
+                }
 
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
 
-            User user = null;
-            MailAddress from;
-            if (Request.IsAuthenticated)
-            {
-                user = _userService.FindByUsername(HttpContext.User.Identity.Name);
-                from = user.ToMailAddress();
-            }
-            else
-            {
-                from = new MailAddress(reportForm.Email);
-            }
+                User user = null;
+                MailAddress from;
+                if (Request.IsAuthenticated)
+                {
+                    user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+                    from = user.ToMailAddress();
+                }
+                else
+                {
+                    from = new MailAddress(reportForm.Email);
+                }
 
-            var request = new ReportPackageRequest
-            {
-                AlreadyContactedOwners = reportForm.AlreadyContactedOwner,
-                FromAddress = from,
-                Message = reportForm.Message,
-                Package = package,
-                Reason = reportForm.Reason,
-                RequestingUser = user,
-                Url = Url
-            };
-            _messageService.ReportAbuse(request
-                );
+                var request = new ReportPackageRequest
+                {
+                    AlreadyContactedOwners = reportForm.AlreadyContactedOwner,
+                    FromAddress = from,
+                    Message = reportForm.Message,
+                    Package = package,
+                    Reason = reportForm.Reason,
+                    RequestingUser = user,
+                    Url = Url
+                };
+                _messageService.ReportAbuse(request
+                    );
 
-            TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
-            return Redirect(Url.Package(id, SemVer.Parse(version).ToDisplayString()));
+                TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
+                return Redirect(Url.Package(id, SemVer.Parse(version).ToString()));
+            });
         }
 
         [HttpPost]
@@ -345,33 +358,36 @@ namespace NuGetGallery
         [ValidateSpamPrevention]
         public virtual ActionResult ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
         {
-            if (!ModelState.IsValid)
+            return TryCanonicalizeVersion(version, () =>
             {
-                return ReportMyPackage(id, version);
-            }
-
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-
-            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
-            MailAddress from = user.ToMailAddress();
-
-            _messageService.ReportMyPackage(
-                new ReportPackageRequest
+                if (!ModelState.IsValid)
                 {
-                    FromAddress = from,
-                    Message = reportForm.Message,
-                    Package = package,
-                    Reason = reportForm.Reason,
-                    RequestingUser = user,
-                    Url = Url
-                });
+                    return ReportMyPackage(id, version);
+                }
 
-            TempData["Message"] = "Your support request has been sent to the gallery operators.";
-            return Redirect(Url.Package(id, SemVer.Parse(version).ToDisplayString()));
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
+
+                var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+                MailAddress from = user.ToMailAddress();
+
+                _messageService.ReportMyPackage(
+                    new ReportPackageRequest
+                    {
+                        FromAddress = from,
+                        Message = reportForm.Message,
+                        Package = package,
+                        Reason = reportForm.Reason,
+                        RequestingUser = user,
+                        Url = Url
+                    });
+
+                TempData["Message"] = "Your support request has been sent to the gallery operators.";
+                return Redirect(Url.Package(id, SemVer.Parse(version).ToString()));
+            });
         }
 
         [Authorize]
@@ -428,25 +444,31 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ManagePackageOwners(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
+            return TryCanonicalizeVersion(version, () =>
             {
-                return HttpNotFound();
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
+                if (!package.IsOwner(HttpContext.User))
+                {
+                    return new HttpStatusCodeResult(401, "Unauthorized");
+                }
 
-            var model = new ManagePackageOwnersViewModel(package, HttpContext.User);
+                var model = new ManagePackageOwnersViewModel(package, HttpContext.User);
 
-            return View(model);
+                return View(model);
+            });
         }
 
         [Authorize]
         public virtual ActionResult Delete(string id, string version)
         {
-            return GetPackageOwnerActionFormResult(id, version);
+            return TryCanonicalizeVersion(version, () =>
+            {
+                return GetPackageOwnerActionFormResult(id, version);
+            });
         }
 
         [Authorize]
@@ -454,37 +476,46 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult Delete(string id, string version, bool? listed)
         {
-            return Delete(id, version, listed, Url.Package);
+            return TryCanonicalizeVersion(version, () =>
+            {
+                return Delete(id, version, listed, Url.Package);
+            });
         }
 
         internal virtual ActionResult Delete(string id, string version, bool? listed, Func<Package, string> urlFactory)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
+            return TryCanonicalizeVersion(version, () =>
             {
-                return HttpNotFound();
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
+                if (!package.IsOwner(HttpContext.User))
+                {
+                    return new HttpStatusCodeResult(401, "Unauthorized");
+                }
 
-            if (!(listed ?? false))
-            {
-                _packageService.MarkPackageUnlisted(package);
-            }
-            else
-            {
-                _packageService.MarkPackageListed(package);
-            }
+                if (!(listed ?? false))
+                {
+                    _packageService.MarkPackageUnlisted(package);
+                }
+                else
+                {
+                    _packageService.MarkPackageListed(package);
+                }
 
-            return Redirect(urlFactory(package));
+                return Redirect(urlFactory(package));
+            });
         }
 
         [Authorize]
         public virtual ActionResult Edit(string id, string version)
         {
-            return GetPackageOwnerActionFormResult(id, version);
+            return TryCanonicalizeVersion(version, () =>
+            {
+                return GetPackageOwnerActionFormResult(id, version);
+            });
         }
 
         [Authorize]
@@ -492,7 +523,10 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult Edit(string id, string version, bool? listed)
         {
-            return Edit(id, version, listed, Url.Package);
+            return TryCanonicalizeVersion(version, () =>
+            {
+                return Edit(id, version, listed, Url.Package);
+            });
         }
 
         [Authorize]
@@ -531,41 +565,47 @@ namespace NuGetGallery
 
         internal virtual ActionResult Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
+            return TryCanonicalizeVersion(version, () =>
             {
-                return HttpNotFound();
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
+                if (!package.IsOwner(HttpContext.User))
+                {
+                    return new HttpStatusCodeResult(401, "Unauthorized");
+                }
 
-            if (!(listed ?? false))
-            {
-                _packageService.MarkPackageUnlisted(package);
-            }
-            else
-            {
-                _packageService.MarkPackageListed(package);
-            }
-            return Redirect(urlFactory(package));
+                if (!(listed ?? false))
+                {
+                    _packageService.MarkPackageUnlisted(package);
+                }
+                else
+                {
+                    _packageService.MarkPackageListed(package);
+                }
+                return Redirect(urlFactory(package));
+            });
         }
 
         private ActionResult GetPackageOwnerActionFormResult(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
+            return TryCanonicalizeVersion(version, () =>
             {
-                return HttpNotFound();
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
+                var package = _packageService.FindPackageByIdAndVersion(id, version);
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
+                if (!package.IsOwner(HttpContext.User))
+                {
+                    return new HttpStatusCodeResult(401, "Unauthorized");
+                }
 
-            var model = new DisplayPackageViewModel(package);
-            return View(model);
+                var model = new DisplayPackageViewModel(package);
+                return View(model);
+            });
         }
 
         [Authorize]
@@ -601,7 +641,7 @@ namespace NuGetGallery
                 new VerifyPackageViewModel
                 {
                     Id = packageMetadata.Id,
-                    Version = SemVer.FromSemanticVersion(packageMetadata.Version).ToDisplayString(),
+                    Version = SemVer.FromSemanticVersion(packageMetadata.Version).ToString(),
                     Title = packageMetadata.Title,
                     Summary = packageMetadata.Summary,
                     Description = packageMetadata.Description,
@@ -707,6 +747,22 @@ namespace NuGetGallery
                 default:
                     return "PackageRegistration.DownloadCount desc";
             }
-        }		
+        }
+
+        private ActionResult TryCanonicalizeVersion(string version, Func<ActionResult> continuation)
+        {
+            // Canonicalize the version, to ensure each package has a unique URL
+            if (!String.IsNullOrEmpty(version))
+            {
+                string canonicalVersion = SemVer.Parse(version).ToString();
+                if (!String.Equals(canonicalVersion, version, StringComparison.OrdinalIgnoreCase))
+                {
+                    var routeValues = new RouteValueDictionary(RouteData.Values);
+                    routeValues["version"] = canonicalVersion;
+                    return RedirectToRoutePermanent(routeValues); // Permanent redirect means the old value isn't kept in the back-stack.
+                }
+            }
+            return continuation();
+        }	
     }
 }

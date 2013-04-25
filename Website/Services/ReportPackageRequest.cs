@@ -39,7 +39,7 @@ namespace NuGetGallery
             substitute("{Address}", FromAddress.Address);
             substitute("{AlreadyContactedOwners}", AlreadyContactedOwners ? "Yes" : "No");
             substitute("{PackageUrl}", Url.Package(Package.PackageRegistration.Id, null, scheme: "http"));
-            substitute("{VersionUrl}", Url.Package(Package.PackageRegistration.Id, SemVer.Parse(Package.Version).ToDisplayString(), scheme: "http"));
+            substitute("{VersionUrl}", Url.Package(Package.PackageRegistration.Id, SemVer.Parse(Package.Version).ToString(), scheme: "http"));
             substitute("{Reason}", Reason);
             substitute("{Message}", Message);
 

@@ -104,25 +104,18 @@ namespace NuGetGallery
         /// Gets the unique, storable, string representation of a Semantic Version.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// This value is guaranteed to be identical for all SemVer instances with the same
         /// <see cref="Major"/>, <see cref="Minor"/>, <see cref="Patch"/>, <see cref="Revision"/>, and <see cref="Tag"/> values.
+        /// </para>
+        /// <para>
+        /// The exact format is of the form {<see cref="Major"/>}.{<see cref="Minor"/>}.{<see cref="Patch"/>}.{<see cref="Revision"/>}-{<see cref="Tag"/>}. 
+        /// However, if the <see cref="Revision"/> value is zero (0), it is omitted (as is it's preceding '.'). 
+        /// If the <see cref="Tag"/> value is null, it (and it's preceding '-') are also omitted.
+        /// </para>
         /// </remarks>
         /// <returns>A string representation of a Semantic Version</returns>
         public override string ToString()
-        {
-            return String.Format(
-                "{0}.{1}.{2}.{3}{4}",
-                Major,
-                Minor,
-                Patch,
-                Revision,
-                String.IsNullOrEmpty(Tag) ? String.Empty : ("-" + Tag));
-        }
-
-        /// <summary>
-        /// Gets a displayable string for the Semantic Version
-        /// </summary>
-        public string ToDisplayString()
         {
             return String.Format(
                 "{0}.{1}.{2}{3}{4}",
@@ -295,7 +288,7 @@ namespace NuGetGallery
     {
         public static string ToDisplayString(this SemVer? self)
         {
-            return self.HasValue ? self.Value.ToDisplayString() : String.Empty;
+            return self.HasValue ? self.Value.ToString() : String.Empty;
         }
     }
 }

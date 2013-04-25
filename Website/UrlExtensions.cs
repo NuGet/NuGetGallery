@@ -77,7 +77,7 @@ namespace NuGetGallery
 
         public static string Package(this UrlHelper url, Package package)
         {
-            return url.Package(package.PackageRegistration.Id, SemVer.Parse(package.Version).ToDisplayString());
+            return url.Package(package.PackageRegistration.Id, SemVer.Parse(package.Version).ToString());
         }
 
         public static string Package(this UrlHelper url, IPackageVersionModel package)

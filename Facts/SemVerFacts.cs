@@ -73,23 +73,6 @@ namespace NuGetGallery
         public class TheToStringMethod
         {
             [Theory]
-            [InlineData(1, 0, 0, 0, null, "1.0.0.0")]
-            [InlineData(1, 1, 0, 0, null, "1.1.0.0")]
-            [InlineData(1, 1, 1, 0, null, "1.1.1.0")]
-            [InlineData(1, 1, 1, 1, null, "1.1.1.1")]
-            [InlineData(1, 0, 0, 0, "tag", "1.0.0.0-tag")]
-            [InlineData(1, 1, 0, 0, "tag", "1.1.0.0-tag")]
-            [InlineData(1, 1, 1, 0, "tag", "1.1.1.0-tag")]
-            [InlineData(1, 1, 1, 1, "tag", "1.1.1.1-tag")]
-            public void NormalizesStringOutputForStorage(int major, int minor, int patch, int revision, string tag, string expectedString)
-            {
-                Assert.Equal(expectedString, new SemVer(major, minor, patch, revision, tag).ToString(), StringComparer.Ordinal);
-            }
-        }
-
-        public class TheToDisplayStringMethod
-        {
-            [Theory]
             [InlineData(1, 0, 0, 0, null, "1.0.0")]
             [InlineData(1, 1, 0, 0, null, "1.1.0")]
             [InlineData(1, 1, 1, 0, null, "1.1.1")]
@@ -98,9 +81,9 @@ namespace NuGetGallery
             [InlineData(1, 1, 0, 0, "tag", "1.1.0-tag")]
             [InlineData(1, 1, 1, 0, "tag", "1.1.1-tag")]
             [InlineData(1, 1, 1, 1, "tag", "1.1.1.1-tag")]
-            public void NormalizesStringOutputForDisplay(int major, int minor, int patch, int revision, string tag, string expectedString)
+            public void NormalizesStringOutputForDisplayAndUniqueness(int major, int minor, int patch, int revision, string tag, string expectedString)
             {
-                Assert.Equal(expectedString, new SemVer(major, minor, patch, revision, tag).ToDisplayString(), StringComparer.Ordinal);
+                Assert.Equal(expectedString, new SemVer(major, minor, patch, revision, tag).ToString(), StringComparer.Ordinal);
             }
         }
 
