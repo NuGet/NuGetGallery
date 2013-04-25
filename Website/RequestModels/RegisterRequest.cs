@@ -19,6 +19,15 @@ namespace NuGetGallery
         public string EmailAddress { get; set; }
 
         [Required]
+        [Compare("EmailAddress")]
+        [Display(Name = "Email Confirmation")]
+        [DataType(DataType.EmailAddress)]
+        [Hint(
+            "Please reenter your email and ensure that it matches the one above."
+            )]
+        public string ConfirmEmailAddress { get; set; }
+
+        [Required]
         [StringLength(64)]
         [RegularExpression(@"(?i)[a-z0-9][a-z0-9_.-]+[a-z0-9]",
             ErrorMessage =
