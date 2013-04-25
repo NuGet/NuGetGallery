@@ -42,7 +42,7 @@ namespace NuGetGallery
             package.Title = VersionTitle;
             package.Copyright = Copyright;
             package.ReleaseNotes = ReleaseNotes;
-            foreach (var author in package.Authors)
+            foreach (var author in package.Authors.ToArray())
             {
                 context.DeleteOnCommit(author);
             }
