@@ -46,5 +46,10 @@ namespace NuGetGallery
 
         // Time the package registration data was modified, but excluding changes to 'ephemeral' data such as DownloadCount.
         public DateTime LastUpdated { get; set; }
+
+        public virtual ICollection<Tag> Tags { get; set; }
+
+        [StringLength(1024)]
+        public string FlattenedTags { get; set; }
     }
 }

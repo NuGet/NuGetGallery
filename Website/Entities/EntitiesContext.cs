@@ -93,6 +93,12 @@ namespace NuGetGallery
                 .HasForeignKey(p => p.PackageRegistrationKey);
 
             modelBuilder.Entity<PackageRegistration>()
+                .HasMany<Tag>(pr => pr.Tags).WithMany()
+                .Map(c => c.ToTable("PackageTags")
+                           .MapLeftKey("PackageRegistrationKey")
+                           .MapRightKey("TagKey"));
+
+            modelBuilder.Entity<PackageRegistration>()
                 .HasMany<User>(pr => pr.Owners)
                 .WithMany()
                 .Map(c => c.ToTable("PackageRegistrationOwners")

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -133,9 +134,20 @@ namespace NuGetGallery
             return string.IsNullOrWhiteSpace(masterProjectUrl) ? ProjectUrl : masterProjectUrl;
         }
 
-        internal string GetCurrentTags()
+        internal IEnumerable<string> GetCurrentTags()
         {
-            return Tags;
+            var masterFlattenedTags = PackageRegistration != null && PackageRegistration.Tags != null ? PackageRegistration.Tags.Select(tag => tag.Name).ToList() : null;
+            if (masterFlattenedTags.AnySafe())
+            {
+                return masterFlattenedTags;
+            }
+
+            if (Tags == null)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return Tags.Trim().Split(' ');
         }
 
         internal string GetCurrentTitle()
