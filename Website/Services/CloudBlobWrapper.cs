@@ -61,6 +61,7 @@ namespace NuGetGallery
             //  http://blogs.msdn.com/b/pfxteam/archive/2009/06/09/9716439.aspx
             var options = new BlobRequestOptions()
             {
+                // The default retry policy treats a 304 as an error that requires a retry. We don't want that!
                 RetryPolicy = new DontRetryOnNotModifiedPolicy(new LinearRetry())
             };
 
@@ -108,6 +109,7 @@ namespace NuGetGallery
                 state: null);
         }
 
+        // The default retry policy treats a 304 as an error that requires a retry. We don't want that!
         private class DontRetryOnNotModifiedPolicy : IRetryPolicy
         {
             private IRetryPolicy _innerPolicy;
