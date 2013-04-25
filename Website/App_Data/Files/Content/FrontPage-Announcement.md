@@ -1,4 +1,2 @@
-﻿## NuGet 2.5 Released
-Take a few seconds and **upgrade now** using the Visual Studio Extension Manager. Why? Because there's a pile of new features and it will make your life easier! All these details and [more here...](http://docs.nuget.org/docs/release-notes/nuget-2.5)
-
-**NOTE**: If you encounter an error while upgrading from an older version of NuGet you will need to uninstall the older version of NuGet first (Tip: Make sure to run Visual Studio as an admin) then install NuGet. We are sorry for any inconvenience this might cause, more info can be found in the [known issues](http://docs.nuget.org/docs/reference/known-issues).
+﻿## Developer Environment
+This is a developer environment! If you want to show a custom message here, either change the App_Data\Files\Content\FrontPage-Announcement.md file, or if you are using the AzureStorageBlob package store type, upload a FrontPage-Announcement.md file to the "content" container of your blob storage account.
