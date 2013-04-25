@@ -7,13 +7,6 @@
 
 @* Generator: MvcHelper Namespace: NuGetGallery*@
 
-@functions {
-    public static IContentService ContentService
-    {
-        get { return Container.Kernel.Get<IContentService>(); }
-    }
-}
-
 @helper PreviousNextPager(IPreviousNextPager pager)
 {
     if (pager.HasNextPage || pager.HasPreviousPage)
