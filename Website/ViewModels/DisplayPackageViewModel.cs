@@ -19,7 +19,7 @@ namespace NuGetGallery
             {
                 Dependencies = new DependencySetsViewModel(package.Dependencies);
                 PackageVersions = from p in package.PackageRegistration.Packages.ToList()
-                                  orderby new SemanticVersion(p.Version) descending
+                                  orderby SemVer.Parse(p.Version) descending
                                   select new DisplayPackageViewModel(p, isVersionHistory: true);
             }
             DownloadCount = package.DownloadCount;

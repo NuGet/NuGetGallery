@@ -9,7 +9,7 @@ namespace NuGetGallery
         public PackageViewModel(Package package)
         {
             _package = package;
-            Version = package.Version;
+            Version = SemVer.Parse(package.Version).ToDisplayString();
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
@@ -54,7 +54,7 @@ namespace NuGetGallery
 
         public bool IsCurrent(IPackageVersionModel current)
         {
-            return current.Version == Version && current.Id == Id;
+            return Object.Equals(current.Version, Version) && current.Id == Id;
         }
     }
 }

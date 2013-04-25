@@ -285,12 +285,36 @@ namespace NuGetGallery
                 }
             }
 
+            public static IEnumerable<object[]> EqualityData
+            {
+                get
+                {
+                    yield return new object[] { new SemVer(1, 0), new SemVer(1, 0) };
+                    yield return new object[] { new SemVer(1, 0), new SemVer(1, 0, 0) };
+                    yield return new object[] { new SemVer(1, 0), new SemVer(1, 0, 0, 0) };
+                    yield return new object[] { new SemVer(1, 0), new SemVer(1, 0, 0, 0, null) };
+                    yield return new object[] { new SemVer(1, 0, "tag"), new SemVer(1, 0, "tag") };
+                    yield return new object[] { new SemVer(1, 0, "tag"), new SemVer(1, 0, 0, "tag") };
+                    yield return new object[] { new SemVer(1, 0, "tag"), new SemVer(1, 0, 0, 0, "tag") };
+                    yield return new object[] { new SemVer(1, 1, 2, 3), new SemVer(1, 1, 2, 3) };
+                    yield return new object[] { new SemVer(1, 1, 2, 3, "tag"), new SemVer(1, 1, 2, 3, "tag") };
+                }
+            }
+
             [Theory]
             [PropertyData("ComparisonData")]
             public void CorrectlyEvaluatesComparisons(SemVer smaller, SemVer bigger)
             {
                 Assert.Equal(1, bigger.CompareTo(smaller));
                 Assert.Equal(-1, smaller.CompareTo(bigger));
+            }
+
+            [Theory]
+            [PropertyData("EqualityData")]
+            public void CorrectlyEvaluatesEquality(SemVer left, SemVer right)
+            {
+                Assert.Equal(0, right.CompareTo(left));
+                Assert.Equal(0, left.CompareTo(right));
             }
         }
 

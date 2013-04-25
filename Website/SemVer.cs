@@ -208,15 +208,22 @@ namespace NuGetGallery
             if (compareResult != 0) { return compareResult; }
 
             // Now compare tags
-            if (!String.IsNullOrEmpty(Tag) && String.IsNullOrEmpty(other.Tag))
+            bool myTagEmpty = String.IsNullOrEmpty(Tag);
+            bool otherTagEmpty = String.IsNullOrEmpty(other.Tag);
+            if (!myTagEmpty && otherTagEmpty)
             {
                 // Other is "Later"
                 return -1;
             }
-            else if (String.IsNullOrEmpty(Tag) && !String.IsNullOrEmpty(other.Tag))
+            else if (myTagEmpty && !otherTagEmpty)
             {
                 // Other is "Earlier"
                 return 1;
+            }
+            else if (myTagEmpty && otherTagEmpty)
+            {
+                // Equal!
+                return 0;
             }
             
             // Both have tags, check their segments
@@ -281,6 +288,14 @@ namespace NuGetGallery
                 other.Patch == Patch &&
                 other.Revision == Revision &&
                 String.Equals(other.Tag, Tag, StringComparison.Ordinal);
+        }
+    }
+
+    public static class SemVerExtensions
+    {
+        public static string ToDisplayString(this SemVer? self)
+        {
+            return self.HasValue ? self.Value.ToDisplayString() : String.Empty;
         }
     }
 }

@@ -336,7 +336,7 @@ namespace NuGetGallery
                 );
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
-            return Redirect(Url.Package(id, version));
+            return Redirect(Url.Package(id, SemVer.Parse(version).ToDisplayString()));
         }
 
         [HttpPost]
@@ -371,7 +371,7 @@ namespace NuGetGallery
                 });
 
             TempData["Message"] = "Your support request has been sent to the gallery operators.";
-            return Redirect(Url.Package(id, version));
+            return Redirect(Url.Package(id, SemVer.Parse(version).ToDisplayString()));
         }
 
         [Authorize]
@@ -601,7 +601,7 @@ namespace NuGetGallery
                 new VerifyPackageViewModel
                 {
                     Id = packageMetadata.Id,
-                    Version = packageMetadata.Version.ToStringSafe(),
+                    Version = SemVer.FromSemanticVersion(packageMetadata.Version).ToDisplayString(),
                     Title = packageMetadata.Title,
                     Summary = packageMetadata.Summary,
                     Description = packageMetadata.Description,
