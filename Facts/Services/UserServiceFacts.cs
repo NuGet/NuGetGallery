@@ -327,8 +327,6 @@ namespace NuGetGallery
 
                 // Allow for up to 5 secs of time to have elapsed between Create call and now. Should be plenty
                 Assert.True((DateTime.UtcNow - user.CreatedUtc) < TimeSpan.FromSeconds(5));
-
-                Assert.False(user.Confirmed);
             }
 
             [Fact]
