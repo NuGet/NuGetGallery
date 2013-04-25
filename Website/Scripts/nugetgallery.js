@@ -10,10 +10,7 @@
                 else {
                     $('#service-alert').slideUp('fast').html();
                 }
-                setTimeout(checkServiceStatus, 5000);
             }) // If this fails, just silently show no status.
-            // Schedule the next check.
-            .fail(function() { setTimeout(checkServiceStatus, 5000); });
     }
 
     $(function () {
