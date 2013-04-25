@@ -739,6 +739,9 @@
     <Compile Include="Migrations\201304030226233_CuratedFeedPackageUniqueness.cs" />
     <Compile Include="Migrations\201304030226233_CuratedFeedPackageUniqueness.Designer.cs">
       <DependentUpon>201304030226233_CuratedFeedPackageUniqueness.cs</DependentUpon>
+    <Compile Include="Migrations\201304251927587_UserCreatedDate.cs" />
+    <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
+      <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1106,6 +1109,9 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
+      <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>

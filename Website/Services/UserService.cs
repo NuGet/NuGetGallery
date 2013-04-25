@@ -53,6 +53,7 @@ namespace NuGetGallery
                     UnconfirmedEmailAddress = emailAddress,
                     EmailConfirmationToken = Crypto.GenerateToken(),
                     PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
+                    CreatedUtc = DateTime.UtcNow
                 };
 
             if (!Config.ConfirmEmailAddresses)
