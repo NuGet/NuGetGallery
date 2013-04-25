@@ -57,6 +57,8 @@ namespace NuGetGallery
         public DateTime? PasswordResetTokenExpirationDate { get; set; }
         public int Key { get; set; }
 
+        public DateTime? CreatedUtc { get; set; }
+
         public void ConfirmEmailAddress()
         {
             if (String.IsNullOrEmpty(UnconfirmedEmailAddress))
