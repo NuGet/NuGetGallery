@@ -136,10 +136,10 @@ namespace NuGetGallery
 
         internal IEnumerable<string> GetCurrentTags()
         {
-            var masterFlattenedTags = PackageRegistration != null && PackageRegistration.Tags != null ? PackageRegistration.Tags.Select(tag => tag.Name).ToList() : null;
-            if (masterFlattenedTags.AnySafe())
+            var masterTags = PackageRegistration != null && PackageRegistration.Tags != null ? PackageRegistration.Tags.Select(tag => tag.Name).ToList() : null;
+            if (masterTags.AnySafe())
             {
-                return masterFlattenedTags;
+                return masterTags;
             }
 
             if (Tags == null)
@@ -150,7 +150,18 @@ namespace NuGetGallery
             return Tags.Trim().Split(' ');
         }
 
-        internal string GetCurrentTitle()
+        internal string GetCurrentFlattenedTags()
+        {
+            var masterFlattenedTags = PackageRegistration != null ? PackageRegistration.FlattenedTags : null;
+            if (!String.IsNullOrWhiteSpace(masterFlattenedTags))
+            {
+                return masterFlattenedTags;
+            }
+
+            return Tags;
+        }
+
+        internal string GetCurrentTitle(bool allowNull = false)
         {
             // This guy is an exception - version's title beats package registration's title
             string workingTitle = Title;
@@ -158,7 +169,8 @@ namespace NuGetGallery
             {
                 workingTitle = PackageRegistration.DefaultTitle;
             }
-            if (PackageRegistration != null && string.IsNullOrWhiteSpace(workingTitle))
+            
+            if (PackageRegistration != null && string.IsNullOrWhiteSpace(workingTitle) && !allowNull)
             {
                 workingTitle = PackageRegistration.Id;
             }

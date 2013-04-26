@@ -498,6 +498,9 @@ namespace NuGetGallery
             formData.EditPackageRegistrationRequest.UpdatePackageRegistration(package.PackageRegistration, _entitiesContext);
             formData.EditPackageVersionRequest.UpdatePackageVersion(package, _entitiesContext);
             _entitiesContext.SaveChanges();
+#if DEBUG
+            _indexingService.UpdateIndex();
+#endif
             return Redirect(Url.Package(id, version));
         }
 

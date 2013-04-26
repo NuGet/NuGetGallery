@@ -92,7 +92,7 @@ namespace NuGetGallery
                 packageRegistration.FlattenedTags = packageRegistration.Tags.Flatten();
             }
 
-            packageRegistration.LastUpdated = DateTime.UtcNow;
+            packageRegistration.LastUpdated = DateTime.UtcNow;  // Flagged for re-indexing
         }
     }
 }
