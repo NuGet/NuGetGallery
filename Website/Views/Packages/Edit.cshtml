@@ -17,15 +17,13 @@
         <legend>Edit Package Version @(Model.Version)</legend>
 
         @(Html.EditorFor<EditPackageRequest,EditPackageVersionRequest>(model => model.EditPackageVersionRequest))
-
-        <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
     </fieldset>
     <input type="submit" value="Submit" title="Submit" />
 }
 
+<h2>Note:</h2>
 <p>
-    NuGet only allows you to update descriptive package metadata on the website.
-</p>
-<p>
-    To edit the package dependencies, target frameworks, or license, you must upload a new version of the package.
+    NuGet only allows you to update the package's description. To edit package dependencies, target frameworks, 
+    license URL, you must upload a new version of the package. Changes you make to package Icon, Title, and Summary 
+    may take a few minutes before they are visible in package search results.
 </p>
