@@ -736,12 +736,13 @@
     <Compile Include="Migrations\201304020006512_UserLookupOptimization.Designer.cs">
       <DependentUpon>201304020006512_UserLookupOptimization.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201304030226233_CuratedFeedPackageUniqueness.cs" />
-    <Compile Include="Migrations\201304030226233_CuratedFeedPackageUniqueness.Designer.cs">
-      <DependentUpon>201304030226233_CuratedFeedPackageUniqueness.cs</DependentUpon>
     <Compile Include="Migrations\201304251927587_UserCreatedDate.cs" />
     <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.cs" />
+    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.Designer.cs">
+      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1111,6 +1112,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.resx">
+      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
