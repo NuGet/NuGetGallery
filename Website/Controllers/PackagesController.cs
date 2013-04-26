@@ -527,14 +527,6 @@ namespace NuGetGallery
             return Redirect(Url.Package(id, version));
         }
 
-        //[Authorize]
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public virtual ActionResult Edit(string id, string version, bool? listed)
-        //{
-        //    return Edit(id, version, listed, Url.Package);
-        //}
-
         [Authorize]
         public virtual ActionResult ConfirmOwner(string id, string username, string token)
         {
