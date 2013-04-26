@@ -100,7 +100,7 @@ function disable-debug {
 set-vmsize -path $csdefPath -size $VMSize
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseBranch" -value $ReleaseBranch
 set-appsetting -path $webConfigPath -name "Gallery.ReleaseSha" -value $ReleaseSha
-set-appsetting -path $webConfigPath -name "Gallery.ReleaseTime" -value (Get-Date -format "dd/MM/yyyy HH:mm:ss")
+set-appsetting -path $webConfigPath -name "Gallery.ReleaseTime" -value (Get-Date -format "yyyy-MM-dd HH:mm:ss")
 if(![String]::IsNullOrEmpty($EnvironmentName)) {
   set-appsetting -path $webConfigPath -name "Gallery.Environment" -value $EnvironmentName
 }
