@@ -496,7 +496,7 @@ namespace NuGetGallery
             }
 
             formData.EditPackageRegistrationRequest.UpdatePackageRegistration(package.PackageRegistration, _entitiesContext);
-            formData.EditPackageVersionRequest.UpdatePackageVersion(package, _entitiesContext);
+            formData.EditPackageVersionRequest.UpdatePackageVersion(package, _entitiesContext, _packageService);
             _entitiesContext.SaveChanges();
 #if DEBUG
             _indexingService.UpdateIndex();
