@@ -43,7 +43,7 @@ namespace NuGetGallery
                             ReportAbuseUrl = siteRoot + "package/ReportAbuse/" + p.PackageRegistration.Id + "/" + p.Version,
                             RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
                             Summary = p.GetCurrentSummary(),
-                            Tags = p.GetCurrentFlattenedTags().Replace(", ", " "),
+                            Tags = p.GetCurrentFlattenedTags().ToStringSafe().Replace(", ", " "),
                             // In the current feed, tags are padded with a single leading and trailing space 
                             Title = p.GetCurrentTitle(false), // Need to do this since the older feed always showed a title.
                             VersionDownloadCount = p.DownloadCount,
@@ -87,7 +87,7 @@ namespace NuGetGallery
                     RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
                     Published = p.Listed ? p.Published : UnpublishedDate,
                     Summary = p.GetCurrentSummary(),
-                    Tags = p.GetCurrentFlattenedTags().Replace(", ", " "),
+                    Tags = p.GetCurrentFlattenedTags().ToStringSafe().Replace(", ", " "),
                     Title = p.GetCurrentTitle(true),
                     VersionDownloadCount = p.DownloadCount,
                     MinClientVersion = p.MinClientVersion,
