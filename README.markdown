@@ -15,7 +15,10 @@ To build the project, clone it locally:
     cd NuGetGallery
     .\Build-Solution.ps1
 
-The `Build-Solution.ps1` script will build the solution, run the facts (unit tests), and update the database (from migrations).
+The `Build-Solution.ps1` script will build the solution, and run the facts (unit tests). 
+You also need to manually update the database using EF migrations. One way to do this is by running the 
+EF 'Update-Database' command from the package manager powershell console inside Visual Studio.
+(Assuming that you have the NuGet extension installed in VS!)
 
 ## Contribute
 If you find a bug with the gallery, please visit the Issue tracker (https://github.com/NuGet/NuGetGallery/issues) and 
