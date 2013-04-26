@@ -77,7 +77,7 @@ namespace NuGetGallery
                     .ToArray();
 
                 var knownTags = context.Set<Tag>().Where(t => tagNames.Contains(t.Name)).ToList();
-                HashSet<string> foundNames = new HashSet<string>(knownTags.Select(tag => tag.Name), StringComparer.InvariantCultureIgnoreCase);
+                HashSet<string> foundNames = new HashSet<string>(knownTags.Select(tag => tag.Name), StringComparer.OrdinalIgnoreCase);
 
                 foreach (var tag in knownTags)
                 {
