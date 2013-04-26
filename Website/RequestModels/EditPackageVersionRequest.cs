@@ -16,6 +16,7 @@ namespace NuGetGallery
             Authors = package.FlattenedAuthors;
             Copyright = package.Copyright;
             ReleaseNotes = package.ReleaseNotes;
+            IsListed = package.Listed;
         }
 
         [StringLength(256)]
@@ -37,8 +38,26 @@ namespace NuGetGallery
         [DataType(DataType.MultilineText)]
         public string ReleaseNotes { get; set; }
 
-        internal void UpdatePackageVersion(Package package, IEntitiesContext context)
+        [Display(Name = "List this version in search results")]
+        public bool IsListed { get; set; }
+
+        internal void UpdatePackageVersion(
+            Package package, 
+            IEntitiesContext context, 
+            IPackageService packageService)
         {
+            if (IsListed != package.Listed)
+            {
+                if (IsListed)
+                {
+                    packageService.MarkPackageListed(package, commitChanges: false);
+                }
+                else
+                {
+                    packageService.MarkPackageUnlisted(package, commitChanges: false);
+                }
+            }
+
             package.Title = VersionTitle;
             package.Copyright = Copyright;
             package.ReleaseNotes = ReleaseNotes;
