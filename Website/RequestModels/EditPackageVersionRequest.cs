@@ -59,6 +59,8 @@ namespace NuGetGallery
 
                 package.FlattenedAuthors = package.Authors.Flatten();
             }
+
+            package.LastUpdated = DateTime.UtcNow; // Flagged for re-indexing
         }
     }
 }
