@@ -7,12 +7,21 @@ namespace NuGetGallery
     public partial class CuratedPackagesController : AppController
     {
         public const string ControllerName = "CuratedPackages";
+        protected ICuratedFeedService CuratedFeedService { get; set; }
+
+        protected CuratedPackagesController() { }
+
+        public CuratedPackagesController(ICuratedFeedService curatedFeedService)
+        {
+            this.CuratedFeedService = curatedFeedService;
+        }
+
 
         [ActionName("CreateCuratedPackageForm")]
         [HttpGet]
         public virtual ActionResult GetCreateCuratedPackageForm(string curatedFeedName)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: false);
+            var curatedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             if (curatedFeed == null)
             {
                 return HttpNotFound();
@@ -33,7 +42,7 @@ namespace NuGetGallery
             string curatedFeedName,
             string curatedPackageId)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
+            var curatedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
             {
                 return HttpNotFound();
@@ -50,7 +59,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403);
             }
 
-            GetService<IDeleteCuratedPackageCommand>().Execute(
+            GetService<ICuratedFeedService>().DeleteCuratedPackage(
                 curatedFeed.Key,
                 curatedPackage.Key);
 
@@ -64,7 +73,7 @@ namespace NuGetGallery
             string curatedPackageId,
             ModifyCuratedPackageRequest request)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
+            var curatedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
             {
                 return HttpNotFound();
@@ -86,7 +95,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(400);
             }
 
-            GetService<IModifyCuratedPackageCommand>().Execute(
+            GetService<ICuratedFeedService>().ModifyCuratedPackage(
                 curatedFeed.Key,
                 curatedPackage.Key,
                 request.Included);
@@ -100,7 +109,7 @@ namespace NuGetGallery
             string curatedFeedName,
             CreateCuratedPackageRequest request)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
+            var curatedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
             {
                 return HttpNotFound();
@@ -132,7 +141,7 @@ namespace NuGetGallery
                 return View("CreateCuratedPackageForm");
             }
 
-            GetService<ICreateCuratedPackageCommand>().Execute(
+            GetService<ICuratedFeedService>().CreatedCuratedPackage(
                 curatedFeed,
                 packageRegistration,
                 notes: request.Notes);

@@ -17,16 +17,15 @@ namespace NuGetGallery
             {
                 StubCuratedFeed = new CuratedFeed
                     { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { new User { Username = "aUsername" } }) };
-                StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
+                StubCuratedFeedService = new Mock<ICuratedFeedService>();
                 StubIdentity = new Mock<IIdentity>();
 
                 StubIdentity.Setup(stub => stub.IsAuthenticated).Returns(true);
                 StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
-                StubCuratedFeedByNameQry
-                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                StubCuratedFeedService
+                    .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
                     .Returns(StubCuratedFeed);
 
-                StubCuratedFeedService = new Mock<ICuratedFeedService>();
                 CuratedFeedService = StubCuratedFeedService.Object;
 
                 StubSearchService = new Mock<ISearchService>();
@@ -34,7 +33,6 @@ namespace NuGetGallery
             }
 
             public CuratedFeed StubCuratedFeed { get; set; }
-            public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
             public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
             public Mock<ISearchService> StubSearchService { get; private set; }
             public Mock<IIdentity> StubIdentity { get; private set; }
@@ -46,9 +44,9 @@ namespace NuGetGallery
 
             protected override T GetService<T>()
             {
-                if (typeof(T) == typeof(ICuratedFeedByNameQuery))
+                if (typeof(T) == typeof(ICuratedFeedService))
                 {
-                    return (T)StubCuratedFeedByNameQry.Object;
+                    return (T)StubCuratedFeedService.Object;
                 }
 
                 throw new Exception("Tried to get an unexpected service.");
@@ -61,7 +59,7 @@ namespace NuGetGallery
             public void WillReturn404IfTheCuratedFeedDoesNotExist()
             {
                 var controller = new TestableCuratedFeedsController();
-                controller.StubCuratedFeedByNameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+                controller.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
 
                 var result = controller.CuratedFeed("aFeedName");
 
@@ -97,6 +95,7 @@ namespace NuGetGallery
             {
                 var controller = new TestableCuratedFeedsController();
                 controller.StubIdentity.Setup(stub => stub.Name).Returns("theManager");
+                controller.StubCuratedFeed.Name = "aFeedName";
                 controller.StubCuratedFeed.Managers = new HashSet<User>(new[] { new User { Username = "theManager" } });
 
                 var viewModel = (controller.CuratedFeed("aFeedName") as ViewResult).Model as CuratedFeedViewModel;
