@@ -78,6 +78,7 @@
     <Compile Include="TestBase\GalleryTestBase.cs" />
     <Compile Include="WebTestExtensions\ValidationRuleFindHeaderText.cs" />
     <Compile Include="WebUITests\AccountManagement\InvalidLogonTest.cs" />
+    <Compile Include="WebUITests\BasicPages\OutercurveBrandingValidationTest.cs" />
     <Compile Include="WebUITests\BasicPages\SecurityHeaderTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactOwnerTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactUsAndReportAbuseLinkTest.cs" />

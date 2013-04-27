@@ -1,0 +1,423 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<TestRun id="7a3ab81f-760f-4a17-b33b-d3838dc66af4" name="TestResults" runUser="REDMOND\clayco" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+    <Description>These are default test settings for a local test run.</Description>
+    <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[55]">
+      <DeploymentItem filename=".nuget\NuGet.Config" />
+      <DeploymentItem filename=".nuget\NuGet.exe" />
+      <DeploymentItem filename=".nuget\NuGet.targets" />
+    </Deployment>
+    <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+    <Execution>
+      <TestTypeSpecific>
+        <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+          <AssemblyResolution>
+            <TestDirectory useLoadContext="true" />
+          </AssemblyResolution>
+        </UnitTestRunConfig>
+        <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+          <Browser name="Internet Explorer 9.0" MaxConnections="6">
+            <Headers>
+              <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+              <Header name="Accept" value="*/*" />
+              <Header name="Accept-Language" value="{{$IEAcceptLanguage}}" />
+              <Header name="Accept-Encoding" value="GZIP" />
+            </Headers>
+          </Browser>
+        </WebTestRunConfiguration>
+      </TestTypeSpecific>
+      <AgentRule name="LocalMachineDefaultRole">
+      </AgentRule>
+    </Execution>
+  </TestSettings>
+  <Times creation="2013-04-25T14:23:35.0995651-07:00" queuing="2013-04-25T14:23:35.3183229-07:00" start="2013-04-25T14:23:35.4120763-07:00" finish="2013-04-25T14:23:55.2591267-07:00" />
+  <ResultSummary outcome="Failed">
+    <Counters total="41" executed="3" error="0" failed="1" timeout="0" aborted="1" inconclusive="0" passedButRunAborted="1" notRunnable="0" notExecuted="38" disconnected="0" warning="0" passed="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+  <TestDefinitions>
+    <UnitTest name="SearchWebMatrixCuratedFeed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="4808abb0-e068-dde3-e6bf-b1a137b6f0f9">
+      <Description>Performs a querystring-based search of the WebMatrix curated feed.  Confirms expected packages are returned.</Description>
+      <Execution id="99efd18a-308b-4b4c-8b4e-43ef66366a89" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.CuratedFeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="SearchWebMatrixCuratedFeed" />
+    </UnitTest>
+    <UnitTest name="SearchWindows8CuratedFeed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="e40da15b-eedb-5ba3-88d7-9972079c30a6">
+      <Description>Performs a querystring-based search of the Windows 8 curated feed.  Confirms expected packages are returned.</Description>
+      <Execution id="3b6e6d8f-7094-4aef-9d19-2c4a3ad54bd9" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.CuratedFeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="SearchWindows8CuratedFeed" />
+    </UnitTest>
+    <CodedWebTest name="ContactOwnerTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="a6f81ddd-4476-9109-b107-ff9673898e71">
+      <Execution id="ff6afcfd-0a44-45bc-99b5-bea039a23563" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.PackageManagement" class="ContactOwnerTest" />
+    </CodedWebTest>
+    <UnitTest name="UploadMultipleVersionOfPackage" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="1" id="5d62a4b0-dcba-4028-434b-2b747b4c411f">
+      <Description>Upload multiple versions of a package and see if it gets uploaded properly</Description>
+      <Execution id="c411ffc3-8d14-49d0-b141-e5c9eae9d204" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.PackageVersionTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="UploadMultipleVersionOfPackage" />
+    </UnitTest>
+    <UnitTest name="AddPackageToWindows8CuratedFeed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="1" id="2653a81d-b439-f73a-c036-efc0ec29de69">
+      <Description>Creates a package with Windows8 tags. Uploads it and checks if it has been curated</Description>
+      <Execution id="32b56bc0-032e-4ec0-a263-544f7c22e1a1" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.CuratedFeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="AddPackageToWindows8CuratedFeed" />
+    </UnitTest>
+    <UnitTest name="FindPackagesByIdTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="2a6c6363-3869-0c15-2d51-409738bef970">
+      <Execution id="c1491b7f-bd3f-4c0d-aba7-a88f57604881" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="FindPackagesByIdTest" />
+    </UnitTest>
+    <CodedWebTest name="HomePageValidationTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="d527504e-456c-ed4a-8eba-7c20c18ba47d">
+      <Execution id="092c2464-c61c-4de7-9cb5-e7ae7f594918" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="HomePageValidationTest" />
+    </CodedWebTest>
+    <UnitTest name="RestorePackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="916d542f-9953-383f-a9cc-e87980667cf3">
+      <Description>Restores a package from the V2 feed and checks if the file is present on local disk</Description>
+      <Execution id="9a5796f6-b2d8-4b71-87ce-98903ac00857" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataFeedTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="RestorePackageFromV2Feed" />
+    </UnitTest>
+    <UnitTest name="SearchV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="93269e98-8dd5-495f-dce5-ac7d2e101b5b">
+      <Description>Performs a querystring-based search of the default (non-curated) v2 feed.  Confirms expected packages are returned.</Description>
+      <Execution id="ccaa1246-08b3-42d8-a4fa-4a5f200aa8d0" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.SearchTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="SearchV2Feed" />
+    </UnitTest>
+    <CodedWebTest name="LogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="a1c602d9-292b-1042-380c-707cec091de9">
+      <Execution id="0bb89928-1224-4836-a028-45d4ea96194b" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="LogonTest" />
+    </CodedWebTest>
+    <CodedWebTest name="RegisterInvalidUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="6c390634-83d7-955a-87c4-b41e59b8d7ae">
+      <Execution id="c3ba9a66-25c0-45e5-9ddb-b33db47d12f1" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="RegisterInvalidUserTest" />
+    </CodedWebTest>
+    <UnitTest name="SearchV1Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="1023d05b-493c-b740-c3dd-cea86069017f">
+      <Description>Performs a querystring-based search of the v1 feed.  Confirms expected packages are returned.</Description>
+      <Execution id="a500a659-3fa4-410a-862f-f02b409d3d37" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.SearchTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="SearchV1Feed" />
+    </UnitTest>
+    <CodedWebTest name="InvalidLogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="5d66c021-336a-34c0-9414-19ea84bd29bc">
+      <Execution id="b2ecb488-1b9c-4564-8cc1-38c8ca8ecbb3" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="InvalidLogonTest" />
+    </CodedWebTest>
+    <CodedWebTest name="SecurityHeaderTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="d53feaf3-be7c-3e85-2afa-d33fc0e450a3">
+      <Execution id="0a73ac99-f24f-4334-acc1-25b77c7f9efd" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="SecurityHeaderTest" />
+    </CodedWebTest>
+    <CodedWebTest name="AggregateStatsInHomePage" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="340e6bba-7e3d-842d-7ee1-669ddc667c0c">
+      <Execution id="c354c742-acfb-4a72-9622-aecb95459d96" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="AggregateStatsInHomePage" />
+    </CodedWebTest>
+    <CodedWebTest name="ManagePackagesPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="42a9bfc6-ed87-df50-c848-82aca2c8fd0d">
+      <Execution id="ddbeb608-caec-456e-85e9-13174f67c380" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.PackageManagement" class="ManagePackagesPageTest" />
+    </CodedWebTest>
+    <UnitTest name="DownloadPackageWithNuGetCoreTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="04cd200b-33df-3564-ded5-686cdfe44f77">
+      <Description>Downloads a package from the server and validates that the file is present in the local disk</Description>
+      <Execution id="eb043294-5563-48cc-b82a-644143c1b16d" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.NuGetCoreTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="DownloadPackageWithNuGetCoreTest" />
+    </UnitTest>
+    <CodedWebTest name="StatisticsPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="9ad6e2e2-a082-8088-00f6-e05079fd89a0">
+      <Execution id="85d61d4d-2427-4614-aa4f-2a87058233ff" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="StatisticsPageTest" />
+    </CodedWebTest>
+    <UnitTest name="UploadAndDownLoadPackageWithDotCsNames" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="1" id="aedace0f-10de-70d5-5e45-b7227987df86">
+      <Description>Creates a test package which ends with .cs and pushes it to the server using Nuget.exe</Description>
+      <Execution id="d20fa7c8-8be6-4d09-86be-84355c0187f8" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ClientIntegrationTests.NugetCommandLineTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="UploadAndDownLoadPackageWithDotCsNames" />
+    </UnitTest>
+    <UnitTest name="GetUpdatesTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="02d43bf4-c2fb-43fb-6999-a16887a86fa6">
+      <Execution id="ccd14749-2b77-4ad2-bf7f-7301264612d1" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="GetUpdatesTest" />
+    </UnitTest>
+    <CodedWebTest name="UploadPackageWithoutLoginTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="0449da0f-5881-ffca-f9d0-f7c0ad709071">
+      <Execution id="c0c021e9-d6f0-488d-a2bc-2e98da356405" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="UploadPackageWithoutLoginTest" />
+    </CodedWebTest>
+    <CodedWebTest name="UploadPackageFromUI" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="80baf145-2a87-1c50-450f-57e4de9d3b4f">
+      <Execution id="349502d0-cefc-4201-9722-2cee42e01ff8" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="UploadPackageFromUI" />
+    </CodedWebTest>
+    <UnitTest name="DownloadPackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="cc44bdbd-ce3e-69f6-f020-1fcb65293738">
+      <Description>Downloads a package from the V2 feed and checks if the file is present on local disk</Description>
+      <Execution id="5b2ed639-5048-4860-b6c8-2c8a96cde41e" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataFeedTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="DownloadPackageFromV2Feed" />
+    </UnitTest>
+    <CodedWebTest name="RegisterNewUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="428c8a13-f822-cffc-6ae0-78452d15e1fb">
+      <Execution id="c9663120-9bc5-4581-8873-961f480f7e81" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="RegisterNewUserTest" />
+    </CodedWebTest>
+    <CodedWebTest name="PackagesPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="5ceca307-8fd2-e863-65bb-d8151e5dafba">
+      <Execution id="bdc8718d-503f-43f5-871d-799ec1d77a9f" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="PackagesPageTest" />
+    </CodedWebTest>
+    <UnitTest name="DownPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="f206f30d-af4b-ae66-9032-732bc03336c1">
+      <Description>Downloads a package using NuGet.exe and checks if the package file is present in the output dir</Description>
+      <Execution id="4aaf1a32-3f90-4a55-8dc0-78244df961a3" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ClientIntegrationTests.NugetCommandLineTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="DownPackageWithNuGetCommandLineTest" />
+    </UnitTest>
+    <CodedWebTest name="ContactUsAndReportAbuseLinkTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="e95ef3f5-4ae2-36dc-5d98-7ace7daaf2ea">
+      <Execution id="05093073-5169-40e3-b3a4-c3904757e744" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.PackageManagement" class="ContactUsAndReportAbuseLinkTest" />
+    </CodedWebTest>
+    <CodedWebTest name="UploadPackageWithMinClientVersionFromUITest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="336cce10-fc9c-411f-b491-c5f9f404e7b7">
+      <Execution id="5aead744-bac2-4bd7-91ff-920d820ab4b4" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.PackageManagement" class="UploadPackageWithMinClientVersionFromUITest" />
+    </CodedWebTest>
+    <UnitTest name="UploadPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="baeffb56-e5a3-71a3-dcf4-ca714ba14856">
+      <Description>Creates a test package and pushes it to the server using Nuget.exe</Description>
+      <Execution id="0a7069ca-0ec7-4419-a8ac-39bb39888c9a" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ClientIntegrationTests.NugetCommandLineTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="UploadPackageWithNuGetCommandLineTest" />
+    </UnitTest>
+    <UnitTest name="UploadAndDownLoadPackageWithMinClientVersion" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="38905457-2302-9ddf-ad04-3107d5b18355">
+      <Description>Creates a test package with minclientversion tag and pushes it to the server using Nuget.exe</Description>
+      <Execution id="8e6d401b-0459-459f-865f-d5b274fc6231" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ClientIntegrationTests.NugetCommandLineTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="UploadAndDownLoadPackageWithMinClientVersion" />
+    </UnitTest>
+    <CodedWebTest name="DeletePackageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="9387a1a2-3523-2e44-8030-533d344923cf">
+      <Execution id="3a304453-39c7-4053-8bb6-cc4de35ff991" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="DeletePackageTest" />
+    </CodedWebTest>
+    <CodedWebTest name="ReadOnlyModeRegisterNewUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="c320789f-a801-c187-e7d8-0f17b24ff835">
+      <Execution id="1a333cfa-4ada-4463-a9b3-e0f2b94db8a5" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="ReadOnlyModeRegisterNewUserTest" />
+    </CodedWebTest>
+  </TestDefinitions>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="P0Tests" id="01372d05-1ac1-4f00-ac37-5ca977686e4e" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
+      <TestLinks>
+        <TestLink id="d527504e-456c-ed4a-8eba-7c20c18ba47d" name="HomePageValidationTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="a1c602d9-292b-1042-380c-707cec091de9" name="LogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="80baf145-2a87-1c50-450f-57e4de9d3b4f" name="UploadPackageFromUI" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="cc44bdbd-ce3e-69f6-f020-1fcb65293738" name="DownloadPackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="916d542f-9953-383f-a9cc-e87980667cf3" name="RestorePackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+      </TestLinks>
+    </TestList>
+    <TestList name="ReadOnlyModeTests" id="f9b8ac1f-7978-4738-afc2-6918b063e5c3" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
+      <TestLinks>
+        <TestLink id="c320789f-a801-c187-e7d8-0f17b24ff835" name="ReadOnlyModeRegisterNewUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="04cd200b-33df-3564-ded5-686cdfe44f77" name="DownloadPackageWithNuGetCoreTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="9ad6e2e2-a082-8088-00f6-e05079fd89a0" name="StatisticsPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="f206f30d-af4b-ae66-9032-732bc03336c1" name="DownPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="d527504e-456c-ed4a-8eba-7c20c18ba47d" name="HomePageValidationTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="a1c602d9-292b-1042-380c-707cec091de9" name="LogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+      </TestLinks>
+    </TestList>
+    <TestList name="AllHappyPathTests" id="b836686b-8922-4ce2-8bcc-bd368809954a" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
+      <TestLinks>
+        <TestLink id="916d542f-9953-383f-a9cc-e87980667cf3" name="RestorePackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="04cd200b-33df-3564-ded5-686cdfe44f77" name="DownloadPackageWithNuGetCoreTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="0449da0f-5881-ffca-f9d0-f7c0ad709071" name="UploadPackageWithoutLoginTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="42a9bfc6-ed87-df50-c848-82aca2c8fd0d" name="ManagePackagesPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="428c8a13-f822-cffc-6ae0-78452d15e1fb" name="RegisterNewUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="a6f81ddd-4476-9109-b107-ff9673898e71" name="ContactOwnerTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="f206f30d-af4b-ae66-9032-732bc03336c1" name="DownPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="d527504e-456c-ed4a-8eba-7c20c18ba47d" name="HomePageValidationTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="9387a1a2-3523-2e44-8030-533d344923cf" name="DeletePackageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="80baf145-2a87-1c50-450f-57e4de9d3b4f" name="UploadPackageFromUI" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="5ceca307-8fd2-e863-65bb-d8151e5dafba" name="PackagesPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="02d43bf4-c2fb-43fb-6999-a16887a86fa6" name="GetUpdatesTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="5d62a4b0-dcba-4028-434b-2b747b4c411f" name="UploadMultipleVersionOfPackage" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="baeffb56-e5a3-71a3-dcf4-ca714ba14856" name="UploadPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="cc44bdbd-ce3e-69f6-f020-1fcb65293738" name="DownloadPackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="2a6c6363-3869-0c15-2d51-409738bef970" name="FindPackagesByIdTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="a1c602d9-292b-1042-380c-707cec091de9" name="LogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+      </TestLinks>
+    </TestList>
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+    <TestList name="Lists of Results" id="8c43106b-9dc1-4907-a29f-aa66a61bf5b6" />
+  </TestLists>
+  <TestEntries>
+    <TestEntry testId="916d542f-9953-383f-a9cc-e87980667cf3" executionId="9a5796f6-b2d8-4b71-87ce-98903ac00857" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry isTransparent="false" testId="a1c602d9-292b-1042-380c-707cec091de9" executionId="0bb89928-1224-4836-a028-45d4ea96194b" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry isTransparent="false" testId="80baf145-2a87-1c50-450f-57e4de9d3b4f" executionId="349502d0-cefc-4201-9722-2cee42e01ff8" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry testId="cc44bdbd-ce3e-69f6-f020-1fcb65293738" executionId="5b2ed639-5048-4860-b6c8-2c8a96cde41e" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry isTransparent="false" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" executionId="092c2464-c61c-4de7-9cb5-e7ae7f594918" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry isTransparent="false" testId="5ceca307-8fd2-e863-65bb-d8151e5dafba" executionId="bdc8718d-503f-43f5-871d-799ec1d77a9f" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="80baf145-2a87-1c50-450f-57e4de9d3b4f" executionId="0f344521-debc-49d3-b03a-18562147103b" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="42a9bfc6-ed87-df50-c848-82aca2c8fd0d" executionId="ddbeb608-caec-456e-85e9-13174f67c380" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="a1c602d9-292b-1042-380c-707cec091de9" executionId="1a0542bb-322f-48d0-a38d-ad25c3ca1d94" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="2a6c6363-3869-0c15-2d51-409738bef970" executionId="c1491b7f-bd3f-4c0d-aba7-a88f57604881" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="a6f81ddd-4476-9109-b107-ff9673898e71" executionId="ff6afcfd-0a44-45bc-99b5-bea039a23563" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="cc44bdbd-ce3e-69f6-f020-1fcb65293738" executionId="cabd040a-d9d8-49b5-a416-b920f9362f5c" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="916d542f-9953-383f-a9cc-e87980667cf3" executionId="c3e888e7-4e9d-4d55-a026-69a3c3d194b2" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" executionId="cc02fe91-772d-4ae9-b2c3-5966cba9478e" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="baeffb56-e5a3-71a3-dcf4-ca714ba14856" executionId="0a7069ca-0ec7-4419-a8ac-39bb39888c9a" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="02d43bf4-c2fb-43fb-6999-a16887a86fa6" executionId="ccd14749-2b77-4ad2-bf7f-7301264612d1" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="f206f30d-af4b-ae66-9032-732bc03336c1" executionId="4aaf1a32-3f90-4a55-8dc0-78244df961a3" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="0449da0f-5881-ffca-f9d0-f7c0ad709071" executionId="c0c021e9-d6f0-488d-a2bc-2e98da356405" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="428c8a13-f822-cffc-6ae0-78452d15e1fb" executionId="c9663120-9bc5-4581-8873-961f480f7e81" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="5d62a4b0-dcba-4028-434b-2b747b4c411f" executionId="c411ffc3-8d14-49d0-b141-e5c9eae9d204" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="9387a1a2-3523-2e44-8030-533d344923cf" executionId="3a304453-39c7-4053-8bb6-cc4de35ff991" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="04cd200b-33df-3564-ded5-686cdfe44f77" executionId="eb043294-5563-48cc-b82a-644143c1b16d" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="9ad6e2e2-a082-8088-00f6-e05079fd89a0" executionId="85d61d4d-2427-4614-aa4f-2a87058233ff" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry isTransparent="false" testId="a1c602d9-292b-1042-380c-707cec091de9" executionId="7764847a-050b-4262-84e5-0d067ca89f52" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry testId="f206f30d-af4b-ae66-9032-732bc03336c1" executionId="1acf6512-a647-4583-85a4-161c38654213" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry isTransparent="false" testId="c320789f-a801-c187-e7d8-0f17b24ff835" executionId="1a333cfa-4ada-4463-a9b3-e0f2b94db8a5" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry testId="04cd200b-33df-3564-ded5-686cdfe44f77" executionId="674a67b4-edc9-4548-9c44-5d6a999f407c" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry isTransparent="false" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" executionId="fdc2b931-f12b-45bf-a304-865054862fe9" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry testId="1023d05b-493c-b740-c3dd-cea86069017f" executionId="a500a659-3fa4-410a-862f-f02b409d3d37" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="93269e98-8dd5-495f-dce5-ac7d2e101b5b" executionId="ccaa1246-08b3-42d8-a4fa-4a5f200aa8d0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="38905457-2302-9ddf-ad04-3107d5b18355" executionId="8e6d401b-0459-459f-865f-d5b274fc6231" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="aedace0f-10de-70d5-5e45-b7227987df86" executionId="d20fa7c8-8be6-4d09-86be-84355c0187f8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2653a81d-b439-f73a-c036-efc0ec29de69" executionId="32b56bc0-032e-4ec0-a263-544f7c22e1a1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e40da15b-eedb-5ba3-88d7-9972079c30a6" executionId="3b6e6d8f-7094-4aef-9d19-2c4a3ad54bd9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4808abb0-e068-dde3-e6bf-b1a137b6f0f9" executionId="99efd18a-308b-4b4c-8b4e-43ef66366a89" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="5d66c021-336a-34c0-9414-19ea84bd29bc" executionId="b2ecb488-1b9c-4564-8cc1-38c8ca8ecbb3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="d53feaf3-be7c-3e85-2afa-d33fc0e450a3" executionId="0a73ac99-f24f-4334-acc1-25b77c7f9efd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="e95ef3f5-4ae2-36dc-5d98-7ace7daaf2ea" executionId="05093073-5169-40e3-b3a4-c3904757e744" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="336cce10-fc9c-411f-b491-c5f9f404e7b7" executionId="5aead744-bac2-4bd7-91ff-920d820ab4b4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="340e6bba-7e3d-842d-7ee1-669ddc667c0c" executionId="c354c742-acfb-4a72-9622-aecb95459d96" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="6c390634-83d7-955a-87c4-b41e59b8d7ae" executionId="c3ba9a66-25c0-45e5-9ddb-b33db47d12f1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <Results>
+    <UnitTestResult executionId="9a5796f6-b2d8-4b71-87ce-98903ac00857" testId="916d542f-9953-383f-a9cc-e87980667cf3" testName="RestorePackageFromV2Feed" computerName="CLAYCO7" duration="00:00:00.2175879" startTime="2013-04-25T14:23:35.4433288-07:00" endTime="2013-04-25T14:23:36.7367316-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="PassedButRunAborted" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="9a5796f6-b2d8-4b71-87ce-98903ac00857">
+    </UnitTestResult>
+    <WebTestResult executionId="0bb89928-1224-4836-a028-45d4ea96194b" testId="a1c602d9-292b-1042-380c-707cec091de9" testName="LogonTest" computerName="CLAYCO7" duration="00:00:00.9767216" startTime="2013-04-25T14:23:36.7637532-07:00" endTime="2013-04-25T14:23:48.2841841-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Failed" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="0bb89928-1224-4836-a028-45d4ea96194b">
+      <Output>
+        <ErrorInfo>
+          <Message>1 primary requests, 0 dependant requests and 0 conditional rules failed</Message>
+        </ErrorInfo>
+      </Output>
+      <ResultFiles>
+        <ResultFile path="LogonTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[55]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="{{$IEAcceptLanguage}}" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[55]\In\0bb89928-1224-4836-a028-45d4ea96194b\LogonTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="349502d0-cefc-4201-9722-2cee42e01ff8" testId="80baf145-2a87-1c50-450f-57e4de9d3b4f" testName="UploadPackageFromUI" computerName="CLAYCO7" duration="00:00:01.9623411" startTime="2013-04-25T14:23:48.2841841-07:00" endTime="2013-04-25T14:23:55.1921965-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Aborted" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="349502d0-cefc-4201-9722-2cee42e01ff8">
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[55]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>
+      </WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="5b2ed639-5048-4860-b6c8-2c8a96cde41e" testId="cc44bdbd-ce3e-69f6-f020-1fcb65293738" testName="DownloadPackageFromV2Feed" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="5b2ed639-5048-4860-b6c8-2c8a96cde41e">
+    </UnitTestResult>
+    <TestResult executionId="092c2464-c61c-4de7-9cb5-e7ae7f594918" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" testName="HomePageValidationTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="092c2464-c61c-4de7-9cb5-e7ae7f594918">
+    </TestResult>
+    <TestResult executionId="bdc8718d-503f-43f5-871d-799ec1d77a9f" testId="5ceca307-8fd2-e863-65bb-d8151e5dafba" testName="PackagesPageTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="bdc8718d-503f-43f5-871d-799ec1d77a9f">
+    </TestResult>
+    <TestResult executionId="0f344521-debc-49d3-b03a-18562147103b" testId="80baf145-2a87-1c50-450f-57e4de9d3b4f" testName="UploadPackageFromUI" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="0f344521-debc-49d3-b03a-18562147103b">
+    </TestResult>
+    <TestResult executionId="ddbeb608-caec-456e-85e9-13174f67c380" testId="42a9bfc6-ed87-df50-c848-82aca2c8fd0d" testName="ManagePackagesPageTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="ddbeb608-caec-456e-85e9-13174f67c380">
+    </TestResult>
+    <TestResult executionId="1a0542bb-322f-48d0-a38d-ad25c3ca1d94" testId="a1c602d9-292b-1042-380c-707cec091de9" testName="LogonTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="1a0542bb-322f-48d0-a38d-ad25c3ca1d94">
+    </TestResult>
+    <UnitTestResult executionId="c1491b7f-bd3f-4c0d-aba7-a88f57604881" testId="2a6c6363-3869-0c15-2d51-409738bef970" testName="FindPackagesByIdTest" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="c1491b7f-bd3f-4c0d-aba7-a88f57604881">
+    </UnitTestResult>
+    <TestResult executionId="ff6afcfd-0a44-45bc-99b5-bea039a23563" testId="a6f81ddd-4476-9109-b107-ff9673898e71" testName="ContactOwnerTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="ff6afcfd-0a44-45bc-99b5-bea039a23563">
+    </TestResult>
+    <UnitTestResult executionId="cabd040a-d9d8-49b5-a416-b920f9362f5c" testId="cc44bdbd-ce3e-69f6-f020-1fcb65293738" testName="DownloadPackageFromV2Feed" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="cabd040a-d9d8-49b5-a416-b920f9362f5c">
+    </UnitTestResult>
+    <UnitTestResult executionId="c3e888e7-4e9d-4d55-a026-69a3c3d194b2" testId="916d542f-9953-383f-a9cc-e87980667cf3" testName="RestorePackageFromV2Feed" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="c3e888e7-4e9d-4d55-a026-69a3c3d194b2">
+    </UnitTestResult>
+    <TestResult executionId="cc02fe91-772d-4ae9-b2c3-5966cba9478e" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" testName="HomePageValidationTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="cc02fe91-772d-4ae9-b2c3-5966cba9478e">
+    </TestResult>
+    <UnitTestResult executionId="0a7069ca-0ec7-4419-a8ac-39bb39888c9a" testId="baeffb56-e5a3-71a3-dcf4-ca714ba14856" testName="UploadPackageWithNuGetCommandLineTest" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="0a7069ca-0ec7-4419-a8ac-39bb39888c9a">
+    </UnitTestResult>
+    <UnitTestResult executionId="ccd14749-2b77-4ad2-bf7f-7301264612d1" testId="02d43bf4-c2fb-43fb-6999-a16887a86fa6" testName="GetUpdatesTest" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="ccd14749-2b77-4ad2-bf7f-7301264612d1">
+    </UnitTestResult>
+    <UnitTestResult executionId="4aaf1a32-3f90-4a55-8dc0-78244df961a3" testId="f206f30d-af4b-ae66-9032-732bc03336c1" testName="DownPackageWithNuGetCommandLineTest" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="4aaf1a32-3f90-4a55-8dc0-78244df961a3">
+    </UnitTestResult>
+    <TestResult executionId="c0c021e9-d6f0-488d-a2bc-2e98da356405" testId="0449da0f-5881-ffca-f9d0-f7c0ad709071" testName="UploadPackageWithoutLoginTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="c0c021e9-d6f0-488d-a2bc-2e98da356405">
+    </TestResult>
+    <TestResult executionId="c9663120-9bc5-4581-8873-961f480f7e81" testId="428c8a13-f822-cffc-6ae0-78452d15e1fb" testName="RegisterNewUserTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="c9663120-9bc5-4581-8873-961f480f7e81">
+    </TestResult>
+    <UnitTestResult executionId="c411ffc3-8d14-49d0-b141-e5c9eae9d204" testId="5d62a4b0-dcba-4028-434b-2b747b4c411f" testName="UploadMultipleVersionOfPackage" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="c411ffc3-8d14-49d0-b141-e5c9eae9d204">
+    </UnitTestResult>
+    <TestResult executionId="3a304453-39c7-4053-8bb6-cc4de35ff991" testId="9387a1a2-3523-2e44-8030-533d344923cf" testName="DeletePackageTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="3a304453-39c7-4053-8bb6-cc4de35ff991">
+    </TestResult>
+    <UnitTestResult executionId="eb043294-5563-48cc-b82a-644143c1b16d" testId="04cd200b-33df-3564-ded5-686cdfe44f77" testName="DownloadPackageWithNuGetCoreTest" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="eb043294-5563-48cc-b82a-644143c1b16d">
+    </UnitTestResult>
+    <TestResult executionId="85d61d4d-2427-4614-aa4f-2a87058233ff" testId="9ad6e2e2-a082-8088-00f6-e05079fd89a0" testName="StatisticsPageTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="85d61d4d-2427-4614-aa4f-2a87058233ff">
+    </TestResult>
+    <TestResult executionId="7764847a-050b-4262-84e5-0d067ca89f52" testId="a1c602d9-292b-1042-380c-707cec091de9" testName="LogonTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="7764847a-050b-4262-84e5-0d067ca89f52">
+    </TestResult>
+    <UnitTestResult executionId="1acf6512-a647-4583-85a4-161c38654213" testId="f206f30d-af4b-ae66-9032-732bc03336c1" testName="DownPackageWithNuGetCommandLineTest" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="1acf6512-a647-4583-85a4-161c38654213">
+    </UnitTestResult>
+    <TestResult executionId="1a333cfa-4ada-4463-a9b3-e0f2b94db8a5" testId="c320789f-a801-c187-e7d8-0f17b24ff835" testName="ReadOnlyModeRegisterNewUserTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="1a333cfa-4ada-4463-a9b3-e0f2b94db8a5">
+    </TestResult>
+    <UnitTestResult executionId="674a67b4-edc9-4548-9c44-5d6a999f407c" testId="04cd200b-33df-3564-ded5-686cdfe44f77" testName="DownloadPackageWithNuGetCoreTest" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="674a67b4-edc9-4548-9c44-5d6a999f407c">
+    </UnitTestResult>
+    <TestResult executionId="fdc2b931-f12b-45bf-a304-865054862fe9" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" testName="HomePageValidationTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="fdc2b931-f12b-45bf-a304-865054862fe9">
+    </TestResult>
+    <UnitTestResult executionId="a500a659-3fa4-410a-862f-f02b409d3d37" testId="1023d05b-493c-b740-c3dd-cea86069017f" testName="SearchV1Feed" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a500a659-3fa4-410a-862f-f02b409d3d37">
+    </UnitTestResult>
+    <UnitTestResult executionId="ccaa1246-08b3-42d8-a4fa-4a5f200aa8d0" testId="93269e98-8dd5-495f-dce5-ac7d2e101b5b" testName="SearchV2Feed" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ccaa1246-08b3-42d8-a4fa-4a5f200aa8d0">
+    </UnitTestResult>
+    <UnitTestResult executionId="8e6d401b-0459-459f-865f-d5b274fc6231" testId="38905457-2302-9ddf-ad04-3107d5b18355" testName="UploadAndDownLoadPackageWithMinClientVersion" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8e6d401b-0459-459f-865f-d5b274fc6231">
+    </UnitTestResult>
+    <UnitTestResult executionId="d20fa7c8-8be6-4d09-86be-84355c0187f8" testId="aedace0f-10de-70d5-5e45-b7227987df86" testName="UploadAndDownLoadPackageWithDotCsNames" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d20fa7c8-8be6-4d09-86be-84355c0187f8">
+    </UnitTestResult>
+    <UnitTestResult executionId="32b56bc0-032e-4ec0-a263-544f7c22e1a1" testId="2653a81d-b439-f73a-c036-efc0ec29de69" testName="AddPackageToWindows8CuratedFeed" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32b56bc0-032e-4ec0-a263-544f7c22e1a1">
+    </UnitTestResult>
+    <UnitTestResult executionId="3b6e6d8f-7094-4aef-9d19-2c4a3ad54bd9" testId="e40da15b-eedb-5ba3-88d7-9972079c30a6" testName="SearchWindows8CuratedFeed" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3b6e6d8f-7094-4aef-9d19-2c4a3ad54bd9">
+    </UnitTestResult>
+    <UnitTestResult executionId="99efd18a-308b-4b4c-8b4e-43ef66366a89" testId="4808abb0-e068-dde3-e6bf-b1a137b6f0f9" testName="SearchWebMatrixCuratedFeed" computerName="CLAYCO7" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="99efd18a-308b-4b4c-8b4e-43ef66366a89">
+    </UnitTestResult>
+    <TestResult executionId="b2ecb488-1b9c-4564-8cc1-38c8ca8ecbb3" testId="5d66c021-336a-34c0-9414-19ea84bd29bc" testName="InvalidLogonTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b2ecb488-1b9c-4564-8cc1-38c8ca8ecbb3">
+    </TestResult>
+    <TestResult executionId="0a73ac99-f24f-4334-acc1-25b77c7f9efd" testId="d53feaf3-be7c-3e85-2afa-d33fc0e450a3" testName="SecurityHeaderTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0a73ac99-f24f-4334-acc1-25b77c7f9efd">
+    </TestResult>
+    <TestResult executionId="05093073-5169-40e3-b3a4-c3904757e744" testId="e95ef3f5-4ae2-36dc-5d98-7ace7daaf2ea" testName="ContactUsAndReportAbuseLinkTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="05093073-5169-40e3-b3a4-c3904757e744">
+    </TestResult>
+    <TestResult executionId="5aead744-bac2-4bd7-91ff-920d820ab4b4" testId="336cce10-fc9c-411f-b491-c5f9f404e7b7" testName="UploadPackageWithMinClientVersionFromUITest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5aead744-bac2-4bd7-91ff-920d820ab4b4">
+    </TestResult>
+    <TestResult executionId="c354c742-acfb-4a72-9622-aecb95459d96" testId="340e6bba-7e3d-842d-7ee1-669ddc667c0c" testName="AggregateStatsInHomePage" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c354c742-acfb-4a72-9622-aecb95459d96">
+    </TestResult>
+    <TestResult executionId="c3ba9a66-25c0-45e5-9ddb-b33db47d12f1" testId="6c390634-83d7-955a-87c4-b41e59b8d7ae" testName="RegisterInvalidUserTest" computerName="CLAYCO7" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="NotExecuted" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c3ba9a66-25c0-45e5-9ddb-b33db47d12f1">
+    </TestResult>
+  </Results>
+</TestRun>

@@ -1,0 +1,1465 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<TestRun id="3c45cdb5-148d-40a9-bfab-81b4af74b2e4" name="TestResults" runUser="REDMOND\clayco" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+    <Description>These are default test settings for a local test run.</Description>
+    <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+      <DeploymentItem filename=".nuget\NuGet.Config" />
+      <DeploymentItem filename=".nuget\NuGet.exe" />
+      <DeploymentItem filename=".nuget\NuGet.targets" />
+    </Deployment>
+    <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+    <Execution>
+      <TestTypeSpecific>
+        <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+          <AssemblyResolution>
+            <TestDirectory useLoadContext="true" />
+          </AssemblyResolution>
+        </UnitTestRunConfig>
+        <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+          <Browser name="Internet Explorer 9.0" MaxConnections="6">
+            <Headers>
+              <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+              <Header name="Accept" value="*/*" />
+              <Header name="Accept-Language" value="{{$IEAcceptLanguage}}" />
+              <Header name="Accept-Encoding" value="GZIP" />
+            </Headers>
+          </Browser>
+        </WebTestRunConfiguration>
+      </TestTypeSpecific>
+      <AgentRule name="LocalMachineDefaultRole">
+      </AgentRule>
+    </Execution>
+  </TestSettings>
+  <Times creation="2013-04-27T00:39:21.5272047-07:00" queuing="2013-04-27T00:39:21.7213632-07:00" start="2013-04-27T00:39:21.8104354-07:00" finish="2013-04-27T00:44:42.6585098-07:00" />
+  <ResultSummary outcome="Error">
+    <Counters total="45" executed="45" passed="34" error="1" failed="10" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+  <TestDefinitions>
+    <UnitTest name="SearchWebMatrixCuratedFeed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="4808abb0-e068-dde3-e6bf-b1a137b6f0f9">
+      <Description>Performs a querystring-based search of the WebMatrix curated feed.  Confirms expected packages are returned.</Description>
+      <Execution id="de52122e-79ff-4df2-9197-2dd38c0b5bb0" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.CuratedFeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="SearchWebMatrixCuratedFeed" />
+    </UnitTest>
+    <UnitTest name="SearchWindows8CuratedFeed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="e40da15b-eedb-5ba3-88d7-9972079c30a6">
+      <Description>Performs a querystring-based search of the Windows 8 curated feed.  Confirms expected packages are returned.</Description>
+      <Execution id="d4a0f702-fe11-4624-b3f1-16907097add2" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.CuratedFeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="SearchWindows8CuratedFeed" />
+    </UnitTest>
+    <CodedWebTest name="ContactOwnerTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="a6f81ddd-4476-9109-b107-ff9673898e71">
+      <Execution id="95043692-89e9-4905-872a-29ef6b6fc568" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.PackageManagement" class="ContactOwnerTest" />
+    </CodedWebTest>
+    <UnitTest name="UploadMultipleVersionOfPackage" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="1" id="5d62a4b0-dcba-4028-434b-2b747b4c411f">
+      <Description>Upload multiple versions of a package and see if it gets uploaded properly</Description>
+      <Execution id="e990c469-b33c-4dd2-83f8-ba3aec068a44" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.PackageVersionTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="UploadMultipleVersionOfPackage" />
+    </UnitTest>
+    <UnitTest name="AddPackageToWindows8CuratedFeed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="1" id="2653a81d-b439-f73a-c036-efc0ec29de69">
+      <Description>Creates a package with Windows8 tags. Uploads it and checks if it has been curated</Description>
+      <Execution id="7a9453df-7a02-4ddd-a004-e77718e03765" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.CuratedFeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="AddPackageToWindows8CuratedFeed" />
+    </UnitTest>
+    <UnitTest name="FindPackagesByIdTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="2a6c6363-3869-0c15-2d51-409738bef970">
+      <Execution id="6f645d47-497f-41e2-84fd-d22a6754eb4e" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="FindPackagesByIdTest" />
+    </UnitTest>
+    <CodedWebTest name="HomePageValidationTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="d527504e-456c-ed4a-8eba-7c20c18ba47d">
+      <Execution id="3e52d8f2-503e-400e-9863-bf6dd0a01962" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="HomePageValidationTest" />
+    </CodedWebTest>
+    <UnitTest name="RestorePackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="916d542f-9953-383f-a9cc-e87980667cf3">
+      <Description>Restores a package from the V2 feed and checks if the file is present on local disk</Description>
+      <Execution id="fe50c1fb-563b-4855-8d42-3e84e51f7601" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataFeedTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="RestorePackageFromV2Feed" />
+    </UnitTest>
+    <UnitTest name="SearchV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="93269e98-8dd5-495f-dce5-ac7d2e101b5b">
+      <Description>Performs a querystring-based search of the default (non-curated) v2 feed.  Confirms expected packages are returned.</Description>
+      <Execution id="29ff4338-fdea-46c3-ae2f-860bfc8f9692" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.SearchTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="SearchV2Feed" />
+    </UnitTest>
+    <CodedWebTest name="OutercurveBrandingValidationTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="6424793a-173e-57e5-7cc5-fbe2ba5792e4">
+      <Execution id="a256beb9-95c9-47af-8f4e-ae20815ee1f8" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="OutercurveBrandingValidationTest" />
+    </CodedWebTest>
+    <CodedWebTest name="LogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="a1c602d9-292b-1042-380c-707cec091de9">
+      <Execution id="4211643e-29c7-43b5-82af-544d4714f9e3" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="LogonTest" />
+    </CodedWebTest>
+    <CodedWebTest name="RegisterInvalidUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="6c390634-83d7-955a-87c4-b41e59b8d7ae">
+      <Execution id="b41fa8c4-3056-44d3-a6fd-4caf3041abe5" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="RegisterInvalidUserTest" />
+    </CodedWebTest>
+    <UnitTest name="SearchV1Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="1023d05b-493c-b740-c3dd-cea86069017f">
+      <Description>Performs a querystring-based search of the v1 feed.  Confirms expected packages are returned.</Description>
+      <Execution id="b7ac2f7b-ee09-48f9-a1d5-5941b5e6500c" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.Features.SearchTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="SearchV1Feed" />
+    </UnitTest>
+    <CodedWebTest name="InvalidLogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="5d66c021-336a-34c0-9414-19ea84bd29bc">
+      <Execution id="5073d7d5-2f67-474e-ad77-ca8e3c5fc293" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="InvalidLogonTest" />
+    </CodedWebTest>
+    <CodedWebTest name="SecurityHeaderTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="d53feaf3-be7c-3e85-2afa-d33fc0e450a3">
+      <Execution id="47621071-b913-4631-a83a-0e8f63e335a6" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="SecurityHeaderTest" />
+    </CodedWebTest>
+    <CodedWebTest name="AggregateStatsInHomePage" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="340e6bba-7e3d-842d-7ee1-669ddc667c0c">
+      <Execution id="10588165-0a0b-4085-be9a-abe0dfd359b7" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="AggregateStatsInHomePage" />
+    </CodedWebTest>
+    <UnitTest name="PackageFeedSanityTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="f3b31057-c214-7658-97dc-45cdabcc0445">
+      <Execution id="cbc71b2d-0851-47fa-9a37-bcfa451e0e04" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="PackageFeedSanityTest" />
+    </UnitTest>
+    <CodedWebTest name="ManagePackagesPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="42a9bfc6-ed87-df50-c848-82aca2c8fd0d">
+      <Execution id="a74edc88-c7d4-443c-bfcd-8523f1ec7bd6" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.PackageManagement" class="ManagePackagesPageTest" />
+    </CodedWebTest>
+    <UnitTest name="DownloadPackageWithNuGetCoreTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="04cd200b-33df-3564-ded5-686cdfe44f77">
+      <Description>Downloads a package from the server and validates that the file is present in the local disk</Description>
+      <Execution id="08488b30-9925-4e07-876f-1a4f7fc7af2d" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.NuGetCoreTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="DownloadPackageWithNuGetCoreTest" />
+    </UnitTest>
+    <CodedWebTest name="StatisticsPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="9ad6e2e2-a082-8088-00f6-e05079fd89a0">
+      <Execution id="8378ecca-4367-49e2-b97a-581b6482d30a" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="StatisticsPageTest" />
+    </CodedWebTest>
+    <UnitTest name="UploadAndDownLoadPackageWithDotCsNames" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="1" id="aedace0f-10de-70d5-5e45-b7227987df86">
+      <Description>Creates a test package which ends with .cs and pushes it to the server using Nuget.exe</Description>
+      <Execution id="68efc2e3-c72f-4e2f-958d-9650689957b5" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ClientIntegrationTests.NugetCommandLineTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="UploadAndDownLoadPackageWithDotCsNames" />
+    </UnitTest>
+    <UnitTest name="GetUpdatesTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="02d43bf4-c2fb-43fb-6999-a16887a86fa6">
+      <Execution id="363c26b9-34de-4bab-b8fb-caf83bda5423" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="GetUpdatesTest" />
+    </UnitTest>
+    <CodedWebTest name="UploadPackageWithoutLoginTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="0449da0f-5881-ffca-f9d0-f7c0ad709071">
+      <Execution id="2abb228d-80b3-4fd0-8d8b-629d93c32543" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="UploadPackageWithoutLoginTest" />
+    </CodedWebTest>
+    <CodedWebTest name="UploadPackageFromUI" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="80baf145-2a87-1c50-450f-57e4de9d3b4f">
+      <Execution id="2f311c44-d45a-49ce-a23c-59170e548a5c" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="UploadPackageFromUI" />
+    </CodedWebTest>
+    <UnitTest name="DownloadPackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="cc44bdbd-ce3e-69f6-f020-1fcb65293738">
+      <Description>Downloads a package from the V2 feed and checks if the file is present on local disk</Description>
+      <Execution id="0478a108-a0bd-44e1-9ddf-3d84cee07b50" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataFeedTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="DownloadPackageFromV2Feed" />
+    </UnitTest>
+    <CodedWebTest name="RegisterNewUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="428c8a13-f822-cffc-6ae0-78452d15e1fb">
+      <Execution id="c3e0e5d6-1531-43a9-89b5-415dd2900566" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="RegisterNewUserTest" />
+    </CodedWebTest>
+    <CodedWebTest name="PackagesPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="5ceca307-8fd2-e863-65bb-d8151e5dafba">
+      <Execution id="f5bd70c5-0d81-4f27-81ac-a71e73717369" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="PackagesPageTest" />
+    </CodedWebTest>
+    <UnitTest name="DownPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="f206f30d-af4b-ae66-9032-732bc03336c1">
+      <Description>Downloads a package using NuGet.exe and checks if the package file is present in the output dir</Description>
+      <Execution id="f02599c2-4a90-4f3e-a54d-2dd655836eaa" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ClientIntegrationTests.NugetCommandLineTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="DownPackageWithNuGetCommandLineTest" />
+    </UnitTest>
+    <CodedWebTest name="ContactUsAndReportAbuseLinkTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="e95ef3f5-4ae2-36dc-5d98-7ace7daaf2ea">
+      <Execution id="13a11fb2-0fb7-42ee-9e27-cdf74d14bfd3" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.PackageManagement" class="ContactUsAndReportAbuseLinkTest" />
+    </CodedWebTest>
+    <CodedWebTest name="UploadPackageWithMinClientVersionFromUITest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="336cce10-fc9c-411f-b491-c5f9f404e7b7">
+      <Execution id="27970c50-7905-4144-95d7-aaacb7e4ead2" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests.WebUITests.PackageManagement" class="UploadPackageWithMinClientVersionFromUITest" />
+    </CodedWebTest>
+    <UnitTest name="PackageFeedCountParameterTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="a81f4ea1-c7bf-9c67-11a9-4911e34b114e">
+      <Execution id="2b59236a-3e52-454d-8074-c7e70b9c0d7d" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="PackageFeedCountParameterTest" />
+    </UnitTest>
+    <UnitTest name="UploadPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="baeffb56-e5a3-71a3-dcf4-ca714ba14856">
+      <Description>Creates a test package and pushes it to the server using Nuget.exe</Description>
+      <Execution id="8d3e76f2-6a92-4899-9a91-fbfab8208719" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ClientIntegrationTests.NugetCommandLineTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="UploadPackageWithNuGetCommandLineTest" />
+    </UnitTest>
+    <UnitTest name="PackageFeedSortingTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="0d8895aa-7287-6587-9d23-ab62fcccc3cc">
+      <Execution id="0525fbef-3495-4f36-b74e-cf4101ef3fa3" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ODataTests.V2FeedTest, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="PackageFeedSortingTest" />
+    </UnitTest>
+    <UnitTest name="UploadAndDownLoadPackageWithMinClientVersion" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" priority="0" id="38905457-2302-9ddf-ad04-3107d5b18355">
+      <Description>Creates a test package with minclientversion tag and pushes it to the server using Nuget.exe</Description>
+      <Execution id="254e4d7c-8ade-4e30-95f3-b25aab134a53" />
+      <TestMethod codeBase="d:/github.com/nugetgallery/functionaltests/nugetgallery.functionaltests/bin/NuGetGallery.FunctionalTests.DLL" adapterTypeName="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestAdapter, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.Adapter, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" className="NuGetGallery.FunctionalTests.ClientIntegrationTests.NugetCommandLineTests, NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" name="UploadAndDownLoadPackageWithMinClientVersion" />
+    </UnitTest>
+    <CodedWebTest name="DeletePackageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="9387a1a2-3523-2e44-8030-533d344923cf">
+      <Execution id="b531977a-2e8f-404e-beac-0ce5e400eb90" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="DeletePackageTest" />
+    </CodedWebTest>
+    <CodedWebTest name="ReadOnlyModeRegisterNewUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" id="c320789f-a801-c187-e7d8-0f17b24ff835">
+      <Execution id="1695377f-ec90-4f7c-b71d-804f042f34be" />
+      <WebTestClass assembly="NuGetGallery.FunctionalTests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" namespace="NuGetGallery.FunctionalTests" class="ReadOnlyModeRegisterNewUserTest" />
+    </CodedWebTest>
+  </TestDefinitions>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="P0Tests" id="01372d05-1ac1-4f00-ac37-5ca977686e4e" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
+      <TestLinks>
+        <TestLink id="d527504e-456c-ed4a-8eba-7c20c18ba47d" name="HomePageValidationTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="a1c602d9-292b-1042-380c-707cec091de9" name="LogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="80baf145-2a87-1c50-450f-57e4de9d3b4f" name="UploadPackageFromUI" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="cc44bdbd-ce3e-69f6-f020-1fcb65293738" name="DownloadPackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="916d542f-9953-383f-a9cc-e87980667cf3" name="RestorePackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+      </TestLinks>
+    </TestList>
+    <TestList name="ReadOnlyModeTests" id="f9b8ac1f-7978-4738-afc2-6918b063e5c3" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
+      <TestLinks>
+        <TestLink id="c320789f-a801-c187-e7d8-0f17b24ff835" name="ReadOnlyModeRegisterNewUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="04cd200b-33df-3564-ded5-686cdfe44f77" name="DownloadPackageWithNuGetCoreTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="9ad6e2e2-a082-8088-00f6-e05079fd89a0" name="StatisticsPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="f206f30d-af4b-ae66-9032-732bc03336c1" name="DownPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="d527504e-456c-ed4a-8eba-7c20c18ba47d" name="HomePageValidationTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="a1c602d9-292b-1042-380c-707cec091de9" name="LogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+      </TestLinks>
+    </TestList>
+    <TestList name="AllHappyPathTests" id="b836686b-8922-4ce2-8bcc-bd368809954a" parentListId="8c43106b-9dc1-4907-a29f-aa66a61bf5b6">
+      <TestLinks>
+        <TestLink id="916d542f-9953-383f-a9cc-e87980667cf3" name="RestorePackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="04cd200b-33df-3564-ded5-686cdfe44f77" name="DownloadPackageWithNuGetCoreTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="0449da0f-5881-ffca-f9d0-f7c0ad709071" name="UploadPackageWithoutLoginTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="42a9bfc6-ed87-df50-c848-82aca2c8fd0d" name="ManagePackagesPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="428c8a13-f822-cffc-6ae0-78452d15e1fb" name="RegisterNewUserTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="a6f81ddd-4476-9109-b107-ff9673898e71" name="ContactOwnerTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="f206f30d-af4b-ae66-9032-732bc03336c1" name="DownPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="d527504e-456c-ed4a-8eba-7c20c18ba47d" name="HomePageValidationTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="9387a1a2-3523-2e44-8030-533d344923cf" name="DeletePackageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="80baf145-2a87-1c50-450f-57e4de9d3b4f" name="UploadPackageFromUI" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="5ceca307-8fd2-e863-65bb-d8151e5dafba" name="PackagesPageTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="02d43bf4-c2fb-43fb-6999-a16887a86fa6" name="GetUpdatesTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="5d62a4b0-dcba-4028-434b-2b747b4c411f" name="UploadMultipleVersionOfPackage" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="baeffb56-e5a3-71a3-dcf4-ca714ba14856" name="UploadPackageWithNuGetCommandLineTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="cc44bdbd-ce3e-69f6-f020-1fcb65293738" name="DownloadPackageFromV2Feed" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="2a6c6363-3869-0c15-2d51-409738bef970" name="FindPackagesByIdTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.TestTypes.Unit.UnitTestElement, Microsoft.VisualStudio.QualityTools.Tips.UnitTest.ObjectModel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+        <TestLink id="a1c602d9-292b-1042-380c-707cec091de9" name="LogonTest" storage="d:\github.com\nugetgallery\functionaltests\nugetgallery.functionaltests\bin\nugetgallery.functionaltests.dll" type="Microsoft.VisualStudio.TestTools.WebStress.CodedWebTestElement, Microsoft.VisualStudio.QualityTools.LoadTest,   PublicKeyToken=b03f5f7f11d50a3a" />
+      </TestLinks>
+    </TestList>
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+    <TestList name="Lists of Results" id="8c43106b-9dc1-4907-a29f-aa66a61bf5b6" />
+  </TestLists>
+  <TestEntries>
+    <TestEntry testId="916d542f-9953-383f-a9cc-e87980667cf3" executionId="6848cfa6-c603-4624-a225-6bd6c266831a" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry isTransparent="false" testId="a1c602d9-292b-1042-380c-707cec091de9" executionId="ddea8f13-4a0d-4119-9f5e-66904af16ab3" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry isTransparent="false" testId="80baf145-2a87-1c50-450f-57e4de9d3b4f" executionId="6d74c5fa-58f0-4d67-8e7f-61f25b2c95c9" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry testId="cc44bdbd-ce3e-69f6-f020-1fcb65293738" executionId="66f475dc-8ab9-4c81-b3a4-805fa682f255" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry isTransparent="false" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" executionId="fbaaffb1-2f71-4591-b36e-eb5d3d4a3768" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" />
+    <TestEntry isTransparent="false" testId="5ceca307-8fd2-e863-65bb-d8151e5dafba" executionId="f5bd70c5-0d81-4f27-81ac-a71e73717369" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="80baf145-2a87-1c50-450f-57e4de9d3b4f" executionId="2f311c44-d45a-49ce-a23c-59170e548a5c" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="42a9bfc6-ed87-df50-c848-82aca2c8fd0d" executionId="a74edc88-c7d4-443c-bfcd-8523f1ec7bd6" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="a1c602d9-292b-1042-380c-707cec091de9" executionId="65b8227d-8105-4eea-b046-5ea1c71a8850" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="2a6c6363-3869-0c15-2d51-409738bef970" executionId="6f645d47-497f-41e2-84fd-d22a6754eb4e" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="a6f81ddd-4476-9109-b107-ff9673898e71" executionId="95043692-89e9-4905-872a-29ef6b6fc568" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="cc44bdbd-ce3e-69f6-f020-1fcb65293738" executionId="0478a108-a0bd-44e1-9ddf-3d84cee07b50" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="916d542f-9953-383f-a9cc-e87980667cf3" executionId="fe50c1fb-563b-4855-8d42-3e84e51f7601" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" executionId="bb4e7c44-b86a-4b68-ae06-e0e2293807e8" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="baeffb56-e5a3-71a3-dcf4-ca714ba14856" executionId="8d3e76f2-6a92-4899-9a91-fbfab8208719" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="02d43bf4-c2fb-43fb-6999-a16887a86fa6" executionId="363c26b9-34de-4bab-b8fb-caf83bda5423" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="f206f30d-af4b-ae66-9032-732bc03336c1" executionId="a0bcc989-93ec-458e-8eb6-49c476979cc2" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="0449da0f-5881-ffca-f9d0-f7c0ad709071" executionId="2abb228d-80b3-4fd0-8d8b-629d93c32543" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="428c8a13-f822-cffc-6ae0-78452d15e1fb" executionId="c3e0e5d6-1531-43a9-89b5-415dd2900566" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="5d62a4b0-dcba-4028-434b-2b747b4c411f" executionId="e990c469-b33c-4dd2-83f8-ba3aec068a44" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="9387a1a2-3523-2e44-8030-533d344923cf" executionId="b531977a-2e8f-404e-beac-0ce5e400eb90" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry testId="04cd200b-33df-3564-ded5-686cdfe44f77" executionId="94f5fd7b-4576-4143-9553-cfafe8b6d293" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" />
+    <TestEntry isTransparent="false" testId="9ad6e2e2-a082-8088-00f6-e05079fd89a0" executionId="8378ecca-4367-49e2-b97a-581b6482d30a" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry isTransparent="false" testId="a1c602d9-292b-1042-380c-707cec091de9" executionId="4211643e-29c7-43b5-82af-544d4714f9e3" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry testId="f206f30d-af4b-ae66-9032-732bc03336c1" executionId="f02599c2-4a90-4f3e-a54d-2dd655836eaa" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry isTransparent="false" testId="c320789f-a801-c187-e7d8-0f17b24ff835" executionId="1695377f-ec90-4f7c-b71d-804f042f34be" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry testId="04cd200b-33df-3564-ded5-686cdfe44f77" executionId="08488b30-9925-4e07-876f-1a4f7fc7af2d" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry isTransparent="false" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" executionId="3e52d8f2-503e-400e-9863-bf6dd0a01962" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" />
+    <TestEntry testId="1023d05b-493c-b740-c3dd-cea86069017f" executionId="b7ac2f7b-ee09-48f9-a1d5-5941b5e6500c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="93269e98-8dd5-495f-dce5-ac7d2e101b5b" executionId="29ff4338-fdea-46c3-ae2f-860bfc8f9692" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="38905457-2302-9ddf-ad04-3107d5b18355" executionId="254e4d7c-8ade-4e30-95f3-b25aab134a53" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="aedace0f-10de-70d5-5e45-b7227987df86" executionId="68efc2e3-c72f-4e2f-958d-9650689957b5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0d8895aa-7287-6587-9d23-ab62fcccc3cc" executionId="0525fbef-3495-4f36-b74e-cf4101ef3fa3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f3b31057-c214-7658-97dc-45cdabcc0445" executionId="cbc71b2d-0851-47fa-9a37-bcfa451e0e04" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a81f4ea1-c7bf-9c67-11a9-4911e34b114e" executionId="2b59236a-3e52-454d-8074-c7e70b9c0d7d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2653a81d-b439-f73a-c036-efc0ec29de69" executionId="7a9453df-7a02-4ddd-a004-e77718e03765" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e40da15b-eedb-5ba3-88d7-9972079c30a6" executionId="d4a0f702-fe11-4624-b3f1-16907097add2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4808abb0-e068-dde3-e6bf-b1a137b6f0f9" executionId="de52122e-79ff-4df2-9197-2dd38c0b5bb0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="5d66c021-336a-34c0-9414-19ea84bd29bc" executionId="5073d7d5-2f67-474e-ad77-ca8e3c5fc293" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="6424793a-173e-57e5-7cc5-fbe2ba5792e4" executionId="a256beb9-95c9-47af-8f4e-ae20815ee1f8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="d53feaf3-be7c-3e85-2afa-d33fc0e450a3" executionId="47621071-b913-4631-a83a-0e8f63e335a6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="e95ef3f5-4ae2-36dc-5d98-7ace7daaf2ea" executionId="13a11fb2-0fb7-42ee-9e27-cdf74d14bfd3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="336cce10-fc9c-411f-b491-c5f9f404e7b7" executionId="27970c50-7905-4144-95d7-aaacb7e4ead2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="340e6bba-7e3d-842d-7ee1-669ddc667c0c" executionId="10588165-0a0b-4085-be9a-abe0dfd359b7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry isTransparent="false" testId="6c390634-83d7-955a-87c4-b41e59b8d7ae" executionId="b41fa8c4-3056-44d3-a6fd-4caf3041abe5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <Results>
+    <UnitTestResult executionId="6848cfa6-c603-4624-a225-6bd6c266831a" testId="916d542f-9953-383f-a9cc-e87980667cf3" testName="RestorePackageFromV2Feed" computerName="CLAYCO7" duration="00:00:00.8743909" startTime="2013-04-27T00:39:21.8354560-07:00" endTime="2013-04-27T00:39:24.2608944-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="6848cfa6-c603-4624-a225-6bd6c266831a">
+    </UnitTestResult>
+    <WebTestResult executionId="ddea8f13-4a0d-4119-9f5e-66904af16ab3" testId="a1c602d9-292b-1042-380c-707cec091de9" testName="LogonTest" computerName="CLAYCO7" duration="00:00:01.9303600" startTime="2013-04-27T00:39:24.2921455-07:00" endTime="2013-04-27T00:39:36.7704815-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Failed" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="ddea8f13-4a0d-4119-9f5e-66904af16ab3">
+      <Output>
+        <ErrorInfo>
+          <Message>1 primary requests, 0 dependant requests and 0 conditional rules failed</Message>
+        </ErrorInfo>
+      </Output>
+      <ResultFiles>
+        <ResultFile path="LogonTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="{{$IEAcceptLanguage}}" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\ddea8f13-4a0d-4119-9f5e-66904af16ab3\LogonTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="6d74c5fa-58f0-4d67-8e7f-61f25b2c95c9" testId="80baf145-2a87-1c50-450f-57e4de9d3b4f" testName="UploadPackageFromUI" computerName="CLAYCO7" duration="00:00:15.6830245" startTime="2013-04-27T00:39:36.7704815-07:00" endTime="2013-04-27T00:39:52.4556845-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Failed" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="6d74c5fa-58f0-4d67-8e7f-61f25b2c95c9">
+      <Output>
+        <ErrorInfo>
+          <Message>1 primary requests, 0 dependant requests and 0 conditional rules failed</Message>
+        </ErrorInfo>
+      </Output>
+      <ResultFiles>
+        <ResultFile path="UploadPackageFromUI.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\6d74c5fa-58f0-4d67-8e7f-61f25b2c95c9\UploadPackageFromUI.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="66f475dc-8ab9-4c81-b3a4-805fa682f255" testId="cc44bdbd-ce3e-69f6-f020-1fcb65293738" testName="DownloadPackageFromV2Feed" computerName="CLAYCO7" duration="00:00:00.7112784" startTime="2013-04-27T00:39:52.4556845-07:00" endTime="2013-04-27T00:39:53.1588333-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="66f475dc-8ab9-4c81-b3a4-805fa682f255">
+    </UnitTestResult>
+    <WebTestResult executionId="fbaaffb1-2f71-4591-b36e-eb5d3d4a3768" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" testName="HomePageValidationTest" computerName="CLAYCO7" duration="00:00:01.1832501" startTime="2013-04-27T00:39:53.1588333-07:00" endTime="2013-04-27T00:39:54.3619940-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="01372d05-1ac1-4f00-ac37-5ca977686e4e" relativeResultsDirectory="fbaaffb1-2f71-4591-b36e-eb5d3d4a3768">
+      <ResultFiles>
+        <ResultFile path="HomePageValidationTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\fbaaffb1-2f71-4591-b36e-eb5d3d4a3768\HomePageValidationTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="f5bd70c5-0d81-4f27-81ac-a71e73717369" testId="5ceca307-8fd2-e863-65bb-d8151e5dafba" testName="PackagesPageTest" computerName="CLAYCO7" duration="00:00:02.7474629" startTime="2013-04-27T00:39:54.3619940-07:00" endTime="2013-04-27T00:39:57.1277576-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="f5bd70c5-0d81-4f27-81ac-a71e73717369">
+      <ResultFiles>
+        <ResultFile path="PackagesPageTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\f5bd70c5-0d81-4f27-81ac-a71e73717369\PackagesPageTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="2f311c44-d45a-49ce-a23c-59170e548a5c" testId="80baf145-2a87-1c50-450f-57e4de9d3b4f" testName="UploadPackageFromUI" computerName="CLAYCO7" duration="00:00:14.7657226" startTime="2013-04-27T00:39:57.1277576-07:00" endTime="2013-04-27T00:40:11.9094695-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="2f311c44-d45a-49ce-a23c-59170e548a5c">
+      <ResultFiles>
+        <ResultFile path="UploadPackageFromUI.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\2f311c44-d45a-49ce-a23c-59170e548a5c\UploadPackageFromUI.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="a74edc88-c7d4-443c-bfcd-8523f1ec7bd6" testId="42a9bfc6-ed87-df50-c848-82aca2c8fd0d" testName="ManagePackagesPageTest" computerName="CLAYCO7" duration="00:00:04.9546371" startTime="2013-04-27T00:40:11.9094695-07:00" endTime="2013-04-27T00:40:16.8627626-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="a74edc88-c7d4-443c-bfcd-8523f1ec7bd6">
+      <ResultFiles>
+        <ResultFile path="ManagePackagesPageTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\a74edc88-c7d4-443c-bfcd-8523f1ec7bd6\ManagePackagesPageTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="65b8227d-8105-4eea-b046-5ea1c71a8850" testId="a1c602d9-292b-1042-380c-707cec091de9" testName="LogonTest" computerName="CLAYCO7" duration="00:00:01.3147955" startTime="2013-04-27T00:40:16.8627626-07:00" endTime="2013-04-27T00:40:18.1753083-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Failed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="65b8227d-8105-4eea-b046-5ea1c71a8850">
+      <Output>
+        <ErrorInfo>
+          <Message>1 primary requests, 0 dependant requests and 0 conditional rules failed</Message>
+        </ErrorInfo>
+      </Output>
+      <ResultFiles>
+        <ResultFile path="LogonTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\65b8227d-8105-4eea-b046-5ea1c71a8850\LogonTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="6f645d47-497f-41e2-84fd-d22a6754eb4e" testId="2a6c6363-3869-0c15-2d51-409738bef970" testName="FindPackagesByIdTest" computerName="CLAYCO7" duration="00:00:04.0901587" startTime="2013-04-27T00:40:18.1753083-07:00" endTime="2013-04-27T00:40:22.2756229-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="6f645d47-497f-41e2-84fd-d22a6754eb4e">
+      <Output>
+        <StdOut>Created 'TestV2FeedFindPackagesById.635026200181909386.nuspec' successfully.
+
+
+Attempting to build package from 'TestV2FeedFindPackagesById.635026200181909386.nuspec'.
+Successfully created package 'D:\github.com\NuGetGallery\FunctionalTests\Scripts\TestResults[63]\Out\TestV2FeedFindPackagesById.635026200181909386\TestV2FeedFindPackagesById.635026200181909386.1.0.0.nupkg'.
+
+WARNING: 4 issue(s) found with package 'TestV2FeedFindPackagesById.635026200181909386'.
+
+Issue: Assembly not inside a framework folder.
+Description: The assembly 'Lib\635026200184253105.dll' is placed directly under 'lib' folder. It is recommended that assemblies be placed inside a framework-specific folder.
+Solution: Move it into a framework-specific folder. If this assembly is targeted for multiple frameworks, ignore this warning.
+
+Issue: Remove sample nuspec values.
+Description: The value "Tag1 Tag2" for Tags is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Summary of changes made in this release of the package." for ReleaseNotes is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Package description" for Description is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+
+Pushing TestV2FeedFindPackagesById.635026200181909386 1.0.0 to 'http://qa.nugettest.org/api/v2/package/'...
+Your package was pushed.
+
+
+
+
+Created 'TestV2FeedFindPackagesById.635026200181909386.nuspec' successfully.
+
+
+Attempting to build package from 'TestV2FeedFindPackagesById.635026200181909386.nuspec'.
+Successfully created package 'D:\github.com\NuGetGallery\FunctionalTests\Scripts\TestResults[63]\Out\TestV2FeedFindPackagesById.635026200181909386\TestV2FeedFindPackagesById.635026200181909386.2.0.0.nupkg'.
+
+WARNING: 4 issue(s) found with package 'TestV2FeedFindPackagesById.635026200181909386'.
+
+Issue: Assembly not inside a framework folder.
+Description: The assembly 'Lib\635026200205191324.dll' is placed directly under 'lib' folder. It is recommended that assemblies be placed inside a framework-specific folder.
+Solution: Move it into a framework-specific folder. If this assembly is targeted for multiple frameworks, ignore this warning.
+
+Issue: Remove sample nuspec values.
+Description: The value "Tag1 Tag2" for Tags is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Summary of changes made in this release of the package." for ReleaseNotes is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Package description" for Description is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+
+Pushing TestV2FeedFindPackagesById.635026200181909386 2.0.0 to 'http://qa.nugettest.org/api/v2/package/'...
+Your package was pushed.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <WebTestResult executionId="95043692-89e9-4905-872a-29ef6b6fc568" testId="a6f81ddd-4476-9109-b107-ff9673898e71" testName="ContactOwnerTest" computerName="CLAYCO7" duration="00:00:38.2557550" startTime="2013-04-27T00:40:22.2756229-07:00" endTime="2013-04-27T00:41:00.5365779-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="95043692-89e9-4905-872a-29ef6b6fc568">
+      <ResultFiles>
+        <ResultFile path="ContactOwnerTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\95043692-89e9-4905-872a-29ef6b6fc568\ContactOwnerTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="0478a108-a0bd-44e1-9ddf-3d84cee07b50" testId="cc44bdbd-ce3e-69f6-f020-1fcb65293738" testName="DownloadPackageFromV2Feed" computerName="CLAYCO7" duration="00:00:00.5926836" startTime="2013-04-27T00:41:00.5365779-07:00" endTime="2013-04-27T00:41:01.1303512-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="0478a108-a0bd-44e1-9ddf-3d84cee07b50">
+    </UnitTestResult>
+    <UnitTestResult executionId="fe50c1fb-563b-4855-8d42-3e84e51f7601" testId="916d542f-9953-383f-a9cc-e87980667cf3" testName="RestorePackageFromV2Feed" computerName="CLAYCO7" duration="00:00:00.5895149" startTime="2013-04-27T00:41:01.1303512-07:00" endTime="2013-04-27T00:41:01.7241213-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="fe50c1fb-563b-4855-8d42-3e84e51f7601">
+    </UnitTestResult>
+    <WebTestResult executionId="bb4e7c44-b86a-4b68-ae06-e0e2293807e8" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" testName="HomePageValidationTest" computerName="CLAYCO7" duration="00:00:01.0709618" startTime="2013-04-27T00:41:01.7241213-07:00" endTime="2013-04-27T00:41:02.8022829-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="bb4e7c44-b86a-4b68-ae06-e0e2293807e8">
+      <ResultFiles>
+        <ResultFile path="HomePageValidationTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\bb4e7c44-b86a-4b68-ae06-e0e2293807e8\HomePageValidationTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="8d3e76f2-6a92-4899-9a91-fbfab8208719" testId="baeffb56-e5a3-71a3-dcf4-ca714ba14856" testName="UploadPackageWithNuGetCommandLineTest" computerName="CLAYCO7" duration="00:00:02.1844935" startTime="2013-04-27T00:41:02.8022829-07:00" endTime="2013-04-27T00:41:04.9898540-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="8d3e76f2-6a92-4899-9a91-fbfab8208719">
+      <Output>
+        <StdOut>Created '635026200628022829.nuspec' successfully.
+
+
+Attempting to build package from '635026200628022829.nuspec'.
+Successfully created package 'D:\github.com\NuGetGallery\FunctionalTests\Scripts\TestResults[63]\Out\635026200628022829\635026200628022829.1.0.0.nupkg'.
+
+WARNING: 4 issue(s) found with package '635026200628022829'.
+
+Issue: Assembly not inside a framework folder.
+Description: The assembly 'Lib\635026200630366616.dll' is placed directly under 'lib' folder. It is recommended that assemblies be placed inside a framework-specific folder.
+Solution: Move it into a framework-specific folder. If this assembly is targeted for multiple frameworks, ignore this warning.
+
+Issue: Remove sample nuspec values.
+Description: The value "Tag1 Tag2" for Tags is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Summary of changes made in this release of the package." for ReleaseNotes is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Package description" for Description is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+
+Pushing 635026200628022829 1.0.0 to 'http://qa.nugettest.org/api/v2/package/'...
+Your package was pushed.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="363c26b9-34de-4bab-b8fb-caf83bda5423" testId="02d43bf4-c2fb-43fb-6999-a16887a86fa6" testName="GetUpdatesTest" computerName="CLAYCO7" duration="00:00:00.0002660" startTime="2013-04-27T00:41:04.9898540-07:00" endTime="2013-04-27T00:41:04.9898540-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="363c26b9-34de-4bab-b8fb-caf83bda5423">
+    </UnitTestResult>
+    <UnitTestResult executionId="a0bcc989-93ec-458e-8eb6-49c476979cc2" testId="f206f30d-af4b-ae66-9032-732bc03336c1" testName="DownPackageWithNuGetCommandLineTest" computerName="CLAYCO7" duration="00:00:02.7375440" startTime="2013-04-27T00:41:04.9898540-07:00" endTime="2013-04-27T00:41:07.7277739-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="a0bcc989-93ec-458e-8eb6-49c476979cc2">
+      <Output>
+        <StdOut>Installing 'BaseTestPackage 1.0.0'.
+Successfully installed 'BaseTestPackage 1.0.0'.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <WebTestResult executionId="2abb228d-80b3-4fd0-8d8b-629d93c32543" testId="0449da0f-5881-ffca-f9d0-f7c0ad709071" testName="UploadPackageWithoutLoginTest" computerName="CLAYCO7" duration="00:00:01.2911297" startTime="2013-04-27T00:41:07.7277739-07:00" endTime="2013-04-27T00:41:09.0305284-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="2abb228d-80b3-4fd0-8d8b-629d93c32543">
+      <ResultFiles>
+        <ResultFile path="UploadPackageWithoutLoginTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\2abb228d-80b3-4fd0-8d8b-629d93c32543\UploadPackageWithoutLoginTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="c3e0e5d6-1531-43a9-89b5-415dd2900566" testId="428c8a13-f822-cffc-6ae0-78452d15e1fb" testName="RegisterNewUserTest" computerName="CLAYCO7" duration="00:00:02.4256622" startTime="2013-04-27T00:41:09.0315303-07:00" endTime="2013-04-27T00:41:11.4591137-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="c3e0e5d6-1531-43a9-89b5-415dd2900566">
+      <ResultFiles>
+        <ResultFile path="RegisterNewUserTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\c3e0e5d6-1531-43a9-89b5-415dd2900566\RegisterNewUserTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="e990c469-b33c-4dd2-83f8-ba3aec068a44" testId="5d62a4b0-dcba-4028-434b-2b747b4c411f" testName="UploadMultipleVersionOfPackage" computerName="CLAYCO7" duration="00:00:04.3795928" startTime="2013-04-27T00:41:11.4601148-07:00" endTime="2013-04-27T00:41:15.8414116-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="e990c469-b33c-4dd2-83f8-ba3aec068a44">
+      <Output>
+        <StdOut>Created 'TestMultipleVersion.635026200714631176.nuspec' successfully.
+
+
+Attempting to build package from 'TestMultipleVersion.635026200714631176.nuspec'.
+Successfully created package 'D:\github.com\NuGetGallery\FunctionalTests\Scripts\TestResults[63]\Out\TestMultipleVersion.635026200714631176\TestMultipleVersion.635026200714631176.1.0.0.nupkg'.
+
+WARNING: 4 issue(s) found with package 'TestMultipleVersion.635026200714631176'.
+
+Issue: Assembly not inside a framework folder.
+Description: The assembly 'Lib\635026200716916237.dll' is placed directly under 'lib' folder. It is recommended that assemblies be placed inside a framework-specific folder.
+Solution: Move it into a framework-specific folder. If this assembly is targeted for multiple frameworks, ignore this warning.
+
+Issue: Remove sample nuspec values.
+Description: The value "Tag1 Tag2" for Tags is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Summary of changes made in this release of the package." for ReleaseNotes is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Package description" for Description is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+
+Pushing TestMultipleVersion.635026200714631176 1.0.0 to 'http://qa.nugettest.org/api/v2/package/'...
+Your package was pushed.
+
+
+
+
+Created 'TestMultipleVersion.635026200714631176.nuspec' successfully.
+
+
+Attempting to build package from 'TestMultipleVersion.635026200714631176.nuspec'.
+Successfully created package 'D:\github.com\NuGetGallery\FunctionalTests\Scripts\TestResults[63]\Out\TestMultipleVersion.635026200714631176\TestMultipleVersion.635026200714631176.2.0.0.nupkg'.
+
+WARNING: 4 issue(s) found with package 'TestMultipleVersion.635026200714631176'.
+
+Issue: Assembly not inside a framework folder.
+Description: The assembly 'Lib\635026200737781584.dll' is placed directly under 'lib' folder. It is recommended that assemblies be placed inside a framework-specific folder.
+Solution: Move it into a framework-specific folder. If this assembly is targeted for multiple frameworks, ignore this warning.
+
+Issue: Remove sample nuspec values.
+Description: The value "Tag1 Tag2" for Tags is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Summary of changes made in this release of the package." for ReleaseNotes is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Package description" for Description is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+
+Pushing TestMultipleVersion.635026200714631176 2.0.0 to 'http://qa.nugettest.org/api/v2/package/'...
+Your package was pushed.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <WebTestResult executionId="b531977a-2e8f-404e-beac-0ce5e400eb90" testId="9387a1a2-3523-2e44-8030-533d344923cf" testName="DeletePackageTest" computerName="CLAYCO7" duration="00:00:06.5796411" startTime="2013-04-27T00:41:15.8434147-07:00" endTime="2013-04-27T00:41:22.4184379-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="b531977a-2e8f-404e-beac-0ce5e400eb90">
+      <ResultFiles>
+        <ResultFile path="DeletePackageTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\b531977a-2e8f-404e-beac-0ce5e400eb90\DeletePackageTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="94f5fd7b-4576-4143-9553-cfafe8b6d293" testId="04cd200b-33df-3564-ded5-686cdfe44f77" testName="DownloadPackageWithNuGetCoreTest" computerName="CLAYCO7" duration="00:00:00.7834195" startTime="2013-04-27T00:41:22.4184379-07:00" endTime="2013-04-27T00:41:23.1997090-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="b836686b-8922-4ce2-8bcc-bd368809954a" relativeResultsDirectory="94f5fd7b-4576-4143-9553-cfafe8b6d293">
+    </UnitTestResult>
+    <WebTestResult executionId="8378ecca-4367-49e2-b97a-581b6482d30a" testId="9ad6e2e2-a082-8088-00f6-e05079fd89a0" testName="StatisticsPageTest" computerName="CLAYCO7" duration="00:00:01.0496851" startTime="2013-04-27T00:41:23.1997090-07:00" endTime="2013-04-27T00:41:24.2643325-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="8378ecca-4367-49e2-b97a-581b6482d30a">
+      <ResultFiles>
+        <ResultFile path="StatisticsPageTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\8378ecca-4367-49e2-b97a-581b6482d30a\StatisticsPageTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="4211643e-29c7-43b5-82af-544d4714f9e3" testId="a1c602d9-292b-1042-380c-707cec091de9" testName="LogonTest" computerName="CLAYCO7" duration="00:00:01.4117937" startTime="2013-04-27T00:41:24.2663341-07:00" endTime="2013-04-27T00:41:25.6799007-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Failed" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="4211643e-29c7-43b5-82af-544d4714f9e3">
+      <Output>
+        <ErrorInfo>
+          <Message>1 primary requests, 0 dependant requests and 0 conditional rules failed</Message>
+        </ErrorInfo>
+      </Output>
+      <ResultFiles>
+        <ResultFile path="LogonTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\4211643e-29c7-43b5-82af-544d4714f9e3\LogonTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="f02599c2-4a90-4f3e-a54d-2dd655836eaa" testId="f206f30d-af4b-ae66-9032-732bc03336c1" testName="DownPackageWithNuGetCommandLineTest" computerName="CLAYCO7" duration="00:00:02.1213785" startTime="2013-04-27T00:41:25.6809018-07:00" endTime="2013-04-27T00:41:27.7898848-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="f02599c2-4a90-4f3e-a54d-2dd655836eaa">
+      <Output>
+        <StdOut>Installing 'BaseTestPackage 1.0.0'.
+Successfully installed 'BaseTestPackage 1.0.0'.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <WebTestResult executionId="1695377f-ec90-4f7c-b71d-804f042f34be" testId="c320789f-a801-c187-e7d8-0f17b24ff835" testName="ReadOnlyModeRegisterNewUserTest" computerName="CLAYCO7" duration="00:00:03.3388742" startTime="2013-04-27T00:41:27.8055109-07:00" endTime="2013-04-27T00:41:31.1453024-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Failed" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="1695377f-ec90-4f7c-b71d-804f042f34be">
+      <Output>
+        <ErrorInfo>
+          <Message>1 primary requests, 0 dependant requests and 0 conditional rules failed</Message>
+        </ErrorInfo>
+      </Output>
+      <ResultFiles>
+        <ResultFile path="ReadOnlyModeRegisterNewUserTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\1695377f-ec90-4f7c-b71d-804f042f34be\ReadOnlyModeRegisterNewUserTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="08488b30-9925-4e07-876f-1a4f7fc7af2d" testId="04cd200b-33df-3564-ded5-686cdfe44f77" testName="DownloadPackageWithNuGetCoreTest" computerName="CLAYCO7" duration="00:00:00.9703544" startTime="2013-04-27T00:41:31.1453024-07:00" endTime="2013-04-27T00:41:32.1140884-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="08488b30-9925-4e07-876f-1a4f7fc7af2d">
+    </UnitTestResult>
+    <WebTestResult executionId="3e52d8f2-503e-400e-9863-bf6dd0a01962" testId="d527504e-456c-ed4a-8eba-7c20c18ba47d" testName="HomePageValidationTest" computerName="CLAYCO7" duration="00:00:01.2152950" startTime="2013-04-27T00:41:32.1140884-07:00" endTime="2013-04-27T00:41:33.3257038-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="f9b8ac1f-7978-4738-afc2-6918b063e5c3" relativeResultsDirectory="3e52d8f2-503e-400e-9863-bf6dd0a01962">
+      <ResultFiles>
+        <ResultFile path="HomePageValidationTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\3e52d8f2-503e-400e-9863-bf6dd0a01962\HomePageValidationTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <UnitTestResult executionId="b7ac2f7b-ee09-48f9-a1d5-5941b5e6500c" testId="1023d05b-493c-b740-c3dd-cea86069017f" testName="SearchV1Feed" computerName="CLAYCO7" duration="00:00:00.8289400" startTime="2013-04-27T00:41:33.3413253-07:00" endTime="2013-04-27T00:41:34.1694824-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b7ac2f7b-ee09-48f9-a1d5-5941b5e6500c">
+    </UnitTestResult>
+    <UnitTestResult executionId="29ff4338-fdea-46c3-ae2f-860bfc8f9692" testId="93269e98-8dd5-495f-dce5-ac7d2e101b5b" testName="SearchV2Feed" computerName="CLAYCO7" duration="00:00:00.2478458" startTime="2013-04-27T00:41:34.1694824-07:00" endTime="2013-04-27T00:41:34.4194932-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="29ff4338-fdea-46c3-ae2f-860bfc8f9692">
+    </UnitTestResult>
+    <UnitTestResult executionId="254e4d7c-8ade-4e30-95f3-b25aab134a53" testId="38905457-2302-9ddf-ad04-3107d5b18355" testName="UploadAndDownLoadPackageWithMinClientVersion" computerName="CLAYCO7" duration="00:00:04.5110148" startTime="2013-04-27T00:41:34.4194932-07:00" endTime="2013-04-27T00:41:38.9381350-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="254e4d7c-8ade-4e30-95f3-b25aab134a53">
+      <Output>
+        <StdOut>Created '635026200944194932UploadAndDownLoadPackageWithMinClientVersion.nuspec' successfully.
+
+
+Attempting to build package from '635026200944194932UploadAndDownLoadPackageWithMinClientVersion.nuspec'.
+Successfully created package 'D:\github.com\NuGetGallery\FunctionalTests\Scripts\TestResults[63]\Out\635026200944194932UploadAndDownLoadPackageWithMinClientVersion\635026200944194932UploadAndDownLoadPackageWithMinClientVersion.1.0.0.nupkg'.
+
+WARNING: 4 issue(s) found with package '635026200944194932UploadAndDownLoadPackageWithMinClientVersion'.
+
+Issue: Assembly not inside a framework folder.
+Description: The assembly 'Lib\635026200946538699.dll' is placed directly under 'lib' folder. It is recommended that assemblies be placed inside a framework-specific folder.
+Solution: Move it into a framework-specific folder. If this assembly is targeted for multiple frameworks, ignore this warning.
+
+Issue: Remove sample nuspec values.
+Description: The value "Tag1 Tag2" for Tags is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Summary of changes made in this release of the package." for ReleaseNotes is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Package description" for Description is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+
+Pushing 635026200944194932UploadAndDownLoadPackageWithMinClientVersion 1.0.0 to 'http://qa.nugettest.org/api/v2/package/'...
+Your package was pushed.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="68efc2e3-c72f-4e2f-958d-9650689957b5" testId="aedace0f-10de-70d5-5e45-b7227987df86" testName="UploadAndDownLoadPackageWithDotCsNames" computerName="CLAYCO7" duration="00:00:03.1888720" startTime="2013-04-27T00:41:38.9391358-07:00" endTime="2013-04-27T00:41:42.1300729-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="68efc2e3-c72f-4e2f-958d-9650689957b5">
+      <Output>
+        <StdOut>Created '635026200989411372UploadAndDownLoadPackageWithDotCsNames.Cs.nuspec' successfully.
+
+
+Attempting to build package from '635026200989411372UploadAndDownLoadPackageWithDotCsNames.Cs.nuspec'.
+Successfully created package 'D:\github.com\NuGetGallery\FunctionalTests\Scripts\TestResults[63]\Out\635026200989411372UploadAndDownLoadPackageWithDotCsNames.Cs\635026200989411372UploadAndDownLoadPackageWithDotCsNames.Cs.1.0.0.nupkg'.
+
+WARNING: 4 issue(s) found with package '635026200989411372UploadAndDownLoadPackageWithDotCsNames.Cs'.
+
+Issue: Assembly not inside a framework folder.
+Description: The assembly 'Lib\635026200991808250.dll' is placed directly under 'lib' folder. It is recommended that assemblies be placed inside a framework-specific folder.
+Solution: Move it into a framework-specific folder. If this assembly is targeted for multiple frameworks, ignore this warning.
+
+Issue: Remove sample nuspec values.
+Description: The value "Tag1 Tag2" for Tags is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Summary of changes made in this release of the package." for ReleaseNotes is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Package description" for Description is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+
+Pushing 635026200989411372UploadAndDownLoadPackageWithDotCsNames.Cs 1.0.0 to 'http://qa.nugettest.org/api/v2/package/'...
+Your package was pushed.</StdOut>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="0525fbef-3495-4f36-b74e-cf4101ef3fa3" testId="0d8895aa-7287-6587-9d23-ab62fcccc3cc" testName="PackageFeedSortingTest" computerName="CLAYCO7" duration="00:00:01.7049519" startTime="2013-04-27T00:41:42.1310740-07:00" endTime="2013-04-27T00:41:43.8328017-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0525fbef-3495-4f36-b74e-cf4101ef3fa3">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsTrue failed. Expected string elmah.sqlserver to come before elmah.</Message>
+          <StackTrace>   at NuGetGallery.FunctionalTests.ODataTests.V2FeedTest.PackageFeedSortingTest() in d:\github.com\NuGetGallery\FunctionalTests\NuGetGallery.FunctionalTests\ODataTests\V2FeedExtendedTest.cs:line 63
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="cbc71b2d-0851-47fa-9a37-bcfa451e0e04" testId="f3b31057-c214-7658-97dc-45cdabcc0445" testName="PackageFeedSanityTest" computerName="CLAYCO7" duration="00:00:00.2383398" startTime="2013-04-27T00:41:43.8328017-07:00" endTime="2013-04-27T00:41:44.0786017-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cbc71b2d-0851-47fa-9a37-bcfa451e0e04">
+    </UnitTestResult>
+    <UnitTestResult executionId="2b59236a-3e52-454d-8074-c7e70b9c0d7d" testId="a81f4ea1-c7bf-9c67-11a9-4911e34b114e" testName="PackageFeedCountParameterTest" computerName="CLAYCO7" duration="00:00:00.4262647" startTime="2013-04-27T00:41:44.0796028-07:00" endTime="2013-04-27T00:41:44.5070935-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2b59236a-3e52-454d-8074-c7e70b9c0d7d">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsTrue failed. Expected feed to contain 5 packages.</Message>
+          <StackTrace>   at NuGetGallery.FunctionalTests.ODataTests.V2FeedTest.PackageFeedCountParameterTest() in d:\github.com\NuGetGallery\FunctionalTests\NuGetGallery.FunctionalTests\ODataTests\V2FeedExtendedTest.cs:line 111
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="7a9453df-7a02-4ddd-a004-e77718e03765" testId="2653a81d-b439-f73a-c036-efc0ec29de69" testName="AddPackageToWindows8CuratedFeed" computerName="CLAYCO7" duration="00:00:03.0201244" startTime="2013-04-27T00:41:44.5090937-07:00" endTime="2013-04-27T00:41:47.5167706-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7a9453df-7a02-4ddd-a004-e77718e03765">
+      <Output>
+        <StdOut>Created 'AddPackageToWindows8CuratedFeed635026201045100945.nuspec' successfully.
+
+
+Attempting to build package from 'AddPackageToWindows8CuratedFeed635026201045100945.nuspec'.
+Successfully created package 'D:\github.com\NuGetGallery\FunctionalTests\Scripts\TestResults[63]\Out\AddPackageToWindows8CuratedFeed635026201045100945\AddPackageToWindows8CuratedFeed635026201045100945.1.0.0.nupkg'.
+
+WARNING: 3 issue(s) found with package 'AddPackageToWindows8CuratedFeed635026201045100945'.
+
+Issue: Assembly not inside a framework folder.
+Description: The assembly 'Lib\635026201047436939.dll' is placed directly under 'lib' folder. It is recommended that assemblies be placed inside a framework-specific folder.
+Solution: Move it into a framework-specific folder. If this assembly is targeted for multiple frameworks, ignore this warning.
+
+Issue: Remove sample nuspec values.
+Description: The value "Summary of changes made in this release of the package." for ReleaseNotes is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+Issue: Remove sample nuspec values.
+Description: The value "Package description" for Description is a sample value and should be removed.
+Solution: Replace with an appropriate value or remove and it and rebuild your package.
+
+
+Pushing AddPackageToWindows8CuratedFeed635026201045100945 1.0.0 to 'http://qa.nugettest.org/api/v2/package/'...
+Your package was pushed.</StdOut>
+        <ErrorInfo>
+          <Message>Assert.IsTrue failed. Package AddPackageToWindows8CuratedFeed635026201045100945 is not found in the site http://qa.nugettest.org/api/v2/curated-feeds/windows8-packages/ after uploading.</Message>
+          <StackTrace>   at NuGetGallery.FunctionalTests.Features.CuratedFeedTest.AddPackageToWindows8CuratedFeed() in d:\github.com\NuGetGallery\FunctionalTests\NuGetGallery.FunctionalTests\Features\CuratedFeedTest.cs:line 40
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d4a0f702-fe11-4624-b3f1-16907097add2" testId="e40da15b-eedb-5ba3-88d7-9972079c30a6" testName="SearchWindows8CuratedFeed" computerName="CLAYCO7" duration="00:00:00.4519980" startTime="2013-04-27T00:41:47.5323939-07:00" endTime="2013-04-27T00:41:47.9857843-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d4a0f702-fe11-4624-b3f1-16907097add2">
+    </UnitTestResult>
+    <UnitTestResult executionId="de52122e-79ff-4df2-9197-2dd38c0b5bb0" testId="4808abb0-e068-dde3-e6bf-b1a137b6f0f9" testName="SearchWebMatrixCuratedFeed" computerName="CLAYCO7" duration="00:00:00.3932503" startTime="2013-04-27T00:41:47.9867857-07:00" endTime="2013-04-27T00:41:48.3810018-07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="de52122e-79ff-4df2-9197-2dd38c0b5bb0">
+    </UnitTestResult>
+    <WebTestResult executionId="5073d7d5-2f67-474e-ad77-ca8e3c5fc293" testId="5d66c021-336a-34c0-9414-19ea84bd29bc" testName="InvalidLogonTest" computerName="CLAYCO7" duration="00:00:02.9148498" startTime="2013-04-27T00:41:48.3830045-07:00" endTime="2013-04-27T00:41:51.2956637-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5073d7d5-2f67-474e-ad77-ca8e3c5fc293">
+      <ResultFiles>
+        <ResultFile path="InvalidLogonTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\5073d7d5-2f67-474e-ad77-ca8e3c5fc293\InvalidLogonTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="a256beb9-95c9-47af-8f4e-ae20815ee1f8" testId="6424793a-173e-57e5-7cc5-fbe2ba5792e4" testName="OutercurveBrandingValidationTest" computerName="CLAYCO7" duration="00:00:01.5613070" startTime="2013-04-27T00:41:51.2956637-07:00" endTime="2013-04-27T00:41:52.8649322-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a256beb9-95c9-47af-8f4e-ae20815ee1f8">
+      <ResultFiles>
+        <ResultFile path="OutercurveBrandingValidationTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\a256beb9-95c9-47af-8f4e-ae20815ee1f8\OutercurveBrandingValidationTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="47621071-b913-4631-a83a-0e8f63e335a6" testId="d53feaf3-be7c-3e85-2afa-d33fc0e450a3" testName="SecurityHeaderTest" computerName="CLAYCO7" duration="00:00:02.9403738" startTime="2013-04-27T00:41:52.8669338-07:00" endTime="2013-04-27T00:41:55.8111063-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="47621071-b913-4631-a83a-0e8f63e335a6">
+      <ResultFiles>
+        <ResultFile path="SecurityHeaderTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\47621071-b913-4631-a83a-0e8f63e335a6\SecurityHeaderTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="13a11fb2-0fb7-42ee-9e27-cdf74d14bfd3" testId="e95ef3f5-4ae2-36dc-5d98-7ace7daaf2ea" testName="ContactUsAndReportAbuseLinkTest" computerName="CLAYCO7" duration="00:00:04.5618558" startTime="2013-04-27T00:41:55.8121083-07:00" endTime="2013-04-27T00:42:00.3735242-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="13a11fb2-0fb7-42ee-9e27-cdf74d14bfd3">
+      <Output>
+        <ErrorInfo>
+          <Message>2 primary requests, 0 dependant requests and 0 conditional rules failed</Message>
+        </ErrorInfo>
+      </Output>
+      <ResultFiles>
+        <ResultFile path="ContactUsAndReportAbuseLinkTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\13a11fb2-0fb7-42ee-9e27-cdf74d14bfd3\ContactUsAndReportAbuseLinkTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="27970c50-7905-4144-95d7-aaacb7e4ead2" testId="336cce10-fc9c-411f-b491-c5f9f404e7b7" testName="UploadPackageWithMinClientVersionFromUITest" computerName="CLAYCO7" duration="00:00:05.2347874" startTime="2013-04-27T00:42:00.3735242-07:00" endTime="2013-04-27T00:42:05.6143166-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="27970c50-7905-4144-95d7-aaacb7e4ead2">
+      <Output>
+        <ErrorInfo>
+          <Message>1 primary requests, 0 dependant requests and 0 conditional rules failed</Message>
+        </ErrorInfo>
+      </Output>
+      <ResultFiles>
+        <ResultFile path="UploadPackageWithMinClientVersionFromUITest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\27970c50-7905-4144-95d7-aaacb7e4ead2\UploadPackageWithMinClientVersionFromUITest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="10588165-0a0b-4085-be9a-abe0dfd359b7" testId="340e6bba-7e3d-842d-7ee1-669ddc667c0c" testName="AggregateStatsInHomePage" computerName="CLAYCO7" duration="00:02:34.9312083" startTime="2013-04-27T00:42:05.6143166-07:00" endTime="2013-04-27T00:44:40.5490675-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="10588165-0a0b-4085-be9a-abe0dfd359b7">
+      <Output>
+        <ErrorInfo>
+          <Message>Exception occurred: Assert.IsTrue failed. Aggregate stats count is not increased by 1 after downloading. Aggregate stats before download :60647925. Stats after download : 60647938</Message>
+          <StackTrace>   at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.HandleFail(String assertionName, String message, Object[] parameters)
+   at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsTrue(Boolean condition, String message, Object[] parameters)
+   at NuGetGallery.FunctionalTests.AggregateStatsInHomePage.&lt;GetRequestEnumerator&gt;d__0.MoveNext() in d:\github.com\NuGetGallery\FunctionalTests\NuGetGallery.FunctionalTests\WebUITests\UploadAndDownload\AggregateStatsAfterDownload.cs:line 52
+   at Microsoft.VisualStudio.TestTools.WebStress.WebTestCaseVariation.ExecuteNextTopLevelRequest()</StackTrace>
+        </ErrorInfo>
+      </Output>
+      <ResultFiles>
+        <ResultFile path="AggregateStatsInHomePage.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\10588165-0a0b-4085-be9a-abe0dfd359b7\AggregateStatsInHomePage.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+    <WebTestResult executionId="b41fa8c4-3056-44d3-a6fd-4caf3041abe5" testId="6c390634-83d7-955a-87c4-b41e59b8d7ae" testName="RegisterInvalidUserTest" computerName="CLAYCO7" duration="00:00:02.0864743" startTime="2013-04-27T00:44:40.5490675-07:00" endTime="2013-04-27T00:44:42.6272588-07:00" testType="37e36796-fb51-4610-8d5c-e00ceaa68b9f" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b41fa8c4-3056-44d3-a6fd-4caf3041abe5">
+      <ResultFiles>
+        <ResultFile path="RegisterInvalidUserTest.webtestResult" />
+      </ResultFiles>
+      <TestSettings name="Local" id="62f583f0-2eca-4773-bed0-474a13faad76">
+        <Description>These are default test settings for a local test run.</Description>
+        <Deployment userDeploymentRoot="." useDefaultDeploymentRoot="false" runDeploymentRoot="TestResults[63]">
+          <DeploymentItem filename=".nuget\NuGet.Config" />
+          <DeploymentItem filename=".nuget\NuGet.exe" />
+          <DeploymentItem filename=".nuget\NuGet.targets" />
+        </Deployment>
+        <NamingScheme baseName="TestResults" appendTimeStamp="false" useDefault="false" />
+        <Execution>
+          <TestTypeSpecific>
+            <UnitTestRunConfig testTypeId="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b">
+              <AssemblyResolution>
+                <TestDirectory useLoadContext="true" />
+              </AssemblyResolution>
+            </UnitTestRunConfig>
+            <WebTestRunConfiguration testTypeId="4e7599fa-5ecb-43e9-a887-cd63cf72d207">
+              <Browser name="Internet Explorer 9.0" MaxConnections="6">
+                <Headers>
+                  <Header name="User-Agent" value="Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)" />
+                  <Header name="Accept" value="*/*" />
+                  <Header name="Accept-Language" value="en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3" />
+                  <Header name="Accept-Encoding" value="GZIP" />
+                </Headers>
+              </Browser>
+            </WebTestRunConfiguration>
+          </TestTypeSpecific>
+          <AgentRule name="LocalMachineDefaultRole">
+          </AgentRule>
+        </Execution>
+      </TestSettings>
+      <WebTestResultFilePath>TestResults[63]\In\b41fa8c4-3056-44d3-a6fd-4caf3041abe5\RegisterInvalidUserTest.webtestResult</WebTestResultFilePath>
+    </WebTestResult>
+  </Results>
+</TestRun>
