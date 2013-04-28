@@ -60,7 +60,8 @@ namespace NuGetGallery
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body.ToString();
-                mailMessage.From = request.FromAddress;
+                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.ReplyToList.Add(request.FromAddress);
                 mailMessage.To.Add(_config.GalleryOwnerEmail);
                 SendMessage(mailMessage);
             }
@@ -103,7 +104,8 @@ namespace NuGetGallery
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body.ToString();
-                mailMessage.From = request.FromAddress;
+                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.ReplyToList.Add(request.FromAddress);
                 mailMessage.To.Add(_config.GalleryOwnerEmail);
                 SendMessage(mailMessage);
             }
@@ -138,7 +140,8 @@ namespace NuGetGallery
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = fromAddress;
+                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.ReplyToList.Add(fromAddress);
 
                 AddOwnersToMailMessage(packageRegistration, mailMessage);
                 if (mailMessage.To.Any())
@@ -295,7 +298,8 @@ The {3} Team";
             {
                 mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, _config.GalleryOwnerName, fromUser.Username, package.Id);
                 mailMessage.Body = body;
-                mailMessage.From = fromUser.ToMailAddress();
+                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
                 SendMessage(mailMessage);

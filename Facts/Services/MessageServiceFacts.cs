@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.ObjectModel;
 using System.Net.Mail;
 using AnglicanGeek.MarkdownMailer;
@@ -41,6 +42,8 @@ namespace NuGetGallery
                     });
 
                 Assert.Equal("joe@example.com", message.To[0].Address);
+                Assert.Equal("joe@example.com", message.From.Address);
+                Assert.Equal("legit@example.com", message.ReplyToList.Single().Address);
                 Assert.Equal("[NuGet Gallery] Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
                 Assert.Contains("Reason!", message.Body);
                 Assert.Contains("Abuse!", message.Body);
@@ -91,6 +94,8 @@ namespace NuGetGallery
                     });
 
                 Assert.Equal("joe@example.com", message.To[0].Address);
+                Assert.Equal("joe@example.com", message.From.Address);
+                Assert.Equal("legit@example.com", message.ReplyToList.Single().Address);
                 Assert.Equal("[NuGet Gallery] Owner Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
                 Assert.Contains("Reason!", message.Body);
                 Assert.Contains("Abuse!", message.Body);
@@ -125,6 +130,8 @@ namespace NuGetGallery
                 mailSender.Verify(m => m.Send(It.IsAny<MailMessage>()));
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
+                Assert.Equal("joe@example.com", message.From.Address);
+                Assert.Equal("smangit@example.com", message.ReplyToList.Single().Address);
                 Assert.Contains("[NuGet Gallery] Message for owners of the package 'smangit'", message.Subject);
                 Assert.Contains("Test message", message.Body);
                 Assert.Contains(
@@ -199,6 +206,7 @@ namespace NuGetGallery
                 messageService.SendNewAccountEmail(to, "http://example.com/confirmation-token-url");
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
+                Assert.Equal("joe@example.com", message.From.Address);
                 Assert.Equal("[NuGet Gallery] Please verify your account.", message.Subject);
                 Assert.Contains("http://example.com/confirmation-token-url", message.Body);
             }
@@ -224,7 +232,8 @@ namespace NuGetGallery
                 messageService.SendPackageOwnerRequest(from, to, package, confirmationUrl);
 
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
-                Assert.Equal("existing-owner@example.com", message.From.Address);
+                Assert.Equal("joe@example.com", message.From.Address);
+                Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
                 Assert.Equal("[NuGet Gallery] The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Subject);
                 Assert.Contains(confirmationUrl, message.Body);
                 Assert.Contains("The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Body);
@@ -269,6 +278,7 @@ namespace NuGetGallery
                 messageService.SendPasswordResetInstructions(user, "http://example.com/pwd-reset-token-url");
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
+                Assert.Equal("joe@example.com", message.From.Address);
                 Assert.Equal("[NuGet Gallery] Please reset your password.", message.Subject);
                 Assert.Contains("Click the following link within the next", message.Body);
                 Assert.Contains("http://example.com/pwd-reset-token-url", message.Body);
