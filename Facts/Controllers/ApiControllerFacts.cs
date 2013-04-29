@@ -46,7 +46,7 @@ namespace NuGetGallery
             }
             nugetExeDownloader = nugetExeDownloader ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
 
-            var controller = new Mock<ApiController>(packageService.Object, fileService.Object, userService.Object, nugetExeDownloader.Object);
+            var controller = new Mock<ApiController>(packageService.Object, fileService.Object, userService.Object, nugetExeDownloader.Object, new Mock<IContentService>().Object);
             controller.CallBase = true;
             if (packageFromInputStream != null)
             {

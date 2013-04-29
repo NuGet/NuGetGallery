@@ -170,6 +170,7 @@ namespace NuGetGallery.Services
             public TestableContentService()
             {
                 FileStorage = (MockFileStorage = new Mock<IFileStorageService>()).Object;
+                
             }
 
             public ContentItem GetCached(string key)
