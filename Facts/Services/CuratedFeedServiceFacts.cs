@@ -193,44 +193,6 @@ namespace NuGetGallery.Services
             }
         }
 
-        //public class DeleteCuratedPackageCommandFacts
-        //{
-        //    public class TestableDeleteCuratedPackageCommand : DeleteCuratedPackageCommand
-        //    {
-        //        public TestableDeleteCuratedPackageCommand()
-        //            : base(null)
-        //        {
-        //            StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName", };
-        //            StubCuratedPackageDbSet = new Mock<IDbSet<CuratedPackage>>();
-        //            StubCuratedFeedService = new Mock<ICuratedFeedService>();
-        //            StubEntitiesContext = new Mock<IEntitiesContext>();
-
-        //            StubCuratedFeedService
-        //                .Setup(stub => stub.GetFeedByKey(It.IsAny<int>(), It.IsAny<bool>()))
-        //                .Returns(StubCuratedFeed);
-        //            StubEntitiesContext
-        //                .Setup(stub => stub.CuratedPackages)
-        //                .Returns(StubCuratedPackageDbSet.Object);
-
-        //            Entities = StubEntitiesContext.Object;
-        //        }
-
-        //        public CuratedFeed StubCuratedFeed { get; set; }
-        //        public Mock<IDbSet<CuratedPackage>> StubCuratedPackageDbSet { get; private set; }
-        //        public Mock<ICuratedFeedService> StubCuratedFeedService { get; set; }
-        //        public Mock<IEntitiesContext> StubEntitiesContext { get; private set; }
-
-        //        protected override T GetService<T>()
-        //        {
-        //            if (typeof(T) == typeof(ICuratedFeedService))
-        //            {
-        //                return (T)StubCuratedFeedService.Object;
-        //            }
-
-        //            throw new Exception("Tried to get unexpected service");
-        //        }
-        //    }
-
         public class TheDeleteCuratedPackageMethod
         {
             [Fact]
