@@ -78,7 +78,7 @@ namespace NuGetGallery.Services
                 Assert.NotNull(cached);
                 Assert.Equal(RenderedFileContent, cached.Content.ToString());
                 Assert.Equal(file.ContentId, cached.ContentId);
-                Assert.Equal(TimeSpan.FromSeconds(42), cached.ExpiresIn);
+                Assert.Equal(TimeSpan.FromSeconds(42), cached.ExpiryUtc - cached.RetrievedUtc);
                 Assert.True(cached.RetrievedUtc >= testStart);
             }
 
@@ -88,7 +88,7 @@ namespace NuGetGallery.Services
                 // Arrange
                 var file = TestFileReference.Create(FileContent);
                 var contentService = new TestableContentService();
-                contentService.SetCached("TestContentItem", CachedContent, TimeSpan.FromDays(365d), DateTime.UtcNow);
+                contentService.SetCached("TestContentItem", CachedContent, DateTime.UtcNow.AddDays(365d), DateTime.UtcNow);
                 
                 // Act
                 var actual = await contentService.GetContentItemAsync("TestContentItem", TimeSpan.Zero);
@@ -108,8 +108,9 @@ namespace NuGetGallery.Services
                 var testStart = DateTime.UtcNow;
                 var file = TestFileReference.Create(CachedContent);
                 var contentService = new TestableContentService();
+                var retrieved = testStart.AddDays(-1d);
                 var cachedContentId = 
-                    contentService.SetCached("TestContentItem", CachedContent, TimeSpan.FromSeconds(1), testStart.AddDays(-1d));
+                    contentService.SetCached("TestContentItem", CachedContent, retrieved.AddSeconds(1), retrieved);
                 contentService.MockFileStorage
                               .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", cachedContentId))
                               .Returns(Task.FromResult<IFileReference>(file));
@@ -127,7 +128,7 @@ namespace NuGetGallery.Services
                 Assert.NotNull(updatedCache);
                 Assert.Equal(CachedContent, updatedCache.Content.ToString());
                 Assert.Equal(file.ContentId, updatedCache.ContentId);
-                Assert.Equal(TimeSpan.FromHours(12), updatedCache.ExpiresIn);
+                Assert.Equal(TimeSpan.FromHours(12), updatedCache.ExpiryUtc - updatedCache.RetrievedUtc);
                 Assert.True(updatedCache.RetrievedUtc > testStart);
             }
 
@@ -138,8 +139,9 @@ namespace NuGetGallery.Services
                 var testStart = DateTime.UtcNow;
                 var file = TestFileReference.Create(NewContent);
                 var contentService = new TestableContentService();
+                var retrieved = testStart.AddDays(-1d);
                 var cachedContentId =
-                    contentService.SetCached("TestContentItem", CachedContent, TimeSpan.FromSeconds(1), testStart.AddDays(-1d));
+                    contentService.SetCached("TestContentItem", CachedContent, retrieved.AddSeconds(1), retrieved);
                 contentService.MockFileStorage
                               .Setup(fs => fs.GetFileReferenceAsync(Constants.ContentFolderName, "TestContentItem.md", cachedContentId))
                               .Returns(Task.FromResult<IFileReference>(file));
@@ -157,7 +159,7 @@ namespace NuGetGallery.Services
                 Assert.NotNull(updatedCache);
                 Assert.Equal(RenderedNewContent, updatedCache.Content.ToString());
                 Assert.Equal(file.ContentId, updatedCache.ContentId);
-                Assert.Equal(TimeSpan.FromHours(12), updatedCache.ExpiresIn);
+                Assert.Equal(TimeSpan.FromHours(12), updatedCache.ExpiryUtc - updatedCache.RetrievedUtc);
                 Assert.True(updatedCache.RetrievedUtc > testStart);
             }
         }
@@ -183,9 +185,9 @@ namespace NuGetGallery.Services
                 return item;
             }
 
-            public string SetCached(string key, string content, TimeSpan expiresIn, DateTime retrievedUtc)
+            public string SetCached(string key, string content, DateTime expiryUtc, DateTime retrievedUtc)
             {
-                var item = new ContentItem(new HtmlString(content), expiresIn, Crypto.Hash(content), retrievedUtc);
+                var item = new ContentItem(new HtmlString(content), expiryUtc, Crypto.Hash(content), retrievedUtc);
                 ContentCache.AddOrSet(key, item);
                 return item.ContentId;
             }

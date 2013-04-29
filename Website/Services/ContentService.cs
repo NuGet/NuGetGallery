@@ -120,7 +120,7 @@ namespace NuGetGallery
                 }
 
                 // Prep the new item for the cache
-                item = new ContentItem(result, expiresIn, reference == null ? null : reference.ContentId, DateTime.UtcNow);
+                item = new ContentItem(result, DateTime.UtcNow + expiresIn, reference == null ? null : reference.ContentId, DateTime.UtcNow);
                 Trace.Information(String.Format("Updating Cache: {0} expires at {1}", name, item.ExpiryUtc));
                 ContentCache.AddOrSet(name, item);
 
@@ -132,15 +132,14 @@ namespace NuGetGallery
         public class ContentItem
         {
             public HtmlString Content { get; private set; }
-            public TimeSpan ExpiresIn { get; private set; }
             public string ContentId { get; private set; }
             public DateTime RetrievedUtc { get; private set; }
-            public DateTime ExpiryUtc { get { return RetrievedUtc + ExpiresIn; } }
+            public DateTime ExpiryUtc { get; private set; }
 
-            public ContentItem(HtmlString content, TimeSpan expiresIn, string contentId, DateTime retrievedUtc)
+            public ContentItem(HtmlString content, DateTime expiryUtc, string contentId, DateTime retrievedUtc)
             {
                 Content = content;
-                ExpiresIn = expiresIn;
+                ExpiryUtc = expiryUtc;
                 ContentId = contentId;
                 RetrievedUtc = retrievedUtc;
             }
