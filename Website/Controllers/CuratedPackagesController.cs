@@ -16,7 +16,6 @@ namespace NuGetGallery
             this.CuratedFeedService = curatedFeedService;
         }
 
-
         [ActionName("CreateCuratedPackageForm")]
         [HttpGet]
         public virtual ActionResult GetCreateCuratedPackageForm(string curatedFeedName)
@@ -59,7 +58,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403);
             }
 
-            GetService<ICuratedFeedService>().DeleteCuratedPackage(
+            CuratedFeedService.DeleteCuratedPackage(
                 curatedFeed.Key,
                 curatedPackage.Key);
 
@@ -95,7 +94,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(400);
             }
 
-            GetService<ICuratedFeedService>().ModifyCuratedPackage(
+            CuratedFeedService.ModifyCuratedPackage(
                 curatedFeed.Key,
                 curatedPackage.Key,
                 request.Included);
@@ -141,9 +140,11 @@ namespace NuGetGallery
                 return View("CreateCuratedPackageForm");
             }
 
-            GetService<ICuratedFeedService>().CreatedCuratedPackage(
+            CuratedFeedService.CreatedCuratedPackage(
                 curatedFeed,
                 packageRegistration,
+                included: true,
+                automaticallyCurated: false,
                 notes: request.Notes);
 
             return RedirectToRoute(RouteName.CuratedFeed, new { name = curatedFeed.Name });

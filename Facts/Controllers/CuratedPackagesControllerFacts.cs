@@ -350,8 +350,9 @@ namespace NuGetGallery
             public void WillCreateTheCuratedPackage()
             {
                 var controller = new TestableCuratedPackagesController();
-                controller.StubCuratedFeed.Key = 42;
-                controller.StubPackageRegistration.Key = 1066;
+                controller.StubPackageRegistrationByIdQry
+                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Returns(controller.StubPackageRegistration);
 
                 controller.PostCuratedPackages(
                     "aFeedName",
