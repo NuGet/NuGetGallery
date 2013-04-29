@@ -37,7 +37,7 @@ namespace NuGetGallery
             UpdateIndex(forceRefresh: false);
         }
 
-        internal void UpdateIndex(bool forceRefresh)
+        public void UpdateIndex(bool forceRefresh)
         {
             DateTime? lastWriteTime = GetLastWriteTime();
 
@@ -74,7 +74,7 @@ namespace NuGetGallery
             return packagesForIndexing.ToList();
         }
 
-        private void AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
+        public void AddPackages(IList<PackageIndexEntity> packages, bool creatingIndex)
         {
             if (!creatingIndex)
             {
