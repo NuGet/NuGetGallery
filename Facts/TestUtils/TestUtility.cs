@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -84,6 +86,11 @@ namespace NuGetGallery
                 return default(T);
             }
             return (T)property.GetValue(source, null);
+        }
+
+        public static Stream CreateTestStream(string content)
+        {
+            return new MemoryStream(Encoding.UTF8.GetBytes(content));
         }
     }
 }

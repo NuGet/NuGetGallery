@@ -45,7 +45,7 @@ namespace NuGetGallery
                     .ToMethod(_ => new SqlErrorLog(configuration.SqlConnectionString))
                     .InSingletonScope();
             }
-            
+
             if (IsDeployedToCloud)
             {
                 // when running on Windows Azure, use the Azure Cache service if available
@@ -78,6 +78,10 @@ namespace NuGetGallery
                     .To<HttpContextCacheService>()
                     .InRequestScope();
             }
+
+            Bind<IContentService>()
+                .To<ContentService>()
+                .InSingletonScope();
 
             Bind<IEntitiesContext>()
                 .ToMethod(context => new EntitiesContext(configuration.SqlConnectionString, readOnly: configuration.ReadOnlyMode))
@@ -153,39 +157,39 @@ namespace NuGetGallery
 
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
+                {
+                    var settings = Kernel.Get<IConfiguration>();
+                    if (settings.UseSmtp)
                     {
-                        var settings = Kernel.Get<IConfiguration>();
-                        if (settings.UseSmtp)
-                        {
-                            var mailSenderConfiguration = new MailSenderConfiguration
-                                {
-                                    DeliveryMethod = SmtpDeliveryMethod.Network,
-                                    Host = settings.SmtpHost,
-                                    Port = settings.SmtpPort,
-                                    EnableSsl = true
-                                };
-
-                            if (!String.IsNullOrWhiteSpace(settings.SmtpUsername))
+                        var mailSenderConfiguration = new MailSenderConfiguration
                             {
-                                mailSenderConfiguration.UseDefaultCredentials = false;
-                                mailSenderConfiguration.Credentials = new NetworkCredential(
-                                    settings.SmtpUsername,
-                                    settings.SmtpPassword);
-                            }
+                                DeliveryMethod = SmtpDeliveryMethod.Network,
+                                Host = settings.SmtpHost,
+                                Port = settings.SmtpPort,
+                                EnableSsl = true
+                            };
 
-                            return new MailSender(mailSenderConfiguration);
-                        }
-                        else
+                        if (!String.IsNullOrWhiteSpace(settings.SmtpUsername))
                         {
-                            var mailSenderConfiguration = new MailSenderConfiguration
-                                {
-                                    DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
-                                    PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
-                                };
-
-                            return new MailSender(mailSenderConfiguration);
+                            mailSenderConfiguration.UseDefaultCredentials = false;
+                            mailSenderConfiguration.Credentials = new NetworkCredential(
+                                settings.SmtpUsername,
+                                settings.SmtpPassword);
                         }
-                    });
+
+                        return new MailSender(mailSenderConfiguration);
+                    }
+                    else
+                    {
+                        var mailSenderConfiguration = new MailSenderConfiguration
+                            {
+                                DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
+                                PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
+                            };
+
+                        return new MailSender(mailSenderConfiguration);
+                    }
+                });
 
             Bind<IMailSender>()
                 .ToMethod(context => mailSenderThunk.Value);
@@ -203,7 +207,7 @@ namespace NuGetGallery
                         .To<FileSystemFileStorageService>()
                         .InSingletonScope();
                     break;
-                case PackageStoreType.AzureStorageBlob: 
+                case PackageStoreType.AzureStorageBlob:
                     Bind<ICloudBlobClient>()
                         .ToMethod(
                             _ => new CloudBlobClientWrapper(configuration.AzureStorageConnectionString))

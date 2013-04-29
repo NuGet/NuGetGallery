@@ -12,5 +12,7 @@ namespace NuGetGallery
         Stream OpenRead(string path);
         Stream OpenWrite(string path);
         DateTimeOffset GetCreationTimeUtc(string path);
+
+        IFileReference GetFileReference(string path);
     }
 }

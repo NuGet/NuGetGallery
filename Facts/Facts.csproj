@@ -183,11 +183,13 @@
     <Compile Include="Routing\VersionRouteConstraintFacts.cs" />
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
     <Compile Include="Services\CuratedFeedServiceFacts.cs" />
+    <Compile Include="Services\ContentServiceFacts.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\NuGetExeDownloaderServiceFacts.cs" />
     <Compile Include="Services\ODataRemoveVersionSorterFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
+    <Compile Include="Services\TestFileReference.cs" />
     <Compile Include="Services\UploadFileServiceFacts.cs" />
     <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />

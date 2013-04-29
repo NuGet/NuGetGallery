@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using NuGet;
 
 namespace NuGetGallery.Diagnostics
@@ -13,6 +14,8 @@ namespace NuGetGallery.Diagnostics
 
     public static class DiagnosticsSourceExtensions
     {
+        private static int _activityId = 0;
+
         // That's right. Regions. Deal with it.
         #region TraceEventType.Critical
         public static void Critical(this IDiagnosticsSource self,
@@ -196,20 +199,23 @@ namespace NuGetGallery.Diagnostics
                                            [CallerFilePath] string file = null,
                                            [CallerLineNumber] int line = 0)
         {
+            var thisActivityId = Interlocked.Increment(ref _activityId);
+            var stopMessage = String.Format(CultureInfo.CurrentCulture, "Finished {0}", name);
             self.TraceEvent(TraceEventType.Start,
-                       id: 0,
+                       id: thisActivityId,
                        message: String.Format(CultureInfo.CurrentCulture, "Starting {0}", name),
                        member: member,
                        file: file,
                        line: line);
-            var stopMessage = String.Format(CultureInfo.CurrentCulture, "Starting {0}", name);
             return new DisposableAction(() =>
+            {
                 self.TraceEvent(TraceEventType.Stop,
-                            id: 0,
+                            id: thisActivityId,
                             message: stopMessage,
                             member: member,
                             file: file,
-                            line: line));
+                            line: line);
+            });
         }
     }
 }

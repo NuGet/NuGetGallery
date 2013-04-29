@@ -16,6 +16,7 @@
 
         public const string PackagesFolderName = "packages";
         public const string DownloadsFolderName = "downloads";
+        public const string ContentFolderName = "content";
 
         public const string PopularitySortOrder = "package-download-count";
         public const string RecentSortOrder = "package-created";
@@ -30,5 +31,14 @@
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
+
+        public static class ContentNames
+        {
+            public static readonly string FrontPageAnnouncement = "FrontPage-Announcement";
+            public static readonly string FrontPageAbout = "FrontPage-About";
+
+            public static readonly string Alert = "Alert";
+        }
+
     }
 }

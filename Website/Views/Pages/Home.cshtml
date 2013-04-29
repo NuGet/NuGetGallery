@@ -1,4 +1,5 @@
-﻿@{
+﻿@model NuGetGallery.ViewModels.HomeViewModel
+@{
     ViewBag.Title = "Home";
     ViewBag.Tab = "Home";
 }
@@ -28,30 +29,17 @@
     <span class="err">an error occurred while retrieving statistics</span>
 </section>
 
+@if(Model.Announcement != null) {
 <section class="release">
-     <h2>NuGet 2.2.1 Released</h2> 
-     <p>
-        Take a few seconds and UPGRADE NOW using the Visual Studio Extension Manager. Why? Because there's a pile of new features and it will  
-        make your life easier! All these details and <a href="http://docs.nuget.org/docs/release-notes/nuget-2.2.1">more here...</a>
-     </p>
-     <p>
-        <strong>NOTE: </strong>If you encounter an error while upgrading from an older version of NuGet you will need to uninstall the 
-        older version of NuGet first (Tip: Make sure to run Visual Studio as an admin) then install NuGet. We are sorry for any 
-        inconvenience this might cause, more info can be found in the
-        <a href="http://docs.nuget.org/docs/reference/known-issues#Upgrading_to_latest_NuGet_from_an_older_version_causes_a_signature_verification_error.">known issues</a>.
-     </p>
+    @Model.Announcement
 </section>
+}
 
+@if(Model.About != null) {
 <section class="info">
-    <h3>About</h3>
-    <p>When you use NuGet to install a package, it copies the library files to your solution and automatically updates your project 
-        (add references, change config files, etc.). If you remove a package, NuGet reverses whatever changes it made so that no clutter is left.</p>
-
-    <h3>Important Notice</h3>
-    <p>You can develop your own package and share it via the NuGet Gallery. Read the documentation for more details on 
-        <a title="Creating and submitting a package" href="http://docs.nuget.org/docs/creating-packages/creating-and-publishing-a-package">how to 
-            create and publish a package</a>. If you don&rsquo;t plan on submitting a package, there&rsquo;s no need to register.</p>
+    @Model.About
 </section>
+}
 
 @section BottomScripts
 {
