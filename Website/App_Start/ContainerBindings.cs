@@ -238,26 +238,8 @@ namespace NuGetGallery
             Bind<IAutomaticallyCuratePackageCommand>()
                 .To<AutomaticallyCuratePackageCommand>()
                 .InRequestScope();
-            Bind<ICreateCuratedPackageCommand>()
-                .To<CreateCuratedPackageCommand>()
-                .InRequestScope();
-            Bind<IDeleteCuratedPackageCommand>()
-                .To<DeleteCuratedPackageCommand>()
-                .InRequestScope();
-            Bind<IModifyCuratedPackageCommand>()
-                .To<ModifyCuratedPackageCommand>()
-                .InRequestScope();
 
             // todo: bind all queries by convention
-            Bind<ICuratedFeedByKeyQuery>()
-                .To<CuratedFeedByKeyQuery>()
-                .InRequestScope();
-            Bind<ICuratedFeedByNameQuery>()
-                .To<CuratedFeedByNameQuery>()
-                .InRequestScope();
-            Bind<ICuratedFeedsByManagerQuery>()
-                .To<CuratedFeedsByManagerQuery>()
-                .InRequestScope();
             Bind<IPackageRegistrationByKeyQuery>()
                 .To<PackageRegistrationByKeyQuery>()
                 .InRequestScope();

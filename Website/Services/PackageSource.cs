@@ -46,7 +46,7 @@ namespace NuGetGallery
             var curatedFeedsPerPackageRegistration = _curatedPackageRepository.GetAll()
                 .Select(cp => new { cp.PackageRegistrationKey, cp.CuratedFeedKey })
                 .GroupBy(x => x.PackageRegistrationKey)
-                .ToDictionary(group => group.Key, element => element.Select(x => x.CuratedFeedKey).Distinct());
+                .ToDictionary(group => group.Key, element => element.Select(x => x.CuratedFeedKey));
 
             Func<int, IEnumerable<int>> GetFeeds = packageRegistrationKey =>
             {

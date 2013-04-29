@@ -12,29 +12,22 @@ namespace NuGetGallery.PackageCurators
         {
             public TestableWindows8PackageCurator()
             {
-                StubCreatedCuratedPackageCmd = new Mock<ICreateCuratedPackageCommand>();
                 StubCuratedFeed = new CuratedFeed { Key = 0 };
-                StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
+                StubCuratedFeedService = new Mock<ICuratedFeedService>();
 
-                StubCuratedFeedByNameQry
-                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                StubCuratedFeedService
+                    .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
                     .Returns(StubCuratedFeed);
             }
 
-            public Mock<ICreateCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
             public CuratedFeed StubCuratedFeed { get; private set; }
-            public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
+            public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
 
             protected override T GetService<T>()
             {
-                if (typeof(T) == typeof(ICreateCuratedPackageCommand))
+                if (typeof(T) == typeof(ICuratedFeedService))
                 {
-                    return (T)StubCreatedCuratedPackageCmd.Object;
-                }
-
-                if (typeof(T) == typeof(ICuratedFeedByNameQuery))
-                {
-                    return (T)StubCuratedFeedByNameQry.Object;
+                    return (T)StubCuratedFeedService.Object;
                 }
 
                 throw new Exception("Tried to get an unexpected service.");
@@ -47,14 +40,14 @@ namespace NuGetGallery.PackageCurators
             public void WillNotIncludeThePackageWhenTheWindows8CuratedFeedDoesNotExist()
             {
                 var curator = new TestableWindows8PackageCurator();
-                curator.StubCuratedFeedByNameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+                curator.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
                 var package = CreateStubGalleryPackage();
                 package.Tags = "winrt";
 
                 curator.Curate(package, null, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -81,8 +74,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -101,8 +94,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -121,8 +114,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -144,13 +137,14 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
-                    It.IsAny<CuratedFeed>(),
-                    It.IsAny<PackageRegistration>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>()), Times.Never());
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
+                        It.IsAny<CuratedFeed>(),
+                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()), Times.Never());
             }
 
             [Fact]
@@ -165,7 +159,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -184,8 +179,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(package, CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         curator.StubCuratedFeed,
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -204,8 +199,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         stubGalleryPackage.PackageRegistration,
                         It.IsAny<bool>(),
@@ -223,8 +218,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -236,13 +231,13 @@ namespace NuGetGallery.PackageCurators
             private static Package CreateStubGalleryPackage()
             {
                 return new Package
+                {
+                    IsLatestStable = true,
+                    PackageRegistration = new PackageRegistration
                     {
-                        IsLatestStable = true,
-                        PackageRegistration = new PackageRegistration
-                            {
-                                Key = 0,
-                            },
-                    };
+                        Key = 0,
+                    },
+                };
             }
 
             private static Mock<INupkg> CreateStubNuGetPackage()

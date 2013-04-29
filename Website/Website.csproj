@@ -502,9 +502,6 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Commands\AppCommand.cs" />
-    <Compile Include="Commands\DeleteCuratedPackageCommand.cs" />
-    <Compile Include="Commands\ModifyCuratedPackageCommand.cs" />
-    <Compile Include="Commands\CreateCuratedPackageCommand.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommand.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
@@ -740,6 +737,14 @@
     <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.cs" />
+    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.Designer.cs">
+      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.cs" />
+    <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.Designer.cs">
+      <DependentUpon>201304091828587_Contract_UniqueCuratedPackages.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -759,9 +764,6 @@
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
-    <Compile Include="Queries\CuratedFeedByKeyQuery.cs" />
-    <Compile Include="Queries\CuratedFeedByNameQuery.cs" />
-    <Compile Include="Queries\CuratedFeedsByManagerKeyQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
@@ -1108,6 +1110,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.resx">
+      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
