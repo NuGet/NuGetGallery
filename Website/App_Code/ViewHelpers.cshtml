@@ -7,30 +7,6 @@
 
 @* Generator: MvcHelper Namespace: NuGetGallery*@
 
-@functions {
-    public static IConfiguration Configuration
-    {
-        get { return Container.Kernel.Get<IConfiguration>(); }
-    }
-
-    private static Dictionary<string, string> EnvironmentMessages = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-    {
-        { "Development", "This is a development environment. No data will be preserved." },
-        { "QA", "This is an internal test environment. User accounts from the main site will NOT work." },
-        { "Staging", "This is a staging environment. Some data from the main site may exist but data added here will be lost." }
-    };
-}
-
-@helper NonProductionBanner() {
-    string message;
-    if (EnvironmentMessages.TryGetValue(Configuration.EnvironmentName, out message))
-    {
-        <div class="banner-yellow">
-            @message
-        </div>
-    }
-}
-
 @helper PreviousNextPager(IPreviousNextPager pager)
 {
     if (pager.HasNextPage || pager.HasPreviousPage)

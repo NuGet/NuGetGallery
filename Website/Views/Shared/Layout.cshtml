@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html> 
-<html lang="en" class="static "> 
+<html lang="en" class="static " data-root="@Href("~/")">
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -12,7 +12,7 @@
         @RenderSection("TopScripts", required: false)
     </head>
     <body>
-        @ViewHelpers.NonProductionBanner()
+        <div id="service-alert"></div>
         <div id="outer-wrapper">
             <div id="content-wrapper">
                 <header class="main">

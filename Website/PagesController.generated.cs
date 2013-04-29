@@ -45,7 +45,6 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string Contact = "Contact";
-            public readonly string Home = "Home";
             public readonly string Terms = "Terms";
             public readonly string Privacy = "Privacy";
         }
@@ -69,11 +68,6 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult Contact() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Contact);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Home() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Home);
             return callInfo;
         }
 

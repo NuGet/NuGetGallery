@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Services;
 using System.Globalization;
@@ -19,6 +20,11 @@ namespace NuGetGallery
 {
     public static class ExtensionMethods
     {
+        public static void AddOrSet<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> self, TKey key, TValue val)
+        {
+            self.AddOrUpdate(key, val, (_, __) => val);
+        }
+
         public static SecureString ToSecureString(this string str)
         {
             SecureString output = new SecureString();
