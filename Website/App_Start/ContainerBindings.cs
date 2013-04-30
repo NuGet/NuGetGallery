@@ -243,9 +243,6 @@ namespace NuGetGallery
             Bind<IPackageRegistrationByKeyQuery>()
                 .To<PackageRegistrationByKeyQuery>()
                 .InRequestScope();
-            Bind<IPackageRegistrationByIdQuery>()
-                .To<PackageRegistrationByIdQuery>()
-                .InRequestScope();
 
             Bind<IAggregateStatsService>()
                 .To<AggregateStatsService>()

@@ -194,6 +194,7 @@
     <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="TestUtils\ContractAssert.cs" />
+    <Compile Include="TestUtils\FakeDbSet.cs" />
     <Compile Include="TestUtils\MockExtensions.cs" />
     <Compile Include="TestUtils\ModelStateAssert.cs" />
     <Compile Include="TestUtils\ResultAssert.cs" />
