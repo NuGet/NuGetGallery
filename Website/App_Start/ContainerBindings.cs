@@ -127,10 +127,6 @@ namespace NuGetGallery
                 .To<UserService>()
                 .InRequestScope();
 
-            Bind<IPackageSource>()
-                .To<PackageSource>()
-                .InRequestScope();
-
             Bind<IPackageService>()
                 .To<PackageService>()
                 .InRequestScope();

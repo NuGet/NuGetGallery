@@ -14,7 +14,7 @@ namespace NuGetGallery
             : base("Lucene", frequence, timeout)
         {
             _indexingService = new LuceneIndexingService(
-                new PackageSource(contextThunk()),
+                contextThunk(),
                 LuceneCommon.GetDirectory());
 
             // Updates the index synchronously first time job is created.
