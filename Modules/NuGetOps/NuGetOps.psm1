@@ -168,7 +168,7 @@ dir $PsScriptRoot\Public\*.ps1 | foreach {
 
 
 
-Clear-Host
+#Clear-Host
 Write-Host -BackgroundColor Blue -ForegroundColor White @"
  _____     _____     _      _____ _____ _____ 
 |   | |_ _|   __|___| |    |     |     |   __|
