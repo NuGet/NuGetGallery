@@ -11,9 +11,9 @@ namespace NuGetGallery
 {
     public class CuratedPackagesControllerFacts
     {
-        public abstract class TestableCuratedPackagesControllerBase : CuratedPackagesController
+        public class TestableCuratedPackagesController : CuratedPackagesController
         {
-            protected TestableCuratedPackagesControllerBase()
+            public TestableCuratedPackagesController()
             {
                 StubCuratedFeed = new CuratedFeed
                     { Key = 0, Name = "aFeedName", Managers = new HashSet<User>(new[] { new User { Username = "aUsername" } }) };
@@ -24,14 +24,8 @@ namespace NuGetGallery
                 StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
 
                 EntitiesContext = new FakeEntitiesContext();
-
-                var fakeCuratedFeedSet = EntitiesContext.Set<CuratedFeed>();
-                fakeCuratedFeedSet.Add(StubCuratedFeed);
-
-                var fakePackageRegistrationSet = EntitiesContext.Set<PackageRegistration>();
-                fakePackageRegistrationSet.Add(StubPackageRegistration);
-
-                var fakeCuratedPackageSet = EntitiesContext.Set<CuratedPackage>();
+                EntitiesContext.CuratedFeeds.Add(StubCuratedFeed);
+                EntitiesContext.PackageRegistrations.Add(StubPackageRegistration);
 
                 var curatedFeedRepository = new EntityRepository<CuratedFeed>(
                     EntitiesContext);
@@ -54,308 +48,307 @@ namespace NuGetGallery
             }
         }
 
-        public class TestableCuratedPackagesController : TestableCuratedPackagesControllerBase
+        public class TheDeleteCuratedPackageAction
         {
-            public TestableCuratedPackagesController()
+            [Fact]
+            public void WillReturn404IfTheCuratedFeedDoesNotExist()
             {
-                //StubCuratedFeedService
-                //    .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
-                //    .Returns(StubCuratedFeed);
+                var controller = new TestableCuratedPackagesController();
+                
+                var result = controller.DeleteCuratedPackage("aStrangeCuratedFeedName", "anId");
+
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public void WillReturn404IfTheCuratedPackageDoesNotExist()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Packages = new[] { new CuratedPackage { PackageRegistration = new PackageRegistration() } };
+
+                var result = controller.DeleteCuratedPackage("aFeedName", "aStrangeCuratedPackageId");
+
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public void WillReturn403IfTheUserNotAManager()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubIdentity
+                    .Setup(i => i.Name)
+                    .Returns("notAManager");
+
+                controller.StubCuratedFeed.Packages.Add(
+                    new CuratedPackage
+                    {
+                        CuratedFeed = controller.StubCuratedFeed,
+                        CuratedFeedKey = controller.StubCuratedFeed.Key,
+                        PackageRegistration = controller.StubPackageRegistration,
+                        PackageRegistrationKey = controller.StubPackageRegistration.Key,
+                    });
+
+                var result = controller.DeleteCuratedPackage("aFeedName", "anId") as HttpStatusCodeResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(403, result.StatusCode);
+            }
+
+            [Fact]
+            public void WillDeleteTheCuratedPackageWhenRequestIsValid()
+            {
+                var controller = new TestableCuratedPackagesController();
+
+                controller.StubCuratedFeed.Packages.Add(
+                    new CuratedPackage
+                    {
+                        CuratedFeed = controller.StubCuratedFeed,
+                        CuratedFeedKey = controller.StubCuratedFeed.Key,
+                        PackageRegistration = controller.StubPackageRegistration ,
+                        PackageRegistrationKey = controller.StubPackageRegistration.Key,
+                    });
+
+                Assert.True(controller.EntitiesContext.CuratedPackages.Any
+                    (cp => cp.PackageRegistration.Id == "anId"));
+
+                controller.DeleteCuratedPackage("aFeedName", "anId");
+
+                Assert.False(controller.EntitiesContext.CuratedPackages.Any
+                    (cp => cp.PackageRegistration.Id == "anId"));
+            }
+
+            [Fact]
+            public void WillReturn204AfterDeletingTheCuratedPackage()
+            {
+                var controller = new TestableCuratedPackagesController();
+
+                controller.StubCuratedFeed.Packages.Add(
+                    new CuratedPackage
+                    {
+                        CuratedFeed = controller.StubCuratedFeed,
+                        CuratedFeedKey = controller.StubCuratedFeed.Key,
+                        PackageRegistration = controller.StubPackageRegistration,
+                        PackageRegistrationKey = controller.StubPackageRegistration.Key,
+                    });
+
+                var result = controller.DeleteCuratedPackage("aFeedName", "anId") as HttpStatusCodeResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(204, result.StatusCode);
             }
         }
 
-        //public class TheDeleteCuratedPackageAction
-        //{
-        //    [Fact]
-        //    public void WillReturn404IfTheCuratedFeedDoesNotExist()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+        public class TheGetCreateCuratedPackageFormAction
+        {
+            [Fact]
+            public void WillReturn404IfTheCuratedFeedDoesNotExist()
+            {
+                var controller = new TestableCuratedPackagesController();
 
-        //        var result = controller.DeleteCuratedPackage("aCuratedFeedName", "aCuratedPackageId");
+                var result = controller.GetCreateCuratedPackageForm("aWrongFeedName");
 
-        //        Assert.IsType<HttpNotFoundResult>(result);
-        //    }
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
 
-        //    [Fact]
-        //    public void WillReturn404IfTheCuratedPackageDoesNotExist()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeed.Packages = new[] { new CuratedPackage { PackageRegistration = new PackageRegistration() } };
+            [Fact]
+            public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
 
-        //        var result = controller.DeleteCuratedPackage("aCuratedFeedName", "aCuratedPackageId");
+                var result = controller.GetCreateCuratedPackageForm("aFeedName") as HttpStatusCodeResult;
 
-        //        Assert.IsType<HttpNotFoundResult>(result);
-        //    }
+                Assert.NotNull(result);
+                Assert.Equal(403, result.StatusCode);
+            }
 
-        //    [Fact]
-        //    public void WillReturn403IfTheCuratedPackageDoesNotExist()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeed.Managers = new[] { new User { Username = "notAManager" } };
+            [Fact]
+            public void WillPushTheCuratedFeedNameIntoTheViewBag()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Name = "theCuratedFeedName";
 
-        //        var result = controller.DeleteCuratedPackage("aCuratedFeedName", "aCuratedPackageId") as HttpStatusCodeResult;
+                var result = controller.GetCreateCuratedPackageForm("theCuratedFeedName") as ViewResult;
 
-        //        Assert.NotNull(result);
-        //        Assert.Equal(403, result.StatusCode);
-        //    }
+                Assert.NotNull(result);
+                Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
+            }
+        }
 
-        //    [Fact]
-        //    public void WillDeleteTheCuratedPackageWhenRequestIsValid()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeed.Key = 42;
-        //        controller.StubCuratedFeed.Packages = new[]
-        //            {
-        //                new CuratedPackage
-        //                    {
-        //                        Key = 1066,
-        //                        PackageRegistration = new PackageRegistration { Id = "theCuratedPackageId" }
-        //                    }
-        //            };
+        public class ThePatchCuratedPackageAction
+        {
+            [Fact]
+            public void WillReturn404IfTheCuratedFeedDoesNotExist()
+            {
+                var controller = new TestableCuratedPackagesController();
+                
+                var result = controller.PatchCuratedPackage("aWrongFeedName", "anId", 
+                    new ModifyCuratedPackageRequest());
 
-        //        controller.DeleteCuratedPackage("theCuratedFeedName", "theCuratedPackageId");
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
 
-        //        controller.StubCuratedFeedService.Verify(
-        //            stub => stub.DeleteCuratedPackage(
-        //                42,
-        //                1066));
-        //    }
+            [Fact]
+            public void WillReturn404IfTheCuratedPackageDoesNotExist()
+            {
+                var controller = new TestableCuratedPackagesController();
 
-        //    [Fact]
-        //    public void WillReturn204AfterDeletingTheCuratedPackage()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
+                var result = controller.PatchCuratedPackage("aFeedName", "aWrongId", new ModifyCuratedPackageRequest());
 
-        //        var result = controller.DeleteCuratedPackage("aCuratedFeedName", "aCuratedPackageId") as HttpStatusCodeResult;
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
 
-        //        Assert.NotNull(result);
-        //        Assert.Equal(204, result.StatusCode);
-        //    }
+            [Fact]
+            public void WillReturn403IfNotAFeedManager()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubIdentity
+                    .Setup(i => i.Name)
+                    .Returns("notAManager");
+                controller.StubCuratedFeed.Packages.Add(
+                    new CuratedPackage
+                    {
+                        CuratedFeed = controller.StubCuratedFeed,
+                        CuratedFeedKey = controller.StubCuratedFeed.Key,
+                        PackageRegistration = controller.StubPackageRegistration,
+                        PackageRegistrationKey = controller.StubPackageRegistration.Key,
+                    });
 
-        //    public class TestableCuratedPackagesController : TestableCuratedPackagesControllerBase
-        //    {
-        //        public TestableCuratedPackagesController()
-        //        {
-        //            StubCuratedFeed.Managers = new[] { new User { Username = "aUsername" } };
-        //            StubCuratedFeed.Packages = new[]
-        //                {
-        //                    new CuratedPackage
-        //                        { PackageRegistration = new PackageRegistration { Id = "aCuratedPackageId" } }
-        //                };
-        //            StubCuratedFeedService
-        //                .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
-        //                .Returns(StubCuratedFeed);
-        //        }
-        //    }
-        //}
+                var result = controller.PatchCuratedPackage("aFeedName", "anId", 
+                        new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
 
-        //public class TheGetCreateCuratedPackageFormAction
-        //{
-        //    [Fact]
-        //    public void WillReturn404IfTheCuratedFeedDoesNotExist()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+                Assert.NotNull(result);
+                Assert.Equal(403, result.StatusCode);
+            }
 
-        //        var result = controller.GetCreateCuratedPackageForm("aFeedName");
+            [Fact]
+            public void WillReturn400IfTheModelStateIsInvalid()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Packages.Add(
+                    new CuratedPackage
+                    {
+                        CuratedFeed = controller.StubCuratedFeed,
+                        CuratedFeedKey = controller.StubCuratedFeed.Key,
+                        PackageRegistration = controller.StubPackageRegistration,
+                        PackageRegistrationKey = controller.StubPackageRegistration.Key,
+                    });
+                controller.ModelState.AddModelError("", "anError");
 
-        //        Assert.IsType<HttpNotFoundResult>(result);
-        //    }
+                var result = controller.PatchCuratedPackage(
+                    "aFeedName", 
+                    "anId", 
+                    new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
 
-        //    [Fact]
-        //    public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
+                Assert.NotNull(result);
+                Assert.Equal(400, result.StatusCode);
+            }
 
-        //        var result = controller.GetCreateCuratedPackageForm("aFeedName") as HttpStatusCodeResult;
+            [Fact]
+            public void WillModifyTheCuratedPackageWhenRequestIsValid()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Packages.Add(
+                    new CuratedPackage
+                    {
+                        CuratedFeed = controller.StubCuratedFeed,
+                        CuratedFeedKey = controller.StubCuratedFeed.Key,
+                        PackageRegistration = controller.StubPackageRegistration,
+                        PackageRegistrationKey = controller.StubPackageRegistration.Key,
+                        Included = true,
+                    });
 
-        //        Assert.NotNull(result);
-        //        Assert.Equal(403, result.StatusCode);
-        //    }
+                Assert.False(controller.StubCuratedFeed.Packages.Any(
+                    cp => cp.Included == false));
 
-        //    [Fact]
-        //    public void WillPushTheCuratedFeedNameIntoTheViewBag()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeed.Name = "theCuratedFeedName";
+                var result = controller.PatchCuratedPackage(
+                    "aFeedName",
+                    "anId",
+                    new ModifyCuratedPackageRequest { Included = false }) as HttpStatusCodeResult;
 
-        //        var result = controller.GetCreateCuratedPackageForm("aFeedName") as ViewResult;
+                Assert.True(controller.StubCuratedFeed.Packages.Any(
+                    cp => cp.Included == false));
+            }
 
-        //        Assert.NotNull(result);
-        //        Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
-        //    }
+            [Fact]
+            public void WillReturn204AfterModifyingTheCuratedPackage()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Packages.Add(
+                    new CuratedPackage
+                    {
+                        CuratedFeed = controller.StubCuratedFeed,
+                        CuratedFeedKey = controller.StubCuratedFeed.Key,
+                        PackageRegistration = controller.StubPackageRegistration,
+                        PackageRegistrationKey = controller.StubPackageRegistration.Key,
+                        Included = true,
+                    });
 
-        //    public class TestableCuratedPackagesController : TestableCuratedPackagesControllerBase
-        //    {
-        //        public TestableCuratedPackagesController()
-        //        {
-        //            StubCuratedFeedService
-        //                .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
-        //                .Returns(StubCuratedFeed);
-        //        }
-        //    }
-        //}
+                var result = controller.PatchCuratedPackage("aFeedName", "anId", 
+                    new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
 
-        //public class ThePatchCuratedPackageAction
-        //{
-        //    [Fact]
-        //    public void WillReturn404IfTheCuratedFeedDoesNotExist()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
-
-        //        var result = controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest());
-
-        //        Assert.IsType<HttpNotFoundResult>(result);
-        //    }
-
-        //    [Fact]
-        //    public void WillReturn404IfTheCuratedPackageDoesNotExist()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeed.Packages = new[] { new CuratedPackage { PackageRegistration = new PackageRegistration() } };
-
-        //        var result = controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest());
-
-        //        Assert.IsType<HttpNotFoundResult>(result);
-        //    }
-
-        //    [Fact]
-        //    public void WillReturn403IfTheCuratedPackageDoesNotExist()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeed.Managers = new[] { new User { Username = "notAManager" } };
-
-        //        var result =
-        //            controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
-
-        //        Assert.NotNull(result);
-        //        Assert.Equal(403, result.StatusCode);
-        //    }
-
-        //    [Fact]
-        //    public void WillReturn400IfTheModelStateIsInvalid()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.ModelState.AddModelError("", "anError");
-
-        //        var result =
-        //            controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
-
-        //        Assert.NotNull(result);
-        //        Assert.Equal(400, result.StatusCode);
-        //    }
-
-        //    [Fact]
-        //    public void WillModifyTheCuratedPackageWhenRequestIsValid()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-        //        controller.StubCuratedFeed.Key = 42;
-        //        controller.StubCuratedFeed.Packages = new[]
-        //            {
-        //                new CuratedPackage
-        //                    {
-        //                        Key = 1066,
-        //                        PackageRegistration = new PackageRegistration { Id = "theCuratedPackageId" }
-        //                    }
-        //            };
-
-        //        controller.PatchCuratedPackage("theCuratedFeedName", "theCuratedPackageId", new ModifyCuratedPackageRequest { Included = true });
-
-        //        controller.StubCuratedFeedService.Verify(
-        //            stub => stub.ModifyCuratedPackage(
-        //                42,
-        //                1066,
-        //                true));
-        //    }
-
-        //    [Fact]
-        //    public void WillReturn204AfterModifyingTheCuratedPackage()
-        //    {
-        //        var controller = new TestableCuratedPackagesController();
-
-        //        var result =
-        //            controller.PatchCuratedPackage("aCuratedFeedName", "aCuratedPackageId", new ModifyCuratedPackageRequest()) as HttpStatusCodeResult;
-
-        //        Assert.NotNull(result);
-        //        Assert.Equal(204, result.StatusCode);
-        //    }
-
-        //    public class TestableCuratedPackagesController : TestableCuratedPackagesControllerBase
-        //    {
-        //        public TestableCuratedPackagesController()
-        //        {
-        //            StubCuratedFeed.Managers = new[] { new User { Username = "aUsername" } };
-        //            StubCuratedFeed.Packages = new[]
-        //                {
-        //                    new CuratedPackage
-        //                        { PackageRegistration = new PackageRegistration { Id = "aCuratedPackageId" } }
-        //                };
-        //            StubCuratedFeedService
-        //                .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
-        //                .Returns(StubCuratedFeed);
-        //        }
-        //    }
-        //}
+                Assert.NotNull(result);
+                Assert.Equal(204, result.StatusCode);
+            }
+        }
 
         public class ThePostCuratedPackagesAction
         {
-            //[Fact]
-            //public void WillReturn404IfTheCuratedFeedDoesNotExist()
-            //{
-            //    var controller = new TestableCuratedPackagesController();
-            //    controller.StubCuratedFeedService
-            //        .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
-            //        .Returns((CuratedFeed)null);
+            [Fact]
+            public void WillReturn404IfTheCuratedFeedDoesNotExist()
+            {
+                var controller = new TestableCuratedPackagesController();
 
-            //    var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest());
+                var result = controller.PostCuratedPackages(
+                    "aWrongFeedName", 
+                    new CreateCuratedPackageRequest { PackageId = "AnId" });
 
-            //    Assert.IsType<HttpNotFoundResult>(result);
-            //}
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
 
-            //[Fact]
-            //public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
-            //{
-            //    var controller = new TestableCuratedPackagesController();
-            //    controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
+            [Fact]
+            public void WillReturn403IfTheCurrentUsersIsNotAManagerOfTheCuratedFeed()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubIdentity.Setup(stub => stub.Name).Returns("notAManager");
 
-            //    var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest()) as HttpStatusCodeResult;
+                var result = controller.PostCuratedPackages(
+                    "aFeedName",
+                    new CreateCuratedPackageRequest { PackageId = "AnId" })
+                    as HttpStatusCodeResult;
 
-            //    Assert.NotNull(result);
-            //    Assert.Equal(403, result.StatusCode);
-            //}
+                Assert.NotNull(result);
+                Assert.Equal(403, result.StatusCode);
+            }
 
-            //[Fact]
-            //public void WillPushTheCuratedFeedNameIntoTheViewBagAndShowTheCreateCuratedPackageFormWithErrorsWhenModelStateIsInvalid()
-            //{
-            //    var controller = new TestableCuratedPackagesController();
-            //    controller.StubCuratedFeed.Name = "theCuratedFeedName";
-            //    controller.ModelState.AddModelError("", "anError");
+            [Fact]
+            public void WillPushTheCuratedFeedNameIntoTheViewBagAndShowTheCreateCuratedPackageFormWithErrorsWhenModelStateIsInvalid()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Name = "theCuratedFeedName";
+                controller.ModelState.AddModelError("", "anError");
 
-            //    var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest()) as ViewResult;
+                var result = controller.PostCuratedPackages(
+                    "theCuratedFeedName", new CreateCuratedPackageRequest()) as ViewResult;
 
-            //    Assert.NotNull(result);
-            //    Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
-            //    Assert.Equal("CreateCuratedPackageForm", result.ViewName);
-            //}
+                Assert.NotNull(result);
+                Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
+                Assert.Equal("CreateCuratedPackageForm", result.ViewName);
+            }
 
-            //[Fact]
-            //public void WillPushTheCuratedFeedNameIntoTheViewBagAndShowTheCreateCuratedPackageFormWithErrorsWhenThePackageIdDoesNotExist()
-            //{
-            //    var controller = new TestableCuratedPackagesController();
-            //    controller.StubCuratedFeed.Name = "theCuratedFeedName";
-            //    //controller.StubPackageRegistrationByIdQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>())).Returns(
-            //    //    (PackageRegistration)null);
+            [Fact]
+            public void WillPushTheCuratedFeedNameIntoTheViewBagAndShowTheCreateCuratedPackageFormWithErrorsWhenThePackageIdDoesNotExist()
+            {
+                var controller = new TestableCuratedPackagesController();
 
-            //    var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest()) as ViewResult;
+                var result = controller.PostCuratedPackages("aFeedName",
+                    new CreateCuratedPackageRequest { PackageId = "aWrongId" }) as ViewResult;
 
-            //    Assert.NotNull(result);
-            //    Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
-            //    Assert.Equal(Strings.PackageWithIdDoesNotExist, controller.ModelState["PackageId"].Errors[0].ErrorMessage);
-            //    Assert.Equal("CreateCuratedPackageForm", result.ViewName);
-            //}
+                Assert.NotNull(result);
+                Assert.Equal("aFeedName", result.ViewBag.CuratedFeedName);
+                Assert.Equal(Strings.PackageWithIdDoesNotExist, controller.ModelState["PackageId"].Errors[0].ErrorMessage);
+                Assert.Equal("CreateCuratedPackageForm", result.ViewName);
+            }
 
             [Fact]
             public void WillCreateTheCuratedPackage()
@@ -370,68 +363,47 @@ namespace NuGetGallery
                             Notes = "theNotes"
                         });
 
-                //var source = controller.EntitiesContext.Set<CuratedPackage>();
-                //Expression<Func<CuratedPackage, bool>> predicate = cp => cp.PackageRegistration.Id == "anId";
-
-                //var methodInfo = typeof(Queryable)
-                //    .GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
-                //    .First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
-
-                //var typedMethod = methodInfo.MakeGenericMethod(new Type[] { typeof(CuratedPackage) });
-
-                //var call = Expression.Call(null,
-                //        typedMethod,
-                //        new Expression[] { source.Expression, Expression.Quote(predicate) });
-
-                //var x = source.Provider.Execute<bool>(call);
-
                 Assert.True(controller.EntitiesContext.Set<CuratedPackage>()
-                    .Any(Foo));
-                //cp => cp.PackageRegistration.Id == "anId"));
+                    .Any(cp => cp.PackageRegistration.Id == "anId"));
 
                 Assert.True(controller.EntitiesContext.Set<CuratedPackage>()
                     .Any(cp => cp.Notes == "theNotes"));
-
-                //controller.StubCuratedFeedService.Verify(
-                //    stub => stub.CreatedCuratedPackage(
-                //        controller.StubCuratedFeed,
-                //        controller.StubPackageRegistration,
-                //        true,
-                //        false,
-                //        "theNotes",
-                //        true));
             }
 
-            static bool Foo(CuratedPackage cp)
+            [Fact]
+            public void WillRedirectToTheCuratedFeedRouteAfterCreatingTheCuratedPackage()
             {
-                return cp.PackageRegistration.Id == "anId";
+                var controller = new TestableCuratedPackagesController();
+
+                var result = controller.PostCuratedPackages(
+                    "aFeedName", new CreateCuratedPackageRequest { PackageId = "anId" }) 
+                    as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(RouteName.CuratedFeed, result.RouteName);
             }
 
-            //[Fact]
-            //public void WillRedirectToTheCuratedFeedRouteAfterCreatingTheCuratedPackage()
-            //{
-            //    var controller = new TestableCuratedPackagesController();
+            [Fact]
+            public void WillShowAnErrorWhenThePackageHasAlreadyBeenCurated()
+            {
+                var controller = new TestableCuratedPackagesController();
+                controller.StubCuratedFeed.Packages.Add(
+                    new CuratedPackage { 
+                        CuratedFeed = controller.StubCuratedFeed,
+                        CuratedFeedKey = controller.StubCuratedFeed.Key,
+                        PackageRegistration = controller.StubPackageRegistration,
+                        PackageRegistrationKey = controller.StubPackageRegistration.Key
+                    });
 
-            //    var result = controller.PostCuratedPackages("aFeedName", new CreateCuratedPackageRequest()) as RedirectToRouteResult;
+                var result = controller.PostCuratedPackages(
+                    "aFeedName", new CreateCuratedPackageRequest { PackageId = "anId" })
+                    as ViewResult;
 
-            //    Assert.NotNull(result);
-            //    Assert.Equal(RouteName.CuratedFeed, result.RouteName);
-            //}
-
-            //[Fact]
-            //public void WillShowAnErrorWhenThePackageHasAlreadyBeenCurated()
-            //{
-            //    var controller = new TestableCuratedPackagesController();
-            //    controller.StubCuratedFeed.Name = "theCuratedFeedName";
-            //    controller.StubCuratedFeed.Packages.Add(new CuratedPackage { PackageRegistration = new PackageRegistration { Key = 42 } });
-
-            //    var result = controller.PostCuratedPackages("theCuratedFeedName", new CreateCuratedPackageRequest()) as ViewResult;
-
-            //    Assert.NotNull(result);
-            //    Assert.Equal("theCuratedFeedName", result.ViewBag.CuratedFeedName);
-            //    Assert.Equal(Strings.PackageIsAlreadyCurated, controller.ModelState["PackageId"].Errors[0].ErrorMessage);
-            //    Assert.Equal("CreateCuratedPackageForm", result.ViewName);
-            //}
+                Assert.NotNull(result);
+                Assert.Equal("aFeedName", result.ViewBag.CuratedFeedName);
+                Assert.Equal(Strings.PackageIsAlreadyCurated, controller.ModelState["PackageId"].Errors[0].ErrorMessage);
+                Assert.Equal("CreateCuratedPackageForm", result.ViewName);
+            }
         }
     }
 }
