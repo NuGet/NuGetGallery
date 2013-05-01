@@ -13,7 +13,15 @@ namespace NuGetGallery.Areas.Admin.DynamicData
     {
         private static readonly Dictionary<string, string[]> SortOrders = new Dictionary<string, string[]>()
         {
-            {"Users", new [] { "Username", "EmailAddress", "UnconfirmedEmailAddress" } }
+            {"Users", new [] { "Username", "EmailAddress", "UnconfirmedEmailAddress" } },
+            {"CuratedPackages", new [] { "PackageRegistration", "CuratedFeed", "Notes" } },
+            {"EmailMessages", new [] { "Subject", "Body", "FromUser", "ToUser", "Sent" } },
+            {"PackageDependencies", new [] { "Package", "Id", "VersionSpec", "TargetFramework" } },
+            {"PackageFrameworks", new [] { "Package" } },
+            {"PackageOwnerRequests", new [] { "PackageRegistrationKey", "NewOwner", "RequestingOwner", "RequestDate", "ConfirmationCode" } },
+            {"PackageRegistrations", new [] { "Id", "Owners", "Packages", "DownloadCount" } },
+            {"Packages", new [] { "PackageRegistration", "Title", "Version", "Created", "Description" } },
+            {"PackageStatistics", new [] { "Package", "Operation", "UserAgent", "IPAddress" } }
         };
 
         protected MetaTable _table;
@@ -41,6 +49,10 @@ namespace NuGetGallery.Areas.Admin.DynamicData
                         DataField = col.Name,
                         HeaderText = (containerType == ContainerType.List) ? col.ShortDisplayName : col.Name
                     };
+                    if (containerType != ContainerType.List)
+                    {
+                        field.ItemStyle.BorderWidth = 0;
+                    }
                     field.ItemStyle.Wrap = false;
                     return field;
                 })
