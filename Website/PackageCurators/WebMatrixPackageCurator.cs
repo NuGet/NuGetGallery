@@ -17,12 +17,29 @@ namespace NuGetGallery
                 return;
             }
 
+            var shouldBeIncluded = ShouldCuratePackage(curatedFeed, galleryPackage, nugetPackage);
+            if (shouldBeIncluded)
+            {
+                GetService<ICuratedFeedService>().CreatedCuratedPackage(
+                    curatedFeed,
+                    galleryPackage.PackageRegistration,
+                    automaticallyCurated: true,
+                    commitChanges: commitChanges);
+            }
+        }
+
+        internal static bool ShouldCuratePackage(
+            CuratedFeed curatedFeed, 
+            Package galleryPackage,
+            INupkg nugetPackage)
+        {
             if (!galleryPackage.IsLatestStable)
             {
-                return;
+                return false;
             }
 
-            var shouldBeIncluded = galleryPackage.Tags != null && galleryPackage.Tags.ToLowerInvariant().Contains("aspnetwebpages");
+            bool shouldBeIncluded = galleryPackage.Tags != null && 
+                galleryPackage.Tags.ToLowerInvariant().Contains("aspnetwebpages");
 
             if (!shouldBeIncluded)
             {
@@ -32,20 +49,17 @@ namespace NuGetGallery
                     var fi = new FileInfo(filePath);
                     if (fi.Extension == ".ps1" || fi.Extension == ".t4")
                     {
-                        shouldBeIncluded = false;
-                        break;
+                        return false;
                     }
                 }
             }
 
-            if (shouldBeIncluded && DependenciesAreCurated(galleryPackage, curatedFeed))
+            if (!shouldBeIncluded)
             {
-                GetService<ICuratedFeedService>().CreatedCuratedPackage(
-                    curatedFeed,
-                    galleryPackage.PackageRegistration,
-                    automaticallyCurated: true,
-                    commitChanges: commitChanges);
+                return false;
             }
+
+            return DependenciesAreCurated(galleryPackage, curatedFeed);
         }
     }
 }
