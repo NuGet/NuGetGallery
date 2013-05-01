@@ -9,7 +9,7 @@ namespace NuGetGallery
     {
         public const string ControllerName = "CuratedPackages";
         protected ICuratedFeedService CuratedFeedService { get; set; }
-        protected IEntitiesContext EntitiesContext { get; set; }
+        internal IEntitiesContext EntitiesContext { get; set; }
 
         protected CuratedPackagesController() { }
 

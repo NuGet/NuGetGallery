@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Principal;
 using System.Web.Mvc;
 using Moq;
-using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery
@@ -23,32 +23,15 @@ namespace NuGetGallery
                 StubIdentity.Setup(stub => stub.IsAuthenticated).Returns(true);
                 StubIdentity.Setup(stub => stub.Name).Returns("aUsername");
 
-                StubEntitiesContext = new Mock<IEntitiesContext>();
-                EntitiesContext = StubEntitiesContext.Object;
+                EntitiesContext = new FakeEntitiesContext();
 
-                var fakeCuratedFeedSet = new FakeDbSet<CuratedFeed>();
+                var fakeCuratedFeedSet = EntitiesContext.Set<CuratedFeed>();
                 fakeCuratedFeedSet.Add(StubCuratedFeed);
 
-                var fakePackageRegistrationSet = new FakeDbSet<PackageRegistration>();
+                var fakePackageRegistrationSet = EntitiesContext.Set<PackageRegistration>();
                 fakePackageRegistrationSet.Add(StubPackageRegistration);
 
-                var fakeCuratedPackageSet = new FakeDbSet<CuratedPackage>();
-
-                StubEntitiesContext
-                    .Setup(m => m.Set<CuratedFeed>())
-                    .Returns(fakeCuratedFeedSet);
-
-                StubEntitiesContext
-                    .Setup(m => m.Set<PackageRegistration>())
-                    .Returns(fakePackageRegistrationSet);
-
-                StubEntitiesContext
-                    .Setup(m => m.Set<CuratedPackage>())
-                    .Returns(fakeCuratedPackageSet);
-
-                StubEntitiesContext
-                    .Setup(m => m.PackageRegistrations)
-                    .Returns(fakePackageRegistrationSet);
+                var fakeCuratedPackageSet = EntitiesContext.Set<CuratedPackage>();
 
                 var curatedFeedRepository = new EntityRepository<CuratedFeed>(
                     EntitiesContext);
@@ -62,7 +45,6 @@ namespace NuGetGallery
             }
 
             public CuratedFeed StubCuratedFeed { get; set; }
-            public Mock<IEntitiesContext> StubEntitiesContext { get; set; }
             public Mock<IIdentity> StubIdentity { get; private set; }
             public PackageRegistration StubPackageRegistration { get; private set; }
 
@@ -388,10 +370,26 @@ namespace NuGetGallery
                             Notes = "theNotes"
                         });
 
-                Assert.True(controller.StubEntitiesContext.Object.Set<CuratedPackage>()
-                    .Any(cp => cp.PackageRegistration.Id == "anId"));
+                //var source = controller.EntitiesContext.Set<CuratedPackage>();
+                //Expression<Func<CuratedPackage, bool>> predicate = cp => cp.PackageRegistration.Id == "anId";
 
-                Assert.True(controller.StubEntitiesContext.Object.Set<CuratedPackage>()
+                //var methodInfo = typeof(Queryable)
+                //    .GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                //    .First(m => m.Name == "Any" && m.GetParameters().Count() == 2);
+
+                //var typedMethod = methodInfo.MakeGenericMethod(new Type[] { typeof(CuratedPackage) });
+
+                //var call = Expression.Call(null,
+                //        typedMethod,
+                //        new Expression[] { source.Expression, Expression.Quote(predicate) });
+
+                //var x = source.Provider.Execute<bool>(call);
+
+                Assert.True(controller.EntitiesContext.Set<CuratedPackage>()
+                    .Any(Foo));
+                //cp => cp.PackageRegistration.Id == "anId"));
+
+                Assert.True(controller.EntitiesContext.Set<CuratedPackage>()
                     .Any(cp => cp.Notes == "theNotes"));
 
                 //controller.StubCuratedFeedService.Verify(
@@ -402,6 +400,11 @@ namespace NuGetGallery
                 //        false,
                 //        "theNotes",
                 //        true));
+            }
+
+            static bool Foo(CuratedPackage cp)
+            {
+                return cp.PackageRegistration.Id == "anId";
             }
 
             //[Fact]

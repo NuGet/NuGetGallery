@@ -3,20 +3,70 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NuGetGallery.TestUtils
+namespace NuGetGallery
 {
     public class FakeDbSet<T> : IDbSet<T> where T : class
     {
+        FakeEntitiesContext _fakeEntitiesContext;
         ObservableCollection<T> _data;
-        IQueryable _query;
+        IQueryable<T> _queryable;
+        Dictionary<PropertyInfo, Action<object>> _collectionPropertyMutators;
 
-        public FakeDbSet()
+        public FakeDbSet(FakeEntitiesContext fakeEntitiesContext)
         {
+            _fakeEntitiesContext = fakeEntitiesContext;
             _data = new ObservableCollection<T>();
-            _query = _data.AsQueryable();
+            _queryable = new EnumerableQuery<T>(_data);
+            _collectionPropertyMutators = new Dictionary<PropertyInfo, Action<object>>();
+
+            foreach (PropertyInfo property in typeof(T).GetProperties())
+            {
+                if (property.CanRead && property.CanWrite && property.PropertyType.IsGenericType)
+                {
+                    var genericType = property.PropertyType.GetGenericTypeDefinition();
+                    if (genericType == typeof(ICollection<>))
+                    {
+                        _collectionPropertyMutators.Add(property, GetMutator(property));
+                    }
+                }
+            }
+        }
+
+        public Action<object> GetMutator(PropertyInfo property)
+        {
+            var methodInfo = typeof(FakeDbSet<T>).GetMethod(
+                "GetMutator2",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            methodInfo = methodInfo.MakeGenericMethod(property.PropertyType.GetGenericArguments()[0]);
+            return (Action<object>)methodInfo.Invoke(null, new object[] { property, _fakeEntitiesContext });
+        }
+
+        static Action<object> GetMutator2<TElement>(PropertyInfo property, FakeEntitiesContext fakeContext)
+            where TElement : class
+        {
+            return obj =>
+            {
+                var originalCollection = (ICollection<TElement>)property.GetValue(obj);
+                var mutatedCollection = new ObservableCollection<TElement>(originalCollection);
+                mutatedCollection.CollectionChanged += 
+                    new System.Collections.Specialized.NotifyCollectionChangedEventHandler(
+                    (col, args) => {
+                        var set = fakeContext.Set<TElement>();
+                        if (args.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+                        {
+                            foreach (var item in args.NewItems.Cast<TElement>())
+                            {
+                                set.Add(item);
+                            }
+                        }
+                    });
+                property.SetValue(obj, mutatedCollection);
+            };
         }
 
         public virtual T Find(params object[] keyValues)
@@ -26,6 +76,11 @@ namespace NuGetGallery.TestUtils
 
         public T Add(T item)
         {
+            foreach (var kvp in _collectionPropertyMutators)
+            {
+                kvp.Value.Invoke(item);
+            }
+
             _data.Add(item);
             return item;
         }
@@ -38,6 +93,11 @@ namespace NuGetGallery.TestUtils
 
         public T Attach(T item)
         {
+            foreach (var kvp in _collectionPropertyMutators)
+            {
+                kvp.Value.Invoke(item);
+            }
+
             _data.Add(item);
             return item;
         }
@@ -65,17 +125,17 @@ namespace NuGetGallery.TestUtils
 
         Type IQueryable.ElementType
         {
-            get { return _query.ElementType; }
+            get { return typeof(T); }
         }
 
-        System.Linq.Expressions.Expression IQueryable.Expression
+        Expression IQueryable.Expression
         {
-            get { return _query.Expression; }
+            get { return _queryable.Expression; }
         }
 
         IQueryProvider IQueryable.Provider
         {
-            get { return _query.Provider; }
+            get { return _queryable.Provider; }
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
