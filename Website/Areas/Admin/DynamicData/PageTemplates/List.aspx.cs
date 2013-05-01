@@ -29,6 +29,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             searchExpression.DataFields = String.Join(",", table.Columns.Where(c => c.IsString).Select(c => c.Name));
 
             // Disable various options if the table is readonly
+            GridView1.ColumnsGenerator = new OrderedFieldGenerator(table);
             if (table.IsReadOnly)
             {
                 GridView1.Columns[0].Visible = false;
