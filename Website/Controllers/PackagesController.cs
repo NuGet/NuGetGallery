@@ -487,18 +487,30 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+            
             if (!package.IsOwner(HttpContext.User))
             {
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
             var model = new EditPackageRequest
             {
+                PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.GetCurrentTitle(),
-                Version = package.Version,
-                EditPackageRegistrationRequest = new EditPackageRegistrationRequest(package),
-                EditPackageVersionRequest = new EditPackageVersionRequest(package),
+                Version = version == null ? null : package.Version,
+                PackageVersions = packageRegistration.Packages.Select(
+                    p => p.Version).ToList(),
             };
+
+            if (version != null)
+            {
+                model.EditPackageVersionRequest = new EditPackageVersionRequest(package);
+            }
+            else
+            {
+                model.EditPackageRegistrationRequest = new EditPackageRegistrationRequest(package);
+            }
 
             return View(model);
         }
@@ -518,8 +530,15 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
-            formData.EditPackageRegistrationRequest.UpdatePackageRegistration(package.PackageRegistration, _entitiesContext);
-            formData.EditPackageVersionRequest.UpdatePackageVersion(package, _entitiesContext, _packageService);
+            if (formData.EditPackageRegistrationRequest != null)
+            {
+                formData.EditPackageRegistrationRequest.UpdatePackageRegistration(package.PackageRegistration, _entitiesContext);
+            }
+
+            if (formData.EditPackageVersionRequest != null)
+            {
+                formData.EditPackageVersionRequest.UpdatePackageVersion(package, _entitiesContext, _packageService);
+            }
             _entitiesContext.SaveChanges();
 #if DEBUG
             _indexingService.UpdateIndex();

@@ -20,21 +20,21 @@ namespace NuGetGallery
         }
 
         [StringLength(256)]
-        [Display(Name = "Special Title for this Version (leave blank if none)")]
+        [Display(Name = "Title for this Version")]
         [DataType(DataType.Text)]
         public string VersionTitle { get; set; }
 
         [StringLength(512)]
-        [Display(Name = "Authors (for this Version)")]
+        [Display(Name = "Authors for this Version")]
         [DataType(DataType.Text)]
         public string Authors { get; set; }
 
         [StringLength(512)]
-        [Display(Name = "Copyright (for this Version)")]
+        [Display(Name = "Copyright for this Version")]
         [DataType(DataType.Text)]
         public string Copyright { get; set; }
 
-        [Display(Name = "ReleaseNotes (for this Version)")]
+        [Display(Name = "ReleaseNotes for this Version")]
         [DataType(DataType.MultilineText)]
         public string ReleaseNotes { get; set; }
 

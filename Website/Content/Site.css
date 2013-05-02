@@ -702,7 +702,15 @@ ul.dependencySet li {
         
     margin-top: 25px;
 }
-    
+
+/* Package Edit Page */
+
+.selectedForEdit {
+    font-size: 1.3em;
+    margin: 10px 0;
+    background-color: yellow;
+}
+
     /* Package page owners */
 
 .package-page .owners li { margin-bottom: 12px; }
