@@ -201,7 +201,7 @@ namespace NuGetGallery.PackageCurators
                     stubGalleryPackage,
                     stubNuGetPackage.Object);
 
-                Assert.False(result);
+                Assert.True(result);
             }
 
             [Fact]
