@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -24,12 +25,16 @@ namespace NuGetGallery
         private IndexWriter _indexWriter;
         private IPackageSource _packageSource;
 
+        private IDiagnosticsSource Trace { get; set; }
+
         public LuceneIndexingService(
             IPackageSource packageSource,
-            Lucene.Net.Store.Directory directory)
+            Lucene.Net.Store.Directory directory,
+            IDiagnosticsService diagnostics)
         {
             _packageSource = packageSource;
             _directory = directory;
+            Trace = diagnostics.SafeGetSource("LuceneIndexingService");
         }
 
         public void UpdateIndex()
@@ -62,6 +67,28 @@ namespace NuGetGallery
             }
 
             UpdateLastWriteTime();
+        }
+
+        public void UpdatePackage(Package package)
+        {
+            // Just update the provided package
+            using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key)))
+            {
+                EnsureIndexWriter(creatingIndex: false);
+                var indexEntity = new PackageIndexEntity(package);
+                var updateTerm = new Term("PackageRegistrationKey", package.PackageRegistrationKey.ToString(CultureInfo.InvariantCulture));
+                if (package.Listed)
+                {
+                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString()));
+                    _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
+                }
+                else
+                {
+                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Deleting Document: {0}", updateTerm.ToString()));
+                    _indexWriter.DeleteDocuments(updateTerm);
+                }
+                _indexWriter.Commit();
+            }
         }
 
         private List<PackageIndexEntity> GetPackages(DateTime? lastIndexTime)

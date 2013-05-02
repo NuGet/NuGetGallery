@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using NuGetGallery.Diagnostics;
 using WebBackgrounder;
 
 namespace NuGetGallery
@@ -15,7 +16,8 @@ namespace NuGetGallery
         {
             _indexingService = new LuceneIndexingService(
                 new PackageSource(contextThunk()),
-                LuceneCommon.GetDirectory());
+                LuceneCommon.GetDirectory(),
+                null);
 
             // Updates the index synchronously first time job is created.
             // For startup code resiliency, we should handle exceptions for the database being down.

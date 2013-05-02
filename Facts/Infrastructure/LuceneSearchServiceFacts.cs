@@ -534,7 +534,7 @@ namespace NuGetGallery.Infrastructure
         private IList<Package> IndexAndSearch(Mock<IPackageSource> packageSource, string searchTerm)
         {
             Directory d = new RAMDirectory();
-            var luceneIndexingService = new LuceneIndexingService(packageSource.Object, d);
+            var luceneIndexingService = new LuceneIndexingService(packageSource.Object, d, null);
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = new LuceneSearchService(d);
