@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Data.Entity;
 using System.Linq;
+using Crypto = NuGetGallery.CryptographyService;
 
 namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        public ICryptographyService Crypto { get; protected set; }
         public IConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
 
@@ -14,11 +14,9 @@ namespace NuGetGallery
 
         public UserService(
             IConfiguration config,
-            ICryptographyService crypto,
             IEntityRepository<User> userRepository) : this()
         {
             Config = config;
-            Crypto = crypto;
             UserRepository = userRepository;
         }
 
@@ -214,7 +212,7 @@ namespace NuGetGallery
             return true;
         }
 
-        public User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes)
+        public virtual User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes)
         {
             if (String.IsNullOrEmpty(usernameOrEmail))
             {
@@ -277,7 +275,7 @@ namespace NuGetGallery
             return false;
         }
 
-        private void ChangePasswordInternal(User user, string newPassword)
+        private static void ChangePasswordInternal(User user, string newPassword)
         {
             var hashedPassword = Crypto.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;

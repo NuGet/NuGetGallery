@@ -131,10 +131,6 @@ namespace NuGetGallery
                 .To<PackageService>()
                 .InRequestScope();
 
-            Bind<ICryptographyService>()
-                .To<CryptographyService>()
-                .InRequestScope();
-
             Bind<IFormsAuthenticationService>()
                 .To<FormsAuthenticationService>()
                 .InSingletonScope();

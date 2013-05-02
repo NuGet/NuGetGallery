@@ -873,7 +873,6 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
     <Compile Include="App_Start\IConfiguration.cs" />
-    <Compile Include="Services\ICryptographyService.cs" />
     <Compile Include="Entities\IEntity.cs" />
     <Compile Include="Services\IFormsAuthenticationService.cs" />
     <Compile Include="Services\IPackageFileService.cs" />
