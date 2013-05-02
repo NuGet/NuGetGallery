@@ -1,4 +1,5 @@
-﻿
+﻿using System.Collections.Generic;
+
 namespace NuGetGallery
 {
     public class EditPackageRequest
@@ -6,8 +7,10 @@ namespace NuGetGallery
         public EditPackageRegistrationRequest EditPackageRegistrationRequest { get; set; }
         public EditPackageVersionRequest EditPackageVersionRequest { get; set; }
 
+        public string PackageId { get; set; }
         public string PackageTitle { get; set; }
-
         public string Version { get; set; }
+
+        public IList<string> PackageVersions { get; set; }
     }
 }

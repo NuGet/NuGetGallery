@@ -24,7 +24,7 @@ namespace NuGetGallery
         }
 
         [StringLength(256)]
-        [Display(Name = "Default Package Title (if not specified by the package version)")]
+        [Display(Name = "Default Title (displayed for versions without any title)")]
         public string DefaultTitle { get; set; }
 
         [DataType(DataType.MultilineText)]
