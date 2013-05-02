@@ -7,7 +7,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Lucene.Net.Documents;
 using Lucene.Net.Index;
 
 namespace NuGetGallery
@@ -25,7 +24,6 @@ namespace NuGetGallery
         private IndexWriter _indexWriter;
         private IEntityRepository<Package> _packageRepository;
         private IEntityRepository<CuratedPackage> _curatedPackageRepository;
-        private Lucene.Net.Store.Directory directory;
 
         public LuceneIndexingService(
             IEntityRepository<Package> packageSource,
@@ -43,7 +41,7 @@ namespace NuGetGallery
         {
             _packageRepository = new EntityRepository<Package>(entitiesContext);
             _curatedPackageRepository = new EntityRepository<CuratedPackage>(entitiesContext);
-            this.directory = directory;
+            _directory = directory;
         }
 
         public void UpdateIndex()

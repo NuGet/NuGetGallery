@@ -1,12 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -123,27 +122,27 @@ namespace NuGetGallery
             get { return _data; }
         }
 
-        Type IQueryable.ElementType
+        public Type ElementType
         {
             get { return typeof(T); }
         }
 
-        Expression IQueryable.Expression
+        public Expression Expression
         {
             get { return _queryable.Expression; }
         }
 
-        IQueryProvider IQueryable.Provider
+        public IQueryProvider Provider
         {
             get { return _queryable.Provider; }
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        public IEnumerator<T> GetEnumerator()
         {
             return _data.GetEnumerator();
         }
 
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             return _data.GetEnumerator();
         }
