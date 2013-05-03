@@ -235,11 +235,6 @@ namespace NuGetGallery
                 .To<AutomaticallyCuratePackageCommand>()
                 .InRequestScope();
 
-            // todo: bind all queries by convention
-            Bind<IPackageRegistrationByKeyQuery>()
-                .To<PackageRegistrationByKeyQuery>()
-                .InRequestScope();
-
             Bind<IAggregateStatsService>()
                 .To<AggregateStatsService>()
                 .InRequestScope();
