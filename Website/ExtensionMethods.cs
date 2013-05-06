@@ -22,12 +22,12 @@ namespace NuGetGallery
     {
         public static string ToNuGetShortDateString(this DateTime self)
         {
-            return self.ToString("yyyy-MM-dd");
+            return self.ToString("yyyy-MM-dd", CultureInfo.CurrentCulture);
         }
 
         public static string ToNuGetLongDateString(this DateTime self)
         {
-            return self.ToString("dddd, dd MMMM yyyy");
+            return self.ToString("dddd, dd MMMM yyyy", CultureInfo.CurrentCulture);
         }
 
         public static void AddOrSet<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> self, TKey key, TValue val)
