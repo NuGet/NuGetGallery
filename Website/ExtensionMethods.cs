@@ -20,6 +20,16 @@ namespace NuGetGallery
 {
     public static class ExtensionMethods
     {
+        public static string ToNuGetShortDateString(this DateTime self)
+        {
+            return self.ToString("yyyy-MM-dd", CultureInfo.CurrentCulture);
+        }
+
+        public static string ToNuGetLongDateString(this DateTime self)
+        {
+            return self.ToString("dddd, MMMM dd yyyy", CultureInfo.CurrentCulture);
+        }
+
         public static void AddOrSet<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> self, TKey key, TValue val)
         {
             self.AddOrUpdate(key, val, (_, __) => val);
