@@ -27,7 +27,7 @@ namespace NuGetGallery
 
         public static string ToNuGetLongDateString(this DateTime self)
         {
-            return self.ToString("dddd, dd MMMM yyyy", CultureInfo.CurrentCulture);
+            return self.ToString("dddd, MMMM dd yyyy", CultureInfo.CurrentCulture);
         }
 
         public static void AddOrSet<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> self, TKey key, TValue val)
