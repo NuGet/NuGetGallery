@@ -1,0 +1,28 @@
+﻿@model NuGetGallery.Areas.Admin.Models.LuceneInfoModel
+@{
+    ViewBag.Title = "Lucene Maintainance";
+    TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+}
+
+<h2>Lucene Maintainance</h2>
+
+@if (Model.LastUpdated == null)
+{
+    <p>Lucene Index has not been built yet.</p>
+}
+else
+{
+    <p>
+        Lucene Index was last rebuilt: <br />
+        @Model.LastUpdated.Value.ToString("F") GMT<br />
+        @TimeZoneInfo.ConvertTime(Model.LastUpdated.Value, TimeZoneInfo.Utc, timeZoneInfo).ToString("F") Pacific
+    </p>
+}
+
+@using (Html.BeginForm(MVC.Admin.Lucene.Rebuild()))
+{
+    <fieldset class="form">
+        <input type="submit" value="Rebuild Now" />
+        <p>NOTE: This will only affect the current instance!</p>
+    </fieldset>
+}

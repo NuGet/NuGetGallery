@@ -516,18 +516,24 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
+            string action;
             if (!(listed ?? false))
             {
+                action = "unlisted";
                 _packageService.MarkPackageUnlisted(package);
             }
             else
             {
+                action = "listed";
                 _packageService.MarkPackageListed(package);
             }
+            TempData["Message"] = String.Format(
+                CultureInfo.CurrentCulture,
+                "The package has been {0}. It may take a few hours for this change to propagate through our system.", 
+                action);
 
             // Update the index
             _indexingService.UpdatePackage(package);
-
             return Redirect(urlFactory(package));
         }
 

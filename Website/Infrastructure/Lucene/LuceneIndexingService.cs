@@ -16,7 +16,7 @@ namespace NuGetGallery
     {
         private static readonly object IndexWriterLock = new object();
 
-        private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromDays(3);
+        private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromHours(3);
 
         private static ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter> WriterCache =
             new ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter>();
@@ -118,6 +118,15 @@ namespace NuGetGallery
             _indexWriter.Commit();
         }
 
+        public virtual DateTime? GetLastWriteTime()
+        {
+            if (!File.Exists(LuceneCommon.IndexMetadataPath))
+            {
+                return null;
+            }
+            return File.GetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath);
+        }
+
         private void AddPackage(PackageIndexEntity packageInfo)
         {
             _indexWriter.AddDocument(packageInfo.ToDocument());
@@ -166,15 +175,6 @@ namespace NuGetGallery
 
             // If we've never created the index, it needs to be refreshed.
             return true;
-        }
-
-        protected internal virtual DateTime? GetLastWriteTime()
-        {
-            if (!File.Exists(LuceneCommon.IndexMetadataPath))
-            {
-                return null;
-            }
-            return File.GetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath);
         }
 
         protected internal virtual void UpdateLastWriteTime()
