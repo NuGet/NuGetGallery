@@ -4,12 +4,12 @@ using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Versioning;
 using NuGet;
+using Crypto = NuGetGallery.CryptographyService;
 
 namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
-        private readonly ICryptographyService _cryptoService;
         private readonly IIndexingService _indexingService;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
@@ -17,14 +17,12 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
 
         public PackageService(
-            ICryptographyService cryptoService,
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageStatistics> packageStatsRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IIndexingService indexingService)
         {
-            _cryptoService = cryptoService;
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
             _packageStatsRepository = packageStatsRepository;
@@ -320,7 +318,7 @@ namespace NuGetGallery
                     PackageRegistrationKey = package.Key,
                     RequestingOwnerKey = currentOwner.Key,
                     NewOwnerKey = newOwner.Key,
-                    ConfirmationCode = _cryptoService.GenerateToken(),
+                    ConfirmationCode = Crypto.GenerateToken(),
                     RequestDate = DateTime.UtcNow
                 };
 
@@ -405,7 +403,7 @@ namespace NuGetGallery
                 ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
                 RequiresLicenseAcceptance = nugetPackage.Metadata.RequireLicenseAcceptance,
                 HashAlgorithm = Constants.Sha512HashAlgorithmId,
-                Hash = _cryptoService.GenerateHash(packageFileStream.ReadAllBytes()),
+                Hash = Crypto.GenerateHash(packageFileStream.ReadAllBytes()),
                 PackageFileSize = packageFileStream.Length,
                 Created = now,
                 Language = nugetPackage.Metadata.Language,
