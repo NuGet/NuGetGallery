@@ -1,7 +1,7 @@
 ﻿
 using System.Threading.Tasks;
 
-namespace NuGetGallery
+namespace NuGetGallery.Statistics
 {
     public interface IReportService
     {

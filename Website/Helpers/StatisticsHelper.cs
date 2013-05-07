@@ -1,4 +1,5 @@
 ﻿using System.Web.Mvc;
+using NuGetGallery.Statistics;
 
 namespace NuGetGallery
 {

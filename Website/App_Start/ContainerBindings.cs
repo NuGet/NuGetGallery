@@ -11,6 +11,7 @@ using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
 using Ninject.Modules;
 using NuGetGallery.Infrastructure;
+using NuGetGallery.Statistics;
 
 namespace NuGetGallery
 {

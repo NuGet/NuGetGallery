@@ -6,7 +6,7 @@ using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace NuGetGallery
+namespace NuGetGallery.Statistics
 {
     public class JsonStatisticsService : IStatisticsService
     {

@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace NuGetGallery
+namespace NuGetGallery.Statistics
 {
     public class AggregateStatsService : IAggregateStatsService
     {

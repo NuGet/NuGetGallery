@@ -1,4 +1,4 @@
-﻿namespace NuGetGallery
+﻿namespace NuGetGallery.Statistics
 {
     public interface IAggregateStatsService
     {

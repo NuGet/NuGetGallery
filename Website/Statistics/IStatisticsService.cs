@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NuGetGallery
+namespace NuGetGallery.Statistics
 {
     public interface IStatisticsService
     {

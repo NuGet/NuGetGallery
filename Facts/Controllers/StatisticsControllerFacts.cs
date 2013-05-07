@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Statistics;
 using Xunit;
 
 namespace NuGetGallery
