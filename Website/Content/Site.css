@@ -723,10 +723,24 @@ ul.dependencySet li {
 
 /* Package Edit Page */
 
-.selectedForEdit {
+#edit-list ul {
+    list-style-type: none;
+    list-style-image: none;
+}
+
+.edit-root, .edit-tree, .edit-root-selected, .edit-tree-selected {
     font-size: 1.3em;
-    margin: 10px 0;
-    background-color: yellow;
+}
+
+.edit-tree, .edit-tree-selected {
+    position: relative;
+    left: 1em;
+}
+
+.edit-root-selected, .edit-tree-selected {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin: 5px 0;
 }
 
     /* Package page owners */

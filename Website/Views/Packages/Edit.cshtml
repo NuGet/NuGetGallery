@@ -6,19 +6,22 @@
 }
 
 @section SideColumn {
-    <span class="@(Model.Version == null ? "selectedForEdit" : "")">
-        <a href="@Url.EditPackage(Model.PackageId, null)" >@(Model.PackageTitle)</a>
-    </span>
-    <ul>
-    @foreach (var versionStr in Model.PackageVersions)
-    {
-        <li>
-            <span class="@(string.Equals(Model.Version, versionStr, StringComparison.OrdinalIgnoreCase) ? "selectedForEdit" : "")">
-                <a href="@Url.EditPackage(Model.PackageId, versionStr)" >@(versionStr)</a>
-            </span>
-        </li>
-    }
-    </ul>
+    <nav id="edit-list">
+        <h2>Editing</h2>
+        <span class="@(Model.Version == null ? "edit-root-selected" : "edit-root")">
+            <a href="@Url.EditPackage(Model.PackageId, null)" >@(Model.PackageTitle)</a>
+        </span>
+        <ul id="packageVersions">
+        @foreach (var versionStr in Model.PackageVersions)
+        {
+            <li>
+                <span class="@(string.Equals(Model.Version, versionStr, StringComparison.OrdinalIgnoreCase) ? "edit-tree-selected" : "edit-tree")">
+                    <a href="@Url.EditPackage(Model.PackageId, versionStr)" >@(versionStr)</a>
+                </span>
+            </li>
+        }
+        </ul>
+    </nav>
 }
 
 @using (Html.BeginForm())
