@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -15,7 +16,7 @@ namespace NuGetGallery
     {
         private static readonly object IndexWriterLock = new object();
 
-        private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromDays(3);
+        private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromHours(3);
 
         private static ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter> WriterCache =
             new ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter>();
@@ -24,12 +25,16 @@ namespace NuGetGallery
         private IndexWriter _indexWriter;
         private IPackageSource _packageSource;
 
+        private IDiagnosticsSource Trace { get; set; }
+
         public LuceneIndexingService(
             IPackageSource packageSource,
-            Lucene.Net.Store.Directory directory)
+            Lucene.Net.Store.Directory directory,
+            IDiagnosticsService diagnostics)
         {
             _packageSource = packageSource;
             _directory = directory;
+            Trace = diagnostics.SafeGetSource("LuceneIndexingService");
         }
 
         public void UpdateIndex()
@@ -64,6 +69,28 @@ namespace NuGetGallery
             UpdateLastWriteTime();
         }
 
+        public void UpdatePackage(Package package)
+        {
+            // Just update the provided package
+            using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key)))
+            {
+                EnsureIndexWriter(creatingIndex: false);
+                var indexEntity = new PackageIndexEntity(package);
+                var updateTerm = new Term("PackageRegistrationKey", package.PackageRegistrationKey.ToString(CultureInfo.InvariantCulture));
+                if (package.Listed)
+                {
+                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString()));
+                    _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
+                }
+                else
+                {
+                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Deleting Document: {0}", updateTerm.ToString()));
+                    _indexWriter.DeleteDocuments(updateTerm);
+                }
+                _indexWriter.Commit();
+            }
+        }
+
         private List<PackageIndexEntity> GetPackages(DateTime? lastIndexTime)
         {
             // Retrieve the Latest and LatestStable version of packages if any package for that registration changed since we last updated the index.
@@ -89,6 +116,15 @@ namespace NuGetGallery
             Parallel.ForEach(packages, AddPackage);
 
             _indexWriter.Commit();
+        }
+
+        public virtual DateTime? GetLastWriteTime()
+        {
+            if (!File.Exists(LuceneCommon.IndexMetadataPath))
+            {
+                return null;
+            }
+            return File.GetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath);
         }
 
         private void AddPackage(PackageIndexEntity packageInfo)
@@ -139,15 +175,6 @@ namespace NuGetGallery
 
             // If we've never created the index, it needs to be refreshed.
             return true;
-        }
-
-        protected internal virtual DateTime? GetLastWriteTime()
-        {
-            if (!File.Exists(LuceneCommon.IndexMetadataPath))
-            {
-                return null;
-            }
-            return File.GetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath);
         }
 
         protected internal virtual void UpdateLastWriteTime()

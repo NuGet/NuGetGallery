@@ -22,13 +22,15 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IStatisticsService _statisticsService;
         private readonly IContentService _contentService;
+        private readonly IIndexingService _indexingService;
 
         public ApiController(
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
-            IContentService contentService)
+            IContentService contentService,
+            IIndexingService indexingService)
         {
             _packageService = packageService;
             _packageFileService = packageFileService;
@@ -36,6 +38,7 @@ namespace NuGetGallery
             _nugetExeDownloaderService = nugetExeDownloaderService;
             _contentService = contentService;
             _statisticsService = null;
+            _indexingService = indexingService;
         }
 
         public ApiController(
@@ -44,8 +47,9 @@ namespace NuGetGallery
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
+            IIndexingService indexingService,
             IStatisticsService statisticsService)
-            : this(packageService, packageFileService, userService, nugetExeDownloaderService, contentService)
+            : this(packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService)
         {
             _statisticsService = statisticsService;
         }
@@ -279,6 +283,7 @@ namespace NuGetGallery
             }
 
             _packageService.MarkPackageUnlisted(package);
+            _indexingService.UpdatePackage(package);
             return new EmptyResult();
         }
 
@@ -315,6 +320,7 @@ namespace NuGetGallery
             }
 
             _packageService.MarkPackageListed(package);
+            _indexingService.UpdatePackage(package);
             return new EmptyResult();
         }
 
