@@ -24,7 +24,7 @@ namespace NuGetGallery
         }
 
         [StringLength(256)]
-        [Display(Name = "Default Title (displayed for versions without any title)")]
+        [Display(Name = "Title (if version Title is blank)")]
         public string DefaultTitle { get; set; }
 
         [DataType(DataType.MultilineText)]
@@ -32,6 +32,7 @@ namespace NuGetGallery
 
         [StringLength(1024)]
         [DataType(DataType.MultilineText)]
+        [Display(Name = "Summary for search results")]
         public string Summary { get; set; }
 
         [StringLength(256)]
@@ -41,7 +42,7 @@ namespace NuGetGallery
 
         [StringLength(256)]
         [Display(Name = "Project Homepage URL")]
-        [DataType(DataType.Url)]
+        [DataType(DataType.ImageUrl)]
         public string ProjectUrl { get; set; }
 
         [StringLength(256)]
