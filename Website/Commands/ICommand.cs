@@ -11,7 +11,7 @@ namespace NuGetGallery.Commands
     /// </summary>
     public interface ICommand
     {
-        Task Execute();
+        void Execute();
     }
 
     /// <summary>
@@ -19,16 +19,16 @@ namespace NuGetGallery.Commands
     /// </summary>
     public interface IQuery
     {
-        Task<object> Execute();
+        object Execute();
     }
 
     public abstract class Query<TResult> : IQuery
     {
-        async Task<object> IQuery.Execute()
+        object IQuery.Execute()
         {
-            return await Execute();
+            return Execute();
         }
 
-        protected abstract Task<TResult> Execute();
+        protected abstract TResult Execute();
     }
 }

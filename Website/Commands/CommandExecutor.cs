@@ -30,29 +30,29 @@ namespace NuGetGallery.Commands
             Trace = diagnostics.GetSource("CommandExecutor");
         }
 
-        public virtual async Task<object> Execute(IQuery query)
+        public virtual object Execute(IQuery query)
         {
             Debug.Assert(query != null);
 
             using (Trace.Activity(String.Format("Execution of {0}", query.GetType().Name)))
             {
-                return await query.Execute();
+                return query.Execute();
             }
         }
 
-        public virtual async Task Execute(ICommand command)
+        public virtual void Execute(ICommand command)
         {
             Debug.Assert(command != null);
 
             using (Trace.Activity(String.Format("Execution of {0}", command.GetType().Name)))
             {
-                await command.Execute();
+                command.Execute();
             }
         }
 
-        public virtual async Task<TResult> Execute<TResult>(Query<TResult> query)
+        public virtual TResult Execute<TResult>(Query<TResult> query)
         {
-            var result = await Execute((IQuery)query);
+            var result = Execute((IQuery)query);
             return (TResult)(result ?? default(TResult));
         }
     }

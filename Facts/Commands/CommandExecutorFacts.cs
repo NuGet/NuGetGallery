@@ -15,61 +15,58 @@ namespace NuGetGallery.Commands
         public class TheExecuteMethod
         {
             [Fact]
-            public async Task ShouldExecuteTheProvidedCommand()
+            public void ShouldExecuteTheProvidedCommand()
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
                 var command = new Mock<ICommand>();
-                command.Setup(c => c.Execute()).Returns(Task.FromResult(0));
-
+                
                 // Act
-                await executor.Execute(command.Object);
+                executor.Execute(command.Object);
 
                 // Assert
                 command.Verify(c => c.Execute());
             }
 
             [Fact]
-            public async Task ShouldExecuteTheProvidedQuery()
+            public void ShouldExecuteTheProvidedQuery()
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
                 var query = new Mock<IQuery>();
-                query.Setup(q => q.Execute()).Returns(Task.FromResult((object)0));
 
                 // Act
-                await executor.Execute(query.Object);
+                executor.Execute(query.Object);
 
                 // Assert
                 query.Verify(q => q.Execute());
             }
 
             [Fact]
-            public async Task ShouldReturnTheResultOfExecutingTheProvidedQuery()
+            public void ShouldReturnTheResultOfExecutingTheProvidedQuery()
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
                 var query = new Mock<IQuery>();
                 var expected = new object();
-                query.Setup(q => q.Execute()).Returns(Task.FromResult(expected));
+                query.Setup(q => q.Execute()).Returns(expected);
 
                 // Act
-                var actual = await executor.Execute(query.Object);
+                var actual = executor.Execute(query.Object);
 
                 // Assert
                 Assert.Same(expected, actual);
             }
 
             [Fact]
-            public async Task ShouldTraceStartAndEndOfCommandExecution()
+            public void ShouldTraceStartAndEndOfCommandExecution()
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
                 var command = new Mock<ICommand>();
-                command.Setup(c => c.Execute()).Returns(Task.FromResult(0));
                 
                 // Act
-                await executor.Execute(command.Object);
+                executor.Execute(command.Object);
 
                 // Assert
                 executor.MockTrace
@@ -98,10 +95,9 @@ namespace NuGetGallery.Commands
                 // Arrange
                 var executor = new TestableCommandExecutor();
                 var query = new Mock<IQuery>();
-                query.Setup(q => q.Execute()).Returns(Task.FromResult((object)0));
-
+                
                 // Act
-                await executor.Execute(query.Object);
+                executor.Execute(query.Object);
 
                 // Assert
                 executor.MockTrace
