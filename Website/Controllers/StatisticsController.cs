@@ -35,7 +35,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
-        public virtual JsonResult Totals()
+        public virtual ActionResult Totals()
         {
             var stats = _aggregateStatsService.GetAggregateStats();
 

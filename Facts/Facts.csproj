@@ -155,6 +155,7 @@
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationFacts.cs" />
+    <Compile Include="Commands\CommandExecutorFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
     <Compile Include="Controllers\CuratedFeedsControllerFacts.cs" />

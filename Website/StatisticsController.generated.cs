@@ -66,8 +66,8 @@ namespace NuGetGallery {
     public class T4MVC_StatisticsController: NuGetGallery.StatisticsController {
         public T4MVC_StatisticsController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.JsonResult Totals() {
-            var callInfo = new T4MVC_JsonResult(Area, Name, ActionNames.Totals);
+        public override System.Web.Mvc.ActionResult Totals() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Totals);
             return callInfo;
         }
 
