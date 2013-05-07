@@ -194,11 +194,12 @@
     <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="TestUtils\ContractAssert.cs" />
+    <Compile Include="TestUtils\FakeDbSet.cs" />
+    <Compile Include="TestUtils\FakeEntitiesContext.cs" />
     <Compile Include="TestUtils\MockExtensions.cs" />
     <Compile Include="TestUtils\ModelStateAssert.cs" />
     <Compile Include="TestUtils\ResultAssert.cs" />
     <Compile Include="TestUtils\TaskAssert.cs" />
-    <Compile Include="TestUtils\TestCryptoService.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />
     <Compile Include="UrlExtensionsFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />

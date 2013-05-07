@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Lucene.Net.Documents;
 using Lucene.Net.Index;
 
 namespace NuGetGallery
@@ -22,13 +22,25 @@ namespace NuGetGallery
 
         private Lucene.Net.Store.Directory _directory;
         private IndexWriter _indexWriter;
-        private IPackageSource _packageSource;
+        private IEntityRepository<Package> _packageRepository;
+        private IEntityRepository<CuratedPackage> _curatedPackageRepository;
 
         public LuceneIndexingService(
-            IPackageSource packageSource,
+            IEntityRepository<Package> packageSource,
+            IEntityRepository<CuratedPackage> curatedPackageSource,
             Lucene.Net.Store.Directory directory)
         {
-            _packageSource = packageSource;
+            _packageRepository = packageSource;
+            _curatedPackageRepository = curatedPackageSource;
+            _directory = directory;
+        }
+
+        public LuceneIndexingService(
+            EntitiesContext entitiesContext, 
+            Lucene.Net.Store.Directory directory)
+        {
+            _packageRepository = new EntityRepository<Package>(entitiesContext);
+            _curatedPackageRepository = new EntityRepository<CuratedPackage>(entitiesContext);
             _directory = directory;
         }
 
@@ -70,7 +82,43 @@ namespace NuGetGallery
             // We need to do this because some attributes that we index such as DownloadCount are values in the PackageRegistration table that may
             // update independent of the package.
 
-            IQueryable<PackageIndexEntity> packagesForIndexing = _packageSource.GetPackagesForIndexing(lastIndexTime);
+            IQueryable<Package> set = _packageRepository.GetAll()
+                .Where(p => p.IsLatest || p.IsLatestStable)  // which implies that p.IsListed by the way!
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .Include(p => p.SupportedFrameworks);
+
+            if (lastIndexTime.HasValue)
+            {
+                // Retrieve the Latest and LatestStable version of packages if any package for that registration changed since we last updated the index.
+                // We need to do this because some attributes that we index such as DownloadCount are values in the PackageRegistration table that may
+                // update independent of the package.
+                set = set.Where(
+                    p => p.PackageRegistration.Packages.Any(
+                        p2 => p2.LastUpdated > lastIndexTime));
+            }
+
+            var list = set.ToList();
+
+            var curatedFeedsPerPackageRegistration = _curatedPackageRepository.GetAll()
+                .Select(cp => new { cp.PackageRegistrationKey, cp.CuratedFeedKey })
+                .GroupBy(x => x.PackageRegistrationKey)
+                .ToDictionary(group => group.Key, element => element.Select(x => x.CuratedFeedKey));
+
+            Func<int, IEnumerable<int>> GetFeeds = packageRegistrationKey =>
+            {
+                IEnumerable<int> ret = null;
+                curatedFeedsPerPackageRegistration.TryGetValue(packageRegistrationKey, out ret);
+                return ret;
+            };
+
+            var packagesForIndexing = list.Select(
+                p => new PackageIndexEntity
+                {
+                    Package = p,
+                    CuratedFeedKeys = GetFeeds(p.PackageRegistrationKey)
+                });
+
             return packagesForIndexing.ToList();
         }
 
