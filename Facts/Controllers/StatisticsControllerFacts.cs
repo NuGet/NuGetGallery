@@ -454,6 +454,155 @@ namespace NuGetGallery
         //        throw new Exception("this exception thrown because expected exception was not thrown");
         //    }
         //}
+
+        public class TheIndexAction
+        {
+            [Fact]
+            public async Task ReturnsEmptyReportsIfBothReturnNull()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                          .CompletesWith(null);
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .CompletesWith(null);
+
+                // Act
+                var result = await controller.Index() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<StatisticsSummaryViewModel>(result.Model);
+                Assert.Equal(PackageDownloadsReport.Empty, model.PackageDownloads);
+                Assert.Equal(PackageDownloadsReport.Empty, model.PackageVersionDownloads);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyReportsIfBothThrow()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                          .Throws(new Exception("ruh roh!"));
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .Throws(new Exception("ruh roh!"));
+
+                // Act
+                var result = await controller.Index() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<StatisticsSummaryViewModel>(result.Model);
+                Assert.Equal(PackageDownloadsReport.Empty, model.PackageDownloads);
+                Assert.Equal(PackageDownloadsReport.Empty, model.PackageVersionDownloads);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyPackagesReportIfPackagesReturnsNull()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                          .CompletesWith(null);
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .CompletesWith(expected);
+
+                // Act
+                var result = await controller.Index() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<StatisticsSummaryViewModel>(result.Model);
+                Assert.Equal(PackageDownloadsReport.Empty, model.PackageDownloads);
+                Assert.Same(expected, model.PackageVersionDownloads);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyPackageVersionsReportIfPackageVersionsReturnsNull()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                          .CompletesWith(expected);
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .CompletesWith(null);
+
+                // Act
+                var result = await controller.Index() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<StatisticsSummaryViewModel>(result.Model);
+                Assert.Equal(PackageDownloadsReport.Empty, model.PackageVersionDownloads);
+                Assert.Same(expected, model.PackageDownloads);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyPackagesReportIfPackagesThrows()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                          .Throws(new Exception("ruh roh"));
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .CompletesWith(expected);
+
+                // Act
+                var result = await controller.Index() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<StatisticsSummaryViewModel>(result.Model);
+                Assert.Equal(PackageDownloadsReport.Empty, model.PackageDownloads);
+                Assert.Same(expected, model.PackageVersionDownloads);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyPackageVersionsReportIfPackageVersionsThrows()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                          .CompletesWith(expected);
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .Throws(new Exception("ruh roh"));
+
+                // Act
+                var result = await controller.Index() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<StatisticsSummaryViewModel>(result.Model);
+                Assert.Equal(PackageDownloadsReport.Empty, model.PackageVersionDownloads);
+                Assert.Same(expected, model.PackageDownloads);
+            }
+
+            [Fact]
+            public async Task ReturnsBothReportsIfBothReportsAreLoaded()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                var expected1 = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
+                var expected2 = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                          .CompletesWith(expected1);
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .CompletesWith(expected2);
+
+                // Act
+                var result = await controller.Index() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<StatisticsSummaryViewModel>(result.Model);
+                Assert.Same(expected1, model.PackageDownloads);
+                Assert.Same(expected2, model.PackageVersionDownloads);
+            }
+        }
         
         public class ThePackageVersionsAction
         {
@@ -482,7 +631,7 @@ namespace NuGetGallery
                           .Throws(new Exception("ruh roh!"));
 
                 // Act
-                var result = await controller.Packages() as ViewResult;
+                var result = await controller.PackageVersions() as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -499,7 +648,7 @@ namespace NuGetGallery
                           .CompletesWith(expected);
 
                 // Act
-                var result = await controller.Packages() as ViewResult;
+                var result = await controller.PackageVersions() as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);

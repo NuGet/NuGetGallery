@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
+using System.Diagnostics.CodeAnalysis;
 using Ninject;
 
 namespace NuGetGallery
@@ -50,6 +51,7 @@ namespace NuGetGallery
             return base.SaveChanges();
         }
 
+        [SuppressMessage("Microsoft.Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "We use this only in very controlled scenarios, all of which are parameterless.")]
         public TResult Sql<TResult>(string query, Func<IDataReader, TResult> loader, int? commandTimeout = null, CommandBehavior behavior = CommandBehavior.Default)
         {
             using (var command = Database.Connection.CreateCommand())

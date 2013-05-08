@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -38,7 +39,7 @@ namespace NuGetGallery.Commands
         {
             Debug.Assert(query != null);
 
-            using (Trace.Activity(String.Format("Execution of {0}", query.GetType().Name)))
+            using (Trace.Activity(String.Format(CultureInfo.InvariantCulture, "Execution of {0}", query.GetType().Name)))
             {
                 return query.Execute();
             }
@@ -48,7 +49,7 @@ namespace NuGetGallery.Commands
         {
             Debug.Assert(command != null);
 
-            using (Trace.Activity(String.Format("Execution of {0}", command.GetType().Name)))
+            using (Trace.Activity(String.Format(CultureInfo.InvariantCulture, "Execution of {0}", command.GetType().Name)))
             {
                 command.Execute();
             }
@@ -58,11 +59,6 @@ namespace NuGetGallery.Commands
         {
             var result = Execute((IQuery)query);
             return (TResult)(result ?? default(TResult));
-        }
-
-        public virtual Task<TResult[]> ExecuteAsyncAll<TResult>(params Query<Task<TResult>>[] queries)
-        {
-            return Task.WhenAll(queries.Select(q => Execute(q)));
         }
 
         public TResult ExecuteAndCatch<TResult>(Query<TResult> query)
@@ -93,6 +89,16 @@ namespace NuGetGallery.Commands
                 result = default(TResult);
             }
             return result;
+        }
+
+        public virtual Task<TResult[]> ExecuteAsyncAll<TResult>(params Query<Task<TResult>>[] queries)
+        {
+            return Task.WhenAll(queries.Select(q => Execute(q)));
+        }
+
+        public virtual Task<TResult[]> ExecuteAndCatchAsyncAll<TResult>(params Query<Task<TResult>>[] queries)
+        {
+            return Task.WhenAll(queries.Select(q => ExecuteAndCatchAsync(q)));
         }
     }
 }

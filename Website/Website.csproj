@@ -819,7 +819,6 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Statistics\PackageDownloadsByIdReportQuery.cs" />
-    <Compile Include="Statistics\PackageDownloadsByVersionReportQuery.cs" />
     <Compile Include="Statistics\PackageDownloadsDetailReportQuery.cs" />
     <Compile Include="Statistics\PackageDownloadsReport.cs" />
     <Compile Include="Statistics\PackageDownloadsReportQuery.cs" />
@@ -848,7 +847,7 @@
     <Compile Include="ViewModels\PackagePart\PackageItem.cs" />
     <Compile Include="ViewModels\PackagePart\PathToTreeConverter.cs" />
     <Compile Include="ViewModels\StatisticsPackagesItemViewModel.cs" />
-    <Compile Include="ViewModels\StatisticsPackagesViewModel.cs" />
+    <Compile Include="ViewModels\StatisticsSummaryViewModel.cs" />
     <Compile Include="ViewModels\ResendConfirmationEmailViewModel.cs" />
     <Compile Include="App_Start\AuthenticationModule.cs" />
     <Compile Include="App_Start\AppActivator.cs" />

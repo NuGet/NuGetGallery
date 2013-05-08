@@ -1,4 +1,4 @@
-﻿@model StatisticsPackagesViewModel
+﻿@model StatisticsSummaryViewModel
 @{
     ViewBag.Title = "Statistics";
     ViewBag.Tab = "Statistics";
@@ -12,7 +12,7 @@
     </p>
 </section>
 
-@if (Model.IsDownloadPackageAvailable)
+@if (Model.PackageDownloads.Entries.Any())
 {
     <div class="statistics-layout" >
         <h3>Downloaded&nbsp;Packages&nbsp;(Last&nbsp;6&nbsp;Weeks)</h3>
@@ -25,7 +25,7 @@
             <tbody>
             @{
                 var index = 0;
-                foreach (var item in Model.DownloadPackagesSummary)
+                foreach (var item in Model.PackageDownloads.Entries)
                 {
                     index++;
                     
@@ -41,7 +41,7 @@
         <span class="statistics-more"><a href="@Url.StatisticsAllPackageDownloads()">More...</a></span>
     </div>
 }
-@if (Model.IsDownloadPackageDetailAvailable)
+@if (Model.PackageVersionDownloads.Entries.Any())
 {
     <div class="statistics-layout" >
         <h3>Downloaded&nbsp;Package&nbsp;Versions&nbsp;(Last&nbsp;6&nbsp;Weeks)</h3>
@@ -54,7 +54,7 @@
             <tbody>
             @{
                 var index = 0;
-                foreach (var item in Model.DownloadPackageVersionsSummary)
+                foreach (var item in Model.PackageVersionDownloads.Entries)
                 {
                     index++;
                     

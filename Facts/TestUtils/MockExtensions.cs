@@ -16,12 +16,6 @@ namespace NuGetGallery
             return self.Returns(Task.FromResult(inner));
         }
 
-        // Helper for returning tasks with null values
-        public static IReturnsResult<TTarget> CompletesWithNull<TTarget, TInner>(this ISetup<TTarget, Task<TInner>> self) where TTarget : class where TInner: class
-        {
-            return self.Returns(Task.FromResult((TInner)null));
-        }
-
         // Helper to get around Mock Returns((Type)null) weirdness.
         public static IReturnsResult<TMock> ReturnsNull<TMock, TRet>(this ISetup<TMock, TRet> self) where TMock: class where TRet: class
         {

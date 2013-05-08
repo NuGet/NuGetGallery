@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 using Microsoft.Internal.Web.Utils;
@@ -8,6 +10,7 @@ namespace NuGetGallery.Statistics
 {
     public class PackageDownloadsReport
     {
+        [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = "The type is immutable")]
         public static readonly PackageDownloadsReport Empty = new PackageDownloadsReport();
 
         public IEnumerable<PackageDownloadsReportEntry> Entries { get; private set; }
@@ -76,7 +79,7 @@ namespace NuGetGallery.Statistics
                 "{ PackageId: '" + 
                 PackageId + 
                 "', Downloads: " + 
-                Downloads.ToString() +
+                Downloads.ToString(CultureInfo.InvariantCulture) +
                 ", PackageVersion: '" +
                 PackageVersion +
                 "', PackageTitle: '" + 

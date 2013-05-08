@@ -40,18 +40,14 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Index()
         {
-            var reports = await Executor.ExecuteAsyncAll(
+            var reports = await Executor.ExecuteAndCatchAsyncAll(
                 new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads),
-                new PackageDownloadsByVersionReportQuery());
+                new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads));
 
-            throw new NotImplementedException();
-            //var model = new StatisticsPackagesViewModel
-            //{
-            //    DownloadPackagesSummary = reports[0],
-            //    DownloadPackageVersionsSummary = reports[1]
-            //};
-
-            //return View(model);
+            // ExecuteAsyncAll returns results in the same order as the tasks.
+            return View(new StatisticsSummaryViewModel(
+                reports[0] ?? PackageDownloadsReport.Empty, 
+                reports[1] ?? PackageDownloadsReport.Empty));
         }
 
         //
