@@ -5,23 +5,16 @@
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-@section BottomScriptsX {
+@section BottomScripts {
     <script src="@Href("~/Scripts/jquery-1.6.2.min.js")"></script>
     <script>
-        $(document).ajaxError(function (event, jqxhr, settings, exception) {
-            var url = settings.url;
-            $('input[type="url"]').each(function (index, element) {
-                if (element.value == url) {
-                    $('input');
-                }
-            });
-        });
-
-        $('input[type="url"]').focusout(function (event) {
+        $('#EditPackageRegistrationRequest_IconUrl').focusout(function (event) {
+            var target = event.target;
             var newValue = event.target.value;
-            $.get(newValue, '', function ()
-            {
-            });
+            $('#IconUrl_Preview').remove();
+            if (newValue.trim().length) {
+                $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '"></img>'))
+            }
         });
     </script>
 }

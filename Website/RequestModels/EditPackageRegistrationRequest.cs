@@ -24,25 +24,27 @@ namespace NuGetGallery
         }
 
         [StringLength(256)]
-        [Display(Name = "Title (if version Title is blank)")]
+        [Display(Name = "Title")]
+        [Subtext("Acts as default title for versions that don't set a title.")]
         public string DefaultTitle { get; set; }
+
+        [StringLength(1024)]
+        [DataType(DataType.MultilineText)]
+        [Display(Name = "Summary")]
+        [Subtext("Summary is a short text shown in package search results.")]
+        public string Summary { get; set; }
 
         [DataType(DataType.MultilineText)]
         public string Description { get; set; }
 
-        [StringLength(1024)]
-        [DataType(DataType.MultilineText)]
-        [Display(Name = "Summary for search results")]
-        public string Summary { get; set; }
-
         [StringLength(256)]
         [Display(Name = "Icon URL")]
-        [DataType(DataType.Url)]
+        [DataType(DataType.ImageUrl)]
         public string IconUrl { get; set; }
 
         [StringLength(256)]
         [Display(Name = "Project Homepage URL")]
-        [DataType(DataType.ImageUrl)]
+        [DataType(DataType.Url)]
         public string ProjectUrl { get; set; }
 
         [StringLength(256)]

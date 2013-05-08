@@ -734,20 +734,22 @@ ul.dependencySet li {
     font-size: 1.4em;
 }
 
-
     /* Tags & Authors */
 
 .package-page ul.tags li a,
 .package-page ul.authors li a { font-size: 1.25em; }
 
 
-    /* Icon */
+    /* Large Icon 128x128 */
+
+.logo {
+    height: 128px;
+    width: 128px;
+}
 
 #sideColumn .logo {
     display: block;
-    height: 128px;
     margin: 0 0 20px 0;
-    width: 128px;
 }
 
     /* Stats */
