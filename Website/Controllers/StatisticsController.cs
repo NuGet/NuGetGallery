@@ -75,9 +75,9 @@ namespace NuGetGallery
         //
         // GET: /stats/package/{id}
 
-        public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string[] groupby)
+        public virtual async Task<ActionResult> PackageDownloadsById(string id, string[] groupby)
         {
-            var report = await Executor.Execute(new PackageDownloadsByIdReportQuery(id));
+            var report = await Executor.Execute(new PackageDownloads(id));
 
             throw new NotImplementedException();
             //ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
@@ -92,9 +92,9 @@ namespace NuGetGallery
         //
         // GET: /stats/package/{id}/{version}
 
-        public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version, string[] groupby)
+        public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string version, string[] groupby)
         {
-            var report = await Executor.Execute(new PackageDownloadsDetailReportQuery(id, version));
+            var report = await Executor.Execute(new PackageDownloadDetailReportQuery(id, version));
 
             throw new NotImplementedException();
             //ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });

@@ -455,6 +455,10 @@ namespace NuGetGallery
         //    }
         //}
 
+        public class ThePackageDownloadsById
+        {
+        }
+
         public class TheIndexAction
         {
             [Fact]

@@ -9,5 +9,10 @@ namespace NuGetGallery.Statistics
     {
         public static readonly string RecentPackageDownloads = "recentpopularity";
         public static readonly string RecentPackageVersionDownloads = "recentpopularitydetail";
+        
+        public static string DownloadsForPackage(string id)
+        {
+            return "RecentPopularityDetail_" + id;
+        }
     }
 }

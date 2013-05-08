@@ -7,17 +7,19 @@ using NuGetGallery.Commands;
 
 namespace NuGetGallery.Statistics
 {
-    public class PackageDownloadsByIdReportQuery : Query<Task<PackageDownloadsReport>>
+    public class PackageDownloadDetailReportQuery : Query<Task<PackageDownloadDetailReport>>
     {
         private string id;
+        private string version;
 
-        public PackageDownloadsByIdReportQuery(string id)
+        public PackageDownloadDetailReportQuery(string id, string version)
         {
             // TODO: Complete member initialization
             this.id = id;
+            this.version = version;
         }
-        
-        public override Task<PackageDownloadsReport> Execute()
+
+        public override Task<PackageDownloadDetailReport> Execute()
         {
             throw new NotImplementedException();
         }
