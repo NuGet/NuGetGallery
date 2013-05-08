@@ -39,7 +39,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Index()
         {
             var reports = await Executor.ExecuteAsyncAll(
-                new PackageDownloadsReportQuery(),
+                new PackageDownloadsReportQuery(ReportNames.RecentPopularity),
                 new PackageDownloadsByVersionReportQuery());
 
             throw new NotImplementedException();
@@ -57,7 +57,9 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Packages()
         {
-            var report = await Executor.SafeExecuteAsync(new PackageDownloadsReportQuery());
+            var report = await Executor.SafeExecuteAsync(
+                new PackageDownloadsReportQuery(
+                    ReportNames.RecentPopularity));
             return View(report ?? PackageDownloadsReport.Empty);
         }
 

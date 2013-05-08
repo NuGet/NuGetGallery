@@ -462,7 +462,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery())
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPopularity))
                           .CompletesWith(null);
 
                 // Act
@@ -478,7 +478,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery())
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPopularity))
                           .Throws(new Exception("ruh roh!"));
 
                 // Act
@@ -495,7 +495,7 @@ namespace NuGetGallery
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
                 var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
-                controller.OnExecute(new PackageDownloadsReportQuery())
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPopularity))
                           .CompletesWith(expected);
 
                 // Act

@@ -22,18 +22,25 @@ namespace NuGetGallery.Statistics
         public IFileStorageService StorageService { get; set; }
         public IDiagnosticsService Diagnostics { get; set; }
 
+        public string ReportName { get; private set; }
+
+        public PackageDownloadsReportQuery(string reportName)
+        {
+            ReportName = reportName;
+        }
+
         public override async Task<PackageDownloadsReport> Execute()
         {
             var trace = Diagnostics == null ? new NullDiagnosticsSource() : Diagnostics.GetSource("PackageDownloadsReportQuery");
 
             // Load the report from file storage
             string reportContent;
-            var stream = await StorageService.GetFileAsync("stats", "popularity/" + ReportNames.RecentPopularity + ".json");
+            var stream = await StorageService.GetFileAsync("stats", "popularity/" + ReportName.ToLowerInvariant() + ".json");
             if (stream == null)
             {
                 return null;
             }
-    
+
             // The reader will close the stream.
             using (var reader = new StreamReader(stream))
             {
@@ -63,9 +70,10 @@ namespace NuGetGallery.Statistics
         public override bool Equals(object obj)
         {
             PackageDownloadsReportQuery other = obj as PackageDownloadsReportQuery;
-            return other != null && 
+            return other != null &&
                    Equals(StorageService, other.StorageService) &&
-                   Equals(Diagnostics, other.Diagnostics);
+                   Equals(Diagnostics, other.Diagnostics) &&
+                   String.Equals(ReportName, other.ReportName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode()
@@ -73,6 +81,7 @@ namespace NuGetGallery.Statistics
             return HashCodeCombiner.Start()
                 .Add(StorageService)
                 .Add(Diagnostics)
+                .Add(ReportName)
                 .CombinedHash;
         }
     }

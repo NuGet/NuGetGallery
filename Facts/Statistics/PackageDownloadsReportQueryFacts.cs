@@ -13,14 +13,20 @@ namespace NuGetGallery.Statistics
     {
         public class TheExecuteMethod
         {
+            const string ReportName = "theReport";
+            const string ExpectedFileName = "popularity/thereport.json";
+
             [Fact]
             public async Task GivenNoReportExists_ItShouldReturnNull()
             {
                 // Arrange
                 var mockStorage = new Mock<IFileStorageService>();
-                mockStorage.DoesNotContain("stats", "popularity/" + ReportNames.RecentPopularity + ".json");
-                var query = new PackageDownloadsReportQuery() { StorageService = mockStorage.Object };
-                
+                mockStorage.DoesNotContain("stats", ExpectedFileName);
+                var query = new PackageDownloadsReportQuery(ReportName)
+                {
+                    StorageService = mockStorage.Object
+                };
+
                 // Act/Assert
                 Assert.Null(await query.Execute());
             }
@@ -33,8 +39,11 @@ namespace NuGetGallery.Statistics
             {
                 // Arrange
                 var mockStorage = new Mock<IFileStorageService>();
-                mockStorage.ContainsTextFile("stats", "popularity/" + ReportNames.RecentPopularity + ".json", String.Empty);
-                var query = new PackageDownloadsReportQuery() { StorageService = mockStorage.Object };
+                mockStorage.ContainsTextFile("stats", ExpectedFileName, String.Empty);
+                var query = new PackageDownloadsReportQuery(ReportName)
+                {
+                    StorageService = mockStorage.Object
+                };
 
                 // Act/Assert
                 Assert.Equal(PackageDownloadsReport.Empty, await query.Execute());
@@ -47,11 +56,14 @@ namespace NuGetGallery.Statistics
                 const string report = "[{PackageId: 'jQuery', Downloads: '54343'}, {PackageId: 'AjaxControlToolkit', Downloads: '53998'}]";
 
                 var mockStorage = new Mock<IFileStorageService>();
-                mockStorage.ContainsTextFile("stats", "popularity/" + ReportNames.RecentPopularity + ".json", report);
-                var query = new PackageDownloadsReportQuery() { StorageService = mockStorage.Object };
+                mockStorage.ContainsTextFile("stats", ExpectedFileName, report);
+                var query = new PackageDownloadsReportQuery(ReportName)
+                {
+                    StorageService = mockStorage.Object
+                };
 
                 // Act/Assert
-                Assert.Equal(new PackageDownloadsReport(new [] {
+                Assert.Equal(new PackageDownloadsReport(new[] {
                     new PackageDownloadsReportEntry() { PackageId = "jQuery", Downloads = 54343 },
                     new PackageDownloadsReportEntry() { PackageId = "AjaxControlToolkit", Downloads = 53998 }
                 }), await query.Execute());
