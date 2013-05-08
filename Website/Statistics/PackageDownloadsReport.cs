@@ -8,9 +8,11 @@ namespace NuGetGallery.Statistics
 {
     public class PackageDownloadsReport
     {
+        public static readonly PackageDownloadsReport Empty = new PackageDownloadsReport();
+
         public IEnumerable<PackageDownloadsReportEntry> Entries { get; private set; }
 
-        public PackageDownloadsReport() : this(Enumerable.Empty<PackageDownloadsReportEntry>()) { }
+        private PackageDownloadsReport() : this(Enumerable.Empty<PackageDownloadsReportEntry>()) { }
         public PackageDownloadsReport(IEnumerable<PackageDownloadsReportEntry> entries)
         {
             Entries = entries;
@@ -25,6 +27,12 @@ namespace NuGetGallery.Statistics
         public override int GetHashCode()
         {
             return Entries.GetHashCode();
+        }
+
+        // Debugging aid
+        public override string ToString()
+        {
+            return "[" + String.Join(",", Entries) + "]";
         }
     }
 
@@ -47,6 +55,12 @@ namespace NuGetGallery.Statistics
                 .Add(PackageId)
                 .Add(Downloads)
                 .CombinedHash;
+        }
+
+        // Debugging aid
+        public override string ToString()
+        {
+            return "{ PackageId: '" + PackageId + "', Downloads: " + Downloads.ToString() + " }";
         }
     }
 }

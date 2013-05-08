@@ -57,16 +57,8 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Packages()
         {
-            var report = await Executor.Execute(new PackageDownloadsReportQuery());
-
-            throw new NotImplementedException();
-            //var model = new StatisticsPackagesViewModel
-            //{
-            //    IsDownloadPackageAvailable = isAvailable,
-            //    DownloadPackagesAll = _statisticsService.DownloadPackagesAll
-            //};
-
-            //return View(model);
+            var report = await Executor.SafeExecuteAsync(new PackageDownloadsReportQuery());
+            return View(report ?? PackageDownloadsReport.Empty);
         }
 
         //

@@ -37,7 +37,7 @@ namespace NuGetGallery.Statistics
                 var query = new PackageDownloadsReportQuery() { StorageService = mockStorage.Object };
 
                 // Act/Assert
-                Assert.Equal(new PackageDownloadsReport(), await query.Execute());
+                Assert.Equal(PackageDownloadsReport.Empty, await query.Execute());
             }
 
             [Fact]

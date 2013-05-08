@@ -1,4 +1,4 @@
-﻿@model StatisticsPackagesViewModel
+﻿@model NuGetGallery.Statistics.PackageDownloadsReport
 @{
     ViewBag.Title = "Package Download Statistics";
     ViewBag.Tab = "Statistics";
@@ -15,7 +15,7 @@
     @{
         var index = 0;
         
-        foreach (var item in Model.DownloadPackagesAll)
+        foreach (var item in Model.Entries)
         {
             index++;
             

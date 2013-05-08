@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Internal.Web.Utils;
 using Newtonsoft.Json;
 using NuGetGallery.Commands;
 using NuGetGallery.Diagnostics;
@@ -56,6 +57,23 @@ namespace NuGetGallery.Statistics
 
             // Return the report!
             return new PackageDownloadsReport(entries ?? Enumerable.Empty<PackageDownloadsReportEntry>());
+        }
+
+        // Properly implemented equality makes tests easier!
+        public override bool Equals(object obj)
+        {
+            PackageDownloadsReportQuery other = obj as PackageDownloadsReportQuery;
+            return other != null && 
+                   Equals(StorageService, other.StorageService) &&
+                   Equals(Diagnostics, other.Diagnostics);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCodeCombiner.Start()
+                .Add(StorageService)
+                .Add(Diagnostics)
+                .CombinedHash;
         }
     }
 }
