@@ -823,6 +823,7 @@
     <Compile Include="Statistics\PackageDownloadsDetailReportQuery.cs" />
     <Compile Include="Statistics\PackageDownloadsReport.cs" />
     <Compile Include="Statistics\PackageDownloadsReportQuery.cs" />
+    <Compile Include="Statistics\ReportNames.cs" />
     <Compile Include="T4MVC.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -63,10 +63,5 @@ namespace NuGetGallery
             Debug.Assert(mockExecutor != null, "OnExecute can only be called on AppControllers returned by Testable.Get");
             mockExecutor.Verify(e => e.Execute(expected));
         }
-
-        public static IReturnsResult<TTarget> Returns<TTarget, TInner>(this ISetup<TTarget, Task<TInner>> self, TInner inner) where TTarget : class
-        {
-            return self.Returns(Task.FromResult(inner));
-        }
     }
 }
