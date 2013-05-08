@@ -24,7 +24,11 @@ namespace NuGetGallery.Commands
     {
         public IDiagnosticsSource Trace { get; protected set; }
 
-        protected CommandExecutor() { }
+        protected CommandExecutor() 
+        {
+            Trace = new NullDiagnosticsSource();
+        }
+
         public CommandExecutor(IDiagnosticsService diagnostics)
         {
             Trace = diagnostics.GetSource("CommandExecutor");
@@ -54,6 +58,11 @@ namespace NuGetGallery.Commands
         {
             var result = Execute((IQuery)query);
             return (TResult)(result ?? default(TResult));
+        }
+
+        public virtual Task<TResult[]> ExecuteAsyncAll<TResult>(params Query<Task<TResult>>[] queries)
+        {
+            return Task.WhenAll(queries.Select(q => Execute(q)));
         }
     }
 }

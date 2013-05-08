@@ -90,7 +90,7 @@ namespace NuGetGallery.Commands
             }
 
             [Fact]
-            public async Task ShouldTraceStartAndEndOfQueryExecution()
+            public void ShouldTraceStartAndEndOfQueryExecution()
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();

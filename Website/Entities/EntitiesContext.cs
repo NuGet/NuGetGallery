@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using Ninject;
 
 namespace NuGetGallery
@@ -46,6 +48,24 @@ namespace NuGetGallery
             }
 
             return base.SaveChanges();
+        }
+
+        public TResult Sql<TResult>(string query, Func<IDataReader, TResult> loader, int? commandTimeout = null, CommandBehavior behavior = CommandBehavior.Default)
+        {
+            using (var command = Database.Connection.CreateCommand())
+            {
+                command.CommandText = query;
+                if (commandTimeout != null)
+                {
+                    command.CommandTimeout = commandTimeout.Value;
+                }
+
+                Database.Connection.Open();
+                using (var reader = command.ExecuteReader(behavior))
+                {
+                    return loader(reader);
+                }
+            }
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

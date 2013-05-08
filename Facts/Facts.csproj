@@ -194,6 +194,8 @@
     <Compile Include="Services\UploadFileServiceFacts.cs" />
     <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
+    <Compile Include="Statistics\AggregateStatsQueryFacts.cs" />
+    <Compile Include="Testable.cs" />
     <Compile Include="TestUtils\ContractAssert.cs" />
     <Compile Include="TestUtils\MockExtensions.cs" />
     <Compile Include="TestUtils\ModelStateAssert.cs" />

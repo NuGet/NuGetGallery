@@ -11,6 +11,12 @@ namespace NuGetGallery
     {
         public CommandExecutor Executor { get; protected set; }
 
+        // ONLY for use by T4MVC
+        [Obsolete("Do not use! Only for use by T4MVC")]
+        protected NuGetControllerBase()
+        {
+        }
+
         protected NuGetControllerBase(CommandExecutor executor)
         {
             Executor = executor;

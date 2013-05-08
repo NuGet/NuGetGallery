@@ -5,6 +5,7 @@
 
 // Make sure the compiler doesn't complain about missing Xml comments
 #pragma warning disable 1591
+#pragma warning disable 0618
 #region T4MVC
 
 using System;
@@ -96,3 +97,4 @@ namespace NuGetGallery {
 
 #endregion T4MVC
 #pragma warning restore 1591
+#pragma warning restore 0618

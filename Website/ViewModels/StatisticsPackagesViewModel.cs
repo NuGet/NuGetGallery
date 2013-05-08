@@ -34,9 +34,6 @@ namespace NuGetGallery
             private set;
         }
 
-        public bool IsDownloadPackageAvailable { get; set; }
-        public bool IsDownloadPackageDetailAvailable { get; set; }
-
         public bool IsReportAvailable { get { return (Report != null); } }
 
         public string PackageId { get; private set; }

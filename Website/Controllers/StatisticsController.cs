@@ -6,39 +6,21 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using System.Web.UI;
+using NuGetGallery.Commands;
 using NuGetGallery.Statistics;
 
 namespace NuGetGallery
 {
-    public partial class StatisticsController : Controller
+    public partial class StatisticsController : NuGetControllerBase
     {
-        private readonly IStatisticsService _statisticsService;
-        private readonly IAggregateStatsService _aggregateStatsService;
-
-        public StatisticsController(IAggregateStatsService aggregateStatsService)
-        {
-            _statisticsService = null;
-            _aggregateStatsService = aggregateStatsService;
-        }
-
-        public StatisticsController(IStatisticsService statisticsService)
-        {
-            _statisticsService = statisticsService;
-            _aggregateStatsService = null;
-        }
-
-        public StatisticsController(IStatisticsService statisticsService, IAggregateStatsService aggregateStatsService)
-        {
-            _statisticsService = statisticsService;
-            _aggregateStatsService = aggregateStatsService;
-        }
+        public StatisticsController(CommandExecutor executor) : base(executor) { }
 
         [HttpGet]
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
         public virtual ActionResult Totals()
         {
-            var stats = _aggregateStatsService.GetAggregateStats();
-
+            var stats = Executor.Execute(new AggregateStatsQuery());
+            
             // if we fail to detect client locale from the Languages header, fall back to server locale
             CultureInfo clientCulture = DetermineClientLocale() ?? CultureInfo.CurrentCulture;
             return Json(
@@ -49,6 +31,93 @@ namespace NuGetGallery
                     TotalPackages = stats.TotalPackages.ToString("n0", clientCulture)
                 },
                 JsonRequestBehavior.AllowGet);
+        }
+
+        //
+        // GET: /stats
+
+        public virtual async Task<ActionResult> Index()
+        {
+            var reports = await Executor.ExecuteAsyncAll(
+                new PackageDownloadsReportQuery(),
+                new PackageDownloadsByVersionReportQuery());
+
+            throw new NotImplementedException();
+            //var model = new StatisticsPackagesViewModel
+            //{
+            //    DownloadPackagesSummary = reports[0],
+            //    DownloadPackageVersionsSummary = reports[1]
+            //};
+
+            //return View(model);
+        }
+
+        //
+        // GET: /stats/packages
+
+        public virtual async Task<ActionResult> Packages()
+        {
+            var report = await Executor.Execute(new PackageDownloadsReportQuery());
+
+            throw new NotImplementedException();
+            //var model = new StatisticsPackagesViewModel
+            //{
+            //    IsDownloadPackageAvailable = isAvailable,
+            //    DownloadPackagesAll = _statisticsService.DownloadPackagesAll
+            //};
+
+            //return View(model);
+        }
+
+        //
+        // GET: /stats/packageversions
+
+        public virtual async Task<ActionResult> PackageVersions()
+        {
+            var report = await Executor.Execute(new PackageDownloadsByVersionReportQuery());
+
+            throw new NotImplementedException();
+            //var model = new StatisticsPackagesViewModel
+            //{
+            //    IsDownloadPackageDetailAvailable = isAvailable,
+            //    DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll
+            //};
+
+            //return View(model);
+        }
+
+        //
+        // GET: /stats/package/{id}
+
+        public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string[] groupby)
+        {
+            var report = await Executor.Execute(new PackageDownloadsByIdReportQuery(id));
+
+            throw new NotImplementedException();
+            //ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
+
+            //StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
+
+            //model.SetPackageDownloadsByVersion(id, report);
+
+            //return View(model);
+        }
+
+        //
+        // GET: /stats/package/{id}/{version}
+
+        public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version, string[] groupby)
+        {
+            var report = await Executor.Execute(new PackageDownloadsDetailReportQuery(id, version));
+
+            throw new NotImplementedException();
+            //ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });
+
+            //var model = new StatisticsPackagesViewModel();
+
+            //model.SetPackageVersionDownloadsByClient(id, version, report);
+
+            //return View(model);
         }
 
         private CultureInfo DetermineClientLocale()
@@ -89,113 +158,6 @@ namespace NuGetGallery
             }
 
             return null;
-        }
-
-        //
-        // GET: /stats
-
-        public virtual async Task<ActionResult> Index()
-        {
-            if (_statisticsService == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            bool[] availablity = await Task.WhenAll(_statisticsService.LoadDownloadPackages(), _statisticsService.LoadDownloadPackageVersions());
-
-            var model = new StatisticsPackagesViewModel
-            {
-                IsDownloadPackageAvailable = availablity[0],
-                DownloadPackagesSummary = _statisticsService.DownloadPackagesSummary,
-                IsDownloadPackageDetailAvailable = availablity[1],
-                DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary
-            };
-
-            return View(model);
-        }
-
-        //
-        // GET: /stats/packages
-
-        public virtual async Task<ActionResult> Packages()
-        {
-            if (_statisticsService == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            bool isAvailable = await _statisticsService.LoadDownloadPackages();
-
-            var model = new StatisticsPackagesViewModel
-            {
-                IsDownloadPackageAvailable = isAvailable,
-                DownloadPackagesAll = _statisticsService.DownloadPackagesAll
-            };
-
-            return View(model);
-        }
-
-        //
-        // GET: /stats/packageversions
-
-        public virtual async Task<ActionResult> PackageVersions()
-        {
-            if (_statisticsService == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            bool isAvailable = await _statisticsService.LoadDownloadPackageVersions();
-
-            var model = new StatisticsPackagesViewModel
-            {
-                IsDownloadPackageDetailAvailable = isAvailable,
-                DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll
-            };
-
-            return View(model);
-        }
-
-        //
-        // GET: /stats/package/{id}
-
-        public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string[] groupby)
-        {
-            if (_statisticsService == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
-
-            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
-
-            StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
-
-            model.SetPackageDownloadsByVersion(id, report);
-
-            return View(model);
-        }
-
-        //
-        // GET: /stats/package/{id}/{version}
-
-        public virtual async Task<ActionResult> PackageDownloadsDetail(string id, string version, string[] groupby)
-        {
-            if (_statisticsService == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
-
-            ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });
-
-            var model = new StatisticsPackagesViewModel();
-
-            model.SetPackageVersionDownloadsByClient(id, version, report);
-
-            return View(model);
         }
 
         private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id = null)

@@ -264,6 +264,7 @@
     <Compile Include="Commands\CommandExecutor.cs" />
     <Compile Include="Commands\ICommand.cs" />
     <Compile Include="Controllers\AppController.cs" />
+    <Compile Include="Controllers\NuGetControllerBase.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
     <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
@@ -556,6 +557,7 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
+    <Compile Include="HashCodeCombiner.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\QuietLog.cs" />
     <Compile Include="Helpers\StringHelper.cs" />
@@ -764,6 +766,7 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
+    <Compile Include="Statistics\AggregateStatsQuery.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
@@ -815,6 +818,11 @@
     <Compile Include="StatisticsController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Statistics\PackageDownloadsByIdReportQuery.cs" />
+    <Compile Include="Statistics\PackageDownloadsByVersionReportQuery.cs" />
+    <Compile Include="Statistics\PackageDownloadsDetailReportQuery.cs" />
+    <Compile Include="Statistics\PackageDownloadsReport.cs" />
+    <Compile Include="Statistics\PackageDownloadsReportQuery.cs" />
     <Compile Include="T4MVC.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

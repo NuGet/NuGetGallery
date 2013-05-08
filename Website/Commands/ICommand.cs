@@ -29,6 +29,6 @@ namespace NuGetGallery.Commands
             return Execute();
         }
 
-        protected abstract TResult Execute();
+        public abstract TResult Execute();
     }
 }

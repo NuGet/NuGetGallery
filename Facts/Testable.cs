@@ -4,6 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Routing;
 using Moq;
 using Moq.Language.Flow;
 using NuGetGallery.Commands;
@@ -16,13 +19,29 @@ namespace NuGetGallery
         {
             var ctor = typeof(TController).GetConstructor(new [] { typeof(CommandExecutor) });
             Debug.Assert(ctor != null, "Testable.Get can only be used for controllers which have a constructor that only accepts a CommandExecutor");
+            
+            var controller = (TController)ctor.Invoke(new object[] { new Mock<CommandExecutor>() { CallBase = true }.Object });
+            
+            var httpContext = new Mock<HttpContextBase>();
+            httpContext.Setup(c => c.Request).Returns(new Mock<HttpRequestBase>().Object);
+            httpContext.Setup(c => c.Response).Returns(new Mock<HttpResponseBase>().Object);
+            var requestContext = new RequestContext(httpContext.Object, new RouteData());
+            var controllerContext = new ControllerContext(requestContext, controller);
+            controller.ControllerContext = controllerContext;
 
-            return (TController)ctor.Invoke(new object[] { new Mock<CommandExecutor>() { CallBase = true }.Object });
+            return controller;
         }
     }
 
     public static class TestableNuGetControllerExtensions
     {
+        public static Mock<HttpContextBase> MockHttpContext(this Controller self)
+        {
+            var mock = Mock.Get(self.HttpContext);
+            Debug.Assert(mock != null, "MockHttpContext can only be called on Controllers with a Mock HttpContextBase");
+            return mock;
+        }
+
         public static ISetup<CommandExecutor, TResult> OnExecute<TResult>(this NuGetControllerBase self, Query<TResult> match)
         {
             var mockExecutor = Mock.Get(self.Executor);
@@ -45,7 +64,7 @@ namespace NuGetGallery
             mockExecutor.Verify(e => e.Execute(expected));
         }
 
-        public static IReturnsResult<TTarget> Returns<TTarget, TInner>(this ISetup<TTarget, Task<TInner>> self, TInner inner)
+        public static IReturnsResult<TTarget> Returns<TTarget, TInner>(this ISetup<TTarget, Task<TInner>> self, TInner inner) where TTarget : class
         {
             return self.Returns(Task.FromResult(inner));
         }
