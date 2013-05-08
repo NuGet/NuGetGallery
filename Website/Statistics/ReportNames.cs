@@ -7,6 +7,7 @@ namespace NuGetGallery.Statistics
 {
     public static class ReportNames
     {
-        public static readonly string RecentPopularity = "recentpopularity";
+        public static readonly string RecentPackageDownloads = "recentpopularity";
+        public static readonly string RecentPackageVersionDownloads = "recentpopularitydetail";
     }
 }

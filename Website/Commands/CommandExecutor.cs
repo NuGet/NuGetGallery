@@ -65,7 +65,22 @@ namespace NuGetGallery.Commands
             return Task.WhenAll(queries.Select(q => Execute(q)));
         }
 
-        public async Task<TResult> SafeExecuteAsync<TResult>(Query<Task<TResult>> query)
+        public TResult ExecuteAndCatch<TResult>(Query<TResult> query)
+        {
+            TResult result;
+            try
+            {
+                result = Execute(query);
+            }
+            catch (Exception ex)
+            {
+                QuietLog.LogHandledException(ex);
+                result = default(TResult);
+            }
+            return result;
+        }
+
+        public async Task<TResult> ExecuteAndCatchAsync<TResult>(Query<Task<TResult>> query)
         {
             TResult result;
             try

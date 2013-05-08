@@ -50,7 +50,7 @@ namespace NuGetGallery.Statistics
             }
 
             [Fact]
-            public async Task GivenAValidReport_ItShouldLoadTheReport()
+            public async Task GivenAReportWithSomeMissingData_ItShouldLoadTheReport()
             {
                 // Arrange
                 const string report = "[{PackageId: 'jQuery', Downloads: '54343'}, {PackageId: 'AjaxControlToolkit', Downloads: '53998'}]";
@@ -65,6 +65,33 @@ namespace NuGetGallery.Statistics
                 // Act/Assert
                 Assert.Equal(new PackageDownloadsReport(new[] {
                     new PackageDownloadsReportEntry() { PackageId = "jQuery", Downloads = 54343 },
+                    new PackageDownloadsReportEntry() { PackageId = "AjaxControlToolkit", Downloads = 53998 }
+                }), await query.Execute());
+            }
+
+            [Fact]
+            public async Task GivenAValidReport_ItShouldLoadTheReport()
+            {
+                // Arrange
+                const string report = "[{PackageId: 'jQuery', PackageVersion: '1.0.1', PackageTitle: 'jQuery Library', PackageDescription: 'The jQuery JavaScript Library', PackageIconUrl: 'http://nuget.org', Downloads: '54343'}, {PackageId: 'AjaxControlToolkit', Downloads: '53998'}]";
+
+                var mockStorage = new Mock<IFileStorageService>();
+                mockStorage.ContainsTextFile("stats", ExpectedFileName, report);
+                var query = new PackageDownloadsReportQuery(ReportName)
+                {
+                    StorageService = mockStorage.Object
+                };
+
+                // Act/Assert
+                Assert.Equal(new PackageDownloadsReport(new[] {
+                    new PackageDownloadsReportEntry() { 
+                        PackageId = "jQuery", 
+                        Downloads = 54343, 
+                        PackageVersion = "1.0.1", 
+                        PackageTitle = "jQuery Library", 
+                        PackageDescription = "The jQuery JavaScript Library", 
+                        PackageIconUrl = "http://nuget.org" 
+                    },
                     new PackageDownloadsReportEntry() { PackageId = "AjaxControlToolkit", Downloads = 53998 }
                 }), await query.Execute());
             }

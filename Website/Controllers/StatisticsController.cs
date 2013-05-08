@@ -19,7 +19,9 @@ namespace NuGetGallery
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
         public virtual ActionResult Totals()
         {
-            var stats = Executor.Execute(new AggregateStatsQuery());
+            var stats = 
+                Executor.ExecuteAndCatch(new AggregateStatsQuery()) ??
+                new AggregateStats();
             
             // if we fail to detect client locale from the Languages header, fall back to server locale
             CultureInfo clientCulture = DetermineClientLocale() ?? CultureInfo.CurrentCulture;
@@ -39,7 +41,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Index()
         {
             var reports = await Executor.ExecuteAsyncAll(
-                new PackageDownloadsReportQuery(ReportNames.RecentPopularity),
+                new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads),
                 new PackageDownloadsByVersionReportQuery());
 
             throw new NotImplementedException();
@@ -57,9 +59,9 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Packages()
         {
-            var report = await Executor.SafeExecuteAsync(
+            var report = await Executor.ExecuteAndCatchAsync(
                 new PackageDownloadsReportQuery(
-                    ReportNames.RecentPopularity));
+                    ReportNames.RecentPackageDownloads));
             return View(report ?? PackageDownloadsReport.Empty);
         }
 
@@ -68,16 +70,10 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageVersions()
         {
-            var report = await Executor.Execute(new PackageDownloadsByVersionReportQuery());
-
-            throw new NotImplementedException();
-            //var model = new StatisticsPackagesViewModel
-            //{
-            //    IsDownloadPackageDetailAvailable = isAvailable,
-            //    DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll
-            //};
-
-            //return View(model);
+            var report = await Executor.ExecuteAndCatchAsync(
+                new PackageDownloadsReportQuery(
+                    ReportNames.RecentPackageVersionDownloads));
+            return View(report ?? PackageDownloadsReport.Empty);
         }
 
         //

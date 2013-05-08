@@ -40,12 +40,20 @@ namespace NuGetGallery.Statistics
     {
         public string PackageId { get; set; }
         public int Downloads { get; set; }
+        public string PackageVersion { get; set; }
+        public string PackageTitle { get; set; }
+        public string PackageDescription { get; set; }
+        public string PackageIconUrl { get; set; }
 
         public override bool Equals(object obj)
         {
             PackageDownloadsReportEntry other = obj as PackageDownloadsReportEntry;
             return other != null && 
-                   String.Equals(PackageId, other.PackageId, StringComparison.Ordinal) && 
+                   String.Equals(PackageId, other.PackageId, StringComparison.Ordinal) &&
+                   String.Equals(PackageVersion, other.PackageVersion, StringComparison.Ordinal) &&
+                   String.Equals(PackageTitle, other.PackageTitle, StringComparison.Ordinal) &&
+                   String.Equals(PackageDescription, other.PackageDescription, StringComparison.Ordinal) &&
+                   String.Equals(PackageIconUrl, other.PackageIconUrl, StringComparison.Ordinal) &&
                    Downloads == other.Downloads;
         }
 
@@ -54,13 +62,29 @@ namespace NuGetGallery.Statistics
             return HashCodeCombiner.Start()
                 .Add(PackageId)
                 .Add(Downloads)
+                .Add(PackageVersion)
+                .Add(PackageTitle)
+                .Add(PackageDescription)
+                .Add(PackageIconUrl)
                 .CombinedHash;
         }
 
         // Debugging aid
         public override string ToString()
         {
-            return "{ PackageId: '" + PackageId + "', Downloads: " + Downloads.ToString() + " }";
+            return 
+                "{ PackageId: '" + 
+                PackageId + 
+                "', Downloads: " + 
+                Downloads.ToString() +
+                ", PackageVersion: '" +
+                PackageVersion +
+                "', PackageTitle: '" + 
+                PackageTitle +
+                "', PackageDescription: '" + 
+                PackageDescription +
+                "', PackageIconUrl: '" + 
+                "' }";
         }
     }
 }

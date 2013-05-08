@@ -57,7 +57,7 @@ namespace NuGetGallery.Statistics
                 }
                 catch (JsonException ex)
                 {
-                    trace.Error(String.Format("Error loading {0} report. Exception: {1}", ReportNames.RecentPopularity, ex.ToString()));
+                    trace.Error(String.Format("Error loading {0} report. Exception: {1}", ReportNames.RecentPackageDownloads, ex.ToString()));
                     entries = null;
                 }
             }

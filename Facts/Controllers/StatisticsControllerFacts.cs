@@ -454,19 +454,19 @@ namespace NuGetGallery
         //        throw new Exception("this exception thrown because expected exception was not thrown");
         //    }
         //}
-
-        public class ThePackagesAction
+        
+        public class ThePackageVersionsAction
         {
             [Fact]
             public async Task ReturnsEmptyReportIfReportFailsToLoad()
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPopularity))
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(null);
 
                 // Act
-                var result = await controller.Packages() as ViewResult;
+                var result = await controller.PackageVersions() as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -478,7 +478,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPopularity))
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
                           .Throws(new Exception("ruh roh!"));
 
                 // Act
@@ -495,7 +495,59 @@ namespace NuGetGallery
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
                 var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPopularity))
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .CompletesWith(expected);
+
+                // Act
+                var result = await controller.Packages() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Same(expected, result.Model);
+            }
+        }
+
+        public class ThePackagesAction
+        {
+            [Fact]
+            public async Task ReturnsEmptyReportIfReportFailsToLoad()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                          .CompletesWith(null);
+
+                // Act
+                var result = await controller.Packages() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(PackageDownloadsReport.Empty, result.Model);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyReportIfReportQueryThrows()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                          .Throws(new Exception("ruh roh!"));
+
+                // Act
+                var result = await controller.Packages() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(PackageDownloadsReport.Empty, result.Model);
+            }
+
+            [Fact]
+            public async Task ReturnsProvidedReportIfQuerySucceeds()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
                           .CompletesWith(expected);
 
                 // Act
