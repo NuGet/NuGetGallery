@@ -20,8 +20,9 @@ namespace NuGetGallery
         }
 
         [StringLength(256)]
-        [Display(Name = "Title for this version")]
+        [Display(Name = "Title")]
         [DataType(DataType.Text)]
+        [Subtext("Sets a title for <i>this version</i> of the package. Overrides the default title.")]
         public string VersionTitle { get; set; }
 
         [StringLength(512)]
