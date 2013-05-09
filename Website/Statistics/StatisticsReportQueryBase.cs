@@ -22,7 +22,7 @@ namespace NuGetGallery.Statistics
             ReportName = reportName;
         }
 
-        public override async Task<PackageDownloadsReport> Execute()
+        public override async Task<TReportType> Execute()
         {
             var trace = Diagnostics == null ? new NullDiagnosticsSource() : Diagnostics.GetSource("PackageDownloadsReportQuery");
 
@@ -31,7 +31,7 @@ namespace NuGetGallery.Statistics
             var stream = await StorageService.GetFileAsync("stats", "popularity/" + ReportName.ToLowerInvariant() + ".json");
             if (stream == null)
             {
-                return null;
+                return default(TReportType);
             }
 
             // The reader will close the stream.
@@ -43,7 +43,7 @@ namespace NuGetGallery.Statistics
             return ParseReport(trace, reportContent);
         }
 
-        protected abstract PackageDownloadsReport ParseReport(IDiagnosticsSource trace, string reportContent);
+        protected abstract TReportType ParseReport(IDiagnosticsSource trace, string reportContent);
 
         // Properly implemented equality makes tests easier!
         public override bool Equals(object obj)

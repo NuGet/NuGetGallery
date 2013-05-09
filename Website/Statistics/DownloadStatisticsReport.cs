@@ -1,14 +1,13 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace NuGetGallery
+namespace NuGetGallery.Statistics
 {
-    public class StatisticsPackagesReport
+    public class DownloadStatisticsReport
     {
-        private List<StatisticsPackagesItemViewModel> _rows = new List<StatisticsPackagesItemViewModel>();
+        private List<StatisticsReportRow> _rows = new List<StatisticsReportRow>();
         private List<StatisticsDimension> _dimensions = new List<StatisticsDimension>();
 
-        public IList<StatisticsPackagesItemViewModel> Rows { get { return _rows; } }
+        public IList<StatisticsReportRow> Rows { get { return _rows; } }
         public int Total { get; set; }
 
         public IList<StatisticsDimension> Dimensions { get { return _dimensions; } }

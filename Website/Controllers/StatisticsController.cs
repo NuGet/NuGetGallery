@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using System.Web.UI;
 using NuGetGallery.Commands;
 using NuGetGallery.Statistics;
+using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -77,16 +78,9 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageDownloadsById(string id, string[] groupby)
         {
-            var report = await Executor.Execute(new PackageDownloads(id));
-
-            throw new NotImplementedException();
-            //ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
-
-            //StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
-
-            //model.SetPackageDownloadsByVersion(id, report);
-
-            //return View(model);
+            var report = await Executor.Execute(new PackageDownloadDetailReportQuery(id));
+            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
+            return View(new PivotableStatisticsReportViewModel(id, report));
         }
 
         //
@@ -95,15 +89,8 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string version, string[] groupby)
         {
             var report = await Executor.Execute(new PackageDownloadDetailReportQuery(id, version));
-
-            throw new NotImplementedException();
-            //ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });
-
-            //var model = new StatisticsPackagesViewModel();
-
-            //model.SetPackageVersionDownloadsByClient(id, version, report);
-
-            //return View(model);
+            ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });
+            return View(new PivotableStatisticsReportViewModel(id, version, report));
         }
 
         private CultureInfo DetermineClientLocale()
@@ -146,7 +133,7 @@ namespace NuGetGallery
             return null;
         }
 
-        private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id = null)
+        private void ProcessReport(DownloadStatisticsReport report, string[] groupby, string[] dimensions, string id = null)
         {
             if (report == null)
             {
@@ -216,7 +203,7 @@ namespace NuGetGallery
             }
         }
 
-        private static void CheckGroupBy(string[] groupby, string name, string[] pivot, ref int dimension, StatisticsPackagesReport report)
+        private static void CheckGroupBy(string[] groupby, string name, string[] pivot, ref int dimension, DownloadStatisticsReport report)
         {
             if (Array.Exists(groupby, (s) => s.Equals(name, StringComparison.OrdinalIgnoreCase)))
             {

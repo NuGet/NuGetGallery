@@ -9,7 +9,7 @@ using System.Globalization;
 //  with sub-totals and sub-counts at every level. The sub-counts are there to simplify
 //  the creation of html table rowspans.
 
-namespace NuGetGallery
+namespace NuGetGallery.Statistics
 {
     public class StatisticsPivot
     {

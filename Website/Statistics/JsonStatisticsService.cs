@@ -194,7 +194,7 @@ namespace NuGetGallery.Statistics
             return null;
         }
 
-        public async Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId)
+        public async Task<DownloadStatisticsReport> GetPackageDownloadsByVersion(string packageId)
         {
             try
             {
@@ -216,7 +216,7 @@ namespace NuGetGallery.Statistics
 
                 JObject content = JObject.Parse(json);
 
-                StatisticsPackagesReport report = new StatisticsPackagesReport();
+                DownloadStatisticsReport report = new DownloadStatisticsReport();
 
                 report.Facts = CreateFacts(content);
 
@@ -239,7 +239,7 @@ namespace NuGetGallery.Statistics
             }
         }
 
-        public async Task<StatisticsPackagesReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion)
+        public async Task<DownloadStatisticsReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion)
         {
             try
             {
@@ -261,7 +261,7 @@ namespace NuGetGallery.Statistics
 
                 JObject content = JObject.Parse(json);
 
-                StatisticsPackagesReport report = new StatisticsPackagesReport();
+                DownloadStatisticsReport report = new DownloadStatisticsReport();
 
                 IList<StatisticsFact> facts = new List<StatisticsFact>();
 

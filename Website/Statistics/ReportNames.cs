@@ -14,5 +14,10 @@ namespace NuGetGallery.Statistics
         {
             return "RecentPopularityDetail_" + id;
         }
+
+        public static string DownloadsForPackageVersion(string id, string version)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

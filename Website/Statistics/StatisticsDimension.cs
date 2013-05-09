@@ -1,5 +1,5 @@
 ﻿
-namespace NuGetGallery
+namespace NuGetGallery.Statistics
 {
     public class StatisticsDimension
     {

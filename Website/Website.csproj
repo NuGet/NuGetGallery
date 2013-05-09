@@ -818,11 +818,13 @@
     <Compile Include="StatisticsController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="Statistics\PackageDownloadsByIdReportQuery.cs" />
-    <Compile Include="Statistics\PackageDownloadsDetailReportQuery.cs" />
+    <Compile Include="Statistics\PackageDownloadDetailReport.cs" />
+    <Compile Include="Statistics\PackageDownloadDetailReportQuery.cs" />
     <Compile Include="Statistics\PackageDownloadsReport.cs" />
     <Compile Include="Statistics\PackageDownloadsReportQuery.cs" />
     <Compile Include="Statistics\ReportNames.cs" />
+    <Compile Include="Statistics\StatisticsReportQueryBase.cs" />
+    <Compile Include="Statistics\StatisticsReportRow.cs" />
     <Compile Include="T4MVC.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -833,11 +835,11 @@
     </Compile>
     <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
-    <Compile Include="ViewModels\StatisticsFact.cs" />
-    <Compile Include="ViewModels\StatisticsPivot.cs" />
-    <Compile Include="ViewModels\StatisticsDimension.cs" />
+    <Compile Include="Statistics\StatisticsFact.cs" />
+    <Compile Include="Statistics\StatisticsPivot.cs" />
+    <Compile Include="Statistics\StatisticsDimension.cs" />
     <Compile Include="ViewModels\HomeViewModel.cs" />
-    <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
+    <Compile Include="Statistics\DownloadStatisticsReport.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
@@ -846,7 +848,7 @@
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
     <Compile Include="ViewModels\PackagePart\PackageItem.cs" />
     <Compile Include="ViewModels\PackagePart\PathToTreeConverter.cs" />
-    <Compile Include="ViewModels\StatisticsPackagesItemViewModel.cs" />
+    <Compile Include="ViewModels\PivotableStatisticsReportViewModel.cs" />
     <Compile Include="ViewModels\StatisticsSummaryViewModel.cs" />
     <Compile Include="ViewModels\ResendConfirmationEmailViewModel.cs" />
     <Compile Include="App_Start\AuthenticationModule.cs" />

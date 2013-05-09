@@ -19,6 +19,8 @@ namespace NuGetGallery.Statistics
             TypeNameHandling = TypeNameHandling.None
         };
 
+        public PackageDownloadsReportQuery(string reportName) : base(reportName) { }
+
         protected override PackageDownloadsReport ParseReport(IDiagnosticsSource trace, string reportContent)
         {
             // Parse it into the object

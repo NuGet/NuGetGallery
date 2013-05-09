@@ -15,7 +15,7 @@ namespace NuGetGallery.Statistics
         Task<bool> LoadDownloadPackages();
         Task<bool> LoadDownloadPackageVersions();
 
-        Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId);
-        Task<StatisticsPackagesReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion);
+        Task<DownloadStatisticsReport> GetPackageDownloadsByVersion(string packageId);
+        Task<DownloadStatisticsReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion);
     }
 }
