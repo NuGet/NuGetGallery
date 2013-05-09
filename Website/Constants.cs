@@ -30,5 +30,7 @@
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
+
+        public const string UrlValidationRegEx = @"(ftp|https?):\/\/[^ ""]+$";
     }
 }

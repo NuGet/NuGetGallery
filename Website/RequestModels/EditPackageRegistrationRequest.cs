@@ -40,21 +40,25 @@ namespace NuGetGallery
         [StringLength(256)]
         [Display(Name = "Icon URL")]
         [DataType(DataType.ImageUrl)]
+        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
         public string IconUrl { get; set; }
 
         [StringLength(256)]
         [Display(Name = "Project Homepage URL")]
         [DataType(DataType.Url)]
+        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
         public string ProjectUrl { get; set; }
 
         [StringLength(256)]
         [Display(Name = "Source Code URL (e.g. GitHub)")]
         [DataType(DataType.Url)]
+        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
         public string SourceCodeUrl { get; set; }
 
         [StringLength(256)]
         [DataType(DataType.Url)]
         [Display(Name = "Issue Tracker URL")]
+        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
         public string IssueTrackerUrl { get; set; }
 
         [StringLength(1024)]
