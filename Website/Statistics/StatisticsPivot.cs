@@ -30,6 +30,7 @@ namespace NuGetGallery.Statistics
             }
 
             PopulateTable(level, report.Table);
+            report.Total = level.Total;
         }
 
         private static void PopulateTable(Level level, IList<TableEntry[]> table)

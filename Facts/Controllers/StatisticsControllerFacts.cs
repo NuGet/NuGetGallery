@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -9,6 +11,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using NuGetGallery.Commands;
 using NuGetGallery.Statistics;
+using NuGetGallery.ViewModels;
 using Xunit;
 
 namespace NuGetGallery
@@ -17,7 +20,126 @@ namespace NuGetGallery
     {
         public class ThePackageDownloadsById
         {
+            static readonly StatisticsFact[] TestFacts = new[] {
+                new StatisticsFact(new Dictionary<string, string>() {
+                    {"Version", "1.0"},
+                    {"ClientName", "NuGet"},
+                    {"ClientVersion", "2.1"},
+                    {"Operation", "Install"}
+                }, 101),
+                new StatisticsFact(new Dictionary<string, string>() {
+                    {"Version", "2.0"},
+                    {"ClientName", "NuGet"},
+                    {"ClientVersion", "2.2"},
+                    {"Operation", "Update"}
+                }, 201),
+                new StatisticsFact(new Dictionary<string, string>() {
+                    {"Version", "2.0"},
+                    {"ClientName", "ProGet"},
+                    {"ClientVersion", "2.1"},
+                    {"Operation", "unknown"}
+                }, 301)
+            };
 
+            [Fact]
+            public async Task ReturnsEmptyReportIfFactsNull()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                controller.OnExecute(new PackageDownloadDetailReportQuery("jQuery"))
+                          .CompletesWith(null);
+
+                // Act
+                var result = await controller.PackageDownloadsById("jQuery", new string[0]) as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<PivotableStatisticsReportViewModel>(result.Model);
+                Assert.Equal(new DownloadStatisticsReport(), model.Report);
+                Assert.Equal("jQuery", model.PackageId);
+                Assert.Null(model.PackageVersion);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyReportIfQueryThrows()
+            {
+                // Arrange
+                var controller = Testable.Get<StatisticsController>();
+                controller.OnExecute(new PackageDownloadDetailReportQuery("jQuery"))
+                          .Throws(new Exception("ruh roh!"));
+
+                // Act
+                var result = await controller.PackageDownloadsById("jQuery", new string[0]) as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<PivotableStatisticsReportViewModel>(result.Model);
+                Assert.Equal(new DownloadStatisticsReport(), model.Report);
+                Assert.Equal("jQuery", model.PackageId);
+                Assert.Null(model.PackageVersion);
+            }
+
+            [Fact]
+            public async Task ReturnsUngroupedReportIfGroupByIsEmpty()
+            {
+                // Arrange
+                var expectedReport = new DownloadStatisticsReport(TestFacts,
+                    new[] {
+                        new StatisticsDimension() { DisplayName = "Version", IsChecked = false, Value = "Version" },
+                        new StatisticsDimension() { DisplayName = "Client Name", IsChecked = false, Value = "ClientName" },
+                        new StatisticsDimension() { DisplayName = "Client Version", IsChecked = false, Value = "ClientVersion" },
+                        new StatisticsDimension() { DisplayName = "Operation", IsChecked = false, Value = "Operation" },
+                    }, Enumerable.Empty<string>(), Enumerable.Empty<StatisticsPivot.TableEntry[]>());
+                expectedReport.Total = 603;
+
+                var controller = Testable.Get<StatisticsController>();
+                controller.OnExecute(new PackageDownloadDetailReportQuery("jQuery"))
+                          .CompletesWith(TestFacts);
+
+                // Act
+                var result = await controller.PackageDownloadsById("jQuery", new string[0]) as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<PivotableStatisticsReportViewModel>(result.Model);
+                Assert.Equal(expectedReport, model.Report);
+                Assert.Equal("jQuery", model.PackageId);
+                Assert.Null(model.PackageVersion);
+            }
+
+            [Fact]
+            public async Task ReturnsGroupedReportIfGroupByIsNonEmpty()
+            {
+                // Arrange
+                var expectedReport = new DownloadStatisticsReport(TestFacts,
+                    new[] {
+                        new StatisticsDimension() { DisplayName = "Version", IsChecked = false, Value = "Version" },
+                        new StatisticsDimension() { DisplayName = "Client Name", IsChecked = false, Value = "ClientName" },
+                        new StatisticsDimension() { DisplayName = "Client Version", IsChecked = false, Value = "ClientVersion" },
+                        new StatisticsDimension() { DisplayName = "Operation", IsChecked = true, Value = "Operation" },
+                    }, new[] {
+                        "Operation"
+                    }, new[] {
+                        new [] { new StatisticsPivot.TableEntry() { Data = "Install" }, new StatisticsPivot.TableEntry() { Data = "101" } },
+                        new [] { new StatisticsPivot.TableEntry() { Data = "Update" }, new StatisticsPivot.TableEntry() { Data = "201" } },
+                        new [] { new StatisticsPivot.TableEntry() { Data = "unknown" }, new StatisticsPivot.TableEntry() { Data = "301" } }
+                    });
+                expectedReport.Total = 603;
+
+                var controller = Testable.Get<StatisticsController>();
+                controller.OnExecute(new PackageDownloadDetailReportQuery("jQuery"))
+                          .CompletesWith(TestFacts);
+
+                // Act
+                var result = await controller.PackageDownloadsById("jQuery", new string[] { "Operation" }) as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+                var model = Assert.IsType<PivotableStatisticsReportViewModel>(result.Model);
+                Assert.Equal(expectedReport, model.Report);
+                Assert.Equal("jQuery", model.PackageId);
+                Assert.Null(model.PackageVersion);
+            }
         }
 
         public class TheIndexAction

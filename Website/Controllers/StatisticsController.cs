@@ -20,10 +20,10 @@ namespace NuGetGallery
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
         public virtual ActionResult Totals()
         {
-            var stats = 
+            var stats =
                 Executor.ExecuteAndCatch(new AggregateStatsCommand()) ??
                 new AggregateStats();
-            
+
             // if we fail to detect client locale from the Languages header, fall back to server locale
             CultureInfo clientCulture = DetermineClientLocale() ?? CultureInfo.CurrentCulture;
             return Json(
@@ -47,7 +47,7 @@ namespace NuGetGallery
 
             // ExecuteAsyncAll returns results in the same order as the tasks.
             return View(new StatisticsSummaryViewModel(
-                reports[0] ?? PackageDownloadsReport.Empty, 
+                reports[0] ?? PackageDownloadsReport.Empty,
                 reports[1] ?? PackageDownloadsReport.Empty));
         }
 
@@ -143,7 +143,7 @@ namespace NuGetGallery
 
             string[] pivot = new string[4];
 
-            if (groupby != null)
+            if (groupby != null && groupby.Length > 0)
             {
                 //  process and validate the groupby query. unrecognized fields are ignored. others fields regarded for existance
 
@@ -185,15 +185,12 @@ namespace NuGetGallery
                     }
                 }
 
-                //report.Total = result.Item2;
-
                 foreach (var col in pivot.Select(GetDimensionDisplayName))
                 {
                     report.Columns.Add(col);
                 }
             }
-
-            if (groupby == null)
+            else
             {
                 //  degenerate case (but still logically valid)
 

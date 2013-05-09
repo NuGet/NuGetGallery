@@ -17,12 +17,15 @@ namespace NuGetGallery.Statistics
         {
         }
 
-        public DownloadStatisticsReport(IEnumerable<StatisticsFact> facts)
+        public DownloadStatisticsReport(IEnumerable<StatisticsFact> facts) 
+            : this(facts, Enumerable.Empty<StatisticsDimension>(), Enumerable.Empty<string>(), Enumerable.Empty<StatisticsPivot.TableEntry[]>()) { }
+
+        public DownloadStatisticsReport(IEnumerable<StatisticsFact> facts, IEnumerable<StatisticsDimension> dimensions, IEnumerable<string> columns, IEnumerable<StatisticsPivot.TableEntry[]> table)
         {
-            Dimensions = new List<StatisticsDimension>();
+            Dimensions = new List<StatisticsDimension>(dimensions);
             Facts = new List<StatisticsFact>(facts);
-            Columns = new List<string>();
-            Table = new List<StatisticsPivot.TableEntry[]>();
+            Columns = new List<string>(columns);
+            Table = new List<StatisticsPivot.TableEntry[]>(table);
         }
 
         public override bool Equals(object obj)
