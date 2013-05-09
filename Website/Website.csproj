@@ -819,6 +819,7 @@
     <Compile Include="Statistics\ReportNames.cs" />
     <Compile Include="Statistics\StatisticsReportCommandBase.cs" />
     <Compile Include="Statistics\StatisticsReportRow.cs" />
+    <Compile Include="Statistics\StatisticsReportQueryBase.cs" />
     <Compile Include="T4MVC.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -133,12 +133,13 @@ namespace NuGetGallery
             return null;
         }
 
-        private void ProcessReport(DownloadStatisticsReport report, string[] groupby, string[] dimensions, string id = null)
+        private DownloadStatisticsReport ProcessReport(IEnumerable<StatisticsFact> facts, string[] groupby, string[] dimensions, string id = null)
         {
-            if (report == null)
+            if (facts == null || !facts.Any())
             {
-                return;
+                return new DownloadStatisticsReport();
             }
+            var report = new DownloadStatisticsReport(facts);
 
             string[] pivot = new string[4];
 
@@ -166,16 +167,16 @@ namespace NuGetGallery
                     Array.Resize(ref pivot, dim);
                 }
 
-                Tuple<StatisticsPivot.TableEntry[][], int> result = StatisticsPivot.GroupBy(report.Facts, pivot);
+                StatisticsPivot.GroupBy(report, pivot);
 
                 if (id != null)
                 {
                     int col = Array.FindIndex(pivot, (s) => s.Equals("Version", StringComparison.Ordinal));
                     if (col >= 0)
                     {
-                        for (int row = 0; row < result.Item1.GetLength(0); row++)
+                        for (int row = 0; row < report.Table.Count; row++)
                         {
-                            StatisticsPivot.TableEntry entry = result.Item1[row][col];
+                            StatisticsPivot.TableEntry entry = report.Table[row][col];
                             if (entry != null)
                             {
                                 entry.Uri = Url.Package(id, entry.Data);
@@ -184,9 +185,12 @@ namespace NuGetGallery
                     }
                 }
 
-                report.Table = result.Item1;
-                report.Total = result.Item2;
-                report.Columns = pivot.Select(GetDimensionDisplayName);
+                //report.Total = result.Item2;
+
+                foreach (var col in pivot.Select(GetDimensionDisplayName))
+                {
+                    report.Columns.Add(col);
+                }
             }
 
             if (groupby == null)
@@ -198,9 +202,11 @@ namespace NuGetGallery
                     report.Dimensions.Add(new StatisticsDimension { Value = dimension, DisplayName = GetDimensionDisplayName(dimension), IsChecked = false });
                 }
 
-                report.Table = null;
+                report.Table.Clear();
                 report.Total = report.Facts.Sum(fact => fact.Amount);
             }
+
+            return report;
         }
 
         private static void CheckGroupBy(string[] groupby, string name, string[] pivot, ref int dimension, DownloadStatisticsReport report)

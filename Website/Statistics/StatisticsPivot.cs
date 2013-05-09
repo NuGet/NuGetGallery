@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Microsoft.Internal.Web.Utils;
 
 //  The implementation here is generic with respect to the specific properties in the data
 //  if can produce any pivot from any data. The result of the pivot is a 2-d array because
@@ -13,28 +14,31 @@ namespace NuGetGallery.Statistics
 {
     public class StatisticsPivot
     {
-        public static Tuple<TableEntry[][], int> GroupBy(IList<StatisticsFact> facts, string[] pivot)
+        public static void GroupBy(DownloadStatisticsReport report, string[] pivot)
         {
             // Firstly take the facts and the pivot vector and produce a tree structure
 
-            Level level = InnerGroupBy(facts, pivot);
+            Level level = InnerGroupBy(report.Facts, pivot);
 
             // Secondly print this tree structure into a sparse 2-dimensional structure (for creating html tables)
             // the structure is rectangular and not jagged. Logically this is a 2-d array however coding conventions
             // dictate the preference for jagged array structures. (Note generally this is only slightly sparse in our data.)
 
-            TableEntry[][] table = new TableEntry[level.Count][];
             for (int i = 0; i < level.Count; i++)
             {
-                table[i] = new TableEntry[pivot.Length + 1];
+                report.Table.Add(new TableEntry[pivot.Length + 1]);
             }
 
-            PopulateTable(level, table);
-
-            return new Tuple<TableEntry[][], int>(table, level.Total);
+            PopulateTable(level, report.Table);
         }
 
-        private static void InnerPopulateTable(Level level, TableEntry[][] table, ref int row, int col)
+        private static void PopulateTable(Level level, IList<TableEntry[]> table)
+        {
+            int row = 0;
+            InnerPopulateTable(level, table, ref row, 0);
+        }
+
+        private static void InnerPopulateTable(Level level, IList<TableEntry[]> table, ref int row, int col)
         {
             foreach (KeyValuePair<string, Level> item in level.Next)
             {
@@ -50,12 +54,6 @@ namespace NuGetGallery.Statistics
                     InnerPopulateTable(item.Value, table, ref row, col + 1);
                 }
             }
-        }
-
-        private static void PopulateTable(Level level, TableEntry[][] table)
-        {
-            int row = 0;
-            InnerPopulateTable(level, table, ref row, 0);
         }
 
         private static Level InnerGroupBy(IList<StatisticsFact> facts, string[] groupBy)
@@ -169,6 +167,24 @@ namespace NuGetGallery.Statistics
             public string Data { get; set; }
             public int Rowspan { get; set; }
             public string Uri { get; set; }
+
+            public override bool Equals(object obj)
+            {
+                var other = obj as TableEntry;
+                return other != null &&
+                    String.Equals(Data, other.Data) &&
+                    String.Equals(Uri, other.Uri) &&
+                    Rowspan == other.Rowspan;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCodeCombiner.Start()
+                    .Add(Data)
+                    .Add(Rowspan)
+                    .Add(Uri)
+                    .CombinedHash;
+            }
         }
 
         // This is for an internal data structure that represents the pivot as a tree.

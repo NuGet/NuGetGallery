@@ -197,6 +197,9 @@
     <Compile Include="Services\FeedServiceFacts.cs" />
     <Compile Include="Statistics\AggregateStatsCommandFacts.cs" />
     <Compile Include="Statistics\PackageDownloadsReportCommandFacts.cs" />
+    <Compile Include="Statistics\AggregateStatsQueryFacts.cs" />
+    <Compile Include="Statistics\PackageDownloadDetailReportQueryFacts.cs" />
+    <Compile Include="Statistics\PackageDownloadsReportQueryFacts.cs" />
     <Compile Include="Testable.cs" />
     <Compile Include="TestUtils\ContractAssert.cs" />
     <Compile Include="TestUtils\MockExtensions.cs" />
