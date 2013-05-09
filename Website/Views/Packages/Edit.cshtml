@@ -6,7 +6,6 @@
 }
 
 @section BottomScripts {
-    <script src="@Href("~/Scripts/jquery-1.6.2.min.js")"></script>
     <script>
         $('#EditPackageRegistrationRequest_IconUrl').focusout(function (event) {
             var target = event.target;
@@ -15,6 +14,16 @@
             if (newValue.trim().length) {
                 $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '"></img>'))
             }
+        });
+
+        $(function () {
+            var form = $('form[action="/packages/PoliteCaptcha/Edit/"]').toArray()[0];
+            $("input[type=url]").bind("focusin focusout keyup", function (event) {
+                var target = $(event.target);
+                var validator = $.data(form, "validator"),
+                    eventType = "on" + event.type.replace(/^validate/, "");
+                validator.settings[eventType] && validator.settings[eventType].call(validator, event.target);
+            });
         });
     </script>
 }

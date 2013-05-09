@@ -40,5 +40,6 @@
             public static readonly string Alert = "Alert";
         }
 
+        public const string UrlValidationRegEx = @"(ftp|https?):\/\/[^ ""]+$";
     }
 }
