@@ -263,6 +263,7 @@
     </Compile>
     <Compile Include="Commands\CommandExecutor.cs" />
     <Compile Include="Commands\Command.cs" />
+    <Compile Include="Commands\CommandsModule.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\NuGetControllerBase.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />

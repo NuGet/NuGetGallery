@@ -4,6 +4,7 @@ using System.Linq;
 using Ninject;
 using Ninject.Modules;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Commands;
 
 namespace NuGetGallery
 {
@@ -20,6 +21,7 @@ namespace NuGetGallery
         {
             yield return new ContainerBindings();
             yield return new DiagnosticsNinjectModule();
+            yield return new CommandsModule();
         }
     }
 }

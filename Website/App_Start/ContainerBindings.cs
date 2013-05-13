@@ -10,6 +10,7 @@ using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
 using Ninject.Modules;
+using NuGetGallery.Commands;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Statistics;
 
@@ -21,6 +22,8 @@ namespace NuGetGallery
         public override void Load()
         {
             var configuration = new Configuration();
+            Bind<IServiceProvider>()
+                .ToMethod(ctx => ctx.Kernel);
             Bind<IConfiguration>()
                 .ToMethod(context => configuration);
             Bind<PoliteCaptcha.IConfigurationSource>()
