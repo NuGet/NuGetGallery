@@ -19,7 +19,7 @@ namespace NuGetGallery.Commands
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
-                var command = new Mock<ICommand>();
+                var command = new Mock<Command>();
                 
                 // Act
                 executor.Execute(command.Object);
@@ -33,7 +33,7 @@ namespace NuGetGallery.Commands
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
-                var query = new Mock<IQuery>();
+                var query = new Mock<Command<object>>();
 
                 // Act
                 executor.Execute(query.Object);
@@ -47,7 +47,7 @@ namespace NuGetGallery.Commands
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
-                var query = new Mock<IQuery>();
+                var query = new Mock<Command<object>>();
                 var expected = new object();
                 query.Setup(q => q.Execute()).Returns(expected);
 
@@ -63,7 +63,7 @@ namespace NuGetGallery.Commands
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
-                var command = new Mock<ICommand>();
+                var command = new Mock<Command>();
                 
                 // Act
                 executor.Execute(command.Object);
@@ -94,7 +94,7 @@ namespace NuGetGallery.Commands
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
-                var query = new Mock<IQuery>();
+                var query = new Mock<Command<object>>();
                 
                 // Act
                 executor.Execute(query.Object);

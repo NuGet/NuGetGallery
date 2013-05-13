@@ -7,7 +7,7 @@ using NuGetGallery.Commands;
 
 namespace NuGetGallery.Statistics
 {
-    public class DownloadStatsFeedQuery : Query<JArray>
+    public class DownloadStatsFeedQuery : Command<JArray>
     {
         public int? Count { get; private set; }
 

@@ -9,14 +9,14 @@ using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Statistics
 {
-    public class PackageDownloadDetailReportQuery : StatisticsReportQueryBase<DownloadStatisticsReport>
+    public class PackageDownloadDetailReportCommand : StatisticsReportCommandBase<DownloadStatisticsReport>
     {
         public string Id { get; private set; }
         public string Version { get; private set; }
 
-        public PackageDownloadDetailReportQuery(string id) : this(id, null) { }
+        public PackageDownloadDetailReportCommand(string id) : this(id, null) { }
 
-        public PackageDownloadDetailReportQuery(string id, string version) : base(BuildReportName(id, version))
+        public PackageDownloadDetailReportCommand(string id, string version) : base(BuildReportName(id, version))
         {
             Id = id;
             Version = version;

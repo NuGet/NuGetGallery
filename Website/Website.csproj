@@ -262,7 +262,7 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Commands\CommandExecutor.cs" />
-    <Compile Include="Commands\ICommand.cs" />
+    <Compile Include="Commands\Command.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\NuGetControllerBase.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
@@ -765,7 +765,7 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
-    <Compile Include="Statistics\AggregateStatsQuery.cs" />
+    <Compile Include="Statistics\AggregateStatsCommand.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
@@ -812,11 +812,11 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Statistics\PackageDownloadDetailReport.cs" />
-    <Compile Include="Statistics\PackageDownloadDetailReportQuery.cs" />
+    <Compile Include="Statistics\PackageDownloadDetailReportCommand.cs" />
     <Compile Include="Statistics\PackageDownloadsReport.cs" />
-    <Compile Include="Statistics\PackageDownloadsReportQuery.cs" />
+    <Compile Include="Statistics\PackageDownloadsReportCommand.cs" />
     <Compile Include="Statistics\ReportNames.cs" />
-    <Compile Include="Statistics\StatisticsReportQueryBase.cs" />
+    <Compile Include="Statistics\StatisticsReportCommandBase.cs" />
     <Compile Include="Statistics\StatisticsReportRow.cs" />
     <Compile Include="T4MVC.cs">
       <AutoGen>True</AutoGen>

@@ -810,7 +810,7 @@ namespace NuGetGallery
                     }
                 });
                 var controller = new ApiController(null, null, null, null, null, Mock.Of<CommandExecutor>());
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(report);
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
@@ -830,7 +830,7 @@ namespace NuGetGallery
             public async Task ReturnsANotFoundResultIfNoReportFound()
             {
                 var controller = new ApiController(null, null, null, null, null, Mock.Of<CommandExecutor>());
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(new PackageDownloadsReport(Enumerable.Empty<PackageDownloadsReportEntry>()));
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
@@ -855,7 +855,7 @@ namespace NuGetGallery
                 });
 
                 var controller = new ApiController(null, null, null, null, null, Mock.Of<CommandExecutor>());
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(report);
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));

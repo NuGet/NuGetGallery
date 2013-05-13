@@ -375,7 +375,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
-            var report = await Executor.ExecuteAndCatchAsync(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads));
+            var report = await Executor.ExecuteAndCatchAsync(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads));
             if (report.Entries.Any())
             {
                 int i = 0;

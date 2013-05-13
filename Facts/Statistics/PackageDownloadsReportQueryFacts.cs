@@ -22,7 +22,7 @@ namespace NuGetGallery.Statistics
                 // Arrange
                 var mockStorage = new Mock<IFileStorageService>();
                 mockStorage.DoesNotContain("stats", ExpectedFileName);
-                var query = new PackageDownloadsReportQuery(ReportName)
+                var query = new PackageDownloadsReportCommand(ReportName)
                 {
                     StorageService = mockStorage.Object
                 };
@@ -40,7 +40,7 @@ namespace NuGetGallery.Statistics
                 // Arrange
                 var mockStorage = new Mock<IFileStorageService>();
                 mockStorage.ContainsTextFile("stats", ExpectedFileName, String.Empty);
-                var query = new PackageDownloadsReportQuery(ReportName)
+                var query = new PackageDownloadsReportCommand(ReportName)
                 {
                     StorageService = mockStorage.Object
                 };
@@ -57,7 +57,7 @@ namespace NuGetGallery.Statistics
 
                 var mockStorage = new Mock<IFileStorageService>();
                 mockStorage.ContainsTextFile("stats", ExpectedFileName, report);
-                var query = new PackageDownloadsReportQuery(ReportName)
+                var query = new PackageDownloadsReportCommand(ReportName)
                 {
                     StorageService = mockStorage.Object
                 };
@@ -77,7 +77,7 @@ namespace NuGetGallery.Statistics
 
                 var mockStorage = new Mock<IFileStorageService>();
                 mockStorage.ContainsTextFile("stats", ExpectedFileName, report);
-                var query = new PackageDownloadsReportQuery(ReportName)
+                var query = new PackageDownloadsReportCommand(ReportName)
                 {
                     StorageService = mockStorage.Object
                 };

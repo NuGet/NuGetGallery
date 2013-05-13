@@ -10,14 +10,14 @@ using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Statistics
 {
-    public abstract class StatisticsReportQueryBase<TReportType> : Query<Task<TReportType>>
+    public abstract class StatisticsReportCommandBase<TReportType> : Command<Task<TReportType>>
     {
         public IFileStorageService StorageService { get; set; }
         public IDiagnosticsService Diagnostics { get; set; }
 
         public string ReportName { get; private set; }
 
-        public StatisticsReportQueryBase(string reportName)
+        public StatisticsReportCommandBase(string reportName)
         {
             ReportName = reportName;
         }
@@ -48,7 +48,7 @@ namespace NuGetGallery.Statistics
         // Properly implemented equality makes tests easier!
         public override bool Equals(object obj)
         {
-            StatisticsReportQueryBase<TReportType> other = obj as StatisticsReportQueryBase<TReportType>;
+            StatisticsReportCommandBase<TReportType> other = obj as StatisticsReportCommandBase<TReportType>;
             return other != null &&
                    Equals(StorageService, other.StorageService) &&
                    Equals(Diagnostics, other.Diagnostics) &&

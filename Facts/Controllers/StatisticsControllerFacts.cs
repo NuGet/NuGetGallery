@@ -467,9 +467,9 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .CompletesWith(null);
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(null);
 
                 // Act
@@ -487,9 +487,9 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .Throws(new Exception("ruh roh!"));
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .Throws(new Exception("ruh roh!"));
 
                 // Act
@@ -508,9 +508,9 @@ namespace NuGetGallery
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
                 var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .CompletesWith(null);
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(expected);
 
                 // Act
@@ -529,9 +529,9 @@ namespace NuGetGallery
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
                 var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .CompletesWith(expected);
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(null);
 
                 // Act
@@ -550,9 +550,9 @@ namespace NuGetGallery
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
                 var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .Throws(new Exception("ruh roh"));
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(expected);
 
                 // Act
@@ -571,9 +571,9 @@ namespace NuGetGallery
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
                 var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .CompletesWith(expected);
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .Throws(new Exception("ruh roh"));
 
                 // Act
@@ -593,9 +593,9 @@ namespace NuGetGallery
                 var controller = Testable.Get<StatisticsController>();
                 var expected1 = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
                 var expected2 = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .CompletesWith(expected1);
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(expected2);
 
                 // Act
@@ -616,7 +616,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(null);
 
                 // Act
@@ -632,7 +632,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .Throws(new Exception("ruh roh!"));
 
                 // Act
@@ -649,7 +649,7 @@ namespace NuGetGallery
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
                 var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(expected);
 
                 // Act
@@ -668,7 +668,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .CompletesWith(null);
 
                 // Act
@@ -684,7 +684,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .Throws(new Exception("ruh roh!"));
 
                 // Act
@@ -701,7 +701,7 @@ namespace NuGetGallery
                 // Arrange
                 var controller = Testable.Get<StatisticsController>();
                 var expected = new PackageDownloadsReport(new[] { new PackageDownloadsReportEntry() });
-                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads))
+                controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads))
                           .CompletesWith(expected);
 
                 // Act
@@ -732,7 +732,7 @@ namespace NuGetGallery
                         TotalPackages = 1000,
                         UniquePackages = 500
                     };
-                    controller.OnExecute(new AggregateStatsQuery())
+                    controller.OnExecute(new AggregateStatsCommand())
                               .Returns(stats);
 
                     // Act
@@ -763,7 +763,7 @@ namespace NuGetGallery
                     TotalPackages = 1000,
                     UniquePackages = 500
                 };
-                controller.OnExecute(new AggregateStatsQuery())
+                controller.OnExecute(new AggregateStatsCommand())
                           .Returns(stats);
                 controller.MockHttpContext()
                           .Setup(c => c.Request.UserLanguages)

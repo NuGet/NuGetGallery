@@ -21,7 +21,7 @@ namespace NuGetGallery
         public virtual ActionResult Totals()
         {
             var stats = 
-                Executor.ExecuteAndCatch(new AggregateStatsQuery()) ??
+                Executor.ExecuteAndCatch(new AggregateStatsCommand()) ??
                 new AggregateStats();
             
             // if we fail to detect client locale from the Languages header, fall back to server locale
@@ -42,8 +42,8 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Index()
         {
             var reports = await Executor.ExecuteAndCatchAsyncAll(
-                new PackageDownloadsReportQuery(ReportNames.RecentPackageDownloads),
-                new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads));
+                new PackageDownloadsReportCommand(ReportNames.RecentPackageDownloads),
+                new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads));
 
             // ExecuteAsyncAll returns results in the same order as the tasks.
             return View(new StatisticsSummaryViewModel(
@@ -57,7 +57,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> Packages()
         {
             var report = await Executor.ExecuteAndCatchAsync(
-                new PackageDownloadsReportQuery(
+                new PackageDownloadsReportCommand(
                     ReportNames.RecentPackageDownloads));
             return View(report ?? PackageDownloadsReport.Empty);
         }
@@ -68,7 +68,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> PackageVersions()
         {
             var report = await Executor.ExecuteAndCatchAsync(
-                new PackageDownloadsReportQuery(
+                new PackageDownloadsReportCommand(
                     ReportNames.RecentPackageVersionDownloads));
             return View(report ?? PackageDownloadsReport.Empty);
         }
@@ -78,7 +78,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageDownloadsById(string id, string[] groupby)
         {
-            var report = await Executor.Execute(new PackageDownloadDetailReportQuery(id));
+            var report = await Executor.Execute(new PackageDownloadDetailReportCommand(id));
             ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
             return View(new PivotableStatisticsReportViewModel(id, report));
         }
@@ -88,7 +88,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> PackageDownloadsByVersion(string id, string version, string[] groupby)
         {
-            var report = await Executor.Execute(new PackageDownloadDetailReportQuery(id, version));
+            var report = await Executor.Execute(new PackageDownloadDetailReportCommand(id, version));
             ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });
             return View(new PivotableStatisticsReportViewModel(id, version, report));
         }

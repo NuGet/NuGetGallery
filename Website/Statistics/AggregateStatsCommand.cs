@@ -8,7 +8,7 @@ using NuGetGallery.Commands;
 
 namespace NuGetGallery.Statistics
 {
-    public class AggregateStatsQuery : Query<AggregateStats>
+    public class AggregateStatsCommand : Command<AggregateStats>
     {
         public static readonly string Sql = @"SELECT 
                 (SELECT COUNT([Key]) FROM PackageRegistrations pr 
@@ -36,7 +36,7 @@ namespace NuGetGallery.Statistics
         // Properly implemented equality makes tests easier!
         public override bool Equals(object obj)
         {
-            AggregateStatsQuery other = obj as AggregateStatsQuery;
+            AggregateStatsCommand other = obj as AggregateStatsCommand;
             return other != null && Equals(DatabaseContext, other.DatabaseContext);
         }
 

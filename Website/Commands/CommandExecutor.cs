@@ -35,17 +35,7 @@ namespace NuGetGallery.Commands
             Trace = diagnostics.GetSource("CommandExecutor");
         }
 
-        public virtual object Execute(IQuery query)
-        {
-            Debug.Assert(query != null);
-
-            using (Trace.Activity(String.Format(CultureInfo.InvariantCulture, "Execution of {0}", query.GetType().Name)))
-            {
-                return query.Execute();
-            }
-        }
-
-        public virtual void Execute(ICommand command)
+        public virtual void Execute(Command command)
         {
             Debug.Assert(command != null);
 
@@ -55,13 +45,17 @@ namespace NuGetGallery.Commands
             }
         }
 
-        public virtual TResult Execute<TResult>(Query<TResult> query)
+        public virtual TResult Execute<TResult>(Command<TResult> query)
         {
-            var result = Execute((IQuery)query);
-            return (TResult)(result ?? default(TResult));
+            Debug.Assert(query != null);
+
+            using (Trace.Activity(String.Format(CultureInfo.InvariantCulture, "Execution of {0}", query.GetType().Name)))
+            {
+                return query.Execute();
+            }
         }
 
-        public TResult ExecuteAndCatch<TResult>(Query<TResult> query)
+        public TResult ExecuteAndCatch<TResult>(Command<TResult> query)
         {
             TResult result;
             try
@@ -76,7 +70,7 @@ namespace NuGetGallery.Commands
             return result;
         }
 
-        public async Task<TResult> ExecuteAndCatchAsync<TResult>(Query<Task<TResult>> query)
+        public async Task<TResult> ExecuteAndCatchAsync<TResult>(Command<Task<TResult>> query)
         {
             TResult result;
             try
@@ -91,12 +85,12 @@ namespace NuGetGallery.Commands
             return result;
         }
 
-        public virtual Task<TResult[]> ExecuteAsyncAll<TResult>(params Query<Task<TResult>>[] queries)
+        public virtual Task<TResult[]> ExecuteAsyncAll<TResult>(params Command<Task<TResult>>[] queries)
         {
             return Task.WhenAll(queries.Select(q => Execute(q)));
         }
 
-        public virtual Task<TResult[]> ExecuteAndCatchAsyncAll<TResult>(params Query<Task<TResult>>[] queries)
+        public virtual Task<TResult[]> ExecuteAndCatchAsyncAll<TResult>(params Command<Task<TResult>>[] queries)
         {
             return Task.WhenAll(queries.Select(q => ExecuteAndCatchAsync(q)));
         }
