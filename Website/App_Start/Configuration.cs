@@ -59,11 +59,6 @@ namespace NuGetGallery
             get { return ReadAppSettings("AzureDiagnosticsConnectionString"); }
         }
 
-        public string AzureStatisticsConnectionString
-        {
-            get { return ReadAppSettings("AzureStatisticsConnectionString"); }
-        }
-
         public bool ConfirmEmailAddresses
         {
             get { return String.Equals(ReadAppSettings("ConfirmEmailAddresses"), "true", StringComparison.OrdinalIgnoreCase); }

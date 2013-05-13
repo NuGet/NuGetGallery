@@ -31,10 +31,7 @@
                         <li class="@homeClass"><a href="@Url.Home()">Home</a></li>
                         <li class="@packagesClass"><a href="@Url.PackageList()">Packages</a></li>
                         <li class="@uploadClass"><a href="@Url.UploadPackage()" class="upload">Upload Package</a></li>
-                        @if (StatisticsHelper.IsStatisticsPageAvailable)
-                        {
-                            <li class="@statisticsClass"><a href="@Url.Statistics()">Statistics</a></li>
-                        }
+                        <li class="@statisticsClass"><a href="@Url.Statistics()">Statistics</a></li>
                         @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
                         {
                             <li class="@adminClass"><a href="@Url.Action("Index", "Home", new { area="Admin" })">Admin</a></li>

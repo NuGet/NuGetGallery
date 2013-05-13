@@ -11,17 +11,17 @@ using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGetGallery.Commands;
 using NuGetGallery.Statistics;
 
 namespace NuGetGallery
 {
-    public partial class ApiController : AppController
+    public partial class ApiController : NuGetControllerBase
     {
         private readonly INuGetExeDownloaderService _nugetExeDownloaderService;
         private readonly IPackageFileService _packageFileService;
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
-        private readonly IStatisticsService _statisticsService;
         private readonly IContentService _contentService;
 
         public ApiController(
@@ -29,26 +29,14 @@ namespace NuGetGallery
             IPackageFileService packageFileService,
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
-            IContentService contentService)
+            IContentService contentService,
+            CommandExecutor executor) : base(executor)
         {
             _packageService = packageService;
             _packageFileService = packageFileService;
             _userService = userService;
             _nugetExeDownloaderService = nugetExeDownloaderService;
             _contentService = contentService;
-            _statisticsService = null;
-        }
-
-        public ApiController(
-            IPackageService packageService,
-            IPackageFileService packageFileService,
-            IUserService userService,
-            INuGetExeDownloaderService nugetExeDownloaderService,
-            IContentService contentService,
-            IStatisticsService statisticsService)
-            : this(packageService, packageFileService, userService, nugetExeDownloaderService, contentService)
-        {
-            _statisticsService = statisticsService;
         }
 
         [ActionName("GetPackageApi")]
@@ -387,45 +375,39 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
-            if (_statisticsService != null)
+            var report = await Executor.ExecuteAndCatchAsync(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads));
+            if (report.Entries.Any())
             {
-                bool isAvailable = await _statisticsService.LoadDownloadPackageVersions();
-
-                if (isAvailable)
+                int i = 0;
+                JArray content = new JArray();
+                foreach (var entry in report.Entries)
                 {
-                    int i = 0;
+                    JObject item = new JObject();
 
-                    JArray content = new JArray();
-                    foreach (StatisticsPackagesItemViewModel row in _statisticsService.DownloadPackageVersionsAll)
+                    item.Add("PackageId", entry.PackageId);
+                    item.Add("PackageVersion", entry.PackageVersion);
+                    item.Add("Gallery", Url.PackageGallery(entry.PackageId, entry.PackageVersion));
+                    item.Add("PackageTitle", entry.PackageTitle ?? entry.PackageId);
+                    item.Add("PackageDescription", entry.PackageDescription);
+                    item.Add("PackageIconUrl", entry.PackageIconUrl ?? Url.PackageDeafultIcon());
+                    item.Add("Downloads", entry.Downloads);
+
+                    content.Add(item);
+
+                    i++;
+
+                    if (count.HasValue && count.Value == i)
                     {
-                        JObject item = new JObject();
-
-                        item.Add("PackageId", row.PackageId);
-                        item.Add("PackageVersion", row.PackageVersion);
-                        item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
-                        item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
-                        item.Add("PackageDescription", row.PackageDescription);
-                        item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDeafultIcon());
-                        item.Add("Downloads", row.Downloads);
-
-                        content.Add(item);
-
-                        i++;
-
-                        if (count.HasValue && count.Value == i)
-                        {
-                            break;
-                        }
+                        break;
                     }
-
-                    return new ContentResult
-                    {
-                        Content = content.ToString(),
-                        ContentType = "application/json"
-                    };
                 }
-            }
 
+                return new ContentResult
+                {
+                    Content = content.ToString(),
+                    ContentType = "application/json"
+                };
+            }
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 

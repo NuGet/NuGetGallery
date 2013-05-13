@@ -7,7 +7,7 @@ using NuGetGallery.Commands;
 
 namespace NuGetGallery
 {
-    public abstract class NuGetControllerBase : Controller
+    public abstract class NuGetControllerBase : AppController
     {
         public CommandExecutor Executor { get; protected set; }
 

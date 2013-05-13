@@ -45,7 +45,7 @@ namespace NuGetGallery
         public static ISetup<CommandExecutor, TResult> OnExecute<TResult>(this NuGetControllerBase self, Query<TResult> match)
         {
             var mockExecutor = Mock.Get(self.Executor);
-            Debug.Assert(mockExecutor != null, "OnExecute can only be called on AppControllers returned by Testable.Get");
+            Debug.Assert(mockExecutor != null, "OnExecute can only be called on Controllers with a mock command executor");
 
             return mockExecutor.Setup(e => e.Execute(match));
         }
@@ -53,14 +53,14 @@ namespace NuGetGallery
         public static void AssertExecuted<TCommand>(this NuGetControllerBase self) where TCommand : ICommand
         {
             var mockExecutor = Mock.Get(self.Executor);
-            Debug.Assert(mockExecutor != null, "OnExecute can only be called on AppControllers returned by Testable.Get");
+            Debug.Assert(mockExecutor != null, "OnExecute can only be called on Controllers with a mock command executor");
             mockExecutor.Verify(e => e.Execute(It.IsAny<TCommand>()));
         }
 
         public static void AssertExecuted<TCommand>(this NuGetControllerBase self, TCommand expected) where TCommand : ICommand
         {
             var mockExecutor = Mock.Get(self.Executor);
-            Debug.Assert(mockExecutor != null, "OnExecute can only be called on AppControllers returned by Testable.Get");
+            Debug.Assert(mockExecutor != null, "OnExecute can only be called on Controllers with a mock command executor");
             mockExecutor.Verify(e => e.Execute(expected));
         }
     }

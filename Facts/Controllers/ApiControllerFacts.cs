@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,6 +13,7 @@ using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGetGallery.Commands;
 using NuGetGallery.Statistics;
 using Xunit;
 using Xunit.Extensions;
@@ -47,7 +49,13 @@ namespace NuGetGallery
             }
             nugetExeDownloader = nugetExeDownloader ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
 
-            var controller = new Mock<ApiController>(packageService.Object, fileService.Object, userService.Object, nugetExeDownloader.Object, new Mock<IContentService>().Object);
+            var controller = new Mock<ApiController>(
+                packageService.Object, 
+                fileService.Object, 
+                userService.Object, 
+                nugetExeDownloader.Object, 
+                Mock.Of<IContentService>(), 
+                Mock.Of<CommandExecutor>());
             controller.CallBase = true;
             if (packageFromInputStream != null)
             {
@@ -757,57 +765,53 @@ namespace NuGetGallery
 
                 Assert.IsType<EmptyResult>(result);
             }
+        }
 
+        public class TheGetStatsDownloadsAction
+        {
             [Fact]
-            public async void VerifyRecentPopularityStatsDownloads()
+            public async Task RetrievesTheFullReportIfNoCountFilterProvided()
             {
-                JArray report = new JArray
-                {
-                    new JObject
-                    {
-                        { "PackageId", "A" },
-                        { "PackageVersion", "1.0" },
-                        { "PackageTitle", "Package A Title" },
-                        { "PackageDescription", "Package A Description" },
-                        { "PackageIconUrl", "Package A IconUrl" },
-                        { "Downloads", 3 }
+                var report = new PackageDownloadsReport(new[] {
+                    new PackageDownloadsReportEntry() {
+                        PackageId = "A",
+                        PackageVersion = "1.0",
+                        PackageTitle = "Package A Title",
+                        PackageDescription = "Package A Description",
+                        PackageIconUrl = "Package A IconUrl",
+                        Downloads = 3
                     },
-                    new JObject
+                    new PackageDownloadsReportEntry
                     {
-                        { "PackageId", "A" },
-                        { "PackageVersion", "1.1" },
-                        { "PackageTitle", "Package A Title" },
-                        { "PackageDescription", "Package A Description" },
-                        { "PackageIconUrl", "Package A IconUrl" },
-                        { "Downloads", 4 }
+                        PackageId = "A",
+                        PackageVersion = "1.1",
+                        PackageTitle = "Package A Title",
+                        PackageDescription = "Package A Description",
+                        PackageIconUrl = "Package A IconUrl",
+                        Downloads = 4
                     },
-                    new JObject
+                    new PackageDownloadsReportEntry
                     {
-                        { "PackageId", "B" },
-                        { "PackageVersion", "1.0" },
-                        { "PackageTitle", "Package B Title" },
-                        { "PackageDescription", "Package B Description" },
-                        { "PackageIconUrl", "Package B IconUrl" },
-                        { "Downloads", 5 }
+                        PackageId = "B",
+                        PackageVersion = "1.0",
+                        PackageTitle = "Package B Title",
+                        PackageDescription = "Package B Description",
+                        PackageIconUrl = "Package B IconUrl",
+                        Downloads = 5
                     },
-                    new JObject
+                    new PackageDownloadsReportEntry
                     {
-                        { "PackageId", "B" },
-                        { "PackageVersion", "1.1" },
-                        { "PackageTitle", "Package B Title" },
-                        { "PackageDescription", "Package B Description" },
-                        { "PackageIconUrl", "Package B IconUrl" },
-                        { "Downloads", 6 }
-                    },
-                };
-
-                var fakePackageVersionReport = report.ToString();
-
-                var fakeReportService = new Mock<IReportService>();
-
-                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
-
-                var controller = new ApiController(null, null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
+                        PackageId = "B",
+                        PackageVersion = "1.1",
+                        PackageTitle = "Package B Title",
+                        PackageDescription = "Package B Description",
+                        PackageIconUrl = "Package B IconUrl",
+                        Downloads = 6
+                    }
+                });
+                var controller = new ApiController(null, null, null, null, null, Mock.Of<CommandExecutor>());
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .CompletesWith(report);
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
@@ -823,13 +827,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async void VerifyStatsDownloadsReturnsNotFoundWhenStatsNotAvailable()
+            public async Task ReturnsANotFoundResultIfNoReportFound()
             {
-                var fakeStatisticsService = new Mock<IStatisticsService>();
-
-                fakeStatisticsService.Setup(x => x.LoadDownloadPackageVersions()).Returns(Task.FromResult(false));
-
-                var controller = new ApiController(null, null, null, null, null, fakeStatisticsService.Object);
+                var controller = new ApiController(null, null, null, null, null, Mock.Of<CommandExecutor>());
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .CompletesWith(new PackageDownloadsReport(Enumerable.Empty<PackageDownloadsReportEntry>()));
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
@@ -841,25 +843,20 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async void VerifyRecentPopularityStatsDownloadsCount()
+            public async Task ReturnsNoMoreEntriesThanRequested()
             {
-                JArray report = new JArray
-                {
-                    new JObject { { "PackageId", "A" }, { "PackageVersion", "1.0" }, { "Downloads", 3 } },
-                    new JObject { { "PackageId", "A" }, { "PackageVersion", "1.1" }, { "Downloads", 4 } },
-                    new JObject { { "PackageId", "B" }, { "PackageVersion", "1.0" }, { "Downloads", 5 } },
-                    new JObject { { "PackageId", "B" }, { "PackageVersion", "1.1" }, { "Downloads", 6 } },
-                    new JObject { { "PackageId", "C" }, { "PackageVersion", "1.0" }, { "Downloads", 7 } },
-                    new JObject { { "PackageId", "C" }, { "PackageVersion", "1.1" }, { "Downloads", 8 } },
-                };
+                var report = new PackageDownloadsReport(new[] {
+                    new PackageDownloadsReportEntry { PackageId = "A", PackageVersion = "1.0", Downloads = 3 },
+                    new PackageDownloadsReportEntry { PackageId = "A", PackageVersion = "1.1", Downloads = 4 },
+                    new PackageDownloadsReportEntry { PackageId = "B", PackageVersion = "1.0", Downloads = 5 },
+                    new PackageDownloadsReportEntry { PackageId = "B", PackageVersion = "1.1", Downloads = 6 },
+                    new PackageDownloadsReportEntry { PackageId = "C", PackageVersion = "1.0", Downloads = 7 },
+                    new PackageDownloadsReportEntry { PackageId = "C", PackageVersion = "1.1", Downloads = 8 },
+                });
 
-                var fakePackageVersionReport = report.ToString();
-
-                var fakeReportService = new Mock<IReportService>();
-
-                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
-
-                var controller = new ApiController(null, null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
+                var controller = new ApiController(null, null, null, null, null, Mock.Of<CommandExecutor>());
+                controller.OnExecute(new PackageDownloadsReportQuery(ReportNames.RecentPackageVersionDownloads))
+                          .CompletesWith(report);
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 

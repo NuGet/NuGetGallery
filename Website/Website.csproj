@@ -561,7 +561,6 @@
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\QuietLog.cs" />
     <Compile Include="Helpers\StringHelper.cs" />
-    <Compile Include="Helpers\StatisticsHelper.cs" />
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
@@ -780,12 +779,8 @@
     <Compile Include="Services\ContentService.cs" />
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IFileReference.cs" />
-    <Compile Include="Statistics\JsonStatisticsService.cs" />
-    <Compile Include="Statistics\CloudReportService.cs" />
-    <Compile Include="Statistics\IReportService.cs" />
     <Compile Include="Services\HttpContextCacheService.cs" />
     <Compile Include="Services\ICacheService.cs" />
-    <Compile Include="Statistics\IStatisticsService.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
@@ -797,7 +792,6 @@
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\INuGetExeDownloaderService.cs" />
-    <Compile Include="Statistics\IAggregateStatsService.cs" />
     <Compile Include="Services\IPackageSource.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
@@ -806,7 +800,6 @@
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
-    <Compile Include="Statistics\AggregateStatsService.cs" />
     <Compile Include="Services\PackageSource.cs" />
     <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />

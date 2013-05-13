@@ -62,15 +62,6 @@ namespace NuGetGallery
                         .To<HttpContextCacheService>()
                         .InRequestScope();
                 }
-
-                // when running on Windows Azure, pull the statistics from the warehouse via storage
-                Bind<IReportService>()
-                    .ToMethod(context => new CloudReportService(configuration.AzureStatisticsConnectionString))
-                    .InSingletonScope();
-
-                Bind<IStatisticsService>()
-                    .To<JsonStatisticsService>()
-                    .InSingletonScope();
             }
             else
             {
@@ -252,9 +243,6 @@ namespace NuGetGallery
                 .To<PackageRegistrationByIdQuery>()
                 .InRequestScope();
 
-            Bind<IAggregateStatsService>()
-                .To<AggregateStatsService>()
-                .InRequestScope();
             Bind<IPackageIdsQuery>()
                 .To<PackageIdsQuery>()
                 .InRequestScope();
