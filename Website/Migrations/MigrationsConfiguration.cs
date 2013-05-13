@@ -19,6 +19,13 @@ namespace NuGetGallery.Migrations
                 roles.Add(new Role { Name = Constants.AdminRoleName });
                 context.SaveChanges();
             }
+
+            var gallerySettings = context.Set<GallerySetting>();
+            if (!gallerySettings.Any())
+            {
+                gallerySettings.Add(new GallerySetting { Key = 1 });
+                context.SaveChanges();
+            }
         }
     }
 }
