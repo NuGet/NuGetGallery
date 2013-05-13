@@ -19,40 +19,16 @@ namespace NuGetGallery.Commands
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
-                var command = new Mock<Command>();
-                
-                // Act
-                executor.Execute(command.Object);
-
-                // Assert
-                command.Verify(c => c.Execute());
-            }
-
-            [Fact]
-            public void ShouldExecuteTheProvidedQuery()
-            {
-                // Arrange
-                var executor = new TestableCommandExecutor();
-                var query = new Mock<Command<object>>();
-
-                // Act
-                executor.Execute(query.Object);
-
-                // Assert
-                query.Verify(q => q.Execute());
-            }
-
-            [Fact]
-            public void ShouldReturnTheResultOfExecutingTheProvidedQuery()
-            {
-                // Arrange
-                var executor = new TestableCommandExecutor();
-                var query = new Mock<Command<object>>();
+                var cmd = new DummyCommand();
                 var expected = new object();
-                query.Setup(q => q.Execute()).Returns(expected);
+                var handler = new Mock<CommandHandler<DummyCommand, object>>();
+                handler.Setup(h => h.Execute(cmd)).Returns(expected);
+                executor.MockContainer
+                        .Setup(c => c.GetService(typeof(CommandHandler<DummyCommand, object>)))
+                        .Returns(handler.Object);
 
                 // Act
-                var actual = executor.Execute(query.Object);
+                var actual = executor.Execute(cmd);
 
                 // Assert
                 Assert.Same(expected, actual);
@@ -63,10 +39,16 @@ namespace NuGetGallery.Commands
             {
                 // Arrange
                 var executor = new TestableCommandExecutor();
-                var command = new Mock<Command>();
+                var cmd = new DummyCommand();
+                var expected = new object();
+                var handler = new Mock<CommandHandler<DummyCommand, object>>();
+                handler.Setup(h => h.Execute(cmd)).Returns(expected);
+                executor.MockContainer
+                        .Setup(c => c.GetService(typeof(CommandHandler<DummyCommand, object>)))
+                        .Returns(handler.Object);
                 
                 // Act
-                executor.Execute(command.Object);
+                executor.Execute(cmd);
 
                 // Assert
                 executor.MockTrace
@@ -74,7 +56,7 @@ namespace NuGetGallery.Commands
                             d.TraceEvent(
                                 TraceEventType.Start,
                                 It.IsAny<int>(),
-                                String.Format("Starting Execution of {0}", command.Object.GetType().Name),
+                                "Starting Execution of DummyCommand",
                                 It.IsAny<string>(),
                                 It.IsAny<string>(),
                                 It.IsAny<int>()));
@@ -83,52 +65,21 @@ namespace NuGetGallery.Commands
                             d.TraceEvent(
                                 TraceEventType.Stop,
                                 It.IsAny<int>(),
-                                String.Format("Finished Execution of {0}", command.Object.GetType().Name),
-                                It.IsAny<string>(),
-                                It.IsAny<string>(),
-                                It.IsAny<int>()));
-            }
-
-            [Fact]
-            public void ShouldTraceStartAndEndOfQueryExecution()
-            {
-                // Arrange
-                var executor = new TestableCommandExecutor();
-                var query = new Mock<Command<object>>();
-                
-                // Act
-                executor.Execute(query.Object);
-
-                // Assert
-                executor.MockTrace
-                        .Verify(d =>
-                            d.TraceEvent(
-                                TraceEventType.Start,
-                                It.IsAny<int>(),
-                                String.Format("Starting Execution of {0}", query.Object.GetType().Name),
-                                It.IsAny<string>(),
-                                It.IsAny<string>(),
-                                It.IsAny<int>()));
-                executor.MockTrace
-                        .Verify(d =>
-                            d.TraceEvent(
-                                TraceEventType.Stop,
-                                It.IsAny<int>(),
-                                String.Format("Finished Execution of {0}", query.Object.GetType().Name),
+                                "Finished Execution of DummyCommand",
                                 It.IsAny<string>(),
                                 It.IsAny<string>(),
                                 It.IsAny<int>()));
             }
         }
 
+        public class DummyCommand : Command<object> { }
+
         private class TestableCommandExecutor : CommandExecutor
         {
-            public Mock<IDiagnosticsSource> MockTrace { get; private set; }
+            public Mock<IDiagnosticsSource> MockTrace { get { return Mock.Get(Trace); } }
+            public Mock<IServiceProvider> MockContainer { get { return Mock.Get(Container); } }
 
-            public TestableCommandExecutor()
-            {
-                Trace = (MockTrace = new Mock<IDiagnosticsSource>()).Object;
-            }
+            public TestableCommandExecutor() : base(Mock.Of<IServiceProvider>(), new MockDiagnosticsService()) {}
         }
     }
 }

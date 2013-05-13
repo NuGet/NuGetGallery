@@ -11,7 +11,11 @@ using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Statistics
 {
-    public class PackageDownloadsReportCommand : StatisticsReportCommandBase<PackageDownloadsReport>
+    public class PackageDownloadsReportCommand : StatisticsReportCommandBase<PackageDownloadsReport> {
+        public PackageDownloadsReportCommand(string reportName) : base(reportName) { }
+    }
+
+    public class PackageDownloadsReportCommandHandler : StatisticsReportCommandHandlerBase<PackageDownloadsReportCommand, PackageDownloadsReport>
     {
         private static readonly JsonSerializer _serializer = new JsonSerializer()
         {
@@ -19,7 +23,7 @@ namespace NuGetGallery.Statistics
             TypeNameHandling = TypeNameHandling.None
         };
 
-        public PackageDownloadsReportCommand(string reportName) : base(reportName) { }
+        public PackageDownloadsReportCommandHandler(IFileStorageService storageService, IDiagnosticsService diagnosticsService) : base(storageService, diagnosticsService) { }
 
         protected override PackageDownloadsReport ParseReport(IDiagnosticsSource trace, string reportContent)
         {

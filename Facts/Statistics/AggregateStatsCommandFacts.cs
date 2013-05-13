@@ -9,7 +9,7 @@ using Xunit;
 
 namespace NuGetGallery.Statistics
 {
-    public class AggregateStatsQueryFacts
+    public class AggregateStatsCommandFacts
     {
         public class TheExecuteMethod
         {
@@ -21,15 +21,16 @@ namespace NuGetGallery.Statistics
                 var mockReader = new Mock<IDataReader>();
                 mockReader.Setup(r => r.Read()).Returns(false);
                 mockContext.SetupSql<AggregateStats>(
-                    AggregateStatsCommand.Sql,
+                    AggregateStatsCommandHandler.Sql,
                     mockReader,
                     connectionTimeout: 200, 
                     behavior: CommandBehavior.CloseConnection | CommandBehavior.SingleRow);
 
-                var query = new AggregateStatsCommand() { DatabaseContext = mockContext.Object };
+                var command = new AggregateStatsCommand();
+                var handler = new AggregateStatsCommandHandler(mockContext.Object);
 
                 // Act
-                var result = query.Execute();
+                var result = handler.Execute(command);
 
                 // Assert
                 Assert.Equal(new AggregateStats(), result);
@@ -44,15 +45,16 @@ namespace NuGetGallery.Statistics
                 mockReader.Setup(r => r.Read()).Returns(true);
                 mockReader.Setup(r => r.IsDBNull(It.IsAny<int>())).Returns(true);
                 mockContext.SetupSql<AggregateStats>(
-                    AggregateStatsCommand.Sql,
+                    AggregateStatsCommandHandler.Sql,
                     mockReader,
                     connectionTimeout: 200,
                     behavior: CommandBehavior.CloseConnection | CommandBehavior.SingleRow);
 
-                var query = new AggregateStatsCommand() { DatabaseContext = mockContext.Object };
+                var command = new AggregateStatsCommand();
+                var handler = new AggregateStatsCommandHandler(mockContext.Object);
 
                 // Act
-                var result = query.Execute();
+                var result = handler.Execute(command);
 
                 // Assert
                 Assert.Equal(new AggregateStats(), result);
@@ -77,15 +79,16 @@ namespace NuGetGallery.Statistics
                 mockReader.Setup(r => r.GetInt64(2)).Returns(expected.Downloads);
 
                 mockContext.SetupSql<AggregateStats>(
-                    AggregateStatsCommand.Sql,
+                    AggregateStatsCommandHandler.Sql,
                     mockReader,
                     connectionTimeout: 200,
                     behavior: CommandBehavior.CloseConnection | CommandBehavior.SingleRow);
 
-                var query = new AggregateStatsCommand() { DatabaseContext = mockContext.Object };
+                var command = new AggregateStatsCommand();
+                var handler = new AggregateStatsCommandHandler(mockContext.Object);
 
                 // Act
-                var result = query.Execute();
+                var result = handler.Execute(command);
 
                 // Assert
                 Assert.Equal(expected, result);

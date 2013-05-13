@@ -9,7 +9,7 @@ namespace NuGetGallery
 {
     public abstract class NuGetControllerBase : AppController
     {
-        public CommandExecutor Executor { get; protected set; }
+        public ICommandExecutor Executor { get; protected set; }
 
         // ONLY for use by T4MVC
         [Obsolete("Do not use! Only for use by T4MVC")]
@@ -17,7 +17,7 @@ namespace NuGetGallery
         {
         }
 
-        protected NuGetControllerBase(CommandExecutor executor)
+        protected NuGetControllerBase(ICommandExecutor executor)
         {
             Executor = executor;
         }

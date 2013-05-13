@@ -9,6 +9,11 @@ using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Commands
 {
+    public interface ICommandExecutor
+    {
+        TResult Execute<TResult>(Command<TResult> command);
+    }
+
     /// <summary>
     /// Executes commands and queries against the service layer.
     /// </summary>
@@ -21,46 +26,40 @@ namespace NuGetGallery.Commands
     /// 
     /// Also, common tasks like tracing and profiling can be inserted here.
     /// </remarks>
-    public class CommandExecutor
+    public class CommandExecutor : ICommandExecutor
     {
+        public IServiceProvider Container { get; protected set; }
         public IDiagnosticsSource Trace { get; protected set; }
 
-        protected CommandExecutor() 
-        {
-            Trace = new NullDiagnosticsSource();
-        }
-
-        public CommandExecutor(IDiagnosticsService diagnostics)
+        public CommandExecutor(IServiceProvider container, IDiagnosticsService diagnostics)
         {
             Trace = diagnostics.GetSource("CommandExecutor");
+            Container = container;
         }
 
-        public virtual void Execute(Command command)
+        public virtual TResult Execute<TResult>(Command<TResult> command)
         {
             Debug.Assert(command != null);
 
+            // Get the handler
+            var handlerType = typeof(CommandHandler<,>).MakeGenericType(command.GetType(), typeof(TResult));
+            var handler = (ICommandHandler)Container.GetService(handlerType);
+            
             using (Trace.Activity(String.Format(CultureInfo.InvariantCulture, "Execution of {0}", command.GetType().Name)))
             {
-                command.Execute();
+                return (TResult)handler.Execute(command);
             }
         }
+    }
 
-        public virtual TResult Execute<TResult>(Command<TResult> query)
-        {
-            Debug.Assert(query != null);
-
-            using (Trace.Activity(String.Format(CultureInfo.InvariantCulture, "Execution of {0}", query.GetType().Name)))
-            {
-                return query.Execute();
-            }
-        }
-
-        public TResult ExecuteAndCatch<TResult>(Command<TResult> query)
+    public static class CommandExecutorExtensions
+    {
+        public static TResult ExecuteAndCatch<TResult>(this ICommandExecutor self, Command<TResult> command)
         {
             TResult result;
             try
             {
-                result = Execute(query);
+                result = self.Execute(command);
             }
             catch (Exception ex)
             {
@@ -70,12 +69,12 @@ namespace NuGetGallery.Commands
             return result;
         }
 
-        public async Task<TResult> ExecuteAndCatchAsync<TResult>(Command<Task<TResult>> query)
+        public static async Task<TResult> ExecuteAndCatchAsync<TResult>(this ICommandExecutor self, Command<Task<TResult>> command)
         {
             TResult result;
             try
             {
-                result = await Execute(query);
+                result = await self.Execute(command);
             }
             catch (Exception ex)
             {
@@ -85,14 +84,14 @@ namespace NuGetGallery.Commands
             return result;
         }
 
-        public virtual Task<TResult[]> ExecuteAsyncAll<TResult>(params Command<Task<TResult>>[] queries)
+        public static Task<TResult[]> ExecuteAsyncAll<TResult>(this ICommandExecutor self, params Command<Task<TResult>>[] commands)
         {
-            return Task.WhenAll(queries.Select(q => Execute(q)));
+            return Task.WhenAll(commands.Select(q => self.Execute(q)));
         }
 
-        public virtual Task<TResult[]> ExecuteAndCatchAsyncAll<TResult>(params Command<Task<TResult>>[] queries)
+        public static Task<TResult[]> ExecuteAndCatchAsyncAll<TResult>(this ICommandExecutor self, params Command<Task<TResult>>[] commands)
         {
-            return Task.WhenAll(queries.Select(q => ExecuteAndCatchAsync(q)));
+            return Task.WhenAll(commands.Select(q => ExecuteAndCatchAsync(self, q)));
         }
     }
 }

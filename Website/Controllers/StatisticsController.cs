@@ -14,7 +14,7 @@ namespace NuGetGallery
 {
     public partial class StatisticsController : NuGetControllerBase
     {
-        public StatisticsController(CommandExecutor executor) : base(executor) { }
+        public StatisticsController(ICommandExecutor executor) : base(executor) { }
 
         [HttpGet]
         [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]

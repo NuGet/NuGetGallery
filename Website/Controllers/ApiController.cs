@@ -30,7 +30,7 @@ namespace NuGetGallery
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
-            CommandExecutor executor) : base(executor)
+            ICommandExecutor executor) : base(executor)
         {
             _packageService = packageService;
             _packageFileService = packageFileService;

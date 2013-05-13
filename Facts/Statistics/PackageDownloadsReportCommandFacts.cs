@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using NuGetGallery.Diagnostics;
 using Xunit;
 using Xunit.Extensions;
 
 namespace NuGetGallery.Statistics
 {
-    public class PackageDownloadsReportQueryFacts
+    public class PackageDownloadsReportCommandFacts
     {
         public class TheExecuteMethod
         {
@@ -22,13 +23,11 @@ namespace NuGetGallery.Statistics
                 // Arrange
                 var mockStorage = new Mock<IFileStorageService>();
                 mockStorage.DoesNotContain("stats", ExpectedFileName);
-                var query = new PackageDownloadsReportCommand(ReportName)
-                {
-                    StorageService = mockStorage.Object
-                };
+                var command = new PackageDownloadsReportCommand(ReportName);
+                var handler = new PackageDownloadsReportCommandHandler(mockStorage.Object, new MockDiagnosticsService());
 
                 // Act/Assert
-                Assert.Null(await query.Execute());
+                Assert.Null(await handler.Execute(command));
             }
 
             [Theory]
@@ -40,13 +39,11 @@ namespace NuGetGallery.Statistics
                 // Arrange
                 var mockStorage = new Mock<IFileStorageService>();
                 mockStorage.ContainsTextFile("stats", ExpectedFileName, String.Empty);
-                var query = new PackageDownloadsReportCommand(ReportName)
-                {
-                    StorageService = mockStorage.Object
-                };
+                var command = new PackageDownloadsReportCommand(ReportName);
+                var handler = new PackageDownloadsReportCommandHandler(mockStorage.Object, new MockDiagnosticsService());
 
                 // Act/Assert
-                Assert.Equal(PackageDownloadsReport.Empty, await query.Execute());
+                Assert.Equal(PackageDownloadsReport.Empty, await handler.Execute(command));
             }
 
             [Fact]
@@ -57,16 +54,14 @@ namespace NuGetGallery.Statistics
 
                 var mockStorage = new Mock<IFileStorageService>();
                 mockStorage.ContainsTextFile("stats", ExpectedFileName, report);
-                var query = new PackageDownloadsReportCommand(ReportName)
-                {
-                    StorageService = mockStorage.Object
-                };
+                var command = new PackageDownloadsReportCommand(ReportName);
+                var handler = new PackageDownloadsReportCommandHandler(mockStorage.Object, new MockDiagnosticsService());
 
                 // Act/Assert
                 Assert.Equal(new PackageDownloadsReport(new[] {
                     new PackageDownloadsReportEntry() { PackageId = "jQuery", Downloads = 54343 },
                     new PackageDownloadsReportEntry() { PackageId = "AjaxControlToolkit", Downloads = 53998 }
-                }), await query.Execute());
+                }), await handler.Execute(command));
             }
 
             [Fact]
@@ -77,10 +72,8 @@ namespace NuGetGallery.Statistics
 
                 var mockStorage = new Mock<IFileStorageService>();
                 mockStorage.ContainsTextFile("stats", ExpectedFileName, report);
-                var query = new PackageDownloadsReportCommand(ReportName)
-                {
-                    StorageService = mockStorage.Object
-                };
+                var command = new PackageDownloadsReportCommand(ReportName);
+                var handler = new PackageDownloadsReportCommandHandler(mockStorage.Object, new MockDiagnosticsService());
 
                 // Act/Assert
                 Assert.Equal(new PackageDownloadsReport(new[] {
@@ -93,7 +86,7 @@ namespace NuGetGallery.Statistics
                         PackageIconUrl = "http://nuget.org" 
                     },
                     new PackageDownloadsReportEntry() { PackageId = "AjaxControlToolkit", Downloads = 53998 }
-                }), await query.Execute());
+                }), await handler.Execute(command));
             }
         }
     }

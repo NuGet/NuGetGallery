@@ -22,18 +22,24 @@ namespace NuGetGallery.Statistics
             Version = version;
         }
 
-        protected override DownloadStatisticsReport ParseReport(IDiagnosticsSource trace, string reportContent)
-        {
-            DownloadStatisticsReport report = new DownloadStatisticsReport();
-            report.Facts = CreateFacts(JObject.Parse(reportContent));
-            return report;
-        }
-
         private static string BuildReportName(string id, string version)
         {
             return String.IsNullOrEmpty(version) ?
                 ReportNames.DownloadsForPackage(id) :
                 ReportNames.DownloadsForPackageVersion(id, version);
+        }
+    }
+
+    public class PackageDownloadDetailReportCommandHandler : StatisticsReportCommandHandlerBase<PackageDownloadDetailReportCommand, DownloadStatisticsReport>
+    {
+        public PackageDownloadDetailReportCommandHandler(IFileStorageService storageService, IDiagnosticsService diagnosticsService)
+            : base(storageService, diagnosticsService) { }
+        
+        protected override DownloadStatisticsReport ParseReport(IDiagnosticsSource trace, string reportContent)
+        {
+            DownloadStatisticsReport report = new DownloadStatisticsReport();
+            report.Facts = CreateFacts(JObject.Parse(reportContent));
+            return report;
         }
 
         private static IList<StatisticsFact> CreateFacts(JObject data)

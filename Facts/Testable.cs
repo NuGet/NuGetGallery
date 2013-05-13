@@ -17,10 +17,10 @@ namespace NuGetGallery
     {
         public static TController Get<TController>() where TController : NuGetControllerBase
         {
-            var ctor = typeof(TController).GetConstructor(new [] { typeof(CommandExecutor) });
+            var ctor = typeof(TController).GetConstructor(new [] { typeof(ICommandExecutor) });
             Debug.Assert(ctor != null, "Testable.Get can only be used for controllers which have a constructor that only accepts a CommandExecutor");
-            
-            var controller = (TController)ctor.Invoke(new object[] { new Mock<CommandExecutor>() { CallBase = true }.Object });
+
+            var controller = (TController)ctor.Invoke(new object[] { Mock.Of<ICommandExecutor>() });
             
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(c => c.Request).Returns(new Mock<HttpRequestBase>().Object);
@@ -42,26 +42,12 @@ namespace NuGetGallery
             return mock;
         }
 
-        public static ISetup<CommandExecutor, TResult> OnExecute<TResult>(this NuGetControllerBase self, Command<TResult> match)
+        public static ISetup<ICommandExecutor, TResult> OnExecute<TResult>(this NuGetControllerBase self, Command<TResult> match)
         {
             var mockExecutor = Mock.Get(self.Executor);
             Debug.Assert(mockExecutor != null, "OnExecute can only be called on Controllers with a mock command executor");
 
             return mockExecutor.Setup(e => e.Execute(match));
-        }
-
-        public static void AssertExecuted<TCommand>(this NuGetControllerBase self) where TCommand : Command
-        {
-            var mockExecutor = Mock.Get(self.Executor);
-            Debug.Assert(mockExecutor != null, "OnExecute can only be called on Controllers with a mock command executor");
-            mockExecutor.Verify(e => e.Execute(It.IsAny<TCommand>()));
-        }
-
-        public static void AssertExecuted<TCommand>(this NuGetControllerBase self, TCommand expected) where TCommand : Command
-        {
-            var mockExecutor = Mock.Get(self.Executor);
-            Debug.Assert(mockExecutor != null, "OnExecute can only be called on Controllers with a mock command executor");
-            mockExecutor.Verify(e => e.Execute(expected));
         }
     }
 }

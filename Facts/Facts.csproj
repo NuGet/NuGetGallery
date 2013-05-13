@@ -156,6 +156,7 @@
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationFacts.cs" />
     <Compile Include="Commands\CommandExecutorFacts.cs" />
+    <Compile Include="Diagnostics\MockDiagnosticsService.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
     <Compile Include="Controllers\CuratedFeedsControllerFacts.cs" />
@@ -194,9 +195,8 @@
     <Compile Include="Services\UploadFileServiceFacts.cs" />
     <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />
-    <Compile Include="Statistics\AggregateStatsQueryFacts.cs" />
-    <Compile Include="Statistics\DownloadStatsFeedQuery.cs" />
-    <Compile Include="Statistics\PackageDownloadsReportQueryFacts.cs" />
+    <Compile Include="Statistics\AggregateStatsCommandFacts.cs" />
+    <Compile Include="Statistics\PackageDownloadsReportCommandFacts.cs" />
     <Compile Include="Testable.cs" />
     <Compile Include="TestUtils\ContractAssert.cs" />
     <Compile Include="TestUtils\MockExtensions.cs" />

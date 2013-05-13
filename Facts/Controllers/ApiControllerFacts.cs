@@ -14,6 +14,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet;
 using NuGetGallery.Commands;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Statistics;
 using Xunit;
 using Xunit.Extensions;
@@ -55,7 +56,9 @@ namespace NuGetGallery
                 userService.Object, 
                 nugetExeDownloader.Object, 
                 Mock.Of<IContentService>(), 
-                Mock.Of<CommandExecutor>());
+                new Mock<CommandExecutor>(
+                    Mock.Of<IServiceProvider>(),
+                    new MockDiagnosticsService()).Object);
             controller.CallBase = true;
             if (packageFromInputStream != null)
             {
@@ -809,7 +812,7 @@ namespace NuGetGallery
                         Downloads = 6
                     }
                 });
-                var controller = new ApiController(null, null, null, null, null, Mock.Of<CommandExecutor>());
+                var controller = new ApiController(null, null, null, null, null, Mock.Of<ICommandExecutor>());
                 controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(report);
 
@@ -829,7 +832,7 @@ namespace NuGetGallery
             [Fact]
             public async Task ReturnsANotFoundResultIfNoReportFound()
             {
-                var controller = new ApiController(null, null, null, null, null, Mock.Of<CommandExecutor>());
+                var controller = new ApiController(null, null, null, null, null, Mock.Of<ICommandExecutor>());
                 controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(new PackageDownloadsReport(Enumerable.Empty<PackageDownloadsReportEntry>()));
 
@@ -854,7 +857,7 @@ namespace NuGetGallery
                     new PackageDownloadsReportEntry { PackageId = "C", PackageVersion = "1.1", Downloads = 8 },
                 });
 
-                var controller = new ApiController(null, null, null, null, null, Mock.Of<CommandExecutor>());
+                var controller = new ApiController(null, null, null, null, null, Mock.Of<ICommandExecutor>());
                 controller.OnExecute(new PackageDownloadsReportCommand(ReportNames.RecentPackageVersionDownloads))
                           .CompletesWith(report);
 

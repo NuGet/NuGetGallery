@@ -8,7 +8,8 @@ using NuGetGallery.Commands;
 
 namespace NuGetGallery.Statistics
 {
-    public class AggregateStatsCommand : Command<AggregateStats>
+    public class AggregateStatsCommand : Command<AggregateStats> { }
+    public class AggregateStatsCommandHandler : CommandHandler<AggregateStatsCommand, AggregateStats>
     {
         public static readonly string Sql = @"SELECT 
                 (SELECT COUNT([Key]) FROM PackageRegistrations pr 
@@ -16,9 +17,14 @@ namespace NuGetGallery.Statistics
                 (SELECT COUNT([Key]) FROM Packages WHERE Listed = 1) AS TotalPackages,
                 (SELECT TotalDownloadCount FROM GallerySettings) AS DownloadCount";
 
-        public IEntitiesContext DatabaseContext { get; set; }
+        public IEntitiesContext DatabaseContext { get; private set; }
 
-        public override AggregateStats Execute()
+        public AggregateStatsCommandHandler(IEntitiesContext databaseContext)
+        {
+            DatabaseContext = databaseContext;
+        }
+
+        public override AggregateStats Execute(AggregateStatsCommand cmd)
         {
             return DatabaseContext.Sql(Sql, reader =>
                 reader.Read() ?
@@ -31,18 +37,6 @@ namespace NuGetGallery.Statistics
                     new AggregateStats(), 
                 commandTimeout: 200, 
                 behavior: CommandBehavior.CloseConnection | CommandBehavior.SingleRow);
-        }
-
-        // Properly implemented equality makes tests easier!
-        public override bool Equals(object obj)
-        {
-            AggregateStatsCommand other = obj as AggregateStatsCommand;
-            return other != null && Equals(DatabaseContext, other.DatabaseContext);
-        }
-
-        public override int GetHashCode()
-        {
-            return DatabaseContext == null ? 0 : DatabaseContext.GetHashCode();
         }
     }
 }
