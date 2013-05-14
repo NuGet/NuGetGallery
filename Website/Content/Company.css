@@ -1,0 +1,11 @@
+﻿header.main {
+    background: url('Images/companyLogo.png') no-repeat 0px 30px;
+}
+
+header.main #logo {
+    margin-left: 200px;
+}
+
+.success-text {
+    color: green;
+}

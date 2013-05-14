@@ -1,4 +1,5 @@
-﻿@{
+﻿@using System.Configuration
+@{
     ViewBag.Title = "Site Administration";
     ViewBag.Tab = "Admin";
 }
@@ -12,6 +13,15 @@
                 Get direct access to the database to manipulate Users, Packages, etc. USE WITH CAUTION.
             </p>
         </li>
+        @if (string.Equals(ConfigurationManager.AppSettings["Gallery.IntranetSite"], "true", StringComparison.InvariantCultureIgnoreCase))
+        {
+            <li id="importAdmin">
+                <h2><a href="~/Admin/Import">Official NuGet Package Import</a></h2>
+                <p>
+                    Import packages directly from the NuGet official package source.
+                </p>
+            </li>
+        }
         <li id="errorLogs">
             <h2><a href="~/Admin/Errors.axd">Error Logs</a></h2>
             <p>

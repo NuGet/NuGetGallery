@@ -1,11 +1,11 @@
-@using System.Configuration
 @using Links
-@model DisplayPackageViewModel
+@using NuGetGallery
+@model ImportPackageViewModel
 @{
     ViewBag.Title = Model.Title + " " + Model.Version;
     ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
-    var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
+    Layout = "~/Areas/Admin/Views/Shared/TwoColumnLayout.cshtml";
+    var absolutePackageUrl = Url.Absolute(@Url.Action("Details", new { Model.Id }));
 }
 @section OpenGraph {
     @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
@@ -40,15 +40,10 @@
     <img class="logo" src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src = '@Content.Images.packageDefaultIcon_png';" />
     <div id="stats">
         <div class="stat">
-            <p class="stat-number">@Model.TotalDownloadCount.ToString("n0")</p>
-            <p class="stat-label">
-                Downloads</p>
-        </div>
-        <div class="stat">
             <p class="stat-number">@Model.DownloadCount.ToString("n0")</p>
             <p class="stat-label">
-                Downloads of v @Model.Version</p>
-        </div>
+                Downloads</p>
+        </div>        
         <div class="stat">
             <p class="stat-number">@Model.LastUpdated.ToShortDateString()</p>
             <p class="stat-label">
@@ -85,16 +80,6 @@
             {
                 <li><a href="@Url.Action(@MVC.Packages.Download())" title="How do I download?">How to Download</a></li>
             }
-            @if (Model.IsOwner(User))
-            {
-                <li><a href="@Url.EditPackage(Model)">Edit Package</a></li>
-                <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
-                <li><a href="@Url.DeletePackage(Model)" class="delete">Delete Package</a></li>
-            }
-            @if (string.Equals(ConfigurationManager.AppSettings["Gallery.IntranetSite"], "true", StringComparison.InvariantCultureIgnoreCase) && User.IsAdministrator())
-            {
-                <li><a href="@Url.Action("Details", "Import", new { Model.Id, Model.Version, Area = "Admin" })">Import Versions</a></li>
-            }
             @if (StatisticsHelper.IsStatisticsPageAvailable)
             {
                 <li><a href="@Url.StatisticsPackageDownloadByVersion(Model.Id)" title="Package Statistics">Package Statistics</a></li>
@@ -112,7 +97,7 @@
     else if (!Model.IsLatestVersionAvailable)
     {
         <p class="not-latest-message">
-            This is not the <a href="@Url.Package(Model.Id)" title="View the latest version">latest
+            This is not the <a href="@Url.Action("Details", new { Id = Model.Id })" title="View the latest version">latest
                                 version</a> of @Model.Title available.
         </p>
     }
@@ -125,14 +110,6 @@
         <p>@line</p>
     }
 
-    @if (!Model.Listed && Model.IsOwner(User))
-    {
-        <p  class="message warning">
-            This package is unlisted and hidden from package listings.
-            You can see the package because you are one of its owners. To list the package again, 
-            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-        </p>
-    }
     <p>
         To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
                                                                       Package Manager Console</a>
@@ -140,7 +117,7 @@
     <div class="nuget-badge">
         <p>
             <code>PM&gt; Install-Package @Model.Id
-                @if (!Model.LatestVersion || !Model.Listed)
+                @if (!Model.LatestVersion)
                 {
                     <text> -Version @Model.Version</text>
                 }
@@ -165,13 +142,11 @@
         }
     }
 
-    <h3>Owners</h3>
-    @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)
     <h3>Authors</h3>
     <ul class="authors">
         @foreach (var author in Model.Authors)
         {
-            <li><a href="@Url.Search("Author:\"" + author.Name + "\"")" title="Search for @author.Name">@author.Name</a></li>
+            <li>@author</li>
         }
     </ul>
     @if (!String.IsNullOrEmpty(Model.Copyright))
@@ -198,52 +173,50 @@
                     Version
                 </th>
                 <th>
-                    Downloads
+                    Size
                 </th>
                 <th class="@(Model.IsOwner(User) ? "" : "last")">
                     Last updated
                 </th>
-                @if (Model.IsOwner(User))
-                {
-                    <th class="last">
-                        Listed
-                    </th>
-                }
+                <th class="last">
+                    Import
+                </th>
             </tr>
         </thead>
         <tbody>
             @foreach (var packageVersion in Model.PackageVersions)
             {
-                if (packageVersion.Listed || Model.IsOwner(User))
-                {
-                    <tr class="versionTableRow @if (packageVersion.LatestVersion)
-                                               {
-                                                   <text>recommended </text>
-                                               }">
-                        <td class="version" @if (packageVersion.LatestVersion)
+                <tr class="versionTableRow @if (packageVersion.LatestVersion)
                                             {
-                                                <text>title="Latest Version"</text>
-                                            }>
-                            @if (!packageVersion.IsCurrent(Model))
-                            {
-                                <a href="@Url.Package(packageVersion)">@packageVersion.Title @packageVersion.Version</a>
-                            }
-                            else
-                            {
-                                <span>@packageVersion.Title @packageVersion.Version</span>
-                            }
-                        </td>
-                        <td>@packageVersion.DownloadCount
-                        </td>
-                        <td>@packageVersion.LastUpdated.ToString("D")
-                        </td>
-                        @if (Model.IsOwner(User))
+                                                <text>recommended </text>
+                                            }">
+                    <td class="version" @if (packageVersion.LatestVersion)
+                                        {
+                                            <text>title="Latest Version"</text>
+                                        }>
+                        @if (!packageVersion.IsCurrent(Model))
                         {
-                            <td><a href="@Url.DeletePackage(packageVersion)" class="delete">@(packageVersion.Listed ? "yes" : "no")</a>
-                            </td>
+                            <a href="@Url.Action("Details", new { packageVersion.Id, packageVersion.Version })">@packageVersion.Title @packageVersion.Version</a>
                         }
-                    </tr>
-                }
+                        else
+                        {
+                            <span>@packageVersion.Title @packageVersion.Version</span>
+                        }
+                    </td>
+                    <td>@string.Format("{0:n0} KB", packageVersion.PackageSize)
+                    </td>
+                    <td>@packageVersion.LastUpdated.ToString("D")
+                    </td>
+                    <td>@if (packageVersion.Existing)
+                        {
+                            <span class="success-text">Exists</span>
+                        } 
+                        else 
+                        {
+                            <a href="@Url.Action("Download", new { packageVersion.Id, packageVersion.Version })">Import</a>
+                        }
+                    </td>
+                </tr>
             }
         </tbody>
     </table>

@@ -1,0 +1,20 @@
+﻿@{
+    Layout = "Layout.cshtml";
+}
+
+@section OpenGraph {
+    @RenderSection("OpenGraph", required: false)
+}
+
+<div id="sideColumn">
+    @RenderSection("SideColumn")
+</div>
+<div id="mainColumn" role="main">
+    @RenderBody()
+</div>
+
+<div class="clear-fix"><!--Sad Panda--></div>
+
+@section BottomScripts {
+    @RenderSection("BottomScripts", required: false)
+}

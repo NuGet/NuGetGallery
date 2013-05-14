@@ -1,0 +1,41 @@
+﻿@using System.Web.Optimization
+@using Ninject
+@using NuGetGallery
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<!DOCTYPE html> 
+<html lang="en" class="static "> 
+    <head runat="server">
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        @RenderSection("OpenGraph", required: false)
+        <title>NuGet Gallery Database Administration</title>
+        @Styles.Render("~/bundles/css")
+        <link href="~/favicon.ico" runat="server" rel="shortcut icon" type="image/x-icon" />
+        @Scripts.Render("~/bundles/modernizr")
+        @RenderSection("head", false)
+    </head>
+<body>
+    <div id="outer-wrapper">
+        <div style="padding-left: 2em; padding-right: 2em;">
+            <header class="main">
+                <div id="logo"><a href="@Url.Home()">NuGet Gallery</a></div>
+            </header>
+            <nav class="main">
+                <ul id="menu">
+                    <li><a href="~/" runat="server">Home</a></li>
+                    <li><a href="~/Admin" runat="server">Admin Home</a></li>
+                    <li><a href="~/Admin/Database" runat="server">Database Admin</a></li>
+                    <li><a href="~/Admin/Import" runat="server">NuGet Import</a></li>
+                </ul>
+            </nav>
+            <div id="body" role="main">
+               @this.RenderBody()
+            </div>
+        </div>
+    </div>
+    @Scripts.Render("~/bundles/js")
+    @RenderSection("BottomScripts", required: false)
+</body>
+</html>

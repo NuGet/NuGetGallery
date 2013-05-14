@@ -24,6 +24,8 @@ using WebBackgrounder;
 
 namespace NuGetGallery
 {
+    using System.Configuration;
+
     public static class AppActivator
     {
         private static JobManager _jobManager;
@@ -73,8 +75,13 @@ namespace NuGetGallery
 
             var stylesBundle = new StyleBundle("~/bundles/css")
                 .Include("~/Content/site.css");
-            BundleTable.Bundles.Add(stylesBundle);
 
+            if (string.Equals(ConfigurationManager.AppSettings["Gallery.IntranetSite"], "true", StringComparison.InvariantCultureIgnoreCase))
+            {
+                stylesBundle.Include("~/Content/company.css");
+            }
+
+            BundleTable.Bundles.Add(stylesBundle);
         }
 
         private static void ElmahPreStart()
