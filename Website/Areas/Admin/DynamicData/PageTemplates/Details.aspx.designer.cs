@@ -7,13 +7,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NuGetGallery.Areas.Admin.DynamicData
-{
-
-
-    public partial class Details
-    {
-
+namespace NuGetGallery.Areas.Admin.DynamicData {
+    
+    
+    public partial class Details {
+        
         /// <summary>
         /// DynamicDataManager1 control.
         /// </summary>
@@ -22,7 +20,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.DynamicData.DynamicDataManager DynamicDataManager1;
-
+        
         /// <summary>
         /// UpdatePanel1 control.
         /// </summary>
@@ -31,7 +29,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.UpdatePanel UpdatePanel1;
-
+        
         /// <summary>
         /// ValidationSummary1 control.
         /// </summary>
@@ -40,7 +38,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.ValidationSummary ValidationSummary1;
-
+        
         /// <summary>
         /// DetailsViewValidator control.
         /// </summary>
@@ -49,16 +47,16 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.DynamicData.DynamicValidator DetailsViewValidator;
-
+        
         /// <summary>
-        /// FormView1 control.
+        /// DetailsView1 control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.FormView FormView1;
-
+        protected global::System.Web.UI.WebControls.DetailsView DetailsView1;
+        
         /// <summary>
         /// DetailsDataSource control.
         /// </summary>
@@ -67,7 +65,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.EntityDataSource DetailsDataSource;
-
+        
         /// <summary>
         /// DetailsQueryExtender control.
         /// </summary>
@@ -76,7 +74,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.QueryExtender DetailsQueryExtender;
-
+        
         /// <summary>
         /// ListHyperLink control.
         /// </summary>

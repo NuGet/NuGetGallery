@@ -35,6 +35,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             }
 
             // Disable various options if the table is readonly
+            GridView1.ColumnsGenerator = new OrderedFieldGenerator(table);
             if (table.IsReadOnly)
             {
                 GridView1.Columns[0].Visible = false;
