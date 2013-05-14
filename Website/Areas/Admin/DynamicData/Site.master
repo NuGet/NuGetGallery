@@ -32,7 +32,7 @@
     <div id="outer-wrapper">
         <div style="padding-left: 2em; padding-right: 2em;">
             <header class="main">
-                <div id="logo"><a href="@Url.Home()">NuGet Gallery</a></div>
+                <div id="logo"><a href="~/" runat="server">NuGet Gallery</a></div>
             </header>
             <nav class="main">
                 <ul id="menu">
