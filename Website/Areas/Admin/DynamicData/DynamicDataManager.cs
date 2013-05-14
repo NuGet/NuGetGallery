@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Web.DynamicData;
 using System.Web.Routing;
+using System.Web.UI;
 using DynamicData.EFCodeFirstProvider;
 
 namespace NuGetGallery.Areas.Admin.DynamicData
@@ -17,6 +18,24 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         private static DynamicDataRoute _route;
         
         public static void Register(RouteCollection routes, string root, IConfiguration configuration)
+        {
+            // Set up unobtrusive validation
+            InitializeValidation();
+
+            // Set up dynamic data
+            InitializeDynamicData(routes, root, configuration);
+        }
+
+        private static void InitializeValidation()
+        {
+            ScriptManager.ScriptResourceMapping.AddDefinition("jquery", new ScriptResourceDefinition()
+            {
+                Path = "~/Scripts/jquery-1.6.2.min.js",
+                DebugPath = "~/Scripts/jquery-1.6.2.js"
+            });
+        }
+
+        private static void InitializeDynamicData(RouteCollection routes, string root, IConfiguration configuration)
         {
             try
             {
