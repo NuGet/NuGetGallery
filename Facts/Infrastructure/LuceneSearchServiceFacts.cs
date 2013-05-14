@@ -14,34 +14,32 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void IndexAndSearchAPackageByDescription()
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
+            {
+                new Package
                 {
-                    new Package
+                    Key = 3,
+                    PackageRegistrationKey = 1,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 3,
-                        PackageRegistrationKey = 1,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "Package #1",
-                        },
-                        Title = "Package #1 4.2.0",
-                        Description = "Package #1 is an awesome package",
-                        Listed = true,
-                        IsLatestStable = true,
-                        IsLatest = true,
-                        IsPrerelease = true,
-                        DownloadCount = 100,
-                        FlattenedAuthors = "",
-                        SupportedFrameworks =
-                        {
-                            new PackageFramework { TargetFramework = "net45" },
-                        }
+                        Id = "Package #1",
+                    },
+                    Title = "Package #1 4.2.0",
+                    Description = "Package #1 is an awesome package",
+                    Listed = true,
+                    IsLatestStable = true,
+                    IsLatest = true,
+                    IsPrerelease = true,
+                    DownloadCount = 100,
+                    FlattenedAuthors = "",
+                    SupportedFrameworks =
+                    {
+                        new PackageFramework { TargetFramework = "net45" },
                     }
-                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                }
+            };
 
-            var results = IndexAndSearch(packageSource, "awesome");
+            var results = IndexAndSearch(packages, "awesome");
 
             Assert.Single(results);
             Assert.Equal(3, results[0].Key);
@@ -52,31 +50,29 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void IndexAndSearchDavid123For12()
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
+            {
+                new Package
                 {
-                    new Package
+                    Key = 49246,
+                    PackageRegistrationKey = 11500,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 49246,
-                        PackageRegistrationKey = 11500,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "DavidTest123",
-                            Key = 11500,
-                            DownloadCount = 495
-                        },
-                        Description = "Description",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "DavidX",
-                        Title = "DavidTest123",
-                        Version = "1.1",
-                    }
-                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                        Id = "DavidTest123",
+                        Key = 11500,
+                        DownloadCount = 495
+                    },
+                    Description = "Description",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "DavidX",
+                    Title = "DavidTest123",
+                    Version = "1.1",
+                }
+            };
 
-            var results = IndexAndSearch(packageSource, "12");
+            var results = IndexAndSearch(packages, "12");
 
             Assert.Single(results);
             Assert.Equal("DavidTest123", results[0].Title);
@@ -85,31 +81,29 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void IndexAndSearchWithWordStemming()
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
+            {
+                new Package
                 {
-                    new Package
+                    Key = 144,
+                    PackageRegistrationKey = 12,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 144,
-                        PackageRegistrationKey = 12,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "SuperzipLib",
-                            Key = 12,
-                            DownloadCount = 41
-                        },
-                        Description = "Library for compressing your filez",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "Eric",
-                        Title = "SuperzipLib",
-                        Version = "1.1.2",
-                    }
-                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                        Id = "SuperzipLib",
+                        Key = 12,
+                        DownloadCount = 41
+                    },
+                    Description = "Library for compressing your filez",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "Eric",
+                    Title = "SuperzipLib",
+                    Version = "1.1.2",
+                }
+            };
 
-            var results = IndexAndSearch(packageSource, "compressed");
+            var results = IndexAndSearch(packages, "compressed");
 
             Assert.Empty(results); // currently stemming is not working
             //Assert.Equal("SuperzipLib", results[0].Title);
@@ -118,49 +112,47 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void SearchUsingCombinedIdAndGeneralTerms()
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
+            {
+                new Package
                 {
-                    new Package
+                    Key = 144,
+                    PackageRegistrationKey = 12,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 144,
-                        PackageRegistrationKey = 12,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "RedDeath",
-                            Key = 12,
-                            DownloadCount = 41
-                        },
-                        Description = "Yeah",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "Eric I",
-                        Title = "Red Death",
-                        Version = "1.1.2",
+                        Id = "RedDeath",
+                        Key = 12,
+                        DownloadCount = 41
                     },
-                    new Package
+                    Description = "Yeah",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "Eric I",
+                    Title = "Red Death",
+                    Version = "1.1.2",
+                },
+                new Package
+                {
+                    Key = 144,
+                    PackageRegistrationKey = 12,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 144,
-                        PackageRegistrationKey = 12,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "RedHerring",
-                            Key = 12,
-                            DownloadCount = 41
-                        },
-                        Description = "Library for compressing your filez",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "Eric II",
-                        Title = "Red Herring",
-                        Version = "1.1.2",
+                        Id = "RedHerring",
+                        Key = 12,
+                        DownloadCount = 41
                     },
-                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                    Description = "Library for compressing your filez",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "Eric II",
+                    Title = "Red Herring",
+                    Version = "1.1.2",
+                },
+            };
 
-            var results = IndexAndSearch(packageSource, "Id:Red Death");
+            var results = IndexAndSearch(packages, "Id:Red Death");
 
             Assert.Equal(1, results.Count);
             Assert.Equal("Red Death", results[0].Title);
@@ -169,54 +161,52 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void SearchUsingExactPackageId()
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
+            {
+                new Package
+                {
+                    Key = 144,
+                    PackageRegistrationKey = 12,
+                    PackageRegistration = new PackageRegistration
                     {
-                        new Package
-                        {
-                            Key = 144,
-                            PackageRegistrationKey = 12,
-                            PackageRegistration = new PackageRegistration
-                            {
-                                Id = "NuGet.Core",
-                                Key = 12,
-                                DownloadCount = 25
-                            },
-                            Description = "NuGet.Core is the core framework assembly for NuGet",
-                            DownloadCount = 3,
-                            Listed = true,
-                            IsLatest = true,
-                            IsLatestStable = true,
-                            FlattenedAuthors = "M S C",
-                            Tags = "NuGetTag",
-                            Title = "NuGet.Core",
-                            Version = "1.5.20902.9026",
-                        },
-                        new Package
-                        {
-                            Key = 145,
-                            PackageRegistrationKey = 13,
-                            PackageRegistration = new PackageRegistration
-                            {
-                                Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
-                                Key = 13,
-                                DownloadCount = 25,
-                            },
-                            Description =
-                                "This isn't really NuGet.Core. The confusing package ID is the test!",
-                            DownloadCount = 3,
-                            Listed = true,
-                            IsLatest = true,
-                            IsLatestStable = true,
-                            FlattenedAuthors = "Laugh",
-                            Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
-                            Version = "1.5.20902.9026",
-                        }
-                    }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                        Id = "NuGet.Core",
+                        Key = 12,
+                        DownloadCount = 25
+                    },
+                    Description = "NuGet.Core is the core framework assembly for NuGet",
+                    DownloadCount = 3,
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "M S C",
+                    Tags = "NuGetTag",
+                    Title = "NuGet.Core",
+                    Version = "1.5.20902.9026",
+                },
+                new Package
+                {
+                    Key = 145,
+                    PackageRegistrationKey = 13,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                        Key = 13,
+                        DownloadCount = 25,
+                    },
+                    Description =
+                        "This isn't really NuGet.Core. The confusing package ID is the test!",
+                    DownloadCount = 3,
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "Laugh",
+                    Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                    Version = "1.5.20902.9026",
+                }
+            };
 
             // simple query
-            var results = IndexAndSearch(packageSource, "NuGet.Core");
+            var results = IndexAndSearch(packages, "NuGet.Core");
             Assert.Equal(2, results.Count);
             Assert.Equal("NuGet.Core", results[0].Title);
             Assert.Equal(144, results[0].Key);
@@ -245,54 +235,52 @@ namespace NuGetGallery.Infrastructure
         [InlineData("Tag", "dotnet")]
         public void SearchForNuGetCoreWithExactField(string field, string term)
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
+            {
+                new Package
                 {
-                    new Package
+                    Key = 144,
+                    PackageRegistrationKey = 12,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 144,
-                        PackageRegistrationKey = 12,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "NuGet.Core",
-                            Key = 12,
-                            DownloadCount = 41,
-                            Owners = { new User { Username = "NugetCoreOwner" } },
-                        },
-                        Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "Alpha Beta Gamma",
-                        Title = "NuGet.Core",
-                        Version = "1.5.20902.9026",
-                        Tags = "dotnet",
+                        Id = "NuGet.Core",
+                        Key = 12,
+                        DownloadCount = 41,
+                        Owners = { new User { Username = "NugetCoreOwner" } },
                     },
-                    new Package
+                    Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "Alpha Beta Gamma",
+                    Title = "NuGet.Core",
+                    Version = "1.5.20902.9026",
+                    Tags = "dotnet",
+                },
+                new Package
+                {
+                    Key = 145,
+                    PackageRegistrationKey = 13,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 145,
-                        PackageRegistrationKey = 13,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
-                            Key = 13,
-                            DownloadCount = 2,
-                            Owners = { new User { Username = "SomeOtherOwner" } },
-                        },
-                        Description = "This isn't really NuGet.Core. But it needs to look a bit like it for the test case!",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "Laugh",
-                        Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
-                        Version = "1.5.20902.9026",
-                        Tags = "javascript"
-                    }
-                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                        Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                        Key = 13,
+                        DownloadCount = 2,
+                        Owners = { new User { Username = "SomeOtherOwner" } },
+                    },
+                    Description = "This isn't really NuGet.Core. But it needs to look a bit like it for the test case!",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "Laugh",
+                    Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                    Version = "1.5.20902.9026",
+                    Tags = "javascript"
+                }
+            };
 
             // query targeted specifically against id field should work equally well
-            var results = IndexAndSearch(packageSource, field + ":" + term);
+            var results = IndexAndSearch(packages, field + ":" + term);
             Assert.NotEmpty(results);
             Assert.Equal("NuGet.Core", results[0].Title);
             Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
@@ -301,31 +289,29 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void SearchForJQueryUICombinedWithPartialId()
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
+            {
+                new Package
                 {
-                    new Package
+                    Key = 144,
+                    PackageRegistrationKey = 12,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 144,
-                        PackageRegistrationKey = 12,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "JQuery.UI.Combined",
-                            Key = 12,
-                            DownloadCount = 41
-                        },
-                        Description = "jQuery UI is etc etc and many more important things",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "Alpha Beta Gamma",
-                        Title = "JQuery UI (Combined Blobbary)",
-                        Tags = "web javascript",
+                        Id = "JQuery.UI.Combined",
+                        Key = 12,
+                        DownloadCount = 41
                     },
-                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                    Description = "jQuery UI is etc etc and many more important things",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "Alpha Beta Gamma",
+                    Title = "JQuery UI (Combined Blobbary)",
+                    Tags = "web javascript",
+                },
+            };
 
-            var results = IndexAndSearch(packageSource, "id:JQuery.ui");
+            var results = IndexAndSearch(packages, "id:JQuery.ui");
             Assert.NotEmpty(results);
             Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
         }
@@ -333,31 +319,29 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void SearchForDegenerateSingleQuoteQuery()
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
+            {
+                new Package
                 {
-                    new Package
+                    Key = 144,
+                    PackageRegistrationKey = 12,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 144,
-                        PackageRegistrationKey = 12,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "JQuery.UI.Combined",
-                            Key = 12,
-                            DownloadCount = 41
-                        },
-                        Description = "jQuery UI is etc etc and many more important things",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "Alpha Beta Gamma",
-                        Title = "JQuery UI (Combined Blobbary)",
-                        Tags = "web javascript",
+                        Id = "JQuery.UI.Combined",
+                        Key = 12,
+                        DownloadCount = 41
                     },
-                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                    Description = "jQuery UI is etc etc and many more important things",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "Alpha Beta Gamma",
+                    Title = "JQuery UI (Combined Blobbary)",
+                    Tags = "web javascript",
+                },
+            };
 
-            var results = IndexAndSearch(packageSource, "\"");
+            var results = IndexAndSearch(packages, "\"");
             Assert.NotEmpty(results);
             Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
         }
@@ -365,9 +349,7 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void SearchUsesPackageRegistrationDownloadCountsToPrioritize()
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
                 {
                     new Package
                     {
@@ -407,9 +389,9 @@ namespace NuGetGallery.Infrastructure
                         Title = "JQuery UI (Combined Blobbary)",
                         Tags = "web javascript",
                     },
-                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                };
 
-            var results = IndexAndSearch(packageSource, "");
+            var results = IndexAndSearch(packages, "");
             Assert.NotEmpty(results);
             Assert.Equal("JQuery.UI.Combined", results[0].PackageRegistration.Id);
             Assert.Equal("FooQuery", results[1].PackageRegistration.Id);
@@ -418,7 +400,6 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void IndexAndSearchRetrievesCanDriveV2Feed()
         {
-            var packageSource = new Mock<IPackageSource>();
             Package p = new Package
             {
                 Copyright = "Copyright 2013 by Oldies and Newies",
@@ -444,7 +425,7 @@ namespace NuGetGallery.Infrastructure
                 LastUpdated = DateTime.UtcNow,
                 LicenseUrl = "nuget.org/license.txt",
                 Listed = true,
-                MinClientVersion = new Version(1, 2, int.MaxValue, int.MaxValue-1).ToString(),
+                MinClientVersion = new Version(1, 2, int.MaxValue, int.MaxValue - 1).ToString(),
                 PackageFileSize = 234567,
                 ProjectUrl = "http://projecturl.com",
                 Published = DateTime.UtcNow,
@@ -464,8 +445,8 @@ namespace NuGetGallery.Infrastructure
                 Version = "3.4 RC",
             };
 
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(new Package[] { p }.Select(x => new PackageIndexEntity(x)).AsQueryable());
-            var results = IndexAndSearch(packageSource, "");
+            var packages = new[] { p };
+            var results = IndexAndSearch(packages, "");
             var r = results.AsQueryable().ToV2FeedPackageQuery("http://www.nuget.org/").First();
 
             Assert.Equal("Pride", r.Id);
@@ -502,39 +483,52 @@ namespace NuGetGallery.Infrastructure
         [Fact]
         public void SearchWorksAroundLuceneQuerySyntaxExceptions()
         {
-            var packageSource = new Mock<IPackageSource>();
-            packageSource.Setup(x => x.GetPackagesForIndexing(null)).Returns(
-                new List<Package>
+            var packages = new List<Package>
+            {
+                new Package
                 {
-                    new Package
+                    Key = 144,
+                    PackageRegistrationKey = 12,
+                    PackageRegistration = new PackageRegistration
                     {
-                        Key = 144,
-                        PackageRegistrationKey = 12,
-                        PackageRegistration = new PackageRegistration
-                        {
-                            Id = "NuGet.Core",
-                            Key = 12,
-                            DownloadCount = 41
-                        },
-                        Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
-                        Listed = true,
-                        IsLatest = true,
-                        IsLatestStable = true,
-                        FlattenedAuthors = "Alpha Beta Gamma",
-                        LicenseUrl = "http://nuget.codeplex.com/license",
-                        Title = "NuGet.Core",
-                        Version = "1.5.20902.9026",
+                        Id = "NuGet.Core",
+                        Key = 12,
+                        DownloadCount = 41
                     },
-                }.Select(p => new PackageIndexEntity(p)).AsQueryable());
+                    Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true,
+                    FlattenedAuthors = "Alpha Beta Gamma",
+                    LicenseUrl = "http://nuget.codeplex.com/license",
+                    Title = "NuGet.Core",
+                    Version = "1.5.20902.9026",
+                },
+            };
 
-            var results = IndexAndSearch(packageSource, "*Core"); // Lucene parser throws for leading asterisk in searches
+            var results = IndexAndSearch(packages, "*Core"); // Lucene parser throws for leading asterisk in searches
             Assert.NotEmpty(results);
         }
 
-        private IList<Package> IndexAndSearch(Mock<IPackageSource> packageSource, string searchTerm)
+        private IList<Package> IndexAndSearch(IEnumerable<Package> packages, string searchTerm)
         {
             Directory d = new RAMDirectory();
-            var luceneIndexingService = new LuceneIndexingService(packageSource.Object, d);
+
+            var mockPackageSource = new Mock<IEntityRepository<Package>>();
+            mockPackageSource
+                .Setup(m => m.GetAll())
+                .Returns(packages.AsQueryable());
+
+            var mockCuratedPackageSource = new Mock<IEntityRepository<CuratedPackage>>();
+            mockCuratedPackageSource
+                .Setup(m => m.GetAll())
+                .Returns(Enumerable.Empty<CuratedPackage>().AsQueryable());
+
+            var luceneIndexingService = new LuceneIndexingService(
+                mockPackageSource.Object,
+                mockCuratedPackageSource.Object,
+                d,
+                null);
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = new LuceneSearchService(d);
