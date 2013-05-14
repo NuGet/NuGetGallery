@@ -256,6 +256,9 @@
     <Compile Include="Admin.HomeController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Admin.LuceneController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Admin.SharedController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -263,6 +266,8 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
+    <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
+    <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -1140,6 +1145,9 @@
     <Content Include="App_Data\Files\Content\FrontPage-Announcement.md" />
     <Content Include="App_Data\Files\Content\FrontPage-About.md" />
     <Content Include="App_Data\Files\Content\Alert.md" />
+    <Content Include="Areas\Admin\Views\Lucene\Index.cshtml">
+      <SubType>Code</SubType>
+    </Content>
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
@@ -1160,7 +1168,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
-    <Folder Include="Areas\Admin\Models\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
   </ItemGroup>
   <PropertyGroup>

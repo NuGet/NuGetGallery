@@ -324,7 +324,9 @@ namespace NuGetGallery
                 httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
                 httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
 
-                var controller = CreateController(packageService: packageService, httpContext: httpContext);
+                var indexingService = new Mock<IIndexingService>();
+
+                var controller = CreateController(packageService: packageService, httpContext: httpContext, indexingService: indexingService);
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
@@ -332,6 +334,7 @@ namespace NuGetGallery
 
                 // Assert
                 packageService.Verify();
+                indexingService.Verify(i => i.UpdatePackage(package));
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }
@@ -357,7 +360,9 @@ namespace NuGetGallery
                 httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
                 httpContext.Setup(h => h.User.Identity.Name).Returns("Frodo");
 
-                var controller = CreateController(packageService: packageService, httpContext: httpContext);
+                var indexingService = new Mock<IIndexingService>();
+                
+                var controller = CreateController(packageService: packageService, httpContext: httpContext, indexingService: indexingService);
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
@@ -365,6 +370,7 @@ namespace NuGetGallery
 
                 // Assert
                 packageService.Verify();
+                indexingService.Verify(i => i.UpdatePackage(package));
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }

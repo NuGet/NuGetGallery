@@ -527,7 +527,8 @@ namespace NuGetGallery.Infrastructure
             var luceneIndexingService = new LuceneIndexingService(
                 mockPackageSource.Object,
                 mockCuratedPackageSource.Object,
-                d);
+                d,
+                null);
             luceneIndexingService.UpdateIndex(forceRefresh: true);
 
             var luceneSearchService = new LuceneSearchService(d);

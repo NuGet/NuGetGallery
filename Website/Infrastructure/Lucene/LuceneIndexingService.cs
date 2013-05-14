@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Lucene.Net.Index;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -15,7 +16,7 @@ namespace NuGetGallery
     {
         private static readonly object IndexWriterLock = new object();
 
-        private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromDays(3);
+        private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromHours(3);
 
         private static ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter> WriterCache =
             new ConcurrentDictionary<Lucene.Net.Store.Directory, IndexWriter>();
@@ -25,23 +26,18 @@ namespace NuGetGallery
         private IEntityRepository<Package> _packageRepository;
         private IEntityRepository<CuratedPackage> _curatedPackageRepository;
 
+        private IDiagnosticsSource Trace { get; set; }
+
         public LuceneIndexingService(
             IEntityRepository<Package> packageSource,
             IEntityRepository<CuratedPackage> curatedPackageSource,
-            Lucene.Net.Store.Directory directory)
+            Lucene.Net.Store.Directory directory,
+			IDiagnosticsService diagnostics)
         {
             _packageRepository = packageSource;
             _curatedPackageRepository = curatedPackageSource;
             _directory = directory;
-        }
-
-        public LuceneIndexingService(
-            EntitiesContext entitiesContext, 
-            Lucene.Net.Store.Directory directory)
-        {
-            _packageRepository = new EntityRepository<Package>(entitiesContext);
-            _curatedPackageRepository = new EntityRepository<CuratedPackage>(entitiesContext);
-            _directory = directory;
+            Trace = diagnostics.SafeGetSource("LuceneIndexingService");
         }
 
         public void UpdateIndex()
@@ -74,6 +70,28 @@ namespace NuGetGallery
             }
 
             UpdateLastWriteTime();
+        }
+
+        public void UpdatePackage(Package package)
+        {
+            // Just update the provided package
+            using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key)))
+            {
+                EnsureIndexWriter(creatingIndex: false);
+                var indexEntity = new PackageIndexEntity(package);
+                var updateTerm = new Term("PackageRegistrationKey", package.PackageRegistrationKey.ToString(CultureInfo.InvariantCulture));
+                if (package.Listed)
+                {
+                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString()));
+                    _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
+                }
+                else
+                {
+                    Trace.Information(String.Format(CultureInfo.CurrentCulture, "Deleting Document: {0}", updateTerm.ToString()));
+                    _indexWriter.DeleteDocuments(updateTerm);
+                }
+                _indexWriter.Commit();
+            }
         }
 
         private List<PackageIndexEntity> GetPackages(DateTime? lastIndexTime)
@@ -139,6 +157,15 @@ namespace NuGetGallery
             _indexWriter.Commit();
         }
 
+        public virtual DateTime? GetLastWriteTime()
+        {
+            if (!File.Exists(LuceneCommon.IndexMetadataPath))
+            {
+                return null;
+            }
+            return File.GetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath);
+        }
+
         private void AddPackage(PackageIndexEntity packageInfo)
         {
             _indexWriter.AddDocument(packageInfo.ToDocument());
@@ -187,15 +214,6 @@ namespace NuGetGallery
 
             // If we've never created the index, it needs to be refreshed.
             return true;
-        }
-
-        protected internal virtual DateTime? GetLastWriteTime()
-        {
-            if (!File.Exists(LuceneCommon.IndexMetadataPath))
-            {
-                return null;
-            }
-            return File.GetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath);
         }
 
         protected internal virtual void UpdateLastWriteTime()
