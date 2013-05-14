@@ -14,8 +14,11 @@ namespace NuGetGallery
         public LuceneIndexingJob(TimeSpan frequence, Func<EntitiesContext> contextThunk, TimeSpan timeout)
             : base("Lucene", frequence, timeout)
         {
+            var context = contextThunk();
+
             _indexingService = new LuceneIndexingService(
-                contextThunk(),
+                new EntityRepository<Package>(context),
+                new EntityRepository<CuratedPackage>(context),
                 LuceneCommon.GetDirectory(),
                 null);
 
