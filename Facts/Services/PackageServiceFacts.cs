@@ -79,7 +79,6 @@ namespace NuGetGallery
         }
 
         private static IPackageService CreateService(
-            Mock<ICryptographyService> cryptoService = null, 
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null, 
             Mock<IEntityRepository<Package>> packageRepository = null, 
             Mock<IEntityRepository<PackageStatistics>> packageStatsRepo = null, 
@@ -87,13 +86,6 @@ namespace NuGetGallery
             Mock<IIndexingService> indexingService = null, 
             Action<Mock<PackageService>> setup = null)
         {
-            if (cryptoService == null)
-            {
-                cryptoService = new Mock<ICryptographyService>();
-                cryptoService.Setup(x => x.GenerateHash(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, Constants.Sha512HashAlgorithmId))
-                    .Returns("theHash");
-            }
-
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             packageStatsRepo = packageStatsRepo ?? new Mock<IEntityRepository<PackageStatistics>>();
@@ -101,7 +93,6 @@ namespace NuGetGallery
             indexingService = indexingService ?? new Mock<IIndexingService>();
 
             var packageService = new Mock<PackageService>(
-                cryptoService.Object,
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageStatsRepo.Object,
@@ -493,7 +484,8 @@ namespace NuGetGallery
 
                 var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
-                Assert.Equal("theHash", package.Hash);
+                var expectedHash = CryptographyService.GenerateHash(CreateNuGetPackage().Object.GetStream().ReadAllBytes(), Constants.Sha512HashAlgorithmId);
+                Assert.Equal(expectedHash, package.Hash);
                 Assert.Equal(Constants.Sha512HashAlgorithmId, package.HashAlgorithm);
             }
 

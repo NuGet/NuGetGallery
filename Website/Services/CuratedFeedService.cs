@@ -48,7 +48,7 @@ namespace NuGetGallery
             {
                 curatedPackage = new CuratedPackage
                 {
-                    PackageRegistrationKey = packageRegistration.Key,
+                    PackageRegistration = packageRegistration,
                     Included = included,
                     AutomaticallyCurated = automaticallyCurated,
                     Notes = notes,

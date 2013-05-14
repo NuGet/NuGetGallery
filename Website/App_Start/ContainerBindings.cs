@@ -127,16 +127,8 @@ namespace NuGetGallery
                 .To<UserService>()
                 .InRequestScope();
 
-            Bind<IPackageSource>()
-                .To<PackageSource>()
-                .InRequestScope();
-
             Bind<IPackageService>()
                 .To<PackageService>()
-                .InRequestScope();
-
-            Bind<ICryptographyService>()
-                .To<CryptographyService>()
                 .InRequestScope();
 
             Bind<IFormsAuthenticationService>()
@@ -241,14 +233,6 @@ namespace NuGetGallery
             // todo: bind all commands by convention
             Bind<IAutomaticallyCuratePackageCommand>()
                 .To<AutomaticallyCuratePackageCommand>()
-                .InRequestScope();
-
-            // todo: bind all queries by convention
-            Bind<IPackageRegistrationByKeyQuery>()
-                .To<PackageRegistrationByKeyQuery>()
-                .InRequestScope();
-            Bind<IPackageRegistrationByIdQuery>()
-                .To<PackageRegistrationByIdQuery>()
                 .InRequestScope();
 
             Bind<IAggregateStatsService>()

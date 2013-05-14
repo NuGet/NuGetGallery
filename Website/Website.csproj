@@ -28,6 +28,7 @@
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
     <TargetFrameworkProfile />
+    <IISExpressSSLPort>443</IISExpressSSLPort>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -255,12 +256,18 @@
     <Compile Include="Admin.HomeController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Admin.LuceneController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Admin.SharedController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
+    <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
+    <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -764,8 +771,6 @@
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
-    <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
-    <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
@@ -793,7 +798,6 @@
     <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\INuGetExeDownloaderService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
-    <Compile Include="Services\IPackageSource.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\LocalFileReference.cs" />
@@ -802,7 +806,6 @@
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\AggregateStatsService.cs" />
-    <Compile Include="Services\PackageSource.cs" />
     <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
@@ -876,7 +879,6 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
     <Compile Include="App_Start\IConfiguration.cs" />
-    <Compile Include="Services\ICryptographyService.cs" />
     <Compile Include="Entities\IEntity.cs" />
     <Compile Include="Services\IFormsAuthenticationService.cs" />
     <Compile Include="Services\IPackageFileService.cs" />
@@ -1037,6 +1039,8 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="robots.txt" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\nugetgallery.js" />
     <Content Include="Scripts\statsdimensions.js" />
     <Content Include="Scripts\jquery.treeview.js" />
@@ -1050,7 +1054,6 @@
     <Content Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\ZeroClipboard.js" />
     <Content Include="Scripts\ZeroClipboard.swf" />
@@ -1143,6 +1146,9 @@
     <Content Include="App_Data\Files\Content\FrontPage-Announcement.md" />
     <Content Include="App_Data\Files\Content\FrontPage-About.md" />
     <Content Include="App_Data\Files\Content\Alert.md" />
+    <Content Include="Areas\Admin\Views\Lucene\Index.cshtml">
+      <SubType>Code</SubType>
+    </Content>
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
@@ -1163,7 +1169,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
-    <Folder Include="Areas\Admin\Models\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
   </ItemGroup>
   <PropertyGroup>
