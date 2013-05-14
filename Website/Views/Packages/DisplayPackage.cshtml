@@ -49,7 +49,7 @@
                 @(Model.DownloadCount == 1 ? "Download" : "Downloads") of v @Model.Version</p>
         </div>
         <div class="stat">
-            <p class="stat-number">@Model.LastUpdated.ToString("yyyy-MM-dd")</p>
+            <p class="stat-number">@Model.LastUpdated.ToNuGetShortDateString()</p>
             <p class="stat-label">
                 Last update</p>
         </div>
@@ -230,7 +230,7 @@
                         </td>
                         <td>@packageVersion.DownloadCount
                         </td>
-                        <td>@packageVersion.LastUpdated.ToString("D")
+                        <td>@packageVersion.LastUpdated.ToNuGetLongDateString()
                         </td>
                         @if (Model.IsOwner(User))
                         {
