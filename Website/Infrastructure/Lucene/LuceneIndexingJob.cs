@@ -15,7 +15,7 @@ namespace NuGetGallery
             : base("Lucene", frequence, timeout)
         {
             _indexingService = new LuceneIndexingService(
-                new PackageSource(contextThunk()),
+                contextThunk(),
                 LuceneCommon.GetDirectory(),
                 null);
 

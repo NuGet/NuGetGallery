@@ -7,11 +7,11 @@ using System.Web.Helpers;
 
 namespace NuGetGallery
 {
-    public class CryptographyService : ICryptographyService
+    public class CryptographyService
     {
         private const int SaltLengthInBytes = 16;
 
-        public string GenerateHash(
+        public static string GenerateHash(
             byte[] input,
             string hashAlgorithmId = Constants.Sha512HashAlgorithmId)
         {
@@ -26,7 +26,7 @@ namespace NuGetGallery
             return hash;
         }
 
-        public string GenerateSaltedHash(
+        public static string GenerateSaltedHash(
             string input,
             string hashAlgorithmId)
         {
@@ -38,7 +38,7 @@ namespace NuGetGallery
             return GenerateLegacySaltedHash(input, hashAlgorithmId);
         }
 
-        public string GenerateToken()
+        public static string GenerateToken()
         {
             var data = new byte[0x10];
 
@@ -50,15 +50,15 @@ namespace NuGetGallery
             }
         }
 
-        public bool ValidateHash(
+        public static bool ValidateHash(
             string hash,
             byte[] input,
             string hashAlgorithmId = Constants.Sha512HashAlgorithmId)
         {
-            return hash.Equals(GenerateHash(input));
+            return hash.Equals(GenerateHash(input, hashAlgorithmId));
         }
 
-        public bool ValidateSaltedHash(
+        public static bool ValidateSaltedHash(
             string hash,
             string input,
             string hashAlgorithmId)
