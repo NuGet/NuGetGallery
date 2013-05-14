@@ -59,10 +59,10 @@ namespace NuGetGallery.Areas.Admin.DynamicData
                 .ToList();
         }
 
-        private IEnumerable<MetaColumn> SortColumns(MetaTable _table, IEnumerable<MetaColumn> columns)
+        private static IEnumerable<MetaColumn> SortColumns(MetaTable table, IEnumerable<MetaColumn> columns)
         {
             string[] order;
-            if (!SortOrders.TryGetValue(_table.Name, out order))
+            if (!SortOrders.TryGetValue(table.Name, out order))
             {
                 order = new string[0];
             }
