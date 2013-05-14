@@ -1039,6 +1039,8 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="robots.txt" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
+    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\nugetgallery.js" />
     <Content Include="Scripts\statsdimensions.js" />
     <Content Include="Scripts\jquery.treeview.js" />
@@ -1052,7 +1054,6 @@
     <Content Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\ZeroClipboard.js" />
     <Content Include="Scripts\ZeroClipboard.swf" />
