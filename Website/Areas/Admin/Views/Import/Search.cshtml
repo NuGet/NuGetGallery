@@ -6,14 +6,13 @@
 
 <hgroup class="search-form">
     <h1>Search for a NuGet Package to Import</h1>
-    @using (Html.BeginForm("Search"))
-    {
+   <form method="get" action="">
         <fieldset class="form">
             @Html.ValidationSummary(true)
-            @Html.TextBox("q")
+            @Html.TextBox("q", Model.SearchTerm)
             <input type="submit" value="Search" title="Search" />
         </fieldset>            
-    }
+    </form>
 </hgroup>
 
 <hgroup class="search">

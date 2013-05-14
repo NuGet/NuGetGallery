@@ -83,10 +83,11 @@ namespace NuGetGallery.Areas.Admin.Controllers {
     public class T4MVC_ImportController: NuGetGallery.Areas.Admin.Controllers.ImportController {
         public T4MVC_ImportController() : base(Dummy.Instance) { }
 
-        public override System.Web.Mvc.ActionResult Details(string id, string version) {
+        public override System.Web.Mvc.ActionResult Details(string id, string version, bool prerelease) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Details);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
+            callInfo.RouteValueDictionary.Add("prerelease", prerelease);
             return callInfo;
         }
 

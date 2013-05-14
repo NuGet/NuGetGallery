@@ -15,11 +15,15 @@ using NuGetGallery.NuGetService;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
+    using V2FeedPackage = NuGetGallery.NuGetService.V2FeedPackage;
+
     /// <summary>
     /// Controller for importing directly from the NuGet official package source.
     /// </summary>
     public partial class ImportController : AdminControllerBase
     {
+        private const int MaxVersionCount = 100;
+
         private FeedContext_x0060_1 _nugetFeedContext;
 
         private readonly IConfiguration _config;
@@ -56,22 +60,26 @@ namespace NuGetGallery.Areas.Admin.Controllers
         /// </summary>
         /// <param name="id">The package id.</param>
         /// <param name="version">The package version.</param>
-        /// <returns>Page with details for package.</returns>
-        public virtual ActionResult Details(string id, string version)
+        /// <param name="prerelease">if set to <c>true</c> show prerelease in history.</param>
+        /// <returns>
+        /// Page with details for package.
+        /// </returns>
+        public virtual ActionResult Details(string id, string version, bool prerelease = false)
         {
-            var packages = _nugetFeedContext.Packages.Where(p => p.Id == id)
-                            .OrderByDescending(p => p.Version);
-            NuGetService.V2FeedPackage package = null;
-            
+            // Filter by version if specified.
+            IQueryable<V2FeedPackage> packageQuery = _nugetFeedContext.Packages.Where(p => p.Id == id);
             if (!string.IsNullOrWhiteSpace(version))
             {
-                package = packages.Where(p => p.Version == version).FirstOrDefault();
+                packageQuery = packageQuery.Where(p => p.Version == version);
             }
-            else
+
+            // Filter out pre-release if specified.
+            if (!prerelease)
             {
-                package = packages.FirstOrDefault();
+                packageQuery = packageQuery.Where(p => !p.IsPrerelease);
             }
-            
+
+            var package = packageQuery.OrderByDescending(p => p.Version).FirstOrDefault();
             if (package == null)
             {
                 return HttpNotFound();
@@ -81,7 +89,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var existingPackage = _packageService.FindPackageByIdAndVersion(id, version);
             var importedVersions = existingPackage != null ? existingPackage.PackageRegistration.Packages.Select(p => p.Version) : Enumerable.Empty<string>();
 
-            var model = new ImportPackageViewModel(package, packages, importedVersions);
+            // Get multiple pages of history.
+            var versionsQuery = _nugetFeedContext.Packages.Where(p => p.Id == id);
+            if (!prerelease)
+            {
+               versionsQuery = versionsQuery.Where(p => !p.IsPrerelease);
+            }
+            
+            versionsQuery = versionsQuery.OrderByDescending(p => p.Version);
+            var packageVersions = versionsQuery.ToList();
+            int lastCount = 0;
+            while (packageVersions.Count < MaxVersionCount && packageVersions.Count > lastCount)
+            {
+                lastCount = packageVersions.Count;
+                var nextPageVersions = versionsQuery.Skip(packageVersions.Count).ToList();
+                packageVersions.AddRange(nextPageVersions);
+            }
+
+            var model = new ImportPackageViewModel(package, packageVersions, importedVersions);
             ViewBag.FacebookAppID = _config.FacebookAppID;
             return View(model);
         }
@@ -96,6 +121,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
         /// <returns>Search results.</returns>
         public virtual ActionResult Search(string q, string sortOrder = null, int page = 1, bool prerelease = false)
         {
+            // Pass on pre-release display to details page for package history.
+            ViewBag.PreRelease = prerelease ? "true" : "";
+
             if (page < 1)
             {
                 page = 1;
@@ -111,14 +139,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             // Get all packages with matching title or tags.
-            IQueryable<NuGetService.V2FeedPackage> packages = from p in _nugetFeedContext.Packages
-                                                 where p.IsLatestVersion && (p.Title.Contains(q) || p.Tags.Contains(q))
-                                                 select p;
-
             // Show pre-release if specified.
-            if (!prerelease)
+            IQueryable<NuGetService.V2FeedPackage> packages = null;
+            if (prerelease)
             {
-                packages = packages.Where(p => !p.IsPrerelease);
+                packages = from p in _nugetFeedContext.Packages
+                            where p.IsLatestVersion && (p.Title.Contains(q) || p.Tags.Contains(q))
+                            select p;
+            }
+            else
+            {
+                packages = from p in _nugetFeedContext.Packages
+                           where !p.IsPrerelease && p.IsLatestVersion && (p.Title.Contains(q) || p.Tags.Contains(q))
+                           select p;                
             }
 
             // Set requested sort order.
