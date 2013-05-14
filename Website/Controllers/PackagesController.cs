@@ -529,7 +529,7 @@ namespace NuGetGallery
             }
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture,
-                "The package has been {0}. It may take a few hours for this change to propagate through our system.", 
+                "The package has been {0}. It may take several hours for this change to propagate through our system.", 
                 action);
 
             // Update the index
