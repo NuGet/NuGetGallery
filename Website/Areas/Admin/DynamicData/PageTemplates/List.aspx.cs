@@ -27,6 +27,12 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             // Set the search data fields to all the string columns
             var searchExpression = (SearchExpression)GridQueryExtender.Expressions[1];
             searchExpression.DataFields = String.Join(",", table.Columns.Where(c => c.IsString).Select(c => c.Name));
+            if (String.IsNullOrEmpty(searchExpression.DataFields))
+            {
+                // No string fields, remove the search elements
+                SearchPanel.Visible = false;
+                GridQueryExtender.Expressions.Remove(searchExpression);
+            }
 
             // Disable various options if the table is readonly
             if (table.IsReadOnly)

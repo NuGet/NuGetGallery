@@ -21,7 +21,9 @@
                     HeaderText="List of validation errors" CssClass="DDValidator" />
                 <asp:DynamicValidator runat="server" ID="GridViewValidator" ControlToValidate="GridView1" Display="None" CssClass="DDValidator" />
 
-                <asp:TextBox runat="server" ID="search" /><asp:Button Text="Search" runat="server" /><br />
+                <asp:Placeholder ID="SearchPanel" runat="server">
+                    <asp:TextBox runat="server" ID="search" /><asp:Button Text="Search" runat="server" /><br />
+                </asp:Placeholder>
 
                 <asp:QueryableFilterRepeater runat="server" ID="FilterRepeater">
                     <ItemTemplate>
