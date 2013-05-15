@@ -63,23 +63,23 @@ namespace NuGetGallery
             {
                 var feedFilterQuery = new TermQuery(new Term("CuratedFeedKey", searchFilter.CuratedFeedKey.Value.ToString(CultureInfo.InvariantCulture)));
                 BooleanQuery conjunctionQuery = new BooleanQuery();
-                conjunctionQuery.Add(filterQuery, BooleanClause.Occur.MUST);
-                conjunctionQuery.Add(feedFilterQuery, BooleanClause.Occur.MUST);
+                conjunctionQuery.Add(filterQuery, Occur.MUST);
+                conjunctionQuery.Add(feedFilterQuery, Occur.MUST);
                 filterQuery = conjunctionQuery;
             }
 
             Filter filter = new QueryWrapperFilter(filterQuery);
             var results = searcher.Search(query, filter: filter, n: numRecords, sort: new Sort(GetSortField(searchFilter)));
-            totalHits = results.totalHits;
+            totalHits = results.TotalHits;
 
-            if (results.totalHits == 0 || searchFilter.CountOnly)
+            if (results.TotalHits == 0 || searchFilter.CountOnly)
             {
                 return Enumerable.Empty<Package>().AsQueryable();
             }
 
-            var packages = results.scoreDocs
+            var packages = results.ScoreDocs
                                   .Skip(searchFilter.Skip)
-                                  .Select(sd => PackageFromDoc(searcher.Doc(sd.doc)))
+                                  .Select(sd => PackageFromDoc(searcher.Doc(sd.Doc)))
                                   .ToList();
             return packages.AsQueryable();
         }
@@ -211,14 +211,14 @@ namespace NuGetGallery
 
                 if (!IsDegenerateQuery(generalQuery))
                 {
-                    combinedQuery.Add(generalQuery, BooleanClause.Occur.MUST);
+                    combinedQuery.Add(generalQuery, Occur.MUST);
                 }
 
                 foreach (var fieldQuery in fieldSpecificQueries)
                 {
                     if (!IsDegenerateQuery(fieldQuery))
                     {
-                        combinedQuery.Add(fieldQuery, BooleanClause.Occur.MUST);
+                        combinedQuery.Add(fieldQuery, Occur.MUST);
                     }
                 }
 
@@ -237,15 +237,15 @@ namespace NuGetGallery
         {
             // All terms in the multi-term query appear in at least one of the target fields.
             var conjuctionQuery = new BooleanQuery();
-            conjuctionQuery.SetBoost(2.0f);
+            conjuctionQuery.Boost = 2.0f;
 
             // Some terms in the multi-term query appear in at least one of the target fields.
             var disjunctionQuery = new BooleanQuery();
-            disjunctionQuery.SetBoost(0.1f);
+            disjunctionQuery.Boost = 0.1f;
 
             // Suffix wildcard search e.g. jquer*
             var wildCardQuery = new BooleanQuery();
-            wildCardQuery.SetBoost(0.5f);
+            wildCardQuery.Boost = 0.5f;
 
             string escapedExactId = originalSearchText.ToLowerInvariant();
 
@@ -254,7 +254,7 @@ namespace NuGetGallery
             if (doExactId)
             {
                 exactIdQuery = new TermQuery(new Term("Id-Exact", escapedExactId));
-                exactIdQuery.SetBoost(7.5f);
+                exactIdQuery.Boost = 7.5f;
 
                 wildCardIdQuery = new WildcardQuery(new Term("Id-Exact", "*" + escapedExactId + "*"));
             }
@@ -264,13 +264,13 @@ namespace NuGetGallery
             {
                 string escapedApproximateId = string.Join(" ", generalTerms.Select(c => c.TermOrPhrase));
                 nearlyExactIdQuery = AnalysisHelper.GetFieldQuery(analyzer, "Id", escapedApproximateId);
-                nearlyExactIdQuery.SetBoost(2.0f);
+                nearlyExactIdQuery.Boost = 2.0f;
             }
 
             foreach (var termQuery in generalQueries)
             {
-                conjuctionQuery.Add(termQuery, BooleanClause.Occur.MUST);
-                disjunctionQuery.Add(termQuery, BooleanClause.Occur.SHOULD);
+                conjuctionQuery.Add(termQuery, Occur.MUST);
+                disjunctionQuery.Add(termQuery, Occur.SHOULD);
             }
 
             var sanitizedTerms = generalTerms.Select(c => c.TermOrPhrase.ToLowerInvariant());
@@ -279,8 +279,8 @@ namespace NuGetGallery
                 foreach (var field in Fields)
                 {
                     var wildCardTermQuery = new WildcardQuery(new Term(field, sanitizedTerm + "*"));
-                    wildCardTermQuery.SetBoost(0.7f);
-                    wildCardQuery.Add(wildCardTermQuery, BooleanClause.Occur.SHOULD);
+                    wildCardTermQuery.Boost = 0.7f;
+                    wildCardQuery.Add(wildCardTermQuery, Occur.SHOULD);
                 }
             }
 
@@ -329,7 +329,7 @@ namespace NuGetGallery
 
         private static bool IsDegenerateQuery(Query q)
         {
-            return q == null || (q is MatchAllDocsQuery) || ((q is BooleanQuery) && (q as BooleanQuery).Clauses().Count == 0);
+            return q == null || (q is MatchAllDocsQuery) || ((q is BooleanQuery) && (q as BooleanQuery).Clauses.Count == 0);
         }
 
         private static SortField GetSortField(SearchFilter searchFilter)

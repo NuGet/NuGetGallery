@@ -9,7 +9,7 @@ namespace NuGetGallery
     {
         internal static readonly string IndexDirectory = HostingEnvironment.MapPath("~/App_Data/Lucene");
         internal static readonly string IndexMetadataPath = Path.Combine(IndexDirectory ?? ".", "index.metadata");
-        internal static readonly Version LuceneVersion = Version.LUCENE_29;
+        internal static readonly Version LuceneVersion = Version.LUCENE_30;
 
         // Factory method for DI/IOC that creates the directory the index is stored in.
         // Used by real website. Bypassed for unit tests.
