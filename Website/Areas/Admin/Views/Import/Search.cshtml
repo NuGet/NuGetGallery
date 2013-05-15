@@ -7,11 +7,13 @@
 <hgroup class="search-form">
     <h1>Search for a NuGet Package to Import</h1>
    <form method="get" action="">
-        <fieldset class="form">
-            @Html.ValidationSummary(true)
-            @Html.TextBox("q", Model.SearchTerm)
-            <input type="submit" value="Search" title="Search" />
-        </fieldset>            
+       <fieldset class="form">
+           <input type="hidden" name="sortOrder" value="@Model.SortOrder" />
+           <input type="hidden" name="prerelease" value="@Model.IncludePrerelease" />
+           @Html.ValidationSummary(true)
+           @Html.TextBox("q", Model.SearchTerm)
+           <input type="submit" value="Search" title="Search" />
+       </fieldset>            
     </form>
 </hgroup>
 
