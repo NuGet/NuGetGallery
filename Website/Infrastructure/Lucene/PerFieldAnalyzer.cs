@@ -20,7 +20,6 @@ namespace NuGetGallery
             {
                 { "Id", new StandardAnalyzer(LuceneCommon.LuceneVersion, new HashSet<string>()) },
                 { "Title", new TitleAnalyzer() },
-                //{ "Title", new StandardAnalyzer(LuceneCommon.LuceneVersion) },
                 { "Description", new DescriptionAnalyzer() },
                 { "Tags", new DescriptionAnalyzer() },
             };
@@ -33,7 +32,7 @@ namespace NuGetGallery
         {
             private static readonly WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer();
 
-            public override TokenStream TokenStream(String fieldName, System.IO.TextReader reader)
+            public override TokenStream TokenStream(string fieldName, TextReader reader)
             {
                 // Split the title based on IdSeparators, then run it through the innerAnalyzer
                 string title = reader.ReadToEnd();
@@ -58,7 +57,7 @@ namespace NuGetGallery
 
             private static readonly WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer();
 
-            public override TokenStream TokenStream(String fieldName, System.IO.TextReader reader)
+            public override TokenStream TokenStream(string fieldName, TextReader reader)
             {
                 TokenStream result = whitespaceAnalyzer.TokenStream(fieldName, reader);
                 result = new LowerCaseFilter(result);
