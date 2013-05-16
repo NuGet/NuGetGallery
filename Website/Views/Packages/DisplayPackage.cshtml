@@ -91,9 +91,9 @@
                 <li><a href="@Url.ManagePackageOwners(Model)">Manage Owners</a></li>
                 <li><a href="@Url.DeletePackage(Model)" class="delete">Delete Package</a></li>
             }
-            @if (string.Equals(ConfigurationManager.AppSettings["Gallery.IntranetSite"], "true", StringComparison.InvariantCultureIgnoreCase) && User.IsAdministrator())
+            @if (ConfigHelper.IsIntranetSite && User.IsAdministrator())
             {
-                <li><a href="@Url.Action("Details", "Import", new { Model.Id, Model.Version, Area = "Admin" })">Import Versions</a></li>
+                <li><a href="@Url.AdminImportDetails(Model.Id, Model.Version, (string)ViewBag.PreRelease, Model.UseVersion)">Import Versions</a></li>
             }
             @if (StatisticsHelper.IsStatisticsPageAvailable)
             {
