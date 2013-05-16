@@ -1,4 +1,4 @@
-﻿@using System.Configuration
+﻿@using NuGetGallery
 @{
     ViewBag.Title = "Site Administration";
     ViewBag.Tab = "Admin";
@@ -13,7 +13,7 @@
                 Get direct access to the database to manipulate Users, Packages, etc. USE WITH CAUTION.
             </p>
         </li>
-        @if (string.Equals(ConfigurationManager.AppSettings["Gallery.IntranetSite"], "true", StringComparison.InvariantCultureIgnoreCase))
+        @if (ConfigHelper.IsIntranetSite)
         {
             <li id="importAdmin">
                 <h2><a href="~/Admin/Import">Official NuGet Package Import</a></h2>

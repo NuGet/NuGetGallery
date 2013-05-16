@@ -45,7 +45,7 @@ namespace NuGetGallery
             DbMigratorPostStart();
             BackgroundJobsPostStart(config);
             AppPostStart();
-            BundlingPostStart();
+            BundlingPostStart(config);
         }
 
         public static void Stop()
@@ -59,7 +59,7 @@ namespace NuGetGallery
             DynamicModuleUtility.RegisterModule(typeof(Glimpse.AspNet.HttpModule));
         }
 
-        private static void BundlingPostStart()
+        private static void BundlingPostStart(IConfiguration config)
         {
             var scriptBundle = new ScriptBundle("~/bundles/js")
                 .Include("~/Scripts/jquery-{version}.js")
@@ -77,9 +77,9 @@ namespace NuGetGallery
             var stylesBundle = new StyleBundle("~/bundles/css")
                 .Include("~/Content/site.css");
 
-            if (string.Equals(ConfigurationManager.AppSettings["Gallery.IntranetSite"], "true", StringComparison.InvariantCultureIgnoreCase))
+            if (config.IsIntranetSite)
             {
-                stylesBundle.Include("~/Content/company.css");
+                stylesBundle.Include("~/Content/intranet.css");
             }
 
             BundleTable.Bundles.Add(stylesBundle);

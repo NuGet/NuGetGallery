@@ -9,7 +9,7 @@
                 @foreach (var dependency in Model)
                 {
                     <li>
-                        <a href="@Url.Action("Details", new { dependency.Id })">@dependency.Id</a>
+                        <a href="@Url.AdminImportDetails(dependency.Id)">@dependency.Id</a>
                         <span>@dependency.VersionSpec</span>
                     </li>
                 }

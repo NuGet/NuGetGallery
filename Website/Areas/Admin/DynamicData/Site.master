@@ -32,6 +32,10 @@
     <div id="outer-wrapper">
         <div style="padding-left: 2em; padding-right: 2em;">
             <header class="main">
+                @if (ConfigHelper.IsIntranetSite)
+                {
+                    <a id="company-logo" href="@ConfigHelper.IntranetCompanyUrl">&nbsp;</a>
+                }                
                 <div id="logo"><a href="@Url.Home()">NuGet Gallery</a></div>
             </header>
             <nav class="main">

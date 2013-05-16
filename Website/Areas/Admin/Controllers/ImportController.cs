@@ -51,8 +51,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _uploadFileService = uploadFileService;
             _cacheService = cacheService;
             _config = config;
-            var nugetOfficialUrl = ConfigurationManager.AppSettings["Gallery.OfficialNuGetUrl"];
-            _nugetFeedContext = new FeedContext_x0060_1(new Uri(nugetOfficialUrl));
+            _nugetFeedContext = new FeedContext_x0060_1(new Uri(config.OfficialNuGetUrl));
         }
 
         /// <summary>
@@ -242,7 +241,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 try
                 {
                     // Download package from official NuGet source.
-                    string downloadUrl = string.Format("{0}/package/{1}/{2}", ConfigurationManager.AppSettings["Gallery.OfficialNuGetUrl"], importModel.Id, importModel.Version);
+                    string downloadUrl = string.Format("{0}/package/{1}/{2}", _config.OfficialNuGetUrl, importModel.Id, importModel.Version);
                     var httpClient = new HttpClient(new Uri(downloadUrl));
                     httpClient.DownloadData(uploadStream);
                     nuGetPackage = CreatePackage(uploadStream);
