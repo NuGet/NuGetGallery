@@ -563,6 +563,7 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
+    <Compile Include="Helpers\ConfigHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\QuietLog.cs" />
     <Compile Include="Helpers\StringHelper.cs" />
@@ -972,10 +973,10 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
     <Content Include="Areas\Admin\DynamicData\Site.css" />
-    <Content Include="Content\Company.css" />
+    <Content Include="Content\Intranet.css" />
     <Content Include="clientaccesspolicy.xml" />
     <Content Include="Content\Images\changePassword.png" />
-    <Content Include="Content\Images\companyLogo.png" />
+    <Content Include="Content\Images\intranet\companyLogo.png" />
     <Content Include="Content\Images\copy.png" />
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\editProfile.png" />
@@ -1171,7 +1172,9 @@
     <Content Include="Areas\Admin\Views\Import\Download.cshtml" />
     <Content Include="App_Data\Files\Content\FrontPage-Announcement.md" />
     <Content Include="App_Data\Files\Content\FrontPage-About.md" />
-    <Content Include="App_Data\Files\Content\Alert.md" />
+    <Content Include="App_Data\Files\Content\Alert.md">
+      <SubType>Designer</SubType>
+    </Content>
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>

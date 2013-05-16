@@ -20,6 +20,10 @@
     <div id="outer-wrapper">
         <div style="padding-left: 2em; padding-right: 2em;">
             <header class="main">
+                @if (ConfigHelper.IsIntranetSite)
+                {
+                    <a id="company-logo" href="@ConfigHelper.IntranetCompanyUrl">&nbsp;</a>
+                }
                 <div id="logo"><a href="@Url.Home()">NuGet Gallery</a></div>
             </header>
             <nav class="main">
@@ -27,7 +31,10 @@
                     <li><a href="~/" runat="server">Home</a></li>
                     <li><a href="~/Admin" runat="server">Admin Home</a></li>
                     <li><a href="~/Admin/Database" runat="server">Database Admin</a></li>
-                    <li><a href="~/Admin/Import" runat="server">NuGet Import</a></li>
+                    @if (ConfigHelper.IsIntranetSite)
+                    {
+                        <li><a href="~/Admin/Import" runat="server">NuGet Import</a></li>
+                    }
                 </ul>
             </nav>
             <div id="body" role="main">

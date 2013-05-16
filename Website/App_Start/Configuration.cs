@@ -28,6 +28,40 @@ namespace NuGetGallery
             get { return ReadAppSettings("HasWorker", str => Boolean.Parse(str ?? "true")); }
         }
 
+
+        /// <summary>
+        /// Gets the URL for the official NuGet packages feed.
+        /// </summary>
+        /// <value>
+        /// The official NuGet packages feed URL.
+        /// </value>
+        public string OfficialNuGetUrl
+        {
+            get { return ReadAppSettings("OfficialNuGetUrl"); }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this Gallery should be run as a company intranet site.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if intranet site; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsIntranetSite
+        {
+            get { return ReadAppSettings("IsIntranetSite", str => Boolean.Parse(str ?? "false")); }
+        }
+
+        /// <summary>
+        /// Gets the intranet company URL for the logo at the top of the layout.
+        /// </summary>
+        /// <value>
+        /// The intranet company URL.
+        /// </value>
+        public string IntranetCompanyUrl
+        {
+            get { return ReadAppSettings("IntranetCompanyUrl"); }
+        }
+
         public string EnvironmentName
         {
             get { return ReadAppSettings("Environment") ?? "Development"; }

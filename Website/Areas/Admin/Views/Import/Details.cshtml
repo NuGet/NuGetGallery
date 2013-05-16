@@ -5,7 +5,7 @@
     ViewBag.Title = Model.Title + " " + Model.Version;
     ViewBag.Tab = "Packages";
     Layout = "~/Areas/Admin/Views/Shared/TwoColumnLayout.cshtml";
-    var absolutePackageUrl = Url.Absolute(@Url.Action("Details", new { Model.Id }));
+    var absolutePackageUrl = Url.Absolute(Url.AdminImportDetails(Model.Id));
 }
 @section OpenGraph {
     @if(!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID)) {
@@ -97,7 +97,7 @@
     else if (!Model.IsLatestVersionAvailable)
     {
         <p class="not-latest-message">
-            This is not the <a href="@Url.Action("Details", new { Id = Model.Id })" title="View the latest version">latest
+            This is not the <a href="@Url.AdminImportDetails(Model.Id)" title="View the latest version">latest
                                 version</a> of @Model.Title available.
         </p>
     }
@@ -196,7 +196,7 @@
                                         }>
                         @if (!packageVersion.IsCurrent(Model))
                         {
-                            <a href="@Url.Action("Details", new { packageVersion.Id, packageVersion.Version })">@packageVersion.Title @packageVersion.Version</a>
+                            <a href="@Url.AdminImportDetails(Model.Id, Model.Version, (string)ViewBag.PreRelease)">@packageVersion.Title @packageVersion.Version</a>
                         }
                         else
                         {

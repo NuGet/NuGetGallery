@@ -36,6 +36,10 @@
       <Setting name="Gallery.AzureCacheKey" />
       <!-- Set this to use the Azure CDN -->
       <Setting name="Gallery.AzureCdnHost" />
+      <!-- Intranet site settings. -->
+      <Setting name="Gallery.OfficialNuGetUrl" />
+      <Setting name="Gallery.IsIntranetSite" />
+      <Setting name="Gallery.IntranetCompanyUrl" />
       <Setting name="reCAPTCHA.PrivateKey" />
       <Setting name="reCAPTCHA.PublicKey" />
     </ConfigurationSettings>
