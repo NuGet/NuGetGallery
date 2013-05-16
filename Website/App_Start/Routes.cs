@@ -12,7 +12,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Home,
                 "",
-                MVC.Pages.Home());
+                new { controller = MVC.Pages.Name, action = "Home" }); // T4MVC doesn't work with Async Action
 
             routes.MapRoute(
                 RouteName.StatisticsHome,
@@ -241,6 +241,12 @@ namespace NuGetGallery
                 RouteName.StatisticsDownloadsApi,
                 "api/v2/stats/downloads/last6weeks",
                 defaults: new { controller = MVC.Api.Name, action = "StatisticsDownloadsApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.ServiceAlert,
+                "api/v2/service-alert",
+                defaults: new { controller = MVC.Api.Name, action = "ServiceAlert" },
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(

@@ -11,11 +11,11 @@
     <div id="stats">
         <div class="stat">
             <p class="stat-number">@Model.Packages.Count.ToString("n0")</p>
-            <p class="stat-label">Packages</p>
+            <p class="stat-label">@(Model.Packages.Count == 1 ? "Package" : "Packages")</p>
         </div>
         <div class="stat">
             <p class="stat-number">@Model.TotalPackageDownloadCount.ToString("n0")</p>
-            <p class="stat-label">Downloads of @Model.Username's packages</p>
+            <p class="stat-label">@(Model.TotalPackageDownloadCount == 1 ? "Download" : "Downloads") of @Model.Username's packages</p>
         </div>
     </div>
 }
@@ -50,7 +50,7 @@
 
                     <footer>
                         <p class="downloads">
-                            @package.TotalDownloadCount.ToString("n0") downloads
+                            @package.TotalDownloadCount.ToString("n0") @(package.TotalDownloadCount == 1 ? "download" : "downloads")
                         </p>
                     </footer>
                 </div>

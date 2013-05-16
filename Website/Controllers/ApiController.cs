@@ -21,17 +21,20 @@ namespace NuGetGallery
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
         private readonly IStatisticsService _statisticsService;
+        private readonly IContentService _contentService;
 
         public ApiController(
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
-            INuGetExeDownloaderService nugetExeDownloaderService)
+            INuGetExeDownloaderService nugetExeDownloaderService,
+            IContentService contentService)
         {
             _packageService = packageService;
             _packageFileService = packageFileService;
             _userService = userService;
             _nugetExeDownloaderService = nugetExeDownloaderService;
+            _contentService = contentService;
             _statisticsService = null;
         }
 
@@ -40,12 +43,10 @@ namespace NuGetGallery
             IPackageFileService packageFileService,
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
+            IContentService contentService,
             IStatisticsService statisticsService)
+            : this(packageService, packageFileService, userService, nugetExeDownloaderService, contentService)
         {
-            _packageService = packageService;
-            _packageFileService = packageFileService;
-            _userService = userService;
-            _nugetExeDownloaderService = nugetExeDownloaderService;
             _statisticsService = statisticsService;
         }
 
@@ -315,6 +316,12 @@ namespace NuGetGallery
 
             _packageService.MarkPackageListed(package);
             return new EmptyResult();
+        }
+
+        public virtual async Task<ActionResult> ServiceAlert()
+        {
+            var alert = await _contentService.GetContentItemAsync(Constants.ContentNames.Alert, TimeSpan.Zero);
+            return Content(alert == null ? (string)null : alert.ToString(), "text/html");
         }
 
         protected override void OnException(ExceptionContext filterContext)

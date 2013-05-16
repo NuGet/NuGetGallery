@@ -97,6 +97,24 @@ namespace NuGetGallery
             return Task.FromResult(fileStream);
         }
 
+        public Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null)
+        {
+            if (String.IsNullOrWhiteSpace(folderName))
+            {
+                throw new ArgumentNullException("folderName");
+            }
+            if (String.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException("fileName");
+            }
+
+            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+
+            // Get the last modified date of the file and use that as the ContentID
+            var file = new FileInfo(path);
+            return Task.FromResult<IFileReference>(file.Exists ? new LocalFileReference(file) : null);
+        }
+
         public Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
             if (String.IsNullOrWhiteSpace(folderName))

@@ -23,9 +23,6 @@ using T4MVC;
 namespace NuGetGallery {
     public partial class CuratedPackagesController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public CuratedPackagesController() { }
-
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected CuratedPackagesController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]

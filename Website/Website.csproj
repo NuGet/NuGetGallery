@@ -270,8 +270,10 @@
     <Compile Include="Areas\Admin\ViewModels\ImportPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ImportSearchViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ImportSearchItemViewModel.cs" />
+    <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
+    <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
@@ -511,11 +513,7 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Commands\AppCommand.cs" />
-    <Compile Include="Commands\DeleteCuratedPackageCommand.cs" />
-    <Compile Include="Commands\ModifyCuratedPackageCommand.cs" />
-    <Compile Include="Commands\CreateCuratedPackageCommand.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommand.cs" />
-    <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
@@ -745,6 +743,18 @@
     <Compile Include="Migrations\201304020006512_UserLookupOptimization.Designer.cs">
       <DependentUpon>201304020006512_UserLookupOptimization.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201304251927587_UserCreatedDate.cs" />
+    <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
+      <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.cs" />
+    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.Designer.cs">
+      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.cs" />
+    <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.Designer.cs">
+      <DependentUpon>201304091828587_Contract_UniqueCuratedPackages.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -764,9 +774,6 @@
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
-    <Compile Include="Queries\CuratedFeedByKeyQuery.cs" />
-    <Compile Include="Queries\CuratedFeedByNameQuery.cs" />
-    <Compile Include="Queries\CuratedFeedsByManagerKeyQuery.cs" />
     <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
@@ -778,6 +785,10 @@
     <Compile Include="Services\CloudCacheService.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
+    <Compile Include="Services\CloudFileReference.cs" />
+    <Compile Include="Services\ContentService.cs" />
+    <Compile Include="Services\IContentService.cs" />
+    <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />
@@ -799,6 +810,7 @@
     <Compile Include="Services\IPackageSource.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
+    <Compile Include="Services\LocalFileReference.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
@@ -828,6 +840,7 @@
     <Compile Include="ViewModels\StatisticsFact.cs" />
     <Compile Include="ViewModels\StatisticsPivot.cs" />
     <Compile Include="ViewModels\StatisticsDimension.cs" />
+    <Compile Include="ViewModels\HomeViewModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
@@ -960,6 +973,7 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
     <Content Include="Areas\Admin\DynamicData\Site.css" />
     <Content Include="Content\Company.css" />
+    <Content Include="clientaccesspolicy.xml" />
     <Content Include="Content\Images\changePassword.png" />
     <Content Include="Content\Images\companyLogo.png" />
     <Content Include="Content\Images\copy.png" />
@@ -1039,6 +1053,7 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="robots.txt" />
+    <Content Include="Scripts\nugetgallery.js" />
     <Content Include="Scripts\statsdimensions.js" />
     <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\async-file-upload.js" />
@@ -1122,6 +1137,12 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
+      <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.resx">
+      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
@@ -1148,6 +1169,9 @@
     <Content Include="Areas\Admin\Views\Import\_PackageDependencies.cshtml" />
     <Content Include="Areas\Admin\Views\Shared\TwoColumnLayout.cshtml" />
     <Content Include="Areas\Admin\Views\Import\Download.cshtml" />
+    <Content Include="App_Data\Files\Content\FrontPage-Announcement.md" />
+    <Content Include="App_Data\Files\Content\FrontPage-About.md" />
+    <Content Include="App_Data\Files\Content\Alert.md" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>

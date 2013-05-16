@@ -154,9 +154,6 @@
   <ItemGroup>
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
-    <Compile Include="Commands\CreatedCuratedPackageCommandFacts.cs" />
-    <Compile Include="Commands\DeleteCuratedPackageCommandFacts.cs" />
-    <Compile Include="Commands\ModifyCuratedPackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
@@ -185,11 +182,14 @@
     <Compile Include="RequireRemoteHttpsAttributeFacts.cs" />
     <Compile Include="Routing\VersionRouteConstraintFacts.cs" />
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
+    <Compile Include="Services\CuratedFeedServiceFacts.cs" />
+    <Compile Include="Services\ContentServiceFacts.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\NuGetExeDownloaderServiceFacts.cs" />
     <Compile Include="Services\ODataRemoveVersionSorterFacts.cs" />
     <Compile Include="Services\PackageServiceFacts.cs" />
+    <Compile Include="Services\TestFileReference.cs" />
     <Compile Include="Services\UploadFileServiceFacts.cs" />
     <Compile Include="Services\UserServiceFacts.cs" />
     <Compile Include="Services\FeedServiceFacts.cs" />

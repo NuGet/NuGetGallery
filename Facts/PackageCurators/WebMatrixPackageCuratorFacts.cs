@@ -11,29 +11,22 @@ namespace NuGetGallery.PackageCurators
         {
             public TestableWebMatrixPackageCurator()
             {
-                StubCreatedCuratedPackageCmd = new Mock<ICreateCuratedPackageCommand>();
                 StubCuratedFeed = new CuratedFeed { Key = 0 };
-                StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
+                StubCuratedFeedService = new Mock<ICuratedFeedService>();
 
-                StubCuratedFeedByNameQry
-                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                StubCuratedFeedService
+                    .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
                     .Returns(StubCuratedFeed);
             }
 
-            public Mock<ICreateCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
             public CuratedFeed StubCuratedFeed { get; private set; }
-            public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
+            public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
 
             protected override T GetService<T>()
             {
-                if (typeof(T) == typeof(ICreateCuratedPackageCommand))
+                if (typeof(T) == typeof(ICuratedFeedService))
                 {
-                    return (T)StubCreatedCuratedPackageCmd.Object;
-                }
-
-                if (typeof(T) == typeof(ICuratedFeedByNameQuery))
-                {
-                    return (T)StubCuratedFeedByNameQry.Object;
+                    return (T)StubCuratedFeedService.Object;
                 }
 
                 throw new Exception("Tried to get an unexpected service.");
@@ -46,12 +39,12 @@ namespace NuGetGallery.PackageCurators
             public void WillNotIncludeThePackageWhenTheWebMatrixCuratedFeedDoesNotExist()
             {
                 var curator = new TestableWebMatrixPackageCurator();
-                curator.StubCuratedFeedByNameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+                curator.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
 
                 curator.Curate(CreateStubGalleryPackage(), null, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -70,8 +63,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -90,8 +83,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -129,8 +122,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(CreateStubGalleryPackage(), stubNuGetPackage.Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -155,8 +148,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(CreateStubGalleryPackage(), stubNuGetPackage.Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -175,13 +168,14 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
-                    It.IsAny<CuratedFeed>(),
-                    It.IsAny<PackageRegistration>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>()), Times.Never());
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
+                        It.IsAny<CuratedFeed>(),
+                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()), Times.Never());
             }
 
             [Fact]
@@ -195,13 +189,14 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
-                    It.IsAny<CuratedFeed>(),
-                    It.IsAny<PackageRegistration>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>()), Times.Never());
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
+                        It.IsAny<CuratedFeed>(),
+                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()), Times.Never());
             }
 
             [Fact]
@@ -218,8 +213,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(CreateStubGalleryPackage(), stubNuGetPackage.Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -237,8 +232,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         curator.StubCuratedFeed,
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -256,8 +251,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         stubGalleryPackage.PackageRegistration,
                         It.IsAny<bool>(),
@@ -273,8 +268,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),

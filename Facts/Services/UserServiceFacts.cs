@@ -311,6 +311,25 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void SetsCreatedDate()
+            {
+                var userService = new TestableUserService();
+                userService.MockCrypto
+                           .Setup(c => c.GenerateToken())
+                           .Returns("secret!");
+
+                var user = userService.Create(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                Assert.NotNull(user.CreatedUtc);
+
+                // Allow for up to 5 secs of time to have elapsed between Create call and now. Should be plenty
+                Assert.True((DateTime.UtcNow - user.CreatedUtc) < TimeSpan.FromSeconds(5));
+            }
+
+            [Fact]
             public void SetsTheUserToConfirmedWhenEmailConfirmationIsNotEnabled()
             {
                 var userService = new TestableUserService();
