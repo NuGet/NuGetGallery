@@ -86,3 +86,19 @@ Replace '[site url]' with the URL you intend to use as the root of your site, an
 Save the changes and get ready to deploy!
 
 ## Deploying the frontend
+Go back to the dashboard tab and set up deployment from source control. Assuming you cloned this repo from Git, you probably want to choose "Local Git Repository". That is the case we will cover here.
+
+Once you complete this wizard, you'll need to set up deployment credentials. I'll assume you've got that under control ;). Go to the gallery and checkout the branch you want to deploy (say 'master'):
+
+```
+git checkout master
+```
+
+Add Azure as remote and push that branch up!
+
+```
+git remote add azure [git url]
+git push azure master
+```
+
+NOTE: If you don't use master, make sure to update the "Branch to Deploy" setting in the Configure tab.
