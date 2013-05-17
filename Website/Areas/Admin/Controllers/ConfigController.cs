@@ -6,6 +6,10 @@ using System.Web;
 using System.Web.Configuration;
 using System.Web.Mvc;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using Ninject;
+using Ninject.Infrastructure;
+using Ninject.Planning.Bindings;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.Controllers
@@ -13,6 +17,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public partial class ConfigController : AdminControllerBase
     {
         private readonly IAppConfiguration _config;
+        private readonly FieldInfo UglyReflectionStuff = typeof(KernelBase).GetField("bindings", BindingFlags.Instance | BindingFlags.NonPublic);
 
         public ConfigController(IAppConfiguration config)
         {
@@ -26,7 +31,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         select p)
                        .ToDictionary(p => p.Name, p => p.GetValue(_config));
 
-            return View(dict);
+            var configModel = new ConfigViewModel(dict);
+
+            return View(configModel);
         }
     }
 }

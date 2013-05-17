@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 using System.Web.Configuration;
@@ -44,7 +46,7 @@ namespace NuGetGallery.Configuration
         {
             // Iterate over the properties
             var instance = new AppConfiguration();
-            foreach (var property in TypeDescriptor.GetProperties(typeof(IAppConfiguration)).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly))
+            foreach (var property in TypeDescriptor.GetProperties(instance).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly))
             {
                 // Try to get a config setting value
                 string baseName = String.IsNullOrEmpty(property.DisplayName) ? property.Name : property.DisplayName;
@@ -69,14 +71,21 @@ namespace NuGetGallery.Configuration
                     }
                 }
 
-                if (property.PropertyType.IsAssignableFrom(typeof(string)))
+                if (value != null)
                 {
-                    property.SetValue(instance, value);
+                    if (property.PropertyType.IsAssignableFrom(typeof(string)))
+                    {
+                        property.SetValue(instance, value);
+                    }
+                    else if (property.Converter != null && property.Converter.CanConvertFrom(typeof(string)))
+                    {
+                        // Convert the value
+                        property.SetValue(instance, property.Converter.ConvertFromString(value));
+                    }
                 }
-                else if (property.Converter != null && property.Converter.CanConvertFrom(typeof(string)))
+                else if (property.Attributes.OfType<RequiredAttribute>().Any())
                 {
-                    // Convert the value
-                    property.SetValue(instance, property.Converter.ConvertFromString(value));
+                    throw new ConfigurationErrorsException(String.Format(CultureInfo.InvariantCulture, "Missing required configuration setting: '{0}'", settingName));
                 }
             }
             return instance;

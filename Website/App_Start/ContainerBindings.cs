@@ -63,18 +63,6 @@ namespace NuGetGallery
                     .InRequestScope();
             }
 
-            if (!String.IsNullOrEmpty(configuration.Current.AzureStorageConnectionString))
-            {
-                // when running on Windows Azure, pull the statistics from the warehouse via storage
-                Bind<IReportService>()
-                    .ToMethod(context => new CloudReportService(configuration.Current.AzureStorageConnectionString))
-                    .InSingletonScope();
-
-                Bind<IStatisticsService>()
-                    .To<JsonStatisticsService>()
-                    .InSingletonScope();
-            }
-
             Bind<IContentService>()
                 .To<ContentService>()
                 .InSingletonScope();
@@ -193,18 +181,10 @@ namespace NuGetGallery
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
-                    Bind<IFileStorageService>()
-                        .To<FileSystemFileStorageService>()
-                        .InSingletonScope();
+                    ConfigureForLocalFileSystem();
                     break;
                 case StorageType.AzureStorage:
-                    Bind<ICloudBlobClient>()
-                        .ToMethod(
-                            _ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString))
-                        .InSingletonScope();
-                    Bind<IFileStorageService>()
-                        .To<CloudBlobFileStorageService>()
-                        .InSingletonScope();
+                    ConfigureForAzureStorage(configuration);
                     break;
             }
 
@@ -242,6 +222,32 @@ namespace NuGetGallery
             Bind<IPackageVersionsQuery>()
                 .To<PackageVersionsQuery>()
                 .InRequestScope();
+        }
+
+        private void ConfigureForLocalFileSystem()
+        {
+            Bind<IFileStorageService>()
+                .To<FileSystemFileStorageService>()
+                .InSingletonScope();
+        }
+
+        private void ConfigureForAzureStorage(ConfigurationService configuration)
+        {
+            Bind<ICloudBlobClient>()
+                .ToMethod(
+                    _ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString))
+                .InSingletonScope();
+            Bind<IFileStorageService>()
+                .To<CloudBlobFileStorageService>()
+                .InSingletonScope();
+
+            // when running on Windows Azure, pull the statistics from the warehouse via storage
+            Bind<IReportService>()
+                .ToMethod(context => new CloudReportService(configuration.Current.AzureStorageConnectionString))
+                .InSingletonScope();
+            Bind<IStatisticsService>()
+                .To<JsonStatisticsService>()
+                .InSingletonScope();
         }
     }
 }

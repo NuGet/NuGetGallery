@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
@@ -42,7 +43,6 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets a boolean indicating if the site is in read only mode
         /// </summary>
-        [DefaultValue(true)]
         public bool ReadOnlyMode { get; set; }
 
         /// <summary>
@@ -76,6 +76,7 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets the SQL Connection string used to connect to the database
         /// </summary>
+        [Required]
         [DisplayName("SqlServer")]
         public string SqlConnectionString { get; set; }
 

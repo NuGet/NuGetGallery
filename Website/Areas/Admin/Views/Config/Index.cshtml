@@ -1,4 +1,4 @@
-﻿@model Dictionary<string, object>
+﻿@model ConfigViewModel
 @{
     ViewBag.Title = "Config";
     ViewBag.Tab = "Admin";
@@ -14,7 +14,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var pair in Model)
+        @foreach (var pair in Model.AppSettings)
         {
             <tr>
                 <td>@pair.Key</td>
