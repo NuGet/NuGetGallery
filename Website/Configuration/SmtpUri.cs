@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Web;
 
@@ -27,12 +28,12 @@ namespace NuGetGallery.Configuration
             var m = UserInfoParser.Match(uri.UserInfo);
             if (m.Success)
             {
-                UserName = m.Groups["username"].Value;
-                Password = m.Groups["password"].Value;
+                UserName = WebUtility.UrlDecode(m.Groups["username"].Value);
+                Password = WebUtility.UrlDecode(m.Groups["password"].Value);
             }
             else
             {
-                UserName = uri.UserInfo;
+                UserName = WebUtility.UrlDecode(uri.UserInfo);
             }
             Host = uri.Host;
             Port = uri.IsDefaultPort ? 25 : uri.Port;
