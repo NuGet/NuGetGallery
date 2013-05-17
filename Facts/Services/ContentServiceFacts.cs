@@ -80,6 +80,9 @@ namespace NuGetGallery.Services
                 Assert.Equal(file.ContentId, cached.ContentId);
                 Assert.True(EqualWithDrift(TimeSpan.FromSeconds(42), (cached.ExpiryUtc - cached.RetrievedUtc), TimeSpan.FromSeconds(2)));
                 Assert.True(cached.RetrievedUtc >= testStart);
+
+                var diff = cached.ExpiryUtc - cached.RetrievedUtc;
+                Assert.True(diff > TimeSpan.FromSeconds(40) && diff < TimeSpan.FromSeconds(43));
             }
 
             [Fact]

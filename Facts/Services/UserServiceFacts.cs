@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery
@@ -37,11 +38,11 @@ namespace NuGetGallery
         }
 
         // Now only for things that actually need a MOCK UserService object.
-        private static UserService CreateMockUserService(Action<Mock<UserService>> setup, Mock<IEntityRepository<User>> userRepo = null, Mock<IConfiguration> config = null)
+        private static UserService CreateMockUserService(Action<Mock<UserService>> setup, Mock<IEntityRepository<User>> userRepo = null, Mock<ICryptographyService> cryptoService = null, Mock<IAppConfiguration> config = null)
         {
             if (config == null)
             {
-                config = new Mock<IConfiguration>();
+                config = new Mock<IAppConfiguration>();
                 config.Setup(x => x.ConfirmEmailAddresses).Returns(true);
             }
 
@@ -772,12 +773,12 @@ namespace NuGetGallery
 
         public class TestableUserService : UserService
         {
-            public Mock<IConfiguration> MockConfig { get; protected set; }
+            public Mock<IAppConfiguration> MockConfig { get; protected set; }
             public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
 
             public TestableUserService()
             {
-                Config = (MockConfig = new Mock<IConfiguration>()).Object;
+                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
                 UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
 
                 // Set ConfirmEmailAddress to a default of true

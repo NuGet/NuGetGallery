@@ -7,6 +7,7 @@ using System.ServiceModel.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -28,7 +29,7 @@ namespace NuGetGallery
             _curatedFeedService = curatedFeedService;
         }
 
-        public V2CuratedFeed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchService, ICuratedFeedService curatedFeedService)
+        public V2CuratedFeed(IEntitiesContext entities, IEntityRepository<Package> repo, ConfigurationService configuration, ISearchService searchService, ICuratedFeedService curatedFeedService)
             : base(entities, repo, configuration, searchService)
         {
             _curatedFeedService = curatedFeedService;

@@ -10,16 +10,17 @@ using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class CloudBlobFileStorageService : IFileStorageService
     {
         private readonly ICloudBlobClient _client;
-        private readonly IConfiguration _configuration;
+        private readonly IAppConfiguration _configuration;
         private readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
 
-        public CloudBlobFileStorageService(ICloudBlobClient client, IConfiguration configuration)
+        public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration)
         {
             _client = client;
             _configuration = configuration;

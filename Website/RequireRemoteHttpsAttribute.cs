@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using Ninject;
 using Ninject.Web.Mvc.Filter;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -12,12 +13,12 @@ namespace NuGetGallery
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public sealed class RequireRemoteHttpsAttribute : FilterAttribute, IAuthorizationFilter
     {
-        private IConfiguration _configuration;
+        private IAppConfiguration _configuration;
         private IFormsAuthenticationService _formsAuth;
 
-        public IConfiguration Configuration
+        public IAppConfiguration Configuration
         {
-            get { return _configuration ?? (_configuration = Container.Kernel.Get<IConfiguration>()); }
+            get { return _configuration ?? (_configuration = Container.Kernel.Get<IAppConfiguration>()); }
             set { _configuration = value; }
         }
 

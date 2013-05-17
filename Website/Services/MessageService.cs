@@ -6,15 +6,16 @@ using System.Text;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class MessageService : IMessageService
     {
         private readonly IMailSender _mailSender;
-        private readonly IConfiguration _config;
+        private readonly IAppConfiguration _config;
 
-        public MessageService(IMailSender mailSender, IConfiguration config)
+        public MessageService(IMailSender mailSender, IAppConfiguration config)
         {
             _mailSender = mailSender;
             _config = config;
@@ -88,7 +89,7 @@ namespace NuGetGallery
                 mailMessage.Body = body.ToString();
                 mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
                 mailMessage.ReplyToList.Add(request.FromAddress);
-                mailMessage.To.Add(_config.GalleryOwnerEmail);
+                mailMessage.To.Add(mailMessage.From);
                 SendMessage(mailMessage);
             }
         }

@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using Crypto = NuGetGallery.CryptographyService;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        public IConfiguration Config { get; protected set; }
+        public IAppConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
 
         protected UserService() {}
 
         public UserService(
-            IConfiguration config,
+            IAppConfiguration config,
+            ICryptographyService crypto,
             IEntityRepository<User> userRepository) : this()
         {
             Config = config;

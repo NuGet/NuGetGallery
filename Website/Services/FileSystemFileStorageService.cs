@@ -3,15 +3,16 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class FileSystemFileStorageService : IFileStorageService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IAppConfiguration _configuration;
         private readonly IFileSystemService _fileSystemService;
 
-        public FileSystemFileStorageService(IConfiguration configuration, IFileSystemService fileSystemService)
+        public FileSystemFileStorageService(IAppConfiguration configuration, IFileSystemService fileSystemService)
         {
             _configuration = configuration;
             _fileSystemService = fileSystemService;
