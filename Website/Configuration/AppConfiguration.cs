@@ -86,11 +86,6 @@ namespace NuGetGallery.Configuration
         public string AzureCdnHost { get; set; }
 
         /// <summary>
-        /// Gets the connection string to the Azure Cache service being used
-        /// </summary>
-        public string AzureCacheConnectionString { get; set; }
-
-        /// <summary>
         /// Gets the App ID of the Facebook app associated with this deployment
         /// </summary>
         public string FacebookAppId { get; set; }
