@@ -1,0 +1,30 @@
+﻿@model Dictionary<string, object>
+@{
+    ViewBag.Title = "Config";
+    ViewBag.Tab = "Admin";
+}
+
+<h2>Configuration Values</h2>
+<table class="sexy-table">
+    <thead>
+        <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pair in Model)
+        {
+            <tr>
+                <td>@pair.Key</td>
+                @if(pair.Value != null) {
+                    <td>@pair.Value.GetType().Name</td>
+                    <td>@pair.Value.ToString()</td>
+                } else {
+                    <td colspan="2"><em>null</em></td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

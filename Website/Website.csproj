@@ -257,6 +257,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Admin.ConfigController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Admin.HomeController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -272,6 +275,7 @@
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
     <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
     <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
+    <Compile Include="Areas\Admin\Controllers\ConfigController.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -1153,6 +1157,7 @@
     <Content Include="Areas\Admin\Views\Lucene\Index.cshtml">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
