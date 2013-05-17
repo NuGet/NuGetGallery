@@ -18,11 +18,11 @@
         {
             <tr>
                 <td>@pair.Key</td>
-                @if(pair.Value != null) {
-                    <td>@pair.Value.GetType().Name</td>
-                    <td>@pair.Value.ToString()</td>
+                <td>@pair.Value.Item1.Name</td>
+                @if(pair.Value.Item2 != null) {
+                    <td>@pair.Value.Item2.ToString()</td>
                 } else {
-                    <td colspan="2"><em>null</em></td>
+                    <td><em>null</em></td>
                 }
             </tr>
         }

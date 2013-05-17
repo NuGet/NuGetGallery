@@ -81,13 +81,13 @@ namespace NuGetGallery
             body.Append(request.FillIn(bodyTemplate, _config));
             body.AppendFormat(CultureInfo.InvariantCulture, @"
 
-*Message sent from {0}*", _config.GalleryOwnerName);
+*Message sent from {0}*", _config.GalleryOwner.DisplayName);
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body.ToString();
-                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.From = _config.GalleryOwner;
                 mailMessage.ReplyToList.Add(request.FromAddress);
                 mailMessage.To.Add(mailMessage.From);
                 SendMessage(mailMessage);
@@ -125,15 +125,15 @@ namespace NuGetGallery
             body.Append(request.FillIn(bodyTemplate, _config));
             body.AppendFormat(CultureInfo.InvariantCulture, @"
 
-*Message sent from {0}*", _config.GalleryOwnerName);
+*Message sent from {0}*", _config.GalleryOwner.DisplayName);
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body.ToString();
-                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.From = _config.GalleryOwner;
                 mailMessage.ReplyToList.Add(request.FromAddress);
-                mailMessage.To.Add(_config.GalleryOwnerEmail);
+                mailMessage.To.Add(_config.GalleryOwner);
                 SendMessage(mailMessage);
             }
         }
@@ -158,16 +158,16 @@ namespace NuGetGallery
                 fromAddress.Address,
                 packageRegistration.Id,
                 message,
-                _config.GalleryOwnerName,
+                _config.GalleryOwner.DisplayName,
                 emailSettingsUrl);
 
-            subject = String.Format(CultureInfo.CurrentCulture, subject, _config.GalleryOwnerName, packageRegistration.Id);
+            subject = String.Format(CultureInfo.CurrentCulture, subject, _config.GalleryOwner.DisplayName, packageRegistration.Id);
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.From = _config.GalleryOwner;
                 mailMessage.ReplyToList.Add(fromAddress);
 
                 AddOwnersToMailMessage(packageRegistration, mailMessage);
@@ -193,15 +193,15 @@ The {0} Team";
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                _config.GalleryOwnerName,
+                _config.GalleryOwner.DisplayName,
                 HttpUtility.UrlDecode(confirmationUrl),
                 confirmationUrl);
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your account.", _config.GalleryOwnerName);
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your account.", _config.GalleryOwner.DisplayName);
                 mailMessage.Body = body;
-                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.From = _config.GalleryOwner;
 
                 mailMessage.To.Add(toAddress);
                 SendMessage(mailMessage);
@@ -222,16 +222,16 @@ The {0} Team";
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                _config.GalleryOwnerName,
+                _config.GalleryOwner.DisplayName,
                 HttpUtility.UrlDecode(confirmationUrl),
                 confirmationUrl);
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = String.Format(
-                    CultureInfo.CurrentCulture, "[{0}] Please verify your new email address.", _config.GalleryOwnerName);
+                    CultureInfo.CurrentCulture, "[{0}] Please verify your new email address.", _config.GalleryOwner.DisplayName);
                 mailMessage.Body = body;
-                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.From = _config.GalleryOwner;
 
                 mailMessage.To.Add(newEmailAddress);
                 SendMessage(mailMessage);
@@ -251,17 +251,17 @@ The {0} Team";
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                _config.GalleryOwnerName,
+                _config.GalleryOwner.DisplayName,
                 oldEmailAddress,
                 user.EmailAddress);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Recent changes to your account.", _config.GalleryOwnerName);
+            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Recent changes to your account.", _config.GalleryOwner.DisplayName);
             using (
                 var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.From = _config.GalleryOwner;
 
                 mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
                 SendMessage(mailMessage);
@@ -285,14 +285,14 @@ The {2} Team";
                 body,
                 Constants.DefaultPasswordResetTokenExpirationHours,
                 resetPasswordUrl,
-                _config.GalleryOwnerName);
+                _config.GalleryOwner.DisplayName);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please reset your password.", _config.GalleryOwnerName);
+            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please reset your password.", _config.GalleryOwner.DisplayName);
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
-                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.From = _config.GalleryOwner;
 
                 mailMessage.To.Add(user.ToMailAddress());
                 SendMessage(mailMessage);
@@ -319,13 +319,13 @@ To accept this request and become a listed owner of the package, click the follo
 Thanks,
 The {3} Team";
 
-            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, _config.GalleryOwnerName);
+            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, confirmationUrl, _config.GalleryOwner.DisplayName);
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, _config.GalleryOwnerName, fromUser.Username, package.Id);
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, _config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
                 mailMessage.Body = body;
-                mailMessage.From = new MailAddress(_config.GalleryOwnerEmail, _config.GalleryOwnerName);
+                mailMessage.From = _config.GalleryOwner;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());

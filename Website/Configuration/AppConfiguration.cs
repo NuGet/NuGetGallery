@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net.Mail;
 using System.Web;
 using Microsoft.WindowsAzure.ServiceRuntime;
 
@@ -52,14 +53,10 @@ namespace NuGetGallery.Configuration
         public string FileStorageDirectory { get; set; }
 
         /// <summary>
-        /// Gets the gallery owner name
+        /// Gets the gallery owner name and email address
         /// </summary>
-        public string GalleryOwnerName { get; set; }
-
-        /// <summary>
-        /// Gets the gallery owner email address
-        /// </summary>
-        public string GalleryOwnerEmail { get; set; }
+        [TypeConverter(typeof(MailAddressConverter))]
+        public MailAddress GalleryOwner { get; set; }
 
         /// <summary>
         /// Gets the storage mechanism used by this instance of the gallery

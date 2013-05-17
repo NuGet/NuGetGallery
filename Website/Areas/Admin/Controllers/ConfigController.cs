@@ -29,7 +29,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var dict = (from p in typeof(IAppConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                         where p.CanRead
                         select p)
-                       .ToDictionary(p => p.Name, p => p.GetValue(_config));
+                       .ToDictionary(p => p.Name, p => Tuple.Create(p.PropertyType, p.GetValue(_config)));
 
             var configModel = new ConfigViewModel(dict);
 

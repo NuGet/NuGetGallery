@@ -23,7 +23,7 @@ namespace NuGetGallery
             var ret = new StringBuilder(subject);
             Action<string, string> substitute = (target, value) => ret.Replace(target, Escape(value));
 
-            substitute("{GalleryOwnerName}", config.GalleryOwnerName);
+            substitute("{GalleryOwnerName}", config.GalleryOwner.DisplayName);
             substitute("{Id}", Package.PackageRegistration.Id);
             substitute("{Version}", Package.Version);
             substitute("{Reason}", Reason);

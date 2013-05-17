@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Mail;
 namespace NuGetGallery.Configuration
 {
     public interface IAppConfiguration
@@ -44,14 +45,9 @@ namespace NuGetGallery.Configuration
         string FileStorageDirectory { get; set; }
 
         /// <summary>
-        /// Gets the gallery owner name
+        /// Gets the gallery owner name and email address
         /// </summary>
-        string GalleryOwnerName { get; set; }
-
-        /// <summary>
-        /// Gets the gallery owner email address
-        /// </summary>
-        string GalleryOwnerEmail { get; set; }
+        MailAddress GalleryOwner { get; set; }
 
         /// <summary>
         /// Gets the storage mechanism used by this instance of the gallery

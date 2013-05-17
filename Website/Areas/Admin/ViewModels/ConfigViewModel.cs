@@ -8,9 +8,9 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 {
     public class ConfigViewModel
     {
-        public Dictionary<string, object> AppSettings { get; private set; }
-        
-        public ConfigViewModel(Dictionary<string, object> appSettings)
+        public Dictionary<string, Tuple<Type, object>> AppSettings { get; private set; }
+
+        public ConfigViewModel(Dictionary<string, Tuple<Type, object>> appSettings)
         {
             AppSettings = appSettings;
         }

@@ -6,36 +6,22 @@
       <Task commandLine="ConfigureIISLogging.cmd" executionContext="elevated" taskType="background" />
     </Startup>
     <ConfigurationSettings>
-      <!-- Core Data Access Setttings -->
-      <Setting name="Gallery.AzureStorageConnectionString" />
-      <Setting name="Gallery.AzureDiagnosticsConnectionString" />
-      <Setting name="Gallery.AzureStatisticsConnectionString" />
-      <Setting name="Gallery.Sql.NuGetGallery" />
-      <!-- SMTP Settings -->
-      <Setting name="Gallery.GalleryOwnerName" />
-      <Setting name="Gallery.GalleryOwnerEmail" />
-      <Setting name="Gallery.SmtpHost" />
-      <Setting name="Gallery.SmtpUsername" />
-      <Setting name="Gallery.SmtpPassword" />
-      <Setting name="Gallery.SmtpPort" />
-      <Setting name="Gallery.UseSmtp" />
-      <Setting name="Gallery.ConfirmEmailAddresses" />
-      <!-- Basic Site Configuration -->
-      <Setting name="Gallery.PackageStoreType" />
-      <Setting name="Gallery.ReadOnlyMode" />
-      <!-- set value 'true' to put the gallery in read only mode -->
-      <Setting name="Gallery.SiteRoot" />
-      <Setting name="Gallery.SSL.Required" />
       <Setting name="Gallery.HasWorker" />
-      <!-- Set this to enable Google Analytics -->
-      <Setting name="Gallery.GoogleAnalyticsPropertyId" />
-      <!-- Set this to enable Facebook Buttons with a specific App ID -->
-      <Setting name="Gallery.FacebookAppId" />
-      <!-- Set this to enable use of the Azure Caching Service for Package Explorer in the Cloud -->
-      <Setting name="Gallery.AzureCacheEndpoint" />
-      <Setting name="Gallery.AzureCacheKey" />
-      <!-- Set this to use the Azure CDN -->
+      <Setting name="Gallery.Environment" />
+      <Setting name="Gallery.RequireSSL" />
+      <Setting name="Gallery.SSLPort" />
+      <Setting name="Gallery.AzureStorageConnectionString" />
+      <Setting name="Gallery.ConfirmEmailAddresses" />
+      <Setting name="Gallery.ReadOnlyMode" />
+      <Setting name="Gallery.FileStorageDirectory" />
+      <Setting name="Gallery.GalleryOwner" />
+      <Setting name="Gallery.StorageType" />
+      <Setting name="Gallery.SmtpUri" />
+      <Setting name="Gallery.SqlServer" />
       <Setting name="Gallery.AzureCdnHost" />
+      <Setting name="Gallery.FacebookAppId" />
+      <Setting name="Gallery.SiteRoot" />
+
       <Setting name="reCAPTCHA.PrivateKey" />
       <Setting name="reCAPTCHA.PublicKey" />
     </ConfigurationSettings>
