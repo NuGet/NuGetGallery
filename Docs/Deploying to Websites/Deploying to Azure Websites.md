@@ -14,11 +14,11 @@ It is assumed you know how to provision these resources. This guide will describ
 ## Deploying the Database
 There's not much that needs to be done here. First, create a SQL Azure database (preferably in a dedicated SQL Azure server). In this example, we'll use "NuGetGallery" as the name. First, create the database in the Azure portal. 
 
-[!][Creating the Database](01-CreateDB.png)
+![Creating the Database](01-CreateDB.png)
 
 Next, we need to create a user for the site to use. Open the **server** in the Azure Portal and click on the URL under `Manage URL`
 
-[!][Manage URL](02-ManageUrl.png)
+![Manage URL](02-ManageUrl.png)
 
 Type "master" in the database field and log in using the SA password for the server (which you should have copied down when you created the server ;)).
 
@@ -46,7 +46,7 @@ If you used a different site username, use it in place of 'nuget-site' in the sc
 
 Now, log off the management portal and switch to VS. Open the NuGetGallery solution and expand the "Package Manager Console" tool window:
 
-[!][Package Manager Console](03-PackageManagerConsole.png)
+![Package Manager Console](03-PackageManagerConsole.png)
 
 Craft your connection string using notepad or some other text editor. You want it to take the following form:
 
@@ -69,7 +69,7 @@ Now that you've got the database ready, all the resources are ready for you to d
 
 Craft a connection string using the 'nuget-site' user you created earlier (by taking the connection string above and replacing sa and '[sapassword]' with the username/password for that user). Then, in the portal, add the database connection string like so:
 
-[!][Adding Connection String](04-ConnectionString.png)
+![Adding Connection String](04-ConnectionString.png)
 
 Then, go to the storage account you created in the portal and select "Manage Keys". Use the name and primary key on that page to build a connection string like this:
 
@@ -79,7 +79,7 @@ DefaultEndpointsProtocol=https;AccountName=[account name];AccountKey=[primary ke
 
 Using that connection string, go back to the Configure tab of the website and set the AppSettings as shown below:
 
-[!][Adding App Settings](05-AppSettings.png)
+![Adding App Settings](05-AppSettings.png)
 
 Replace '[site url]' with the URL you intend to use as the root of your site, and for the storage connection string, use the string you crafted before. The GalleryOwner setting is a standard email name in the form "Display Name &lt;emailaddress&gt;". If you intend to use SSL, you can set RequireSSL to true, but you should probably wait until you get it up and running before doing that.
 
