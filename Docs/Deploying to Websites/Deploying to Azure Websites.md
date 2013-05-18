@@ -111,7 +111,7 @@ Now that you've got the site up, try registering a user and uploading a package!
 Once you've got your gallery deployed, you probably want an admin user. That's pretty easy to do. First, register your admin user through the site. Then log in to the database using the Azure SQL Management Portal and the 'nuget-site' user (as we did above). Then run this SQL:
 
 ```SQL
-INSERT INTO Roles(Name) VALUES('Admin')
+INSERT INTO Roles(Name) VALUES('Admins')
 
 DECLARE @adminId int
 SELECT @adminId = [Key] FROM Roles WHERE Name = 'Admins'
