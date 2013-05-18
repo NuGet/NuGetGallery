@@ -102,3 +102,24 @@ git push azure master
 ```
 
 NOTE: If you don't use master, make sure to update the "Branch to Deploy" setting in the Configure tab.
+
+After pushing, the site will build, which may take a while. Once finished, just browse to the site and it should start up! The first request may take quite a while, so be prepared to wait a few minutes.
+
+Now that you've got the site up, try registering a user and uploading a package!
+
+## Making an Admin
+Once you've got your gallery deployed, you probably want an admin user. That's pretty easy to do. First, register your admin user through the site. Then log in to the database using the Azure SQL Management Portal and the 'nuget-site' user (as we did above). Then run this SQL:
+
+```SQL
+INSERT INTO Roles(Name) VALUES('Admin')
+
+DECLARE @adminId int
+SELECT @adminId = [Key] FROM Roles WHERE Name = 'Admins'
+
+DECLARE @userId int
+SELECT @userId = [Key] FROM Users where Username = 'username'
+
+INSERT INTO UserRoles(UserKey, RoleKey) VALUES(@userId, @adminId)
+```
+
+Replacing 'username' with the name of the user you just created. Now log out and back in with that user and you should see the Admin tab! **NOTE** The name of the role is important, it is "Admins" (plural!).
