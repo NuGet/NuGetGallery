@@ -559,6 +559,7 @@
     <Compile Include="Entities\IEntitiesContext.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
+    <Compile Include="Entities\Tag.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
@@ -745,13 +746,13 @@
     <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.cs" />
-    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.Designer.cs">
-      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.cs" />
     <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.Designer.cs">
       <DependentUpon>201304091828587_Contract_UniqueCuratedPackages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201305202219062_EditableMetadata.cs" />
+    <Compile Include="Migrations\201305202219062_EditableMetadata.Designer.cs">
+      <DependentUpon>201305202219062_EditableMetadata.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -771,6 +772,9 @@
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
+    <Compile Include="RequestModels\EditPackageRegistrationRequest.cs" />
+    <Compile Include="RequestModels\EditPackageRequest.cs" />
+    <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CloudCacheService.cs" />
@@ -1123,8 +1127,8 @@
     <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.resx">
-      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201305202219062_EditableMetadata.resx">
+      <DependentUpon>201305202219062_EditableMetadata.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

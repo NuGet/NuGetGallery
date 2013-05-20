@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -108,5 +109,73 @@ namespace NuGetGallery
 
         [StringLength(44)]
         public string MinClientVersion { get; set; }
+
+        internal string GetCurrentDescription()
+        {
+            string masterDescription = PackageRegistration != null ? PackageRegistration.Description : null;
+            return string.IsNullOrWhiteSpace(masterDescription) ? Description : masterDescription;
+        }
+
+        internal string GetCurrentSummary()
+        {
+            string masterSummary = PackageRegistration != null ? PackageRegistration.Summary : null;
+            return string.IsNullOrWhiteSpace(masterSummary) ? Summary : masterSummary;
+        }
+
+        internal string GetCurrentIconUrl()
+        {
+            string masterIconUrl = PackageRegistration != null ? PackageRegistration.IconUrl : null;
+            return string.IsNullOrWhiteSpace(masterIconUrl) ? IconUrl : masterIconUrl;
+        }
+
+        internal string GetCurrentProjectUrl()
+        {
+            string masterProjectUrl = PackageRegistration != null ? PackageRegistration.ProjectUrl : null;
+            return string.IsNullOrWhiteSpace(masterProjectUrl) ? ProjectUrl : masterProjectUrl;
+        }
+
+        internal IEnumerable<string> GetCurrentTags()
+        {
+            var masterTags = PackageRegistration != null && PackageRegistration.Tags != null ? PackageRegistration.Tags.Select(tag => tag.Name).ToList() : null;
+            if (masterTags.AnySafe())
+            {
+                return masterTags;
+            }
+
+            if (Tags == null)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return Tags.Trim().Split(' ');
+        }
+
+        internal string GetCurrentFlattenedTags()
+        {
+            var masterFlattenedTags = PackageRegistration != null ? PackageRegistration.FlattenedTags : null;
+            if (!String.IsNullOrWhiteSpace(masterFlattenedTags))
+            {
+                return masterFlattenedTags;
+            }
+
+            return Tags;
+        }
+
+        internal string GetCurrentTitle(bool allowNull = false)
+        {
+            // This guy is an exception - version's title beats package registration's title
+            string workingTitle = Title;
+            if (PackageRegistration != null && string.IsNullOrWhiteSpace(workingTitle))
+            {
+                workingTitle = PackageRegistration.DefaultTitle;
+            }
+            
+            if (PackageRegistration != null && string.IsNullOrWhiteSpace(workingTitle) && !allowNull)
+            {
+                workingTitle = PackageRegistration.Id;
+            }
+
+            return workingTitle;
+        }
     }
 }

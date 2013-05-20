@@ -372,7 +372,8 @@ namespace NuGetGallery
             {
                 packageRegistration = new PackageRegistration
                     {
-                        Id = nugetPackage.Id
+                        Id = nugetPackage.Id,
+                        LastUpdated = DateTime.UtcNow,
                     };
 
                 packageRegistration.Owners.Add(currentUser);
