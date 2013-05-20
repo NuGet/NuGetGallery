@@ -11,6 +11,7 @@ namespace NuGetGallery
         {
             Owners = new HashSet<User>();
             Packages = new HashSet<Package>();
+            Tags = new HashSet<Tag>();
         }
 
         [StringLength(128)]
