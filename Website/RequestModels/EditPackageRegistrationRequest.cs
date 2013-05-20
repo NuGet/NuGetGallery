@@ -50,7 +50,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
 
         [StringLength(256)]
-        [Display(Name = "Source Code URL (e.g. GitHub)")]
+        [Display(Name = "Source Code Repository URL (e.g. GitHub)")]
         [DataType(DataType.Url)]
         [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
         public string SourceCodeUrl { get; set; }
