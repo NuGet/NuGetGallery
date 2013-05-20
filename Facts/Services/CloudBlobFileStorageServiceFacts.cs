@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Moq;
@@ -130,7 +131,7 @@ namespace NuGetGallery
                 fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0)).Verifiable();
                 fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
                 var simpleCloudBlob = new Mock<ISimpleCloudBlob>();
-                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Returns(Task.FromResult(0));
                 fakeBlobContainer.Setup(x => x.GetBlobReference("x.txt")).Returns(simpleCloudBlob.Object);
 
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
@@ -152,7 +153,7 @@ namespace NuGetGallery
                     .Verifiable();
 
                 var simpleCloudBlob = new Mock<ISimpleCloudBlob>();
-                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                simpleCloudBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Returns(Task.FromResult(0));
 
                 fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
                 fakeBlobContainer.Setup(x => x.GetBlobReference("x.txt")).Returns(simpleCloudBlob.Object);
@@ -287,7 +288,7 @@ namespace NuGetGallery
                                 return containerMock.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Returns(Task.FromResult(0)).Verifiable();
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Returns(Task.FromResult(0)).Verifiable();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 await service.GetFileAsync(folderName, "theFileName");
@@ -323,8 +324,8 @@ namespace NuGetGallery
                                 return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>()))
-                    .Callback<Stream>(x => { x.WriteByte(42); })
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
+                    .Callback<Stream, AccessCondition>((x, _) => { x.WriteByte(42); })
                     .Returns(Task.FromResult(0));
 
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
@@ -360,7 +361,7 @@ namespace NuGetGallery
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
 
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Throws(
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Throws(
                     new TestableStorageClientException { ErrorCode = BlobErrorCodeStrings.BlobNotFound });
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
@@ -394,7 +395,9 @@ namespace NuGetGallery
                                 return blobContainer.Object;
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
-                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>())).Callback<Stream>(x => { x.WriteByte(42); }).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
+                        .Callback<Stream, AccessCondition>((x, _) => { x.WriteByte(42); })
+                        .Returns(Task.FromResult(0));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 var stream = await service.GetFileAsync(folderName, "theFileName");

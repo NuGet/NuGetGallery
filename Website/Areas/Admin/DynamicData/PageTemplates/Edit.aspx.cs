@@ -12,17 +12,18 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         protected void Page_Init(object sender, EventArgs e)
         {
             table = DynamicDataRouteHandler.GetRequestMetaTable(Context);
-            FormView1.SetMetaTable(table);
+            DetailsView1.SetMetaTable(table);
             DetailsDataSource.EntityTypeFilter = table.EntityType.Name;
         }
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            DetailsView1.RowsGenerator = new OrderedFieldGenerator(table);
             Title = table.DisplayName;
             DetailsDataSource.Include = table.ForeignKeyColumnsNames;
         }
 
-        protected void FormView1_ItemCommand(object sender, FormViewCommandEventArgs e)
+        protected void DetailsView1_ItemCommand(object sender, DetailsViewCommandEventArgs e)
         {
             if (e.CommandName == DataControlCommands.CancelCommandName)
             {
@@ -30,7 +31,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             }
         }
 
-        protected void FormView1_ItemUpdated(object sender, FormViewUpdatedEventArgs e)
+        protected void DetailsView1_ItemUpdated(object sender, DetailsViewUpdatedEventArgs e)
         {
             if (e.Exception == null || e.ExceptionHandled)
             {

@@ -11,29 +11,22 @@ namespace NuGetGallery.PackageCurators
         {
             public TestableWebMatrixPackageCurator()
             {
-                StubCreatedCuratedPackageCmd = new Mock<ICreateCuratedPackageCommand>();
                 StubCuratedFeed = new CuratedFeed { Key = 0 };
-                StubCuratedFeedByNameQry = new Mock<ICuratedFeedByNameQuery>();
+                StubCuratedFeedService = new Mock<ICuratedFeedService>();
 
-                StubCuratedFeedByNameQry
-                    .Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>()))
+                StubCuratedFeedService
+                    .Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>()))
                     .Returns(StubCuratedFeed);
             }
 
-            public Mock<ICreateCuratedPackageCommand> StubCreatedCuratedPackageCmd { get; set; }
             public CuratedFeed StubCuratedFeed { get; private set; }
-            public Mock<ICuratedFeedByNameQuery> StubCuratedFeedByNameQry { get; private set; }
+            public Mock<ICuratedFeedService> StubCuratedFeedService { get; private set; }
 
             protected override T GetService<T>()
             {
-                if (typeof(T) == typeof(ICreateCuratedPackageCommand))
+                if (typeof(T) == typeof(ICuratedFeedService))
                 {
-                    return (T)StubCreatedCuratedPackageCmd.Object;
-                }
-
-                if (typeof(T) == typeof(ICuratedFeedByNameQuery))
-                {
-                    return (T)StubCuratedFeedByNameQry.Object;
+                    return (T)StubCuratedFeedService.Object;
                 }
 
                 throw new Exception("Tried to get an unexpected service.");
@@ -46,12 +39,12 @@ namespace NuGetGallery.PackageCurators
             public void WillNotIncludeThePackageWhenTheWebMatrixCuratedFeedDoesNotExist()
             {
                 var curator = new TestableWebMatrixPackageCurator();
-                curator.StubCuratedFeedByNameQry.Setup(stub => stub.Execute(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
+                curator.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
 
                 curator.Curate(CreateStubGalleryPackage(), null, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -64,41 +57,32 @@ namespace NuGetGallery.PackageCurators
             [Fact]
             public void WillNotIncludeThePackageWhenItIsNotTheLatestStable()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.IsLatestStable = false;
+                var stubNuGetPackage = CreateStubNuGetPackage();
 
-                curator.Curate(stubGalleryPackage, null, commitChanges: true);
+                bool result = WebMatrixPackageCurator.ShouldCuratePackage(
+                    stubFeed,
+                    stubGalleryPackage,
+                    stubNuGetPackage.Object);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
-                        It.IsAny<CuratedFeed>(),
-                        It.IsAny<PackageRegistration>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<string>(),
-                        It.IsAny<bool>()),
-                    Times.Never());
+                Assert.False(result);
             }
 
             [Fact]
             public void WillIncludeThePackageWhenItIsTaggedWithAspNetWebPages()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var stubFeed = new CuratedFeed();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Tags = "aTag aspnetwebpages aThirdTag";
+                var stubNuGetPackage = CreateStubNuGetPackage();
 
-                curator.Curate(stubGalleryPackage, null, commitChanges: true);
+                bool result = WebMatrixPackageCurator.ShouldCuratePackage(
+                    stubFeed,
+                    stubGalleryPackage,
+                    stubNuGetPackage.Object);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
-                        It.IsAny<CuratedFeed>(),
-                        It.IsAny<PackageRegistration>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<string>(),
-                        It.IsAny<bool>()),
-                    Times.Once());
+                Assert.True(result);
             }
 
             [Fact]
@@ -117,7 +101,8 @@ namespace NuGetGallery.PackageCurators
             [Fact]
             public void WillNotIncludeThePackageWhenNotTaggedAndThereIsAPowerShellFile()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var stubFeed = new CuratedFeed();
+                var stubGalleryPackage = CreateStubGalleryPackage();
                 var stubNuGetPackage = CreateStubNuGetPackage();
                 stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(
                     new []
@@ -127,23 +112,19 @@ namespace NuGetGallery.PackageCurators
                             "foo.cs",
                         });
 
-                curator.Curate(CreateStubGalleryPackage(), stubNuGetPackage.Object, commitChanges: true);
+                bool result = WebMatrixPackageCurator.ShouldCuratePackage(
+                    stubFeed,
+                    stubGalleryPackage,
+                    stubNuGetPackage.Object);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
-                        It.IsAny<CuratedFeed>(),
-                        It.IsAny<PackageRegistration>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<string>(),
-                        It.IsAny<bool>()),
-                    Times.Never());
+                Assert.False(result);
             }
 
             [Fact]
             public void WillNotIncludeThePackageWhenNotTaggedAndThereIsT4Template()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var stubFeed = new CuratedFeed();
+                var stubGalleryPackage = CreateStubGalleryPackage();
                 var stubNuGetPackage = CreateStubNuGetPackage();
                 stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(
                     new[]
@@ -153,61 +134,60 @@ namespace NuGetGallery.PackageCurators
                             "foo.cs",
                         });
 
-                curator.Curate(CreateStubGalleryPackage(), stubNuGetPackage.Object, commitChanges: true);
+                bool result = WebMatrixPackageCurator.ShouldCuratePackage(
+                    stubFeed,
+                    stubGalleryPackage,
+                    stubNuGetPackage.Object);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
-                        It.IsAny<CuratedFeed>(),
-                        It.IsAny<PackageRegistration>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<string>(),
-                        It.IsAny<bool>()),
-                    Times.Never());
+                Assert.False(result);
             }
 
             [Fact]
             public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsNotIncluded()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var stubFeed = new CuratedFeed();
+                var stubNuGetPackage = CreateStubNuGetPackage().Object;
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "NotACuratedPackage" });
+                stubGalleryPackage.Dependencies.Add(
+                    new PackageDependency { Id = "NotACuratedPackage" });
 
-                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
+                bool result = WebMatrixPackageCurator.ShouldCuratePackage(
+                    stubFeed,
+                    stubGalleryPackage,
+                    stubNuGetPackage);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
-                    It.IsAny<CuratedFeed>(),
-                    It.IsAny<PackageRegistration>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>()), Times.Never());
+                Assert.False(result);
             }
 
             [Fact]
             public void WillNotIncludeThePackageWhenItDependsOnAPackageThatIsExcludedInTheFeed()
             {
-                var curator = new TestableWebMatrixPackageCurator();
-                curator.StubCuratedFeed.Packages.Add(new CuratedPackage { AutomaticallyCurated = false, Included = false, PackageRegistration = new PackageRegistration { Id = "ManuallyExcludedPackage" } });
-
+                var stubFeed = new CuratedFeed();
+                var dependencyPackage = new CuratedPackage
+                {
+                    AutomaticallyCurated = false, 
+                    Included = false, 
+                    PackageRegistration = new PackageRegistration { Id = "ManuallyExcludedPackage" }
+                };
+                stubFeed.Packages.Add(dependencyPackage);
+                var stubNuGetPackage = CreateStubNuGetPackage().Object;
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "ManuallyExcludedPackage" });
+                stubGalleryPackage.Dependencies.Add(
+                    new PackageDependency { Id = "ManuallyExcludedPackage" });
 
-                curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
+                bool result = WebMatrixPackageCurator.ShouldCuratePackage(
+                    stubFeed,
+                    stubGalleryPackage,
+                    stubNuGetPackage);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(stub => stub.Execute(
-                    It.IsAny<CuratedFeed>(),
-                    It.IsAny<PackageRegistration>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>()), Times.Never());
+                Assert.False(result);
             }
 
             [Fact]
             public void WillIncludeThePackageWhenThereIsNotPowerShellOrT4File()
             {
-                var curator = new TestableWebMatrixPackageCurator();
+                var stubFeed = new CuratedFeed();
+                var stubGalleryPackage = CreateStubGalleryPackage();
                 var stubNuGetPackage = CreateStubNuGetPackage();
                 stubNuGetPackage.Setup(stub => stub.GetFiles()).Returns(
                     new[]
@@ -216,17 +196,12 @@ namespace NuGetGallery.PackageCurators
                             "foo.cs",
                         });
 
-                curator.Curate(CreateStubGalleryPackage(), stubNuGetPackage.Object, commitChanges: true);
+                bool result = WebMatrixPackageCurator.ShouldCuratePackage(
+                    stubFeed,
+                    stubGalleryPackage,
+                    stubNuGetPackage.Object);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
-                        It.IsAny<CuratedFeed>(),
-                        It.IsAny<PackageRegistration>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<bool>(),
-                        It.IsAny<string>(),
-                        It.IsAny<bool>()),
-                    Times.Once());
+                Assert.True(result);
             }
 
             [Fact]
@@ -237,8 +212,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         curator.StubCuratedFeed,
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),
@@ -256,8 +231,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         stubGalleryPackage.PackageRegistration,
                         It.IsAny<bool>(),
@@ -273,8 +248,8 @@ namespace NuGetGallery.PackageCurators
 
                 curator.Curate(CreateStubGalleryPackage(), CreateStubNuGetPackage().Object, commitChanges: true);
 
-                curator.StubCreatedCuratedPackageCmd.Verify(
-                    stub => stub.Execute(
+                curator.StubCuratedFeedService.Verify(
+                    stub => stub.CreatedCuratedPackage(
                         It.IsAny<CuratedFeed>(),
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<bool>(),

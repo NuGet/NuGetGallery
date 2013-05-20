@@ -1,0 +1,2 @@
+﻿## Developer Environment
+This is a developer environment! If you want to show a custom message here, either change the App_Data\Files\Content\FrontPage-Announcement.md file, or if you are using the AzureStorageBlob package store type, upload a FrontPage-Announcement.md file to the "content" container of your blob storage account.

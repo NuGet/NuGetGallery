@@ -42,6 +42,7 @@ namespace T4MVC {
     public class AdminClass {
         public readonly string Name = "Admin";
         public NuGetGallery.Areas.Admin.Controllers.HomeController Home = new NuGetGallery.Areas.Admin.Controllers.T4MVC_HomeController();
+        public NuGetGallery.Areas.Admin.Controllers.LuceneController Lucene = new NuGetGallery.Areas.Admin.Controllers.T4MVC_LuceneController();
         public T4MVC.Admin.SharedController Shared = new T4MVC.Admin.SharedController();
     }
 }

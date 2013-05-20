@@ -99,6 +99,14 @@ namespace NuGetGallery
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
+        public static string PackageDeafultIcon(this UrlHelper url)
+        {
+            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            string result = url.RouteUrl(RouteName.Home, null, protocol: protocol);
+            result = result.TrimEnd('/') + Links.Content.Images.packageDefaultIcon_50x50_png;
+            return result;
+        }
+
         public static string PackageDownload(this UrlHelper url, int feedVersion, string id, string version)
         {
             string routeName = "v" + feedVersion + RouteName.DownloadPackage;

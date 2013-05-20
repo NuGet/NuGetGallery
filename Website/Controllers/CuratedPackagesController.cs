@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Web.Mvc;
+using System.Data.Entity;
 
 namespace NuGetGallery
 {
@@ -7,12 +8,24 @@ namespace NuGetGallery
     public partial class CuratedPackagesController : AppController
     {
         public const string ControllerName = "CuratedPackages";
+        internal ICuratedFeedService CuratedFeedService { get; set; }
+        internal IEntitiesContext EntitiesContext { get; set; }
+
+        protected CuratedPackagesController() { }
+
+        public CuratedPackagesController(
+            ICuratedFeedService curatedFeedService,
+            IEntitiesContext entitiesContext)
+        {
+            this.CuratedFeedService = curatedFeedService;
+            this.EntitiesContext = entitiesContext;
+        }
 
         [ActionName("CreateCuratedPackageForm")]
         [HttpGet]
         public virtual ActionResult GetCreateCuratedPackageForm(string curatedFeedName)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: false);
+            var curatedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             if (curatedFeed == null)
             {
                 return HttpNotFound();
@@ -33,7 +46,7 @@ namespace NuGetGallery
             string curatedFeedName,
             string curatedPackageId)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
+            var curatedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
             {
                 return HttpNotFound();
@@ -50,7 +63,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403);
             }
 
-            GetService<IDeleteCuratedPackageCommand>().Execute(
+            CuratedFeedService.DeleteCuratedPackage(
                 curatedFeed.Key,
                 curatedPackage.Key);
 
@@ -64,7 +77,7 @@ namespace NuGetGallery
             string curatedPackageId,
             ModifyCuratedPackageRequest request)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
+            var curatedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
             {
                 return HttpNotFound();
@@ -86,7 +99,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(400);
             }
 
-            GetService<IModifyCuratedPackageCommand>().Execute(
+            CuratedFeedService.ModifyCuratedPackage(
                 curatedFeed.Key,
                 curatedPackage.Key,
                 request.Included);
@@ -100,7 +113,7 @@ namespace NuGetGallery
             string curatedFeedName,
             CreateCuratedPackageRequest request)
         {
-            var curatedFeed = GetService<ICuratedFeedByNameQuery>().Execute(curatedFeedName, includePackages: true);
+            var curatedFeed = CuratedFeedService.GetFeedByName(curatedFeedName, includePackages: true);
             if (curatedFeed == null)
             {
                 return HttpNotFound();
@@ -117,7 +130,10 @@ namespace NuGetGallery
                 return View("CreateCuratedPackageForm");
             }
 
-            var packageRegistration = GetService<IPackageRegistrationByIdQuery>().Execute(request.PackageId, includePackages: false);
+            var packageRegistration = EntitiesContext.PackageRegistrations
+                .Where(pr => pr.Id == request.PackageId)
+                .Include(pr => pr.Owners).FirstOrDefault();
+
             if (packageRegistration == null)
             {
                 ModelState.AddModelError("PackageId", Strings.PackageWithIdDoesNotExist);
@@ -132,9 +148,11 @@ namespace NuGetGallery
                 return View("CreateCuratedPackageForm");
             }
 
-            GetService<ICreateCuratedPackageCommand>().Execute(
+            CuratedFeedService.CreatedCuratedPackage(
                 curatedFeed,
                 packageRegistration,
+                included: true,
+                automaticallyCurated: false,
                 notes: request.Notes);
 
             return RedirectToRoute(RouteName.CuratedFeed, new { name = curatedFeed.Name });

@@ -36,7 +36,10 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 
             // Comments assume employee/territory for illustration, but the code is generic
 
-            ObjectContext.LoadProperty(e.Entity, Column.Name);
+            if (Mode == DataBoundControlMode.Edit)
+            {
+                ObjectContext.LoadProperty(e.Entity, Column.Name);
+            }
 
             // Get the collection of territories for this employee
             dynamic entityList = Column.EntityTypeProperty.GetValue(e.Entity, null);

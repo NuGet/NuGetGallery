@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using Ninject;
 
@@ -37,6 +36,10 @@ namespace NuGetGallery
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
+        IDbSet<T> IEntitiesContext.Set<T>()
+        {
+            return base.Set<T>();
+        }
 
         public override int SaveChanges()
         {

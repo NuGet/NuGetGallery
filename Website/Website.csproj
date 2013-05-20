@@ -28,6 +28,7 @@
     </UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
     <TargetFrameworkProfile />
+    <IISExpressSSLPort>443</IISExpressSSLPort>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -255,14 +256,22 @@
     <Compile Include="Admin.HomeController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Admin.LuceneController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Admin.SharedController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
+    <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
+    <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
+    <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
+    <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
@@ -502,11 +511,7 @@
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Commands\AppCommand.cs" />
-    <Compile Include="Commands\DeleteCuratedPackageCommand.cs" />
-    <Compile Include="Commands\ModifyCuratedPackageCommand.cs" />
-    <Compile Include="Commands\CreateCuratedPackageCommand.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommand.cs" />
-    <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\CuratedFeedsController.cs" />
     <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
@@ -737,13 +742,17 @@
     <Compile Include="Migrations\201304020006512_UserLookupOptimization.Designer.cs">
       <DependentUpon>201304020006512_UserLookupOptimization.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201304251953548_EditableMetadata.cs" />
-    <Compile Include="Migrations\201304251953548_EditableMetadata.Designer.cs">
-      <DependentUpon>201304251953548_EditableMetadata.cs</DependentUpon>
+    <Compile Include="Migrations\201304251927587_UserCreatedDate.cs" />
+    <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
+      <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201304252324153_FirstClassTags.cs" />
-    <Compile Include="Migrations\201304252324153_FirstClassTags.Designer.cs">
-      <DependentUpon>201304252324153_FirstClassTags.cs</DependentUpon>
+    <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.cs" />
+    <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.Designer.cs">
+      <DependentUpon>201304091828587_Contract_UniqueCuratedPackages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201305202219062_EditableMetadata.cs" />
+    <Compile Include="Migrations\201305202219062_EditableMetadata.Designer.cs">
+      <DependentUpon>201305202219062_EditableMetadata.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -763,11 +772,6 @@
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
-    <Compile Include="Queries\PackageRegistrationByIdQuery.cs" />
-    <Compile Include="Queries\CuratedFeedByKeyQuery.cs" />
-    <Compile Include="Queries\CuratedFeedByNameQuery.cs" />
-    <Compile Include="Queries\CuratedFeedsByManagerKeyQuery.cs" />
-    <Compile Include="Queries\PackageRegistrationByKeyQuery.cs" />
     <Compile Include="RequestModels\EditPackageRegistrationRequest.cs" />
     <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
@@ -776,6 +780,10 @@
     <Compile Include="Services\CloudCacheService.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
+    <Compile Include="Services\CloudFileReference.cs" />
+    <Compile Include="Services\ContentService.cs" />
+    <Compile Include="Services\IContentService.cs" />
+    <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
     <Compile Include="Services\CloudReportService.cs" />
     <Compile Include="Services\IReportService.cs" />
@@ -794,15 +802,14 @@
     <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\INuGetExeDownloaderService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
-    <Compile Include="Services\IPackageSource.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
+    <Compile Include="Services\LocalFileReference.cs" />
     <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
     <Compile Include="RequireRemoteHttpsAttribute.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\AggregateStatsService.cs" />
-    <Compile Include="Services\PackageSource.cs" />
     <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
@@ -826,6 +833,7 @@
     <Compile Include="ViewModels\StatisticsFact.cs" />
     <Compile Include="ViewModels\StatisticsPivot.cs" />
     <Compile Include="ViewModels\StatisticsDimension.cs" />
+    <Compile Include="ViewModels\HomeViewModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
     <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
@@ -875,7 +883,6 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
     <Compile Include="App_Start\IConfiguration.cs" />
-    <Compile Include="Services\ICryptographyService.cs" />
     <Compile Include="Entities\IEntity.cs" />
     <Compile Include="Services\IFormsAuthenticationService.cs" />
     <Compile Include="Services\IPackageFileService.cs" />
@@ -957,6 +964,7 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
     <Content Include="Areas\Admin\DynamicData\Site.css" />
+    <Content Include="clientaccesspolicy.xml" />
     <Content Include="Content\Images\changePassword.png" />
     <Content Include="Content\Images\copy.png" />
     <Content Include="Content\Images\errorPage.png" />
@@ -1037,6 +1045,7 @@
     <Content Include="robots.txt" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\nugetgallery.js" />
     <Content Include="Scripts\statsdimensions.js" />
     <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\async-file-upload.js" />
@@ -1115,12 +1124,11 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201304251953548_EditableMetadata.resx">
-      <DependentUpon>201304251953548_EditableMetadata.cs</DependentUpon>
-      <SubType>Designer</SubType>
+    <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
+      <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201304252324153_FirstClassTags.resx">
-      <DependentUpon>201304252324153_FirstClassTags.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201305202219062_EditableMetadata.resx">
+      <DependentUpon>201305202219062_EditableMetadata.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
@@ -1139,6 +1147,12 @@
     <Content Include="Areas\Admin\Views\Home\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
+    <Content Include="App_Data\Files\Content\FrontPage-Announcement.md" />
+    <Content Include="App_Data\Files\Content\FrontPage-About.md" />
+    <Content Include="App_Data\Files\Content\Alert.md" />
+    <Content Include="Areas\Admin\Views\Lucene\Index.cshtml">
+      <SubType>Code</SubType>
+    </Content>
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>
@@ -1159,7 +1173,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
-    <Folder Include="Areas\Admin\Models\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
   </ItemGroup>
   <PropertyGroup>

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -21,18 +20,24 @@ namespace NuGetGallery
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
         private readonly IStatisticsService _statisticsService;
+        private readonly IContentService _contentService;
+        private readonly IIndexingService _indexingService;
 
         public ApiController(
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
-            INuGetExeDownloaderService nugetExeDownloaderService)
+            INuGetExeDownloaderService nugetExeDownloaderService,
+            IContentService contentService,
+            IIndexingService indexingService)
         {
             _packageService = packageService;
             _packageFileService = packageFileService;
             _userService = userService;
             _nugetExeDownloaderService = nugetExeDownloaderService;
+            _contentService = contentService;
             _statisticsService = null;
+            _indexingService = indexingService;
         }
 
         public ApiController(
@@ -40,12 +45,11 @@ namespace NuGetGallery
             IPackageFileService packageFileService,
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
+            IContentService contentService,
+            IIndexingService indexingService,
             IStatisticsService statisticsService)
+            : this(packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService)
         {
-            _packageService = packageService;
-            _packageFileService = packageFileService;
-            _userService = userService;
-            _nugetExeDownloaderService = nugetExeDownloaderService;
             _statisticsService = statisticsService;
         }
 
@@ -278,6 +282,7 @@ namespace NuGetGallery
             }
 
             _packageService.MarkPackageUnlisted(package);
+            _indexingService.UpdatePackage(package);
             return new EmptyResult();
         }
 
@@ -314,7 +319,14 @@ namespace NuGetGallery
             }
 
             _packageService.MarkPackageListed(package);
+            _indexingService.UpdatePackage(package);
             return new EmptyResult();
+        }
+
+        public virtual async Task<ActionResult> ServiceAlert()
+        {
+            var alert = await _contentService.GetContentItemAsync(Constants.ContentNames.Alert, TimeSpan.Zero);
+            return Content(alert == null ? (string)null : alert.ToString(), "text/html");
         }
 
         protected override void OnException(ExceptionContext filterContext)
@@ -395,7 +407,9 @@ namespace NuGetGallery
                         item.Add("PackageId", row.PackageId);
                         item.Add("PackageVersion", row.PackageVersion);
                         item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
-                        item.Add("Package", Url.PackageDownload(2, row.PackageId, row.PackageVersion));
+                        item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
+                        item.Add("PackageDescription", row.PackageDescription);
+                        item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDeafultIcon());
                         item.Add("Downloads", row.Downloads);
 
                         content.Add(item);

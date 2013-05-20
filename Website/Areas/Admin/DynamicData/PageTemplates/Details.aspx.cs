@@ -12,17 +12,18 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         protected void Page_Init(object sender, EventArgs e)
         {
             table = DynamicDataRouteHandler.GetRequestMetaTable(Context);
-            FormView1.SetMetaTable(table);
+            DetailsView1.SetMetaTable(table);
             DetailsDataSource.EntityTypeFilter = table.EntityType.Name;
         }
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            DetailsView1.RowsGenerator = new OrderedFieldGenerator(table);
             Title = table.DisplayName;
             DetailsDataSource.Include = table.ForeignKeyColumnsNames;
         }
 
-        protected void FormView1_ItemDeleted(object sender, FormViewDeletedEventArgs e)
+        protected void DetailsView1_ItemDeleted(object sender, DetailsViewDeletedEventArgs e)
         {
             if (e.Exception == null || e.ExceptionHandled)
             {

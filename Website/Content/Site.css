@@ -143,7 +143,7 @@ pre, code, tt {
 header, footer,
 nav, section { display: block; }
 
-.banner-yellow {
+.banner-warning {
     padding: 0.25em;
     font-size: 14pt;
     text-align: center;
@@ -154,6 +154,24 @@ nav, section { display: block; }
     background-image: -o-linear-gradient(top, #ffff00, #e5e600);
     background-image: linear-gradient(to bottom, #ffff00, #e5e600);
 }
+
+.banner-urgent {
+    padding: 0.25em;
+    font-size: 14pt;
+    text-align: center;
+    color: white;
+    background: red;
+    background-image: -moz-linear-gradient(top, #ff0000, #e60000);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ff0000), to(#e60000));
+    background-image: -webkit-linear-gradient(top, #ff0000, #e60000);
+    background-image: -o-linear-gradient(top, #ff0000, #e60000);
+    background-image: linear-gradient(to bottom, #ff0000, #e60000);
+}
+    .banner-urgent a
+    {
+        color: white;
+        text-decoration: underline;
+    }
 
 #outer-wrapper {
     background: url('../Content/Images/headerbackground.png') repeat-x top left #fff;
@@ -379,13 +397,13 @@ nav.main ul a:hover {
 
 #sideColumn {
     float: left;
-    width: 20%;
+    width: 25%;
 }
 
 #mainColumn {
     float: right;
     margin-bottom: 20px;
-    width: 77%;
+    width: 75%;
 }
 
 #mainColumn > h1,
@@ -1330,3 +1348,7 @@ form .async-upload-progress-advance
     background-color: green;
 }
 
+#service-alert
+{
+    display: none;
+}

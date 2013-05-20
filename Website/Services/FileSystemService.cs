@@ -39,5 +39,11 @@ namespace NuGetGallery
         {
             return File.GetCreationTimeUtc(path);
         }
+
+        public IFileReference GetFileReference(string path)
+        {
+            var info = new FileInfo(path);
+            return info.Exists ? new LocalFileReference(info) : null;
+        }
     }
 }
