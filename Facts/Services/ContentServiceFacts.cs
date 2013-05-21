@@ -78,7 +78,7 @@ namespace NuGetGallery.Services
                 Assert.NotNull(cached);
                 Assert.Equal(RenderedFileContent, cached.Content.ToString());
                 Assert.Equal(file.ContentId, cached.ContentId);
-                Assert.Equal(TimeSpan.FromSeconds(42), cached.ExpiryUtc - cached.RetrievedUtc);
+                Assert.True(EqualWithDrift(TimeSpan.FromSeconds(42), (cached.ExpiryUtc - cached.RetrievedUtc), TimeSpan.FromSeconds(2)));
                 Assert.True(cached.RetrievedUtc >= testStart);
             }
 
@@ -128,7 +128,7 @@ namespace NuGetGallery.Services
                 Assert.NotNull(updatedCache);
                 Assert.Equal(CachedContent, updatedCache.Content.ToString());
                 Assert.Equal(file.ContentId, updatedCache.ContentId);
-                Assert.Equal(TimeSpan.FromHours(12), updatedCache.ExpiryUtc - updatedCache.RetrievedUtc);
+                Assert.True(EqualWithDrift(TimeSpan.FromHours(12), (updatedCache.ExpiryUtc - updatedCache.RetrievedUtc), TimeSpan.FromSeconds(2)));
                 Assert.True(updatedCache.RetrievedUtc > testStart);
             }
 
@@ -159,9 +159,15 @@ namespace NuGetGallery.Services
                 Assert.NotNull(updatedCache);
                 Assert.Equal(RenderedNewContent, updatedCache.Content.ToString());
                 Assert.Equal(file.ContentId, updatedCache.ContentId);
-                Assert.Equal(TimeSpan.FromHours(12), updatedCache.ExpiryUtc - updatedCache.RetrievedUtc);
+                Assert.True(EqualWithDrift(TimeSpan.FromHours(12), (updatedCache.ExpiryUtc - updatedCache.RetrievedUtc), TimeSpan.FromSeconds(2)));
                 Assert.True(updatedCache.RetrievedUtc > testStart);
             }
+        }
+
+        private static bool EqualWithDrift(TimeSpan expected, TimeSpan actual, TimeSpan drift)
+        {
+            var distance = expected - actual;
+            return Math.Abs(distance.TotalSeconds) <= drift.TotalSeconds;
         }
 
         public class TestableContentService : ContentService
