@@ -64,7 +64,9 @@
     {
         <fieldset class="form">
             <legend>Edit Version @(Model.Version)</legend>
-
+            
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true)
             @(Html.EditorFor<EditPackageRequest,EditPackageVersionRequest>(model => model.EditPackageVersionRequest))
         </fieldset>
         <input type="submit" value="Submit" title="Save" />
