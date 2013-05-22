@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Web.Mvc;
+using System.Data.Entity;
 
 namespace NuGetGallery
 {
@@ -7,13 +8,17 @@ namespace NuGetGallery
     public partial class CuratedPackagesController : AppController
     {
         public const string ControllerName = "CuratedPackages";
-        protected ICuratedFeedService CuratedFeedService { get; set; }
+        internal ICuratedFeedService CuratedFeedService { get; set; }
+        internal IEntitiesContext EntitiesContext { get; set; }
 
         protected CuratedPackagesController() { }
 
-        public CuratedPackagesController(ICuratedFeedService curatedFeedService)
+        public CuratedPackagesController(
+            ICuratedFeedService curatedFeedService,
+            IEntitiesContext entitiesContext)
         {
             this.CuratedFeedService = curatedFeedService;
+            this.EntitiesContext = entitiesContext;
         }
 
         [ActionName("CreateCuratedPackageForm")]
@@ -125,7 +130,10 @@ namespace NuGetGallery
                 return View("CreateCuratedPackageForm");
             }
 
-            var packageRegistration = GetService<IPackageRegistrationByIdQuery>().Execute(request.PackageId, includePackages: false);
+            var packageRegistration = EntitiesContext.PackageRegistrations
+                .Where(pr => pr.Id == request.PackageId)
+                .Include(pr => pr.Owners).FirstOrDefault();
+
             if (packageRegistration == null)
             {
                 ModelState.AddModelError("PackageId", Strings.PackageWithIdDoesNotExist);

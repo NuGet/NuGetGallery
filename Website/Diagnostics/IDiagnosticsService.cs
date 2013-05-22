@@ -9,4 +9,12 @@
         /// <returns></returns>
         IDiagnosticsSource GetSource(string name);
     }
+
+    public static class DiagnosticsServiceExtensions
+    {
+        public static IDiagnosticsSource SafeGetSource(this IDiagnosticsService self, string name)
+        {
+            return self == null ? new NullDiagnosticsSource() : self.GetSource(name);
+        }
+    }
 }

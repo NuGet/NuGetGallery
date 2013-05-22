@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using NuGetGallery.Diagnostics;
 using WebBackgrounder;
 
 namespace NuGetGallery
@@ -13,9 +14,13 @@ namespace NuGetGallery
         public LuceneIndexingJob(TimeSpan frequence, Func<EntitiesContext> contextThunk, TimeSpan timeout)
             : base("Lucene", frequence, timeout)
         {
+            var context = contextThunk();
+
             _indexingService = new LuceneIndexingService(
-                new PackageSource(contextThunk()),
-                LuceneCommon.GetDirectory());
+                new EntityRepository<Package>(context),
+                new EntityRepository<CuratedPackage>(context),
+                LuceneCommon.GetDirectory(),
+                null);
 
             // Updates the index synchronously first time job is created.
             // For startup code resiliency, we should handle exceptions for the database being down.
