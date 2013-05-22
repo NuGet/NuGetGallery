@@ -173,15 +173,12 @@ namespace NuGetGallery
             var user = UserService.FindByUsername(CurrentUser.Identity.Name);
             var packages = PackageService.FindPackagesByOwner(user);
 
-            var published = from p in packages
-                            group p by p.PackageRegistration.Id;
-
             var model = new ManagePackagesViewModel
                 {
-                    Packages = from pr in published
-                               select new PackageViewModel(pr.First())
+                    Packages = from p in packages
+                               select new PackageViewModel(p)
                                    {
-                                       DownloadCount = pr.Sum(p => p.DownloadCount),
+                                       DownloadCount = p.PackageRegistration.DownloadCount,
                                        Version = null
                                    },
                 };
