@@ -728,7 +728,7 @@ ul.dependencySet li {
     list-style-image: none;
 }
 
-.edit-root, .edit-tree, .edit-root-selected, .edit-tree-selected {
+.edit-root, .edit-root-selected {
     font-size: 1.3em;
 }
 
@@ -738,7 +738,6 @@ ul.dependencySet li {
 }
 
 .edit-root-selected, .edit-tree-selected {
-    font-size: 1.3em;
     font-weight: bold;
     margin: 5px 0;
 }
