@@ -11,6 +11,6 @@ namespace NuGetGallery
         public string PackageTitle { get; set; }
         public string Version { get; set; }
 
-        public IList<string> PackageVersions { get; set; }
+        public IList<Package> PackageVersions { get; set; }
     }
 }

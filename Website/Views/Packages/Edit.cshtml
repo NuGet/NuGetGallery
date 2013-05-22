@@ -35,11 +35,16 @@
             <a href="@Url.EditPackage(Model.PackageId, null)" >@(Model.PackageTitle)</a>
         </span>
         <ul id="packageVersions">
-        @foreach (var versionStr in Model.PackageVersions)
+        @foreach (var version in Model.PackageVersions)
         {
+            var versionStr = version.Version;
             <li>
                 <span class="@(string.Equals(Model.Version, versionStr, StringComparison.OrdinalIgnoreCase) ? "edit-tree-selected" : "edit-tree")">
                     <a href="@Url.EditPackage(Model.PackageId, versionStr)" >@(versionStr)</a>
+                    @if (!version.Listed)
+                    {
+                        <text>(unlisted)</text>
+                    }
                 </span>
             </li>
         }
