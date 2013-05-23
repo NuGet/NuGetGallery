@@ -1,3 +1,37 @@
+# May 23, 2013
+
+### Remove unlisted packages from search index 
+
+When a package gets unlisted, it will be removed from the Lucene search index immediately. This is one of the frequent ask from users as they don't want their unlisted packages to show up in search.
+
+### Admin Page bug fixes
+
+Bunch of fixes around the Admin page (which will be visible only for administrative login).
+
+### Other minor bug fixes
+
+Other minor fixes like client side validation for user name/email. Complete list can be found here: [05/13 - QA (05/24 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=21)
+
+# May 13, 2013
+
+### Front page enhancements
+
+The contents for [nuget.org](nuget.org) home page is dynamically pulled from blob storage. This will help us to make announcements about new releases,
+warnings or alerts about outages in an easy and quick way.
+
+### Admin Page improvements
+
+A new admin page is added to the nuget.org website which lets the administrators (core NuGet team members) to view error logs, rebuilding Lucenece index and similar admin actions.
+
+### User created date
+
+The user created date will be now be stored along with the user data in the dastabase. This enables getting statistics around users like registrations per week.
+
+### Other minor bug fixes
+
+Other minor fixes around statistics and curated feed.Complete list can be found here: [04/29 - QA (05/10 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=20)
+
+
 # April 25, 2013
 
 ### Group by Client Name,Version and Operation for download stats
