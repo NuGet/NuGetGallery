@@ -49,25 +49,30 @@ namespace NuGetGallery
 
         public Task<HtmlString> GetContentItemAsync(string name, TimeSpan expiresIn)
         {
+            return GetContentItemAsync(name, expiresIn, "content");
+        }
+
+        public Task<HtmlString> GetContentItemAsync(string name, TimeSpan expiresIn,string containerName ="content")
+        {
             if (String.IsNullOrEmpty(name))
             {
                 throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "name"), "name");
             }
 
-            return GetContentItemCore(name, expiresIn);
+            return GetContentItemCore(name, expiresIn,containerName);
         }
 
         // This NNNCore pattern allows arg checking to happen synchronously, before starting the async operation.
-        private async Task<HtmlString> GetContentItemCore(string name, TimeSpan expiresIn)
+        private async Task<HtmlString> GetContentItemCore(string name, TimeSpan expiresIn,string containernName)
         {
             using (Trace.Activity("GetContentItem " + name))
             {
                 ContentItem item = null;
-                if (ContentCache.TryGetValue(name, out item) && DateTime.UtcNow < item.ExpiryUtc)
-                {
-                    Trace.Information("Cache Valid. Expires at: " + item.ExpiryUtc.ToString());
-                    return item.Content;
-                }
+                //if (ContentCache.TryGetValue(name, out item) && DateTime.UtcNow < item.ExpiryUtc)
+                //{
+                //    Trace.Information("Cache Valid. Expires at: " + item.ExpiryUtc.ToString());
+                //    return item.Content;
+                //}
                 Trace.Information("Cache Expired.");
 
                 // Get the file from the content service
@@ -77,7 +82,7 @@ namespace NuGetGallery
                 using (Trace.Activity("Downloading Content Item: " + fileName))
                 {
                     reference = await FileStorage.GetFileReferenceAsync(
-                        Constants.ContentFolderName,
+                        containernName,
                         fileName,
                         ifNoneMatch: item == null ? null : item.ContentId);
                 }
@@ -89,14 +94,14 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    // Check the content ID to see if it's different
-                    if (item != null && String.Equals(item.ContentId, reference.ContentId, StringComparison.Ordinal))
-                    {
-                        Trace.Information("No change to content item. Using Cache");
-                        // No change, just use the cache.
-                        result = item.Content;
-                    }
-                    else
+                    //// Check the content ID to see if it's different
+                    //if (item != null && String.Equals(item.ContentId, reference.ContentId, StringComparison.Ordinal))
+                    //{
+                    //    Trace.Information("No change to content item. Using Cache");
+                    //    // No change, just use the cache.
+                    //    result = item.Content;
+                    //}
+                    //else
                     {
                         // Process the file
                         Trace.Information("Content Item changed. Updating...");
@@ -112,7 +117,8 @@ namespace NuGetGallery
                                 using (Trace.Activity("Reading Content File: " + fileName))
                                 using (var reader = new StreamReader(stream))
                                 {
-                                    result = new HtmlString(MarkdownProcessor.Transform(await reader.ReadToEndAsync()).Trim());
+                                    string content = reader.ReadToEnd();
+                                    result = new HtmlString(MarkdownProcessor.Transform(content).Trim());
                                 }
                             }
                         }
@@ -120,9 +126,9 @@ namespace NuGetGallery
                 }
 
                 // Prep the new item for the cache
-                item = new ContentItem(result, DateTime.UtcNow + expiresIn, reference == null ? null : reference.ContentId, DateTime.UtcNow);
-                Trace.Information(String.Format("Updating Cache: {0} expires at {1}", name, item.ExpiryUtc));
-                ContentCache.AddOrSet(name, item);
+                //item = new ContentItem(result, DateTime.UtcNow + expiresIn, reference == null ? null : reference.ContentId, DateTime.UtcNow);
+                //Trace.Information(String.Format("Updating Cache: {0} expires at {1}", name, item.ExpiryUtc));
+                //ContentCache.AddOrSet(name, item);
 
                 // Return the result
                 return result;

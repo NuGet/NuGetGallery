@@ -10,5 +10,6 @@ namespace NuGetGallery
     public interface IContentService
     {
         Task<HtmlString> GetContentItemAsync(string name, TimeSpan expiresIn);
+        Task<HtmlString> GetContentItemAsync(string name, TimeSpan expiresIn,string containerName);
     }
 }

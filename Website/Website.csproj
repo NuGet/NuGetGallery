@@ -1170,6 +1170,7 @@
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Statistics\_PivotTable.cshtml" />
+    <Content Include="Views\Packages\ReadMe.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />

@@ -32,6 +32,7 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
+        private readonly IContentService _contentService;
 
         public PackagesController(
             IPackageService packageService,
@@ -45,7 +46,8 @@ namespace NuGetGallery
             IEntitiesContext entitiesContext,
             IConfiguration config,
             IIndexingService indexingService,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            IContentService contentService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -59,6 +61,7 @@ namespace NuGetGallery
             _config = config;
             _indexingService = indexingService;
             _cacheService = cacheService;
+            _contentService = contentService;
         }
 
         [Authorize]
@@ -167,9 +170,32 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+
+            Task<HtmlString> readme = null;
+            if (_contentService != null)
+            {
+                readme =  _contentService.GetContentItemAsync(
+                    id + "." + "1.0.0",
+                    TimeSpan.FromMinutes(1), "readme");
+            }
+            ViewBag.ReadMe = readme.Result;
+
             var model = new DisplayPackageViewModel(package);
             ViewBag.FacebookAppID = _config.FacebookAppID;
             return View(model);
+        }
+
+        public virtual ActionResult ReadMe(string id, string version)
+        {
+            Task<HtmlString> readme = null;
+            if (_contentService != null)
+            {
+                readme =  _contentService.GetContentItemAsync(
+                    id + "." + version,
+                    TimeSpan.FromMinutes(1), "readme");
+            }
+            ViewBag.ReadMe = readme.Result;
+            return PartialView();
         }
 
         public virtual ActionResult ListPackages(string q, string sortOrder = null, int page = 1, bool prerelease = false)

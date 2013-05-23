@@ -995,7 +995,7 @@ ul.pager li.next { padding-left: 10px; }
 .sexy-table thead tr { border-bottom: solid 1px #333; }
 
 .sexy-table th {
-    font-size: 1.25em;
+    font-size: .75em;
     font-weight: normal;
     padding: 5px 15px 0px 0px;
     text-align: left;

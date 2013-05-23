@@ -36,7 +36,9 @@
     <script>!function (d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (!d.getElementById(id)) { js = d.createElement(s); js.id = id; js.src = "//platform.twitter.com/widgets.js"; fjs.parentNode.insertBefore(js, fjs); } }(document, "script", "twitter-wjs");</script>
 }
 @section SideColumn {
+   
     <img class="logo" src="@(Model.IconUrl ?? Content.Images.packageDefaultIcon_png)" alt="Icon for package @Model.Id" onerror="this.src = '@Content.Images.packageDefaultIcon_png';" />
+   
     <div id="stats">
         <div class="stat">
             <p class="stat-number">@Model.TotalDownloadCount.ToString("n0")</p>
@@ -47,12 +49,7 @@
             <p class="stat-number">@Model.DownloadCount.ToString("n0")</p>
             <p class="stat-label">
                 @(Model.DownloadCount == 1 ? "Download" : "Downloads") of v @Model.Version</p>
-        </div>
-        <div class="stat">
-            <p class="stat-number">@Model.LastUpdated.ToNuGetShortDateString()</p>
-            <p class="stat-label">
-                Last update</p>
-        </div>
+        </div>   
     </div>
     <nav>
         <ul class="links">
@@ -107,6 +104,7 @@
         </ul>
     </nav>
 }
+ 
 <div class="package-page">
     @if (Model.Prerelease)
     {
@@ -121,9 +119,12 @@
                                 version</a> of @Model.Title available.
         </p>
     }
+      
     <hgroup class="page-heading">
-        <h1>@Model.Title</h1>
-        <h2>@Model.Version</h2>
+        <h1>@Model.Title</h1>   
+        <h2>@Model.Version</h2>       
+       <div style="float: right;"><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
+     @* <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>*@
     </hgroup>
     @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
     {
@@ -137,65 +138,53 @@
             You can see the package because you are one of its owners. To list the package again, 
             <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
         </p>
-    }
-    <p>
-        To install @Model.Title, run the following command in the <a href="http://docs.nuget.org/docs/start-here/using-the-package-manager-console">
-                                                                      Package Manager Console</a>
-    </p>
-    <div class="nuget-badge">
-        <p>
-            <code>PM&gt; Install-Package @Model.Id
-                @if (!Model.LatestVersion || !Model.Listed)
-                {
-                    <text> -Version @Model.Version</text>
-                }
-                @if (Model.Prerelease)
-                {
-                    <text> -Pre </text>
-                }</code></p>
-    </div>
-    @if (!String.IsNullOrEmpty(Model.MinClientVersion))
-    { 
-        <p>Requires NuGet @Model.MinClientVersion or higher.</p>
-    }
-    <div><a href="https://twitter.com/share" class="twitter-share-button" data-url="@absolutePackageUrl" data-text="Check out @Model.Id on #NuGet!">Tweet</a></div>
-    <div class="fb-like" data-href="@absolutePackageUrl" data-send="false" data-width="450" data-show-faces="true"></div>
+    }   
+    
 
-    @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
-    {
-        <h3>Release Notes</h3>
-        foreach (var note in Model.ReleaseNotes.Split('\n'))
+  <p><b><i>Owners : </i></b>  
+        @foreach (var owner in Model.Owners)
         {
-            <p>@note</p>
-        }
-    }
-
-    <h3>Owners</h3>
-    @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)
-    <h3>Authors</h3>
-    <ul class="authors">
+            @owner.Username
+        }  
+  </p>   
+   <p class="authors"><b><i>Authors : </i></b>  
         @foreach (var author in Model.Authors)
         {
-            <li><a href="@Url.Search("Author:\"" + author.Name + "\"")" title="Search for @author.Name">@author.Name</a></li>
-        }
-    </ul>
+            <a href="@Url.Search("Author:\"" + author.Name + "\"")" title="Search for @author.Name">@author.Name</a>
+        }  
+   </p> 
+    <p><b><i>Last update : </i></b>@Model.LastUpdated.ToNuGetShortDateString() </p> 
+
+      @if (!String.IsNullOrEmpty(Model.MinClientVersion))
+    { 
+        <p><b><i>Client Version : </i></b> @Model.MinClientVersion or higher.</p>
+    }
+    
+     @if (@Model.Tags.AnySafe())
+    {
+    <p class="tags"><b><i>Tags : </i></b>  
+        @foreach (var tag in Model.Tags)
+        {
+           <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a>
+        }  
+   </p> 
+     }
     @if (!String.IsNullOrEmpty(Model.Copyright))
     {
-        <h3>Copyright</h3>
-        <p>@Model.Copyright</p>
-    }
-    @if (@Model.Tags.AnySafe())
+      <p><b><i>Copyright : @Model.Copyright </i></b> </p>       
+    }        
+
+     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {
-        <h3>Tags</h3>
-        <ul class="tags">
-            @foreach (var tag in Model.Tags)
-            {
-                <li><a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a></li>
-            }
-        </ul>
+       <p><b><i>Release Notes : </i></b></p>
+        foreach (var note in Model.ReleaseNotes.Split('\n'))
+        {
+           <p> @note </p>
+        }
     }
+    
     @Html.Partial("_PackageDependencies", Model.Dependencies)
-    <h3>Version History</h3>
+    <b><i>Version History :</i></b>
     <table class="sexy-table">
         <thead>
             <tr>
@@ -252,4 +241,8 @@
             }
         </tbody>
     </table>
+    <hgroup class="page-heading">
+        <h3>Read Me</h3>
+    </hgroup>
+     @ViewBag.ReadMe
 </div>
