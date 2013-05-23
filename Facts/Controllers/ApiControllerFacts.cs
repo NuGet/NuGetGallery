@@ -35,10 +35,12 @@ namespace NuGetGallery
             Mock<IPackageFileService> fileService = null,
             Mock<IUserService> userService = null,
             Mock<INuGetExeDownloaderService> nugetExeDownloader = null,
-            Mock<INupkg> packageFromInputStream = null)
+            Mock<INupkg> packageFromInputStream = null,
+            Mock<IIndexingService> indexingService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             userService = userService ?? new Mock<IUserService>();
+            indexingService = indexingService ?? new Mock<IIndexingService>();
             if (fileService == null)
             {
                 fileService = new Mock<IPackageFileService>(MockBehavior.Strict);
@@ -46,7 +48,7 @@ namespace NuGetGallery
             }
             nugetExeDownloader = nugetExeDownloader ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
 
-            var controller = new Mock<ApiController>(packageService.Object, fileService.Object, userService.Object, nugetExeDownloader.Object, new Mock<IContentService>().Object);
+            var controller = new Mock<ApiController>(packageService.Object, fileService.Object, userService.Object, nugetExeDownloader.Object, new Mock<IContentService>().Object, indexingService.Object);
             controller.CallBase = true;
             if (packageFromInputStream != null)
             {
@@ -361,15 +363,17 @@ namespace NuGetGallery
                         PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
                     };
                 var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
                 packageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
-                var controller = CreateController(userService: userService, packageService: packageService);
+                var controller = CreateController(userService: userService, packageService: packageService, indexingService: indexingService);
                 var apiKey = Guid.NewGuid();
 
                 controller.DeletePackage(apiKey.ToString(), "theId", "1.0.42");
 
                 packageService.Verify(x => x.MarkPackageUnlisted(package, true));
+                indexingService.Verify(i => i.UpdatePackage(package));
             }
         }
 
@@ -641,15 +645,17 @@ namespace NuGetGallery
                         PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
                     };
                 var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
                 packageService.Setup(x => x.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), true)).Returns(package);
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(owner);
-                var controller = CreateController(userService: userService, packageService: packageService);
+                var controller = CreateController(userService: userService, packageService: packageService, indexingService: indexingService);
                 var apiKey = Guid.NewGuid();
 
                 controller.PublishPackage(apiKey.ToString(), "theId", "1.0.42");
 
                 packageService.Verify(x => x.MarkPackageListed(package, It.IsAny<bool>()));
+                indexingService.Verify(i => i.UpdatePackage(package));
             }
         }
 
@@ -806,7 +812,7 @@ namespace NuGetGallery
 
                 fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
 
-                var controller = new ApiController(null, null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
+                var controller = new ApiController(null, null, null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
@@ -828,7 +834,7 @@ namespace NuGetGallery
 
                 fakeStatisticsService.Setup(x => x.LoadDownloadPackageVersions()).Returns(Task.FromResult(false));
 
-                var controller = new ApiController(null, null, null, null, null, fakeStatisticsService.Object);
+                var controller = new ApiController(null, null, null, null, null, null, fakeStatisticsService.Object);
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
@@ -858,7 +864,7 @@ namespace NuGetGallery
 
                 fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
 
-                var controller = new ApiController(null, null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
+                var controller = new ApiController(null, null, null, null, null, null, new JsonStatisticsService(fakeReportService.Object));
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 

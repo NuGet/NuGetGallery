@@ -452,31 +452,8 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult Delete(string id, string version, bool? listed)
         {
-            return Delete(id, version, listed, Url.Package);
-        }
-
-        internal virtual ActionResult Delete(string id, string version, bool? listed, Func<Package, string> urlFactory)
-        {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(401, "Unauthorized");
-            }
-
-            if (!(listed ?? false))
-            {
-                _packageService.MarkPackageUnlisted(package);
-            }
-            else
-            {
-                _packageService.MarkPackageListed(package);
-            }
-
-            return Redirect(urlFactory(package));
+            // Edit does exactly the same thing that Delete used to do... REUSE ALL THE CODE!
+            return Edit(id, version, listed, Url.Package);
         }
 
         [Authorize]
@@ -539,14 +516,24 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
+            string action;
             if (!(listed ?? false))
             {
+                action = "unlisted";
                 _packageService.MarkPackageUnlisted(package);
             }
             else
             {
+                action = "listed";
                 _packageService.MarkPackageListed(package);
             }
+            TempData["Message"] = String.Format(
+                CultureInfo.CurrentCulture,
+                "The package has been {0}. It may take several hours for this change to propagate through our system.", 
+                action);
+
+            // Update the index
+            _indexingService.UpdatePackage(package);
             return Redirect(urlFactory(package));
         }
 
