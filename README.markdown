@@ -9,6 +9,9 @@ To compile the project, you'll need Visual Studio 2012 or later and PowerShell 2
 [install NuGet](http://docs.nuget.org/docs/start-here/installing-nuget). Also, make sure to install the 
 [Windows Azure SDK v1.8 or later](http://www.microsoft.com/windowsazure/sdk/).
 
+To run the unit tests using Visual Studio, install the VS extension 'XUnit.net runner for Visual Studio 2012' 
+from the Visual Studio online extensions gallery.
+
 To build the project, clone it locally:
 
     git clone git@github.com:NuGet/NuGetGallery.git
