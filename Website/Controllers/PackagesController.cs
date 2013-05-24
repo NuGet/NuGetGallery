@@ -476,8 +476,7 @@ namespace NuGetGallery
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.GetCurrentTitle(),
                 Version = version == null ? null : package.Version,
-                PackageVersions = packageRegistration.Packages.Select(
-                    p => p.Version).ToList(),
+                PackageVersions = packageRegistration.Packages.ToList(),
             };
 
             if (version != null)
