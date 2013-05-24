@@ -38,7 +38,7 @@ namespace NuGetGallery
         }
 
         // Now only for things that actually need a MOCK UserService object.
-        private static UserService CreateMockUserService(Action<Mock<UserService>> setup, Mock<IEntityRepository<User>> userRepo = null, Mock<ICryptographyService> cryptoService = null, Mock<IAppConfiguration> config = null)
+        private static UserService CreateMockUserService(Action<Mock<UserService>> setup, Mock<IEntityRepository<User>> userRepo = null, Mock<IAppConfiguration> config = null)
         {
             if (config == null)
             {

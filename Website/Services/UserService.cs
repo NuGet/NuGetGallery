@@ -16,7 +16,6 @@ namespace NuGetGallery
 
         public UserService(
             IAppConfiguration config,
-            ICryptographyService crypto,
             IEntityRepository<User> userRepository) : this()
         {
             Config = config;
