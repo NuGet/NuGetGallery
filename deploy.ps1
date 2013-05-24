@@ -10,7 +10,7 @@ function Set-AppSetting($x, [string]$name, [string]$value) {
 
 # Gather deployment info
 $Commit = git rev-parse --short HEAD
-$Branch = git rev-parse --abbrev-ref HEAD
+$Branch = $env:branch
 $Date = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTimeOffset]::UtcNow, "Pacific Standard Time")
 
 # Load web.config
