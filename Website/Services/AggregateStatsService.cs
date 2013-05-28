@@ -1,12 +1,13 @@
 ﻿using System.Data;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class AggregateStatsService : IAggregateStatsService
     {
-        readonly IConfiguration configuration;
+        readonly IAppConfiguration configuration;
 
-        public AggregateStatsService(IConfiguration configuration)
+        public AggregateStatsService(IAppConfiguration configuration)
         {
             this.configuration = configuration;
         }

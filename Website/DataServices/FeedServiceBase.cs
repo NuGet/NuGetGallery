@@ -6,13 +6,14 @@ using System.IO;
 using System.ServiceModel;
 using System.Web;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple)]
     public abstract class FeedServiceBase<TPackage> : DataService<FeedContext<TPackage>>, IDataServiceStreamProvider, IServiceProvider
     {
-        private readonly IConfiguration _configuration;
+        private readonly ConfigurationService _configuration;
 
         private readonly IEntitiesContext _entities;
         private readonly IEntityRepository<Package> _packageRepository;
@@ -22,7 +23,7 @@ namespace NuGetGallery
         protected FeedServiceBase()
             : this(DependencyResolver.Current.GetService<IEntitiesContext>(),
                    DependencyResolver.Current.GetService<IEntityRepository<Package>>(),
-                   DependencyResolver.Current.GetService<IConfiguration>(),
+                   DependencyResolver.Current.GetService<ConfigurationService>(),
                    DependencyResolver.Current.GetService<ISearchService>())
         {
         }
@@ -30,7 +31,7 @@ namespace NuGetGallery
         protected FeedServiceBase(
             IEntitiesContext entities,
             IEntityRepository<Package> packageRepository,
-            IConfiguration configuration,
+            ConfigurationService configuration,
             ISearchService searchService)
         {
             _entities = entities;
@@ -49,7 +50,7 @@ namespace NuGetGallery
             get { return _packageRepository; }
         }
 
-        protected IConfiguration Configuration
+        protected ConfigurationService Configuration
         {
             get { return _configuration; }
         }
