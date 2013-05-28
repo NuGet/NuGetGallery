@@ -720,7 +720,28 @@ ul.dependencySet li {
         
     margin-top: 25px;
 }
-    
+
+/* Package Edit Page */
+
+#edit-list ul {
+    list-style-type: none;
+    list-style-image: none;
+}
+
+.edit-root, .edit-root-selected {
+    font-size: 1.3em;
+}
+
+.edit-tree, .edit-tree-selected {
+    position: relative;
+    left: 1em;
+}
+
+.edit-root-selected, .edit-tree-selected {
+    font-weight: bold;
+    margin: 5px 0;
+}
+
     /* Package page owners */
 
 .package-page .owners li { margin-bottom: 12px; }
@@ -730,20 +751,22 @@ ul.dependencySet li {
     font-size: 1.4em;
 }
 
-
     /* Tags & Authors */
 
 .package-page ul.tags li a,
 .package-page ul.authors li a { font-size: 1.25em; }
 
 
-    /* Icon */
+    /* Large Icon 128x128 */
+
+.logo {
+    height: 128px;
+    width: 128px;
+}
 
 #sideColumn .logo {
     display: block;
-    height: 128px;
     margin: 0 0 20px 0;
-    width: 128px;
 }
 
     /* Stats */
@@ -1111,6 +1134,7 @@ fieldset.form legend { display: none; }
 .form-field input[type="email"],
 .form-field input[type="text"],
 .form-field input[type="file"],
+.form-field input[type="url"],
 .form-field input[type="password"] {
     background: #fff url("../content/images/inputBackground.png") repeat-x;
     border: solid 1px #ccc;
@@ -1121,12 +1145,16 @@ fieldset.form legend { display: none; }
     width: 300px;
 }
 
-.form-field textarea {
-    font-size: 1em;
-    height: 200px;
-    padding-top: 5px;
+.form-field input[type="url"] {
+    width: 100%;
 }
 
+.form-field textarea {
+    font-size: 1em;
+    width: 100%;
+    height: 140px;
+    padding-top: 5px;
+}
 
 .form-field input[data-val-required],
 .form-field textarea[data-val-required] {

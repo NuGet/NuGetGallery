@@ -274,15 +274,6 @@ namespace NuGetGallery
                     new { action = "ContactOwners|ManagePackageOwners" }),
                 permanent: true).To(packageActionRoute);
 
-
-            // TODO: this route looks broken as there is no EditPackage action
-            //routes.Redirect(
-            //    r => r.MapRoute(
-            //        "EditPackage",
-            //        "Package/Edit/{id}/{version}",
-            //        new { controller = PackagesController.ControllerName, action = "EditPackage" }),
-            //    permanent: true).To(packageVersionActionRoute);
-
             routes.Redirect(
                 r => r.MapRoute(
                     RouteName.ListPackages,

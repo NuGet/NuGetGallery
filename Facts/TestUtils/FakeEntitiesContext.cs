@@ -71,5 +71,11 @@ namespace NuGetGallery
 
             return (IDbSet<T>)(dbSets[typeof(T)]);
         }
+
+
+        public void DeleteOnCommit<T>(T entity) where T : class
+        {
+            ((FakeDbSet<T>)Set<T>()).Remove(entity);
+        }
     }
 }

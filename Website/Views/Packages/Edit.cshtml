@@ -1,16 +1,86 @@
-﻿@{
+﻿@model EditPackageRequest
+@{
+    ViewBag.Title = "Edit: " + Model.PackageTitle + " " + Model.Version;
     ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
-<h1 class="page-heading">Edit @Model.Title Package</h1>
-<p class="message">
-    To edit the metadata for a package, please <a href="@Url.UploadPackage()">upload an updated version of the package</a>.
-</p>
+@section BottomScripts {
+    <script>
+        $('#EditPackageRegistrationRequest_IconUrl').focusout(function (event) {
+            var target = event.target;
+            var newValue = event.target.value;
+            $('#IconUrl_Preview').remove();
+            if (newValue.trim().length) {
+                $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '"></img>'))
+            }
+        });
+
+        $(function () {
+            var form = $('form[action="/packages/PoliteCaptcha/Edit/"]').toArray()[0];
+            $("input[type=url]").bind("focusin focusout keyup", function (event) {
+                var target = $(event.target);
+                var validator = $.data(form, "validator"),
+                    eventType = "on" + event.type.replace(/^validate/, "");
+                validator.settings[eventType] && validator.settings[eventType].call(validator, event.target);
+            });
+        });
+    </script>
+}
+
+@section SideColumn {
+    <nav id="edit-list">
+        <h2>Editing</h2>
+        <span class="@(Model.Version == null ? "edit-root-selected" : "edit-root")">
+            <a href="@Url.EditPackage(Model.PackageId, null)" >@(Model.PackageTitle)</a>
+        </span>
+        <ul id="packageVersions">
+        @foreach (var version in Model.PackageVersions)
+        {
+            var versionStr = version.Version;
+            <li>
+                <span class="@(string.Equals(Model.Version, versionStr, StringComparison.OrdinalIgnoreCase) ? "edit-tree-selected" : "edit-tree")">
+                    <a href="@Url.EditPackage(Model.PackageId, versionStr)" >@(versionStr)</a>
+                    @if (!version.Listed)
+                    {
+                        <text>(unlisted)</text>
+                    }
+                </span>
+            </li>
+        }
+        </ul>
+    </nav>
+}
+
+@using (Html.BeginForm())
+{
+    if (Model.EditPackageRegistrationRequest != null)
+    {
+        <fieldset class="form">
+            <legend>Edit Package @(Model.PackageTitle)</legend>
+
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true)
+            @(Html.EditorFor<EditPackageRequest,EditPackageRegistrationRequest>(model => model.EditPackageRegistrationRequest))
+        </fieldset>
+        <input type="submit" value="Submit" title="Save" />
+    }
+    if (Model.EditPackageVersionRequest != null)
+    {
+        <fieldset class="form">
+            <legend>Edit Version @(Model.Version)</legend>
+            
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true)
+            @(Html.EditorFor<EditPackageRequest,EditPackageVersionRequest>(model => model.EditPackageVersionRequest))
+        </fieldset>
+        <input type="submit" value="Submit" title="Save" />
+    }
+}
+
+<h2>Note:</h2>
 <p>
-    NuGet currently does not allow updating package metadata on the website. This helps ensure 
-    that the package itself (and the source used to build the package) remains the one true 
-    source of package metadata.
-</p>
-<p>
-    This does require that you increment the package version.
+    NuGet only allows you to update the package's description. To edit package dependencies, target frameworks, 
+    license URL, you must upload a new version of the package. Changes you make to package Icon, Title, and Summary 
+    may take a few minutes before they are visible in package search results.
 </p>

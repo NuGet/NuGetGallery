@@ -5,13 +5,13 @@ namespace NuGetGallery.Migrations
     using System.Data.Entity.Migrations.Infrastructure;
     using System.Resources;
     
-    public sealed partial class CuratedPackagesUniqueIndex : IMigrationMetadata
+    public sealed partial class EditableMetadata : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(CuratedPackagesUniqueIndex));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(EditableMetadata));
         
         string IMigrationMetadata.Id
         {
-            get { return "201304262247205_CuratedPackagesUniqueIndex"; }
+            get { return "201305202219062_EditableMetadata"; }
         }
         
         string IMigrationMetadata.Source

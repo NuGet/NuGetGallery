@@ -92,6 +92,11 @@ namespace NuGetGallery
             return authors.Select(a => a.Name).Flatten();
         }
 
+        public static string Flatten(this ICollection<Tag> tags)
+        {
+            return tags.Select(t => t.Name).Flatten();
+        }
+
         public static string Flatten(this IEnumerable<PackageDependencySet> dependencySets)
         {
             var dependencies = new List<dynamic>();

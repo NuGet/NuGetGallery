@@ -9,7 +9,7 @@ namespace NuGetGallery
         public ListPackageItemViewModel(Package package, bool needAuthors = true)
             : base(package)
         {
-            Tags = package.Tags != null ? package.Tags.Trim().Split(' ') : null;
+            Tags = package.GetCurrentTags();
 
             if (needAuthors)
             {

@@ -459,15 +459,67 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Edit(string id, string version)
         {
-            return GetPackageOwnerActionFormResult(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+            
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+            var model = new EditPackageRequest
+            {
+                PackageId = package.PackageRegistration.Id,
+                PackageTitle = package.GetCurrentTitle(),
+                Version = version == null ? null : package.Version,
+                PackageVersions = packageRegistration.Packages.ToList(),
+            };
+
+            if (version != null)
+            {
+                model.EditPackageVersionRequest = new EditPackageVersionRequest(package);
+            }
+            else
+            {
+                model.EditPackageRegistrationRequest = new EditPackageRegistrationRequest(package);
+            }
+
+            return View(model);
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(string id, string version, bool? listed)
+        public virtual ActionResult Edit(string id, string version, EditPackageRequest formData)
         {
-            return Edit(id, version, listed, Url.Package);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            if (formData.EditPackageRegistrationRequest != null)
+            {
+                formData.EditPackageRegistrationRequest.UpdatePackageRegistration(package.PackageRegistration, _entitiesContext);
+            }
+
+            if (formData.EditPackageVersionRequest != null)
+            {
+                formData.EditPackageVersionRequest.UpdatePackageVersion(package, _entitiesContext, _packageService);
+            }
+            _entitiesContext.SaveChanges();
+#if DEBUG
+            _indexingService.UpdateIndex();
+#endif
+            return Redirect(Url.Package(id, version));
         }
 
         [Authorize]

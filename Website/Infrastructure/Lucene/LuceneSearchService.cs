@@ -337,7 +337,7 @@ namespace NuGetGallery
             switch (searchFilter.SortProperty)
             {
                 case SortProperty.DisplayName:
-                    return new SortField("DisplayName", SortField.STRING, reverse: searchFilter.SortDirection == SortDirection.Descending);
+                    return new SortField("Title", SortField.STRING, reverse: searchFilter.SortDirection == SortDirection.Descending);
                 case SortProperty.DownloadCount:
                     return new SortField("DownloadCount", SortField.INT, reverse: true);
                 case SortProperty.Recent:

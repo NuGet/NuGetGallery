@@ -179,7 +179,7 @@ namespace NuGetGallery
             var model = new ManagePackagesViewModel
                 {
                     Packages = from pr in published
-                               select new PackageViewModel(pr.First())
+                               select new PackageViewModel(pr.Any(p => p.Listed) ? pr.First(p => p.Listed) : pr.First())
                                    {
                                        DownloadCount = pr.Sum(p => p.DownloadCount),
                                        Version = null
