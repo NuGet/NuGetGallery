@@ -167,7 +167,7 @@ namespace NuGetGallery
 
         private static string ResolvePath(string fileStorageDirectory)
         {
-            if (fileStorageDirectory.StartsWith("~/") && HostingEnvironment.IsHosted)
+            if (fileStorageDirectory.StartsWith("~/", StringComparison.OrdinalIgnoreCase) && HostingEnvironment.IsHosted)
             {
                 fileStorageDirectory = HostingEnvironment.MapPath(fileStorageDirectory);
             }

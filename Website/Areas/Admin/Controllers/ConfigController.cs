@@ -17,7 +17,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public partial class ConfigController : AdminControllerBase
     {
         private readonly IAppConfiguration _config;
-        private readonly FieldInfo UglyReflectionStuff = typeof(KernelBase).GetField("bindings", BindingFlags.Instance | BindingFlags.NonPublic);
 
         public ConfigController(IAppConfiguration config)
         {

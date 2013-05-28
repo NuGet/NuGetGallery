@@ -91,5 +91,10 @@ namespace NuGetGallery.Configuration
         /// Gets the protocol-independent site root
         /// </summary>
         public string SiteRoot { get; set; }
+
+        /// <summary>
+        /// Gets the Google Analytics Property ID being used, if any.
+        /// </summary>
+        public string GoogleAnalyticsPropertyId { get; set; }
     }
 }

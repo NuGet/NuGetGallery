@@ -3,6 +3,7 @@
 @using Microsoft.Web.Helpers
 @using Microsoft.WindowsAzure.ServiceRuntime
 @using NuGetGallery
+@using NuGetGallery.Configuration
 @using Ninject
 
 @* Generator: MvcHelper Namespace: NuGetGallery*@
@@ -139,9 +140,12 @@
 
 @helper AnalyticsScript()
 {
-    var propertyId = ConfigurationManager.AppSettings["Gallery:GoogleAnalyticsPropertyId"];
-    if (propertyId != null)
-    {
-        @Analytics.GetGoogleHtml(propertyId)
+    var config = Container.Kernel.TryGet<ConfigurationService>();
+    if(config != null) {
+        var propertyId = config.Current.GoogleAnalyticsPropertyId;
+        if (propertyId != null)
+        {
+            @Analytics.GetGoogleHtml(propertyId)
+        }
     }
 }
