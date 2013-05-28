@@ -1592,12 +1592,24 @@ namespace NuGetGallery
             public void RemovesPackageOwner()
             {
                 var service = CreateService();
-                var owner = new User();
-                var package = new PackageRegistration { Owners = new List<User> { owner } };
+                var owner1 = new User { Key = 1, Username = "Owner1" };
+                var owner2 = new User { Key = 2, Username = "Owner2" };
+                var package = new PackageRegistration { Owners = new List<User> { owner1, owner2 } };
 
-                service.RemovePackageOwner(package, owner);
+                service.RemovePackageOwner(package, owner1);
 
-                Assert.DoesNotContain(owner, package.Owners);
+                Assert.DoesNotContain(owner1, package.Owners);
+            }
+
+            [Fact]
+            public void WontRemoveLastOwner()
+            {
+                var service = CreateService();
+                var singleOwner = new User { Key = 1, Username = "Owner" };
+                var package = new PackageRegistration { Owners = new List<User> { singleOwner } };
+
+                Assert.Throws<InvalidOperationException>(
+                    () => service.RemovePackageOwner(package, singleOwner));
             }
 
             [Fact]

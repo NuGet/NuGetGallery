@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using Crypto = NuGetGallery.CryptographyService;
@@ -94,22 +95,23 @@ namespace NuGetGallery
 
         public virtual User FindByEmailAddress(string emailAddress)
         {
-            // TODO: validate input
-
             return UserRepository.GetAll().SingleOrDefault(u => u.EmailAddress == emailAddress);
         }
 
-        public virtual User FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress)
+        public virtual IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername)
         {
-            // TODO: validate input
-
-            return UserRepository.GetAll().SingleOrDefault(u => u.UnconfirmedEmailAddress == unconfirmedEmailAddress);
+            if (optionalUsername == null)
+            {
+                return UserRepository.GetAll().Where(u => u.UnconfirmedEmailAddress == unconfirmedEmailAddress).ToList();
+            }
+            else
+            {
+                return UserRepository.GetAll().Where(u => u.UnconfirmedEmailAddress == unconfirmedEmailAddress && u.Username == optionalUsername).ToList();
+            }
         }
 
         public virtual User FindByUsername(string username)
         {
-            // TODO: validate input
-
             return UserRepository.GetAll()
                 .Include(u => u.Roles)
                 .SingleOrDefault(u => u.Username == username);
@@ -254,9 +256,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("newPassword");
             }
 
-            var user = (from u in UserRepository.GetAll()
-                        where u.Username == username
-                        select u).FirstOrDefault();
+            var user = FindByUsername(username);
 
             if (user != null && user.PasswordResetToken == token && !user.PasswordResetTokenExpirationDate.IsInThePast())
             {

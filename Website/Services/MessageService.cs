@@ -25,7 +25,29 @@ namespace NuGetGallery
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, _config);
 
-            const string bodyTemplate = @"
+            const string bodyTemplateUnauthenticated = @"
+**Email:** {Name} ({Address})
+
+**Package:** {Id}
+{PackageUrl}
+
+**Version:** {Version}
+{VersionUrl}
+
+**Owners:**
+{OwnerList}
+
+**Reason:**
+{Reason}
+
+**Has the package owner been contacted?:**
+{AlreadyContactedOwners}
+
+**Message:**
+{Message}
+";
+
+            const string bodyTemplateAuthenticated = @"
 **Email:** {Name} ({Address})
 
 **Package:** {Id}
@@ -49,6 +71,10 @@ namespace NuGetGallery
 **Message:**
 {Message}
 ";
+
+            string bodyTemplate = request.RequestingUser != null ?
+                bodyTemplateAuthenticated :
+                bodyTemplateUnauthenticated;
 
             var body = new StringBuilder("");
             body.Append(request.FillIn(bodyTemplate, _config));

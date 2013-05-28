@@ -89,8 +89,12 @@
     <Reference Include="Glimpse.Mvc4">
       <HintPath>..\packages\Glimpse.Mvc4.1.2.0\lib\net40\Glimpse.Mvc4.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Lucene.Net">
-      <HintPath>..\packages\Lucene.Net.2.9.2.2\lib\net40\Lucene.Net.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
