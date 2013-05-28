@@ -6,22 +6,21 @@
       <Task commandLine="ConfigureIISLogging.cmd" executionContext="elevated" taskType="background" />
     </Startup>
     <ConfigurationSettings>
-      <Setting name="Gallery.HasWorker" />
       <Setting name="Gallery.Environment" />
+      <Setting name="Gallery.HasWorker" />
       <Setting name="Gallery.RequireSSL" />
       <Setting name="Gallery.SSLPort" />
       <Setting name="Gallery.AzureStorageConnectionString" />
       <Setting name="Gallery.ConfirmEmailAddresses" />
       <Setting name="Gallery.ReadOnlyMode" />
-      <Setting name="Gallery.FileStorageDirectory" />
-      <Setting name="Gallery.GalleryOwner" />
       <Setting name="Gallery.StorageType" />
       <Setting name="Gallery.SmtpUri" />
-      <Setting name="Gallery.SqlServer" />
-      <Setting name="Gallery.AzureCdnHost" />
       <Setting name="Gallery.FacebookAppId" />
       <Setting name="Gallery.SiteRoot" />
+      <Setting name="Gallery.AzureCdnHost" />
 
+      <Setting name="Gallery.SqlServer" />
+      
       <Setting name="reCAPTCHA.PrivateKey" />
       <Setting name="reCAPTCHA.PublicKey" />
     </ConfigurationSettings>
