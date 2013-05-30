@@ -235,6 +235,12 @@
   <ItemGroup>
     <EmbeddedResource Include="Scripts\NuGetDownloadsAlterTable.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\DownloadReport_Last6Months.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\DownloadReport_NuGetClientVersion.sql" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
 </Project>

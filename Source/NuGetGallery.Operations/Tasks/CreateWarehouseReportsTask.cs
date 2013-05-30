@@ -19,6 +19,8 @@ namespace NuGetGallery.Operations
         private const string JsonContentType = "application/json";
         private const string PackageReportBaseName = "recentpopularity_";
         private const string PerMonth = "permonth";
+        private const string NuGetClientVersion = "nugetclientversion";
+        private const string Last6Months = "last6months";
         private const string RecentPopularity = "recentpopularity";
         private const string RecentPopularityDetail = "recentpopularitydetail";
         private const string PackageReportDetailBaseName = "recentpopularitydetail_";
@@ -32,7 +34,8 @@ namespace NuGetGallery.Operations
 
             CreateContainerIfNotExists();
 
-            CreateReport_PerMonth();
+            CreateReport_NuGetClientVersion();
+            CreateReport_Last6Months();
             CreateReport_RecentPopularityDetail();
             CreateReport_RecentPopularity();
 
@@ -49,11 +52,20 @@ namespace NuGetGallery.Operations
             Log.Info("Generate reports end");
         }
 
-        private void CreateReport_PerMonth()
+        private void CreateReport_NuGetClientVersion()
         {
-            Log.Info("CreateReport_PerMonth");
+            Log.Info("CreateReport_NuGetClientVersion");
 
-            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_PerMonth.sql");
+            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_NuGetClientVersion.sql");
+
+            CreateBlob(PerMonth + ".json", JsonContentType, ReportHelpers.ToJson(report));
+        }
+
+        private void CreateReport_Last6Months()
+        {
+            Log.Info("CreateReport_Last6Months");
+
+            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_Last6Months.sql");
 
             CreateBlob(PerMonth + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
