@@ -18,7 +18,6 @@ namespace NuGetGallery.Operations
     {
         private const string JsonContentType = "application/json";
         private const string PackageReportBaseName = "recentpopularity_";
-        private const string PerMonth = "permonth";
         private const string NuGetClientVersion = "nugetclientversion";
         private const string Last6Months = "last6months";
         private const string RecentPopularity = "recentpopularity";
@@ -58,7 +57,7 @@ namespace NuGetGallery.Operations
 
             Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_NuGetClientVersion.sql");
 
-            CreateBlob(PerMonth + ".json", JsonContentType, ReportHelpers.ToJson(report));
+            CreateBlob(NuGetClientVersion + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
 
         private void CreateReport_Last6Months()
@@ -67,7 +66,7 @@ namespace NuGetGallery.Operations
 
             Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_Last6Months.sql");
 
-            CreateBlob(PerMonth + ".json", JsonContentType, ReportHelpers.ToJson(report));
+            CreateBlob(Last6Months + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
 
         private void CreateReport_RecentPopularityDetail()

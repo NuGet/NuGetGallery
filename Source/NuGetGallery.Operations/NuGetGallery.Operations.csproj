@@ -221,9 +221,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityByPackage.sql" />
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityDetail.sql" />
-    <EmbeddedResource Include="Scripts\DownloadReport_PerMonth.sql" />
-    <EmbeddedResource Include="Scripts\DownloadReport_PreviousThreeMonths.sql" />
-    <EmbeddedResource Include="Scripts\DownloadReport_PreviousMonth.sql" />
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularity.sql" />
   </ItemGroup>
   <ItemGroup>
