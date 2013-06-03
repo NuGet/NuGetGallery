@@ -88,11 +88,18 @@ namespace NuGetGallery
 
                 try
                 {
-                    _packageService.AddDownloadStatistics(
-                        package,
-                        Request.UserHostAddress,
-                        Request.UserAgent,
-                        Request.Headers["NuGet-Operation"]);
+                    var stats = new PackageStatistics
+                    {
+                        // IMPORTANT: Timestamp is managed by the database.
+                        IPAddress = Request.UserHostAddress,
+                        UserAgent = Request.UserAgent,
+                        Package = package,
+                        Operation = Request.Headers["NuGet-Operation"],
+                        DependentPackage = Request.Headers["NuGet-DependentPackage"],
+                        ProjectGuids = Request.Headers["NuGet-ProjectGuids"],
+                    };
+
+                    _packageService.AddDownloadStatistics(stats);
                 }
                 catch (ReadOnlyModeException)
                 {
