@@ -749,10 +749,6 @@
     <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.cs" />
-    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.Designer.cs">
-      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.cs" />
     <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.Designer.cs">
       <DependentUpon>201304091828587_Contract_UniqueCuratedPackages.cs</DependentUpon>
@@ -1127,8 +1123,6 @@
     <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.resx">
-      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
