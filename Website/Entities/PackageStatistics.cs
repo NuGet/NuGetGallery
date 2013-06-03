@@ -16,5 +16,10 @@ namespace NuGetGallery
         
         [StringLength(18)] // must be at least long enough to handle string 'Install-Dependency'
         public string Operation { get; set; }
+
+        [StringLength(128)] // max package ID length
+        public string DependentPackage { get; set; }
+
+        public string ProjectGuids { get; set; }
     }
 }

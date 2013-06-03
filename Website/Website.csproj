@@ -757,6 +757,10 @@
     <Compile Include="Migrations\201306031734581_WidenStatisticsOperationColumn.Designer.cs">
       <DependentUpon>201306031734581_WidenStatisticsOperationColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.cs" />
+    <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.Designer.cs">
+      <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1129,6 +1133,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201306031734581_WidenStatisticsOperationColumn.resx">
       <DependentUpon>201306031734581_WidenStatisticsOperationColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201306031754328_SupportNewClientHeaders.resx">
+      <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

@@ -41,7 +41,7 @@ namespace NuGetGallery
 
         void MarkPackageUnlisted(Package package, bool commitChanges = true);
         void MarkPackageListed(Package package, bool commitChanges = true);
-        void AddDownloadStatistics(Package package, string userHostAddress, string userAgent, string operation);
+        void AddDownloadStatistics(PackageStatistics stats);
 
         PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner);
         bool ConfirmPackageOwner(PackageRegistration package, User user, string token);
