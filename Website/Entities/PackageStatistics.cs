@@ -13,7 +13,8 @@ namespace NuGetGallery
         public string IPAddress { get; set; }
         public string UserAgent { get; set; }
         public int Key { get; set; }
-        [StringLength(16)]
+        
+        [StringLength(18)] // must be at least long enough to handle string 'Install-Dependency'
         public string Operation { get; set; }
     }
 }
