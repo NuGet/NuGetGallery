@@ -74,14 +74,27 @@ namespace NuGetGallery
 
         public void UpdatePackage(Package package)
         {
+            var packageRegistrationKey = package.PackageRegistrationKey;
+            var updateTerm = new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
+
+            if (!package.IsLatest || package.IsLatestStable)
+            {
+                // Someone passed us in a version which was e.g. just unlisted? Or just not the latest version which is what we want to index. Doesn't really matter. We'll find one to index.
+                package = _packageRepository.GetAll()
+                .Where(p => (p.IsLatest || p.IsLatestStable) && p.PackageRegistrationKey == packageRegistrationKey)
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .Include(p => p.SupportedFrameworks)
+                .FirstOrDefault();
+            }
+
             // Just update the provided package
             using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key)))
             {
                 EnsureIndexWriter(creatingIndex: false);
-                var indexEntity = new PackageIndexEntity(package);
-                var updateTerm = new Term("PackageRegistrationKey", package.PackageRegistrationKey.ToString(CultureInfo.InvariantCulture));
-                if (package.Listed)
+                if (package != null)
                 {
+                    var indexEntity = new PackageIndexEntity(package);
                     Trace.Information(String.Format(CultureInfo.CurrentCulture, "Updating Document: {0}", updateTerm.ToString()));
                     _indexWriter.UpdateDocument(updateTerm, indexEntity.ToDocument());
                 }
