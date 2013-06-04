@@ -54,11 +54,14 @@ namespace NuGetGallery
                 {
                     var files = nupkg.GetFiles();
                     Assert.DoesNotContain("/_rels/.rels", files);
+                    Assert.DoesNotContain("\\_rels\\.rels", files);
                     Assert.DoesNotContain("/[Content_Types].xml", files);
+                    Assert.DoesNotContain("\\[Content_Types].xml", files);
                     Assert.DoesNotContain("_rels/.rels", files);
+                    Assert.DoesNotContain("_rels\\.rels", files);
                     Assert.DoesNotContain("[Content_Types].xml", files);
                     Assert.Contains("TestPackage.nuspec", files);
-                    Assert.Contains("content/HelloWorld.cs", files);
+                    Assert.Contains("content\\HelloWorld.cs", files);
                 }
             }
 
