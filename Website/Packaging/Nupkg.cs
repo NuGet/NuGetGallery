@@ -92,7 +92,7 @@ namespace NuGetGallery
                 }
 
                 Debug.Assert(part[0] == '/');
-                yield return part.Substring(1);
+                yield return part.Substring(1).Replace('/', Path.DirectorySeparatorChar);
             }
         }
 
