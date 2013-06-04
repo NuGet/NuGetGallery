@@ -1,29 +1,28 @@
 ﻿using System;
 using System.Web;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery.App_Start
 {
-    public class ConfigurationFacts
+    public class ConfigurationServiceFacts
     {
-        public class TestableConfiguration : Configuration
+        public class TestableConfigurationService : ConfigurationService
         {
-            public TestableConfiguration()
+            public TestableConfigurationService()
             {
                 StubRequest = new Mock<HttpRequestBase>();
                 StubConfiguredSiteRoot = "http://aSiteRoot/";
+                Current = (StubConfiguration = new Mock<IAppConfiguration>()).Object;
+                StubConfiguration.Setup(c => c.SiteRoot).Returns(() => StubConfiguredSiteRoot);
 
                 StubRequest.Setup(stub => stub.IsLocal).Returns(false);
             }
 
+            public Mock<IAppConfiguration> StubConfiguration { get; set; }
             public string StubConfiguredSiteRoot { get; set; }
             public Mock<HttpRequestBase> StubRequest { get; set; }
-
-            protected override string GetConfiguredSiteRoot()
-            {
-                return StubConfiguredSiteRoot;
-            }
 
             protected override HttpRequestBase GetCurrentRequest()
             {
@@ -36,7 +35,7 @@ namespace NuGetGallery.App_Start
             [Fact]
             public void WillGetTheConfiguredHttpSiteRoot()
             {
-                var configuration = new TestableConfiguration();
+                var configuration = new TestableConfigurationService();
                 configuration.StubConfiguredSiteRoot = "http://theSiteRoot/";
 
                 var siteRoot = configuration.GetSiteRoot(useHttps: false);
@@ -47,7 +46,7 @@ namespace NuGetGallery.App_Start
             [Fact]
             public void WillGetTheConfiguredHttpsSiteRoot()
             {
-                var configuration = new TestableConfiguration();
+                var configuration = new TestableConfigurationService();
                 configuration.StubConfiguredSiteRoot = "http://theSiteRoot/";
 
                 var siteRoot = configuration.GetSiteRoot(useHttps: true);
@@ -58,7 +57,7 @@ namespace NuGetGallery.App_Start
             [Fact]
             public void WillUseTheActualRootWhenTheRequestIsLocal()
             {
-                var configuration = new TestableConfiguration();
+                var configuration = new TestableConfigurationService();
                 configuration.StubRequest.Setup(stub => stub.IsLocal).Returns(true);
                 configuration.StubRequest.Setup(stub => stub.Url).Returns(new Uri("http://theLocalSiteRoot/aPath"));
 
@@ -70,7 +69,7 @@ namespace NuGetGallery.App_Start
             [Fact]
             public void WillUseHttpUponRequestWhenConfiguredSiteRootIsHttps()
             {
-                var configuration = new TestableConfiguration();
+                var configuration = new TestableConfigurationService();
                 configuration.StubConfiguredSiteRoot = "https://theSiteRoot/";
 
                 var siteRoot = configuration.GetSiteRoot(useHttps: false);
@@ -81,7 +80,7 @@ namespace NuGetGallery.App_Start
             [Fact]
             public void WillThrowIfConfiguredSiteRootIsNotHttpOrHttps()
             {
-                var configuration = new TestableConfiguration();
+                var configuration = new TestableConfigurationService();
                 configuration.StubConfiguredSiteRoot = "ftp://theSiteRoot/";
 
                 Assert.Throws<InvalidOperationException>(() => configuration.GetSiteRoot(useHttps: false));
@@ -90,7 +89,7 @@ namespace NuGetGallery.App_Start
             [Fact]
             public void WillCacheTheSiteRootLookup()
             {
-                var configuration = new TestableConfiguration();
+                var configuration = new TestableConfigurationService();
                 configuration.GetSiteRoot(useHttps: false);
 
                 configuration.GetSiteRoot(useHttps: true);

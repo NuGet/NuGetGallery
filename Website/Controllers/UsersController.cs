@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -12,7 +13,7 @@ namespace NuGetGallery
         public IPrincipal CurrentUser { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
-        public IConfiguration Config { get; protected set; }
+        public IAppConfiguration Config { get; protected set; }
         public IUserService UserService { get; protected set; }
 
         protected UsersController() { }
@@ -22,7 +23,7 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IConfiguration config,
+            IAppConfiguration config,
             IPrincipal currentUser) : this()
         {
             CuratedFeedService = feedsQuery;

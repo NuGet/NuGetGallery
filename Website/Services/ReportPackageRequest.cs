@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net.Mail;
 using System.Text;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -16,13 +17,13 @@ namespace NuGetGallery
         public bool AlreadyContactedOwners { get; set; }
         public UrlHelper Url { get; set; }
 
-        internal string FillIn(string subject, IConfiguration config)
+        internal string FillIn(string subject, IAppConfiguration config)
         {
             // note, format blocks {xxx} are matched by ordinal-case-sensitive comparison
             var ret = new StringBuilder(subject);
             Action<string, string> substitute = (target, value) => ret.Replace(target, Escape(value));
 
-            substitute("{GalleryOwnerName}", config.GalleryOwnerName);
+            substitute("{GalleryOwnerName}", config.GalleryOwner.DisplayName);
             substitute("{Id}", Package.PackageRegistration.Id);
             substitute("{Version}", Package.Version);
             substitute("{Reason}", Reason);
