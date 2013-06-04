@@ -4,7 +4,6 @@ namespace NuGetGallery
 {
     public class EditPackageRequest
     {
-        public EditPackageRegistrationRequest EditPackageRegistrationRequest { get; set; }
         public EditPackageVersionRequest EditPackageVersionRequest { get; set; }
 
         public string PackageId { get; set; }
@@ -12,5 +11,7 @@ namespace NuGetGallery
         public string Version { get; set; }
 
         public IList<Package> PackageVersions { get; set; }
+
+        public bool EditingLatest { get; set; }
     }
 }

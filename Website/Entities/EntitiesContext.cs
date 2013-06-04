@@ -52,6 +52,11 @@ namespace NuGetGallery
             return base.SaveChanges();
         }
 
+        public void DeleteOnCommit<T>(T entity) where T : class
+        {
+            Set<T>().Remove(entity);
+        }
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()

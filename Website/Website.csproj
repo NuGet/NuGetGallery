@@ -799,7 +799,6 @@
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="RequestModels\EditPackageRequest.cs" />
-    <Compile Include="RequestModels\EditPackageRegistrationRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />

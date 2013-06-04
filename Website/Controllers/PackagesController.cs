@@ -475,21 +475,14 @@ namespace NuGetGallery
             var packageRegistration = _packageService.FindPackageRegistrationById(id);
             var model = new EditPackageRequest
             {
+                EditingLatest = (version == null),
                 PackageId = package.PackageRegistration.Id,
-                PackageTitle = package.GetCurrentTitle(),
+                PackageTitle = package.Title,
                 Version = version == null ? null : package.Version,
                 PackageVersions = packageRegistration.Packages.ToList(),
             };
 
-            if (version != null)
-            {
-                model.EditPackageVersionRequest = new EditPackageVersionRequest(package);
-            }
-            else
-            {
-                model.EditPackageRegistrationRequest = new EditPackageRegistrationRequest(package);
-            }
-
+            model.EditPackageVersionRequest = new EditPackageVersionRequest(package);
             return View(model);
         }
 
@@ -506,11 +499,6 @@ namespace NuGetGallery
             if (!package.IsOwner(HttpContext.User))
             {
                 return new HttpStatusCodeResult(403, "Forbidden");
-            }
-
-            if (formData.EditPackageRegistrationRequest != null)
-            {
-                formData.EditPackageRegistrationRequest.UpdatePackageRegistration(package.PackageRegistration, _entitiesContext);
             }
 
             if (formData.EditPackageVersionRequest != null)
