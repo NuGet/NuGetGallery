@@ -7,7 +7,7 @@
 
 @section BottomScripts {
     <script>
-        $('#EditPackageRegistrationRequest_IconUrl').focusout(function (event) {
+        $('#EditPackageVersionRequest_IconUrl').focusout(function (event) {
             var target = event.target;
             var newValue = event.target.value;
             $('#IconUrl_Preview').remove();
@@ -54,17 +54,6 @@
 
 @using (Html.BeginForm())
 {
-    if (Model.EditPackageRegistrationRequest != null)
-    {
-        <fieldset class="form">
-            <legend>Edit Package @(Model.PackageTitle)</legend>
-
-            @Html.AntiForgeryToken()
-            @Html.ValidationSummary(true)
-            @(Html.EditorFor<EditPackageRequest,EditPackageRegistrationRequest>(model => model.EditPackageRegistrationRequest))
-        </fieldset>
-        <input type="submit" value="Submit" title="Save" />
-    }
     if (Model.EditPackageVersionRequest != null)
     {
         <fieldset class="form">

@@ -12,21 +12,22 @@ namespace NuGetGallery
 
         public EditPackageVersionRequest(Package package)
         {
-            Title = package.Title;
+            VersionTitle = package.Title;
             IconUrl = package.IconUrl;
             Summary = package.Summary;
             Description = package.Description;
             ProjectUrl = package.ProjectUrl;
             Authors = package.FlattenedAuthors;
             Copyright = package.Copyright;
+            Tags = package.Tags;
             ReleaseNotes = package.ReleaseNotes;
             IsListed = package.Listed;
         }
 
         [StringLength(256)]
-        [Display(Name = "Title")]
+        [Display(Name = "Package Title")]
         [DataType(DataType.Text)]
-        public string Title { get; set; }
+        public string VersionTitle { get; set; } // not naming it Title in our model because that would clash with page Title in the property bag. Blech.
 
         [StringLength(256)]
         [Display(Name = "Icon URL")]
@@ -89,7 +90,7 @@ namespace NuGetGallery
                 }
             }
 
-            package.Title = Title;
+            package.Title = VersionTitle;
             package.IconUrl = IconUrl;
             package.Summary = Summary;
             package.Description = Description;

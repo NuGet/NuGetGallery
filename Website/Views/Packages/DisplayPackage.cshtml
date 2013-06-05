@@ -65,16 +65,6 @@
             {
                 <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
             }
-            @if (!String.IsNullOrEmpty(Model.SourceCodeUrl))
-            {
-                <li><a href="@Model.SourceCodeUrl" title="Visit this link to view the package's source code">
-                        Source Code</a></li>
-            }
-            @if (!String.IsNullOrEmpty(Model.IssueTrackerUrl))
-            {
-                <li><a href="@Model.IssueTrackerUrl" title="Visit this link to view or file bugs about this package">
-                        Issue Tracker</a></li>
-            }
             <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
             @if (Model.IsOwner(User))
             {
