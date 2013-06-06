@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -12,7 +13,7 @@ namespace NuGetGallery
 
         User FindByEmailAddress(string emailAddress);
 
-        User FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress);
+        IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername);
 
         User FindByUsername(string username);
 

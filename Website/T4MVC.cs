@@ -41,6 +41,7 @@ namespace T4MVC {
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
     public class AdminClass {
         public readonly string Name = "Admin";
+        public NuGetGallery.Areas.Admin.Controllers.ConfigController Config = new NuGetGallery.Areas.Admin.Controllers.T4MVC_ConfigController();
         public NuGetGallery.Areas.Admin.Controllers.HomeController Home = new NuGetGallery.Areas.Admin.Controllers.T4MVC_HomeController();
         public NuGetGallery.Areas.Admin.Controllers.LuceneController Lucene = new NuGetGallery.Areas.Admin.Controllers.T4MVC_LuceneController();
         public T4MVC.Admin.SharedController Shared = new T4MVC.Admin.SharedController();

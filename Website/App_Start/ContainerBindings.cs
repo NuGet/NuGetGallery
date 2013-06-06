@@ -10,6 +10,7 @@ using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Ninject;
 using Ninject.Modules;
+using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
@@ -19,11 +20,13 @@ namespace NuGetGallery
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         public override void Load()
         {
-            var configuration = new Configuration();
-            Bind<IConfiguration>()
+            var configuration = new ConfigurationService();
+            Bind<ConfigurationService>()
                 .ToMethod(context => configuration);
+            Bind<IAppConfiguration>()
+                .ToMethod(context => configuration.Current);
             Bind<PoliteCaptcha.IConfigurationSource>()
-                .ToMethod(context => Configuration.GetPoliteCaptchaConfiguration());
+                .ToMethod(context => configuration);
 
             Bind<Lucene.Net.Store.Directory>()
                 .ToMethod(_ => LuceneCommon.GetDirectory())
@@ -33,58 +36,29 @@ namespace NuGetGallery
                 .To<LuceneSearchService>()
                 .InRequestScope();
 
-            if (!String.IsNullOrEmpty(configuration.AzureDiagnosticsConnectionString))
+            if (!String.IsNullOrEmpty(configuration.Current.AzureStorageConnectionString))
             {
                 Bind<ErrorLog>()
-                    .ToMethod(_ => new TableErrorLog(configuration.AzureDiagnosticsConnectionString))
+                    .ToMethod(_ => new TableErrorLog(configuration.Current.AzureStorageConnectionString))
                     .InSingletonScope();
             }
             else
             {
                 Bind<ErrorLog>()
-                    .ToMethod(_ => new SqlErrorLog(configuration.SqlConnectionString))
+                    .ToMethod(_ => new SqlErrorLog(configuration.Current.SqlConnectionString))
                     .InSingletonScope();
             }
 
-            if (IsDeployedToCloud)
-            {
-                // when running on Windows Azure, use the Azure Cache service if available
-                if (!String.IsNullOrEmpty(configuration.AzureCacheEndpoint))
-                {
-                    Bind<ICacheService>()
-                        .To<CloudCacheService>()
-                        .InSingletonScope();
-                }
-                else
-                {
-                    Bind<ICacheService>()
-                        .To<HttpContextCacheService>()
-                        .InRequestScope();
-                }
-
-                // when running on Windows Azure, pull the statistics from the warehouse via storage
-                Bind<IReportService>()
-                    .ToMethod(context => new CloudReportService(configuration.AzureStatisticsConnectionString))
-                    .InSingletonScope();
-
-                Bind<IStatisticsService>()
-                    .To<JsonStatisticsService>()
-                    .InSingletonScope();
-            }
-            else
-            {
-                // when running locally on dev box, use the built-in ASP.NET Http Cache
-                Bind<ICacheService>()
-                    .To<HttpContextCacheService>()
-                    .InRequestScope();
-            }
-
+            Bind<ICacheService>()
+                .To<HttpContextCacheService>()
+                .InRequestScope();
+            
             Bind<IContentService>()
                 .To<ContentService>()
                 .InSingletonScope();
 
             Bind<IEntitiesContext>()
-                .ToMethod(context => new EntitiesContext(configuration.SqlConnectionString, readOnly: configuration.ReadOnlyMode))
+                .ToMethod(context => new EntitiesContext(configuration.Current.SqlConnectionString, readOnly: configuration.Current.ReadOnlyMode))
                 .InRequestScope();
 
             Bind<IEntityRepository<User>>()
@@ -150,23 +124,25 @@ namespace NuGetGallery
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                 {
-                    var settings = Kernel.Get<IConfiguration>();
-                    if (settings.UseSmtp)
+                    var settings = Kernel.Get<ConfigurationService>();
+                    if (settings.Current.SmtpUri != null)
                     {
+                        var smtpUri = new SmtpUri(settings.Current.SmtpUri);
+
                         var mailSenderConfiguration = new MailSenderConfiguration
                             {
                                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                                Host = settings.SmtpHost,
-                                Port = settings.SmtpPort,
-                                EnableSsl = true
+                                Host = smtpUri.Host,
+                                Port = smtpUri.Port,
+                                EnableSsl = smtpUri.Secure
                             };
 
-                        if (!String.IsNullOrWhiteSpace(settings.SmtpUsername))
+                        if (!String.IsNullOrWhiteSpace(smtpUri.UserName))
                         {
                             mailSenderConfiguration.UseDefaultCredentials = false;
                             mailSenderConfiguration.Credentials = new NetworkCredential(
-                                settings.SmtpUsername,
-                                settings.SmtpPassword);
+                                smtpUri.UserName,
+                                smtpUri.Password);
                         }
 
                         return new MailSender(mailSenderConfiguration);
@@ -191,22 +167,14 @@ namespace NuGetGallery
 
             Bind<IPrincipal>().ToMethod(context => HttpContext.Current.User);
 
-            switch (configuration.PackageStoreType)
+            switch (configuration.Current.StorageType)
             {
-                case PackageStoreType.FileSystem:
-                case PackageStoreType.NotSpecified:
-                    Bind<IFileStorageService>()
-                        .To<FileSystemFileStorageService>()
-                        .InSingletonScope();
+                case StorageType.FileSystem:
+                case StorageType.NotSpecified:
+                    ConfigureForLocalFileSystem();
                     break;
-                case PackageStoreType.AzureStorageBlob:
-                    Bind<ICloudBlobClient>()
-                        .ToMethod(
-                            _ => new CloudBlobClientWrapper(configuration.AzureStorageConnectionString))
-                        .InSingletonScope();
-                    Bind<IFileStorageService>()
-                        .To<CloudBlobFileStorageService>()
-                        .InSingletonScope();
+                case StorageType.AzureStorage:
+                    ConfigureForAzureStorage(configuration);
                     break;
             }
 
@@ -246,24 +214,30 @@ namespace NuGetGallery
                 .InRequestScope();
         }
 
-        public static bool IsDeployedToCloud
+        private void ConfigureForLocalFileSystem()
         {
-            get
-            {
-                try
-                {
-                    if (RoleEnvironment.IsAvailable)
-                    {
-                        return true;
-                    }
-                }
-                catch (TypeInitializationException)
-                {
-                    // Catch 'Could not load file or assembly 'msshrtmi' from not having Azure SDK installed.
-                }
+            Bind<IFileStorageService>()
+                .To<FileSystemFileStorageService>()
+                .InSingletonScope();
+        }
 
-                return false;
-            }
+        private void ConfigureForAzureStorage(ConfigurationService configuration)
+        {
+            Bind<ICloudBlobClient>()
+                .ToMethod(
+                    _ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString))
+                .InSingletonScope();
+            Bind<IFileStorageService>()
+                .To<CloudBlobFileStorageService>()
+                .InSingletonScope();
+
+            // when running on Windows Azure, pull the statistics from the warehouse via storage
+            Bind<IReportService>()
+                .ToMethod(context => new CloudReportService(configuration.Current.AzureStorageConnectionString))
+                .InSingletonScope();
+            Bind<IStatisticsService>()
+                .To<JsonStatisticsService>()
+                .InSingletonScope();
         }
     }
 }

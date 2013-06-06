@@ -10,6 +10,7 @@ using System.Web.Routing;
 using Moq;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
+using NuGetGallery.Configuration;
 using Xunit;
 using Xunit.Extensions;
 
@@ -29,7 +30,7 @@ namespace NuGetGallery
             Exception readPackageException = null,
             Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
             Mock<INuGetExeDownloaderService> downloaderService = null,
-            Mock<IConfiguration> config = null,
+            Mock<IAppConfiguration> config = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<IIndexingService> indexingService = null,
@@ -48,7 +49,7 @@ namespace NuGetGallery
             searchService = searchService ?? CreateSearchService();
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
             downloaderService = downloaderService ?? new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
-            config = config ?? new Mock<IConfiguration>();
+            config = config ?? new Mock<IAppConfiguration>();
 
             if (packageFileService == null)
             {

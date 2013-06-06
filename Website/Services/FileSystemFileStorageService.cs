@@ -2,16 +2,19 @@
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using System.Web;
+using System.Web.Hosting;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class FileSystemFileStorageService : IFileStorageService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IAppConfiguration _configuration;
         private readonly IFileSystemService _fileSystemService;
 
-        public FileSystemFileStorageService(IConfiguration configuration, IFileSystemService fileSystemService)
+        public FileSystemFileStorageService(IAppConfiguration configuration, IFileSystemService fileSystemService)
         {
             _configuration = configuration;
             _fileSystemService = fileSystemService;
@@ -132,12 +135,14 @@ namespace NuGetGallery
                 throw new ArgumentNullException("packageFile");
             }
 
-            if (!_fileSystemService.DirectoryExists(_configuration.FileStorageDirectory))
+            var storageDirectory = ResolvePath(_configuration.FileStorageDirectory);
+
+            if (!_fileSystemService.DirectoryExists(storageDirectory))
             {
-                _fileSystemService.CreateDirectory(_configuration.FileStorageDirectory);
+                _fileSystemService.CreateDirectory(storageDirectory);
             }
 
-            var folderPath = Path.Combine(_configuration.FileStorageDirectory, folderName);
+            var folderPath = Path.Combine(storageDirectory, folderName);
             if (!_fileSystemService.DirectoryExists(folderPath))
             {
                 _fileSystemService.CreateDirectory(folderPath);
@@ -154,7 +159,19 @@ namespace NuGetGallery
 
         private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)
         {
+            // Resolve the file storage directory
+            fileStorageDirectory = ResolvePath(fileStorageDirectory);
+
             return Path.Combine(fileStorageDirectory, folderName, fileName);
+        }
+
+        private static string ResolvePath(string fileStorageDirectory)
+        {
+            if (fileStorageDirectory.StartsWith("~/", StringComparison.OrdinalIgnoreCase) && HostingEnvironment.IsHosted)
+            {
+                fileStorageDirectory = HostingEnvironment.MapPath(fileStorageDirectory);
+            }
+            return fileStorageDirectory;
         }
 
         private static string GetContentType(string folderName)

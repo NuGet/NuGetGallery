@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Web;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 using Xunit.Extensions;
 
@@ -15,7 +16,7 @@ namespace NuGetGallery
         public void SiteRootAddsTrailingSlashes(string siteRoot, string expected)
         {
             // Arrange
-            var config = new Mock<IConfiguration>();
+            var config = new Mock<ConfigurationService>();
             config.Setup(s => s.GetSiteRoot(false)).Returns(siteRoot);
             var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchService: null);
             feed.HttpContext = GetContext();
@@ -31,7 +32,7 @@ namespace NuGetGallery
         public void SiteRootUsesCurrentRequestToDetermineSiteRoot()
         {
             // Arrange
-            var config = new Mock<IConfiguration>();
+            var config = new Mock<ConfigurationService>();
             config.Setup(s => s.GetSiteRoot(true)).Returns("https://nuget.org").Verifiable();
             var feed = new V2Feed(entities: null, repo: null, configuration: config.Object, searchService: null);
             feed.HttpContext = GetContext(isSecure: true);
@@ -70,7 +71,7 @@ namespace NuGetGallery
                                 DownloadStatistics = new List<PackageStatistics>()
                             },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
             var searchService = new Mock<ISearchService>(MockBehavior.Strict);
             int total;
@@ -114,7 +115,7 @@ namespace NuGetGallery
                                 DownloadStatistics = new List<PackageStatistics>()
                             },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
             var v1Service = new TestableV1Feed(repo.Object, configuration.Object, null);
 
@@ -154,7 +155,7 @@ namespace NuGetGallery
                                 DownloadStatistics = new List<PackageStatistics>()
                             },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -184,7 +185,7 @@ namespace NuGetGallery
         {
             // Arrange
             var repo = Mock.Of<IEntityRepository<Package>>();
-            var configuration = Mock.Of<IConfiguration>();
+            var configuration = Mock.Of<ConfigurationService>();
             var v2Service = new TestableV2Feed(repo, configuration, null);
 
             // Act
@@ -211,7 +212,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -240,7 +241,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -277,7 +278,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -312,7 +313,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -349,7 +350,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -387,7 +388,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -424,7 +425,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                         new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -458,7 +459,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -489,7 +490,7 @@ namespace NuGetGallery
                         new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -544,7 +545,7 @@ namespace NuGetGallery
                             },
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -610,7 +611,7 @@ namespace NuGetGallery
                             },
                         new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
-            var configuration = new Mock<IConfiguration>(MockBehavior.Strict);
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
@@ -645,7 +646,7 @@ namespace NuGetGallery
         {
             public TestableV1Feed(
                 IEntityRepository<Package> repo,
-                IConfiguration configuration,
+                ConfigurationService configuration,
                 ISearchService searchService)
                 : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchService)
             {
@@ -661,7 +662,7 @@ namespace NuGetGallery
         {
             public TestableV2Feed(
                 IEntityRepository<Package> repo,
-                IConfiguration configuration,
+                ConfigurationService configuration,
                 ISearchService searchService)
                 : base(new Mock<IEntitiesContext>().Object, repo, configuration, searchService)
             {

@@ -10,6 +10,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 using Xunit.Extensions;
 
@@ -31,7 +32,7 @@ namespace NuGetGallery
                 fakeBlobClient = new Mock<ICloudBlobClient>();
             }
 
-            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IConfiguration>());
+            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IAppConfiguration>());
         }
 
         private class FolderNamesDataAttribute : DataAttribute
