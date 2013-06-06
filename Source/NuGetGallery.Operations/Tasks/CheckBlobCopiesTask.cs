@@ -38,12 +38,8 @@ namespace NuGetGallery.Operations
             var destClient = DestinationStorage.CreateCloudBlobClient();
             var destContainer = destClient.GetContainerReference(DestinationContainer);
 
-            while (!destContainer.ListBlobs(Prefix, useFlatBlobListing: true, blobListingDetails: BlobListingDetails.Copy)
-                                 .OfType<CloudBlockBlob>()
-                                 .All(b => ReportStatus(b)) || !Wait) {
-                Log.Info("Sleeping for 5 seconds");
-                Thread.Sleep(5 * 1000);
-            }
+            // Iterate through the blobs
+            var blobs = Util.CollectBlobs(Log, destContainer, Prefix ?? String.Empty);
 
             Log.Info("Copies started. Run checkblobcopy with the same parameters to wait on blob copy completion");
         }

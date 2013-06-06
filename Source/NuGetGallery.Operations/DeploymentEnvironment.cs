@@ -14,13 +14,11 @@ namespace NuGetGallery.Operations
         public IDictionary<string, string> Settings { get; private set; } 
         public SqlConnectionStringBuilder MainDatabase { get; private set; }
         public SqlConnectionStringBuilder WarehouseDatabase { get; private set; }
-        public SqlConnectionStringBuilder BackupSourceDatabase { get; set; }
-
+        
         public CloudStorageAccount MainStorage { get; private set; }
         public CloudStorageAccount ReportStorage { get; private set; }
-        public CloudStorageAccount BackupSourceStorage { get; private set; }
-        public CloudStorageAccount DeveloperStorage { get; set; }
-
+        public CloudStorageAccount BackupStorage { get; private set; }
+        
         public Uri SqlDac { get; set; }
 
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)

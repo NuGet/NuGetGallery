@@ -32,16 +32,12 @@ namespace NuGetGallery.Operations
 
             if (CurrentEnvironment != null)
             {
-                if (SourceStorage == null)
-                {
-                    SourceStorage = CurrentEnvironment.BackupSourceStorage;
-                }
                 if (DestinationStorage == null)
                 {
                     DestinationStorage = CurrentEnvironment.MainStorage;
                 }
             }
-            ArgCheck.RequiredOrConfig(SourceStorage, "SourceStorage");
+            ArgCheck.Required(SourceStorage, "SourceStorage");
             ArgCheck.RequiredOrConfig(DestinationStorage, "DestinationStorage");
         }
         
