@@ -1,4 +1,5 @@
-﻿namespace NuGetGallery.Operations
+﻿using System;
+namespace NuGetGallery.Operations
 {
     public class Package
     {
@@ -7,5 +8,6 @@
         public int Key { get; set; }
         public string Version { get; set; }
         public string ExternalPackageUrl { get; set; }
+        public DateTime? Created { get; set; }
     }
 }
