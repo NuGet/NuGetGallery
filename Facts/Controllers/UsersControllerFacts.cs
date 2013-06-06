@@ -5,6 +5,7 @@ using System.Security.Principal;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery
@@ -591,7 +592,7 @@ namespace NuGetGallery
             public Mock<IIdentity> MockCurrentIdentity { get; protected set; }
             public Mock<IMessageService> MockMessageService { get; protected set; }
             public Mock<IPackageService> MockPackageService { get; protected set; }
-            public Mock<IConfiguration> MockConfig { get; protected set; }
+            public Mock<IAppConfiguration> MockConfig { get; protected set; }
             public Mock<IUserService> MockUserService { get; protected set; }
             
             public TestableUsersController()
@@ -600,7 +601,7 @@ namespace NuGetGallery
                 CurrentUser = (MockCurrentUser = new Mock<IPrincipal>()).Object;
                 MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
                 PackageService = (MockPackageService = new Mock<IPackageService>()).Object;
-                Config = (MockConfig = new Mock<IConfiguration>()).Object;
+                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
                 UserService = (MockUserService = new Mock<IUserService>()).Object;
 
                 MockCurrentIdentity = new Mock<IIdentity>();

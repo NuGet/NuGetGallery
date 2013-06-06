@@ -14,36 +14,55 @@ namespace NuGetGallery
         {
         }
 
-        private static IDictionary CreateFieldAnalyzers()
+        private static IDictionary<string, Analyzer> CreateFieldAnalyzers()
         {
-            // For idAnalyzer we use the 'standard analyzer' but with no stop words (In, Of, The, etc are indexed).
-            var stopWords = new Hashtable();
-            StandardAnalyzer idAnalyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion, stopWords);
-
             return new Dictionary<string, Analyzer>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Id", idAnalyzer },
+                { "Id", new StandardAnalyzer(LuceneCommon.LuceneVersion, new HashSet<string>()) },
                 { "Title", new TitleAnalyzer() },
+                { "Description", new DescriptionAnalyzer() },
+                { "Tags", new DescriptionAnalyzer() },
             };
         }
 
+        //  similar to a StandardAnalyzer except this allows special characters (like C++)
+        //  note the base tokenization is now just whitespace in this case
+
         class TitleAnalyzer : Analyzer
         {
-            private readonly StandardAnalyzer innerAnalyzer;
-
-            public TitleAnalyzer()
-            {
-                // For innerAnalyzer we use the 'standard analyzer' but with no stop words (In, Of, The, etc are indexed).
-                var stopWords = new Hashtable();
-                innerAnalyzer = new StandardAnalyzer(LuceneCommon.LuceneVersion, stopWords);
-            }
+            private static readonly WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer();
 
             public override TokenStream TokenStream(string fieldName, TextReader reader)
             {
                 // Split the title based on IdSeparators, then run it through the innerAnalyzer
                 string title = reader.ReadToEnd();
                 string partiallyTokenized = String.Join(" ", title.Split(PackageIndexEntity.IdSeparators, StringSplitOptions.RemoveEmptyEntries));
-                return innerAnalyzer.TokenStream(fieldName, new StringReader(partiallyTokenized));
+                TokenStream result = whitespaceAnalyzer.TokenStream(fieldName, new StringReader(partiallyTokenized));
+                result = new LowerCaseFilter(result);
+                return result;
+            }
+        }
+
+        //  similar to our TitleAnalyzer except we want to ignore stop words in the description
+
+        class DescriptionAnalyzer : Analyzer
+        {
+            private static ISet<string> stopWords = new HashSet<string> 
+            {
+                "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", 
+                "if", "in", "into", "is", "it", "no", "not", "of", "on", "or", "such",
+                "that", "the", "their", "then", "there", "these", "they", "this", "to", 
+                "was", "will", "with"
+            };
+
+            private static readonly WhitespaceAnalyzer whitespaceAnalyzer = new WhitespaceAnalyzer();
+
+            public override TokenStream TokenStream(string fieldName, TextReader reader)
+            {
+                TokenStream result = whitespaceAnalyzer.TokenStream(fieldName, reader);
+                result = new LowerCaseFilter(result);
+                result = new StopFilter(true, result, stopWords);
+                return result;
             }
         }
     }

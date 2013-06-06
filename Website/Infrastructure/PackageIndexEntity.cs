@@ -44,12 +44,12 @@ namespace NuGetGallery
 
             var field = new Field("Id-Exact", Package.PackageRegistration.Id.ToLowerInvariant(), Field.Store.NO, Field.Index.NOT_ANALYZED);
 
-            field.SetBoost(2.5f);
+            field.Boost = 2.5f;
             document.Add(field);
 
             // Store description so we can show them in search results
             field = new Field("Description", Package.Description, Field.Store.YES, Field.Index.ANALYZED);
-            field.SetBoost(0.1f);
+            field.Boost = 0.1f;
             document.Add(field);
 
             // We store the Id/Title field in multiple ways, so that it's possible to match using multiple
@@ -63,13 +63,13 @@ namespace NuGetGallery
 
             // Style 2: dot+dash tokenized (so you can search using undotted terms)
             field = new Field("Id", SplitId(Package.PackageRegistration.Id), Field.Store.NO, Field.Index.ANALYZED);
-            field.SetBoost(0.8f);
+            field.Boost = 0.8f;
             document.Add(field);
 
             // Style 3: camel-case tokenized (so you can search using parts of the camelCasedWord). 
             // De-boosted since matches are less likely to be meaningful
             field = new Field("Id", CamelSplitId(Package.PackageRegistration.Id), Field.Store.NO, Field.Index.ANALYZED);
-            field.SetBoost(0.25f);
+            field.Boost = 0.25f;
             document.Add(field);
 
             // If an element does not have a Title, fall back to Id, same as the website.
@@ -79,24 +79,24 @@ namespace NuGetGallery
 
             // As-Is (stored for search results)
             field = new Field("Title", workingTitle, Field.Store.YES, Field.Index.ANALYZED);
-            field.SetBoost(0.9f);
+            field.Boost = 0.9f;
             document.Add(field);
 
             // no need to store dot+dash tokenized - we'll handle this in the analyzer
             field = new Field("Title", SplitId(workingTitle), Field.Store.NO, Field.Index.ANALYZED);
-            field.SetBoost(0.8f);
+            field.Boost = 0.8f;
             document.Add(field);
 
             // camel-case tokenized
             field = new Field("Title", CamelSplitId(workingTitle), Field.Store.NO, Field.Index.ANALYZED);
-            field.SetBoost(0.5f);
+            field.Boost = 0.5f;
             document.Add(field);
 
             if (!String.IsNullOrEmpty(Package.Tags))
             {
                 // Store tags so we can show them in search results
                 field = new Field("Tags", Package.Tags, Field.Store.YES, Field.Index.ANALYZED);
-                field.SetBoost(0.8f);
+                field.Boost = 0.8f;
                 document.Add(field);
             }
 

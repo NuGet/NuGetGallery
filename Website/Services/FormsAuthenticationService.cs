@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Web;
 using System.Web.Security;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class FormsAuthenticationService : IFormsAuthenticationService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IAppConfiguration _configuration;
 
-        public FormsAuthenticationService(IConfiguration configuration)
+        public FormsAuthenticationService(IAppConfiguration configuration)
         {
             _configuration = configuration;
         }
