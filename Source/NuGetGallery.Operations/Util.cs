@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Web;
 using AnglicanGeek.DbExecutor;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NLog;
 
@@ -295,7 +296,14 @@ namespace NuGetGallery.Operations
             BlobContinuationToken token = null;
             do
             {
-                var segment = container.ListBlobsSegmented(token);
+                var segment = container.ListBlobsSegmented(
+                    prefix, 
+                    useFlatBlobListing: true, 
+                    blobListingDetails: BlobListingDetails.Copy, 
+                    maxResults: null, 
+                    currentToken: token, 
+                    options: new BlobRequestOptions(), 
+                    operationContext: new OperationContext());
                 var oldCount = list.Count;
                 int total = 0;
                 foreach (var blob in segment.Results.OfType<CloudBlockBlob>())
@@ -312,6 +320,28 @@ namespace NuGetGallery.Operations
             } while (token != null);
 
             return list;
+        }
+
+        public static IEnumerable<CloudBlockBlob> EnumerateBlobs(Logger log, CloudBlobContainer container, string prefix, Func<CloudBlockBlob, bool> condition = null)
+        {
+            BlobContinuationToken token = null;
+            do
+            {
+                var segment = container.ListBlobsSegmented(
+                    prefix,
+                    useFlatBlobListing: true,
+                    blobListingDetails: BlobListingDetails.Copy,
+                    maxResults: null,
+                    currentToken: token,
+                    options: new BlobRequestOptions(),
+                    operationContext: new OperationContext());
+                foreach (var blob in segment.Results.OfType<CloudBlockBlob>().Where(b => condition == null || condition(b)))
+                {
+                    yield return blob;
+                }
+
+                token = segment.ContinuationToken;
+            } while (token != null);
         }
     }
 }
