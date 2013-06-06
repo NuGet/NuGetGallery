@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations
@@ -58,31 +61,51 @@ namespace NuGetGallery.Operations
             destContainer.CreateIfNotExists();
 
             Log.Info("Collecting blob names in {0} to copy to {1}", SourceStorage.Credentials.AccountName, DestinationStorage.Credentials.AccountName);
-            var blobs = sourceContainer.ListBlobs(Prefix ?? String.Empty, useFlatBlobListing: true, blobListingDetails: BlobListingDetails.None)
-                                       .OfType<CloudBlockBlob>()
-                                       .Where(b => !PackageBlobsOnly || (!b.Name.StartsWith("/") && String.Equals(b.Name.ToLowerInvariant(), b.Name, StringComparison.Ordinal)))
-                                       .ToList();
+            var blobs = Util.CollectBlobs(
+                Log, 
+                sourceContainer, 
+                Prefix ?? String.Empty, 
+                condition: b => (!PackageBlobsOnly || (!b.Name.StartsWith("/") && String.Equals(b.Name.ToLowerInvariant(), b.Name, StringComparison.Ordinal))),
+                countEstimate: 140000);
             var count = blobs.Count;
             int index = 0;
-            foreach (var blob in blobs)
-            {
-                index++;
-                var destBlob = destContainer.GetBlockBlobReference(blob.Name);
 
-                var percentage = (int)(((double)index / (double)count) * 100);
-                if (!destBlob.Exists() || Overwrite)
+            Parallel.ForEach(blobs, new ParallelOptions { MaxDegreeOfParallelism = 10 }, blob =>
+            {
+                int currentIndex = Interlocked.Increment(ref index);
+                var percentage = (((double)currentIndex / (double)count) * 100);
+                var destBlob = destContainer.GetBlockBlobReference(blob.Name);
+                
+                try
                 {
-                    Log.Info("[{1}/{2}] ({3}%) Started Async Copy of {0}.", blob.Name, index, count, percentage);
-                    if (!WhatIf)
+                
+                    if (!destBlob.Exists() || Overwrite)
                     {
-                        destBlob.StartCopyFromBlob(blob);
+                        Log.Info("[{1:000000}/{2:000000}] ({3:000.00}%) Started Async Copy of {0}.", blob.Name, currentIndex, count, percentage);
+                        if (!WhatIf)
+                        {
+                            destBlob.StartCopyFromBlob(blob);
+                        }
+                    }
+                    else
+                    {
+                        Log.Info("[{1:000000}/{2:000000}] ({3:000.00}%) Skipped {0}. Blob already Exists", blob.Name, index, count, percentage);
                     }
                 }
-                else
+                catch (StorageException stex)
                 {
-                    Log.Info("[{1}/{2}] ({3}%) Skipped {0}.", blob.Name, index, count, percentage);
+                    if (stex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.Conflict && 
+                        stex.RequestInformation.ExtendedErrorInformation.ErrorCode == BlobErrorCodeStrings.PendingCopyOperation)
+                    {
+                        Log.Info("[{1:000000}/{2:000000}] ({3:000.00}%) Skipped {0}. Already being copied", blob.Name, index, count, percentage);
+                    }
                 }
-            }
+                catch (Exception ex)
+                {
+                    Log.Error("Error processing {0}: {1}", blob.Name, ex.ToString());
+                    throw;
+                }
+            });
 
             Log.Info("Copies started. Run checkblobcopies with similar parameters to wait on blob copy completion");
         }

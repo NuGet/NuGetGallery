@@ -18,16 +18,11 @@ namespace NuGetGallery.Operations.Tasks
     [Command("exportdatabase", "Exports a sanitized copy of the database to blob storage", AltName = "xdb", MinArgs = 0, MaxArgs = 0)]
     public class ExportDatabaseTask : DatabaseTask
     {
-        private IList<string> _unsanitizedUsers = new List<string>();
-
         [Option("Azure Storage Account in which the exported database should be placed", AltName = "s")]
         public CloudStorageAccount DestinationStorage { get; set; }
 
         [Option("URL of the SQL DAC endpoint to talk to", AltName = "dac")]
         public Uri SqlDacEndpoint { get; set; }
-
-        [Option("Semicolon-separated list of users to IGNORE when santizing", AltName = "u")]
-        public ICollection<string> UnsanitizedUsers { get { return _unsanitizedUsers; } }
 
         [Option("Domain name to use for sanitized email addresses, username@[emaildomain]", AltName = "e")]
         public string EmailDomain { get; set; }
@@ -44,7 +39,7 @@ namespace NuGetGallery.Operations.Tasks
             {
                 if (DestinationStorage == null)
                 {
-                    DestinationStorage = CurrentEnvironment.DeveloperStorage;
+                    DestinationStorage = CurrentEnvironment.BackupStorage;
                 }
                 if (SqlDacEndpoint == null)
                 {
@@ -87,7 +82,6 @@ namespace NuGetGallery.Operations.Tasks
                 ConnectionString = ConnectionString,
                 DatabaseName = name,
                 EmailDomain = EmailDomain,
-                UnsanitizedUsers = UnsanitizedUsers,
                 WhatIf = WhatIf,
                 Force = false
             };

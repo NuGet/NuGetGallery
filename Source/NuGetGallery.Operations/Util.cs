@@ -7,7 +7,9 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Web;
 using AnglicanGeek.DbExecutor;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using NLog;
 
 namespace NuGetGallery.Operations
 {
@@ -277,6 +279,69 @@ namespace NuGetGallery.Operations
                 new { databaseName });
 
             return dbs.SingleOrDefault();
+        }
+
+        public static IList<CloudBlockBlob> CollectBlobs(Logger log, CloudBlobContainer container, string prefix, Func<CloudBlockBlob, bool> condition = null, int? countEstimate = null)
+        {
+            List<CloudBlockBlob> list;
+            if (countEstimate.HasValue)
+            {
+                list = new List<CloudBlockBlob>(countEstimate.Value);
+            }
+            else
+            {
+                list = new List<CloudBlockBlob>();
+            }
+
+            BlobContinuationToken token = null;
+            do
+            {
+                var segment = container.ListBlobsSegmented(
+                    prefix, 
+                    useFlatBlobListing: true, 
+                    blobListingDetails: BlobListingDetails.Copy, 
+                    maxResults: null, 
+                    currentToken: token, 
+                    options: new BlobRequestOptions(), 
+                    operationContext: new OperationContext());
+                var oldCount = list.Count;
+                int total = 0;
+                foreach (var blob in segment.Results.OfType<CloudBlockBlob>())
+                {
+                    if (condition == null || condition(blob))
+                    {
+                        list.Add(blob);
+                    }
+                    total++;
+                }
+                
+                log.Info("Matched {0}/{1} blobs in current segment. Found {2} blobs so far...", list.Count - oldCount, total, list.Count);
+                token = segment.ContinuationToken;
+            } while (token != null);
+
+            return list;
+        }
+
+        public static IEnumerable<CloudBlockBlob> EnumerateBlobs(Logger log, CloudBlobContainer container, string prefix, Func<CloudBlockBlob, bool> condition = null)
+        {
+            BlobContinuationToken token = null;
+            do
+            {
+                var segment = container.ListBlobsSegmented(
+                    prefix,
+                    useFlatBlobListing: true,
+                    blobListingDetails: BlobListingDetails.Copy,
+                    maxResults: null,
+                    currentToken: token,
+                    options: new BlobRequestOptions(),
+                    operationContext: new OperationContext());
+                foreach (var blob in segment.Results.OfType<CloudBlockBlob>().Where(b => condition == null || condition(b)))
+                {
+                    yield return blob;
+                }
+
+                token = segment.ContinuationToken;
+            } while (token != null);
         }
     }
 }

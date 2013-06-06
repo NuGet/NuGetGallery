@@ -12,21 +12,12 @@ namespace NuGetGallery.Operations.Tasks
     [Command("sanitizedatabase", "Cleans Personally-Identified Information out of a database without destroying data", AltName = "sdb", MinArgs = 0, MaxArgs = 0)]
     public class SanitizeDatabaseTask : DatabaseTask
     {
-        private ICollection<string> _unsanitizedUsers = new List<string>();
-
         private static readonly string[] AllowedPrefixes = new[] {
             "Export_" // Only exports can be sanitized
         };
 
         [Option("The database name on the server to santize if different from the database identified in the connection string", AltName = "d")]
         public string DatabaseName { get; set; }
-
-        [Option("Semicolon-separated list of users to IGNORE when santizing", AltName = "u")]
-        public ICollection<string> UnsanitizedUsers
-        {
-            get { return _unsanitizedUsers; }
-            set { _unsanitizedUsers = value; }
-        }
 
         [Option("Domain name to use for sanitized email addresses, username@[emaildomain]", AltName = "e")]
         public string EmailDomain { get; set; }
@@ -62,8 +53,7 @@ namespace NuGetGallery.Operations.Tasks
             }
             Log.Info("Ready to santize {0} on {1}", ConnectionString.InitialCatalog, Util.GetDatabaseServerName(ConnectionString));
 
-            // Build the IN clause to exclude allowed users. We trust the Unsanitized users data
-            string inClause = String.Join(",", UnsanitizedUsers.Select(u => "'" + u + "'"));
+            // Update non admin users
             string query = String.Format(@"
                 UPDATE Users
                 SET    ApiKey = NEWID(),
@@ -75,8 +65,8 @@ namespace NuGetGallery.Operations.Tasks
                        PasswordResetToken = NULL,
                        PasswordResetTokenExpirationDate = NULL,
                        PasswordHashAlgorithm = 'PBKDF2'
-               WHERE   Username NOT IN ({1})
-            ", EmailDomain, inClause);
+               WHERE   [Key] NOT IN (SELECT ur.UserKey FROM UserRoles ur INNER JOIN Roles r ON r.[Key] = ur.RoleKey WHERE r.Name = 'Admins')
+            ", EmailDomain);
 
             // All we need to sanitize is the user table. Package data is public (EVEN unlisted ones) and not PII
             if (WhatIf)
