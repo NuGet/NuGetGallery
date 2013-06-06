@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Glimpse.Core.Extensibility;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery.Diagnostics
@@ -130,11 +131,11 @@ namespace NuGetGallery.Diagnostics
 
         public class TestableGlimpseRuntimePolicy : GlimpseRuntimePolicy
         {
-            public Mock<IConfiguration> MockConfiguration { get; private set; }
+            public Mock<IAppConfiguration> MockConfiguration { get; private set; }
 
             public TestableGlimpseRuntimePolicy()
             {
-                Configuration = (MockConfiguration = new Mock<IConfiguration>()).Object;
+                Configuration = (MockConfiguration = new Mock<IAppConfiguration>()).Object;
             }
         }
     }

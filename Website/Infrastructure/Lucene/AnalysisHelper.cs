@@ -21,10 +21,19 @@ namespace NuGetGallery
             filter.Reset();
 
             // This attribute way of getting token properties sucks, but it's the non-obsolete one.
-            var attr1 = (TermAttribute)filter.GetAttribute(typeof(TermAttribute));
-            var attr2 = (PositionIncrementAttribute)filter.GetAttribute(typeof(PositionIncrementAttribute));
-            Func<string> getText = () => attr1 != null ? attr1.Term() : null;
-            Func<int> getPositionIncrement = () => attr2 != null ? attr2.GetPositionIncrement() : 1;
+            var attr1 = filter.GetAttribute<ITermAttribute>();
+            Func<string> getText = () => attr1 != null ? attr1.Term : null;
+
+            Func<int> getPositionIncrement;
+            if (filter.HasAttribute<IPositionIncrementAttribute>())
+            {
+                var attr = filter.GetAttribute<IPositionIncrementAttribute>();
+                getPositionIncrement = () => attr.PositionIncrement;
+            }
+            else
+            {
+                getPositionIncrement = () => 1;
+            }
 
             // 0 tokens
             if (!filter.IncrementToken())
@@ -67,14 +76,14 @@ namespace NuGetGallery
                 var q = GetFieldQuery(analyzer, field, queryText);
                 if (q is BooleanQuery)
                 {
-                    Debug.Assert((q as BooleanQuery).Clauses().Count == 0,
+                    Debug.Assert((q as BooleanQuery).Clauses.Count == 0,
                                  "Only *empty* boolean queries should be returned by GetFieldQuery");
                     continue;
                 }
                 else
                 {
                     Debug.Assert(q != null, "GetFieldQuery should not return null");
-                    ret.Add(new BooleanClause(q, BooleanClause.Occur.SHOULD));
+                    ret.Add(new BooleanClause(q, Occur.SHOULD));
                 }
             }
 
