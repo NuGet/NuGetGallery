@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 using Xunit.Extensions;
 
@@ -21,12 +22,12 @@ namespace NuGetGallery
         }
 
         private static FileSystemFileStorageService CreateService(
-            Mock<IConfiguration> configuration = null,
+            Mock<IAppConfiguration> configuration = null,
             Mock<IFileSystemService> fileSystemService = null)
         {
             if (configuration == null)
             {
-                configuration = new Mock<IConfiguration>();
+                configuration = new Mock<IAppConfiguration>();
                 configuration.Setup(x => x.FileStorageDirectory).Returns(FakeConfiguredFileStorageDirectory);
             }
 

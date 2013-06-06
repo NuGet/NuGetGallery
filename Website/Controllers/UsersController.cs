@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -12,7 +13,7 @@ namespace NuGetGallery
         public IPrincipal CurrentUser { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
-        public IConfiguration Config { get; protected set; }
+        public IAppConfiguration Config { get; protected set; }
         public IUserService UserService { get; protected set; }
 
         protected UsersController() { }
@@ -22,7 +23,7 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IConfiguration config,
+            IAppConfiguration config,
             IPrincipal currentUser) : this()
         {
             CuratedFeedService = feedsQuery;
@@ -173,15 +174,12 @@ namespace NuGetGallery
             var user = UserService.FindByUsername(CurrentUser.Identity.Name);
             var packages = PackageService.FindPackagesByOwner(user);
 
-            var published = from p in packages
-                            group p by p.PackageRegistration.Id;
-
             var model = new ManagePackagesViewModel
                 {
-                    Packages = from pr in published
-                               select new PackageViewModel(pr.First())
+                    Packages = from p in packages
+                               select new PackageViewModel(p)
                                    {
-                                       DownloadCount = pr.Sum(p => p.DownloadCount),
+                                       DownloadCount = p.PackageRegistration.DownloadCount,
                                        Version = null
                                    },
                 };
@@ -252,15 +250,24 @@ namespace NuGetGallery
             
             if (ModelState.IsValid)
             {
-                var user = UserService.FindByUnconfirmedEmailAddress(model.Email);
-                if (user != null && !user.Confirmed)
+                var usersClaimingEmailAddress = UserService.FindByUnconfirmedEmailAddress(model.Email, model.Username);
+                
+                if (usersClaimingEmailAddress.Count == 1)
                 {
+                    var user = usersClaimingEmailAddress.SingleOrDefault();
                     var confirmationUrl = Url.ConfirmationUrl(
                         MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
                     MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
                     return RedirectToAction(MVC.Users.Thanks());
                 }
-                ModelState.AddModelError("Email", "There was an issue resending your confirmation token.");
+                else if (usersClaimingEmailAddress.Count > 1)
+                {
+                    ModelState.AddModelError("Username", "Multiple users registered with your email address. Enter your username in order to resend confirmation email.");
+                }
+                else
+                {
+                    ModelState.AddModelError("Email", "There was an issue resending your confirmation token.");
+                }
             }
             return View(model);
         }

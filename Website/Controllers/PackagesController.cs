@@ -10,6 +10,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
+using NuGetGallery.Configuration;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -21,7 +22,7 @@ namespace NuGetGallery
         // TODO: improve validation summary emphasis
 
         private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
-        private readonly IConfiguration _config;
+        private readonly IAppConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly INuGetExeDownloaderService _nugetExeDownloaderService;
         private readonly IPackageService _packageService;
@@ -43,7 +44,7 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
-            IConfiguration config,
+            IAppConfiguration config,
             IIndexingService indexingService,
             ICacheService cacheService)
         {
@@ -168,7 +169,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
             var model = new DisplayPackageViewModel(package);
-            ViewBag.FacebookAppID = _config.FacebookAppID;
+            ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
         }
 

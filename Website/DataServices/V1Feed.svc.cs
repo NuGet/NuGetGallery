@@ -5,6 +5,7 @@ using System.Linq;
 using System.ServiceModel.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -16,7 +17,7 @@ namespace NuGetGallery
         {
         }
 
-        public V1Feed(IEntitiesContext entities, IEntityRepository<Package> repo, IConfiguration configuration, ISearchService searchService)
+        public V1Feed(IEntitiesContext entities, IEntityRepository<Package> repo, ConfigurationService configuration, ISearchService searchService)
             : base(entities, repo, configuration, searchService)
         {
         }
