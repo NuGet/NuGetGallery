@@ -7,6 +7,7 @@ using System.Web.DynamicData;
 using System.Web.Routing;
 using System.Web.UI;
 using DynamicData.EFCodeFirstProvider;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.DynamicData
 {
@@ -17,7 +18,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 
         private static DynamicDataRoute _route;
         
-        public static void Register(RouteCollection routes, string root, IConfiguration configuration)
+        public static void Register(RouteCollection routes, string root, IAppConfiguration configuration)
         {
             // Set up unobtrusive validation
             InitializeValidation();
@@ -35,7 +36,7 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             });
         }
 
-        private static void InitializeDynamicData(RouteCollection routes, string root, IConfiguration configuration)
+        private static void InitializeDynamicData(RouteCollection routes, string root, IAppConfiguration configuration)
         {
             try
             {

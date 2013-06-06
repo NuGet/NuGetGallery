@@ -11,6 +11,7 @@ using Microsoft.Web.Infrastructure.DynamicModuleHelper;
 using Ninject;
 using Ninject.Web.Mvc;
 using NuGetGallery;
+using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
@@ -39,7 +40,7 @@ namespace NuGetGallery
         public static void PostStart()
         {
             // Get configuration from the kernel
-            var config = Container.Kernel.Get<IConfiguration>();
+            var config = Container.Kernel.Get<IAppConfiguration>();
             DbMigratorPostStart();
             BackgroundJobsPostStart(config);
             AppPostStart();
@@ -95,7 +96,7 @@ namespace NuGetGallery
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
-        private static void BackgroundJobsPostStart(IConfiguration configuration)
+        private static void BackgroundJobsPostStart(IAppConfiguration configuration)
         {
             var jobs = configuration.HasWorker ?
                 new IJob[]

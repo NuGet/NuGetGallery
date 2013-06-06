@@ -4,18 +4,19 @@ using System.Linq;
 using System.Web;
 using Glimpse.Core.Extensibility;
 using Glimpse.Core.Policy;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Diagnostics
 {
     public class GlimpseRuntimePolicy : IRuntimePolicy
     {
-        public IConfiguration Configuration { get; protected set; }
+        public IAppConfiguration Configuration { get; protected set; }
 
         protected GlimpseRuntimePolicy()
         {
         }
 
-        public GlimpseRuntimePolicy(IConfiguration configuration)
+        public GlimpseRuntimePolicy(IAppConfiguration configuration)
         {
             Configuration = configuration;
         }
