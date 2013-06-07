@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.Operations.Tasks
 {
+    [Command("cleantabs", "Cleans up Tags by removing commas", AltName = "ctabs", MaxArgs = 0)]
     class CleanTagsTask : DatabaseTask
     {
         public override void ExecuteCommand()
