@@ -34,6 +34,7 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
+        private readonly EditPackageService _editPackageService;
 
         public PackagesController(
             IPackageService packageService,
@@ -47,7 +48,8 @@ namespace NuGetGallery
             IEntitiesContext entitiesContext,
             IAppConfiguration config,
             IIndexingService indexingService,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            EditPackageService editPackageService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -61,6 +63,7 @@ namespace NuGetGallery
             _config = config;
             _indexingService = indexingService;
             _cacheService = cacheService;
+            _editPackageService = editPackageService;
         }
 
         [Authorize]
@@ -501,14 +504,12 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
+            // Post the authorized request to a queue where it will be processed.
             if (formData.EditPackageVersionRequest != null)
             {
                 formData.EditPackageVersionRequest.UpdatePackageVersion(package, _entitiesContext, _packageService);
             }
             _entitiesContext.SaveChanges();
-#if DEBUG
-            _indexingService.UpdateIndex();
-#endif
             return Redirect(Url.Package(id, version));
         }
 

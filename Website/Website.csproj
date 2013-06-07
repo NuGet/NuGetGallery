@@ -839,6 +839,7 @@
     <Compile Include="Services\SearchFilter.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
+    <Compile Include="Services\EditPackageService.cs" />
     <Compile Include="SharedController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
