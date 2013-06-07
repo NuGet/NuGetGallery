@@ -154,6 +154,68 @@ namespace NuGetGallery.Operations
 
         private void ResolveReport(PackageFrameworkReport report)
         {
+            using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
+            using (var dbExecutor = new SqlExecutor(sqlConnection))
+            {
+                sqlConnection.Open();
+                foreach (var operation in report.Operations)
+                {
+                    if (!WhatIf)
+                    {
+                        if (operation.Type == PackageFrameworkOperationType.Add)
+                        {
+                            try
+                            {
+                                dbExecutor.Execute(@"
+                                    INSERT INTO PackageFrameworks(TargetFramework, Package_Key)
+                                    VALUES (@targetFramework, @packageKey",
+                                        new
+                                        {
+                                            targetFramework = operation.Framework,
+                                            packageKey = report.Key
+                                        });
+                                Log.Info(" + Id={0}, Key={1}, Fx={2}", report.Id, report.Key, operation.Framework);
+                                operation.Applied = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                operation.Applied = false;
+                                operation.Error = ex.ToString();
+                            }
+                        }
+                        else if (operation.Type == PackageFrameworkOperationType.Remove)
+                        {
+                            try
+                            {
+                                dbExecutor.Execute(@"
+                                    DELETE FROM PackageFrameworks
+                                    WHERE TargetFramework = @targetFramework AND Package_Key = @packageKey",
+                                        new
+                                        {
+                                            targetFramework = operation.Framework,
+                                            packageKey = report.Key
+                                        });
+                                Log.Info(" - Id={0}, Key={1}, Fx={2}", report.Id, report.Key, operation.Framework);
+                                operation.Applied = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                operation.Applied = false;
+                                operation.Error = ex.ToString();
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (report.Operations.Any(o => !o.Applied))
+            {
+                report.State = PackageReportState.Error;
+            }
+            else
+            {
+                report.State = PackageReportState.Resolved;
+            }
         }
 
         string DownloadPackage(Package package)
