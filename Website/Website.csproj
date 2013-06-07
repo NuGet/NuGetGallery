@@ -792,6 +792,7 @@
     </Compile>
     <Compile Include="Packaging\INupkg.cs" />
     <Compile Include="Packaging\Nupkg.cs" />
+    <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="PagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>

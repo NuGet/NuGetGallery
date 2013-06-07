@@ -101,9 +101,9 @@ namespace NuGetGallery
         /// Load the nuspec manifest data only from an untrusted zip file stream.
         /// May modify the .Position of the stream.
         /// </summary>
-        public static Manifest SafelyLoadManifest(Stream stream)
+        public static Manifest SafelyLoadManifest(Stream stream, bool leaveOpen)
         {
-            using (var za = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false))
+            using (var za = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen))
             {
                 return SafelyLoadManifest(za);
             }
