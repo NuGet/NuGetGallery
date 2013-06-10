@@ -19,10 +19,10 @@
 <body>
     <% 
         // Cheap and easy DI. Not too clean :)
-        var config = NuGetGallery.Container.Kernel.Get<NuGetGallery.IConfiguration>();
+        var config = NuGetGallery.Container.Kernel.Get<NuGetGallery.Configuration.AppConfiguration>();
         string cls = "banner-warning";
         string message = "You are working with Live Data. Be careful!";
-        if (String.Equals(config.EnvironmentName, "Production"))
+        if (String.Equals(config.Environment, "Production"))
         {
             cls = "banner-urgent";
             message = "YOU ARE WORKING ON LIVE PRODUCTION DATA. USE EXTREME CAUTION";
