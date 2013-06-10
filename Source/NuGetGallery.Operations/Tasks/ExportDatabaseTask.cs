@@ -26,9 +26,6 @@ namespace NuGetGallery.Operations.Tasks
         [Option("URL of the SQL DAC endpoint to talk to", AltName = "dac")]
         public Uri SqlDacEndpoint { get; set; }
 
-        [Option("Semicolon-separated list of users to IGNORE when santizing", AltName = "u")]
-        public ICollection<string> UnsanitizedUsers { get { return _unsanitizedUsers; } }
-
         [Option("Domain name to use for sanitized email addresses, username@[emaildomain]", AltName = "e")]
         public string EmailDomain { get; set; }
 
@@ -87,7 +84,6 @@ namespace NuGetGallery.Operations.Tasks
                 ConnectionString = ConnectionString,
                 DatabaseName = name,
                 EmailDomain = EmailDomain,
-                UnsanitizedUsers = UnsanitizedUsers,
                 WhatIf = WhatIf,
                 Force = false
             };
