@@ -5,12 +5,17 @@ namespace NuGetGallery
 {
     public class RegisterRequest
     {
+        internal const string EmailValidationRegex =
+            @"^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|([-A-Za-z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[A-Za-z0-9][\w\.-]*[A-Za-z0-9]\.[A-Za-z][A-Za-z\.]*[A-Za-z]$";
+
+        internal const string UsernameValidationRegex =
+            @"[A-Za-z0-9][A-Za-z0-9_.-]+[A-Za-z0-9]";
+
         [Required]
         [StringLength(255)]
         [Display(Name = "Email")]
         [DataType(DataType.EmailAddress)]
-        [RegularExpression(
-            @"(?i)^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|([-a-z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)@[a-z0-9][\w\.-]*[a-z0-9]\.[a-z][a-z\.]*[a-z]$",
+        [RegularExpression(EmailValidationRegex,
             ErrorMessage = "This doesn't appear to be a valid email address.")]
         [Hint(
             "Your email will not be public unless you choose to disclose it. " +
@@ -20,7 +25,7 @@ namespace NuGetGallery
 
         [Required]
         [StringLength(64)]
-        [RegularExpression(@"(?i)[a-z0-9][a-z0-9_.-]+[a-z0-9]",
+        [RegularExpression(UsernameValidationRegex,
             ErrorMessage =
                 "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between."
             )]
