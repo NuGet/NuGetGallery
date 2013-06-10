@@ -12,6 +12,19 @@ namespace NuGetGallery.Operations.Tasks
     [Command("sanitizedatabase", "Cleans Personally-Identified Information out of a database without destroying data", AltName = "sdb", MinArgs = 0, MaxArgs = 0)]
     public class SanitizeDatabaseTask : DatabaseTask
     {
+        private const string SanitizeUsersQuery = @"
+                UPDATE Users
+                SET    ApiKey = NEWID(),
+                       EmailAddress = [Username] + '@' + @emailDomain,
+                       UnconfirmedEmailAddress = NULL,
+                       HashedPassword = CAST(NEWID() AS NVARCHAR(MAX)),
+                       EmailAllowed = 1,
+                       EmailConfirmationToken = NULL,
+                       PasswordResetToken = NULL,
+                       PasswordResetTokenExpirationDate = NULL,
+                       PasswordHashAlgorithm = 'PBKDF2'
+               WHERE   [Key] NOT IN (SELECT ur.UserKey FROM UserRoles ur INNER JOIN Roles r ON r.[Key] = ur.RoleKey WHERE r.Name = 'Admins')";
+
         private static readonly string[] AllowedPrefixes = new[] {
             "Export_" // Only exports can be sanitized
         };
@@ -48,31 +61,17 @@ namespace NuGetGallery.Operations.Tasks
             // Verify the name
             if (!Force && !AllowedPrefixes.Any(p => ConnectionString.InitialCatalog.StartsWith(p)))
             {
-                Log.Error("Cannot santize {0} without -Force argument", ConnectionString.InitialCatalog);
+                Log.Error("Cannot sanitize database named '{0}' without -Force argument", ConnectionString.InitialCatalog);
                 return;
             }
-            Log.Info("Ready to santize {0} on {1}", ConnectionString.InitialCatalog, Util.GetDatabaseServerName(ConnectionString));
-
-            // Update non admin users
-            string query = String.Format(@"
-                UPDATE Users
-                SET    ApiKey = NEWID(),
-                       EmailAddress = [Username] + '@{0}',
-                       UnconfirmedEmailAddress = NULL,
-                       HashedPassword = CAST(NEWID() AS NVARCHAR(MAX)),
-                       EmailAllowed = 1,
-                       EmailConfirmationToken = NULL,
-                       PasswordResetToken = NULL,
-                       PasswordResetTokenExpirationDate = NULL,
-                       PasswordHashAlgorithm = 'PBKDF2'
-               WHERE   [Key] NOT IN (SELECT ur.UserKey FROM UserRoles ur INNER JOIN Roles r ON r.[Key] = ur.RoleKey WHERE r.Name = 'Admins')
-            ", EmailDomain);
+            Log.Info("Ready to sanitize {0} on {1}", ConnectionString.InitialCatalog, Util.GetDatabaseServerName(ConnectionString));
 
             // All we need to sanitize is the user table. Package data is public (EVEN unlisted ones) and not PII
             if (WhatIf)
             {
                 Log.Trace("Would execute the following SQL:");
-                Log.Trace(query);
+                Log.Trace(SanitizeUsersQuery);
+                Log.Trace("With @emailDomain = " + EmailDomain);
             }
             else
             {
@@ -82,7 +81,7 @@ namespace NuGetGallery.Operations.Tasks
                     connection.Open();
                     try
                     {
-                        var count = dbExecutor.Execute(query);
+                        var count = dbExecutor.Execute(SanitizeUsersQuery, new { emailDomain = EmailDomain });
                         Log.Info("Sanitization complete. {0} Users affected", count);
                     }
                     catch (Exception ex)
