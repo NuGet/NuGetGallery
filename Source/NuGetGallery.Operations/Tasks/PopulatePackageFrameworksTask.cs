@@ -154,6 +154,7 @@ namespace NuGetGallery.Operations
 
         private void ResolveReport(PackageFrameworkReport report)
         {
+            bool error = false;
             using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
@@ -168,7 +169,7 @@ namespace NuGetGallery.Operations
                             {
                                 dbExecutor.Execute(@"
                                     INSERT INTO PackageFrameworks(TargetFramework, Package_Key)
-                                    VALUES (@targetFramework, @packageKey",
+                                    VALUES (@targetFramework, @packageKey)",
                                         new
                                         {
                                             targetFramework = operation.Framework,
@@ -179,6 +180,7 @@ namespace NuGetGallery.Operations
                             }
                             catch (Exception ex)
                             {
+                                error = true;
                                 operation.Applied = false;
                                 operation.Error = ex.ToString();
                             }
@@ -200,6 +202,7 @@ namespace NuGetGallery.Operations
                             }
                             catch (Exception ex)
                             {
+                                error = true;
                                 operation.Applied = false;
                                 operation.Error = ex.ToString();
                             }
@@ -208,11 +211,11 @@ namespace NuGetGallery.Operations
                 }
             }
 
-            if (report.Operations.Any(o => !o.Applied))
+            if (error)
             {
                 report.State = PackageReportState.Error;
             }
-            else
+            else if (report.Operations.All(o => o.Applied))
             {
                 report.State = PackageReportState.Resolved;
             }
