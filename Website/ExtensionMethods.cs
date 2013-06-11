@@ -77,6 +77,16 @@ namespace NuGetGallery
             return String.Empty;
         }
 
+        public static IEnumerable<string> UnflattenAuthors(this string flattenedAuthors)
+        {
+            if (flattenedAuthors == null)
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            return flattenedAuthors.Split(',').Select(s => s.Trim());
+        }
+
         public static string Flatten(this IEnumerable<string> list)
         {
             if (list == null)
@@ -85,11 +95,6 @@ namespace NuGetGallery
             }
 
             return String.Join(", ", list.ToArray());
-        }
-
-        public static string Flatten(this ICollection<PackageAuthor> authors)
-        {
-            return authors.Select(a => a.Name).Flatten();
         }
 
         public static string Flatten(this IEnumerable<PackageDependencySet> dependencySets)

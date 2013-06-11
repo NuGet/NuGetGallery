@@ -21,7 +21,7 @@ namespace NuGetGallery
                                                                                             p => p.Tags.Contains(term);
 
         private static readonly Func<string, Expression<Func<Package, bool>>> AuthorCriteria = term =>
-                                                                                               p => p.Authors.Any(a => a.Name.Contains(term));
+                                                                                               p => p.FlattenedAuthors.Contains(term);
 
         private static readonly Func<string, Expression<Func<Package, bool>>>[] SearchCriteria = new[]
             {

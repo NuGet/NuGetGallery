@@ -9,7 +9,6 @@ namespace NuGetGallery
     {
         public Package()
         {
-            Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             Listed = true;
@@ -19,7 +18,6 @@ namespace NuGetGallery
         public int PackageRegistrationKey { get; set; }
 
         public virtual ICollection<PackageStatistics> DownloadStatistics { get; set; }
-        public virtual ICollection<PackageAuthor> Authors { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).

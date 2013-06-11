@@ -13,14 +13,14 @@ namespace NuGetGallery
 
             if (needAuthors)
             {
-                Authors = package.Authors;
+                Authors = package.FlattenedAuthors.UnflattenAuthors().ToList();
             }
 
             MinClientVersion = package.MinClientVersion;
             Owners = package.PackageRegistration.Owners;
         }
 
-        public IEnumerable<PackageAuthor> Authors { get; set; }
+        public IEnumerable<string> Authors { get; set; }
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public string MinClientVersion { get; set; }
