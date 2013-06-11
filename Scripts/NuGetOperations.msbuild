@@ -8,7 +8,8 @@
   </Target>
   
   <Target Name="Build" DependsOnTargets="Clean">
-    <MSBuild Projects="..\NuGetOperations.sln" Targets="Build" Properties="Configuration=$(Configuration)" />
+    <MSBuild Projects="..\NuGetOperations.sln" Targets="Build" Properties="Configuration=$(Configuration);TargetProfile=Local" />
+    <MSBuild Projects="..\Source\NuGetGallery.Worker.Cloud\NuGetGallery.Worker.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);TargetProfile=Local;SolutionDir=$(MSBuildThisFileDirectory).." />
   </Target>
 
 </Project>

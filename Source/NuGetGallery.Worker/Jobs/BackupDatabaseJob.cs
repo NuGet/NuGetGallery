@@ -12,7 +12,7 @@ namespace NuGetGallery.Worker.Jobs
         {
             get
             {
-                return TimeSpan.FromSeconds(30);
+                return TimeSpan.FromMinutes(5);
             }
         }
 
@@ -22,7 +22,7 @@ namespace NuGetGallery.Worker.Jobs
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 WhatIf = Settings.WhatIf,
-                IfOlderThan = 25,
+                IfOlderThan = 30,
             });
         }
     }
