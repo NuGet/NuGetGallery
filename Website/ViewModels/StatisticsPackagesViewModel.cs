@@ -28,6 +28,16 @@ namespace NuGetGallery
             get; set;
         }
 
+        public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion
+        {
+            get; set;
+        }
+
+        public IEnumerable<StatisticsMonthlyUsageItem> Last6Months
+        {
+            get; set;
+        }
+
         public StatisticsPackagesReport Report
         {
             get;
@@ -36,6 +46,8 @@ namespace NuGetGallery
 
         public bool IsDownloadPackageAvailable { get; set; }
         public bool IsDownloadPackageDetailAvailable { get; set; }
+        public bool IsNuGetClientVersionAvailable { get; set; }
+        public bool IsLast6MonthsAvailable { get; set; }
 
         public bool IsReportAvailable { get { return (Report != null); } }
 
@@ -53,6 +65,17 @@ namespace NuGetGallery
             PackageId = packageId;
             PackageVersion = packageVersion;
             Report = report;
+        }
+
+        private static string[] _months = { string.Empty, "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
+
+        public string DisplayMonth(int year, int monthOfYear)
+        {
+            if (monthOfYear < 1 || monthOfYear > 12)
+            {
+                return string.Empty;
+            }
+            return string.Format("{0} {1}", year, _months[monthOfYear]);
         }
     }
 }

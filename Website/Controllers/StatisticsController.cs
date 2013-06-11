@@ -100,14 +100,22 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            bool[] availablity = await Task.WhenAll(_statisticsService.LoadDownloadPackages(), _statisticsService.LoadDownloadPackageVersions());
+            bool[] availablity = await Task.WhenAll(
+                _statisticsService.LoadDownloadPackages(), 
+                _statisticsService.LoadDownloadPackageVersions(),
+                _statisticsService.LoadNuGetClientVersion(),
+                _statisticsService.LoadLast6Months());
 
             var model = new StatisticsPackagesViewModel
             {
                 IsDownloadPackageAvailable = availablity[0],
                 DownloadPackagesSummary = _statisticsService.DownloadPackagesSummary,
                 IsDownloadPackageDetailAvailable = availablity[1],
-                DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary
+                DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary,
+                IsNuGetClientVersionAvailable = availablity[2],
+                NuGetClientVersion = _statisticsService.NuGetClientVersion,
+                IsLast6MonthsAvailable = availablity[3],
+                Last6Months = _statisticsService.Last6Months,
             };
 
             return View(model);

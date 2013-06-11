@@ -71,3 +71,54 @@
         <span class="statistics-more"><a href="@Url.StatisticsAllPackageVersionDownloads()">More...</a></span>
     </div>
 }
+
+<p></p>
+
+@if (Model.IsNuGetClientVersionAvailable)
+{
+    <div class="statistics-layout" >
+        <h3>Downloads&nbsp;By&nbsp;NuGet&nbsp;Version&nbsp;(Last&nbsp;6&nbsp;Weeks)</h3>
+        <table class="sexy-table">
+            <thead>
+                <tr>
+                    <th></th><th class="first">Version</th><th>Downloads</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{
+                foreach (var item in Model.NuGetClientVersion)
+                {
+                    <tr>
+                        <td>@item.Version</td>
+                        <td>@item.Downloads</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+}
+@if (Model.IsLast6MonthsAvailable)
+{
+    <div class="statistics-layout" >
+        <h3>Downloads&nbsp;Per&nbsp;Month</h3>
+        <table class="sexy-table">
+            <thead>
+                <tr>
+                    <th></th><th class="first">Month</th><th>Downloads</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{
+                foreach (var item in Model.Last6Months)
+                {
+                    <tr>
+                        <td>@Model.DisplayMonth(item.Year, item.MonthOfYear)</td>
+                        <td>@item.Downloads</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+}
