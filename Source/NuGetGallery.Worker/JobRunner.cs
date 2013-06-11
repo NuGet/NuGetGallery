@@ -28,7 +28,14 @@ namespace NuGetGallery.Worker
 
             foreach (var job in Jobs.Values)
             {
-                job.Initialize(_settings);
+                try
+                {
+                    job.Initialize(_settings);
+                }
+                catch (Exception ex)
+                {
+                    _logger.ErrorException(String.Format("{2} Initializing '{0}': {1}", job.GetType().Name, ex.Message, ex.GetType().Name), ex);
+                }
             }
         }
 
@@ -47,35 +54,51 @@ namespace NuGetGallery.Worker
         {
             _logger.Info("Scheduling Jobs...");
 
-            JobReport.Initialize(_settings);
-
-            IList<JobStatusReport> reports = new List<JobStatusReport>();
-            foreach (string name in jobs.Keys)
+            try
             {
-                WorkerJob workerJob = jobs[name];
-                DateTime startTime = DateTime.UtcNow + workerJob.Offset;
+                JobReport.Initialize(_settings);
 
-                string message = string.Format("scheduled (every {0} from {1})", workerJob.Period, startTime.ToString("yyyy-MM-dd HH:mm:ss"));
-
-                reports.Add(new JobStatusReport
+                IList<JobStatusReport> reports = new List<JobStatusReport>();
+                foreach (string name in jobs.Keys)
                 {
-                    JobName = name,
-                    At = DateTime.UtcNow.ToString(),
-                    Duration = "0",
-                    Status = "success",
-                    Message = message
-                });
+                    WorkerJob workerJob = jobs[name];
+                    DateTime startTime = DateTime.UtcNow + workerJob.Offset;
+
+                    string message = string.Format("scheduled (every {0} from {1})", workerJob.Period, startTime.ToString("yyyy-MM-dd HH:mm:ss"));
+
+                    reports.Add(new JobStatusReport
+                    {
+                        JobName = name,
+                        At = DateTime.UtcNow.ToString(),
+                        Duration = "0",
+                        Status = "success",
+                        Message = message
+                    });
+                }
+                JobReport.Update(_settings, reports.ToArray());
             }
-            JobReport.Update(_settings, reports.ToArray());
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error initializing Job Report: " + ex.Message, ex);
+            }
 
             // Set up the schedules
-            var tokens = jobs.Select(job =>
+            IDisposable[] tokens;
+            try
             {
-                var startTime = DateTimeOffset.UtcNow + job.Value.Offset;
-                _logger.Debug("Scheduling '{0}' to run every '{1}' starting at '{2}'.", job.Value.GetType().Name, job.Value.Period, startTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"));
-                return Observable.Timer(startTime, job.Value.Period)
-                                 .Subscribe(_ => RunJob(job.Key, job.Value));
-            }).ToArray();
+                tokens = jobs.Select(job =>
+                {
+                    var startTime = DateTimeOffset.UtcNow + job.Value.Offset;
+                    _logger.Debug("Scheduling '{0}' to run every '{1}' starting at '{2}'.", job.Value.GetType().Name, job.Value.Period, startTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"));
+                    return Observable.Timer(startTime, job.Value.Period)
+                                     .Subscribe(_ => RunJob(job.Key, job.Value));
+                }).ToArray();
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException(String.Format("Error scheduling jobs: {0}", ex.Message), ex);
+                return;
+            }
 
             // Wait for a completion message
             _logger.Info("Ready at {0}. Waiting for Shutdown", DateTime.Now);
@@ -132,41 +155,48 @@ namespace NuGetGallery.Worker
 
         private void RunJob(string name, WorkerJob job)
         {
-            _logger.Debug("Executing Job '{0}'", name);
-
-            DateTime before = DateTime.UtcNow;
-
             try
             {
-                job.RunOnce();
+                _logger.Debug("Executing Job '{0}'", name);
 
-                DateTime after = DateTime.UtcNow;
+                DateTime before = DateTime.UtcNow;
 
-                JobReport.Update(_settings, new JobStatusReport
+                try
                 {
-                    JobName = name,
-                    At = before.ToString(),
-                    Duration = (after - before).TotalSeconds.ToString("F2"),
-                    Status = "success",
-                    Message = job.StatusMessage,
-                    Exception = null
-                });
+                    job.RunOnce();
+
+                    DateTime after = DateTime.UtcNow;
+
+                    JobReport.Update(_settings, new JobStatusReport
+                    {
+                        JobName = name,
+                        At = before.ToString(),
+                        Duration = (after - before).TotalSeconds.ToString("F2"),
+                        Status = "success",
+                        Message = job.StatusMessage,
+                        Exception = null
+                    });
+                }
+                catch (Exception ex)
+                {
+                    DateTime after = DateTime.UtcNow;
+
+                    JobReport.Update(_settings, new JobStatusReport
+                    {
+                        JobName = name,
+                        At = before.ToString(),
+                        Duration = (after - before).TotalSeconds.ToString("F2"),
+                        Status = "failure",
+                        Message = ex.Message,
+                        Exception = ex
+                    });
+
+                    _logger.ErrorException(String.Format("Error Executing Job '{0}': {1}", name, ex.Message), ex);
+                }
             }
             catch (Exception ex)
             {
-                DateTime after = DateTime.UtcNow;
-                
-                JobReport.Update(_settings, new JobStatusReport
-                {
-                    JobName = name,
-                    At = before.ToString(),
-                    Duration = (after - before).TotalSeconds.ToString("F2"),
-                    Status = "failure",
-                    Message = ex.Message,
-                    Exception = ex
-                });
-
-                _logger.ErrorException(String.Format("Error Executing Job '{0}', Exception: {1}", name, ex.Message), ex);
+                _logger.ErrorException(String.Format("Infrastructure Error Executing Job '{0}': {1}", name, ex.Message), ex);
             }
         }
     }

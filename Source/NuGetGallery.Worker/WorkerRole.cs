@@ -19,88 +19,104 @@ namespace NuGetGallery.Worker
     public class WorkerRole : RoleEntryPoint
     {
         private JobRunner _runner;
+        private Logger _logger;
 
         public WorkerRole() : this(null) { }
 
         public WorkerRole(Settings settings)
         {
-            // Configure NLog
-            LoggingConfiguration config = new LoggingConfiguration();
-
-            // Console Target
-            var consoleTarget = new SnazzyConsoleTarget();
-            config.AddTarget("console", consoleTarget);
-            consoleTarget.Layout = "[${logger:shortName=true}] ${message}";
-
-            // Get the logs resource
             string logDir = Path.Combine(Environment.CurrentDirectory, "Logs");
 
             try
             {
-                if (RoleEnvironment.IsAvailable)
+                // Configure NLog
+                LoggingConfiguration config = new LoggingConfiguration();
+
+                // Console Target
+                var consoleTarget = new SnazzyConsoleTarget();
+                config.AddTarget("console", consoleTarget);
+                consoleTarget.Layout = "[${logger:shortName=true}] ${message}";
+
+                // Get the logs resource if it exists and use it as the log dir
+                try
                 {
-                    LocalResource logsResource = RoleEnvironment.GetLocalResource("Logs");
-                    logDir = logsResource.RootPath;
+                    if (RoleEnvironment.IsAvailable)
+                    {
+                        LocalResource logsResource = RoleEnvironment.GetLocalResource("Logs");
+                        logDir = logsResource.RootPath;
+                    }
                 }
+                catch (Exception)
+                {
+                    // Just use basedir.
+                }
+
+                // File Target
+                FileTarget jobLogTarget = new FileTarget()
+                {
+                    FileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.log.json"),
+                    ArchiveFileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.${date:YYYY-MM-dd}.log")
+                };
+                ConfigureFileTarget(jobLogTarget);
+                config.AddTarget("file", jobLogTarget);
+                FileTarget hostTarget = new FileTarget()
+                {
+                    FileName = Path.Combine(logDir, "Host", "Host.log.json"),
+                    ArchiveFileName = Path.Combine(logDir, "Host", "Host.${date:YYYY-MM-dd}.log")
+                };
+                ConfigureFileTarget(hostTarget);
+                config.AddTarget("file", hostTarget);
+
+                LoggingRule allMessagesToConsole = new LoggingRule("*", NLog.LogLevel.Trace, consoleTarget);
+                config.LoggingRules.Add(allMessagesToConsole);
+
+                LoggingRule hostToFile = new LoggingRule("JobRunner", NLog.LogLevel.Trace, hostTarget);
+                config.LoggingRules.Add(hostToFile);
+
+                LoggingRule roleToFile = new LoggingRule("WorkerRole", NLog.LogLevel.Trace, hostTarget);
+                config.LoggingRules.Add(roleToFile);
+
+                LoggingRule jobLogs = new LoggingRule("Job.*", NLog.LogLevel.Trace, jobLogTarget);
+                config.LoggingRules.Add(jobLogs);
+
+                LogManager.Configuration = config;
+
+                _logger = LogManager.GetLogger("WorkerRole");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Just use basedir.
+                File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FatalError.txt"), ex.ToString());
             }
 
-            // File Target
-            FileTarget jobLogTarget = new FileTarget()
-            {
-                FileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.log.json"),
-                ArchiveFileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.${date:YYYY-MM-dd}.log")
-            };
-            ConfigureFileTarget(jobLogTarget);
-            config.AddTarget("file", jobLogTarget);
-            FileTarget hostTarget = new FileTarget()
-            {
-                FileName = Path.Combine(logDir, "Host", "Host.log.json"),
-                ArchiveFileName = Path.Combine(logDir, "Host", "Host.${date:YYYY-MM-dd}.log")
-            };
-            ConfigureFileTarget(hostTarget);
-            config.AddTarget("file", hostTarget);
-
-            LoggingRule allMessagesToConsole = new LoggingRule("*", NLog.LogLevel.Trace, consoleTarget);
-            config.LoggingRules.Add(allMessagesToConsole);
-
-            LoggingRule hostToFile = new LoggingRule("JobRunner", NLog.LogLevel.Trace, hostTarget);
-            config.LoggingRules.Add(hostToFile);
-
-            LoggingRule roleToFile = new LoggingRule("WorkerRole", NLog.LogLevel.Trace, hostTarget);
-            config.LoggingRules.Add(roleToFile);
-
-            LoggingRule jobLogs = new LoggingRule("Job.*", NLog.LogLevel.Trace, jobLogTarget);
-            config.LoggingRules.Add(jobLogs);
-
-            LogManager.Configuration = config;
-
-            var log = LogManager.GetLogger("WorkerRole");
-            log.Info("Logging Enabled to {0}", logDir);
+            _logger.Info("Logging Enabled to {0}", logDir);
 
             try
             {
                 if (RoleEnvironment.IsAvailable)
                 {
-                    ConfigureAzureDiagnostics(logDir, log);
+                    ConfigureAzureDiagnostics(logDir);
                 }
                 else
                 {
-                    log.Info("Skipping Azure Diagnostics, we aren't in Azure");
+                    _logger.Info("Skipping Azure Diagnostics, we aren't in Azure");
                 }
             }
             catch (Exception ex)
             {
-                log.InfoException("Skipping Azure Diagnostics, we got an exception trying to check if we are in Azure", ex);
+                _logger.InfoException("Skipping Azure Diagnostics, we got an exception trying to check if we are in Azure", ex);
             }
 
-            _runner = LoadJobRunner(settings);
+            try
+            {
+                _runner = LoadJobRunner(settings);
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error loading Job Runner", ex);
+            }
         }
 
-        private void ConfigureAzureDiagnostics(string logDir, Logger log)
+        private void ConfigureAzureDiagnostics(string logDir)
         {
             var config = DiagnosticMonitor.GetDefaultInitialConfiguration();
             config.ConfigurationChangePollInterval = TimeSpan.FromMinutes(5);
@@ -130,9 +146,9 @@ namespace NuGetGallery.Worker
             config.WindowsEventLog.DataSources.Add("Application");
             config.WindowsEventLog.BufferQuotaInMB = 100;
 
-            log.Info("Enabling Azure Diagnostics");
+            _logger.Info("Enabling Azure Diagnostics");
             DiagnosticMonitor.Start("Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString", config);
-            log.Info("Enabled Azure Diagnostics");
+            _logger.Info("Enabled Azure Diagnostics");
         }
 
         private static void ConfigureFileTarget(FileTarget hostTarget)
@@ -146,7 +162,7 @@ namespace NuGetGallery.Worker
                 "level: '${level}', " +
                 "message: '${message:jsonEncode=true}', " +
                 "exception: { " +
-                "type: '${exception:format=Type}', " + 
+                "type: '${exception:format=Type}', " +
                 "message: '${exception:format=Message}', " +
                 "method: '${exception:format=Method}, " +
                 "stackTrace: '${exception:format=StackTrace}' " +
@@ -162,32 +178,73 @@ namespace NuGetGallery.Worker
 
         public override bool OnStart()
         {
-            return _runner.OnStart();
+            try
+            {
+                return _runner.OnStart();
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error during OnStart", ex);
+                return false;
+            }
         }
 
         public override void OnStop()
         {
-            _runner.OnStop();
+            try
+            {
+                _runner.OnStop();
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error during OnStop", ex);
+            }
         }
 
         public override void Run()
         {
+            try {
             _runner.Run();
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error during Run", ex);
+            }
         }
 
         public void RunSingleJob(string jobName)
         {
+            try {
             _runner.RunSingleJob(jobName);
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error during RunSingleJob(" + jobName + ")", ex);
+            }
         }
 
         public void RunSingleJobContinuously(string jobName)
         {
-            _runner.RunSingleJobContinuously(jobName);
+            try
+            {
+                _runner.RunSingleJobContinuously(jobName);
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error during RunSingleJobContinuously(" + jobName + ")", ex);
+            }
         }
 
         public void Stop()
         {
-            _runner.Stop();
+            try
+            {
+                _runner.Stop();
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException("Error during Stop", ex);
+            }
         }
 
         public static IEnumerable<string> GetJobList()
@@ -201,7 +258,7 @@ namespace NuGetGallery.Worker
             // Create the settings manager
             var settings = new Settings(overrideSettings);
             var worker = new WorkerRole(settings);
-            
+
             // See which mode we're in
             if (String.IsNullOrWhiteSpace(jobName))
             {
