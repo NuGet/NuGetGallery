@@ -52,6 +52,11 @@ namespace NuGetGallery
 
         private CultureInfo DetermineClientLocale()
         {
+            if (Request == null)
+            {
+                return null;
+            }
+
             string[] languages = Request.UserLanguages;
             if (languages == null)
             {
