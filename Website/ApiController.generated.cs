@@ -38,6 +38,11 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult FinishEditPackage() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.FinishEditPackage);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult DeletePackage() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.DeletePackage);
         }
@@ -70,6 +75,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string VerifyPackageKey = "VerifyPackageKeyApi";
+            public readonly string FinishEditPackage = "FinishEditPackage";
             public readonly string DeletePackage = "DeletePackageApi";
             public readonly string PublishPackage = "PublishPackageApi";
             public readonly string GetPackageIds = "PackageIDs";
@@ -94,6 +100,12 @@ namespace NuGetGallery {
             callInfo.RouteValueDictionary.Add("apiKey", apiKey);
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult FinishEditPackage(System.IO.Stream content) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.FinishEditPackage);
+            callInfo.RouteValueDictionary.Add("content", content);
             return callInfo;
         }
 

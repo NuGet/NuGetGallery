@@ -47,5 +47,7 @@ namespace NuGetGallery
         bool ConfirmPackageOwner(PackageRegistration package, User user, string token);
         void AddPackageOwner(PackageRegistration package, User user);
         void RemovePackageOwner(PackageRegistration package, User user);
+
+        void DoEditPackage(PackageEdit pendingEdit);
     }
 }

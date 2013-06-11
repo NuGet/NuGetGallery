@@ -78,6 +78,14 @@ namespace NuGetGallery
             }
         }
 
+        public void DoEditPackage(PackageEdit pendingEdit)
+        {
+            Package p = _packageRepository.GetEntity(pendingEdit.PackageKey);
+            p.AppliedEdit = pendingEdit;
+            p.AppliedEdit.IsCompleted = true;
+            _packageRepository.CommitChanges();
+        }
+
         public virtual PackageRegistration FindPackageRegistrationById(string id)
         {
             if (id == null)

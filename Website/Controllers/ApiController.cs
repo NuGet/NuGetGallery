@@ -200,6 +200,48 @@ namespace NuGetGallery
             return CreatePackageInternal(apiKey);
         }
 
+        // This is an internal API called by the Worker when it has finished the asynchronous part of a package edit.
+        [HttpPost]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        public virtual ActionResult FinishEditPackage(Stream content)
+        {
+            string messageStr = content.ReadToEnd();
+            JToken token = JObject.Parse(messageStr);
+            var PackageId = (string)token.SelectToken("PackageId");
+            var Version = (string)token.SelectToken("Version");
+            var EditId = (string)token.SelectToken("EditId");
+            var BlobUrl = (string)token.SelectToken("BlobUrl");
+            var SecurityToken = (string)token.SelectToken("SecurityToken");
+
+            var pendingEdit = _entitiesContext.Set<PackageEdit>()
+                .Where(pe => pe.PackageId == PackageId && pe.Version == Version && pe.EditId == EditId)
+                .FirstOrDefault();
+
+            if (SecurityToken == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
+            }
+
+            if (!String.Equals(pendingEdit.SecurityToken, SecurityToken, StringComparison.Ordinal))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
+            }
+
+            if (pendingEdit.IsCompleted)
+            {
+                // We got called back more than once for the same edit. This happens, we just have to be idempotent...
+                return new HttpStatusCodeResult(HttpStatusCode.OK);
+            }
+
+            // Asynchronously, the blob being returned for the package has already been changed!
+            // We just need to update the database to match.
+            _packageService.DoEditPackage(pendingEdit);
+
+            // Success
+            pendingEdit.IsCompleted = true;
+            _entitiesContext.SaveChanges();
+        }
+
         private async Task<ActionResult> CreatePackageInternal(string apiKey)
         {
             Guid parsedApiKey;

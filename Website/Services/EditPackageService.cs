@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage;
+﻿using System.Globalization;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json.Linq;
 using NuGetGallery.Configuration;
@@ -15,7 +16,7 @@ namespace NuGetGallery
             _configuration = configuration;
         }
 
-        public void PostEditPackageRequest(EditPackageRequest newMetadata)
+        public void PostEditPackageRequest(EditPackageRequest newMetadata, string callbackAddress, int editId)
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
                 _configuration.AzureStorageConnectionString);
@@ -23,8 +24,12 @@ namespace NuGetGallery
             var queueClient = storageAccount.CreateCloudQueueClient();
             var editsQueue = queueClient.GetQueueReference("EditPackage");
             editsQueue.CreateIfNotExists();
-            var json = new JObject(newMetadata).ToString(Newtonsoft.Json.Formatting.Indented);
-            var message = new CloudQueueMessage(json);
+            var json = new JObject(newMetadata);
+
+            json["CallbackAddress"] = callbackAddress;
+            json["EditId"] = editId.ToString(CultureInfo.InvariantCulture);
+
+            var message = new CloudQueueMessage(json.ToString(Newtonsoft.Json.Formatting.Indented));
             editsQueue.AddMessage(message);
         }
     }
