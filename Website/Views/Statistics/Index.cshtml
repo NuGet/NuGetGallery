@@ -32,7 +32,7 @@
                     <tr>
                         <td class="statistics-rank">@index</td>
                         <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
-                        <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@item.Downloads</a></td>
+                        <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
                     </tr>
                 }
             }
@@ -62,7 +62,7 @@
                         <td class="statistics-rank">@index</td>
                         <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
                         <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-                        <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@item.Downloads</a></td>
+                        <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
                     </tr>
                 }
             }
