@@ -1,23 +1,23 @@
 ﻿
 var displayGraphs = function () {
 
-    //if ($('#downloads-by-nuget-version').length) {
+    if ($('#downloads-by-nuget-version').length) {
         if (Modernizr.svg) {
             drawNugetClientVersionBarChart();
         }
         else {
             $('#downloads-by-nuget-version table').css('display', 'inline');
         }
-    //}
+    }
 
-    //if ($('#downloads-per-month').length) {
+    if ($('#downloads-per-month').length) {
         if (Modernizr.svg) {
             drawMonthlyDownloadsLineChart();
         }
         else {
             $('#downloads-per-month table').css('display', 'inline');
         }
-    //}
+    }
 }
 
 var drawNugetClientVersionBarChart = function () {
@@ -56,6 +56,9 @@ var drawNugetClientVersionBarChart = function () {
         data[data.length] = item;
     });
 
+    var total = 0;
+    data.forEach(function (o) { total += o.downloads; });
+
     xScale.domain(data.map(function (d) { return d.nugetVersion; }));
     yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
 
@@ -83,12 +86,15 @@ var drawNugetClientVersionBarChart = function () {
 
     svg.selectAll(".bar")
         .data(data)
-        .enter().append("rect")
-        .attr("class", "bar")
-        .attr("x", function (d) { return xScale(d.nugetVersion); })
-        .attr("width", xScale.rangeBand())
-        .attr("y", function (d) { return yScale(d.downloads); })
-        .attr("height", function (d) { return height - yScale(d.downloads); });
+        .enter()
+        .append("rect")
+            .attr("class", "bar")
+            .attr("x", function (d) { return xScale(d.nugetVersion); })
+            .attr("width", xScale.rangeBand())
+            .attr("y", function (d) { return yScale(d.downloads); })
+            .attr("height", function (d) { return height - yScale(d.downloads); })
+        .append("title")
+            .text(function (d) { return ((d.downloads / total) * 100).toFixed(0).toString() + '%'; });
 }
 
 var drawMonthlyDownloadsLineChart = function () {

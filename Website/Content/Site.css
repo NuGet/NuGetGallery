@@ -1066,19 +1066,23 @@ ul.pager li.next { padding-left: 10px; }
 
 .axis path,
 .axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
 }
 
 .bar {
-  fill: steelblue;
+    fill: steelblue;
+}
+
+.bar:hover {
+    fill:orange;
 }
 
 .line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
 }
 
     /* NuGet Badge */

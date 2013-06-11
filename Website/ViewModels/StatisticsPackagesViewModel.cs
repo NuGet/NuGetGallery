@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -49,6 +50,8 @@ namespace NuGetGallery
         public bool IsNuGetClientVersionAvailable { get; set; }
         public bool IsLast6MonthsAvailable { get; set; }
 
+        public int NuGetClientVersionTotalDownloads { get; private set; }
+
         public bool IsReportAvailable { get { return (Report != null); } }
 
         public string PackageId { get; private set; }
@@ -67,7 +70,15 @@ namespace NuGetGallery
             Report = report;
         }
 
-        private static string[] _months = { string.Empty, "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
+        public void Update()
+        {
+            if (IsNuGetClientVersionAvailable)
+            {
+                NuGetClientVersionTotalDownloads = NuGetClientVersion.Sum(item => item.Downloads);    
+            }
+        }
+
+        private static string[] _months = { string.Empty, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
         public string DisplayMonth(int year, int monthOfYear)
         {
@@ -76,6 +87,11 @@ namespace NuGetGallery
                 return string.Empty;
             }
             return string.Format("{0} {1}", year, _months[monthOfYear]);
+        }
+
+        public string DisplayPercentage(float amount, float total)
+        {
+            return (amount / total).ToString("P0");
         }
     }
 }

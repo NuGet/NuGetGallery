@@ -118,6 +118,8 @@ namespace NuGetGallery
                 Last6Months = _statisticsService.Last6Months,
             };
 
+            model.Update();
+
             return View(model);
         }
 

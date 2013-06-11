@@ -81,7 +81,7 @@
         <table class="sexy-table">
             <thead>
                 <tr>
-                    <th class="first">Version</th><th>Downloads</th>
+                    <th class="first">Version</th><th>Downloads</th><th>Percentage</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,6 +91,7 @@
                     <tr>
                         <td>@item.Version</td>
                         <td>@item.Downloads</td>
+                        <td>@Model.DisplayPercentage(item.Downloads, Model.NuGetClientVersionTotalDownloads)</td>
                     </tr>
                 }
             }

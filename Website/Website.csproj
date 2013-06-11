@@ -1053,6 +1053,7 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="robots.txt" />
+    <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\d3.v3.js" />
     <Content Include="Scripts\d3.v3.min.js" />
