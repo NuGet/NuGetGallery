@@ -80,25 +80,6 @@ namespace NuGetGallery
             package.Description = Description;
             package.ProjectUrl = ProjectUrl;
 
-            // authors
-            foreach (var author in package.Authors.ToArray())
-            {
-                context.DeleteOnCommit(author);
-            }
-            package.Authors.Clear();
-            package.FlattenedAuthors = null;
-            if (Authors != null)
-            {
-                foreach (var authorName in Authors.Split(',')
-                    .Select(name => name.Trim())
-                    .Where(name => !String.IsNullOrWhiteSpace(name)))
-                {
-                    package.Authors.Add(new PackageAuthor { Name = authorName });
-                }
-
-                package.FlattenedAuthors = package.Authors.Flatten();
-            }
-
             package.Copyright = Copyright;
             package.Tags = Tags;
             package.ReleaseNotes = ReleaseNotes;

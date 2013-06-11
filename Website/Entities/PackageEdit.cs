@@ -28,7 +28,7 @@ namespace NuGetGallery
         public Package Package { get; set; }
         public int PackageKey { get; set; }
 
-        public ICollection<PackageAuthor> Authors { get; set; }
+        public string Authors { get; set; }
 
         public string Copyright { get; set; }
 

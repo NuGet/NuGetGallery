@@ -213,7 +213,7 @@ namespace NuGetGallery
             var BlobUrl = (string)token.SelectToken("BlobUrl");
             var SecurityToken = (string)token.SelectToken("SecurityToken");
 
-            var pendingEdit = _entitiesContext.Set<PackageEdit>()
+            var pendingEdit = EntitiesContext.Set<PackageEdit>()
                 .Where(pe => pe.PackageId == PackageId && pe.Version == Version && pe.EditId == EditId)
                 .FirstOrDefault();
 
@@ -235,11 +235,11 @@ namespace NuGetGallery
 
             // Asynchronously, the blob being returned for the package has already been changed!
             // We just need to update the database to match.
-            _packageService.DoEditPackage(pendingEdit);
+            PackageService.DoEditPackage(pendingEdit);
 
             // Success
             pendingEdit.IsCompleted = true;
-            _entitiesContext.SaveChanges();
+            EntitiesContext.SaveChanges();
         }
 
         private async Task<ActionResult> CreatePackageInternal(string apiKey)
