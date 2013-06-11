@@ -8,6 +8,8 @@ namespace NuGetGallery.Operations
     [Command("backupdatabase", "Backs up the database", AltName = "bdb", MaxArgs = 0)]
     public class BackupDatabaseTask : DatabaseTask, IAsyncCompletionTask
     {
+        private bool _startedBackup = false;
+
         [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
         public int IfOlderThan { get; set; }
 
@@ -16,8 +18,6 @@ namespace NuGetGallery.Operations
 
         [Option("Forces the backup to be created, even if there is a recent enough backup.")]
         public bool Force { get; set; }
-
-        public bool SkippingBackup { get; private set; }
 
         public BackupDatabaseTask()
         {
@@ -32,7 +32,7 @@ namespace NuGetGallery.Operations
 
             Log.Trace("Connecting to server '{0}' to back up database '{1}'.", dbServer, dbName);
 
-            SkippingBackup = false;
+            _startedBackup = false;
 
             using (var sqlConnection = new SqlConnection(masterConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
@@ -55,9 +55,6 @@ namespace NuGetGallery.Operations
                     if (lastBackupTime >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(IfOlderThan)))
                     {
                         Log.Info("Skipping Backup. Last Backup was less than {0} minutes ago", IfOlderThan);
-
-                        SkippingBackup = true;
-
                         return;
                     }
                     Log.Trace("Last backup time is more than {0} minutes ago. Starting new backup.", IfOlderThan);
@@ -78,6 +75,7 @@ namespace NuGetGallery.Operations
                 if (!WhatIf)
                 {
                     dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", BackupName, dbName));
+                    _startedBackup = true;
                 }
 
                 Log.Info("Started Copy of '{0}' to '{1}'", dbName, BackupName);
@@ -96,7 +94,7 @@ namespace NuGetGallery.Operations
 
         public bool PollForCompletion() 
         {
-            return DatabaseBackupHelper.GetBackupStatus(Log, ConnectionString, BackupName);
+            return !_startedBackup || DatabaseBackupHelper.GetBackupStatus(Log, ConnectionString, BackupName);
         }
     }
 }
