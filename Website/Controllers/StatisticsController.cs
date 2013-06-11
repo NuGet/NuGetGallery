@@ -52,6 +52,11 @@ namespace NuGetGallery
 
         private CultureInfo DetermineClientLocale()
         {
+            if (Request == null)
+            {
+                return null;
+            }
+
             string[] languages = Request.UserLanguages;
             if (languages == null)
             {
@@ -69,7 +74,6 @@ namespace NuGetGallery
                 {
                 }
             }
-
 
             foreach (string language in languages)
             {
@@ -117,6 +121,8 @@ namespace NuGetGallery
                 IsLast6MonthsAvailable = availablity[3],
                 Last6Months = _statisticsService.Last6Months,
             };
+
+            model.ClientCulture = DetermineClientLocale();
 
             model.Update();
 

@@ -94,12 +94,12 @@ namespace NuGetGallery
             {
                 return string.Empty;
             }
-            return string.Format("{0} {1}", year, _months[monthOfYear]);
+            return string.Format(ClientCulture, "{0} {1}", year, _months[monthOfYear]);
         }
 
         public string DisplayPercentage(float amount, float total)
         {
-            return (amount / total).ToString("P0");
+            return (amount / total).ToString("P0", ClientCulture);
         }
     }
 }
