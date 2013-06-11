@@ -1054,6 +1054,33 @@ ul.pager li.next { padding-left: 10px; }
     top:50px;
 }
 
+#downloads-by-nuget-version table 
+{
+    display:none;
+}
+
+#downloads-per-month table
+{
+    display:none;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
     /* NuGet Badge */
 
 .nuget-badge code {

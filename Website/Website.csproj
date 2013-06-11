@@ -1044,6 +1044,7 @@
     <Content Include="Content\SyntaxHighlighter\shThemeMDUltra.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeMidnight.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeRDark.css" />
+    <Content Include="D3 LICENSE.txt" />
     <Content Include="DataServices\V2CuratedFeed.svc" />
     <Content Include="DataServices\V1Feed.svc" />
     <Content Include="DataServices\V2Feed.svc" />
@@ -1052,6 +1053,9 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="robots.txt" />
+    <Content Include="Scripts\statsgraphs.js" />
+    <Content Include="Scripts\d3.v3.js" />
+    <Content Include="Scripts\d3.v3.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\nugetgallery.js" />
