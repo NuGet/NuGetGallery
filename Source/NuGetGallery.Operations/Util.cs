@@ -17,7 +17,7 @@ namespace NuGetGallery.Operations
     {
         public const byte CopyingState = 7;
         public const byte OnlineState = 0;
-        
+
         public static bool BackupIsInProgress(SqlExecutor dbExecutor)
         {
             return dbExecutor.Query<Database>(
@@ -52,21 +52,22 @@ namespace NuGetGallery.Operations
         public static string GetDatabaseNameTimestamp(string databaseName)
         {
             if (databaseName == null) throw new ArgumentNullException("databaseName");
-            
-            if (databaseName.Length < 14)
-                throw new InvalidOperationException("Database name isn't long enough to contain a timestamp.");
 
-            return databaseName.Substring(databaseName.Length - 14);
+            return databaseName.Substring("Backup_".Length);
         }
 
         public static DateTime GetDateTimeFromTimestamp(string timestamp)
         {
             DateTime result;
-            if (!DateTime.TryParseExact(timestamp, "yyyyMMddHHmmss", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out result))
+            if (DateTime.TryParseExact(timestamp, "yyyyMMddHHmmss", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out result))
             {
-                result = DateTime.MinValue;
+                return result;
             }
-            return result;
+            else if (DateTime.TryParseExact(timestamp, "yyyyMMMdd_HHmmZ", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out result))
+            {
+                return result;
+            }
+            return DateTime.MinValue;
         }
 
         public static string GetDbName(string connectionString)
@@ -111,14 +112,14 @@ namespace NuGetGallery.Operations
                 return DateTime.MinValue;
 
             var timestamp = lastBackup.Name.Substring(7);
-            
+
             return GetDateTimeFromTimestamp(timestamp);
         }
 
         public static string GetMasterConnectionString(string connectionString)
         {
-            var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString) {InitialCatalog = "master"};
-            return connectionStringBuilder.ToString();   
+            var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString) { InitialCatalog = "master" };
+            return connectionStringBuilder.ToString();
         }
 
         public static string GetConnectionString(string connectionString, string databaseName)
@@ -135,7 +136,7 @@ namespace NuGetGallery.Operations
 
         public static string GetTimestamp()
         {
-            return DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            return DateTime.UtcNow.ToString("yyyyMMMdd_HHmm") + "Z";
         }
 
         internal static CloudBlobContainer GetPackageBackupsBlobContainer(CloudBlobClient blobClient)
@@ -153,7 +154,7 @@ namespace NuGetGallery.Operations
         }
 
         internal static string GetPackageFileName(
-            string id, 
+            string id,
             string version)
         {
             return string.Format(
@@ -174,12 +175,12 @@ namespace NuGetGallery.Operations
         }
 
         internal static string GetPackageBackupFileName(
-            string id, 
-            string version, 
+            string id,
+            string version,
             string hash)
         {
             var hashBytes = Convert.FromBase64String(hash);
-            
+
             return string.Format(
                 "{0}.{1}.{2}.nupkg",
                 id,
@@ -188,8 +189,8 @@ namespace NuGetGallery.Operations
         }
 
         internal static ICloudBlob GetPackageFileBlob(
-            CloudBlobContainer packagesBlobContainer, 
-            string id, 
+            CloudBlobContainer packagesBlobContainer,
+            string id,
             string version)
         {
             var packageFileName = GetPackageFileName(
@@ -199,8 +200,8 @@ namespace NuGetGallery.Operations
         }
 
         internal static Package GetPackage(
-            IDbExecutor dbExecutor, 
-            string id, 
+            IDbExecutor dbExecutor,
+            string id,
             string version)
         {
             return dbExecutor.Query<Package>(
@@ -209,7 +210,7 @@ namespace NuGetGallery.Operations
         }
 
         internal static PackageRegistration GetPackageRegistration(
-            IDbExecutor dbExecutor, 
+            IDbExecutor dbExecutor,
             string id)
         {
             return dbExecutor.Query<PackageRegistration>(
@@ -252,7 +253,7 @@ namespace NuGetGallery.Operations
             {
                 hashBytes = hashAlgorithm.ComputeHash(input);
             }
-            
+
             var hash = Convert.ToBase64String(hashBytes);
             return hash;
         }
@@ -263,7 +264,7 @@ namespace NuGetGallery.Operations
             if (dataSource.StartsWith("tcp:"))
                 dataSource = dataSource.Substring(4);
             var indexOfFirstPeriod = dataSource.IndexOf(".", StringComparison.Ordinal);
-            
+
             if (indexOfFirstPeriod > -1)
                 return dataSource.Substring(0, indexOfFirstPeriod);
 
@@ -297,12 +298,12 @@ namespace NuGetGallery.Operations
             do
             {
                 var segment = container.ListBlobsSegmented(
-                    prefix, 
-                    useFlatBlobListing: true, 
-                    blobListingDetails: BlobListingDetails.Copy, 
-                    maxResults: null, 
-                    currentToken: token, 
-                    options: new BlobRequestOptions(), 
+                    prefix,
+                    useFlatBlobListing: true,
+                    blobListingDetails: BlobListingDetails.Copy,
+                    maxResults: null,
+                    currentToken: token,
+                    options: new BlobRequestOptions(),
                     operationContext: new OperationContext());
                 var oldCount = list.Count;
                 int total = 0;
@@ -314,7 +315,7 @@ namespace NuGetGallery.Operations
                     }
                     total++;
                 }
-                
+
                 log.Info("Matched {0}/{1} blobs in current segment. Found {2} blobs so far...", list.Count - oldCount, total, list.Count);
                 token = segment.ContinuationToken;
             } while (token != null);

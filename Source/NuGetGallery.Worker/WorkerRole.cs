@@ -138,7 +138,7 @@ namespace NuGetGallery.Worker
             config.Directories.DataSources.Add(new DirectoryConfiguration()
             {
                 Container = "wad-worker",
-                Path = Path.Combine(logDir, "Infrastructure"),
+                Path = Path.Combine(logDir, "Host"),
                 DirectoryQuotaInMB = 100
             });
             config.Directories.ScheduledTransferPeriod = TimeSpan.FromMinutes(1);
