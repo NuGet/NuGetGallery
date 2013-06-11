@@ -4,7 +4,7 @@ using System.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 
-namespace NuGetGallery.Operations.Worker
+namespace NuGetGallery.Worker
 {
     public class Settings
     {
@@ -84,7 +84,12 @@ namespace NuGetGallery.Operations.Worker
 
         public virtual CloudStorageAccount GetCloudStorageAccount(string name)
         {
-            return CloudStorageAccount.Parse(GetSetting(name));
+            string setting = GetSetting(name);
+            if (String.IsNullOrEmpty(setting))
+            {
+                return null;
+            }
+            return CloudStorageAccount.Parse(setting);
         }
     }
 }

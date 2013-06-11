@@ -2,8 +2,9 @@
 using System.ComponentModel.Composition;
 using System.Data.SqlClient;
 using System.Threading;
+using NuGetGallery.Operations;
 
-namespace NuGetGallery.Operations.Worker.Jobs
+namespace NuGetGallery.Worker.Jobs
 {
     //[Export(typeof(WorkerJob))]
     public class ExecuteAggregateStatisticsJob : WorkerJob
@@ -39,10 +40,6 @@ namespace NuGetGallery.Operations.Worker.Jobs
             task.Execute();
 
             Logger.Trace("Finished Execute AggregateStatistics Task.");
-        }
-
-        public override void OnStop()
-        {
         }
     }
 }

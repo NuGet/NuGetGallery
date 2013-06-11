@@ -2,11 +2,12 @@
 using System.Data.SqlClient;
 using AnglicanGeek.DbExecutor;
 using NuGetGallery.Operations.Common;
+using NuGetGallery.Operations.Infrastructure;
 
 namespace NuGetGallery.Operations
 {
     [Command("backupwarehouse", "Backs up the warehouse", AltName = "bwh", MaxArgs = 0)]
-    public class BackupWarehouseTask : WarehouseTask, IBackupDatabase
+    public class BackupWarehouseTask : WarehouseTask, IAsyncCompletionTask
     {
         [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
         public int IfOlderThan { get; set; }
@@ -67,6 +68,21 @@ namespace NuGetGallery.Operations
                     Log.Info("Starting '{0}'", BackupName);
                 }
             }
+        }
+
+        public TimeSpan RecommendedPollingPeriod
+        {
+            get { return TimeSpan.FromMinutes(1); }
+        }
+
+        public TimeSpan MaximumPollingLength
+        {
+            get { return TimeSpan.FromMinutes(45); }
+        }
+
+        public bool PollForCompletion()
+        {
+            return DatabaseBackupHelper.GetBackupStatus(Log, ConnectionString, BackupName);
         }
     }
 }

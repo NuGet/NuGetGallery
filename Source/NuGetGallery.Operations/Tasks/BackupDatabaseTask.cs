@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Data.SqlClient;
 using AnglicanGeek.DbExecutor;
+using NuGetGallery.Operations.Infrastructure;
 
 namespace NuGetGallery.Operations
 {
     [Command("backupdatabase", "Backs up the database", AltName = "bdb", MaxArgs = 0)]
-    public class BackupDatabaseTask : DatabaseTask, IBackupDatabase
+    public class BackupDatabaseTask : DatabaseTask, IAsyncCompletionTask
     {
         [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
         public int IfOlderThan { get; set; }
@@ -79,8 +80,23 @@ namespace NuGetGallery.Operations
                     dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", BackupName, dbName));
                 }
 
-                Log.Info("Starting '{0}'", BackupName);
+                Log.Info("Started Copy of '{0}' to '{1}'", dbName, BackupName);
             }
+        }
+
+        public TimeSpan RecommendedPollingPeriod
+        {
+            get { return TimeSpan.FromMinutes(1); }
+        }
+
+        public TimeSpan MaximumPollingLength
+        {
+            get { return TimeSpan.FromMinutes(45); }
+        }
+
+        public bool PollForCompletion() 
+        {
+            return DatabaseBackupHelper.GetBackupStatus(Log, ConnectionString, BackupName);
         }
     }
 }

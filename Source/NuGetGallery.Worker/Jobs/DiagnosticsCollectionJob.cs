@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace NuGetGallery.Operations.Worker.Jobs
+namespace NuGetGallery.Worker.Jobs
 {
     //[Export(typeof(WorkerJob))]
     public class DiagnosticsCollectionJob : WorkerJob

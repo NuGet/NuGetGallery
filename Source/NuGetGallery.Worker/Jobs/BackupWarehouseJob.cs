@@ -1,11 +1,12 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using System.Data.SqlClient;
+using NuGetGallery.Operations;
 
-namespace NuGetGallery.Operations.Worker.Jobs
+namespace NuGetGallery.Worker.Jobs
 {
     //[Export(typeof(WorkerJob))]
-    public class BackupWarehouseJob : BackupDatabaseBaseJob
+    public class BackupWarehouseJob : WorkerJob
     {
         public override TimeSpan Period
         {
@@ -25,20 +26,12 @@ namespace NuGetGallery.Operations.Worker.Jobs
 
         public override void RunOnce()
         {
-            Logger.Info("Starting backup warehouse task.");
-         
-            var backupTask = new BackupWarehouseTask
+            ExecuteTask(new BackupWarehouseTask
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 WhatIf = Settings.WhatIf,
                 IfOlderThan = 25,
-            };
-
-            backupTask.Execute();
-
-            WaitForCompletion(backupTask);
-
-            Logger.Info("Finished backup warehouse task.");
+            });
         }
     }
 }

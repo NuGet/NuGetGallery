@@ -1,8 +1,9 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using System.Data.SqlClient;
+using NuGetGallery.Operations;
 
-namespace NuGetGallery.Operations.Worker.Jobs
+namespace NuGetGallery.Worker.Jobs
 {
     //[Export(typeof(WorkerJob))]
     public class DeleteOldWarehouseBackupsJob : WorkerJob

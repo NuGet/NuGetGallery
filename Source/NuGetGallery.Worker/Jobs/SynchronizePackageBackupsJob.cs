@@ -1,7 +1,7 @@
 ﻿//using System;
 //using System.ComponentModel.Composition;
 
-//namespace NuGetGallery.Operations.Worker.Jobs
+//namespace NuGetGallery.Worker.Jobs
 //{
 //    //[Export(typeof(WorkerJob))]
 //    public class SynchronizePackageBackupsJob : WorkerJob

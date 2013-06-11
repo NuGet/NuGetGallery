@@ -28,7 +28,6 @@ namespace NuGetGallery.Operations
             WarehouseDatabase = GetSqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Warehouse"]);
 
             MainStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Primary"]);
-            ReportStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Reports"]);
             BackupStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Backups"]);
 
             SqlDacEndpoint = Get("Operations.SqlDac", str => new Uri(str, UriKind.Absolute));

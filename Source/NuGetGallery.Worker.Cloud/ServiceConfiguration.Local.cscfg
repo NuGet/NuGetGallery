@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="NuGetGallery.Operations.Worker.Emulator" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-03.2.0">
+    <Role name="NuGetGallery.Worker">
+        <Instances count="1" />
+        <ConfigurationSettings>
+            <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+            <Setting name="Operations.EnvironmentName" value="Emulator" />
+            <Setting name="Operations.Sql.Primary" value="" />
+            <Setting name="Operations.Sql.Warehouse" value="" />
+            <Setting name="Operations.Storage.Primary" value="" />
+            <Setting name="Operations.Storage.Backup" value="" />
+            <Setting name="Operations.SqlDac" value="" />
+        </ConfigurationSettings>
+        <Certificates>
+        </Certificates>
+    </Role>
+</ServiceConfiguration>

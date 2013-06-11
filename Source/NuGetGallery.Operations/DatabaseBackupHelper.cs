@@ -10,48 +10,23 @@ namespace NuGetGallery.Operations
 {
     public static class DatabaseBackupHelper
     {
-        public static string WaitForCompletion(IBackupDatabase backupDatabaseTask)
+        public static bool GetBackupStatus(NLog.Logger log, SqlConnectionStringBuilder connectionString, string backupName)
         {
-            if (backupDatabaseTask.SkippingBackup)
+            CheckDatabaseStatusTask checkDatabaseStatusTask = new CheckDatabaseStatusTask
             {
-                return "backup creation was skipped";
-            }
-            else
+                ConnectionString = connectionString,
+                BackupName = backupName,
+                WhatIf = false // WhatIf isn't used by this task.
+            };
+
+            checkDatabaseStatusTask.Execute();
+
+            if (checkDatabaseStatusTask.State == 0)
             {
-                if (PollStatus(backupDatabaseTask.ConnectionString.ConnectionString, backupDatabaseTask.BackupName))
-                {
-                    return string.Format("created backup '{0}'", backupDatabaseTask.BackupName);
-                }
-                else
-                {
-                    throw new Exception("creating backup failed");
-                }
-            }
-        }
-
-        private static bool PollStatus(string connectionString, string backupName)
-        {
-            //  poll the state of the database for 30 minutes
-            for (int i = 0; i < 60; i++)
-            {
-                CheckDatabaseStatusTask checkDatabaseStatusTask = new CheckDatabaseStatusTask
-                {
-                    ConnectionString = new SqlConnectionStringBuilder(connectionString),
-                    BackupName = backupName,
-                    WhatIf = false // WhatIf isn't used by this task.
-                };
-
-                checkDatabaseStatusTask.Execute();
-
-                if (checkDatabaseStatusTask.State == 0)
-                {
-                    return true;
-                }
-
-                Thread.Sleep(30 * 1000);
+                log.Info("Copy of {0} to {1} complete!", connectionString.InitialCatalog, backupName);
             }
 
-            return false;
+            return checkDatabaseStatusTask.State == 0;
         }
     }
 }

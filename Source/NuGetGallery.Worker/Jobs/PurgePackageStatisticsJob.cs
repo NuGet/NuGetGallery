@@ -1,21 +1,14 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using System.Data.SqlClient;
+using NuGetGallery.Operations;
 
-namespace NuGetGallery.Operations.Worker.Jobs
+namespace NuGetGallery.Worker.Jobs
 {
     //[Export(typeof(WorkerJob))]
-    public class BackupPackagesJob : WorkerJob
+    public class PurgePackageStatisticsJob : WorkerJob
     {
         public override TimeSpan Period
-        {
-            get
-            {
-                return TimeSpan.FromHours(1);
-            }
-        }
-
-        public override TimeSpan Offset
         {
             get
             {
@@ -23,16 +16,24 @@ namespace NuGetGallery.Operations.Worker.Jobs
             }
         }
 
+        public override TimeSpan Offset
+        {
+            get
+            {
+                return TimeSpan.FromMinutes(5);
+            }
+        }
+
         public override void RunOnce()
         {
-            Logger.Info("Starting synchronize package backups task.");
-            new BackupPackagesTask
+            Logger.Trace("Starting purge package statistics task.");
+            new PurgePackageStatisticsTask
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
-                StorageAccount = Settings.MainStorage,
+                WarehouseConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 WhatIf = Settings.WhatIf
             }.Execute();
-            Logger.Info("Finished synchronize package backups task.");
+            Logger.Trace("Finished purge package statistics task.");
         }
     }
 }

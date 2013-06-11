@@ -50,7 +50,7 @@
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=1.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.1.8.0.0\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=1.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\External\AzureSDK\Microsoft.WindowsAzure.ServiceRuntime.dll</HintPath>
     </Reference>
@@ -88,13 +88,13 @@
     <Compile Include="SnazzyConsoleTarget.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGetGallery.Operations.Worker\NuGetGallery.Operations.Worker.csproj">
-      <Project>{7f92c174-5310-4090-a6a3-3cc7c67c19d6}</Project>
-      <Name>NuGetGallery.Operations.Worker</Name>
-    </ProjectReference>
     <ProjectReference Include="..\NuGetGallery.Operations\NuGetGallery.Operations.csproj">
       <Project>{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}</Project>
       <Name>NuGetGallery.Operations</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Worker\NuGetGallery.Worker.csproj">
+      <Project>{7f92c174-5310-4090-a6a3-3cc7c67c19d6}</Project>
+      <Name>NuGetGallery.Worker</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

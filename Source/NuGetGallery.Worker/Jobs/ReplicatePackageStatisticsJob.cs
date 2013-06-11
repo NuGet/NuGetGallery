@@ -2,17 +2,14 @@
 using System.ComponentModel.Composition;
 using System.Data.SqlClient;
 using System.Threading;
+using NuGetGallery.Operations;
 
-namespace NuGetGallery.Operations.Worker.Jobs
+namespace NuGetGallery.Worker.Jobs
 {
     //[Export(typeof(WorkerJob))]
     public class ReplicatePackageStatisticsJob : WorkerJob
     {
         CancellationTokenSource _cts = new CancellationTokenSource();
-
-        ReplicatePackageStatisticsJob()
-        {
-        }
 
         public override TimeSpan Period
         {
@@ -45,11 +42,6 @@ namespace NuGetGallery.Operations.Worker.Jobs
             StatusMessage = string.Format("replicated {0} download records", task.Count);
 
             Logger.Trace("Finished replicate package statistics task.");
-        }
-
-        public override void OnStop()
-        {
-            _cts.Cancel();
         }
     }
 }

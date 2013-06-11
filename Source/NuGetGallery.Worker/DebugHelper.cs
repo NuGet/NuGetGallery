@@ -3,7 +3,7 @@ using Microsoft.WindowsAzure.StorageClient;
 using System;
 using System.IO;
 
-namespace NuGetGallery.Operations.Worker
+namespace NuGetGallery.Worker
 {
     internal static class DebugHelper
     {

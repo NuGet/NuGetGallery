@@ -6,9 +6,9 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NLog;
-using NuGetGallery.Operations.Worker.Jobs;
+using NuGetGallery.Worker.Jobs;
 
-namespace NuGetGallery.Operations.Worker
+namespace NuGetGallery.Worker
 {
     [Export]
     public class JobRunner
@@ -98,9 +98,7 @@ namespace NuGetGallery.Operations.Worker
                 _logger.Error("No such job: " + name);
                 throw new InvalidOperationException("No such job: " + name);
             }
-            job.OnStart();
             RunJob(name, job);
-            job.OnStop();
         }
 
         public void RunSingleJobContinuously(string name)
@@ -120,7 +118,6 @@ namespace NuGetGallery.Operations.Worker
             foreach (var job in Jobs)
             {
                 _logger.Debug("Cleaning up Job '{0}'", job.Key);
-                job.Value.OnStop();
             }
         }
 
@@ -129,7 +126,6 @@ namespace NuGetGallery.Operations.Worker
             foreach (var job in Jobs)
             {
                 _logger.Debug("Initializing Job '{0}'", job.Key);
-                job.Value.OnStart();
             }
             return true;
         }

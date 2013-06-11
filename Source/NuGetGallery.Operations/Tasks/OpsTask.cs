@@ -16,10 +16,11 @@ namespace NuGetGallery.Operations
         private CommandAttribute _commandAttribute;
         private List<string> _arguments = new List<string>();
         private Logger _logger;
-        protected internal Logger Log
+        
+        public Logger Log
         {
             get { return _logger ?? (_logger = LogManager.GetLogger(GetType().Name)); }
-            internal set { _logger = value; }
+            set { _logger = value; }
         }
 
         public CommandAttribute CommandAttribute
