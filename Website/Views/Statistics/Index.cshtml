@@ -90,7 +90,7 @@
                 {
                     <tr>
                         <td>@item.Version</td>
-                        <td>@item.Downloads</td>
+                        <td>@Model.DisplayDownloads(item.Downloads)</td>
                         <td>@Model.DisplayPercentage(item.Downloads, Model.NuGetClientVersionTotalDownloads)</td>
                     </tr>
                 }
@@ -115,7 +115,7 @@
                 {
                     <tr>
                         <td>@Model.DisplayMonth(item.Year, item.MonthOfYear)</td>
-                        <td>@item.Downloads</td>
+                        <td>@Model.DisplayDownloads(item.Downloads)</td>
                     </tr>
                 }
             }

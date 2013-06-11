@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace NuGetGallery
@@ -38,6 +39,8 @@ namespace NuGetGallery
         {
             get; set;
         }
+        
+        public CultureInfo ClientCulture { get; set; }
 
         public StatisticsPackagesReport Report
         {
@@ -68,6 +71,11 @@ namespace NuGetGallery
             PackageId = packageId;
             PackageVersion = packageVersion;
             Report = report;
+        }
+
+        public string DisplayDownloads(int downloads)
+        {
+            return downloads.ToString("n0", ClientCulture);
         }
 
         public void Update()

@@ -23,8 +23,8 @@ var displayGraphs = function () {
 var drawNugetClientVersionBarChart = function () {
 
     var margin = { top: 20, right: 30, bottom: 60, left: 80 },
-        width = 400 - margin.left - margin.right,
-        height = 300 - margin.top - margin.bottom;
+        width = 460 - margin.left - margin.right,
+        height = 320 - margin.top - margin.bottom;
 
     var xScale = d3.scale.ordinal()
         .rangeRoundBands([0, width], .1);
@@ -51,7 +51,8 @@ var drawNugetClientVersionBarChart = function () {
     d3.selectAll('#downloads-by-nuget-version tbody tr').each(function () {
         var item = {
             nugetVersion: d3.select(this).select(':nth-child(1)').text(),
-            downloads: +(d3.select(this).select(':nth-child(2)').text())
+            downloads: +(d3.select(this).select(':nth-child(2)').text().replace(/[^0-9]+/g, '')),
+            percentage: d3.select(this).select(':nth-child(3)').text(),
         };
         data[data.length] = item;
     });
@@ -94,14 +95,14 @@ var drawNugetClientVersionBarChart = function () {
             .attr("y", function (d) { return yScale(d.downloads); })
             .attr("height", function (d) { return height - yScale(d.downloads); })
         .append("title")
-            .text(function (d) { return ((d.downloads / total) * 100).toFixed(0).toString() + '%'; });
+            .text(function (d) { return d.percentage; });
 }
 
 var drawMonthlyDownloadsLineChart = function () {
 
     var margin = { top: 20, right: 20, bottom: 80, left: 80 },
         width = 400 - margin.left - margin.right,
-        height = 250 - margin.top - margin.bottom;
+        height = 300 - margin.top - margin.bottom;
 
     var xScale = d3.scale.ordinal()
         .rangePoints([0, width]);
@@ -122,7 +123,7 @@ var drawMonthlyDownloadsLineChart = function () {
     d3.selectAll('#downloads-per-month tbody tr').each(function () {
         var item = {
             month: d3.select(this).select(':nth-child(1)').text(),
-            downloads: +(d3.select(this).select(':nth-child(2)').text())
+            downloads: +(d3.select(this).select(':nth-child(2)').text().replace(/[^0-9]+/g, ''))
         };
         data[data.length] = item;
     });
