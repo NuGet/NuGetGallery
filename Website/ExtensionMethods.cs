@@ -77,16 +77,6 @@ namespace NuGetGallery
             return String.Empty;
         }
 
-        public static IEnumerable<string> UnflattenAuthors(this string flattenedAuthors)
-        {
-            if (flattenedAuthors == null)
-            {
-                return Enumerable.Empty<string>();
-            }
-
-            return flattenedAuthors.Split(',').Select(s => s.Trim());
-        }
-
         public static string Flatten(this IEnumerable<string> list)
         {
             if (list == null)
