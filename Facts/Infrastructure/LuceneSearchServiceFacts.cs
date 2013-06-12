@@ -252,7 +252,7 @@ namespace NuGetGallery.Infrastructure
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Alpha Beta Gamma",
+                    FlattenedAuthors = "Alpha, Beta Gamma",
                     Title = "NuGet.Core",
                     Version = "1.5.20902.9026",
                     Tags = "dotnet",

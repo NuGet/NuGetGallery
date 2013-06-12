@@ -645,17 +645,15 @@ hgroup.page-heading h2 { padding-left: 7px; }
 }
 
 
-/* Tags & Authors */
+/* Tags */
 
-ul.tags,
-ul.authors {
+ul.tags {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-ul.tags li,
-ul.authors li {
+ul.tags li {
     display: inline;
     padding-right: 6px;
 }
@@ -755,7 +753,7 @@ ul.dependencySet li {
     /* Tags & Authors */
 
 .package-page ul.tags li a,
-.package-page ul.authors li a { font-size: 1.25em; }
+.package-page p.authors { font-size: 1.25em; }
 
 
     /* Large Icon 128x128 */
