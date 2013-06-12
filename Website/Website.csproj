@@ -574,6 +574,7 @@
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
+    <Compile Include="Helpers\PackageHelper.cs" />
     <Compile Include="Helpers\QuietLog.cs" />
     <Compile Include="Helpers\StringHelper.cs" />
     <Compile Include="Helpers\StatisticsHelper.cs" />
