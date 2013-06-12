@@ -99,8 +99,11 @@ namespace NuGetGallery
         public bool IsPrerelease { get; set; }
         public virtual ICollection<PackageFramework> SupportedFrameworks { get; set; }
 
-        // TODO: it would be nice if we could change the feed so that we don't need to flatten authors and dependencies
+        /// <summary>
+        /// Remarks - manually reconsituted from what Nuget.Core gives us.
+        /// </summary>
         public string FlattenedAuthors { get; set; }
+
         public string FlattenedDependencies { get; set; }
         public int Key { get; set; }
 
