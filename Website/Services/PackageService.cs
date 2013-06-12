@@ -441,7 +441,6 @@ namespace NuGetGallery
             return packageRegistration;
         }
 
-#pragma warning disable 612
         private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage)
         {
             var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Metadata.Version.ToString());
@@ -523,7 +522,6 @@ namespace NuGetGallery
 
             return package;
         }
-#pragma warning restore 612
 
         public virtual IEnumerable<FrameworkName> GetSupportedFrameworks(INupkg package)
         {

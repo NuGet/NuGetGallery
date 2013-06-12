@@ -14,7 +14,6 @@ namespace NuGetGallery
             Listed = true;
         }
 
-#pragma warning disable 612
         public PackageDescription GetDescription()
         {
             if (AppliedEdit != null)
@@ -52,7 +51,6 @@ namespace NuGetGallery
                 Title = this.Title,
             };
         }
-#pragma warning restore 612
 
         public PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
@@ -62,7 +60,6 @@ namespace NuGetGallery
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
-        [Obsolete]
         public string Copyright { get; set; }
 
         public DateTime Created { get; set; }
@@ -71,13 +68,11 @@ namespace NuGetGallery
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed but *IS* used for searches. Db column is nvarchar(max).
         /// </remarks>
-        [Obsolete]
         public string Description { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
-        [Obsolete]
         public string ReleaseNotes { get; set; }
 
         public int DownloadCount { get; set; }
@@ -89,18 +84,15 @@ namespace NuGetGallery
         public string ExternalPackageUrl { get; set; }
 
         [StringLength(10)]
-        [Obsolete]
         public string HashAlgorithm { get; set; }
 
         [StringLength(256)]
         [Required]
-        [Obsolete]
         public string Hash { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
-        [Obsolete]
         public string IconUrl { get; set; }
 
         public bool IsLatest { get; set; }
@@ -117,13 +109,11 @@ namespace NuGetGallery
 
         public DateTime Published { get; set; }
 
-        [Obsolete]
         public long PackageFileSize { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
-        [Obsolete]
         public string ProjectUrl { get; set; }
 
         public bool RequiresLicenseAcceptance { get; set; }
@@ -131,17 +121,14 @@ namespace NuGetGallery
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
-        [Obsolete]
         public string Summary { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and *IS* used for searches, but is maintained via Lucene. Db column is nvarchar(max).
         /// </remarks>
-        [Obsolete]
         public string Tags { get; set; }
 
         [StringLength(256)]
-        [Obsolete]
         public string Title { get; set; }
 
         [StringLength(64)]
@@ -152,7 +139,6 @@ namespace NuGetGallery
         public bool IsPrerelease { get; set; }
         public virtual ICollection<PackageFramework> SupportedFrameworks { get; set; }
 
-        [Obsolete]
         public string FlattenedAuthors { get; set; }
 
         public string FlattenedDependencies { get; set; }

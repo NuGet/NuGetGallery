@@ -8,7 +8,6 @@ namespace NuGetGallery
     public static class Extensions
     {
         // Search criteria
-#pragma warning disable 612
         private static readonly Func<string, Expression<Func<Package, bool>>> IdCriteria = term =>
                                                                                            p => p.PackageRegistration.Id.Contains(term);
 
@@ -23,7 +22,6 @@ namespace NuGetGallery
 
         private static readonly Func<string, Expression<Func<Package, bool>>> AuthorCriteria = term =>
                                                                                                p => p.FlattenedAuthors.Contains(term);
-#pragma warning restore 612
 
         private static readonly Func<string, Expression<Func<Package, bool>>>[] SearchCriteria = new[]
             {

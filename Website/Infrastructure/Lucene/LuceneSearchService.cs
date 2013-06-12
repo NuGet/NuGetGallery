@@ -84,7 +84,6 @@ namespace NuGetGallery
             return packages.AsQueryable();
         }
 
-#pragma warning disable 612
         private static Package PackageFromDoc(Document doc)
         {
             int downloadCount = Int32.Parse(doc.Get("DownloadCount"), CultureInfo.InvariantCulture);
@@ -153,7 +152,6 @@ namespace NuGetGallery
                 MinClientVersion = doc.Get("MinClientVersion"),
             };
         }
-#pragma warning restore 612
 
         private static PackageDependency CreateDependency(string s)
         {
