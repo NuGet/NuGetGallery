@@ -5,6 +5,10 @@ namespace NuGetGallery
     {
         public static string ParseTags(string tags)
         {
+            if (tags == null)
+            {
+                return null;
+            }
             return tags.Replace(',', ' ').Replace("  ", " ");
         }
     }
