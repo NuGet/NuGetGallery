@@ -21,10 +21,10 @@ namespace NuGetGallery
         {
             // Make sure the target feed exists
             CuratedFeed feed = GetService<ICuratedFeedService>().GetFeedByName(CuratedFeedName, includePackages: true);
-            if (feed != null && galleryPackage.Tags != null)
+            if (feed != null && galleryPackage.GetDescription().Tags != null)
             {
                 // Break the tags up so we can be sure we don't catch any partial matches (i.e. "foobar" when we're looking for "foo")
-                string[] tags = galleryPackage.Tags.Split();
+                string[] tags = galleryPackage.GetDescription().Tags.Split();
 
                 // Check if this package should be curated
                 if (tags.Any(tag => RequiredTags.Contains(tag, StringComparer.OrdinalIgnoreCase)))

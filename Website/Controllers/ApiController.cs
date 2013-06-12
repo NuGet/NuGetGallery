@@ -213,9 +213,21 @@ namespace NuGetGallery
             var BlobUrl = (string)token.SelectToken("BlobUrl");
             var SecurityToken = (string)token.SelectToken("SecurityToken");
 
-            var pendingEdit = EntitiesContext.Set<PackageEdit>()
-                .Where(pe => pe.PackageId == PackageId && pe.Version == Version && pe.EditId == EditId)
+            Package package = EntitiesContext.Set<Package>()
+                .Where(p => p.Version == Version && p.PackageRegistration.Id == PackageId)
                 .FirstOrDefault();
+            if (package == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            var pendingEdit = EntitiesContext.Set<PackageEdit>()
+                .Where(pe => pe.PackageKey == package.Key && pe.EditId == EditId)
+                .FirstOrDefault();
+            if (pendingEdit == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
 
             if (SecurityToken == null)
             {
@@ -240,6 +252,7 @@ namespace NuGetGallery
             // Success
             pendingEdit.IsCompleted = true;
             EntitiesContext.SaveChanges();
+            return new HttpStatusCodeResult(HttpStatusCode.OK);
         }
 
         private async Task<ActionResult> CreatePackageInternal(string apiKey)

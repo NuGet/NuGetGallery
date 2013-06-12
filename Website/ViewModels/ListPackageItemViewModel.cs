@@ -9,9 +9,9 @@ namespace NuGetGallery
         public ListPackageItemViewModel(Package package)
             : base(package)
         {
-            Tags = package.Tags != null ? package.Tags.Trim().Split(' ') : null;
+            Tags = package.GetDescription().Tags != null ? package.GetDescription().Tags.Trim().Split(' ') : null;
 
-            Authors = package.FlattenedAuthors;
+            Authors = package.GetDescription().Authors;
             MinClientVersion = package.MinClientVersion;
             Owners = package.PackageRegistration.Owners;
         }

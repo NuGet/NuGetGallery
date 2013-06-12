@@ -12,15 +12,15 @@ namespace NuGetGallery
 
         public EditPackageVersionRequest(Package package)
         {
-            VersionTitle = package.Title;
-            IconUrl = package.IconUrl;
-            Summary = package.Summary;
-            Description = package.Description;
-            ProjectUrl = package.ProjectUrl;
-            Authors = package.FlattenedAuthors;
-            Copyright = package.Copyright;
-            Tags = package.Tags;
-            ReleaseNotes = package.ReleaseNotes;
+            VersionTitle = package.GetDescription().Title;
+            IconUrl = package.GetDescription().IconUrl;
+            Summary = package.GetDescription().Summary;
+            Description = package.GetDescription().Description;
+            ProjectUrl = package.GetDescription().ProjectUrl;
+            Authors = package.GetDescription().Authors;
+            Copyright = package.GetDescription().Copyright;
+            Tags = package.GetDescription().Tags;
+            ReleaseNotes = package.GetDescription().ReleaseNotes;
         }
 
         [StringLength(256)]
@@ -68,23 +68,5 @@ namespace NuGetGallery
         [Display(Name = "Release Notes (for this version)")]
         [DataType(DataType.MultilineText)]
         public string ReleaseNotes { get; set; }
-
-        internal void UpdatePackageVersion(
-            Package package,
-            IEntitiesContext context,
-            IPackageService packageService)
-        {
-            package.Title = VersionTitle;
-            package.IconUrl = IconUrl;
-            package.Summary = Summary;
-            package.Description = Description;
-            package.ProjectUrl = ProjectUrl;
-
-            package.Copyright = Copyright;
-            package.Tags = Tags;
-            package.ReleaseNotes = ReleaseNotes;
-
-            package.LastUpdated = DateTime.UtcNow; // Flagged for re-indexing
-        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.Versioning;
 using NuGet;
@@ -10,6 +11,7 @@ namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
+        private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
@@ -17,12 +19,14 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
 
         public PackageService(
+            IEntitiesContext entitiesContext,
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageStatistics> packageStatsRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IIndexingService indexingService)
         {
+            _entitiesContext = entitiesContext;
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
             _packageStatsRepository = packageStatsRepository;
@@ -76,6 +80,33 @@ namespace NuGetGallery
 
                 NotifyIndexingService();
             }
+        }
+
+        public PackageEdit CreatePackageEdit(Package p, EditPackageRequest formData)
+        {
+            PackageEdit edit = new PackageEdit
+            {
+                // Description
+                Authors = formData.EditPackageVersionRequest.Authors,
+                Copyright = formData.EditPackageVersionRequest.Copyright,
+                Description = formData.EditPackageVersionRequest.Description,
+                IconUrl = formData.EditPackageVersionRequest.IconUrl,
+                ProjectUrl = formData.EditPackageVersionRequest.ProjectUrl,
+                ReleaseNotes = formData.EditPackageVersionRequest.ReleaseNotes,
+                Summary = formData.EditPackageVersionRequest.Summary,
+                Tags = formData.EditPackageVersionRequest.Tags,
+                Title = formData.EditPackageVersionRequest.VersionTitle,
+
+                // Other
+                Package = p,
+                PackageKey = p.Key,
+                IsCompleted = false,
+                EditId = "edit_" + _entitiesContext.Set<PackageEdit>().Where(pe => pe.PackageKey == p.Key).Count().ToString(CultureInfo.InvariantCulture),
+                SecurityToken = CryptographyService.GenerateToken(),
+            };
+
+            _entitiesContext.Set<PackageEdit>().Add(edit);
+            return edit;
         }
 
         public void DoEditPackage(PackageEdit pendingEdit)
@@ -410,6 +441,7 @@ namespace NuGetGallery
             return packageRegistration;
         }
 
+#pragma warning disable 612
         private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage)
         {
             var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Metadata.Version.ToString());
@@ -491,6 +523,7 @@ namespace NuGetGallery
 
             return package;
         }
+#pragma warning restore 612
 
         public virtual IEnumerable<FrameworkName> GetSupportedFrameworks(INupkg package)
         {

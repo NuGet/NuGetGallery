@@ -48,6 +48,7 @@ namespace NuGetGallery
         void AddPackageOwner(PackageRegistration package, User user);
         void RemovePackageOwner(PackageRegistration package, User user);
 
+        PackageEdit CreatePackageEdit(Package package, EditPackageRequest formData);
         void DoEditPackage(PackageEdit pendingEdit);
     }
 }

@@ -48,7 +48,7 @@ namespace NuGetGallery
             document.Add(field);
 
             // Store description so we can show them in search results
-            field = new Field("Description", Package.Description, Field.Store.YES, Field.Index.ANALYZED);
+            field = new Field("Description", Package.GetDescription().Description, Field.Store.YES, Field.Index.ANALYZED);
             field.Boost = 0.1f;
             document.Add(field);
 
@@ -73,9 +73,9 @@ namespace NuGetGallery
             document.Add(field);
 
             // If an element does not have a Title, fall back to Id, same as the website.
-            var workingTitle = String.IsNullOrEmpty(Package.Title)
+            var workingTitle = String.IsNullOrEmpty(Package.GetDescription().Title)
                                    ? Package.PackageRegistration.Id
-                                   : Package.Title;
+                                   : Package.GetDescription().Title;
 
             // As-Is (stored for search results)
             field = new Field("Title", workingTitle, Field.Store.YES, Field.Index.ANALYZED);
@@ -92,21 +92,21 @@ namespace NuGetGallery
             field.Boost = 0.5f;
             document.Add(field);
 
-            if (!String.IsNullOrEmpty(Package.Tags))
+            if (!String.IsNullOrEmpty(Package.GetDescription().Tags))
             {
                 // Store tags so we can show them in search results
-                field = new Field("Tags", Package.Tags, Field.Store.YES, Field.Index.ANALYZED);
+                field = new Field("Tags", Package.GetDescription().Tags, Field.Store.YES, Field.Index.ANALYZED);
                 field.Boost = 0.8f;
                 document.Add(field);
             }
 
             // note Authors and Dependencies have flattened representations in the data model.
-            document.Add(new Field("Authors", Package.FlattenedAuthors.ToStringSafe(), Field.Store.YES, Field.Index.ANALYZED));
+            document.Add(new Field("Authors", Package.GetDescription().Authors.ToStringSafe(), Field.Store.YES, Field.Index.ANALYZED));
 
             // Fields for storing data to avoid hitting SQL while doing searches
-            if (!String.IsNullOrEmpty(Package.IconUrl))
+            if (!String.IsNullOrEmpty(Package.GetDescription().IconUrl))
             {
-                document.Add(new Field("IconUrl", Package.IconUrl, Field.Store.YES, Field.Index.NO));
+                document.Add(new Field("IconUrl", Package.GetDescription().IconUrl, Field.Store.YES, Field.Index.NO));
             }
 
             if (Package.PackageRegistration.Owners.AnySafe())
@@ -116,11 +116,11 @@ namespace NuGetGallery
                 document.Add(new Field("FlattenedOwners", flattenedOwners, Field.Store.YES, Field.Index.NO));
             }
 
-            document.Add(new Field("Copyright", Package.Copyright.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Copyright", Package.GetDescription().Copyright.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Created", Package.Created.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("FlattenedDependencies", Package.FlattenedDependencies.ToStringSafe(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("Hash", Package.Hash.ToStringSafe(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("HashAlgorithm", Package.HashAlgorithm.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Hash", Package.GetDescription().Hash.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("HashAlgorithm", Package.GetDescription().HashAlgorithm.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Id-Original", Package.PackageRegistration.Id, Field.Store.YES, Field.Index.NO));
             document.Add(new Field("LastUpdated", Package.LastUpdated.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Language", Package.Language.ToStringSafe(), Field.Store.YES, Field.Index.NO));
@@ -128,12 +128,12 @@ namespace NuGetGallery
             document.Add(new Field("MinClientVersion", Package.MinClientVersion.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Version", Package.Version.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("VersionDownloadCount", Package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("PackageFileSize", Package.PackageFileSize.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("ProjectUrl", Package.ProjectUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("PackageFileSize", Package.GetDescription().PackageFileSize.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("ProjectUrl", Package.GetDescription().ProjectUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Published", Package.Published.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("ReleaseNotes", Package.ReleaseNotes.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("ReleaseNotes", Package.GetDescription().ReleaseNotes.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("RequiresLicenseAcceptance", Package.RequiresLicenseAcceptance.ToString(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("Summary", Package.Summary.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Summary", Package.GetDescription().Summary.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             if (Package.SupportedFrameworks.AnySafe())
             {
                 string joinedFrameworks = string.Join(";", Package.SupportedFrameworks.Select(f => f.FrameworkName));
@@ -150,7 +150,7 @@ namespace NuGetGallery
             document.Add(
                  new Field("DownloadCount", Package.PackageRegistration.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
 
-            string displayName = String.IsNullOrEmpty(Package.Title) ? Package.PackageRegistration.Id : Package.Title;
+            string displayName = String.IsNullOrEmpty(Package.GetDescription().Title) ? Package.PackageRegistration.Id : Package.GetDescription().Title;
             document.Add(new Field("DisplayName", displayName.ToLower(CultureInfo.CurrentCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
 
             return document;

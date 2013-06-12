@@ -16,7 +16,7 @@ namespace NuGetGallery
             _configuration = configuration;
         }
 
-        public void PostEditPackageRequest(EditPackageRequest newMetadata, string callbackAddress, int editId)
+        public void PostEditPackageRequest(EditPackageRequest newMetadata, string callbackAddress, string editId)
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
                 _configuration.AzureStorageConnectionString);
@@ -27,7 +27,7 @@ namespace NuGetGallery
             var json = new JObject(newMetadata);
 
             json["CallbackAddress"] = callbackAddress;
-            json["EditId"] = editId.ToString(CultureInfo.InvariantCulture);
+            json["EditId"] = editId;
 
             var message = new CloudQueueMessage(json.ToString(Newtonsoft.Json.Formatting.Indented));
             editsQueue.AddMessage(message);

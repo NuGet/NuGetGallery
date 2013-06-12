@@ -574,6 +574,7 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\IEntitiesContext.cs" />
+    <Compile Include="Entities\PackageDescription.cs" />
     <Compile Include="Entities\PackageEdit.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
