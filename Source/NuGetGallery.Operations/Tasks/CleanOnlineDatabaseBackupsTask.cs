@@ -47,6 +47,8 @@ namespace NuGetGallery.Operations.Tasks
             using(var connection = new SqlConnection(ConnectionString.ConnectionString))
             using (var db = new SqlExecutor(connection))
             {
+                connection.Open();
+
                 // Get the list of backups
                 var backups = db.Query<Database>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
