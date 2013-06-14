@@ -28,7 +28,7 @@ namespace NuGetGallery.Operations.Model
 
 
         private static readonly Regex OldBackupNameFormat = new Regex(@"^(?<name>.+)_(?<timestamp>\d{14})$");
-        private static readonly Regex BackupNameFormat = new Regex(@"^(?<name>.+)_(?<timestamp>\d{4}[A-Za-z]{3}\d{2}_\d{4})_UTC$"); // Backup_2013Apr12_1452_UTC
+        private static readonly Regex BackupNameFormat = new Regex(@"^(?<name>.+)_(?<timestamp>\d{4}[A-Za-z]{3}\d{2}_\d{4}Z)$"); // Backup_2013Apr12_1452Z
         private static DateTimeOffset? ParseTimestamp(string databaseName)
         {
             var match = BackupNameFormat.Match(databaseName);
@@ -54,7 +54,7 @@ namespace NuGetGallery.Operations.Model
         private static DateTimeOffset ParseNewTimestamp(string timestamp)
         {
             return new DateTimeOffset(
-                DateTime.ParseExact(timestamp, "yyyyMMMdd_HHmm", CultureInfo.CurrentCulture),
+                DateTime.ParseExact(timestamp, "yyyyMMMdd_HHmmZ", CultureInfo.CurrentCulture),
                 TimeSpan.Zero);
         }
     }

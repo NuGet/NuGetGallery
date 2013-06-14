@@ -171,6 +171,7 @@ namespace NuGetGallery.Worker
             hostTarget.LineEnding = LineEndingMode.CRLF;
             hostTarget.Encoding = Encoding.UTF8;
             hostTarget.CreateDirs = true;
+            hostTarget.EnableFileDelete = true;
             hostTarget.ArchiveEvery = FileArchivePeriod.Day;
             hostTarget.ArchiveNumbering = ArchiveNumberingMode.Sequence;
             hostTarget.ConcurrentWrites = false;
