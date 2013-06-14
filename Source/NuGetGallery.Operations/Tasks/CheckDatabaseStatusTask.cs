@@ -43,7 +43,7 @@ namespace NuGetGallery.Operations
 
                 if (count < 1)
                 {
-                    throw new InvalidOperationException(string.Format("Count not find {0}", BackupName));
+                    State = -1; // Not present.
                 }
                 if (count > 1)
                 {
