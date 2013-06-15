@@ -147,7 +147,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
-    <Compile Include="Tasks\BackupDatabaseTask.cs" />
+    <Compile Include="Tasks\Backups\BackupDatabaseTask.cs" />
     <Compile Include="Tasks\BackupPackageFileTask.cs" />
     <Compile Include="Tasks\BackupPackagesTask.cs" />
     <Compile Include="CloudBlobExtensions.cs" />
@@ -172,10 +172,11 @@
       <DependentUpon>TaskResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Common\ResourceHelper.cs" />
+    <Compile Include="Tasks\Backups\ExportDailyBackupsTask.cs" />
     <Compile Include="Tasks\BackupWarehouseTask.cs" />
     <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
     <Compile Include="Tasks\CheckBlobCopiesTask.cs" />
-    <Compile Include="Tasks\CleanOnlineDatabaseBackupsTask.cs" />
+    <Compile Include="Tasks\Backups\CleanOnlineDatabaseBackupsTask.cs" />
     <Compile Include="Tasks\CleanTagsTask.cs" />
     <Compile Include="Tasks\CopyBlobsTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />

@@ -55,14 +55,14 @@ namespace NuGetGallery.Worker
                 FileTarget jobLogTarget = new FileTarget()
                 {
                     FileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.log.json"),
-                    ArchiveFileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.${date:YYYY-MM-dd}.{###}.log")
+                    ArchiveFileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.${date:yyyy-MM-dd}.{###}.log")
                 };
                 ConfigureFileTarget(jobLogTarget);
                 config.AddTarget("file", jobLogTarget);
                 FileTarget hostTarget = new FileTarget()
                 {
                     FileName = Path.Combine(logDir, "Host", "Host.log.json"),
-                    ArchiveFileName = Path.Combine(logDir, "Host", "Host.${date:YYYY-MM-dd}.{###}.log")
+                    ArchiveFileName = Path.Combine(logDir, "Host", "Host.${date:yyyy-MM-dd}.{###}.log")
                 };
                 ConfigureFileTarget(hostTarget);
                 config.AddTarget("file", hostTarget);
