@@ -10,20 +10,22 @@ namespace NuGetGallery.Operations.Model
 {
     public class DatabaseBackup
     {
+        public int State { get; private set; }
         public string ServerName { get; private set; }
         public string DatabaseName { get; private set; }
         public DateTimeOffset? Timestamp { get; private set; }
 
-        public DatabaseBackup(string serverName, string databaseName)
-            : this(serverName, databaseName, ParseTimestamp(databaseName))
+        public DatabaseBackup(string serverName, string databaseName, int state)
+            : this(serverName, databaseName, state, ParseTimestamp(databaseName))
         {
         }
 
-        public DatabaseBackup(string serverName, string databaseName, DateTimeOffset? timestamp)
+        public DatabaseBackup(string serverName, string databaseName, int state, DateTimeOffset? timestamp)
         {
+            State = state;
+            Timestamp = timestamp;
             ServerName = serverName;
             DatabaseName = databaseName;
-            Timestamp = timestamp;
         }
 
 

@@ -53,13 +53,16 @@ namespace NuGetGallery.Operations.Tasks
 
                 // Get the list of backups
                 var backups = db.Query<Database>(
-                    "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
+                    "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%'",
                     new { state = Util.OnlineState })
-                    .Select(d => new DatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name))
+                    .Select(d => new DatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
                     .OrderByDescending(b => b.Timestamp);
 
-                // The last 2 are definitely safe
+                // Any currently copying are safe
                 var keepers = new HashSet<string>();
+                keepers.AddRange(backups.Where(b => b.State == Util.CopyingState).Select(b => b.DatabaseName));
+                
+                // The last 2 are definitely safe
                 keepers.AddRange(backups.Take(2).Select(b => b.DatabaseName));
                 Log.Info("Selected most recent two backups: {0}", String.Join(", ", keepers));
 
