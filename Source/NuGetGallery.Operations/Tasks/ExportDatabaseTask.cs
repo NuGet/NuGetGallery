@@ -18,8 +18,6 @@ namespace NuGetGallery.Operations
     [Command("exportdatabase", "Exports a copy of the database to blob storage", AltName = "xdb", MinArgs = 0, MaxArgs = 0)]
     public class ExportDatabaseTask : DatabaseTask
     {
-        private IList<string> _unsanitizedUsers = new List<string>();
-
         [Option("Azure Storage Account in which the exported database should be placed", AltName = "s")]
         public CloudStorageAccount DestinationStorage { get; set; }
 
