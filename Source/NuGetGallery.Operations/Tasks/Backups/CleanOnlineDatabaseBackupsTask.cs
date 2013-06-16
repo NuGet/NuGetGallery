@@ -62,8 +62,8 @@ namespace NuGetGallery.Operations.Tasks
                 var keepers = new HashSet<string>();
                 keepers.AddRange(backups.Where(b => b.State == Util.CopyingState).Select(b => b.DatabaseName));
                 
-                // The last 2 are definitely safe
-                keepers.AddRange(backups.Take(2).Select(b => b.DatabaseName));
+                // The last 2 online databases are definitely safe
+                keepers.AddRange(backups.Where(b => b.State == Util.OnlineState).Take(2).Select(b => b.DatabaseName));
                 Log.Info("Selected most recent two backups: {0}", String.Join(", ", keepers));
 
                 // Group by day, and skip any from today

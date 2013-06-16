@@ -57,11 +57,13 @@ namespace NuGetGallery.Operations.Tasks
                     .Select(d => new DatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
                     .OrderByDescending(b => b.Timestamp);
 
-                // Grab end-of-day backups or sole backups from days before today
+                // Grab end-of-day backups from days before today
                 var dailyBackups = backups
                     .GroupBy(b => b.Timestamp.Value.Date)
                     .Where(g => g.Key < today.Date)
-                    .Select(g => g.OrderByDescending(b => b.Timestamp.Value).Last());
+                    .Select(g => g.OrderByDescending(b => b.Timestamp.Value).Last())
+                    .ToList();
+                Log.Info("Found {0} daily backups to export", dailyBackups.Count);
 
                 // Start exporting them
                 foreach (var dailyBackup in dailyBackups)
