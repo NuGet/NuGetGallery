@@ -75,7 +75,7 @@ namespace NuGetGallery.Operations.Tasks
                 // Keep the last backup from each of the previous two days
                 var dailyBackups = days
                     .Take(2) // Grab the last two days
-                    .Select(day => day.Last()); // The last backup from each day
+                    .Select(day => day.OrderByDescending(b => b.Timestamp.Value).Last()); // The last backup from each day
                 Log.Info("Selected most recent two daily backups: {0}", String.Join(", ", dailyBackups.Select(b => b.DatabaseName)));
 
                 // Verify data

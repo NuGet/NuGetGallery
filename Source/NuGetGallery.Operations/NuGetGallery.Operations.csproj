@@ -139,6 +139,9 @@
     <Compile Include="Infrastructure\IAsyncCompletionTask.cs" />
     <Compile Include="Infrastructure\IDbExecutorFactory.cs" />
     <Compile Include="Infrastructure\ImportExportHelper.cs" />
+    <Compile Include="Infrastructure\JobLog.cs" />
+    <Compile Include="Infrastructure\JobLogBlob.cs" />
+    <Compile Include="Infrastructure\JobLogEntry.cs" />
     <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
     <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
     <Compile Include="Model\DatabaseBackup.cs" />
@@ -193,6 +196,7 @@
     <Compile Include="Tasks\ListDeploymentSettingsTask.cs" />
     <Compile Include="Tasks\LowerCaseAllPackageBlobsTask.cs" />
     <Compile Include="Tasks\IBackupDatabase.cs" />
+    <Compile Include="Tasks\Monitoring\ListJobLogsTask.cs" />
     <Compile Include="Tasks\OpsTask.cs" />
     <Compile Include="Tasks\PopulatePackageFrameworksTask.cs" />
     <Compile Include="Tasks\CurateWebmatrixPackagesTask.cs" />
