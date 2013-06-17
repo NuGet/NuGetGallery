@@ -137,7 +137,7 @@ namespace NuGetGallery.Worker
             });
             config.Directories.DataSources.Add(new DirectoryConfiguration()
             {
-                Container = "wad-worker",
+                Container = "wad-hostlogs",
                 Path = Path.Combine(logDir, "Host"),
                 DirectoryQuotaInMB = 100
             });
