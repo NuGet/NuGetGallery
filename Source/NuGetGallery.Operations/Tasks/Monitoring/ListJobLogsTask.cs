@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using NuGetGallery.Operations.Common;
 using NuGetGallery.Operations.Infrastructure;
 
 namespace NuGetGallery.Operations.Tasks.Monitoring
@@ -23,6 +24,8 @@ namespace NuGetGallery.Operations.Tasks.Monitoring
             {
                 StorageAccount = CurrentEnvironment.BackupStorage;
             }
+
+            ArgCheck.RequiredOrConfig(StorageAccount, "StorageAccount");
         }
 
         public override void ExecuteCommand()
@@ -40,6 +43,7 @@ namespace NuGetGallery.Operations.Tasks.Monitoring
             var joblogs = groups.Select(g => new JobLog(g.Key, g.ToList()));
 
             // List logs!
+            Log.Info("Available Logs: ");
             foreach (var log in joblogs)
             {
                 Log.Info("* {0}", log.JobName);

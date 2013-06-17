@@ -11,7 +11,7 @@ namespace NuGetGallery.Operations.Infrastructure
 {
     public class JobLogBlob
     {
-        private static readonly Regex BlobNameParser = new Regex(@"^(?<deployment>[^/]*)/(?<role>[^/]*)/(?<instance>[^/]*)/(?<job>[^\.]*)(\.(?<timestamp>\d{4}\-\d{2}\-\d{2}))?(\.(?<seq>\d+))?\.json$");
+        private static readonly Regex BlobNameParser = new Regex(@"^(?<deployment>[^/]*)/(?<role>[^/]*)/(?<instance>[^/]*)/(?<job>[^\.]*)(\.(?<timestamp>\d{4}\-\d{2}\-\d{2}))?(\.(?<seq>\d+))?\.log\.json$");
 
         // Bob Lobwlaw's Job Log Blob!
         public CloudBlockBlob Blob { get; private set; }
