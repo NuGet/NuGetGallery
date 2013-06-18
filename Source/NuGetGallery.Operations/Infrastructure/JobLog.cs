@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -42,6 +44,22 @@ namespace NuGetGallery.Operations.Infrastructure
                     yield return entry;
                 }
             }
+        }
+
+        public static IEnumerable<JobLog> LoadJobLogs(CloudStorageAccount account)
+        {
+            // List available blobs in "wad-joblogs" container
+            var client = account.CreateCloudBlobClient();
+            var container = client.GetContainerReference("wad-joblogs");
+            var groups = container
+                .ListBlobs(useFlatBlobListing: true)
+                .OfType<CloudBlockBlob>()
+                .Select(b => new JobLogBlob(b))
+                .GroupBy(b => b.JobName);
+
+            // Create Job Log info
+            var joblogs = groups.Select(g => new JobLog(g.Key, g.ToList()));
+            return joblogs;
         }
 
         private IEnumerable<JobLogEntry> LoadEntries(JobLogBlob logBlob)

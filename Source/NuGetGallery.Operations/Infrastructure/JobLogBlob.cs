@@ -21,6 +21,8 @@ namespace NuGetGallery.Operations.Infrastructure
         
         public JobLogBlob(CloudBlockBlob blob)
         {
+            Blob = blob;
+
             // Parse the name
             var parsed = BlobNameParser.Match(blob.Name);
             if (!parsed.Success)

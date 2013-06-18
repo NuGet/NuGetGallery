@@ -164,7 +164,7 @@ namespace NuGetGallery.Worker
                 "exception: { " +
                 "type: '${exception:format=Type}', " +
                 "message: '${exception:format=Message}', " +
-                "method: '${exception:format=Method}, " +
+                "method: '${exception:format=Method}', " +
                 "stackTrace: '${exception:format=StackTrace}' " +
                 "} " +
             "}";

@@ -197,6 +197,7 @@
     <Compile Include="Tasks\LowerCaseAllPackageBlobsTask.cs" />
     <Compile Include="Tasks\IBackupDatabase.cs" />
     <Compile Include="Tasks\Monitoring\ListJobLogsTask.cs" />
+    <Compile Include="Tasks\Monitoring\TailJobLogTask.cs" />
     <Compile Include="Tasks\OpsTask.cs" />
     <Compile Include="Tasks\PopulatePackageFrameworksTask.cs" />
     <Compile Include="Tasks\CurateWebmatrixPackagesTask.cs" />
