@@ -44,6 +44,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.LoadTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
@@ -65,6 +66,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LoadTests\PackageDownloadTest.cs" />
     <Compile Include="WebUITests\AssertAndValidationHelper.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCommandLineTests.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCoreTests.cs" />
@@ -79,12 +81,13 @@
     <Compile Include="WebUITests\BasicPages\SecurityHeaderTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactOwnerTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactUsAndReportAbuseLinkTest.cs" />
-    <Compile Include="WebUITests\UploadAndDownload\UploadPackageWithMinClientVersionFromUITest.cs" />
+    <Compile Include="WebUITests\UploadDownloadAndSearch\SearchTest.cs" />
+    <Compile Include="WebUITests\UploadDownloadAndSearch\UploadPackageWithMinClientVersionFromUITest.cs" />
     <Compile Include="WebUITests\PackageManagement\DeletePackageTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ManagePackagesPageTest.cs" />
     <Compile Include="WebUITests\ReadOnlyMode\ReadOnlyModeRegisterNewUserTest.cs" />
-    <Compile Include="WebUITests\UploadAndDownload\AggregateStatsAfterDownload.cs" />
-    <Compile Include="WebUITests\UploadAndDownload\UploadPackageFromUI.cs" />
+    <Compile Include="WebUITests\UploadDownloadAndSearch\AggregateStatsAfterDownload.cs" />
+    <Compile Include="WebUITests\UploadDownloadAndSearch\UploadPackageFromUI.cs" />
     <Compile Include="WebUITests\AccountManagement\LogonTest.cs" />
     <Compile Include="WebUITests\BasicPages\PackagesPageTest.cs" />
     <Compile Include="WebUITests\BasicPages\HomePageValidationTest.cs" />
@@ -102,6 +105,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="LoadTests\SearchTest.loadtest">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="LoadTests\PackageDownload.loadtest">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
