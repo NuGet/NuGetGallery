@@ -76,20 +76,20 @@ namespace NuGetGallery.Operations
             };
             
             // Prep the blob
-            var client = DestinationStorage.CreateCloudBlobClient();
-            var container = client.GetContainerReference(DestinationContainer);
-            container.CreateIfNotExists();
-            var blob = container.GetBlockBlobReference(ConnectionString.InitialCatalog + ".bacpac");
-            Log.Info("Starting export to {0}", blob.Uri.AbsoluteUri);
-
-            // Export!
-            string blobUrl = helper.DoExport(blob.Uri.AbsoluteUri, WhatIf);
-
-            Log.Info("*** EXPORT COMPLETE ***");
-            if (!String.IsNullOrEmpty(blobUrl))
+            string blobUrl = null;
+            if (!WhatIf)
             {
-                Log.Info("Output: {0}", blobUrl);
+                var client = DestinationStorage.CreateCloudBlobClient();
+                var container = client.GetContainerReference(DestinationContainer);
+                container.CreateIfNotExists();
+                var blob = container.GetBlockBlobReference(ConnectionString.InitialCatalog + ".bacpac");
+                Log.Info("Starting export to {0}", blob.Uri.AbsoluteUri);
+
+                // Export!
+                blobUrl = helper.DoExport(blob.Uri.AbsoluteUri, WhatIf);
             }
+
+            Log.Info("Export Complete");
         }
     }
 }

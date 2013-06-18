@@ -42,7 +42,8 @@ namespace NuGetGallery.Operations.Tasks
 
         public override void ExecuteCommand()
         {
-            using (var connection = new SqlConnection(ConnectionString.ConnectionString))
+            var cstr = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
+            using (var connection = new SqlConnection(cstr))
             using (var db = new SqlExecutor(connection))
             {
                 connection.Open();
@@ -55,7 +56,8 @@ namespace NuGetGallery.Operations.Tasks
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
                     new { state = Util.OnlineState })
                     .Select(d => new DatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
-                    .OrderByDescending(b => b.Timestamp);
+                    .OrderByDescending(b => b.Timestamp)
+                    .ToList();
 
                 // Grab end-of-day backups from days before today
                 var dailyBackups = backups
@@ -81,7 +83,8 @@ namespace NuGetGallery.Operations.Tasks
                         DestinationStorage = StorageAccount,
                         DatabaseName = dailyBackup.DatabaseName,
                         DestinationContainer = "database-backups",
-                        SqlDacEndpoint = SqlDacEndpoint
+                        SqlDacEndpoint = SqlDacEndpoint,
+                        WhatIf = WhatIf
                     }).Execute();
                 }
             }

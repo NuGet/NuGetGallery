@@ -21,6 +21,8 @@ if(Test-Path $SDKParent) {
 
 if(!$AzureSDKRoot) {
 	Write-Warning "Couldn't find the Azure SDK. Some commands may not work."
+} else {
+	Write-Host "Using Azure SDK at: $AzureSDKRoot"
 }
 
 # Check for v0.2 level environment scripts

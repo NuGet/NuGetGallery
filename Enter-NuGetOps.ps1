@@ -23,9 +23,10 @@ if($EnvironmentList) {
 }
 
 if(!$env:NUGET_OPS_ENVIRONMENTS) {
+	$msftNuGetShare = "\\nuget\nuget\Share\Environments\Environments.xml"
 	# Defaults for Microsoft CorpNet. If you're outside CorpNet, you'll have to VPN in. Of course, if you're hosting your own gallery, you have to build your own scripts :P
-	if([Environment]::UserDomainName -and ($MsftDomainNames -contains [Environment]::UserDomainName) -and (Test-Path "\\nuget\Environments\Environments.xml")) {
-		$env:NUGET_OPS_ENVIRONMENTS = "\\nuget\Environments\Environments.xml"
+	if([Environment]::UserDomainName -and ($MsftDomainNames -contains [Environment]::UserDomainName) -and (Test-Path $msftNuGetShare)) {
+		$env:NUGET_OPS_ENVIRONMENTS = $msftNuGetShare
 	}
 	else {
 		Write-Warning "NUGET_OPS_ENVIRONMENTS is not set. Either set it, or pass the path to an Environments.xml file in the -EnvironmentList parameter"

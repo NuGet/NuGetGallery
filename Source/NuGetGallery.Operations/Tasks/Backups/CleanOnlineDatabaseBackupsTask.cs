@@ -56,7 +56,8 @@ namespace NuGetGallery.Operations.Tasks
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%'",
                     new { state = Util.OnlineState })
                     .Select(d => new DatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
-                    .OrderByDescending(b => b.Timestamp);
+                    .OrderByDescending(b => b.Timestamp)
+                    .ToList();
 
                 // Any currently copying are safe
                 var keepers = new HashSet<string>();
