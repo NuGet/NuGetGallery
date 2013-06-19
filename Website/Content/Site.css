@@ -1006,6 +1006,31 @@ ul.pager li.next { padding-left: 10px; }
 
 .sexy-table tfoot tr { border-top: 2px solid #333; }
 
+
+    /* Pivot Table */
+
+.pivot-table {
+    border-collapse: collapse;
+    font-size: 1.1em;
+}
+
+        /* header */
+
+.pivot-table thead tr { border-bottom: solid 1px #333; }
+
+.pivot-table th {
+    font-size: 1.25em;
+    font-weight: normal;
+    padding: 5px 15px 0px 0px;
+    text-align: left;
+}
+
+        /* body */
+
+.pivot-table tbody tr { margin-bottom: 10px; }
+
+.pivot-table tbody td { padding: 5px 25px 5px 0; }
+
     /* statistics */
 
 .statistics-layout {
