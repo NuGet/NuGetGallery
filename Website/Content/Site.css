@@ -1008,6 +1008,11 @@ ul.pager li.next { padding-left: 10px; }
 
     /* statistics */
 
+.statistics-report-title {
+    font-size: 1.8em;
+    margin-bottom: 4px;
+}
+
 .statistics-layout {
     width:400px;
     float:left;
