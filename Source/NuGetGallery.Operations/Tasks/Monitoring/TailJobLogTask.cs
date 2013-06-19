@@ -61,7 +61,7 @@ namespace NuGetGallery.Operations.Tasks.Monitoring
         {
             var evt = new LogEventInfo() {
                 LoggerName = log.JobName,
-                Level = (LogLevel)Enum.Parse(typeof(LogLevel), entry.Level),
+                Level = LogLevel.FromString(entry.Level),
                 Message = entry.Message,
                 TimeStamp = entry.Date
             };

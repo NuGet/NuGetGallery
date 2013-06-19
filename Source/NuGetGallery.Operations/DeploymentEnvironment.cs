@@ -24,11 +24,11 @@ namespace NuGetGallery.Operations
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
         {
             Settings = deploymentSettings;
-            MainDatabase = GetSqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Primary"]);
-            WarehouseDatabase = GetSqlConnectionStringBuilder(deploymentSettings["Operations.Sql.Warehouse"]);
+            MainDatabase = GetSqlConnectionStringBuilder("Operations.Sql.Primary");
+            WarehouseDatabase = GetSqlConnectionStringBuilder("Operations.Sql.Warehouse");
 
-            MainStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Primary"]);
-            BackupStorage = CloudStorageAccount.Parse(deploymentSettings["Operations.Storage.Backups"]);
+            MainStorage = GetCloudStorageAccount("Operations.Storage.Primary");
+            BackupStorage = GetCloudStorageAccount("Operations.Storage.Backup");
 
             SqlDacEndpoint = Get("Operations.SqlDac", str => new Uri(str, UriKind.Absolute));
         }

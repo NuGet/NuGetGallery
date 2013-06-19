@@ -34,13 +34,34 @@ if($EnvironmentsList -and (Test-Path $EnvironmentsList)) {
 		$x.environments.environment | ForEach-Object {
 			$Environments[$_.name] = New-Object PSCustomObject
 			Add-Member -NotePropertyMembers @{
-				Version = 0.2;
+				Version = $NuGetOpsVersion;
 				Name = $_.name;
 				Protected = $_.protected -and ([String]::Equals($_.protected, "true", "OrdinalIgnoreCase"));
-				Service = $_.service;
-				Worker = $_.worker;
+				Frontend = $_.frontend;
+				Backend = $_.backend;
 				Subscription = $_.subscription
 			} -InputObject $Environments[$_.name]
+		}
+
+		$subsXml = Join-Path (Split-Path -Parent $EnvironmentsList) "Subscriptions.xml"
+		if(Test-Path $subsXml) {
+			$x = [xml](cat $subsXml)
+			$Global:Subscriptions = @{};
+			$x.subscriptions.subscription | ForEach-Object {
+				$Subscriptions[$_.name] = New-Object PSCustomObject
+				Add-Member -NotePropertyMembers @{
+					Version = $NuGetOpsVersion;
+					Id = $_.id;
+					Name = $_.name
+				} -InputObject $Subscriptions[$_.name]
+			}
+
+			$Environments.Keys | foreach {
+				$sub = $Environments[$_].Subscription
+				if($Subscriptions[$sub] -ne $null) {
+					$Environments[$_].Subscription = $Subscriptions[$sub];
+				}
+			}
 		}
 	} else {
 		throw "Your Environments are old and busted. Upgrade to the new hotness!`r`nhttps://github.com/NuGet/NuGetOperations/wiki/Setting-up-the-Operations-Console"
