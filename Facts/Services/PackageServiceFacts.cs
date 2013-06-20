@@ -118,7 +118,14 @@ namespace NuGetGallery
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
 
-                service.AddDownloadStatistics(package, "::1", "Unit Test", null);
+                service.AddDownloadStatistics(
+                    new PackageStatistics
+                    {
+                        Package = package,
+                        IPAddress = "::1",
+                        UserAgent = "Unit Test",
+                        Operation = "Test Download",
+                    });
 
                 packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package && p.UserAgent == "Unit Test")));
                 packageStatsRepo.Verify(x => x.CommitChanges());
@@ -134,7 +141,12 @@ namespace NuGetGallery
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
 
-                service.AddDownloadStatistics(package, "::1", "Unit Test", null);
+                service.AddDownloadStatistics(new PackageStatistics
+                {
+                    Package = package,
+                    IPAddress = "::1",
+                    UserAgent = "Unit Test",
+                });
 
                 packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.IPAddress == "unknown")));
                 packageStatsRepo.Verify(x => x.CommitChanges());
@@ -147,7 +159,11 @@ namespace NuGetGallery
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
 
-                service.AddDownloadStatistics(package, null, null, null);
+                service.AddDownloadStatistics(
+                    new PackageStatistics
+                    {
+                        Package = package,
+                    });
 
                 packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package)));
                 packageStatsRepo.Verify(x => x.CommitChanges());
@@ -1592,12 +1608,24 @@ namespace NuGetGallery
             public void RemovesPackageOwner()
             {
                 var service = CreateService();
-                var owner = new User();
-                var package = new PackageRegistration { Owners = new List<User> { owner } };
+                var owner1 = new User { Key = 1, Username = "Owner1" };
+                var owner2 = new User { Key = 2, Username = "Owner2" };
+                var package = new PackageRegistration { Owners = new List<User> { owner1, owner2 } };
 
-                service.RemovePackageOwner(package, owner);
+                service.RemovePackageOwner(package, owner1);
 
-                Assert.DoesNotContain(owner, package.Owners);
+                Assert.DoesNotContain(owner1, package.Owners);
+            }
+
+            [Fact]
+            public void WontRemoveLastOwner()
+            {
+                var service = CreateService();
+                var singleOwner = new User { Key = 1, Username = "Owner" };
+                var package = new PackageRegistration { Owners = new List<User> { singleOwner } };
+
+                Assert.Throws<InvalidOperationException>(
+                    () => service.RemovePackageOwner(package, singleOwner));
             }
 
             [Fact]

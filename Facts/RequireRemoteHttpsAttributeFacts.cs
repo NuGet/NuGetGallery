@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 using Xunit.Extensions;
 
@@ -13,7 +14,7 @@ namespace NuGetGallery
         {
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
-            var mockConfig = new Mock<IConfiguration>();
+            var mockConfig = new Mock<IAppConfiguration>();
             var mockFormsAuth = new Mock<IFormsAuthenticationService>();
             mockConfig.Setup(cfg => cfg.RequireSSL).Returns(false);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsSecureConnection).Returns(false);
@@ -37,7 +38,7 @@ namespace NuGetGallery
         {
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
-            var mockConfig = new Mock<IConfiguration>();
+            var mockConfig = new Mock<IAppConfiguration>();
             var mockFormsAuth = new Mock<IFormsAuthenticationService>();
             mockConfig.Setup(cfg => cfg.RequireSSL).Returns(true);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsSecureConnection).Returns(true);
@@ -59,7 +60,7 @@ namespace NuGetGallery
         {
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
-            var mockConfig = new Mock<IConfiguration>();
+            var mockConfig = new Mock<IAppConfiguration>();
             var mockFormsAuth = new Mock<IFormsAuthenticationService>();
             mockConfig.Setup(cfg => cfg.RequireSSL).Returns(true);
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsSecureConnection).Returns(false);
@@ -95,7 +96,7 @@ namespace NuGetGallery
         {
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
-            var mockConfig = new Mock<IConfiguration>();
+            var mockConfig = new Mock<IAppConfiguration>();
             var mockFormsAuth = new Mock<IFormsAuthenticationService>();
 
             mockAuthContext.SetupGet(c => c.HttpContext.Request.HttpMethod).Returns("get");
@@ -157,7 +158,7 @@ namespace NuGetGallery
         {
             // Arrange
             var mockAuthContext = new Mock<AuthorizationContext>(MockBehavior.Strict);
-            var mockConfig = new Mock<IConfiguration>();
+            var mockConfig = new Mock<IAppConfiguration>();
             var mockFormsAuth = new Mock<IFormsAuthenticationService>();
 
             mockAuthContext.SetupGet(c => c.HttpContext.Request.IsLocal).Returns(false);

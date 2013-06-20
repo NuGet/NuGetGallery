@@ -89,8 +89,12 @@
     <Reference Include="Glimpse.Mvc4">
       <HintPath>..\packages\Glimpse.Mvc4.1.2.0\lib\net40\Glimpse.Mvc4.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Lucene.Net">
-      <HintPath>..\packages\Lucene.Net.2.9.2.2\lib\net40\Lucene.Net.dll</HintPath>
+      <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -253,6 +257,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Admin.ConfigController.generated.cs">
+      <DependentUpon>T4MVC.tt</DependentUpon>
+    </Compile>
     <Compile Include="Admin.HomeController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -268,6 +275,11 @@
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
     <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
     <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
+    <Compile Include="Areas\Admin\Controllers\ConfigController.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ConfigViewModel.cs" />
+    <Compile Include="Configuration\ConfigurationService.cs" />
+    <Compile Include="Configuration\MailAddressConverter.cs" />
+    <Compile Include="Configuration\SmtpUri.cs" />
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -276,7 +288,7 @@
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\NinjectGlimpseServiceLocator.cs" />
-    <Compile Include="App_Start\PackageStoreType.cs" />
+    <Compile Include="Configuration\StorageType.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
     <Compile Include="Areas\Admin\Controllers\AdminControllerBase.cs" />
     <Compile Include="Areas\Admin\Controllers\HomeController.cs" />
@@ -745,13 +757,17 @@
     <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.cs" />
-    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.Designer.cs">
-      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.cs" />
     <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.Designer.cs">
       <DependentUpon>201304091828587_Contract_UniqueCuratedPackages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201306031734581_WidenStatisticsOperationColumn.cs" />
+    <Compile Include="Migrations\201306031734581_WidenStatisticsOperationColumn.Designer.cs">
+      <DependentUpon>201306031734581_WidenStatisticsOperationColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.cs" />
+    <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.Designer.cs">
+      <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -773,7 +789,6 @@
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
-    <Compile Include="Services\CloudCacheService.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
@@ -870,7 +885,7 @@
     <Compile Include="Services\IPackageService.cs" />
     <Compile Include="Services\PackageService.cs" />
     <Compile Include="Entities\PackageDependency.cs" />
-    <Compile Include="App_Start\Configuration.cs" />
+    <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="App_Start\Container.cs" />
     <Compile Include="App_Start\ContainerBindings.cs" />
@@ -878,7 +893,7 @@
     <Compile Include="Entities\EntityException.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
-    <Compile Include="App_Start\IConfiguration.cs" />
+    <Compile Include="Configuration\IAppConfiguration.cs" />
     <Compile Include="Entities\IEntity.cs" />
     <Compile Include="Services\IFormsAuthenticationService.cs" />
     <Compile Include="Services\IPackageFileService.cs" />
@@ -1123,8 +1138,11 @@
     <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.resx">
-      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201306031734581_WidenStatisticsOperationColumn.resx">
+      <DependentUpon>201306031734581_WidenStatisticsOperationColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201306031754328_SupportNewClientHeaders.resx">
+      <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
@@ -1149,6 +1167,7 @@
     <Content Include="Areas\Admin\Views\Lucene\Index.cshtml">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
     <None Include="T4MVC.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>T4MVC.cs</LastGenOutput>

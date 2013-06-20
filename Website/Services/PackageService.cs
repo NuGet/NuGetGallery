@@ -154,11 +154,35 @@ namespace NuGetGallery
 
         public IEnumerable<Package> FindPackagesByOwner(User user)
         {
-            return (from pr in _packageRegistrationRepository.GetAll()
-                    from u in pr.Owners
-                    where u.Username == user.Username
-                    from p in pr.Packages
-                    select p).Include(p => p.PackageRegistration).ToList();
+            // Like DisplayPackage we should prefer to show you information from the latest stable version,
+            // but show you the latest version otherwise.
+
+            var latestStablePackageVersions = _packageRegistrationRepository.GetAll()
+                .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
+                .Select(pr => pr.Packages.Where(p => p.IsLatestStable).FirstOrDefault())
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners);
+
+            var latestPackageVersions = _packageRegistrationRepository.GetAll()
+                .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
+                .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners);
+
+            var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
+            foreach (var package in latestPackageVersions)
+            {
+                mergedResults.Add(package.PackageRegistration.Id, package);
+            }
+            foreach (var package in latestStablePackageVersions)
+            {
+                if (package != null)
+                {
+                    mergedResults[package.PackageRegistration.Id] = package;
+                }
+            }
+
+            return mergedResults.Values;
         }
 
         public IEnumerable<Package> FindDependentPackages(Package package)
@@ -207,21 +231,12 @@ namespace NuGetGallery
             }
         }
 
-        public void AddDownloadStatistics(Package package, string userHostAddress, string userAgent, string operation)
+        public void AddDownloadStatistics(PackageStatistics stats)
         {
-            _packageStatsRepository.InsertOnCommit(
-                new PackageStatistics
-                    {
-                        // IMPORTANT: Timestamp is managed by the database.
-
-                        // IMPORTANT: Until we understand privacy implications of storing IP Addresses thoroughly,
-                        // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
-                        IPAddress = "unknown",
-                        UserAgent = userAgent,
-                        Package = package,
-                        Operation = operation
-                    });
-
+            // IMPORTANT: Until we understand privacy implications of storing IP Addresses thoroughly,
+            // It's better to just not store them. Hence "unknown". - Phil Haack 10/6/2011
+            stats.IPAddress = "unknown";
+            _packageStatsRepository.InsertOnCommit(stats);
             _packageStatsRepository.CommitChanges();
         }
 
@@ -240,6 +255,11 @@ namespace NuGetGallery
 
         public void RemovePackageOwner(PackageRegistration package, User user)
         {
+            if (package.Owners.Count == 1 && user == package.Owners.Single())
+            {
+                throw new InvalidOperationException("You can't remove the only owner from a package.");
+            }
+
             var pendingOwner = FindExistingPackageOwnerRequest(package, user);
             if (pendingOwner != null)
             {
