@@ -59,5 +59,15 @@ namespace NuGetGallery.Operations.Model
                 DateTime.ParseExact(timestamp, "yyyyMMMdd_HHmm", CultureInfo.CurrentCulture),
                 TimeSpan.Zero);
         }
+
+        public override string ToString()
+        {
+            return ServerName + "." + DatabaseName;
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 }

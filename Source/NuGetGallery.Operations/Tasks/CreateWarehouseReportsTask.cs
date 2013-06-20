@@ -14,7 +14,7 @@ using NuGetGallery.Operations.Common;
 namespace NuGetGallery.Operations
 {
     [Command("createwarehousereports", "Create warehouse reports", AltName = "cwrep")]
-    public class CreateWarehouseReportsTask : ReportsTask
+    public class CreateWarehouseReportsTask : DatabaseAndStorageTask
     {
         private const string JsonContentType = "application/json";
         private const string PackageReportBaseName = "recentpopularity_";
@@ -495,7 +495,7 @@ namespace NuGetGallery.Operations
 
         private void CreateContainerIfNotExists()
         {
-            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
+            CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("stats");
             
             container.CreateIfNotExists();  // this can throw if the container was just deleted a few seconds ago
@@ -505,7 +505,7 @@ namespace NuGetGallery.Operations
 
         private Uri CreateBlob(string name, string contentType, Stream content)
         {
-            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
+            CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("stats");
             CloudBlockBlob blockBlob = container.GetBlockBlobReference("popularity/" + name);
 

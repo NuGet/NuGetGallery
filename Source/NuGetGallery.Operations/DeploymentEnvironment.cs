@@ -16,7 +16,6 @@ namespace NuGetGallery.Operations
         public SqlConnectionStringBuilder WarehouseDatabase { get; private set; }
         
         public CloudStorageAccount MainStorage { get; private set; }
-        public CloudStorageAccount ReportStorage { get; private set; }
         public CloudStorageAccount BackupStorage { get; private set; }
 
         public Uri SqlDacEndpoint { get; private set; }
