@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using NuGet;
@@ -92,7 +93,7 @@ namespace NuGetGallery
                 }
 
                 Debug.Assert(part[0] == '/');
-                yield return part.Substring(1);
+                yield return part.Substring(1).Replace('/', Path.DirectorySeparatorChar);
             }
         }
 
@@ -229,7 +230,7 @@ namespace NuGetGallery
             foreach (var file in GetFiles())
             {
                 string effectivePath;
-                var frameworkName = VersionUtility.ParseFrameworkNameFromFilePath(file, out effectivePath);
+                var frameworkName = VersionUtility.ParseFrameworkNameFromFilePath(WebUtility.UrlDecode(file), out effectivePath);
                 if (frameworkName != null)
                 {
                     fileFrameworks.Add(frameworkName);

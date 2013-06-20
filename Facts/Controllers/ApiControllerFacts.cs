@@ -427,7 +427,7 @@ namespace NuGetGallery
                 var actionResult = new EmptyResult();
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.1", false)).Returns(package);
-                packageService.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux", "Install")).Verifiable();
+                packageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
 
                 var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
                 packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, package))
@@ -508,7 +508,7 @@ namespace NuGetGallery
                 var actionResult = new EmptyResult();
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "", false)).Returns(package);
-                packageService.Setup(x => x.AddDownloadStatistics(package, "Foo", "Qux", "Install")).Verifiable();
+                packageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
 
                 var packageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
                 packageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, package))

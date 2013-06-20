@@ -118,7 +118,14 @@ namespace NuGetGallery
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
 
-                service.AddDownloadStatistics(package, "::1", "Unit Test", null);
+                service.AddDownloadStatistics(
+                    new PackageStatistics
+                    {
+                        Package = package,
+                        IPAddress = "::1",
+                        UserAgent = "Unit Test",
+                        Operation = "Test Download",
+                    });
 
                 packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package && p.UserAgent == "Unit Test")));
                 packageStatsRepo.Verify(x => x.CommitChanges());
@@ -134,7 +141,12 @@ namespace NuGetGallery
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
 
-                service.AddDownloadStatistics(package, "::1", "Unit Test", null);
+                service.AddDownloadStatistics(new PackageStatistics
+                {
+                    Package = package,
+                    IPAddress = "::1",
+                    UserAgent = "Unit Test",
+                });
 
                 packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.IPAddress == "unknown")));
                 packageStatsRepo.Verify(x => x.CommitChanges());
@@ -147,7 +159,11 @@ namespace NuGetGallery
                 var service = CreateService(packageStatsRepo: packageStatsRepo);
                 var package = new Package();
 
-                service.AddDownloadStatistics(package, null, null, null);
+                service.AddDownloadStatistics(
+                    new PackageStatistics
+                    {
+                        Package = package,
+                    });
 
                 packageStatsRepo.Verify(x => x.InsertOnCommit(It.Is<PackageStatistics>(p => p.Package == package)));
                 packageStatsRepo.Verify(x => x.CommitChanges());
