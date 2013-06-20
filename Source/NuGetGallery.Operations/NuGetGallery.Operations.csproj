@@ -145,7 +145,8 @@
     <Compile Include="Infrastructure\JobLogEntry.cs" />
     <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
     <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
-    <Compile Include="Model\DatabaseBackup.cs" />
+    <Compile Include="Model\OfflineDatabaseBackup.cs" />
+    <Compile Include="Model\OnlineDatabaseBackup.cs" />
     <Compile Include="Service References\SqlDac\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -176,7 +177,9 @@
       <DependentUpon>TaskResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Common\ResourceHelper.cs" />
+    <Compile Include="Tasks\Backups\CleanOfflineDatabaseBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ExportDailyBackupsTask.cs" />
+    <Compile Include="Tasks\Backups\ListOfflineDatabaseBackupsTask.cs" />
     <Compile Include="Tasks\BackupWarehouseTask.cs" />
     <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
     <Compile Include="Tasks\CheckBlobCopiesTask.cs" />

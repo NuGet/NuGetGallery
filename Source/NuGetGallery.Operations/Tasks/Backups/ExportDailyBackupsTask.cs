@@ -55,7 +55,7 @@ namespace NuGetGallery.Operations.Tasks
                 var backups = db.Query<Database>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
                     new { state = Util.OnlineState })
-                    .Select(d => new DatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
+                    .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
                     .OrderByDescending(b => b.Timestamp)
                     .ToList();
 

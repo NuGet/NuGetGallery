@@ -8,19 +8,19 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.Operations.Model
 {
-    public class DatabaseBackup
+    public class OnlineDatabaseBackup
     {
         public int State { get; private set; }
         public string ServerName { get; private set; }
         public string DatabaseName { get; private set; }
         public DateTimeOffset? Timestamp { get; private set; }
 
-        public DatabaseBackup(string serverName, string databaseName, int state)
+        public OnlineDatabaseBackup(string serverName, string databaseName, int state)
             : this(serverName, databaseName, state, ParseTimestamp(databaseName))
         {
         }
 
-        public DatabaseBackup(string serverName, string databaseName, int state, DateTimeOffset? timestamp)
+        public OnlineDatabaseBackup(string serverName, string databaseName, int state, DateTimeOffset? timestamp)
         {
             State = state;
             Timestamp = timestamp;

@@ -29,5 +29,10 @@ namespace NuGetGallery.Operations
         {
             return frameworkName == null ? null : VersionUtility.GetShortFrameworkName(frameworkName);
         }
+
+        public static string ToFriendlyDateTimeString(this DateTime self)
+        {
+            return self.ToString("yyyy-MM-dd h:mm tt");
+        }
     }
 }

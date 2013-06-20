@@ -26,23 +26,18 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            var dbServer = ConnectionString.DataSource;
-            var dbName = ConnectionString.InitialCatalog;
-            var masterConnectionString = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
-
-            Log.Trace("Connecting to server '{0}' to back up database '{1}'.", dbServer, dbName);
+            Log.Trace("Connecting to server '{0}' to back up database '{1}'.", DatabaseName, ServerName);
 
             _startedBackup = false;
 
-            using (var sqlConnection = new SqlConnection(masterConnectionString))
-            using (var dbExecutor = new SqlExecutor(sqlConnection))
+            WithMasterConnection((connection, db) =>
             {
-                sqlConnection.Open();
+                connection.Open();
 
                 if (!Force)
                 {
                     Log.Trace("Checking for a backup in progress.");
-                    if (Util.BackupIsInProgress(dbExecutor))
+                    if (Util.BackupIsInProgress(db))
                     {
                         Log.Trace("Found a backup in progress; exiting.");
                         return;
@@ -51,7 +46,7 @@ namespace NuGetGallery.Operations
                     Log.Trace("Found no backup in progress.");
 
                     Log.Trace("Getting last backup time.");
-                    var lastBackupTime = Util.GetLastBackupTime(dbExecutor);
+                    var lastBackupTime = Util.GetLastBackupTime(db);
                     if (lastBackupTime >= DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(IfOlderThan)))
                     {
                         Log.Info("Skipping Backup. Last Backup was less than {0} minutes ago", IfOlderThan);
@@ -74,12 +69,12 @@ namespace NuGetGallery.Operations
 
                 if (!WhatIf)
                 {
-                    dbExecutor.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", BackupName, dbName));
+                    db.Execute(string.Format("CREATE DATABASE {0} AS COPY OF {1}", BackupName, DatabaseName));
                     _startedBackup = true;
                 }
 
-                Log.Info("Started Copy of '{0}' to '{1}'", dbName, BackupName);
-            }
+                Log.Info("Started Copy of '{0}' to '{1}'", DatabaseName, BackupName);
+            });
         }
 
         public TimeSpan RecommendedPollingPeriod
