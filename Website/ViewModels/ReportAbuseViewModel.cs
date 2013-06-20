@@ -36,7 +36,7 @@ namespace NuGetGallery
         [Required(ErrorMessage = "Please enter your email address.")]
         [StringLength(4000)]
         [Display(Name = "Your Email Address")]
-        [DataType(DataType.EmailAddress)]
+        //[DataType(DataType.EmailAddress)] - does not work with client side validation
         [RegularExpression(RegisterRequest.EmailValidationRegex,
             ErrorMessage = "This doesn't appear to be a valid email address.")]
         public string Email { get; set; }
