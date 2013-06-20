@@ -757,13 +757,17 @@
     <Compile Include="Migrations\201304251927587_UserCreatedDate.Designer.cs">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.cs" />
-    <Compile Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.Designer.cs">
-      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.cs" />
     <Compile Include="Migrations\201304091828587_Contract_UniqueCuratedPackages.Designer.cs">
       <DependentUpon>201304091828587_Contract_UniqueCuratedPackages.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201306031734581_WidenStatisticsOperationColumn.cs" />
+    <Compile Include="Migrations\201306031734581_WidenStatisticsOperationColumn.Designer.cs">
+      <DependentUpon>201306031734581_WidenStatisticsOperationColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.cs" />
+    <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.Designer.cs">
+      <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1134,8 +1138,11 @@
     <EmbeddedResource Include="Migrations\201304251927587_UserCreatedDate.resx">
       <DependentUpon>201304251927587_UserCreatedDate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201304262247205_CuratedPackagesUniqueIndex.resx">
-      <DependentUpon>201304262247205_CuratedPackagesUniqueIndex.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201306031734581_WidenStatisticsOperationColumn.resx">
+      <DependentUpon>201306031734581_WidenStatisticsOperationColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201306031754328_SupportNewClientHeaders.resx">
+      <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
