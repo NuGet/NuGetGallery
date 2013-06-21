@@ -16,5 +16,7 @@ namespace NuGetGallery
 
         public ICollection<StatisticsPivot.TableEntry[]> Table { get; set; }
         public IEnumerable<string> Columns { get; set; }
+
+        public string Id { get; set; }
     }
 }

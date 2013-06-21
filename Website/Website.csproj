@@ -841,6 +841,8 @@
     </Compile>
     <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
+    <Compile Include="ViewModels\StatisticsMonthlyUsageItem.cs" />
+    <Compile Include="ViewModels\StatisticsNuGetUsageItem.cs" />
     <Compile Include="ViewModels\StatisticsFact.cs" />
     <Compile Include="ViewModels\StatisticsPivot.cs" />
     <Compile Include="ViewModels\StatisticsDimension.cs" />
@@ -1046,6 +1048,7 @@
     <Content Include="Content\SyntaxHighlighter\shThemeMDUltra.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeMidnight.css" />
     <Content Include="Content\SyntaxHighlighter\shThemeRDark.css" />
+    <Content Include="D3 LICENSE.txt" />
     <Content Include="DataServices\V2CuratedFeed.svc" />
     <Content Include="DataServices\V1Feed.svc" />
     <Content Include="DataServices\V2Feed.svc" />
@@ -1054,6 +1057,11 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
     <Content Include="robots.txt" />
+    <Content Include="Scripts\perpackagestatsgraphs.js" />
+    <Content Include="Scripts\modernizr-2.6.2.js" />
+    <Content Include="Scripts\statsgraphs.js" />
+    <Content Include="Scripts\d3.v3.js" />
+    <Content Include="Scripts\d3.v3.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\nugetgallery.js" />
@@ -1069,7 +1077,6 @@
     <Content Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
-    <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\ZeroClipboard.js" />
     <Content Include="Scripts\ZeroClipboard.swf" />
     <Content Include="Web.config">

@@ -52,13 +52,49 @@ namespace NuGetGallery
                 }
             };
 
+            JArray report3 = new JArray
+            {
+                new JObject
+                {
+                    { "ClientMajorVersion", 0 },
+                    { "ClientMinorVersion", 0 },
+                    { "Downloads", 1349 }
+                },
+                new JObject
+                {
+                    { "ClientMajorVersion", 1 },
+                    { "ClientMinorVersion", 0 },
+                    { "Downloads", 1349 }
+                }
+            };
+
+            JArray report4 = new JArray
+            {
+                new JObject
+                {
+                    { "Year", 2012 },
+                    { "MonthOfYear", 11 },
+                    { "Downloads", 5383767 }
+                },
+                new JObject
+                {
+                    { "Year", 2012 },
+                    { "MonthOfYear", 12 },
+                    { "Downloads", 5383767 }
+                }
+            };
+
             var fakePackageReport = report1.ToString();
             var fakePackageVersionReport = report2.ToString();
+            var fakeNuGetClientVersion = report3.ToString();
+            var fakeLast6Months = report4.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
             fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
             fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+            fakeReportService.Setup(x => x.Load("NuGetClientVersion.json")).Returns(Task.FromResult(fakeNuGetClientVersion));
+            fakeReportService.Setup(x => x.Load("Last6Months.json")).Returns(Task.FromResult(fakeLast6Months));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -124,13 +160,49 @@ namespace NuGetGallery
                 }
             };
 
+            JArray report3 = new JArray
+            {
+                new JObject
+                {
+                    { "ClientMajorVersion", 0 },
+                    { "ClientMinorVersion", 0 },
+                    { "Downloads", 1349 }
+                },
+                new JObject
+                {
+                    { "ClientMajorVersion", 1 },
+                    { "ClientMinorVersion", 0 },
+                    { "Downloads", 1349 }
+                }
+            };
+
+            JArray report4 = new JArray
+            {
+                new JObject
+                {
+                    { "Year", 2012 },
+                    { "MonthOfYear", 11 },
+                    { "Downloads", 5383767 }
+                },
+                new JObject
+                {
+                    { "Year", 2012 },
+                    { "MonthOfYear", 12 },
+                    { "Downloads", 5383767 }
+                }
+            };
+
             var fakePackageReport = report1.ToString();
             var fakePackageVersionReport = report2.ToString();
+            var fakeNuGetClientVersion = report3.ToString();
+            var fakeLast6Months = report4.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
             fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
             fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+            fakeReportService.Setup(x => x.Load("NuGetClientVersion.json")).Returns(Task.FromResult(fakeNuGetClientVersion));
+            fakeReportService.Setup(x => x.Load("Last6Months.json")).Returns(Task.FromResult(fakeLast6Months));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 

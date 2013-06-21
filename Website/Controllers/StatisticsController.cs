@@ -52,6 +52,11 @@ namespace NuGetGallery
 
         private CultureInfo DetermineClientLocale()
         {
+            if (Request == null)
+            {
+                return null;
+            }
+
             string[] languages = Request.UserLanguages;
             if (languages == null)
             {
@@ -69,7 +74,6 @@ namespace NuGetGallery
                 {
                 }
             }
-
 
             foreach (string language in languages)
             {
@@ -100,15 +104,27 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            bool[] availablity = await Task.WhenAll(_statisticsService.LoadDownloadPackages(), _statisticsService.LoadDownloadPackageVersions());
+            bool[] availablity = await Task.WhenAll(
+                _statisticsService.LoadDownloadPackages(), 
+                _statisticsService.LoadDownloadPackageVersions(),
+                _statisticsService.LoadNuGetClientVersion(),
+                _statisticsService.LoadLast6Months());
 
             var model = new StatisticsPackagesViewModel
             {
                 IsDownloadPackageAvailable = availablity[0],
                 DownloadPackagesSummary = _statisticsService.DownloadPackagesSummary,
                 IsDownloadPackageDetailAvailable = availablity[1],
-                DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary
+                DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary,
+                IsNuGetClientVersionAvailable = availablity[2],
+                NuGetClientVersion = _statisticsService.NuGetClientVersion,
+                IsLast6MonthsAvailable = availablity[3],
+                Last6Months = _statisticsService.Last6Months,
             };
+
+            model.ClientCulture = DetermineClientLocale();
+
+            model.Update();
 
             return View(model);
         }
@@ -169,6 +185,8 @@ namespace NuGetGallery
 
             ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
 
+            report.Id = MakeReportId(groupby);
+
             StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
 
             model.SetPackageDownloadsByVersion(id, report);
@@ -189,6 +207,8 @@ namespace NuGetGallery
             StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
             ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });
+
+            report.Id = MakeReportId(groupby);
 
             var model = new StatisticsPackagesViewModel();
 
@@ -291,6 +311,19 @@ namespace NuGetGallery
                 default:
                     return name;
             }
+        }
+
+        private static string MakeReportId(string[] groupby)
+        {
+            string graphId = "report-";
+            if (groupby != null)
+            {
+                foreach (string g in groupby)
+                {
+                    graphId += g;
+                }
+            }
+            return graphId;
         }
     }
 }
