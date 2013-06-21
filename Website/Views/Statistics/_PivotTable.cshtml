@@ -6,17 +6,10 @@
             {
                 <tr>
                     <td>
-                        @item.DisplayName
+                        <label for="checkbox-@item.Value">@item.DisplayName</label>
                     </td>
                     <td>
-                        @if (item.IsChecked)
-                        {
-                            <input class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox" checked>
-                        }
-                        else
-                        {
-                            <input class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox">
-                        }
+                        <input id="checkbox-@item.Value" class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox" checked="@item.IsChecked">
                     </td>
                 </tr>
             }
