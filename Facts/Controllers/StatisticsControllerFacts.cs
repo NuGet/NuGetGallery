@@ -414,45 +414,6 @@ namespace NuGetGallery
             Assert.Equal<int>(502, model.Report.Total);
         }
 
-        [Fact]
-        public async void StatisticsHomePage_Packages_Negative_ValidateThrowOnInvalidStructure()
-        {
-            JArray report = new JArray
-            {
-                new JObject
-                {
-                    { "Lala", "A" },
-                    { "Downloads", 303 }
-                }
-            };
-
-            var fakePackageReport = "[{\"Lala\":\"A\",\"Downloads\":303}]";
-
-            var fakeReportService = new Mock<IReportService>();
-
-            fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
-
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
-
-            bool hasException = false;
-
-            try
-            {
-                var model = (StatisticsPackagesViewModel)((ViewResult) await controller.Packages()).Model;
-                hasException = false;
-            }
-            catch (Exception)
-            {
-                //  we don't care too much about the exact type of the exception
-                hasException = true;
-            }
-
-            if (!hasException)
-            {
-                throw new Exception("this exception thrown because expected exception was not thrown");
-            }
-        }
-
         public class TheTotalsAllAction
         {
             [Fact]
