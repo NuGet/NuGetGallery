@@ -26,11 +26,9 @@
                 <tr>
                     @foreach (var column in Model.Columns)
                     {
-                        var id = column + "-column";
-                        
-                        <th class="dimension-column">@column</th>
+                        <th scope="col" class="dimension-column">@column</th>
                     }
-                    <th>Downloads</th>
+                    <th scope="col">Downloads</th>
                 </tr>
             </thead>
             <tbody>
