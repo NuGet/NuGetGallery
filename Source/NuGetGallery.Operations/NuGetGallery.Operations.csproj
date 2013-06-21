@@ -179,6 +179,8 @@
     <Compile Include="Common\ResourceHelper.cs" />
     <Compile Include="Tasks\Backups\BackupWarehouseTask.cs" />
     <Compile Include="Tasks\Backups\CleanOfflineDatabaseBackupsTask.cs" />
+    <Compile Include="Tasks\Backups\CleanWarehouseBackupsTask.cs" />
+    <Compile Include="Tasks\Backups\ExportWarehouseBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ExportDailyBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ListOfflineDatabaseBackupsTask.cs" />
     <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
