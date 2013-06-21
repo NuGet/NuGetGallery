@@ -19,7 +19,11 @@ namespace NuGetGallery
 
             Level level = InnerGroupBy(facts, pivot);
 
-            // Secondly print this tree structure into a sparse 2-dimensional structure (for creating html tables)
+            //  Secondly added the ordered list to each level (the pivot algorithm required dictionary lookups so this is a separate step)
+
+            AddOrderedNext(level);
+
+            // Thirdly print this tree structure into a sparse 2-dimensional structure (for creating html tables)
             // the structure is rectangular and not jagged. Logically this is a 2-d array however coding conventions
             // dictate the preference for jagged array structures. (Note generally this is only slightly sparse in our data.)
 
@@ -34,9 +38,24 @@ namespace NuGetGallery
             return new Tuple<TableEntry[][], int>(table, level.Total);
         }
 
+        private static void AddOrderedNext(Level level)
+        {
+            if (level.Next != null)
+            {
+                List<KeyValuePair<string, Level>> orderedNext = new List<KeyValuePair<string, Level>>(level.Next);
+                orderedNext.Sort((x, y) => { return y.Value.Total.CompareTo(x.Value.Total); });
+                level.OrderedNext = orderedNext;
+
+                foreach (KeyValuePair<string, Level> item in level.Next)
+                {
+                    AddOrderedNext(item.Value);
+                }
+            }
+        }
+
         private static void InnerPopulateTable(Level level, TableEntry[][] table, ref int row, int col)
         {
-            foreach (KeyValuePair<string, Level> item in level.Next)
+            foreach (KeyValuePair<string, Level> item in level.OrderedNext)
             {
                 if (item.Value.Next == null)
                 {
@@ -152,6 +171,7 @@ namespace NuGetGallery
                     //  Next is null this must therefore be a leaf node in the tree
 
                     total += item.Value.Amount;
+                    item.Value.Total = item.Value.Amount;
                 }
                 else
                 {
@@ -202,6 +222,10 @@ namespace NuGetGallery
             // Total is the sum Total of all the Amounts in all the decendents. (See Total function above.)
 
             public int Total { get; set; }
+
+            // An ordered list for each level
+
+            public IList<KeyValuePair<string, Level>> OrderedNext { get; set; }
         }
     }
 }
