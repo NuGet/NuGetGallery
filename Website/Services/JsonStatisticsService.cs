@@ -111,6 +111,11 @@ namespace NuGetGallery
 
                 return true;
             }
+            catch (NullReferenceException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
             catch (JsonReaderException e)
             {
                 QuietLog.LogHandledException(e);
@@ -167,6 +172,11 @@ namespace NuGetGallery
 
                 return true;
             }
+            catch (NullReferenceException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
             catch (JsonReaderException e)
             {
                 QuietLog.LogHandledException(e);
@@ -222,6 +232,11 @@ namespace NuGetGallery
 
                 return report;
             }
+            catch (NullReferenceException e)
+            {
+                QuietLog.LogHandledException(e);
+                return null;
+            }
             catch (JsonReaderException e)
             {
                 QuietLog.LogHandledException(e);
@@ -276,6 +291,11 @@ namespace NuGetGallery
                 report.Facts = facts;
 
                 return report;
+            }
+            catch (NullReferenceException e)
+            {
+                QuietLog.LogHandledException(e);
+                return null;
             }
             catch (JsonReaderException e)
             {
