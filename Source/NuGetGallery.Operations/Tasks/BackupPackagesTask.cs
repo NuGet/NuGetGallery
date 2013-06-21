@@ -14,66 +14,54 @@ namespace NuGetGallery.Operations
     {
         private readonly string _tempFolder;
 
-        public BackupPackagesTask()
-        {
-            _tempFolder = Path.Combine(Path.GetTempPath(), "NuGetGalleryOps");
-            Directory.CreateDirectory(_tempFolder);
-        }
-
         public override void ExecuteCommand()
         {
             Log.Trace("Getting list of packages to back up...");
             var packagesToBackUp = GetPackagesToBackUp();
-            Log.Trace("Getting list of already backed up packages...");
-            var packageBackupBlobFileNames = GetPackageBackupBlobFileNames();
-
-            Log.Trace("Determining minimal sync set...");
-            var packageFileNamesToRestore = packagesToBackUp.Keys.Except(packageBackupBlobFileNames).ToList();
-
-            var totalCount = packageFileNamesToRestore.Count;
+            
             var processedCount = 0;
             Log.Trace(
-                    "Backing up {0} packages on storage account '{1}'.",
-                    totalCount,
+                    "Backing up packages on storage account '{1}'.",
+                    packagesToBackUp.Count,
                     StorageAccountName);
 
-            Parallel.ForEach(packageFileNamesToRestore, new ParallelOptions { MaxDegreeOfParallelism = 10 }, packageFileNameToRestore =>
+            var client = CreateBlobClient();
+            var backupBlobs = client.GetContainerReference("packagebackups");
+            var packageBlobs = client.GetContainerReference("packages");
+            backupBlobs.CreateIfNotExists();
+            Parallel.ForEach(packagesToBackUp, new ParallelOptions { MaxDegreeOfParallelism = 10 }, package =>
             {
-                var package = packagesToBackUp[packageFileNameToRestore];
-
                 try
                 {
-                    if (!WhatIf)
+                    var packageBlob = packageBlobs.GetBlockBlobReference(Util.GetPackageFileName(package.Id, package.Version));
+                    var backupBlob = backupBlobs.GetBlockBlobReference(Util.GetPackageBackupFileName(package.Id, package.Version, package.Hash));
+                    bool exists = backupBlob.Exists();
+                    if (!exists && !WhatIf)
                     {
-                        var downloadPath = DownloadPackage(package);
-
-                        UploadPackageBackup(
-                            package.Id,
-                            package.Version,
-                            package.Hash,
-                            downloadPath);
-
-                        File.Delete(downloadPath);
+                        backupBlob.StartCopyFromBlob(packageBlob);
                     }
 
                     Interlocked.Increment(ref processedCount);
                     Log.Info(
-                        "Backed Up '{0}.{1}' ({2} of {3}).",
+                        "[{2:000000}/{3:000000} {4:00.0}%] {5} Backup of '{0}@{1}'.",
                         package.Id,
                         package.Version,
                         processedCount,
-                        totalCount);
+                        packagesToBackUp.Count,
+                        (double)processedCount / (double)packagesToBackUp.Count,
+                        exists ? "Skipped" : "Started");
 
                 }
                 catch (Exception ex)
                 {
                     Interlocked.Increment(ref processedCount);
                     Log.Error(
-                        "Error Backing Up '{0}.{1}' ({2} of {3}): {4}",
+                        "[{2:000000}/{3:000000} {4:00.0}%] Error Starting Backup of '{0}@{1}': {5}",
                         package.Id,
                         package.Version,
                         processedCount,
-                        totalCount,
+                        packagesToBackUp.Count,
+                        (double)processedCount / (double)packagesToBackUp.Count,
                         ex.Message);
                 }
             });
@@ -95,30 +83,20 @@ namespace NuGetGallery.Operations
             return downloadPath;
         }
 
-        IEnumerable<string> GetPackageBackupBlobFileNames()
-        {
-            var blobClient = CreateBlobClient();
-
-            var packageBackupsBlobContainer = Util.GetPackageBackupsBlobContainer(blobClient);
-
-            return packageBackupsBlobContainer.ListBlobs().Select(bi => bi.Uri.Segments.Last());
-        }
-
-        IDictionary<string, Package> GetPackagesToBackUp()
+        IList<Package> GetPackagesToBackUp()
         {
             using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
 
-                var galleryPackages = dbExecutor.Query<Package>(@"
+                return dbExecutor.Query<Package>(@"
                     SELECT pr.Id, p.Version, p.Hash 
                     FROM Packages p 
                         JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey 
                     WHERE p.ExternalPackageUrl IS NULL
-                    ORDER BY Id, Version, Hash");
+                    ORDER BY Id, Version, Hash").ToList();
 
-                return galleryPackages.ToDictionary(p => Util.GetPackageBackupFileName(p.Id, p.Version, p.Hash));
             }
         }
 

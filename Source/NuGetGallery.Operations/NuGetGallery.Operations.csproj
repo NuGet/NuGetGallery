@@ -177,10 +177,10 @@
       <DependentUpon>TaskResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Common\ResourceHelper.cs" />
+    <Compile Include="Tasks\Backups\BackupWarehouseTask.cs" />
     <Compile Include="Tasks\Backups\CleanOfflineDatabaseBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ExportDailyBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ListOfflineDatabaseBackupsTask.cs" />
-    <Compile Include="Tasks\BackupWarehouseTask.cs" />
     <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
     <Compile Include="Tasks\CheckBlobCopiesTask.cs" />
     <Compile Include="Tasks\Backups\CleanOnlineDatabaseBackupsTask.cs" />

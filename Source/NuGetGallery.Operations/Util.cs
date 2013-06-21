@@ -18,10 +18,11 @@ namespace NuGetGallery.Operations
         public const byte CopyingState = 7;
         public const byte OnlineState = 0;
 
-        public static bool BackupIsInProgress(SqlExecutor dbExecutor)
+        public static bool BackupIsInProgress(SqlExecutor dbExecutor, string backupPrefix)
         {
             return dbExecutor.Query<Database>(
-                "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
+                // Not worried about SQL Injection here :). This is an admin tool.
+                "SELECT name, state FROM sys.databases WHERE name LIKE '" + backupPrefix + "%' AND state = @state",
                 new { state = CopyingState })
                 .Any();
         }
@@ -94,24 +95,24 @@ namespace NuGetGallery.Operations
             return backupDbs.FirstOrDefault() != null;
         }
 
-        public static Database GetLastBackup(SqlExecutor dbExecutor)
+        public static Database GetLastBackup(SqlExecutor dbExecutor, string backupNamePrefix)
         {
             var backupDbs = dbExecutor.Query<Database>(
-                "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
+                "SELECT name, state FROM sys.databases WHERE name LIKE '" + backupNamePrefix + "%' AND state = @state",
                 new { state = OnlineState })
                 .OrderByDescending(database => database.Name);
 
             return backupDbs.FirstOrDefault();
         }
 
-        public static DateTime GetLastBackupTime(SqlExecutor dbExecutor)
+        public static DateTime GetLastBackupTime(SqlExecutor dbExecutor, string backupNamePrefix)
         {
-            var lastBackup = GetLastBackup(dbExecutor);
+            var lastBackup = GetLastBackup(dbExecutor, backupNamePrefix);
 
             if (lastBackup == null)
                 return DateTime.MinValue;
 
-            var timestamp = lastBackup.Name.Substring(7);
+            var timestamp = lastBackup.Name.Substring(backupNamePrefix.Length);
 
             return GetDateTimeFromTimestamp(timestamp);
         }
@@ -182,7 +183,7 @@ namespace NuGetGallery.Operations
             var hashBytes = Convert.FromBase64String(hash);
 
             return string.Format(
-                "{0}.{1}.{2}.nupkg",
+                "{0}/{1}/{2}.nupkg",
                 id,
                 version,
                 HttpServerUtility.UrlTokenEncode(hashBytes));

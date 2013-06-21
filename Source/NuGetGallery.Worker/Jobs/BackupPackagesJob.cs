@@ -5,7 +5,7 @@ using NuGetGallery.Operations;
 
 namespace NuGetGallery.Worker.Jobs
 {
-    //[Export(typeof(WorkerJob))]
+    [Export(typeof(WorkerJob))]
     public class BackupPackagesJob : WorkerJob
     {
         public override TimeSpan Period
@@ -26,14 +26,14 @@ namespace NuGetGallery.Worker.Jobs
 
         public override void RunOnce()
         {
-            Logger.Info("Starting synchronize package backups task.");
-            new BackupPackagesTask
+            Logger.Info("Starting backup packages task.");
+            ExecuteTask(new BackupPackagesTask
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 StorageAccount = Settings.MainStorage,
                 WhatIf = Settings.WhatIf
-            }.Execute();
-            Logger.Info("Finished synchronize package backups task.");
+            });
+            Logger.Info("Finished backup packages task.");
         }
     }
 }
