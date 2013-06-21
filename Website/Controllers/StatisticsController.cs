@@ -52,6 +52,11 @@ namespace NuGetGallery
 
         private CultureInfo DetermineClientLocale()
         {
+            if (Request == null)
+            {
+                return null;
+            }
+
             string[] languages = Request.UserLanguages;
             if (languages == null)
             {
@@ -128,7 +133,8 @@ namespace NuGetGallery
             var model = new StatisticsPackagesViewModel
             {
                 IsDownloadPackageAvailable = isAvailable,
-                DownloadPackagesAll = _statisticsService.DownloadPackagesAll
+                DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
+                ClientCulture = DetermineClientLocale()
             };
 
             return View(model);
@@ -149,7 +155,8 @@ namespace NuGetGallery
             var model = new StatisticsPackagesViewModel
             {
                 IsDownloadPackageDetailAvailable = isAvailable,
-                DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll
+                DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
+                ClientCulture = DetermineClientLocale()
             };
 
             return View(model);
@@ -167,7 +174,7 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageDownloadsByVersion(id);
 
-            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
+            ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id, DetermineClientLocale());
 
             StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
 
@@ -188,7 +195,7 @@ namespace NuGetGallery
 
             StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
-            ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });
+            ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" }, null, DetermineClientLocale());
 
             var model = new StatisticsPackagesViewModel();
 
@@ -197,7 +204,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id = null)
+        private void ProcessReport(StatisticsPackagesReport report, string[] groupby, string[] dimensions, string id, CultureInfo clientCulture)
         {
             if (report == null)
             {
@@ -230,7 +237,7 @@ namespace NuGetGallery
                     Array.Resize(ref pivot, dim);
                 }
 
-                Tuple<StatisticsPivot.TableEntry[][], int> result = StatisticsPivot.GroupBy(report.Facts, pivot);
+                Tuple<StatisticsPivot.TableEntry[][], string> result = StatisticsPivot.GroupBy(report.Facts, pivot, clientCulture);
 
                 if (id != null)
                 {
@@ -263,7 +270,7 @@ namespace NuGetGallery
                 }
 
                 report.Table = null;
-                report.Total = report.Facts.Sum(fact => fact.Amount);
+                report.Total = report.Facts.Sum(fact => fact.Amount).ToString("n0", clientCulture);
             }
         }
 
