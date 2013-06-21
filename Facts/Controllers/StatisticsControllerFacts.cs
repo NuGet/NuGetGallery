@@ -331,7 +331,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal<int>(603, sum);
-            Assert.Equal<int>(603, model.Report.Total);
+            Assert.Equal<string>("603", model.Report.Total);
         }
 
         [Fact]
@@ -411,7 +411,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal<int>(502, sum);
-            Assert.Equal<int>(502, model.Report.Total);
+            Assert.Equal<string>("502", model.Report.Total);
         }
 
         public class TheTotalsAllAction
