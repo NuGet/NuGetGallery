@@ -185,6 +185,8 @@ namespace NuGetGallery
 
             ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id);
 
+            report.Id = MakeReportId(groupby);
+
             StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
 
             model.SetPackageDownloadsByVersion(id, report);
@@ -205,6 +207,8 @@ namespace NuGetGallery
             StatisticsPackagesReport report = await _statisticsService.GetPackageVersionDownloadsByClient(id, version);
 
             ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" });
+
+            report.Id = MakeReportId(groupby);
 
             var model = new StatisticsPackagesViewModel();
 
@@ -307,6 +311,19 @@ namespace NuGetGallery
                 default:
                     return name;
             }
+        }
+
+        private static string MakeReportId(string[] groupby)
+        {
+            string graphId = "report-";
+            if (groupby != null)
+            {
+                foreach (string g in groupby)
+                {
+                    graphId += g;
+                }
+            }
+            return graphId;
         }
     }
 }

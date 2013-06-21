@@ -57,9 +57,6 @@ var drawNugetClientVersionBarChart = function () {
         data[data.length] = item;
     });
 
-    var total = 0;
-    data.forEach(function (o) { total += o.downloads; });
-
     xScale.domain(data.map(function (d) { return d.nugetVersion; }));
     yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
 
