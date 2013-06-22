@@ -4,14 +4,33 @@
     ViewBag.Tab = "Home";
 }
 <section class="featured">
-    <div>
-        <h1>Jump Start Your Projects with NuGet</h1>
-        <p >NuGet is a Visual Studio extension that makes it easy to install and update third-party libraries and tools in Visual Studio.</p>
-        <p class="sub"><em>So <a href="http://visualstudiogallery.msdn.microsoft.com/27077b70-9dad-4c64-adcf-c7cf6bc9970c">install NuGet</a> and get a jump on your next project!</em></p>
-        <a class="install" href="http://visualstudiogallery.msdn.microsoft.com/27077b70-9dad-4c64-adcf-c7cf6bc9970c">Install NuGet</a>
+    <div class="feature-box">
+        <a href="/install" id="feature-button-left" class="feature-button">
+            <i class="icon-cloud-download"></i>
+            <h1>Get NuGet</h1>
+            <p>Install NuGet to make managing software libraries a breeze</p>
+        </a>
     </div>
-    <img src="@Url.Content("~/content/images/hero.png")" alt="NuGet GUI Window" />
-</section> 
+    <div class="feature-box">
+        <a href="http://docs.nuget.org/docs/start-here/managing-nuget-packages-using-the-dialog" id="feature-button-mid" class="feature-button">
+            <i class="icon-magic"></i>
+            <h1>Install Packages</h1>
+            <p>Point, click, Add Reference. It's just that easy. No really!</p>
+        </a>
+    </div>
+    <div class="feature-box">
+        <a href="http://docs.nuget.org/docs/creating-packages/creating-and-publishing-a-package" id="feature-button-right" class="feature-button">
+            <i class="icon-gift"></i>
+            <h1>Make Packages</h1>
+            <p>Build the ecosystem and become a NuGet package rockstar!</p>
+        </a>
+    </div>
+</section>
+
+<section class="trending">
+    <h2>Trending now</h2>
+    <p>[Pretty Chart here]</p>
+</section>
 
 <section class="aggstats">
     <span class="stat">
@@ -28,18 +47,6 @@
 <section class="aggstatserr">
     <span class="err">an error occurred while retrieving statistics</span>
 </section>
-
-@if(Model.Announcement != null) {
-<section class="release">
-    @Model.Announcement
-</section>
-}
-
-@if(Model.About != null) {
-<section class="info">
-    @Model.About
-</section>
-}
 
 @section BottomScripts
 {
