@@ -27,7 +27,7 @@ namespace NuGetGallery
         protected ApiController() { }
 
         public ApiController(
-            EntitiesContext entitiesContext,
+            IEntitiesContext entitiesContext,
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
@@ -46,7 +46,7 @@ namespace NuGetGallery
         }
 
         public ApiController(
-            EntitiesContext entitiesContext,
+            IEntitiesContext entitiesContext,
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,

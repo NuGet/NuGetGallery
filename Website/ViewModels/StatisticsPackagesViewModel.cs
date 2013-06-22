@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -29,6 +30,16 @@ namespace NuGetGallery
             get; set;
         }
 
+        public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion
+        {
+            get; set;
+        }
+
+        public IEnumerable<StatisticsMonthlyUsageItem> Last6Months
+        {
+            get; set;
+        }
+        
         public CultureInfo ClientCulture { get; set; }
 
         public StatisticsPackagesReport Report
@@ -39,6 +50,10 @@ namespace NuGetGallery
 
         public bool IsDownloadPackageAvailable { get; set; }
         public bool IsDownloadPackageDetailAvailable { get; set; }
+        public bool IsNuGetClientVersionAvailable { get; set; }
+        public bool IsLast6MonthsAvailable { get; set; }
+
+        public int NuGetClientVersionTotalDownloads { get; private set; }
 
         public bool IsReportAvailable { get { return (Report != null); } }
 
@@ -61,6 +76,30 @@ namespace NuGetGallery
         public string DisplayDownloads(int downloads)
         {
             return downloads.ToString("n0", ClientCulture);
+        }
+
+        public void Update()
+        {
+            if (IsNuGetClientVersionAvailable)
+            {
+                NuGetClientVersionTotalDownloads = NuGetClientVersion.Sum(item => item.Downloads);    
+            }
+        }
+
+        private static string[] _months = { string.Empty, "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+        public string DisplayMonth(int year, int monthOfYear)
+        {
+            if (monthOfYear < 1 || monthOfYear > 12)
+            {
+                return string.Empty;
+            }
+            return string.Format(ClientCulture, "{0} {1}", year, _months[monthOfYear]);
+        }
+
+        public string DisplayPercentage(float amount, float total)
+        {
+            return (amount / total).ToString("P0", ClientCulture);
         }
     }
 }
