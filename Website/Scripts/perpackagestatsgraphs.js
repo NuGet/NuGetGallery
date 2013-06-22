@@ -121,6 +121,8 @@ var drawDownloadsByClientNameBarChart = function () {
         data[data.length] = item;
     });
 
+    data.reverse();
+
     //  draw graph
 
     var margin = { top: 20, right: 30, bottom: 220, left: 100 },

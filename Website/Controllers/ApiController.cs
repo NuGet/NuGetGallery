@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly IIndexingService _indexingService;
 
         public ApiController(
+            IEntitiesContext entitiesContext,
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
@@ -41,6 +42,7 @@ namespace NuGetGallery
         }
 
         public ApiController(
+            IEntitiesContext entitiesContext,
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
