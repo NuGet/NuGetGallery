@@ -45,13 +45,25 @@ namespace NuGetGallery
             });
         }
 
-        public virtual ActionResult Terms()
+        public virtual async Task<ActionResult> Terms()
         {
+            if (ContentService != null)
+            {
+                ViewBag.Content = await ContentService.GetContentItemAsync(
+                    Constants.ContentNames.TermsOfUse,
+                    TimeSpan.FromDays(1));
+            }
             return View();
         }
 
-        public virtual ActionResult Privacy()
+        public virtual async Task<ActionResult> Privacy()
         {
+            if (ContentService != null)
+            {
+                ViewBag.Content = await ContentService.GetContentItemAsync(
+                    Constants.ContentNames.PrivacyPolicy,
+                    TimeSpan.FromDays(1));
+            }
             return View();
         }
     }
