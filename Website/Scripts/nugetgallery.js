@@ -21,4 +21,7 @@
         // Get the service status
         checkServiceStatus();
     });
+
+    // Add unobtrusive adapter for mandatory checkboxes
+    $.validator.unobtrusive.adapters.addBool("mandatory", "required");
 })(window, jQuery);

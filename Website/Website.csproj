@@ -581,6 +581,7 @@
     <Compile Include="Helpers\TreeView.cs" />
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\PrincipalExtensions.cs" />
     <Compile Include="Infrastructure\GalleryGateway.cs" />

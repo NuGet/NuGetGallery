@@ -1171,6 +1171,17 @@ fieldset.form legend { display: none; }
     margin-bottom: 5px;
 }
 
+.form-field-inline label
+{
+    display: inline-block;
+    width: 300px;
+}
+
+.form-field-inline span.field-validation-error
+{
+    top: 0px;
+}
+
 .form-field label.checkbox { display: inline; }
 
 .form-field select {
