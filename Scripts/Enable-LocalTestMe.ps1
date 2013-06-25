@@ -1,5 +1,9 @@
 param([switch]$Force, [string]$Subdomain="nuget")
 
+if(!(([Security.Principal.WindowsPrincipal]([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator"))) {
+    throw "This script must be run as an admin."
+}
+
 $WebSite = Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\Website")
 
 # Enable access to the necessary URLs
