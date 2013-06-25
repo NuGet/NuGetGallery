@@ -431,9 +431,7 @@ hgroup.page-heading h2 { padding-left: 7px; }
 }
 
 .featured div {
-    float: left;
-    margin-right: 5px;
-    width: 410px;
+    margin: 5px;
 }
 
 .featured div h1 {
@@ -468,8 +466,9 @@ hgroup.page-heading h2 { padding-left: 7px; }
     font-size: 2em;
     line-height: 2em;
     margin-top: 25px;
+    margin-bottom: 25px;
     text-align: center;
-    width: 95%;
+    width: 400px;
 }
 
 .featured div a.install:hover {
