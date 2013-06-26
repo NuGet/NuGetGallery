@@ -24,7 +24,7 @@
 
 @using (Html.BeginForm())
 {
-    <fieldset class="form">
+    <fieldset id="report-abuse-form" class="form">
         <legend>Report Abuse</legend>
         @Html.AntiForgeryToken()
         <div class="form-field">
@@ -42,25 +42,50 @@
         </div>
         <div class="form-field">
             @Html.LabelFor(m => m.Reason)
-            @Html.DropDownListFor(m => m.Reason, Model.ReasonChoices.Select(
-                x => new SelectListItem { Value = ReportAbuseViewModel.ReasonDescriptions[x], Text = ReportAbuseViewModel.ReasonDescriptions[x]}))
-            <br/>
+            @Html.EnumDropDownListFor(m => m.Reason, Model.ReasonChoices)
+            @Html.ValidationMessageFor(m => m.Reason)
+        </div>
+        <div class="form-field">
             @Html.CheckBoxFor(m => m.AlreadyContactedOwner)
             @Html.LabelFor(m => m.AlreadyContactedOwner, "Yes! I have already tried to contact the package owner about this problem.",
                 new Dictionary<string, object>
                 {
                     { "style", "display: inline" },
                 })<br/>
+        </div>
+        <div id="report-abuse-message" class="form-field">
             @Html.LabelFor(m => m.Message, "Abuse Report")
             <p>In addition to selecting the reason for reporting the package, you <em>must</em> provide details of the problem.</p>
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
-            @Html.ValidationMessageFor(m => m.Message) <br/>
+            <span id="bug-report-panel" class="field-validation-error">
+                Unfortunately we cannot provide support for bugs in NuGet Packages. You should @Html.ActionLink("contact the owner(s)", MVC.Packages.ContactOwners(Model.PackageId)) for assistance.
+            </span>
+            @Html.ValidationMessageFor(m => m.Message)
         </div>
         @Html.SpamPreventionFields()
-        <input type="submit" value="Report" title="Report '@Model.PackageId' for abuse" />
+        <input id="form-submit" type="submit" value="Report" title="Report '@Model.PackageId' for abuse" />
     </fieldset>
 }
 
 @section BottomScripts {
     @Html.SpamPreventionScript()
+    <script>
+        function reasonSelected() {
+            var $form = $('#Reason').parents('form');
+            if ($(this).val() === 'HasABug') {
+                $form.find("#form-submit").attr('disabled', 'disabled');
+                $form.find("#Message").attr('disabled', 'disabled');
+                $form.find("#bug-report-panel").show();
+            } else {
+                $form.find("#form-submit").removeAttr('disabled');
+                $form.find("#Message").removeAttr('disabled');
+                $form.find("#bug-report-panel").hide();
+            }
+        }
+
+        $(function () {
+            $('#Reason').change(reasonSelected);
+            reasonSelected(); // Run once in case it starts with the bad selection
+        });
+    </script>
 }
