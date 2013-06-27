@@ -102,6 +102,7 @@ namespace NuGetGallery
             // This resulted in a gnarly query. 
             // Instead, we can always query for all packages with the ID.
             IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
+                .Include(p => p.LicenseReports)
                 .Include(p => p.Authors)
                 .Include(p => p.PackageRegistration)
                 .Where(p => (p.PackageRegistration.Id == id));

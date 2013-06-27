@@ -1,5 +1,6 @@
 ﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using NuGetGallery.Entities;
 
 namespace NuGetGallery
 {
@@ -33,6 +34,17 @@ namespace NuGetGallery
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<PackageLicenseReport>()
+                .HasKey(r => r.Key)
+                .HasMany(r => r.Licenses)
+                .WithMany(l => l.Reports)
+                .Map(c => c.ToTable("PackageLicenseReportLicenses")
+                           .MapLeftKey("ReportKey")
+                           .MapRightKey("LicenseKey"));
+
+            modelBuilder.Entity<PackageLicense>()
+                .HasKey(l => l.Key);
+
             modelBuilder.Entity<User>()
                 .HasKey(u => u.Key);
 

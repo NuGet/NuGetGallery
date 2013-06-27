@@ -7,14 +7,55 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            AddColumn("dbo.Packages", "LicensesNames", c => c.String());
-            AddColumn("dbo.Packages", "SonatypeReportUrl", c => c.String());
+            CreateTable(
+                "dbo.PackageLicenseReports",
+                c => new
+                    {
+                        Key = c.Int(nullable: false, identity: true),
+                        PackageKey = c.Int(nullable: false),
+                        CreatedUtc = c.DateTime(nullable: false),
+                        AllowLicenseReport = c.Boolean(nullable: false),
+                        ReportUrl = c.String(),
+                        Comment = c.String(),
+                    })
+                .PrimaryKey(t => t.Key)
+                .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
+                .Index(t => t.PackageKey);
+            
+            CreateTable(
+                "dbo.PackageLicenses",
+                c => new
+                    {
+                        Key = c.Int(nullable: false, identity: true),
+                        Name = c.String(),
+                    })
+                .PrimaryKey(t => t.Key);
+            
+            CreateTable(
+                "dbo.PackageLicenseReportLicenses",
+                c => new
+                    {
+                        ReportKey = c.Int(nullable: false),
+                        LicenseKey = c.Int(nullable: false),
+                    })
+                .PrimaryKey(t => new { t.ReportKey, t.LicenseKey })
+                .ForeignKey("dbo.PackageLicenseReports", t => t.ReportKey, cascadeDelete: true)
+                .ForeignKey("dbo.PackageLicenses", t => t.LicenseKey, cascadeDelete: true)
+                .Index(t => t.ReportKey)
+                .Index(t => t.LicenseKey);
         }
         
         public override void Down()
         {
-            DropColumn("dbo.Packages", "SonatypeReportUrl");
-            DropColumn("dbo.Packages", "LicensesNames");
+            DropIndex("dbo.PackageLicenseReportLicenses", new[] { "LicenseKey" });
+            DropIndex("dbo.PackageLicenseReportLicenses", new[] { "ReportKey" });
+            DropIndex("dbo.PackageLicenseReports", new[] { "PackageKey" });
+            DropForeignKey("dbo.PackageLicenseReportLicenses", "LicenseKey", "dbo.PackageLicenses");
+            DropForeignKey("dbo.PackageLicenseReportLicenses", "ReportKey", "dbo.PackageLicenseReports");
+            DropForeignKey("dbo.PackageLicenseReports", "PackageKey", "dbo.Packages");
+            DropTable("dbo.PackageLicenseReportLicenses");
+            DropTable("dbo.PackageLicenses");
+            DropTable("dbo.PackageLicenseReports");
         }
     }
 }

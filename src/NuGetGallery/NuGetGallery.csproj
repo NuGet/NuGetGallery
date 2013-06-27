@@ -578,6 +578,68 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
+    <Compile Include="Entities\CuratedFeed.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\CuratedPackage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\EmailMessage.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\EntitiesContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\EntityException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\EntityRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\GallerySetting.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\IEntitiesContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\IEntity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\IEntityRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\Package.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\PackageAuthor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\PackageDependency.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\PackageFramework.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\PackageLicense.cs" />
+    <Compile Include="Entities\PackageLicenseReport.cs" />
+    <Compile Include="Entities\PackageOwnerRequest.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\PackageRegistration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\PackageStatistics.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\ReadOnlyModeException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\Role.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Entities\User.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />

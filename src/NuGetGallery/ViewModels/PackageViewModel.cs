@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace NuGetGallery
@@ -16,7 +17,7 @@ namespace NuGetGallery
             IconUrl = package.IconUrl;
             ProjectUrl = package.ProjectUrl;
             LicenseUrl = package.LicenseUrl;
-            SonatypeReportUrl = package.SonatypeReportUrl;
+            //SonatypeReportUrl = package.SonatypeReportUrl;
             LatestVersion = package.IsLatest;
             LatestStableVersion = package.IsLatestStable;
             LastUpdated = package.Published;
@@ -24,7 +25,10 @@ namespace NuGetGallery
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
 
-            LicensesNames = package.LicensesNames != null ? package.LicensesNames.Trim().Split(',') : null;
+            //LicensesNames = package.LicensesNames != null ? package.LicensesNames.Trim().Split(',') : null;
+
+            var report = package.LicenseReports.OrderByDescending(r => r.CreatedUtc).FirstOrDefault();
+            // TODO: The rest of the stuff.
         }
 
         public string Description { get; set; }
