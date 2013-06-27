@@ -9,7 +9,7 @@ namespace NuGetGallery
             {
                 return null;
             }
-            return tags.Replace(',', ' ').Replace("  ", " ");
+            return tags.Replace(',', ' ').Replace(';', ' ').Replace('\t', ' ').Replace("  ", " ");
         }
     }
 }
