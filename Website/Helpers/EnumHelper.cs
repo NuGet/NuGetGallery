@@ -10,23 +10,37 @@ namespace NuGetGallery.Helpers
 {
     public static class EnumHelper
     {
-        private static readonly ConcurrentDictionary<Tuple<Type, string>, string> _descriptionMap = new ConcurrentDictionary<Tuple<Type, string>, string>();
+        private static readonly ConcurrentDictionary<Type, IDictionary<object, string>> _descriptionMap = new ConcurrentDictionary<Type, IDictionary<object, string>>();
 
         public static string GetEnumDescription<TEnum>(TEnum value)
         {
-            return _descriptionMap.GetOrAdd(Tuple.Create(typeof(TEnum), value.ToString()), key =>
+            var descriptions = _descriptionMap.GetOrAdd(typeof(TEnum), key =>
+                typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f =>
+                {
+                    var v = f.GetValue(null);
+                    DescriptionAttribute attr = f.GetCustomAttribute<DescriptionAttribute>();
+
+                    string description;
+                    if (attr != null)
+                    {
+                        description = attr.Description;
+                    }
+                    else
+                    {
+                        description = v.ToString();
+                    }
+                    return new KeyValuePair<object, string>(v, description);
+                }).ToDictionary(p => p.Key, p => p.Value));
+
+            string desc;
+            if (descriptions == null || !descriptions.TryGetValue(value, out desc))
             {
-                FieldInfo fi = typeof(TEnum).GetType().GetField(value.ToString());
-                DescriptionAttribute attr = fi.GetCustomAttribute<DescriptionAttribute>();
-                if (attr != null)
-                {
-                    return attr.Description;
-                }
-                else
-                {
-                    return value.ToString();
-                }
-            });
+                return value.ToString();
+            }
+            else
+            {
+                return desc;
+            }
         }
     }
 }

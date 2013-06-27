@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
@@ -43,6 +44,7 @@ namespace NuGetGallery
         [Display(Name = "Contacted Owner")]
         public bool AlreadyContactedOwner { get; set; }
 
+        [NotEqual(ReportPackageReason.HasABug, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. You should contact the owner(s) for assistance.")]
         [Required(ErrorMessage = "You must select a reason for reporting the package")]
         [Display(Name = "Reason")]
         public ReportPackageReason? Reason { get; set; }

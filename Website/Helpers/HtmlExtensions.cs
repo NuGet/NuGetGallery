@@ -14,7 +14,7 @@ namespace NuGetGallery.Helpers
 {
     public static class HtmlExtensions
     {
-        public static MvcHtmlString EnumDropDownListFor<TModel, TEnum>(this HtmlHelper<TModel> self, Expression<Func<TModel, TEnum?>> expression, IEnumerable<TEnum> values, string emptyItemText) 
+        public static MvcHtmlString EnumDropDownListFor<TModel, TEnum>(this HtmlHelper<TModel> self, Expression<Func<TModel, TEnum?>> expression, IEnumerable<TEnum> values, string emptyItemText)
             where TEnum: struct // Can't do ": enum" but this is close
         {
             Debug.Assert(typeof(TEnum).IsEnum, "Expected an Enum Type!");

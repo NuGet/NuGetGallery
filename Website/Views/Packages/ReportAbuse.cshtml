@@ -40,9 +40,9 @@
                 <input type="hidden" name="Email" value="test@example.com" />
             }
         </div>
-        <div class="form-field">
+        <div id="form-field-reason" class="form-field">
             @Html.LabelFor(m => m.Reason)
-            @Html.EnumDropDownListFor(m => m.Reason, Model.ReasonChoices)
+            @Html.EnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>")
             @Html.ValidationMessageFor(m => m.Reason)
         </div>
         <div class="form-field">
@@ -53,14 +53,11 @@
                     { "style", "display: inline" },
                 })<br/>
         </div>
-        <div id="report-abuse-message" class="form-field">
+        <div class="form-field">
             @Html.LabelFor(m => m.Message, "Abuse Report")
             <p>In addition to selecting the reason for reporting the package, you <em>must</em> provide details of the problem.</p>
             @Html.TextAreaFor(m => m.Message, 10, 50, null)
-            <span id="bug-report-panel" class="field-validation-error">
-                Unfortunately we cannot provide support for bugs in NuGet Packages. You should @Html.ActionLink("contact the owner(s)", MVC.Packages.ContactOwners(Model.PackageId)) for assistance.
-            </span>
-            @Html.ValidationMessageFor(m => m.Message)
+            @Html.ValidationMessageFor(m => m.Message, null, new { id = "report-abuse-message" })
         </div>
         @Html.SpamPreventionFields()
         <input id="form-submit" type="submit" value="Report" title="Report '@Model.PackageId' for abuse" />
@@ -72,14 +69,15 @@
     <script>
         function reasonSelected() {
             var $form = $('#Reason').parents('form');
-            if ($(this).val() === 'HasABug') {
-                $form.find("#form-submit").attr('disabled', 'disabled');
-                $form.find("#Message").attr('disabled', 'disabled');
-                $form.find("#bug-report-panel").show();
+            var val = $(this).val();
+            if (val) {
+                $form.validate().element($('#Reason'));
+            }
+
+            if (val === 'HasABug') {
+                $form.find("input, textarea, select").not('#form-field-reason *').attr('disabled', 'disabled');
             } else {
-                $form.find("#form-submit").removeAttr('disabled');
-                $form.find("#Message").removeAttr('disabled');
-                $form.find("#bug-report-panel").hide();
+                $form.find("input, textarea, select").not('#form-field-reason').removeAttr('disabled');
             }
         }
 

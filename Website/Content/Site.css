@@ -1242,7 +1242,7 @@ fieldset.form legend { display: none; }
 .field-hint-message,
 .field-validation-error {
     font-size: 1em;
-    left: 430px;
+    left: 440px;
     line-height: 1.2em;
     padding: 5px;
     position: absolute;
@@ -1251,9 +1251,14 @@ fieldset.form legend { display: none; }
     z-index: 550;
 }
 
-#report-abuse-message .field-validation-error
+#form-field-reason
 {
-    top: 60px;
+    margin-bottom: 20px;
+}
+
+#report-abuse-message
+{
+    top: 4.6em;
 }
 
 .field-hint-message {
