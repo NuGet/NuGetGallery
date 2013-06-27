@@ -67,6 +67,9 @@ namespace NuGetGallery
         /// </remarks>
         public string LicenseUrl { get; set; }
 
+        public string LicensesNames { get; set; }
+        public string SonatypeReportUrl { get; set; }
+
         [StringLength(20)]
         public string Language { get; set; }
 
