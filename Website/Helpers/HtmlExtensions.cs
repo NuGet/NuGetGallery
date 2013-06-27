@@ -26,7 +26,7 @@ namespace NuGetGallery.Helpers
             }.Concat(
                 values.Select(value => new SelectListItem()
                 {
-                    Text = EnumHelper.GetEnumDescription(value),
+                    Text = EnumHelper.GetDescription(value),
                     Value = value.ToString(),
                     Selected = value.Equals(metadata.Model)
                 }));

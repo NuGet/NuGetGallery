@@ -328,7 +328,7 @@ namespace NuGetGallery
                 FromAddress = from,
                 Message = reportForm.Message,
                 Package = package,
-                Reason = EnumHelper.GetEnumDescription(reportForm.Reason.Value),
+                Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
                 Url = Url
             };
@@ -365,7 +365,7 @@ namespace NuGetGallery
                     FromAddress = from,
                     Message = reportForm.Message,
                     Package = package,
-                    Reason = EnumHelper.GetEnumDescription(reportForm.Reason.Value),
+                    Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                     RequestingUser = user,
                     Url = Url
                 });

@@ -434,7 +434,7 @@ namespace NuGetGallery
                         It.Is<ReportPackageRequest>(
                             r => r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.Package == package
-                                 && r.Reason == EnumHelper.GetEnumDescription(ReportPackageReason.IsFraudulent)
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
                                  && r.Message == "Mordor took my finger."
                                  && r.AlreadyContactedOwners)));
             }
@@ -479,7 +479,7 @@ namespace NuGetGallery
                             r => r.Message == "Mordor took my finger"
                                  && r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.FromAddress.DisplayName == "Frodo"
-                                 && r.Reason == EnumHelper.GetEnumDescription(ReportPackageReason.IsFraudulent))));
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent))));
             }
 
             [Fact]

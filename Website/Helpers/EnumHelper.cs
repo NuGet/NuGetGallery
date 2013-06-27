@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Web;
@@ -12,8 +13,10 @@ namespace NuGetGallery.Helpers
     {
         private static readonly ConcurrentDictionary<Type, IDictionary<object, string>> _descriptionMap = new ConcurrentDictionary<Type, IDictionary<object, string>>();
 
-        public static string GetEnumDescription<TEnum>(TEnum value)
+        public static string GetDescription<TEnum>(TEnum value) where TEnum : struct
         {
+            Debug.Assert(typeof(TEnum).IsEnum); // Can't encode this in a generic constraint :(
+
             var descriptions = _descriptionMap.GetOrAdd(typeof(TEnum), key =>
                 typeof(TEnum).GetFields(BindingFlags.Public | BindingFlags.Static).Select(f =>
                 {
