@@ -285,7 +285,7 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                ReasonChoices = ReportOtherPackageReasons,
+                ReasonChoices = ReportMyPackageReasons,
                 ConfirmedUser = user.Confirmed,
                 PackageId = id,
                 PackageVersion = package.Version,
