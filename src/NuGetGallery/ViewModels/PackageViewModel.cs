@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -15,12 +16,15 @@ namespace NuGetGallery
             IconUrl = package.IconUrl;
             ProjectUrl = package.ProjectUrl;
             LicenseUrl = package.LicenseUrl;
+            SonatypeReportUrl = package.SonatypeReportUrl;
             LatestVersion = package.IsLatest;
             LatestStableVersion = package.IsLatestStable;
             LastUpdated = package.Published;
             Listed = package.Listed;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
+
+            LicensesNames = package.LicensesNames != null ? package.LicensesNames.Trim().Split(',') : null;
         }
 
         public string Description { get; set; }
@@ -28,6 +32,8 @@ namespace NuGetGallery
         public string IconUrl { get; set; }
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
+        public IEnumerable<string> LicensesNames { get; set; }
+        public string SonatypeReportUrl { get; set; }
         public DateTime LastUpdated { get; set; }
         public bool LatestVersion { get; set; }
         public bool LatestStableVersion { get; set; }
