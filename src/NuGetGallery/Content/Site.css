@@ -809,6 +809,26 @@ button.undo-button {
     margin: -7px 0 0 5px;
 }
 
+    /* Sonatype License analysis */
+
+#sonatype {
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+#sonatype p {
+    font-size: 0.8em;
+    margin: 0;
+    padding: 0;
+}
+
+#sonatype-name {
+    font-size: 1em;
+    font-weight: bold;
+}
+
     /* Side Column Navigation */
 
 #sideColumn nav ul {

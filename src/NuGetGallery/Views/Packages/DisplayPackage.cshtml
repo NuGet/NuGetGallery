@@ -63,7 +63,19 @@
             }
             @if (!String.IsNullOrEmpty(Model.LicenseUrl))
             {
-                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
+                <li>
+                    <a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a>
+                    @if ((Model.LicensesNames != null) && (!String.IsNullOrEmpty(Model.SonatypeReportUrl)))
+                    {
+                        <div id="sonatype">
+                            <p id="sonatype-name">
+                                @String.Join(", ", Model.LicensesNames)
+                            </p>
+                            <p id="sonatype-description">License details provided by Sonatype CLM</p>
+                            <p id="sonatype-report"><a href="@Model.SonatypeReportUrl">Component report</a></p>
+                        </div>
+                    }
+                </li>
             }
             @if (Model.IsOwner(User))
             {
