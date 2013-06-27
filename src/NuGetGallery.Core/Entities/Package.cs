@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using NuGetGallery.Entities;
 
 namespace NuGetGallery
 {
@@ -79,9 +80,6 @@ namespace NuGetGallery
         /// </remarks>
         public string LicenseUrl { get; set; }
 
-        public string LicensesNames { get; set; }
-        public string SonatypeReportUrl { get; set; }
-
         [StringLength(20)]
         public string Language { get; set; }
 
@@ -113,6 +111,8 @@ namespace NuGetGallery
         [StringLength(64)]
         [Required]
         public string Version { get; set; }
+
+        public virtual ICollection<PackageLicenseReport> LicenseReports { get; set; }
 
         public bool Listed { get; set; }
         public bool IsPrerelease { get; set; }
