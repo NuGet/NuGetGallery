@@ -784,6 +784,9 @@
     <Compile Include="Migrations\201308051913351_EditableMetadata.cs" />
     <Compile Include="Migrations\201308051913351_EditableMetadata.Designer.cs">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
+    <Compile Include="Migrations\201306270322551_LicenseMonikers.cs" />
+    <Compile Include="Migrations\201306270322551_LicenseMonikers.Designer.cs">
+      <DependentUpon>201306270322551_LicenseMonikers.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1230,6 +1233,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308051913351_EditableMetadata.resx">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201306270322551_LicenseMonikers.resx">
+      <DependentUpon>201306270322551_LicenseMonikers.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
