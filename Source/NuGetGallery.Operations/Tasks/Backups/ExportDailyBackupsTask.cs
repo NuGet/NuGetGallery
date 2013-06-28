@@ -53,8 +53,7 @@ namespace NuGetGallery.Operations.Tasks
 
                 // Get the list of database backups
                 var backups = db.Query<Database>(
-                    "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
-                    new { state = Util.OnlineState })
+                    "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%'")
                     .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
                     .OrderByDescending(b => b.Timestamp)
                     .ToList();
@@ -70,22 +69,29 @@ namespace NuGetGallery.Operations.Tasks
                 // Start exporting them
                 foreach (var dailyBackup in dailyBackups)
                 {
-                    if (dailyBackup.Timestamp.Value.TimeOfDay < new TimeSpan(23, 30, 00))
+                    if (dailyBackup.State != Util.OnlineState)
                     {
-                        Log.Warn("Somehow, '{0}' is the only backup from {1}. Exporting it to be paranoid",
-                            dailyBackup.DatabaseName,
-                            dailyBackup.Timestamp.Value.Date.ToShortDateString());
+                        Log.Info("Skipping '{0}', it is still being copied", dailyBackup.DatabaseName);
                     }
-                    Log.Info("Exporting '{0}'...", dailyBackup.DatabaseName);
-                    (new ExportDatabaseTask()
+                    else
                     {
-                        ConnectionString = ConnectionString,
-                        DestinationStorage = StorageAccount,
-                        DatabaseName = dailyBackup.DatabaseName,
-                        DestinationContainer = "database-backups",
-                        SqlDacEndpoint = SqlDacEndpoint,
-                        WhatIf = WhatIf
-                    }).Execute();
+                        if (dailyBackup.Timestamp.Value.TimeOfDay < new TimeSpan(23, 30, 00))
+                        {
+                            Log.Warn("Somehow, '{0}' is the only backup from {1}. Exporting it to be paranoid",
+                                dailyBackup.DatabaseName,
+                                dailyBackup.Timestamp.Value.Date.ToShortDateString());
+                        }
+                        Log.Info("Exporting '{0}'...", dailyBackup.DatabaseName);
+                        (new ExportDatabaseTask()
+                        {
+                            ConnectionString = ConnectionString,
+                            DestinationStorage = StorageAccount,
+                            DatabaseName = dailyBackup.DatabaseName,
+                            DestinationContainer = "database-backups",
+                            SqlDacEndpoint = SqlDacEndpoint,
+                            WhatIf = WhatIf
+                        }).Execute();
+                    }
                 }
             }
         }
