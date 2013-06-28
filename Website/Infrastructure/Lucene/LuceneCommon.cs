@@ -11,6 +11,8 @@ namespace NuGetGallery
         internal static readonly string IndexMetadataPath = Path.Combine(IndexDirectory ?? ".", "index.metadata");
         internal static readonly Version LuceneVersion = Version.LUCENE_30;
 
+        private static SingleInstanceLockFactory LuceneLock = new SingleInstanceLockFactory();
+
         // Factory method for DI/IOC that creates the directory the index is stored in.
         // Used by real website. Bypassed for unit tests.
         private static SimpleFSDirectory _directorySingleton;
@@ -25,7 +27,7 @@ namespace NuGetGallery
                 }
 
                 var directoryInfo = new DirectoryInfo(IndexDirectory);
-                _directorySingleton = new SimpleFSDirectory(directoryInfo);
+                _directorySingleton = new SimpleFSDirectory(directoryInfo, LuceneLock);
             }
 
             return _directorySingleton;
