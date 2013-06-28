@@ -74,16 +74,19 @@ var drawDownloadsByVersionBarChart = function () {
     xScale.domain(data.map(function (d) { return d.version; }));
     yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
 
+    //  the use of dx attribute on the text element is correct, however, the negative shift doesn't appear to work on Firefox
+    //  the workaround employed here is to add a translation to the rotation transform
+
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
         .selectAll("text")
         .style("text-anchor", "end")
-        .attr("dx", "-.8em")
+        //.attr("dx", "-.8em")
         .attr("dy", ".15em")
         .attr("transform", function (d) {
-            return "rotate(-65)"
+            return "rotate(-65),translate(-10,0)"
         });
 
     svg.append("g")
@@ -153,16 +156,19 @@ var drawDownloadsByClientNameBarChart = function () {
     xScale.domain(data.map(function (d) { return d.clientName; }));
     yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
 
+    //  the use of dx attribute on the text element is correct, however, the negative shift doesn't appear to work on Firefox
+    //  the workaround employed here is to add a translation to the rotation transform
+
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
         .selectAll("text")
         .style("text-anchor", "end")
-        .attr("dx", "-.8em")
+        //.attr("dx", "-.8em")
         .attr("dy", ".15em")
         .attr("transform", function (d) {
-            return "rotate(-65)"
+            return "rotate(-65),translate(-10,0)"
         });
 
     svg.append("g")
