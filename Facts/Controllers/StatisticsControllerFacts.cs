@@ -52,13 +52,49 @@ namespace NuGetGallery
                 }
             };
 
+            JArray report3 = new JArray
+            {
+                new JObject
+                {
+                    { "ClientMajorVersion", 0 },
+                    { "ClientMinorVersion", 0 },
+                    { "Downloads", 1349 }
+                },
+                new JObject
+                {
+                    { "ClientMajorVersion", 1 },
+                    { "ClientMinorVersion", 0 },
+                    { "Downloads", 1349 }
+                }
+            };
+
+            JArray report4 = new JArray
+            {
+                new JObject
+                {
+                    { "Year", 2012 },
+                    { "MonthOfYear", 11 },
+                    { "Downloads", 5383767 }
+                },
+                new JObject
+                {
+                    { "Year", 2012 },
+                    { "MonthOfYear", 12 },
+                    { "Downloads", 5383767 }
+                }
+            };
+
             var fakePackageReport = report1.ToString();
             var fakePackageVersionReport = report2.ToString();
+            var fakeNuGetClientVersion = report3.ToString();
+            var fakeLast6Months = report4.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
             fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
             fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+            fakeReportService.Setup(x => x.Load("NuGetClientVersion.json")).Returns(Task.FromResult(fakeNuGetClientVersion));
+            fakeReportService.Setup(x => x.Load("Last6Months.json")).Returns(Task.FromResult(fakeLast6Months));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -124,13 +160,49 @@ namespace NuGetGallery
                 }
             };
 
+            JArray report3 = new JArray
+            {
+                new JObject
+                {
+                    { "ClientMajorVersion", 0 },
+                    { "ClientMinorVersion", 0 },
+                    { "Downloads", 1349 }
+                },
+                new JObject
+                {
+                    { "ClientMajorVersion", 1 },
+                    { "ClientMinorVersion", 0 },
+                    { "Downloads", 1349 }
+                }
+            };
+
+            JArray report4 = new JArray
+            {
+                new JObject
+                {
+                    { "Year", 2012 },
+                    { "MonthOfYear", 11 },
+                    { "Downloads", 5383767 }
+                },
+                new JObject
+                {
+                    { "Year", 2012 },
+                    { "MonthOfYear", 12 },
+                    { "Downloads", 5383767 }
+                }
+            };
+
             var fakePackageReport = report1.ToString();
             var fakePackageVersionReport = report2.ToString();
+            var fakeNuGetClientVersion = report3.ToString();
+            var fakeLast6Months = report4.ToString();
 
             var fakeReportService = new Mock<IReportService>();
 
             fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
             fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+            fakeReportService.Setup(x => x.Load("NuGetClientVersion.json")).Returns(Task.FromResult(fakeNuGetClientVersion));
+            fakeReportService.Setup(x => x.Load("Last6Months.json")).Returns(Task.FromResult(fakeLast6Months));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -331,7 +403,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal<int>(603, sum);
-            Assert.Equal<int>(603, model.Report.Total);
+            Assert.Equal<string>("603", model.Report.Total);
         }
 
         [Fact]
@@ -411,46 +483,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal<int>(502, sum);
-            Assert.Equal<int>(502, model.Report.Total);
-        }
-
-        [Fact]
-        public async void StatisticsHomePage_Packages_Negative_ValidateThrowOnInvalidStructure()
-        {
-            JArray report = new JArray
-            {
-                new JObject
-                {
-                    { "Lala", "A" },
-                    { "Downloads", 303 }
-                }
-            };
-
-            var fakePackageReport = "[{\"Lala\":\"A\",\"Downloads\":303}]";
-
-            var fakeReportService = new Mock<IReportService>();
-
-            fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
-
-            var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
-
-            bool hasException = false;
-
-            try
-            {
-                var model = (StatisticsPackagesViewModel)((ViewResult) await controller.Packages()).Model;
-                hasException = false;
-            }
-            catch (Exception)
-            {
-                //  we don't care too much about the exact type of the exception
-                hasException = true;
-            }
-
-            if (!hasException)
-            {
-                throw new Exception("this exception thrown because expected exception was not thrown");
-            }
+            Assert.Equal<string>("502", model.Report.Total);
         }
 
         public class TheTotalsAllAction

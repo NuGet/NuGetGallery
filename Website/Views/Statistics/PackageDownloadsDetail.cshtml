@@ -4,10 +4,13 @@
     ViewBag.Tab = "Statistics";
 }
 
-<h2>Package Downloads for <a href="@Url.Package(Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a> (Over the Last 6 Weeks)</h2>
+<h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a> (Over the Last 6 Weeks)</h1>
 @if (Model.IsReportAvailable)
 {
     @Html.Partial("_PivotTable", Model.Report)
+
+        <div class="statistics-graph" id="statistics-graph-id">
+    </div>
 }
 else
 {
@@ -15,10 +18,16 @@ else
         Download statistics are not currently available for this package, please check back later. 
     </p>
 }
+
 @section BottomScripts
 {
+    @Scripts.Render("~/Scripts/d3.v3.min.js")
     @Scripts.Render("~/Scripts/statsdimensions.js")
+    @Scripts.Render("~/Scripts/perpackagestatsgraphs.js")
     <script>
-        $(document).ready(groupbyNavigation);
+        $(document).ready(function() {
+            groupbyNavigation();
+            packageDisplayGraphs();
+        });
     </script>
 }

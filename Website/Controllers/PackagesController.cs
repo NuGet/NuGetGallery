@@ -593,7 +593,7 @@ namespace NuGetGallery
                     Description = packageMetadata.Description,
                     RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
                     LicenseUrl = packageMetadata.LicenseUrl.ToStringSafe(),
-                    Tags = packageMetadata.Tags,
+                    Tags = PackageHelper.ParseTags(packageMetadata.Tags),
                     ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
                     Authors = packageMetadata.Authors.Flatten(),
                     Listed = true
@@ -686,13 +686,12 @@ namespace NuGetGallery
             {
                 case Constants.AlphabeticSortOrder:
                     return "PackageRegistration.Id";
-
                 case Constants.RecentSortOrder:
                     return "Published desc";
 
                 default:
                     return "PackageRegistration.DownloadCount desc";
             }
-        }		
+        }
     }
 }

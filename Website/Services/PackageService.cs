@@ -434,7 +434,7 @@ namespace NuGetGallery
                 Listed = true,
                 PackageRegistration = packageRegistration,
                 Summary = nugetPackage.Metadata.Summary,
-                Tags = nugetPackage.Metadata.Tags,
+                Tags = PackageHelper.ParseTags(nugetPackage.Metadata.Tags),
                 Title = nugetPackage.Metadata.Title,
             };
 

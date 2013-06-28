@@ -23,9 +23,6 @@ using T4MVC;
 namespace NuGetGallery.Areas.Admin.Controllers {
     public partial class ConfigController {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public ConfigController() { }
-
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         protected ConfigController(Dummy d) { }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -56,6 +53,7 @@ namespace NuGetGallery.Areas.Admin.Controllers {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string Index = "~/Areas/Admin/Views/Config/Index.cshtml";
         }
     }
 
