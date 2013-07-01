@@ -48,29 +48,33 @@
                             {
                                 if (entry.Rowspan > 1)
                                 {
-                                    <td rowspan="@entry.Rowspan" style="vertical-align:top">
-                                        @if (entry.Uri == null)
-                                        {
+                                    if (entry.Uri == null)
+                                    {
+                                        <td class="statistics-number">
                                             @entry.Data
-                                        }
-                                        else
-                                        {
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td rowspan="@entry.Rowspan" style="vertical-align:top">
                                             <a href="@entry.Uri">@entry.Data</a>
-                                        }
-                                    </td>
+                                        </td>
+                                    }
                                 }
                                 else
                                 {
-                                    <td>
-                                        @if (entry.Uri == null)
-                                        {
+                                    if (entry.Uri == null)
+                                    {
+                                        <td class="statistics-number">
                                             @entry.Data
-                                        }
-                                        else
-                                        {
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td>
                                             <a href="@entry.Uri">@entry.Data</a>
-                                        }
-                                    </td>
+                                        </td>
+                                    }
                                 }
                             }
                         }
