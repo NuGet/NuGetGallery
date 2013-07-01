@@ -46,36 +46,34 @@
                         {
                             if (entry != null)
                             {
+                                var entryClass = entry.IsNumeric ? "statistics-number" : "";
+                                
                                 if (entry.Rowspan > 1)
                                 {
-                                    if (entry.Uri == null)
-                                    {
-                                        <td class="statistics-number">
+                                    <td class="@entryClass" rowspan="@entry.Rowspan" style="vertical-align:top">
+                                        @if (entry.Uri == null)
+                                        {
                                             @entry.Data
-                                        </td>
-                                    }
-                                    else
-                                    {
-                                        <td rowspan="@entry.Rowspan" style="vertical-align:top">
+                                        }
+                                        else
+                                        {
                                             <a href="@entry.Uri">@entry.Data</a>
-                                        </td>
-                                    }
+                                        }
+                                    </td>
                                 }
                                 else
                                 {
-                                    if (entry.Uri == null)
-                                    {
-                                        <td class="statistics-number">
+                                    <td class="@entryClass">
+                                        @if (entry.Uri == null)
+                                        {
                                             @entry.Data
-                                        </td>
-                                    }
-                                    else
-                                    {
-                                        <td>
+                                        }
+                                        else
+                                        {
                                             <a href="@entry.Uri">@entry.Data</a>
-                                        </td>
-                                    }
-                                }
+                                        }
+                                    </td>
+                                }                            
                             }
                         }
 
