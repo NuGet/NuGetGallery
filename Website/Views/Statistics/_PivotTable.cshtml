@@ -46,9 +46,11 @@
                         {
                             if (entry != null)
                             {
+                                var entryClass = entry.IsNumeric ? "statistics-number" : "";
+                                
                                 if (entry.Rowspan > 1)
                                 {
-                                    <td rowspan="@entry.Rowspan" style="vertical-align:top">
+                                    <td class="@entryClass" rowspan="@entry.Rowspan" style="vertical-align:top">
                                         @if (entry.Uri == null)
                                         {
                                             @entry.Data
@@ -61,7 +63,7 @@
                                 }
                                 else
                                 {
-                                    <td>
+                                    <td class="@entryClass">
                                         @if (entry.Uri == null)
                                         {
                                             @entry.Data
@@ -71,7 +73,7 @@
                                             <a href="@entry.Uri">@entry.Data</a>
                                         }
                                     </td>
-                                }
+                                }                            
                             }
                         }
 
