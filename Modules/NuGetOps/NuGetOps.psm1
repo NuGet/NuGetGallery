@@ -1,5 +1,5 @@
 $Global:OpsRoot = (Convert-Path "$PsScriptRoot\..\..")
-$Global:EnvironmentsList = $env:NUGET_OPS_ENVIRONMENTS
+$Global:NuGetOpsDefinition = $env:NUGET_OPS_DEFINITION
 
 $CurrentDeployment = $null
 $CurrentEnvironment = $null
@@ -27,9 +27,10 @@ if(!$AzureSDKRoot) {
 
 # Check for v0.2 level environment scripts
 $Global:Environments = @{}
-if($EnvironmentsList -and (Test-Path $EnvironmentsList)) {
-	if([IO.Path]::GetExtension($EnvironmentsList) -eq ".xml") {
-		$x = [xml](cat $EnvironmentsList)
+if($NuGetOpsDefinition -and (Test-Path $NuGetOpsDefinition)) {
+	$EnvironmentsList = Join-Path $NuGetOpsDefinition "Environments.xml"
+	if(Test-Path $EnvironmentsList) {
+		$x = [xml](cat $NuGetOpsDefinition)
 		$Global:Environments = @{};
 		$x.environments.environment | ForEach-Object {
 			$Environments[$_.name] = New-Object PSCustomObject
@@ -42,30 +43,36 @@ if($EnvironmentsList -and (Test-Path $EnvironmentsList)) {
 				Subscription = $_.subscription
 			} -InputObject $Environments[$_.name]
 		}
+	} else {
+		Write-Warning "Environments list not found at $EnvironmentsList. No Environments will be available."
+	}
 
-		$subsXml = Join-Path (Split-Path -Parent $EnvironmentsList) "Subscriptions.xml"
-		if(Test-Path $subsXml) {
-			$x = [xml](cat $subsXml)
-			$Global:Subscriptions = @{};
-			$x.subscriptions.subscription | ForEach-Object {
-				$Subscriptions[$_.name] = New-Object PSCustomObject
-				Add-Member -NotePropertyMembers @{
-					Version = $NuGetOpsVersion;
-					Id = $_.id;
-					Name = $_.name
-				} -InputObject $Subscriptions[$_.name]
-			}
+	$SubscriptionsList = Join-Path $NuGetOpsDefinition "Subscriptions.xml"
+	if(Test-Path $SubscriptionsList) {
+		$x = [xml](cat $subsXml)
+		$Global:Subscriptions = @{};
+		$x.subscriptions.subscription | ForEach-Object {
+			$Subscriptions[$_.name] = New-Object PSCustomObject
+			Add-Member -NotePropertyMembers @{
+				Version = $NuGetOpsVersion;
+				Id = $_.id;
+				Name = $_.name
+			} -InputObject $Subscriptions[$_.name]
+		}
 
-			$Environments.Keys | foreach {
-				$sub = $Environments[$_].Subscription
-				if($Subscriptions[$sub] -ne $null) {
-					$Environments[$_].Subscription = $Subscriptions[$sub];
-				}
+		$Environments.Keys | foreach {
+			$sub = $Environments[$_].Subscription
+			if($Subscriptions[$sub] -ne $null) {
+				$Environments[$_].Subscription = $Subscriptions[$sub];
 			}
 		}
 	} else {
-		throw "Your Environments are old and busted. Upgrade to the new hotness!`r`nhttps://github.com/NuGet/NuGetOperations/wiki/Setting-up-the-Operations-Console"
+		Write-Warning "Subscriptions list not found at $SubscriptionsList. No Subscriptions will be available."
 	}
+}
+
+if(@(Get-AzureSubscription).Length -eq 0) {
+	Write-Warning "No Azure Subscriptions registered with the Azure Management Tools! Use the 'New-AzureManagementCertificate' function to generate a cert, and then the 'Enable-AzurePowerShell' script to configure it (both have '-?' help parameters if you need further info)"
 }
 
 function Get-Environment([switch]$ListAvailable) {
