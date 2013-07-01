@@ -60,7 +60,7 @@ namespace NuGetGallery
                 if (item.Value.Next == null)
                 {
                     table[row][col] = new TableEntry { Data = item.Key };
-                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToString("n0", clientCulture) };
+                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToString("n0", clientCulture), IsNumeric = true };
                     row++;
                 }
                 else
@@ -189,6 +189,9 @@ namespace NuGetGallery
             public string Data { get; set; }
             public int Rowspan { get; set; }
             public string Uri { get; set; }
+            public bool IsNumeric { get; set; }
+
+
         }
 
         // This is for an internal data structure that represents the pivot as a tree.

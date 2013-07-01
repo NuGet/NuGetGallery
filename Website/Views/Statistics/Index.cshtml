@@ -32,7 +32,7 @@
                     <tr>
                         <td class="statistics-rank">@index</td>
                         <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
-                        <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                        <td class="statistics-number"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
                     </tr>
                 }
             }
@@ -62,7 +62,7 @@
                         <td class="statistics-rank">@index</td>
                         <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
                         <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-                        <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                        <td class="statistics-number"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
                     </tr>
                 }
             }
@@ -91,7 +91,7 @@
                     <tr>
                         <td>@item.Version</td>
                         <td>@Model.DisplayDownloads(item.Downloads)</td>
-                        <td>@Model.DisplayPercentage(item.Downloads, Model.NuGetClientVersionTotalDownloads)</td>
+                        <td class="statistics-number">@Model.DisplayPercentage(item.Downloads, Model.NuGetClientVersionTotalDownloads)</td>
                     </tr>
                 }
             }
@@ -102,7 +102,7 @@
 @if (Model.IsLast6MonthsAvailable)
 {
     <div class="statistics-layout" id="downloads-per-month">
-        <h1 class="statistics-report-title">Downloaded&nbsp;Per&nbsp;Month</h1>
+        <h1 class="statistics-report-title">Packages&nbsp;Downloaded&nbsp;Per&nbsp;Month</h1>
         <table class="sexy-table">
             <thead>
                 <tr>
@@ -115,7 +115,7 @@
                 {
                     <tr>
                         <td>@Model.DisplayMonth(item.Year, item.MonthOfYear)</td>
-                        <td>@Model.DisplayDownloads(item.Downloads)</td>
+                        <td class="statistics-number">@Model.DisplayDownloads(item.Downloads)</td>
                     </tr>
                 }
             }
