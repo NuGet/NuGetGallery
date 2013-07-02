@@ -111,13 +111,26 @@ IF OBJECT_ID('[dbo].[Dimension_Operation]') IS NULL
     CREATE TABLE [dbo].[Dimension_Operation]
     (
         [Id] INT IDENTITY,
-        [Operation] NVARCHAR(16)
+        [Operation] NVARCHAR(18)
         CONSTRAINT [PK_Dimension_Operation] PRIMARY KEY CLUSTERED ( [Id] )
     )
 GO
 
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Dimension_Operation_NCI_Operation')
     CREATE UNIQUE NONCLUSTERED INDEX [Dimension_Operation_NCI_Operation] ON [Dimension_Operation] ( [Operation] )
+GO
+
+IF OBJECT_ID('[dbo].[Dimension_Project]') IS NULL
+    CREATE TABLE [dbo].[Dimension_Project]
+    (
+        [Id] INT IDENTITY,
+        [ProjectTypes] NVARCHAR(499)
+        CONSTRAINT [PK_Dimension_Project] PRIMARY KEY CLUSTERED ( [Id] )
+    )
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'Dimension_Project_NCI_ProjectTypes')
+    CREATE UNIQUE NONCLUSTERED INDEX [Dimension_Project_NCI_ProjectTypes] ON [Dimension_Project] ( [ProjectTypes] )
 GO
 
 IF OBJECT_ID('[dbo].[Fact_Download]') IS NULL
@@ -128,8 +141,9 @@ IF OBJECT_ID('[dbo].[Fact_Download]') IS NULL
         [Dimension_Date_Id]			INT,
         [Dimension_Time_Id]			INT,
         [Dimension_Operation_Id]	INT,
+        [Dimension_Project_Id]		INT,
         [DownloadCount]				INT
-        CONSTRAINT [PK_Fact_Download] PRIMARY KEY CLUSTERED ( [Dimension_UserAgent_Id], [Dimension_Package_Id], [Dimension_Date_Id], [Dimension_Time_Id], [Dimension_Operation_Id] )
+        CONSTRAINT [PK_Fact_Download] PRIMARY KEY CLUSTERED ( [Dimension_UserAgent_Id], [Dimension_Package_Id], [Dimension_Date_Id], [Dimension_Time_Id], [Dimension_Operation_Id], [Dimension_Project_Id] )
     )
 GO
 
