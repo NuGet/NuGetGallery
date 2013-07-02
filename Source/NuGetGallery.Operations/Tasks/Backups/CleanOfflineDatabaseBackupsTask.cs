@@ -17,7 +17,7 @@ namespace NuGetGallery.Operations.Tasks.Backups
             var today = DateTime.UtcNow.Date;
 
             // List available backups
-            var toDelete = new HashSet<CloudBlockBlob>();
+            var toKeep = new HashSet<string>();
             var client = CreateBlobClient();
             var container = client.GetContainerReference("database-backups");
             var backups = container
@@ -30,41 +30,39 @@ namespace NuGetGallery.Operations.Tasks.Backups
             // Group by days
             var days = backups.GroupBy(b => b.Timestamp.Date).OrderByDescending(g => g.Key);
 
-            // Find any days with multiple backups and delete the extras
-            foreach (var backup in days.SelectMany(d => d.OrderByDescending(b => b.Timestamp).Skip(1)))
+            // Keep the last backup of each day for the past 7 days where we have backups
+            foreach (var backup in days.Take(7).Select(g => g.OrderByDescending(b => b.Timestamp).First()))
             {
-                toDelete.Add(backup.Blob);
+                if (backup.Timestamp < today.AddDays(-7))
+                {
+                    Log.Warn("Backup '{0}' is in the last 7 days of backups but is older than 7 days!", backup.Blob.Name);
+                }
+                toKeep.Add(backup.Blob.Name);
             }
 
-            // Skip until a week before today
-            var olderThanAWeek = days.Where(g => g.Key < (today.AddDays(-7)));
-
-            // Delete any of the older ones from the current month
-            foreach (var backup in olderThanAWeek.Where(b => b.Key.Month == today.Month).SelectMany(b => b))
-            {
-                toDelete.Add(backup.Blob);
-            }
-            
             // Group previous backups in to months
             var months = backups
                 .GroupBy(b => new { b.Timestamp.Month, b.Timestamp.Year })
                 .Where(g => g.Key.Month != today.Month || g.Key.Year != today.Year);
 
             // Keep the last chronological backup for each month
-            foreach(var backup in months.SelectMany(g => g.OrderByDescending(b => b.Timestamp).Skip(1)))
+            foreach(var backup in months.Select(g => g.OrderByDescending(b => b.Timestamp).First()))
             {
-                toDelete.Add(backup.Blob);
+                toKeep.Add(backup.Blob.Name);
             }
 
-            // Finally, delete anything older than a year
-            foreach (var backup in backups.Where(b => b.Timestamp < today.AddYears(-1)))
+            // Remove anything older than a year
+            foreach (var backup in backups.Where(b => b.Timestamp < today.AddYears(-1) && toKeep.Contains(b.Blob.Name)))
             {
-                toDelete.Add(backup.Blob);
+                toKeep.Remove(backup.Blob.Name);
             }
 
-            foreach (var backup in toDelete)
+            foreach (var backup in backups)
             {
-                DeleteBackup(backup);
+                if (!toKeep.Contains(backup.Blob.Name))
+                {
+                    DeleteBackup(backup.Blob);
+                }
             }
 
             Log.Info("Finished cleaning backups!");
