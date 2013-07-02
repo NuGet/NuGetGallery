@@ -70,11 +70,11 @@ namespace NuGetGallery.Operations.Tasks
             else if (!All)
             {
                 Log.Info("Environment: {0}", EnvironmentName);
-                Log.Info(" Main SQL: {0}", CurrentEnvironment.MainDatabase.DataSource);
-                Log.Info(" Warehouse SQL: {0}", CurrentEnvironment.WarehouseDatabase.DataSource);
-                Log.Info(" Main Storage: {0}", CurrentEnvironment.MainStorage.Credentials.AccountName);
-                Log.Info(" Warehouse SQL: {0}", CurrentEnvironment.BackupStorage.Credentials.AccountName);
-                Log.Info(" SQL DAC: {0}", CurrentEnvironment.SqlDacEndpoint.AbsoluteUri);
+                Log.Info(" Main SQL: {0}", CurrentEnvironment.MainDatabase == null ? "<unknown>" : CurrentEnvironment.MainDatabase.DataSource);
+                Log.Info(" Warehouse SQL: {0}", CurrentEnvironment.WarehouseDatabase == null ? "<unknown>" : CurrentEnvironment.WarehouseDatabase.DataSource);
+                Log.Info(" Main Storage: {0}", CurrentEnvironment.MainStorage == null ? "<unknown>" : CurrentEnvironment.MainStorage.Credentials.AccountName);
+                Log.Info(" Backup Storage: {0}", CurrentEnvironment.BackupStorage == null ? "<unknown>" : CurrentEnvironment.BackupStorage.Credentials.AccountName);
+                Log.Info(" SQL DAC: {0}", CurrentEnvironment.SqlDacEndpoint == null ? "<unknown>" : CurrentEnvironment.SqlDacEndpoint.AbsoluteUri);
             }
             else
             {

@@ -81,7 +81,14 @@ function Set-Environment {
     RunInSubscription $CurrentEnvironment.Subscription.Name {
         
         Write-Host "Downloading Configuration for Frontend..."
-        $frontend = Get-AzureWebsite -Name $CurrentEnvironment.Frontend
+        $frontend = $null;
+        if($CurrentEnvironment.Type -eq "website") {
+            $frontend = Get-AzureWebsite -Name $CurrentEnvironment.Frontend
+        } elseif($CurrentEnvironment.Type -eq "webrole") {
+            $frontend = Get-AzureDeployment -ServiceName $CurrentEnvironment.Frontend -Slot "production"
+        } else {
+            Write-Warning "Unknown Service Type: $($CurrentEnvironment.Type)"
+        }
         
         Write-Host "Downloading Configuration for Backend..."
         $backend = Get-AzureDeployment -ServiceName $CurrentEnvironment.Backend -Slot "production"
@@ -95,6 +102,7 @@ function Set-Environment {
             $Global:OldBgColor = $Host.UI.RawUI.BackgroundColor
             $Host.UI.RawUI.BackgroundColor = "DarkRed"
             _RefreshGitColors
+            Write-Warning "You are attached to the PRODUCTION Environment. Use caution!"
         } else {
             if($Global:OldBgColor) {
                 $Host.UI.RawUI.BackgroundColor = $Global:OldBgColor
@@ -103,4 +111,5 @@ function Set-Environment {
             _RefreshGitColors
         }
     }
+
 }
