@@ -10,6 +10,7 @@ using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NLog;
+using NuGetGallery.Operations.Model;
 
 namespace NuGetGallery.Operations
 {
@@ -100,7 +101,7 @@ namespace NuGetGallery.Operations
             var backupDbs = dbExecutor.Query<Database>(
                 "SELECT name, state FROM sys.databases WHERE name LIKE '" + backupNamePrefix + "%' AND state = @state",
                 new { state = OnlineState })
-                .OrderByDescending(database => database.Name);
+                .OrderByDescending(db => OnlineDatabaseBackup.ParseTimestamp(db.Name).Value);
 
             return backupDbs.FirstOrDefault();
         }

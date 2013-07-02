@@ -121,6 +121,7 @@
     <Compile Include="Jobs\ReplicatePackageStatisticsJob.cs" />
     <Compile Include="Jobs\SynchronizePackageBackupsJob.cs" />
     <Compile Include="Jobs\WorkerJob.cs" />
+    <Compile Include="JsonLayout.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="WorkerRole.cs" />

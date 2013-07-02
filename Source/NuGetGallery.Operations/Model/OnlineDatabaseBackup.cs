@@ -31,7 +31,7 @@ namespace NuGetGallery.Operations.Model
 
         private static readonly Regex OldBackupNameFormat = new Regex(@"^(?<name>.+)_(?<timestamp>\d{14})$");
         private static readonly Regex BackupNameFormat = new Regex(@"^(?<name>.+)_(?<timestamp>\d{4}[A-Za-z]{3}\d{2}_\d{4})Z$"); // Backup_2013Apr12_1452Z
-        private static DateTimeOffset? ParseTimestamp(string databaseName)
+        public static DateTimeOffset? ParseTimestamp(string databaseName)
         {
             var match = BackupNameFormat.Match(databaseName);
             if (match.Success)
