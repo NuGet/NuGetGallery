@@ -39,7 +39,7 @@ namespace NuGetGallery.Operations
 
             int originalKey = ReplicatePackageStatisticsTask.GetLastOriginalKey(destination);
 
-            Log.Info(string.Format("Purging PackageStatistics records that are not in the warehouse"));
+            Log.Info("Purging PackageStatistics records that are in the warehouse. LastOriginalKey in warehouse is: {0}", originalKey);
 
             if (!WhatIf)
             {

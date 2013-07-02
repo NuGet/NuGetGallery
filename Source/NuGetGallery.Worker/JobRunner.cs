@@ -20,7 +20,7 @@ namespace NuGetGallery.Worker
         public IDictionary<string, WorkerJob> Jobs { get; private set; }
 
         [ImportingConstructor]
-        public JobRunner([Import(AllowDefault=true)] Settings settings, [ImportMany] IEnumerable<WorkerJob> jobs)
+        public JobRunner([Import(AllowDefault = true)] Settings settings, [ImportMany] IEnumerable<WorkerJob> jobs)
         {
             _settings = settings ?? new Settings();
             Jobs = jobs.ToDictionary(j => j.GetType().Name, StringComparer.OrdinalIgnoreCase);
@@ -102,7 +102,12 @@ namespace NuGetGallery.Worker
 
             // Wait for a completion message
             _logger.Info("Ready at {0}. Waiting for Shutdown", DateTime.Now);
-            _subject.Wait();
+
+            // Wait for the system to shut down, but perform a heartbeat every minute.
+            using (Observable.Interval(TimeSpan.FromMinutes(1)).Subscribe(t => _logger.Info("Heartbeat tick. Host is still running.")))
+            {
+                _subject.Wait();
+            }
 
             _logger.Info("Shutting down jobs...");
             foreach (var token in tokens)
