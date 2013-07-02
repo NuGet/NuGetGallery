@@ -6,7 +6,7 @@ using NuGetGallery.Operations;
 
 namespace NuGetGallery.Worker.Jobs
 {
-    //[Export(typeof(WorkerJob))]
+    [Export(typeof(WorkerJob))]
     public class ExecuteAggregateStatisticsJob : WorkerJob
     {
         ExecuteAggregateStatisticsJob()
@@ -32,13 +32,11 @@ namespace NuGetGallery.Worker.Jobs
         public override void RunOnce()
         {
             Logger.Trace("Starting Execute AggregateStatistics Task.");
-            ExecuteAggregateStatisticsTask task = new ExecuteAggregateStatisticsTask()
+            ExecuteTask(new ExecuteAggregateStatisticsTask()
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 WhatIf = Settings.WhatIf
-            };
-            task.Execute();
-
+            });
             Logger.Trace("Finished Execute AggregateStatistics Task.");
         }
     }

@@ -5,7 +5,7 @@ using NuGetGallery.Operations;
 
 namespace NuGetGallery.Worker.Jobs
 {
-    //[Export(typeof(WorkerJob))]
+    [Export(typeof(WorkerJob))]
     public class PurgePackageStatisticsJob : WorkerJob
     {
         public override TimeSpan Period
@@ -27,12 +27,12 @@ namespace NuGetGallery.Worker.Jobs
         public override void RunOnce()
         {
             Logger.Trace("Starting purge package statistics task.");
-            new PurgePackageStatisticsTask
+            ExecuteTask(new PurgePackageStatisticsTask
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 WarehouseConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 WhatIf = Settings.WhatIf
-            }.Execute();
+            });
             Logger.Trace("Finished purge package statistics task.");
         }
     }

@@ -16,8 +16,6 @@ namespace NuGetGallery.Operations
 
         public CancellationToken CancellationToken { get; set; }
 
-        public int Count { get; private set; }
-
         public override void ValidateArguments()
         {
             base.ValidateArguments();
@@ -39,7 +37,9 @@ namespace NuGetGallery.Operations
             const int ExpectedSourceMaxQueryTime = 5;   //  if the query from the source database takes longer than this we must be busy
             const int PauseDuration = 10;               //  pause applied when the queries to the source are taking a long time 
 
-            Count = Replicate(ConnectionString.ConnectionString, WarehouseConnectionString.ConnectionString, BatchSize, ExpectedSourceMaxQueryTime, PauseDuration);
+            var count = Replicate(ConnectionString.ConnectionString, WarehouseConnectionString.ConnectionString, BatchSize, ExpectedSourceMaxQueryTime, PauseDuration);
+
+            Log.Info("Replicated {0} records.", count);
         }
 
         public static int GetLastOriginalKey(string connectionString)

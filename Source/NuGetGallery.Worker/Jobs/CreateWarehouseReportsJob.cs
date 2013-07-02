@@ -19,12 +19,12 @@ namespace NuGetGallery.Worker.Jobs
         public override void RunOnce()
         {
             Logger.Info("Starting create warehouse reports task.");
-            new CreateWarehouseReportsTask
+            ExecuteTask(new CreateWarehouseReportsTask
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
                 StorageAccount = Settings.MainStorage,
                 WhatIf = Settings.WhatIf
-            }.Execute();
+            });
             Logger.Info("Finished create warehouse reports task.");
         }
     }
