@@ -124,7 +124,7 @@ IF OBJECT_ID('[dbo].[Dimension_Project]') IS NULL
     CREATE TABLE [dbo].[Dimension_Project]
     (
         [Id] INT IDENTITY,
-        [ProjectTypes] NVARCHAR(499)
+        [ProjectTypes] NVARCHAR(450)
         CONSTRAINT [PK_Dimension_Project] PRIMARY KEY CLUSTERED ( [Id] )
     )
 GO
