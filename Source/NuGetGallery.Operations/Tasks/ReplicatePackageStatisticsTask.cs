@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Data.SqlTypes;
+using System.Text;
 using System.Threading;
 
 namespace NuGetGallery.Operations
 {
-    [Command("replicatepackagestatistics", "Replicates any new package statistics", AltName = "repstats", MaxArgs = 0, IsSpecialPurpose = true)]
+    //    [Command("replicatepackagestatistics", "Replicates any new package statistics", AltName = "repstats", MaxArgs = 0, IsSpecialPurpose = true)]
+    [Command("replicatepackagestatistics", "Replicates any new package statistics", AltName = "repstats")]
     public class ReplicatePackageStatisticsTask : DatabaseTask
     {
         [Option("Connection string to the warehouse database server", AltName = "wdb")]
@@ -97,7 +99,9 @@ namespace NuGetGallery.Operations
                           Packages.[IconUrl] 'PackageIconUrl',
                           ISNULL(PackageStatistics.[UserAgent], '') 'DownloadUserAgent', 
                           ISNULL(PackageStatistics.[Operation], '') 'DownloadOperation', 
-                          PackageStatistics.[Timestamp] 'DownloadTimestamp' 
+                          PackageStatistics.[Timestamp] 'DownloadTimestamp',
+                          PackageStatistics.[ProjectGuids] 'DownloadProjectTypes',
+                          PackageStatistics.[DependentPackage] 'DownloadDependentPackageId'
                         FROM PackageStatistics 
                         INNER JOIN Packages ON PackageStatistics.PackageKey = Packages.[Key] 
                         INNER JOIN PackageRegistrations ON PackageRegistrations.[Key] = Packages.PackageRegistrationKey 
@@ -157,6 +161,9 @@ namespace NuGetGallery.Operations
                         command.Parameters.AddWithValue("@DownloadUserAgent", row.DownloadUserAgent);
                         command.Parameters.AddWithValue("@DownloadOperation", row.DownloadOperation);
                         command.Parameters.AddWithValue("@DownloadTimestamp", row.DownloadTimestamp);
+
+                        command.Parameters.AddWithValue("@DownloadProjectTypes", AddNullableString(row.DownloadProjectTypes));
+                        command.Parameters.AddWithValue("@DownloadDependentPackageId", AddNullableString(row.DownloadDependentPackageId));
 
                         command.ExecuteNonQuery();
                     }
@@ -247,6 +254,8 @@ namespace NuGetGallery.Operations
                 DownloadUserAgent = reader.GetString(reader.GetOrdinal("DownloadUserAgent"));
                 DownloadOperation = reader.GetString(reader.GetOrdinal("DownloadOperation"));
                 DownloadTimestamp = reader.GetSqlDateTime(reader.GetOrdinal("DownloadTimestamp"));
+                DownloadProjectTypes = NormalizeProjectTypes(GetNullableField(reader, reader.GetOrdinal("DownloadProjectTypes")));
+                DownloadDependentPackageId = GetNullableField(reader, reader.GetOrdinal("DownloadDependentPackageId"));
             }
 
             public int OriginalKey { get; private set; }
@@ -259,6 +268,38 @@ namespace NuGetGallery.Operations
             public string DownloadUserAgent { get; private set; } 
             public string DownloadOperation { get; private set; }
             public SqlDateTime DownloadTimestamp { get; private set; }
+            public string DownloadProjectTypes { get; private set; }
+            public string DownloadDependentPackageId { get; private set; }
+
+            // Project Types is defined to be a semicolon set of identifiers, the identifiers are typically GUIDs
+            // The Project Types data should be treated as a set where the order of the fields does not matter for equality
+            // So we normalize the Project Types data so we can use string comparison for equality in the warehouse queries
+
+            private static string NormalizeProjectTypes(string original)
+            {
+                if (string.IsNullOrEmpty(original))
+                {
+                    return original;
+                }
+
+                string[] fields = original.ToLowerInvariant().Split(';');
+
+                Array.Sort(fields);
+
+                StringBuilder sb = new StringBuilder();
+                int i = 0;
+                for ( ; i < (fields.Length - 1); i++)
+                {
+                    sb.Append(fields[i]);
+                    sb.Append(';');
+                }
+                sb.Append(fields[i]);
+
+                string normalized = sb.ToString();
+
+                //  not strictly necessary but GUIDs are the norm and people expect to read GUID values in uppercase
+                return normalized.ToUpperInvariant();
+            }
 
             private static string GetNullableField(SqlDataReader reader, int ordinal)
             {

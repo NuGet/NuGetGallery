@@ -10,9 +10,11 @@ CREATE PROCEDURE [dbo].[AddDownloadFact]
 @PackageTitle NVARCHAR(256),
 @PackageDescription NVARCHAR(MAX),
 @PackageIconUrl NVARCHAR(MAX),
-@DownloadUserAgent NVARCHAR(max),
-@DownloadOperation NVARCHAR(16),
+@DownloadUserAgent NVARCHAR(MAX),
+@DownloadOperation NVARCHAR(18),
 @DownloadTimestamp DATETIME,
+@DownloadProjectTypes NVARCHAR(MAX),
+@DownloadDependentPackageId NVARCHAR(128),
 @OriginalKey INT
 AS
 BEGIN
@@ -35,36 +37,36 @@ BEGIN
         IF (@Dimension_PackageId IS NULL)
         BEGIN
             INSERT Dimension_Package
-			( 
-				PackageId,
-				PackageVersion,
-				PackageListed,
-				PackageTitle,
-				PackageDescription,
-				PackageIconUrl
-			)
+            (
+                PackageId,
+                PackageVersion,
+                PackageListed,
+                PackageTitle,
+                PackageDescription,
+                PackageIconUrl
+            )
             VALUES 
-			( 
-				@PackageId,
-				@PackageVersion,
-				@PackageListed,
-				@PackageTitle,
-				@PackageDescription,
-				@PackageIconUrl
-			);
+            (
+                @PackageId,
+                @PackageVersion,
+                @PackageListed,
+                @PackageTitle,
+                @PackageDescription,
+                @PackageIconUrl
+            );
 
             SELECT @Dimension_PackageId = SCOPE_IDENTITY();
         END
-		ELSE
-		BEGIN
+        ELSE
+        BEGIN
             UPDATE Dimension_Package
-			SET 
-				PackageListed = @PackageListed,
-				PackageTitle = @PackageTitle,
-				PackageDescription = @PackageDescription,
-				PackageIconUrl = @PackageIconUrl
-			WHERE Id = @Dimension_PackageId
-		END
+            SET
+                PackageListed = @PackageListed,
+                PackageTitle = @PackageTitle,
+                PackageDescription = @PackageDescription,
+                PackageIconUrl = @PackageIconUrl
+            WHERE Id = @Dimension_PackageId
+        END
 
         DECLARE @Dimension_UserAgentId INT;
 
@@ -117,12 +119,38 @@ BEGIN
             WHERE Operation = '(unknown)';
         END
 
+        DECLARE @Dimension_ProjectId INT;
+
+        IF (@DownloadProjectTypes IS NULL)
+        BEGIN
+            SELECT @DownloadProjectTypes = '(unknown)';
+        END
+
+        SELECT @Dimension_ProjectId = Id
+        FROM Dimension_Project
+        WHERE ProjectTypes = @DownloadProjectTypes;
+
+        IF (@Dimension_ProjectId IS NULL)
+        BEGIN
+            INSERT Dimension_Project
+            (
+                ProjectTypes
+            )
+            VALUES
+            (
+                @DownloadProjectTypes
+            );
+
+            SELECT @Dimension_ProjectId = SCOPE_IDENTITY();
+        END
+
         IF EXISTS (SELECT * FROM Fact_Download
             WHERE Dimension_Package_Id = @Dimension_PackageId
               AND Dimension_UserAgent_Id = @Dimension_UserAgentId
               AND Dimension_Date_Id = @Dimension_DateId
               AND Dimension_Time_Id = @Dimension_TimeId
-              AND Dimension_Operation_Id = @Dimension_OperationId)
+              AND Dimension_Operation_Id = @Dimension_OperationId
+              AND Dimension_Project_Id = @Dimension_ProjectId)
         BEGIN
             UPDATE Fact_Download
             SET DownloadCount = DownloadCount + 1
@@ -131,6 +159,7 @@ BEGIN
               AND Dimension_Date_Id = @Dimension_DateId
               AND Dimension_Time_Id = @Dimension_TimeId
               AND Dimension_Operation_Id = @Dimension_OperationId
+              AND Dimension_Project_Id = @Dimension_ProjectId
         END
         ELSE
         BEGIN
@@ -141,6 +170,7 @@ BEGIN
                 Dimension_Date_Id, 
                 Dimension_Time_Id,
                 Dimension_Operation_Id,
+                Dimension_Project_Id,
                 DownloadCount
             )
             VALUES
@@ -150,6 +180,7 @@ BEGIN
                 @Dimension_DateId,
                 @Dimension_TimeId,
                 @Dimension_OperationId,
+                @Dimension_ProjectId,
                 1
             )
         END
