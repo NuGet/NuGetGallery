@@ -157,15 +157,15 @@ namespace NuGetGallery.Worker
             hostTarget.Layout = "{ " +
                 "index: ${counter}, " +
                 "threadId: ${threadid}, " +
-                "callSite: '${callsite:jsonEncode=true}', " +
-                "date: '${date:format=s}', " +
-                "level: '${level:jsonEncode=true}', " +
-                "message: '${message:jsonEncode=true}', " +
+                "callSite: \"${callsite:jsonEncode=true}\", " +
+                "date: \"${date:format=s}\", " +
+                "level: \"${level:jsonEncode=true}\", " +
+                "message: \"${message:jsonEncode=true}\", " +
                 "exception: { " +
-                "type: '${exception:format=Type:jsonEncode=true}', " +
-                "message: '${exception:format=Message:jsonEncode=true}', " +
-                "method: '${exception:format=Method:jsonEncode=true}', " +
-                "stackTrace: '${exception:format=StackTrace:jsonEncode=true}' " +
+                "type: \"${exception:format=Type:jsonEncode=true}\", " +
+                "message: \"${exception:format=Message:jsonEncode=true}\", " +
+                "method: \"${exception:format=Method:jsonEncode=true}\", " +
+                "stackTrace: \"${exception:format=StackTrace:jsonEncode=true}\" " +
                 "} " +
             "}";
             hostTarget.LineEnding = LineEndingMode.CRLF;

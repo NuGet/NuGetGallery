@@ -9,7 +9,6 @@ using System.Threading;
 
 namespace NuGetGallery.Operations
 {
-    //    [Command("replicatepackagestatistics", "Replicates any new package statistics", AltName = "repstats", MaxArgs = 0, IsSpecialPurpose = true)]
     [Command("replicatepackagestatistics", "Replicates any new package statistics", AltName = "repstats")]
     public class ReplicatePackageStatisticsTask : DatabaseTask
     {

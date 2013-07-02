@@ -106,9 +106,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DebugHelper.cs" />
-    <Compile Include="JobReport.cs" />
     <Compile Include="JobRunner.cs" />
-    <Compile Include="JobStatusReport.cs" />
     <Compile Include="Jobs\BackupPackagesJob.cs" />
     <Compile Include="Jobs\BackupWarehouseJob.cs" />
     <Compile Include="Jobs\BackupDatabaseJob.cs" />

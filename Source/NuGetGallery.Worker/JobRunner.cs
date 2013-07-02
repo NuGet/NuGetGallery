@@ -54,34 +54,6 @@ namespace NuGetGallery.Worker
         {
             _logger.Info("Scheduling Jobs...");
 
-            try
-            {
-                JobReport.Initialize(_settings);
-
-                IList<JobStatusReport> reports = new List<JobStatusReport>();
-                foreach (string name in jobs.Keys)
-                {
-                    WorkerJob workerJob = jobs[name];
-                    DateTime startTime = DateTime.UtcNow + workerJob.Offset;
-
-                    string message = string.Format("scheduled (every {0} from {1})", workerJob.Period, startTime.ToString("yyyy-MM-dd HH:mm:ss"));
-
-                    reports.Add(new JobStatusReport
-                    {
-                        JobName = name,
-                        At = DateTime.UtcNow.ToString(),
-                        Duration = "0",
-                        Status = "success",
-                        Message = message
-                    });
-                }
-                JobReport.Update(_settings, reports.ToArray());
-            }
-            catch (Exception ex)
-            {
-                _logger.ErrorException("Error initializing Job Report: " + ex.Message, ex);
-            }
-
             // Set up the schedules
             IDisposable[] tokens;
             try
@@ -171,30 +143,10 @@ namespace NuGetGallery.Worker
                     job.RunOnce();
 
                     DateTime after = DateTime.UtcNow;
-
-                    JobReport.Update(_settings, new JobStatusReport
-                    {
-                        JobName = name,
-                        At = before.ToString(),
-                        Duration = (after - before).TotalSeconds.ToString("F2"),
-                        Status = "success",
-                        Message = job.StatusMessage,
-                        Exception = null
-                    });
                 }
                 catch (Exception ex)
                 {
                     DateTime after = DateTime.UtcNow;
-
-                    JobReport.Update(_settings, new JobStatusReport
-                    {
-                        JobName = name,
-                        At = before.ToString(),
-                        Duration = (after - before).TotalSeconds.ToString("F2"),
-                        Status = "failure",
-                        Message = ex.Message,
-                        Exception = ex
-                    });
 
                     _logger.ErrorException(String.Format("Error Executing Job '{0}': {1}", name, ex.Message), ex);
                 }
