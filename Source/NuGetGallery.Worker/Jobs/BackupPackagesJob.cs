@@ -5,7 +5,7 @@ using NuGetGallery.Operations;
 
 namespace NuGetGallery.Worker.Jobs
 {
-    //[Export(typeof(WorkerJob))]
+    [Export(typeof(WorkerJob))]
     public class BackupPackagesJob : WorkerJob
     {
         public override TimeSpan Period
