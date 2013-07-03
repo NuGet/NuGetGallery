@@ -17,7 +17,7 @@ namespace NuGetGallery
             IconUrl = package.IconUrl;
             ProjectUrl = package.ProjectUrl;
             LicenseUrl = package.LicenseUrl;
-            //SonatypeReportUrl = package.SonatypeReportUrl;
+            HideLicenseReport = package.HideLicenseReport;
             LatestVersion = package.IsLatest;
             LatestStableVersion = package.IsLatestStable;
             LastUpdated = package.Published;
@@ -25,10 +25,19 @@ namespace NuGetGallery
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
 
-            //LicensesNames = package.LicensesNames != null ? package.LicensesNames.Trim().Split(',') : null;
-
-            var report = package.LicenseReports.OrderByDescending(r => r.CreatedUtc).FirstOrDefault();
-            // TODO: The rest of the stuff.
+            if (((package.LicenseReports != null) && (package.LicenseReports.Count() > 0)) 
+                && !package.HideLicenseReport)
+            {
+                var report = package.LicenseReports.OrderByDescending(r => r.CreatedUtc).FirstOrDefault();
+                SonatypeReportUrl = report.ReportUrl;
+                LicensesNames = report.Licenses.Select(p => p.Name);
+            }
+            else
+            {
+                HideLicenseReport = true;
+                SonatypeReportUrl = null;
+                LicensesNames = null;
+            }
         }
 
         public string Description { get; set; }
@@ -36,6 +45,7 @@ namespace NuGetGallery
         public string IconUrl { get; set; }
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
+        public Boolean HideLicenseReport { get; set; }
         public IEnumerable<string> LicensesNames { get; set; }
         public string SonatypeReportUrl { get; set; }
         public DateTime LastUpdated { get; set; }
