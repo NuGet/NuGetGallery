@@ -14,7 +14,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         protected IAppConfiguration Config { get; set; }
 
         protected LuceneController() { }
-        public LuceneController(IIndexingService indexingService, AppConfiguration config)
+        public LuceneController(IIndexingService indexingService, IAppConfiguration config)
         {
             IndexingService = indexingService;
             Config = config;
