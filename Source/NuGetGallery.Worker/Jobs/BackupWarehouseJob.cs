@@ -14,7 +14,7 @@ namespace NuGetGallery.Worker.Jobs
         {
             get
             {
-                return TimeSpan.FromMinutes(20);
+                return TimeSpan.FromMinutes(30);
             }
         }
 
@@ -35,7 +35,7 @@ namespace NuGetGallery.Worker.Jobs
             {
                 ConnectionString = warehouse,
                 WhatIf = Settings.WhatIf,
-                IfOlderThan = 25,
+                IfOlderThan = 60,
             });
 
             // Run the export and clean tasks next
