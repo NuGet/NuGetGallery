@@ -7,7 +7,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery.Infrastructure
 {
-    public class MandatoryAttribute : RequiredAttribute, IClientValidatable
+    public sealed class MandatoryAttribute : RequiredAttribute, IClientValidatable
     {
         public override bool IsValid(object value)
         {
