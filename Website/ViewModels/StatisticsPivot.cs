@@ -13,13 +13,17 @@ namespace NuGetGallery
 {
     public class StatisticsPivot
     {
-        public static Tuple<TableEntry[][], int> GroupBy(IList<StatisticsFact> facts, string[] pivot)
+        public static Tuple<TableEntry[][], string> GroupBy(IList<StatisticsFact> facts, string[] pivot, CultureInfo clientCulture)
         {
             // Firstly take the facts and the pivot vector and produce a tree structure
 
             Level level = InnerGroupBy(facts, pivot);
 
-            // Secondly print this tree structure into a sparse 2-dimensional structure (for creating html tables)
+            //  Secondly added the ordered list to each level (the pivot algorithm required dictionary lookups so this is a separate step)
+
+            AddOrderedNext(level);
+
+            // Thirdly print this tree structure into a sparse 2-dimensional structure (for creating html tables)
             // the structure is rectangular and not jagged. Logically this is a 2-d array however coding conventions
             // dictate the preference for jagged array structures. (Note generally this is only slightly sparse in our data.)
 
@@ -29,33 +33,48 @@ namespace NuGetGallery
                 table[i] = new TableEntry[pivot.Length + 1];
             }
 
-            PopulateTable(level, table);
+            PopulateTable(level, table, clientCulture);
 
-            return new Tuple<TableEntry[][], int>(table, level.Total);
+            return new Tuple<TableEntry[][], string>(table, level.Total.ToString("n0", clientCulture));
         }
 
-        private static void InnerPopulateTable(Level level, TableEntry[][] table, ref int row, int col)
+        private static void AddOrderedNext(Level level)
         {
-            foreach (KeyValuePair<string, Level> item in level.Next)
+            if (level.Next != null)
+            {
+                List<KeyValuePair<string, Level>> orderedNext = new List<KeyValuePair<string, Level>>(level.Next);
+                orderedNext.Sort((x, y) => { return y.Value.Total.CompareTo(x.Value.Total); });
+                level.OrderedNext = orderedNext;
+
+                foreach (KeyValuePair<string, Level> item in level.Next)
+                {
+                    AddOrderedNext(item.Value);
+                }
+            }
+        }
+
+        private static void InnerPopulateTable(Level level, TableEntry[][] table, ref int row, int col, CultureInfo clientCulture)
+        {
+            foreach (KeyValuePair<string, Level> item in level.OrderedNext)
             {
                 if (item.Value.Next == null)
                 {
                     table[row][col] = new TableEntry { Data = item.Key };
-                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToString(CultureInfo.InvariantCulture) };
+                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToString("n0", clientCulture), IsNumeric = true };
                     row++;
                 }
                 else
                 {
                     table[row][col] = new TableEntry { Data = item.Key, Rowspan = item.Value.Count };
-                    InnerPopulateTable(item.Value, table, ref row, col + 1);
+                    InnerPopulateTable(item.Value, table, ref row, col + 1, clientCulture);
                 }
             }
         }
 
-        private static void PopulateTable(Level level, TableEntry[][] table)
+        private static void PopulateTable(Level level, TableEntry[][] table, CultureInfo clientCulture)
         {
             int row = 0;
-            InnerPopulateTable(level, table, ref row, 0);
+            InnerPopulateTable(level, table, ref row, 0, clientCulture);
         }
 
         private static Level InnerGroupBy(IList<StatisticsFact> facts, string[] groupBy)
@@ -152,6 +171,7 @@ namespace NuGetGallery
                     //  Next is null this must therefore be a leaf node in the tree
 
                     total += item.Value.Amount;
+                    item.Value.Total = item.Value.Amount;
                 }
                 else
                 {
@@ -169,6 +189,9 @@ namespace NuGetGallery
             public string Data { get; set; }
             public int Rowspan { get; set; }
             public string Uri { get; set; }
+            public bool IsNumeric { get; set; }
+
+
         }
 
         // This is for an internal data structure that represents the pivot as a tree.
@@ -202,6 +225,10 @@ namespace NuGetGallery
             // Total is the sum Total of all the Amounts in all the decendents. (See Total function above.)
 
             public int Total { get; set; }
+
+            // An ordered list for each level
+
+            public IList<KeyValuePair<string, Level>> OrderedNext { get; set; }
         }
     }
 }

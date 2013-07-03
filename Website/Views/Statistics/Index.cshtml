@@ -15,11 +15,11 @@
 @if (Model.IsDownloadPackageAvailable)
 {
     <div class="statistics-layout" >
-        <h3>Downloaded&nbsp;Packages&nbsp;(Last&nbsp;6&nbsp;Weeks)</h3>
+        <h1 class="statistics-report-title">Downloaded&nbsp;Packages&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
         <table class="sexy-table">
             <thead>
                 <tr>
-                    <th></th><th class="first">Package</th><th>Downloads</th>
+                    <th scope="col"></th><th scope="col" class="first">Package</th><th scope="col">Downloads</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,7 +32,7 @@
                     <tr>
                         <td class="statistics-rank">@index</td>
                         <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
-                        <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@item.Downloads</a></td>
+                        <td class="statistics-number"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
                     </tr>
                 }
             }
@@ -44,11 +44,11 @@
 @if (Model.IsDownloadPackageDetailAvailable)
 {
     <div class="statistics-layout" >
-        <h3>Downloaded&nbsp;Package&nbsp;Versions&nbsp;(Last&nbsp;6&nbsp;Weeks)</h3>
+        <h1 class="statistics-report-title">Downloaded&nbsp;Package&nbsp;Versions&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
         <table class="sexy-table">
             <thead>
                 <tr>
-                    <th></th><th class="first">Package</th><th>Version</th><th>Downloads</th>
+                    <th scope="col"></th><th scope="col" class="first">Package</th><th scope="col">Version</th><th scope="col">Downloads</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,7 +62,7 @@
                         <td class="statistics-rank">@index</td>
                         <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
                         <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-                        <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@item.Downloads</a></td>
+                        <td class="statistics-number"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
                     </tr>
                 }
             }
@@ -70,4 +70,66 @@
         </table>
         <span class="statistics-more"><a href="@Url.StatisticsAllPackageVersionDownloads()">More...</a></span>
     </div>
+}
+
+<p></p>
+
+@if (Model.IsNuGetClientVersionAvailable)
+{
+    <div class="statistics-layout" id="downloads-by-nuget-version">
+        <h1 class="statistics-report-title">NuGet&nbsp;Client&nbsp;Usage&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
+        <table class="sexy-table">
+            <thead>
+                <tr>
+                    <th class="first">Version</th><th>Downloads</th><th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{
+                foreach (var item in Model.NuGetClientVersion)
+                {
+                    <tr>
+                        <td>@item.Version</td>
+                        <td>@Model.DisplayDownloads(item.Downloads)</td>
+                        <td class="statistics-number">@Model.DisplayPercentage(item.Downloads, Model.NuGetClientVersionTotalDownloads)</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+}
+@if (Model.IsLast6MonthsAvailable)
+{
+    <div class="statistics-layout" id="downloads-per-month">
+        <h1 class="statistics-report-title">Packages&nbsp;Downloaded&nbsp;Per&nbsp;Month</h1>
+        <table class="sexy-table">
+            <thead>
+                <tr>
+                    <th class="first">Month</th><th>Downloads</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{
+                foreach (var item in Model.Last6Months)
+                {
+                    <tr>
+                        <td>@Model.DisplayMonth(item.Year, item.MonthOfYear)</td>
+                        <td class="statistics-number">@Model.DisplayDownloads(item.Downloads)</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section BottomScripts
+{
+    @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
+    @Scripts.Render("~/Scripts/d3.v3.min.js")
+    @Scripts.Render("~/Scripts/statsgraphs.js")
+    <script>
+        $(document).ready(displayGraphs);
+    </script>
 }

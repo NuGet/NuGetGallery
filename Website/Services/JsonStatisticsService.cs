@@ -14,7 +14,9 @@ namespace NuGetGallery
         {
             RecentPopularity,           //  most frequently downloaded package registration in last 6 weeks
             RecentPopularityDetail,     //  most frequently downloaded package, specific to actual version
-            RecentPopularityDetail_     //  breakout by version for a package (drill down from RecentPopularity) 
+            RecentPopularityDetail_,    //  breakout by version for a package (drill down from RecentPopularity) 
+            NuGetClientVersion,         //  downloads that have been done by the various NuGet client versions 
+            Last6Months                 //  downloads per month
         };
 
         private IReportService _reportService;
@@ -22,6 +24,8 @@ namespace NuGetGallery
         private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsSummary;
         private List<StatisticsPackagesItemViewModel> _downloadPackagesAll;
         private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsAll;
+        private List<StatisticsNuGetUsageItem> _nuGetClientVersion;
+        private List<StatisticsMonthlyUsageItem> _last6Months;
 
         public JsonStatisticsService(IReportService reportService)
         {
@@ -76,6 +80,30 @@ namespace NuGetGallery
             }
         }
 
+        public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion
+        { 
+            get 
+            {
+                if (_nuGetClientVersion == null)
+                {
+                    _nuGetClientVersion = new List<StatisticsNuGetUsageItem>();
+                }
+                return _nuGetClientVersion;
+            }
+        }
+
+        public IEnumerable<StatisticsMonthlyUsageItem> Last6Months
+        { 
+            get
+            {
+                if (_last6Months == null)
+                {
+                    _last6Months = new List<StatisticsMonthlyUsageItem>();
+                }
+                return _last6Months;
+            }
+        }
+
         public async Task<bool> LoadDownloadPackages()
         {
             try
@@ -110,6 +138,11 @@ namespace NuGetGallery
                 }
 
                 return true;
+            }
+            catch (NullReferenceException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
             }
             catch (JsonReaderException e)
             {
@@ -163,6 +196,100 @@ namespace NuGetGallery
                 for (int i = 0; i < Math.Min(10, count); i++)
                 {
                     ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll)[i]);
+                }
+
+                return true;
+            }
+            catch (NullReferenceException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
+            catch (JsonReaderException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
+            catch (StorageException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
+            catch (ArgumentException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
+        }
+
+        public async Task<bool> LoadNuGetClientVersion()
+        {
+            try
+            {
+                string json = await _reportService.Load(Reports.NuGetClientVersion.ToString() + ".json");
+
+                if (json == null)
+                {
+                    return false;
+                }
+
+                JArray array = JArray.Parse(json);
+
+                ((List<StatisticsNuGetUsageItem>)NuGetClientVersion).Clear();
+
+                foreach (JObject item in array)
+                {
+                    ((List<StatisticsNuGetUsageItem>)NuGetClientVersion).Add(
+                        new StatisticsNuGetUsageItem
+                        {
+                            Version = string.Format("{0}.{1}", item["ClientMajorVersion"], item["ClientMinorVersion"]),
+                            Downloads = (int)item["Downloads"]
+                        });
+                }
+
+                return true;
+            }
+            catch (JsonReaderException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
+            catch (StorageException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
+            catch (ArgumentException e)
+            {
+                QuietLog.LogHandledException(e);
+                return false;
+            }
+        }
+
+        public async Task<bool> LoadLast6Months()
+        {
+            try
+            {
+                string json = await _reportService.Load(Reports.Last6Months.ToString() + ".json");
+
+                if (json == null)
+                {
+                    return false;
+                }
+
+                JArray array = JArray.Parse(json);
+
+                ((List<StatisticsMonthlyUsageItem>)Last6Months).Clear();
+
+                foreach (JObject item in array)
+                {
+                    ((List<StatisticsMonthlyUsageItem>)Last6Months).Add(
+                        new StatisticsMonthlyUsageItem
+                        {
+                            Year = (int)item["Year"],
+                            MonthOfYear = (int)item["MonthOfYear"],
+                            Downloads = (int)item["Downloads"]
+                        });
                 }
 
                 return true;
@@ -222,6 +349,11 @@ namespace NuGetGallery
 
                 return report;
             }
+            catch (NullReferenceException e)
+            {
+                QuietLog.LogHandledException(e);
+                return null;
+            }
             catch (JsonReaderException e)
             {
                 QuietLog.LogHandledException(e);
@@ -276,6 +408,11 @@ namespace NuGetGallery
                 report.Facts = facts;
 
                 return report;
+            }
+            catch (NullReferenceException e)
+            {
+                QuietLog.LogHandledException(e);
+                return null;
             }
             catch (JsonReaderException e)
             {

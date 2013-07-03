@@ -1,92 +1,93 @@
-﻿<div class="statistics-sidebar">
+﻿<div class="statistics-pivot" id="@Model.Id">
 
-    <form id="dimension-form">
-        <table class="statistics-dimensions-table">
+    <div class="statistics-sidebar">
+
+        <form id="dimension-form">
+            <table class="statistics-dimensions-table">
             @foreach (var item in Model.Dimensions)
             {
                 <tr>
                     <td>
-                        @item.DisplayName
+                        <label for="checkbox-@item.Value">@item.DisplayName</label>
                     </td>
                     <td>
-                        @if (item.IsChecked)
-                        {
-                            <input class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox" checked>
-                        }
-                        else
-                        {
-                            <input class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox">
-                        }
+                        <input id="checkbox-@item.Value" class="dimension-checkbox" name="groupby" value="@item.Value" type="checkbox" checked="@item.IsChecked">
                     </td>
                 </tr>
             }
-        </table>
-    </form>
+            </table>
+        </form>
 
-</div>
-<div class="statistics-data">
+    </div>
 
-    @if (Model.Table != null)
-    {
-        <table class="sexy-table">
-            <thead>
-                <tr>
-                    @foreach (var column in Model.Columns)
-                    {
-                        var id = column + "-column";
-                        
-                        <th class="dimension-column" id="@id">@column</th>
-                    }
-                    <th>Downloads</th>
-                </tr>
-            </thead>
-            <tbody>
-            @{
-                foreach (var row in Model.Table)
-                {
+    <div class="statistics-data">
+
+        @if (Model.Table != null)
+        {
+            <table class="pivot-table">
+                <thead>
                     <tr>
-
-                    @foreach (var entry in row)
-                    {
-                        if (entry != null)
+                        @foreach (var column in Model.Columns)
                         {
-                            if (entry.Rowspan > 1)
+                            var id = column + "-column";
+                        
+                            <th scope="col" class="dimension-column">@column</th>
+                        }
+                        <th scope="col">Downloads</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @{
+                    foreach (var row in Model.Table)
+                    {
+                        <tr>
+
+                        @foreach (var entry in row)
+                        {
+                            if (entry != null)
                             {
-                                <td rowspan="@entry.Rowspan" style="vertical-align:top">
-                                    @if (entry.Uri == null)
-                                    {
-                                        @entry.Data
-                                    }
-                                    else
-                                    {
-                                        <a href="@entry.Uri">@entry.Data</a>
-                                    }
-                                </td>
-                            }
-                            else
-                            {
-                                <td>
-                                    @if (entry.Uri == null)
-                                    {
-                                        @entry.Data
-                                    }
-                                    else
-                                    {
-                                        <a href="@entry.Uri">@entry.Data</a>
-                                    }
-                                </td>
+                                var entryClass = entry.IsNumeric ? "statistics-number" : "";
+                                
+                                if (entry.Rowspan > 1)
+                                {
+                                    <td class="@entryClass" rowspan="@entry.Rowspan" style="vertical-align:top">
+                                        @if (entry.Uri == null)
+                                        {
+                                            @entry.Data
+                                        }
+                                        else
+                                        {
+                                            <a href="@entry.Uri">@entry.Data</a>
+                                        }
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="@entryClass">
+                                        @if (entry.Uri == null)
+                                        {
+                                            @entry.Data
+                                        }
+                                        else
+                                        {
+                                            <a href="@entry.Uri">@entry.Data</a>
+                                        }
+                                    </td>
+                                }                            
                             }
                         }
+
+                        </tr>
                     }
-
-                    </tr>
                 }
-            }
-            </tbody>
-        </table>
-    }
+                </tbody>
+            </table>
+        }
 
-    <div class="statistics-total-div">
-        <span class="statistics-total">Total:@Model.Total</span>
+        <div class="statistics-total-div">
+            <span class="statistics-total">Total: @Model.Total</span>
+        </div>
+
     </div>
+
 </div>

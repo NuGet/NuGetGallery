@@ -4,11 +4,11 @@
     ViewBag.Tab = "Statistics";
 }
 
-<h2>Most Downloaded Package Versions (Top 500 Over the Last 6 Weeks)</h2>
+<h1 class="statistics-report-title">Most Downloaded Package Versions (Top 500 Over the Last 6 Weeks)</h1>
 <table class="sexy-table">
     <thead>
         <tr>
-            <th></th><th class="first">Package</th><th>Version</th><th>Downloads</th>
+            <th scope="col"></th><th scope="col" class="first">Package</th><th scope="col">Version</th><th scope="col">Downloads</th>
         </tr>
     </thead>
     <tbody>
@@ -23,7 +23,7 @@
                 <td class="statistics-rank">@index</td>
                 <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
                 <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-                <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@item.Downloads</a></td>
+                <td class="statistics-number"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
             </tr>
         }
     }

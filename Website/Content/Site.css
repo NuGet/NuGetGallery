@@ -1006,7 +1006,41 @@ ul.pager li.next { padding-left: 10px; }
 
 .sexy-table tfoot tr { border-top: 2px solid #333; }
 
+
+    /* Pivot Table */
+
+.pivot-table {
+    border-collapse: collapse;
+    font-size: 1.1em;
+}
+
+        /* header */
+
+.pivot-table thead tr { border-bottom: solid 1px #333; }
+
+.pivot-table th {
+    font-size: 1.25em;
+    font-weight: normal;
+    padding: 5px 15px 0px 0px;
+    text-align: left;
+}
+
+        /* body */
+
+.pivot-table tbody tr { margin-bottom: 10px; }
+
+.pivot-table tbody td { padding: 5px 25px 5px 0; }
+
     /* statistics */
+
+.statistics-number {
+    text-align:right;
+}
+
+.statistics-report-title {
+    font-size: 1.8em;
+    margin-bottom: 4px;
+}
 
 .statistics-layout {
     width:400px;
@@ -1020,7 +1054,7 @@ ul.pager li.next { padding-left: 10px; }
 
 .statistics-total-div {
     height:100px;
-    width:300px;
+    width:200px;
 }
 
 .statistics-total {
@@ -1035,23 +1069,65 @@ ul.pager li.next { padding-left: 10px; }
     font-size: 0.8em;
 }
 
+.statistics-pivot {
+    float:left;
+}
+
 .statistics-sidebar
 {
     float:left;
-    width:190px;
+    width:160px;
     height:300px;
     font-size: 1.25em;
     font-weight: normal;
-    padding: 5px 15px 0px 0px;
+    padding: 5px 10px 0px 0px;
 }
+
 .statistics-data
 {
     float:left;
 }
+
+.statistics-graph
+{
+    float:left;
+}
+
 .statistics-dimensions-table
 {
     position:relative;
     top:50px;
+}
+
+#downloads-by-nuget-version table 
+{
+    display:none;
+}
+
+#downloads-per-month table
+{
+    display:none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.bar {
+    fill: steelblue;
+}
+
+.bar:hover {
+    fill:orange;
+}
+
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
 }
 
     /* NuGet Badge */
