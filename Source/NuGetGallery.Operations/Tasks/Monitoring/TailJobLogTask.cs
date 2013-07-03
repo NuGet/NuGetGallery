@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 using NuGetGallery.Operations.Infrastructure;
@@ -11,6 +12,8 @@ namespace NuGetGallery.Operations.Tasks.Monitoring
     [Command("tailjoblog", "Show the last few entries from a job log and optionally polls for additional results", AltName = "tjl", MinArgs = 1, MaxArgs = 1)]
     public class TailJobLogTask : StorageTask
     {
+        private DateTimeOffset _lastEntryUtc = DateTimeOffset.MinValue;
+
         [Option("The number of entries to retrieve from the log", AltName = "n")]
         public int? NumberOfEntries { get; set; }
 
@@ -53,19 +56,33 @@ namespace NuGetGallery.Operations.Tasks.Monitoring
                 foreach (var entry in entries)
                 {
                     WriteEntry(log, entry);
+                    _lastEntryUtc = entry.Timestamp;
                 }
+
+                if (Follow)
+                {
+                    FollowLog(log);
+                }
+            }
+        }
+
+        private void FollowLog(JobLog log)
+        {
+            // Wait for PollingPeriod seconds
+            Thread.Sleep(PollingPeriod.Value);
+
+            // Grab new entries
+            var entries = log.OrderedEntries().TakeWhile(l => l.Timestamp > _lastEntryUtc).Take(NumberOfEntries.Value);
+            foreach (var entry in entries)
+            {
+                WriteEntry(log, entry);
+                _lastEntryUtc = entry.Timestamp;
             }
         }
 
         private void WriteEntry(JobLog log, JobLogEntry entry)
         {
-            var evt = new LogEventInfo() {
-                LoggerName = log.JobName,
-                Level = LogLevel.FromString(entry.Level),
-                Message = entry.Message,
-                TimeStamp = entry.Date
-            };
-            Log.Log(evt);
+            Log.Log(entry.FullEvent);
         }
     }
 }

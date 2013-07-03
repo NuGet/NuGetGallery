@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Data.SqlClient;
 using NuGetGallery.Operations;
+using NuGetGallery.Operations.Tasks;
 using NuGetGallery.Operations.Tasks.Backups;
 
 namespace NuGetGallery.Worker.Jobs
@@ -13,7 +14,7 @@ namespace NuGetGallery.Worker.Jobs
         {
             get
             {
-                return TimeSpan.FromDays(1);
+                return TimeSpan.FromMinutes(20);
             }
         }
 
@@ -21,7 +22,7 @@ namespace NuGetGallery.Worker.Jobs
         {
             get
             {
-                return TimeSpan.FromMinutes(30);
+                return TimeSpan.FromMinutes(5);
             }
         }
 
@@ -29,11 +30,27 @@ namespace NuGetGallery.Worker.Jobs
         {
             Logger.Info("Running Warehouse Backup job");
 
+            var warehouse = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString);
             ExecuteTask(new BackupWarehouseTask
             {
-                ConnectionString = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString),
+                ConnectionString = warehouse,
                 WhatIf = Settings.WhatIf,
                 IfOlderThan = 25,
+            });
+
+            // Run the export and clean tasks next
+            ExecuteTask(new ExportWarehouseBackupsTask()
+            {
+                ConnectionString = warehouse,
+                StorageAccount = Settings.BackupStorage,
+                WhatIf = Settings.WhatIf,
+                SqlDacEndpoint = Settings.SqlDac
+            });
+
+            ExecuteTask(new CleanWarehouseBackupsTask()
+            {
+                ConnectionString = warehouse,
+                WhatIf = Settings.WhatIf,
             });
 
             Logger.Info("Complete Warehouse Backup job");

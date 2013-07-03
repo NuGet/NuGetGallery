@@ -143,6 +143,7 @@
     <Compile Include="Infrastructure\JobLog.cs" />
     <Compile Include="Infrastructure\JobLogBlob.cs" />
     <Compile Include="Infrastructure\JobLogEntry.cs" />
+    <Compile Include="Infrastructure\LogLevelConverter.cs" />
     <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
     <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
     <Compile Include="Model\OfflineDatabaseBackup.cs" />

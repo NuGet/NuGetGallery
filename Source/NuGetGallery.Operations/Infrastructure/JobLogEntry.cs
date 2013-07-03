@@ -2,25 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NLog;
 
 namespace NuGetGallery.Operations.Infrastructure
 {
     public class JobLogEntry
     {
-        public int Index { get; set; }
-        public int ThreadId { get; set; }
-        public string CallSite { get; set; }
-        public DateTime Date { get; set; }
+        public DateTimeOffset Timestamp { get; set; }
+        public string Message { get; set; }
         public string Level { get; set; }
-        public string Message { get; set; }
-        public JobLogExceptionInfo Exception { get; set; }
-    }
-
-    public class JobLogExceptionInfo
-    {
-        public string Type { get; set; }
-        public string Message { get; set; }
-        public string Method { get; set; }
-        public string StackTrace { get; set; }
+        public Exception Exception { get; set; }
+        public string Logger { get; set; }
+        public LogEventInfo FullEvent { get; set; }
     }
 }

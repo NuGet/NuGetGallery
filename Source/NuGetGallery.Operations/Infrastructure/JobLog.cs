@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,19 @@ namespace NuGetGallery.Operations.Infrastructure
 {
     public class JobLog
     {
+        private static JsonSerializerSettings _serializerSettings = new JsonSerializerSettings()
+        {
+            MissingMemberHandling = MissingMemberHandling.Ignore,
+            ObjectCreationHandling = ObjectCreationHandling.Auto,
+            CheckAdditionalContent = false,
+            MaxDepth = 100
+        };
+
+        static JobLog()
+        {
+            _serializerSettings.Converters.Add(new LogLevelConverter());
+        }
+
         private IList<JobLogBlob> _blobs;
 
         public string JobName { get; private set; }
@@ -85,17 +99,18 @@ namespace NuGetGallery.Operations.Infrastructure
             }
         }
 
-        private static JsonSerializer _serializer = new JsonSerializer()
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
-        };
         private JobLogEntry ParseEntry(string line)
         {
-            using (var r = new StringReader(line))
-            using (var reader = new JsonTextReader(r))
+            var writer = new MemoryTraceWriter();
+            var old = _serializerSettings.TraceWriter;
+            _serializerSettings.TraceWriter = writer;
+            var result = JsonConvert.DeserializeObject<JobLogEntry>(line.Trim(), _serializerSettings);
+            _serializerSettings.TraceWriter = old;
+            foreach (var message in writer.GetTraceMessages())
             {
-                return _serializer.Deserialize<JobLogEntry>(reader);
+                Console.WriteLine(message);
             }
+            return result;
         }
     }
 }
