@@ -80,6 +80,8 @@ namespace NuGetGallery
         /// </remarks>
         public string LicenseUrl { get; set; }
 
+        public bool HideLicenseReport { get; set; }
+
         [StringLength(20)]
         public string Language { get; set; }
 

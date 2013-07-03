@@ -14,7 +14,6 @@ namespace NuGetGallery.Migrations
                         Key = c.Int(nullable: false, identity: true),
                         PackageKey = c.Int(nullable: false),
                         CreatedUtc = c.DateTime(nullable: false),
-                        AllowLicenseReport = c.Boolean(nullable: false),
                         ReportUrl = c.String(),
                         Comment = c.String(),
                     })
@@ -43,6 +42,8 @@ namespace NuGetGallery.Migrations
                 .ForeignKey("dbo.PackageLicenses", t => t.LicenseKey, cascadeDelete: true)
                 .Index(t => t.ReportKey)
                 .Index(t => t.LicenseKey);
+            
+            AddColumn("dbo.Packages", "HideLicenseReport", c => c.Boolean(nullable: false));
         }
         
         public override void Down()
@@ -53,6 +54,7 @@ namespace NuGetGallery.Migrations
             DropForeignKey("dbo.PackageLicenseReportLicenses", "LicenseKey", "dbo.PackageLicenses");
             DropForeignKey("dbo.PackageLicenseReportLicenses", "ReportKey", "dbo.PackageLicenseReports");
             DropForeignKey("dbo.PackageLicenseReports", "PackageKey", "dbo.Packages");
+            DropColumn("dbo.Packages", "HideLicenseReport");
             DropTable("dbo.PackageLicenseReportLicenses");
             DropTable("dbo.PackageLicenses");
             DropTable("dbo.PackageLicenseReports");
