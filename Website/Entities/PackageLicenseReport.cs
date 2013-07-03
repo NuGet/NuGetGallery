@@ -10,7 +10,6 @@ namespace NuGetGallery.Entities
         public int Key { get; set; }
         public int PackageKey { get; set; }
         public DateTime CreatedUtc { get; set; }
-        public bool AllowLicenseReport { get; set; }
         public string ReportUrl { get; set; }
         public string Comment { get; set; }
         public virtual ICollection<PackageLicense> Licenses { get; set; }
