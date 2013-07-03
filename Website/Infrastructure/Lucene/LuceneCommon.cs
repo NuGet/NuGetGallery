@@ -25,7 +25,8 @@ namespace NuGetGallery
         internal static string GetIndexMetadataPath()
         {
             // Don't create the directory if it's not already present.
-            return _directorySingleton == null ? null : Path.Combine(_directorySingleton.Directory.FullName ?? ".", "index.metadata");
+            string root = _directorySingleton == null ? "." : (_directorySingleton.Directory.FullName ?? ".");
+            return Path.Combine(root, "index.metadata");
         }
 
         internal static Lucene.Net.Store.Directory GetDirectory(LuceneIndexLocation location)
