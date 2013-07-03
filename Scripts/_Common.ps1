@@ -38,7 +38,7 @@ function Get-StorageAccountConnectionString {
 function Get-AzureSdkPath {
     param($azureSdkPath)
     if(!$azureSdkPath) {
-        (dir "$AzureToolsRoot\.NET SDK" | sort Name -desc | select -first 1).FullName
+        Join-Path $AzureToolsRoot ".NET SDK\2012-10"
     } else {
         $azureSdkPath
     }
