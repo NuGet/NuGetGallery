@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using WebBackgrounder;
 
@@ -11,7 +12,7 @@ namespace NuGetGallery
     {
         private readonly LuceneIndexingService _indexingService;
 
-        public LuceneIndexingJob(TimeSpan frequence, Func<EntitiesContext> contextThunk, TimeSpan timeout)
+        public LuceneIndexingJob(TimeSpan frequence, Func<EntitiesContext> contextThunk, TimeSpan timeout, LuceneIndexLocation location)
             : base("Lucene", frequence, timeout)
         {
             var context = contextThunk();
@@ -19,7 +20,7 @@ namespace NuGetGallery
             _indexingService = new LuceneIndexingService(
                 new EntityRepository<Package>(context),
                 new EntityRepository<CuratedPackage>(context),
-                LuceneCommon.GetDirectory(),
+                LuceneCommon.GetDirectory(location),
                 null);
 
             // Updates the index synchronously first time job is created.

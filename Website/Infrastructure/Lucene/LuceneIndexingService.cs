@@ -28,6 +28,11 @@ namespace NuGetGallery
 
         private IDiagnosticsSource Trace { get; set; }
 
+        public string IndexPath
+        {
+            get { return LuceneCommon.GetDirectoryLocation(); }
+        }
+
         public LuceneIndexingService(
             IEntityRepository<Package> packageSource,
             IEntityRepository<CuratedPackage> curatedPackageSource,
@@ -172,11 +177,12 @@ namespace NuGetGallery
 
         public virtual DateTime? GetLastWriteTime()
         {
-            if (!File.Exists(LuceneCommon.IndexMetadataPath))
+            var metadataPath = LuceneCommon.GetIndexMetadataPath();
+            if (!File.Exists(metadataPath))
             {
                 return null;
             }
-            return File.GetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath);
+            return File.GetLastWriteTimeUtc(metadataPath);
         }
 
         private void AddPackage(PackageIndexEntity packageInfo)
@@ -219,9 +225,10 @@ namespace NuGetGallery
 
         protected internal static bool IndexRequiresRefresh()
         {
-            if (File.Exists(LuceneCommon.IndexMetadataPath))
+            var metadataPath = LuceneCommon.GetIndexMetadataPath();
+            if (File.Exists(metadataPath))
             {
-                var creationTime = File.GetCreationTimeUtc(LuceneCommon.IndexMetadataPath);
+                var creationTime = File.GetCreationTimeUtc(metadataPath);
                 return (DateTime.UtcNow - creationTime) > IndexRecreateInterval;
             }
 
@@ -231,23 +238,53 @@ namespace NuGetGallery
 
         protected internal virtual void UpdateLastWriteTime()
         {
-            if (!File.Exists(LuceneCommon.IndexMetadataPath))
+            var metadataPath = LuceneCommon.GetIndexMetadataPath();
+            if (!File.Exists(metadataPath))
             {
                 // Create the index and add a timestamp to it that specifies the time at which it was created.
-                File.WriteAllBytes(LuceneCommon.IndexMetadataPath, new byte[0]);
+                File.WriteAllBytes(metadataPath, new byte[0]);
             }
             else
             {
-                File.SetLastWriteTimeUtc(LuceneCommon.IndexMetadataPath, DateTime.UtcNow);
+                File.SetLastWriteTimeUtc(metadataPath, DateTime.UtcNow);
             }
         }
 
         protected static void UpdateIndexRefreshTime()
         {
-            if (File.Exists(LuceneCommon.IndexMetadataPath))
+            var metadataPath = LuceneCommon.GetIndexMetadataPath();
+            if (File.Exists(metadataPath))
             {
-                File.SetCreationTimeUtc(LuceneCommon.IndexMetadataPath, DateTime.UtcNow);
+                File.SetCreationTimeUtc(metadataPath, DateTime.UtcNow);
             }
+        }
+
+
+        public int GetDocumentCount()
+        {
+            using (IndexReader reader = IndexReader.Open(_directory, readOnly: true))
+            {
+                return reader.NumDocs();
+            }
+        }
+
+
+        public long GetIndexSizeInBytes()
+        {
+            var path = IndexPath;
+            return CalculateSize(new DirectoryInfo(path));
+        }
+
+        private long CalculateSize(DirectoryInfo dir)
+        {
+            if (!dir.Exists)
+            {
+                return 0;
+            }
+
+            return 
+                dir.EnumerateFiles().Sum(f => f.Length) + 
+                dir.EnumerateDirectories().Select(d => CalculateSize(d)).Sum();
         }
     }
 }
