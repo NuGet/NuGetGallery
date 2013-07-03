@@ -17,12 +17,6 @@ namespace NuGetGallery.Areas.Admin.DynamicData
             table = DynamicDataRouteHandler.GetRequestMetaTable(Context);
             GridView1.SetMetaTable(table, table.GetColumnValuesFromRoute(Context));
             GridDataSource.EntityTypeFilter = table.EntityType.Name;
-        }
-
-        protected void Page_Load(object sender, EventArgs e)
-        {
-            Title = table.DisplayName;
-            GridDataSource.Include = table.ForeignKeyColumnsNames;
 
             // Set the search data fields to all the string columns
             var searchExpression = (SearchExpression)GridQueryExtender.Expressions[1];
@@ -42,6 +36,12 @@ namespace NuGetGallery.Areas.Admin.DynamicData
                 InsertHyperLink.Visible = false;
                 GridView1.EnablePersistedSelection = false;
             }
+        }
+
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            Title = table.DisplayName;
+            GridDataSource.Include = table.ForeignKeyColumnsNames;
         }
 
         protected void Label_PreRender(object sender, EventArgs e)
