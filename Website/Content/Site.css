@@ -391,7 +391,7 @@ nav.main ul a:hover {
 /* Body */
 
 #body {
-    padding-bottom: 175px;
+    padding-bottom: 14px;
     padding-top: 20px;
 }
 
@@ -1099,16 +1099,6 @@ ul.pager li.next { padding-left: 10px; }
     top:50px;
 }
 
-#downloads-by-nuget-version table 
-{
-    display:none;
-}
-
-#downloads-per-month table
-{
-    display:none;
-}
-
 .axis path,
 .axis line {
     fill: none;
@@ -1368,7 +1358,6 @@ input:focus ~ .field-validation-error ~ .field-hint-message { display: none; }
     border-top: 1px solid #d3e7fe;
     clear: both;
     color: #3e483c;
-    margin-top: -161px;
     padding-bottom: 1em;
     padding-top: 0px;
     position: relative;

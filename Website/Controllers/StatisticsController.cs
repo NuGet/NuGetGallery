@@ -126,6 +126,8 @@ namespace NuGetGallery
 
             model.Update();
 
+            model.UseD3 = useD3();
+
             return View(model);
         }
 
@@ -193,6 +195,8 @@ namespace NuGetGallery
 
             model.SetPackageDownloadsByVersion(id, report);
 
+            model.UseD3 = useD3();
+
             return View(model);
         }
 
@@ -215,6 +219,8 @@ namespace NuGetGallery
             var model = new StatisticsPackagesViewModel();
 
             model.SetPackageVersionDownloadsByClient(id, version, report);
+
+            model.UseD3 = useD3();
 
             return View(model);
         }
@@ -326,6 +332,22 @@ namespace NuGetGallery
                 }
             }
             return graphId;
+        }
+
+        private bool useD3()
+        {
+            //  the aim here is to explicit eliminate IE 7.0 and IE 8.0 from the browsers that support D3
+            //  we are doing this on the server rather than in the browser because even downloading the D3 script fails
+            bool f = true;
+            if (Request.Browser.Browser == "IE")
+            {
+                float version;
+                if (float.TryParse(Request.Browser.Version, out version))
+                {
+                    f = version > 8.0;
+                }
+            }
+            return f;
         }
     }
 }

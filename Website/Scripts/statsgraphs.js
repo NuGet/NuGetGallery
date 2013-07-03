@@ -1,25 +1,4 @@
 ﻿
-var displayGraphs = function () {
-
-    if ($('#downloads-by-nuget-version').length) {
-        if (Modernizr.svg) {
-            drawNugetClientVersionBarChart();
-        }
-        else {
-            $('#downloads-by-nuget-version table').css('display', 'inline');
-        }
-    }
-
-    if ($('#downloads-per-month').length) {
-        if (Modernizr.svg) {
-            drawMonthlyDownloadsLineChart();
-        }
-        else {
-            $('#downloads-per-month table').css('display', 'inline');
-        }
-    }
-}
-
 var drawNugetClientVersionBarChart = function () {
 
     var margin = { top: 20, right: 30, bottom: 80, left: 80 },
@@ -165,3 +144,4 @@ var drawMonthlyDownloadsLineChart = function () {
         .attr("class", "line")
         .attr("d", line);
 }
+
