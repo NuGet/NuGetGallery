@@ -22,7 +22,7 @@ var displayGraphs = function () {
 
 var drawNugetClientVersionBarChart = function () {
 
-    var margin = { top: 20, right: 30, bottom: 60, left: 80 },
+    var margin = { top: 20, right: 30, bottom: 80, left: 80 },
         width = 460 - margin.left - margin.right,
         height = 320 - margin.top - margin.bottom;
 
@@ -60,16 +60,19 @@ var drawNugetClientVersionBarChart = function () {
     xScale.domain(data.map(function (d) { return d.nugetVersion; }));
     yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
 
+    //  the use of dx attribute on the text element is correct, however, the negative shift doesn't appear to work on Firefox
+    //  the workaround employed here is to add a translation to the rotation transform
+
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
         .selectAll("text")
         .style("text-anchor", "end")
-        .attr("dx", "-.8em")
+        //.attr("dx", "-.8em")
         .attr("dy", ".15em")
         .attr("transform", function (d) {
-            return "rotate(-65)"
+            return "rotate(-65),translate(-10,0)"
         });
 
     svg.append("g")
@@ -138,16 +141,19 @@ var drawMonthlyDownloadsLineChart = function () {
     xScale.domain(data.map(function (d) { return d.month; }));
     yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
 
+    //  the use of dx attribute on the text element is correct, however, the negative shift doesn't appear to work on Firefox
+    //  the workaround employed here is to add a translation to the rotation transform
+
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
         .selectAll("text")
         .style("text-anchor", "end")
-        .attr("dx", "-.8em")
+        //.attr("dx", "-.8em")
         .attr("dy", ".15em")
         .attr("transform", function (d) {
-            return "rotate(-65)"
+            return "rotate(-65),translate(-10,0)"
         });
 
     svg.append("g")
