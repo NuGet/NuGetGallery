@@ -153,8 +153,8 @@
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
     <Compile Include="Tasks\Backups\BackupDatabaseTask.cs" />
-    <Compile Include="Tasks\BackupPackageFileTask.cs" />
-    <Compile Include="Tasks\BackupPackagesTask.cs" />
+    <Compile Include="Tasks\Backups\BackupPackageFileTask.cs" />
+    <Compile Include="Tasks\Backups\BackupPackagesTask.cs" />
     <Compile Include="CloudBlobExtensions.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
     <Compile Include="Common\CommandLineException.cs" />

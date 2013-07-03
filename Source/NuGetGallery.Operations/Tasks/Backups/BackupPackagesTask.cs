@@ -6,13 +6,29 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AnglicanGeek.DbExecutor;
+using Microsoft.WindowsAzure.Storage;
+using NuGetGallery.Operations.Tasks;
 
 namespace NuGetGallery.Operations
 {
     [Command("backuppackages", "Back up all packages at the source storage server", AltName = "bps", MaxArgs = 0)]
     public class BackupPackagesTask : DatabaseAndStorageTask
     {
-        private readonly string _tempFolder;
+        public CloudStorageAccount BackupStorage { get; private set; }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+
+            if (BackupStorage == null)
+            {
+                BackupStorage = StorageAccount;
+                if (CurrentEnvironment != null)
+                {
+                    BackupStorage = CurrentEnvironment.BackupStorage;
+                }
+            }
+        }
 
         public override void ExecuteCommand()
         {
@@ -21,14 +37,19 @@ namespace NuGetGallery.Operations
             
             var processedCount = 0;
             Log.Trace(
-                    "Backing up packages on storage account '{1}'.",
-                    packagesToBackUp.Count,
-                    StorageAccountName);
+                    "Backing up '{0}/packages' -> '{2}/packagebackups'.",
+                    StorageAccount.Credentials.AccountName,
+                    BackupStorage.Credentials.AccountName);
 
             var client = CreateBlobClient();
-            var backupBlobs = client.GetContainerReference("packagebackups");
+            var backupClient = BackupStorage.CreateCloudBlobClient();
+
+            var backupBlobs = backupClient.GetContainerReference("package-backups");
             var packageBlobs = client.GetContainerReference("packages");
-            backupBlobs.CreateIfNotExists();
+            if (!WhatIf)
+            {
+                backupBlobs.CreateIfNotExists();
+            }
             Parallel.ForEach(packagesToBackUp, new ParallelOptions { MaxDegreeOfParallelism = 10 }, package =>
             {
                 try
@@ -65,22 +86,6 @@ namespace NuGetGallery.Operations
                         ex.Message);
                 }
             });
-        }
-        
-        string DownloadPackage(Package package)
-        {
-            var cloudClient = CreateBlobClient();
-
-            var packagesBlobContainer = Util.GetPackagesBlobContainer(cloudClient);
-
-            var packageFileName = Util.GetPackageFileName(package.Id, package.Version);
-
-            var downloadPath = Path.Combine(_tempFolder, packageFileName);
-
-            var blob = packagesBlobContainer.GetBlockBlobReference(packageFileName);
-            blob.DownloadToFile(downloadPath);
-
-            return downloadPath;
         }
 
         IList<Package> GetPackagesToBackUp()
