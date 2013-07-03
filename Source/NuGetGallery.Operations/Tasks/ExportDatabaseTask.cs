@@ -74,7 +74,7 @@ namespace NuGetGallery.Operations
                 Password = ConnectionString.Password,
                 StorageKey = Convert.ToBase64String(DestinationStorage.Credentials.ExportKey())
             };
-            
+
             // Prep the blob
             string blobUrl = null;
             if (!WhatIf)
@@ -83,10 +83,17 @@ namespace NuGetGallery.Operations
                 var container = client.GetContainerReference(DestinationContainer);
                 container.CreateIfNotExists();
                 var blob = container.GetBlockBlobReference(ConnectionString.InitialCatalog + ".bacpac");
-                Log.Info("Starting export to {0}", blob.Uri.AbsoluteUri);
+                if (blob.Exists())
+                {
+                    Log.Info("Skipping export of {0} because the blob already exists", blob.Name);
+                }
+                else
+                {
+                    Log.Info("Starting export to {0}", blob.Uri.AbsoluteUri);
 
-                // Export!
-                blobUrl = helper.DoExport(blob.Uri.AbsoluteUri, WhatIf);
+                    // Export!
+                    blobUrl = helper.DoExport(blob.Uri.AbsoluteUri, WhatIf);
+                }
             }
 
             Log.Info("Export Complete");
