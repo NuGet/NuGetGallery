@@ -1,7 +1,7 @@
 ﻿
-namespace NuGetGallery.Operations
+namespace NuGetGallery.Operations.Model
 {
-    public class Database
+    public class Db
     {
         public string Name { get; set; }
         public byte State { get; set; }

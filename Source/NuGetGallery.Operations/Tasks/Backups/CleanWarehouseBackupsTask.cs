@@ -15,7 +15,7 @@ namespace NuGetGallery.Operations.Tasks.Backups
             WithMasterConnection((connection, db) =>
             {
                 // Get the list of backups
-                var backups = db.Query<Database>(
+                var backups = db.Query<Db>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'WarehouseBackup_%'",
                     new { state = Util.OnlineState })
                     .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))

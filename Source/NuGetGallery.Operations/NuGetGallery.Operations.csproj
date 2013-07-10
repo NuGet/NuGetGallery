@@ -190,6 +190,8 @@
     <Compile Include="Tasks\CleanTagsTask.cs" />
     <Compile Include="Tasks\CopyBlobsTask.cs" />
     <Compile Include="Tasks\Database\CreateSqlUserTask.cs" />
+    <Compile Include="Tasks\Database\DeleteSqlUserTask.cs" />
+    <Compile Include="Tasks\Database\ListSqlUserTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
@@ -209,7 +211,7 @@
     <Compile Include="Tasks\OpsTask.cs" />
     <Compile Include="Tasks\PopulatePackageFrameworksTask.cs" />
     <Compile Include="Tasks\CurateWebmatrixPackagesTask.cs" />
-    <Compile Include="Database.cs" />
+    <Compile Include="Model\Database.cs" />
     <Compile Include="Tasks\DeleteBrokenPackageBackupsTask.cs" />
     <Compile Include="Tasks\DeletePackageFileTask.cs" />
     <Compile Include="Tasks\DeleteAllPackageVersionsTask.cs" />

@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations.Tasks
 {
+    [Command("createsqluser", "Creates a new DB Owner for the gallery database", AltName="csu")]
     public class CreateSqlUserTask : DatabaseTask
     {
         [Option("The user name to create, leave the blank for the default", AltName="u")]
@@ -24,12 +28,17 @@ namespace NuGetGallery.Operations.Tasks
             {
                 UserName = String.Format("{0}-site-{1}", CurrentEnvironment.Name, DateTime.UtcNow.ToString("MMMdd-yyyy"));
             }
+
+            ArgCheck.RequiredOrConfig(UserName, "UserName");
         }
 
         public override void ExecuteCommand()
         {
             // Generate password
-            string password = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            var rng = new RNGCryptoServiceProvider();
+            byte[] data = new byte[20];
+            rng.GetBytes(data);
+            string password = Convert.ToBase64String(data);
 
             WithMasterConnection((c, db) =>
             {
@@ -62,7 +71,10 @@ namespace NuGetGallery.Operations.Tasks
 
             if (Clip)
             {
-                Clipboard.SetText(newstr.ConnectionString);
+                var t = new Thread(() => Clipboard.SetText(newstr.ConnectionString));
+                t.SetApartmentState(ApartmentState.STA);
+                t.Start();
+                t.Join();
                 Log.Info("Connection String for the new user is in the clipboard");
             }
             else

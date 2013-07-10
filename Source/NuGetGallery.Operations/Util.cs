@@ -21,7 +21,7 @@ namespace NuGetGallery.Operations
 
         public static bool BackupIsInProgress(SqlExecutor dbExecutor, string backupPrefix)
         {
-            return dbExecutor.Query<Database>(
+            return dbExecutor.Query<Db>(
                 // Not worried about SQL Injection here :). This is an admin tool.
                 "SELECT name, state FROM sys.databases WHERE name LIKE '" + backupPrefix + "%' AND state = @state",
                 new { state = CopyingState })
@@ -46,7 +46,7 @@ namespace NuGetGallery.Operations
             return path;
         }
 
-        public static string GetDatabaseNameTimestamp(Database database)
+        public static string GetDatabaseNameTimestamp(Db database)
         {
             return GetDatabaseNameTimestamp(database.Name);
         }
@@ -88,7 +88,7 @@ namespace NuGetGallery.Operations
             IDbExecutor dbExecutor,
             string restoreName)
         {
-            var backupDbs = dbExecutor.Query<Database>(
+            var backupDbs = dbExecutor.Query<Db>(
                 "SELECT name, state FROM sys.databases WHERE name = @restoreName AND state = @state",
                 new { restoreName, state = OnlineState })
                 .OrderByDescending(database => database.Name);
@@ -96,9 +96,9 @@ namespace NuGetGallery.Operations
             return backupDbs.FirstOrDefault() != null;
         }
 
-        public static Database GetLastBackup(SqlExecutor dbExecutor, string backupNamePrefix)
+        public static Db GetLastBackup(SqlExecutor dbExecutor, string backupNamePrefix)
         {
-            var backupDbs = dbExecutor.Query<Database>(
+            var backupDbs = dbExecutor.Query<Db>(
                 "SELECT name, state FROM sys.databases WHERE name LIKE '" + backupNamePrefix + "%' AND state = @state",
                 new { state = OnlineState })
                 .OrderByDescending(db => OnlineDatabaseBackup.ParseTimestamp(db.Name).Value);
@@ -273,11 +273,11 @@ namespace NuGetGallery.Operations
             return dataSource;
         }
 
-        public static Database GetDatabase(
+        public static Db GetDatabase(
             IDbExecutor dbExecutor,
             string databaseName)
         {
-            var dbs = dbExecutor.Query<Database>(
+            var dbs = dbExecutor.Query<Db>(
                 "SELECT name, state FROM sys.databases WHERE name = @databaseName",
                 new { databaseName });
 

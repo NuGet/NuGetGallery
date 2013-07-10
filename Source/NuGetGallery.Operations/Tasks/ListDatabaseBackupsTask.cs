@@ -1,5 +1,6 @@
 ﻿using System.Data.SqlClient;
 using AnglicanGeek.DbExecutor;
+using NuGetGallery.Operations.Model;
 
 namespace NuGetGallery.Operations
 {
@@ -18,7 +19,7 @@ namespace NuGetGallery.Operations
             {
                 sqlConnection.Open();
 
-                var dbs = dbExecutor.Query<Database>(
+                var dbs = dbExecutor.Query<Db>(
                     "SELECT name FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
                     new { state = Util.OnlineState });
 
