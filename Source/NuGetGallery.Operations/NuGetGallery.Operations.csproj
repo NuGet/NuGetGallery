@@ -189,6 +189,7 @@
     <Compile Include="Tasks\Backups\CleanOnlineDatabaseBackupsTask.cs" />
     <Compile Include="Tasks\CleanTagsTask.cs" />
     <Compile Include="Tasks\CopyBlobsTask.cs" />
+    <Compile Include="Tasks\Database\CreateSqlUserTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
