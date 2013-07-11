@@ -38,14 +38,36 @@ namespace NuGetGallery.Operations
             var destClient = DestinationStorage.CreateCloudBlobClient();
             var destContainer = destClient.GetContainerReference(DestinationContainer);
 
-            while (!destContainer.ListBlobs(Prefix, useFlatBlobListing: true, blobListingDetails: BlobListingDetails.Copy)
-                                 .OfType<CloudBlockBlob>()
-                                 .All(b => ReportStatus(b)) || !Wait) {
-                Log.Info("Sleeping for 5 seconds");
-                Thread.Sleep(5 * 1000);
-            }
+            // Iterate through the blobs
+            int index = 0;
+            var blobs = Util.EnumerateBlobs(Log, destContainer, Prefix ?? String.Empty);
+            Parallel.ForEach(blobs, new ParallelOptions() { MaxDegreeOfParallelism = 10 }, blob =>
+            {
+                Interlocked.Increment(ref index);
+                if (blob.CopyState.Status != CopyStatus.Pending)
+                {
+                    DateTime start = DateTime.UtcNow;
+                    int counter = 0;
+                    while (blob.CopyState.Status == CopyStatus.Pending)
+                    {
+                        Thread.Sleep(1000);
+                        counter++;
+                        blob.FetchAttributes();
 
-            Log.Info("Copies started. Run checkblobcopy with the same parameters to wait on blob copy completion");
+                        if (counter % 5 == 0)
+                        {
+                            Log.Info("{1}Waiting on {0} ...", blob.Name, counter > 5 ? "Still " : "");
+                        }
+                    }
+                    if (counter > 2)
+                    {
+                        Log.Info("Copy of {0} has finished!", blob.Name);
+                    }
+                }
+                index++;
+            });
+
+            Log.Info("{0} Copies Complete!", index);
         }
 
         private bool ReportStatus(CloudBlockBlob blob)

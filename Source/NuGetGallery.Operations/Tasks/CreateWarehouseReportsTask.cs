@@ -14,11 +14,12 @@ using NuGetGallery.Operations.Common;
 namespace NuGetGallery.Operations
 {
     [Command("createwarehousereports", "Create warehouse reports", AltName = "cwrep")]
-    public class CreateWarehouseReportsTask : ReportsTask
+    public class CreateWarehouseReportsTask : DatabaseAndStorageTask
     {
         private const string JsonContentType = "application/json";
         private const string PackageReportBaseName = "recentpopularity_";
-        private const string PerMonth = "permonth";
+        private const string NuGetClientVersion = "nugetclientversion";
+        private const string Last6Months = "last6months";
         private const string RecentPopularity = "recentpopularity";
         private const string RecentPopularityDetail = "recentpopularitydetail";
         private const string PackageReportDetailBaseName = "recentpopularitydetail_";
@@ -32,7 +33,8 @@ namespace NuGetGallery.Operations
 
             CreateContainerIfNotExists();
 
-            CreateReport_PerMonth();
+            CreateReport_NuGetClientVersion();
+            CreateReport_Last6Months();
             CreateReport_RecentPopularityDetail();
             CreateReport_RecentPopularity();
 
@@ -49,13 +51,22 @@ namespace NuGetGallery.Operations
             Log.Info("Generate reports end");
         }
 
-        private void CreateReport_PerMonth()
+        private void CreateReport_NuGetClientVersion()
         {
-            Log.Info("CreateReport_PerMonth");
+            Log.Info("CreateReport_NuGetClientVersion");
 
-            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_PerMonth.sql");
+            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_NuGetClientVersion.sql");
 
-            CreateBlob(PerMonth + ".json", JsonContentType, ReportHelpers.ToJson(report));
+            CreateBlob(NuGetClientVersion + ".json", JsonContentType, ReportHelpers.ToJson(report));
+        }
+
+        private void CreateReport_Last6Months()
+        {
+            Log.Info("CreateReport_Last6Months");
+
+            Tuple<string[], List<object[]>> report = ExecuteSql("NuGetGallery.Operations.Scripts.DownloadReport_Last6Months.sql");
+
+            CreateBlob(Last6Months + ".json", JsonContentType, ReportHelpers.ToJson(report));
         }
 
         private void CreateReport_RecentPopularityDetail()
@@ -484,7 +495,7 @@ namespace NuGetGallery.Operations
 
         private void CreateContainerIfNotExists()
         {
-            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
+            CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("stats");
             
             container.CreateIfNotExists();  // this can throw if the container was just deleted a few seconds ago
@@ -494,7 +505,7 @@ namespace NuGetGallery.Operations
 
         private Uri CreateBlob(string name, string contentType, Stream content)
         {
-            CloudBlobClient blobClient = ReportStorage.CreateCloudBlobClient();
+            CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference("stats");
             CloudBlockBlob blockBlob = container.GetBlockBlobReference("popularity/" + name);
 

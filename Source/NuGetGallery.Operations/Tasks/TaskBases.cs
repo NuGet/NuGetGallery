@@ -7,12 +7,13 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
 using System.Data.Entity.Migrations.Infrastructure;
+using AnglicanGeek.DbExecutor;
 
 namespace NuGetGallery.Operations
 {
     // Base classes to ensure consistent naming of options
 
-    public abstract class StorageTask : OpsTask
+    public abstract class StorageTaskBase : OpsTask
     {
         [Option("The connection string to the storage server", AltName = "st")]
         public CloudStorageAccount StorageAccount { get; set; }
@@ -33,16 +34,37 @@ namespace NuGetGallery.Operations
 
             if (CurrentEnvironment != null && StorageAccount == null)
             {
-                StorageAccount = CurrentEnvironment.MainStorage;
+                StorageAccount = GetStorageAccountFromEnvironment(CurrentEnvironment);
             }
             ArgCheck.RequiredOrConfig(StorageAccount, "StorageAccount");
         }
+
+        protected abstract CloudStorageAccount GetStorageAccountFromEnvironment(DeploymentEnvironment environment);
     }
 
-    public abstract class DatabaseTask : OpsTask
+    public abstract class StorageTask : StorageTaskBase
     {
-        [Option("Connection string to the database server", AltName = "db")]
+        protected override CloudStorageAccount GetStorageAccountFromEnvironment(DeploymentEnvironment environment)
+        {
+            return environment.MainStorage;
+        }
+    }
+
+    public abstract class BackupStorageTask : StorageTaskBase
+    {
+        protected override CloudStorageAccount GetStorageAccountFromEnvironment(DeploymentEnvironment environment)
+        {
+            return environment.BackupStorage;
+        }
+    }
+
+    public abstract class DatabaseTaskBase : OpsTask
+    {
+        [Option("Connection string to the relevant database server", AltName = "db")]
         public SqlConnectionStringBuilder ConnectionString { get; set; }
+
+        protected string ServerName { get { return Util.GetDatabaseServerName(ConnectionString); } }
+        protected string DatabaseName { get { return ConnectionString.InitialCatalog; } }
 
         public override void ValidateArguments()
         {
@@ -51,48 +73,71 @@ namespace NuGetGallery.Operations
             // Load defaults from environment
             if (CurrentEnvironment != null && ConnectionString == null)
             {
-                ConnectionString = CurrentEnvironment.MainDatabase;
+                ConnectionString = GetConnectionFromEnvironment(CurrentEnvironment);
             }
 
             ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
         }
+
+        protected void WithConnection(Action<SqlConnection> act)
+        {
+            WithConnection((c, _) => act(c));
+        }
+
+        protected void WithConnection(Action<SqlConnection, SqlExecutor> act)
+        {
+            using (var c = OpenConnection())
+            using (var e = new SqlExecutor(c))
+            {
+                act(c, e);
+            }
+        }
+
+        protected void WithMasterConnection(Action<SqlConnection> act)
+        {
+            WithMasterConnection((c, _) => act(c));
+        }
+
+        protected void WithMasterConnection(Action<SqlConnection, SqlExecutor> act)
+        {
+            using (var c = OpenMasterConnection())
+            using (var e = new SqlExecutor(c))
+            {
+                act(c, e);
+            }
+        }
+
+        protected SqlConnection OpenConnection()
+        {
+            var c = new SqlConnection(ConnectionString.ConnectionString);
+            c.Open();
+            return c;
+        }
+
+        protected SqlConnection OpenMasterConnection()
+        {
+            var cstr = Util.GetMasterConnectionString(ConnectionString.ConnectionString);
+            var c = new SqlConnection(cstr);
+            c.Open();
+            return c;
+        }
+
+        protected abstract SqlConnectionStringBuilder GetConnectionFromEnvironment(DeploymentEnvironment environment);
     }
 
-    public abstract class WarehouseTask : OpsTask
+    public abstract class DatabaseTask : DatabaseTaskBase
     {
-        [Option("Connection string to the warehouse database server", AltName = "db")]
-        public SqlConnectionStringBuilder ConnectionString { get; set; }
-
-        public override void ValidateArguments()
+        protected override SqlConnectionStringBuilder GetConnectionFromEnvironment(DeploymentEnvironment environment)
         {
-            base.ValidateArguments();
-
-            // Load defaults from environment
-            if (CurrentEnvironment != null && ConnectionString == null)
-            {
-                ConnectionString = CurrentEnvironment.WarehouseDatabase;
-            }
-
-            ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
+            return environment.MainDatabase;
         }
     }
 
-    public abstract class ReportsTask : WarehouseTask
+    public abstract class WarehouseTask : DatabaseTaskBase
     {
-        [Option("Connection string to the warehouse reports container", AltName = "wracc")]
-        public CloudStorageAccount ReportStorage { get; set; }
-
-        public override void ValidateArguments()
+        protected override SqlConnectionStringBuilder GetConnectionFromEnvironment(DeploymentEnvironment environment)
         {
-            base.ValidateArguments();
-
-            // Load defaults from environment
-            if (CurrentEnvironment != null && ReportStorage == null)
-            {
-                ReportStorage = CurrentEnvironment.ReportStorage;
-            }
-
-            ArgCheck.RequiredOrConfig(ReportStorage, "ReportStorage");
+            return environment.WarehouseDatabase;
         }
     }
 

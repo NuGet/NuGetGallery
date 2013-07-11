@@ -1,4 +1,4 @@
-﻿using NuGetGallery.Operations.Worker;
+﻿using NuGetGallery.Worker;
 
 namespace NuGetGallery.Operations.Tools.Tasks
 {

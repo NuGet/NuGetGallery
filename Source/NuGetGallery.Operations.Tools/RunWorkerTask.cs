@@ -2,7 +2,7 @@
 using System.Linq;
 using NLog;
 using NLog.Targets;
-using NuGetGallery.Operations.Worker;
+using NuGetGallery.Worker;
 
 namespace NuGetGallery.Operations.Tools.Tasks
 {
@@ -52,12 +52,6 @@ namespace NuGetGallery.Operations.Tools.Tasks
             if (WhatIf)
             {
                 overrideSettings["WhatIf"] = "true";
-            }
-
-            var consoleTarget = LogManager.Configuration.AllTargets.OfType<ColoredConsoleTarget>().SingleOrDefault();
-            if (consoleTarget != null)
-            {
-                consoleTarget.Layout = "[${level}] ${date:format=HH\\:mm\\:ss} [${logger}]: ${message}";
             }
 
             // Run the worker role

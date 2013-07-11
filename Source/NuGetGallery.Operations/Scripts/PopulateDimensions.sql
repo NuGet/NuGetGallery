@@ -226,4 +226,12 @@ INSERT [dbo].[Dimension_Operation] VALUES ( 'Install' )
 INSERT [dbo].[Dimension_Operation] VALUES ( 'Update' )
 INSERT [dbo].[Dimension_Operation] VALUES ( 'Restore' )
 INSERT [dbo].[Dimension_Operation] VALUES ( '(unknown)' )
+INSERT [dbo].[Dimension_Operation] VALUES ( 'Install-Dependency' )
+INSERT [dbo].[Dimension_Operation] VALUES ( 'Update-Dependency' )
+INSERT [dbo].[Dimension_Operation] VALUES ( 'Restore-Dependency' )
 GO
+
+DELETE [dbo].[Dimension_Project]
+INSERT [dbo].[Dimension_Project] VALUES ( '(unknown)' )
+GO
+

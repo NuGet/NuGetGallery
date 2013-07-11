@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NLog;
 using NuGetGallery.Operations.Common;
+using NuGetGallery.Operations.Infrastructure;
 
 namespace NuGetGallery.Operations
 {
@@ -15,10 +16,11 @@ namespace NuGetGallery.Operations
         private CommandAttribute _commandAttribute;
         private List<string> _arguments = new List<string>();
         private Logger _logger;
-        protected internal Logger Log
+        
+        public Logger Log
         {
             get { return _logger ?? (_logger = LogManager.GetLogger(GetType().Name)); }
-            internal set { _logger = value; }
+            set { _logger = value; }
         }
 
         public CommandAttribute CommandAttribute
@@ -45,9 +47,18 @@ namespace NuGetGallery.Operations
         {
             get
             {
-                return !String.IsNullOrEmpty(ConfigFile) ?
-                    DeploymentEnvironment.FromConfigFile(ConfigFile) : 
-                    null;
+                try
+                {
+                    return !String.IsNullOrEmpty(ConfigFile) ?
+                        DeploymentEnvironment.FromConfigFile(ConfigFile) :
+                        null;
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn("Error loading cscfg. Continuing without it");
+                    Log.Warn(ex.Message);
+                    return null;
+                }
             }
         }
 
@@ -62,6 +73,13 @@ namespace NuGetGallery.Operations
 
         [Option("Instead of performing any write operations, the command will just output what it WOULD do. Read operations are still performed.", AltName = "!")]
         public bool WhatIf { get; set; }
+
+        protected internal IDbExecutorFactory DbFactory { get; set; }
+
+        protected OpsTask()
+        {
+            DbFactory = new SqlDbExecutorFactory();
+        }
 
         public void Execute()
         {

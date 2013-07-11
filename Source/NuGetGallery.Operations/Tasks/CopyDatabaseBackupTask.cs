@@ -24,17 +24,13 @@ namespace NuGetGallery.Operations
 
             if (CurrentEnvironment != null)
             {
-                if (SourceConnectionString == null)
-                {
-                    SourceConnectionString = CurrentEnvironment.BackupSourceDatabase;
-                }
                 if (DestinationConnectionString == null)
                 {
                     DestinationConnectionString = CurrentEnvironment.MainDatabase;
                 }
             }
 
-            ArgCheck.RequiredOrConfig(SourceConnectionString, "SourceConnectionString");
+            ArgCheck.Required(SourceConnectionString, "SourceConnectionString");
             ArgCheck.RequiredOrConfig(DestinationConnectionString, "DestinationConnectionString");
             ArgCheck.Required(BackupName, "BackupName");
         }

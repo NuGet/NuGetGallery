@@ -7,7 +7,10 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Web;
 using AnglicanGeek.DbExecutor;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using NLog;
+using NuGetGallery.Operations.Model;
 
 namespace NuGetGallery.Operations
 {
@@ -15,11 +18,12 @@ namespace NuGetGallery.Operations
     {
         public const byte CopyingState = 7;
         public const byte OnlineState = 0;
-        
-        public static bool BackupIsInProgress(SqlExecutor dbExecutor)
+
+        public static bool BackupIsInProgress(SqlExecutor dbExecutor, string backupPrefix)
         {
             return dbExecutor.Query<Database>(
-                "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
+                // Not worried about SQL Injection here :). This is an admin tool.
+                "SELECT name, state FROM sys.databases WHERE name LIKE '" + backupPrefix + "%' AND state = @state",
                 new { state = CopyingState })
                 .Any();
         }
@@ -50,21 +54,22 @@ namespace NuGetGallery.Operations
         public static string GetDatabaseNameTimestamp(string databaseName)
         {
             if (databaseName == null) throw new ArgumentNullException("databaseName");
-            
-            if (databaseName.Length < 14)
-                throw new InvalidOperationException("Database name isn't long enough to contain a timestamp.");
 
-            return databaseName.Substring(databaseName.Length - 14);
+            return databaseName.Substring("Backup_".Length);
         }
 
         public static DateTime GetDateTimeFromTimestamp(string timestamp)
         {
             DateTime result;
-            if (!DateTime.TryParseExact(timestamp, "yyyyMMddHHmmss", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out result))
+            if (DateTime.TryParseExact(timestamp, "yyyyMMddHHmmss", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out result))
             {
-                result = DateTime.MinValue;
+                return result;
             }
-            return result;
+            else if (DateTime.TryParseExact(timestamp, "yyyyMMMdd_HHmmZ", CultureInfo.CurrentCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out result))
+            {
+                return result;
+            }
+            return DateTime.MinValue;
         }
 
         public static string GetDbName(string connectionString)
@@ -91,32 +96,32 @@ namespace NuGetGallery.Operations
             return backupDbs.FirstOrDefault() != null;
         }
 
-        public static Database GetLastBackup(SqlExecutor dbExecutor)
+        public static Database GetLastBackup(SqlExecutor dbExecutor, string backupNamePrefix)
         {
             var backupDbs = dbExecutor.Query<Database>(
-                "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
+                "SELECT name, state FROM sys.databases WHERE name LIKE '" + backupNamePrefix + "%' AND state = @state",
                 new { state = OnlineState })
-                .OrderByDescending(database => database.Name);
+                .OrderByDescending(db => OnlineDatabaseBackup.ParseTimestamp(db.Name).Value);
 
             return backupDbs.FirstOrDefault();
         }
 
-        public static DateTime GetLastBackupTime(SqlExecutor dbExecutor)
+        public static DateTime GetLastBackupTime(SqlExecutor dbExecutor, string backupNamePrefix)
         {
-            var lastBackup = GetLastBackup(dbExecutor);
+            var lastBackup = GetLastBackup(dbExecutor, backupNamePrefix);
 
             if (lastBackup == null)
                 return DateTime.MinValue;
 
-            var timestamp = lastBackup.Name.Substring(7);
-            
+            var timestamp = lastBackup.Name.Substring(backupNamePrefix.Length);
+
             return GetDateTimeFromTimestamp(timestamp);
         }
 
         public static string GetMasterConnectionString(string connectionString)
         {
-            var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString) {InitialCatalog = "master"};
-            return connectionStringBuilder.ToString();   
+            var connectionStringBuilder = new SqlConnectionStringBuilder(connectionString) { InitialCatalog = "master" };
+            return connectionStringBuilder.ToString();
         }
 
         public static string GetConnectionString(string connectionString, string databaseName)
@@ -133,7 +138,7 @@ namespace NuGetGallery.Operations
 
         public static string GetTimestamp()
         {
-            return DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            return DateTime.UtcNow.ToString("yyyyMMMdd_HHmm") + "Z";
         }
 
         internal static CloudBlobContainer GetPackageBackupsBlobContainer(CloudBlobClient blobClient)
@@ -151,7 +156,7 @@ namespace NuGetGallery.Operations
         }
 
         internal static string GetPackageFileName(
-            string id, 
+            string id,
             string version)
         {
             return string.Format(
@@ -172,22 +177,22 @@ namespace NuGetGallery.Operations
         }
 
         internal static string GetPackageBackupFileName(
-            string id, 
-            string version, 
+            string id,
+            string version,
             string hash)
         {
             var hashBytes = Convert.FromBase64String(hash);
-            
+
             return string.Format(
-                "{0}.{1}.{2}.nupkg",
+                "{0}/{1}/{2}.nupkg",
                 id,
                 version,
                 HttpServerUtility.UrlTokenEncode(hashBytes));
         }
 
         internal static ICloudBlob GetPackageFileBlob(
-            CloudBlobContainer packagesBlobContainer, 
-            string id, 
+            CloudBlobContainer packagesBlobContainer,
+            string id,
             string version)
         {
             var packageFileName = GetPackageFileName(
@@ -197,8 +202,8 @@ namespace NuGetGallery.Operations
         }
 
         internal static Package GetPackage(
-            IDbExecutor dbExecutor, 
-            string id, 
+            IDbExecutor dbExecutor,
+            string id,
             string version)
         {
             return dbExecutor.Query<Package>(
@@ -207,7 +212,7 @@ namespace NuGetGallery.Operations
         }
 
         internal static PackageRegistration GetPackageRegistration(
-            IDbExecutor dbExecutor, 
+            IDbExecutor dbExecutor,
             string id)
         {
             return dbExecutor.Query<PackageRegistration>(
@@ -250,7 +255,7 @@ namespace NuGetGallery.Operations
             {
                 hashBytes = hashAlgorithm.ComputeHash(input);
             }
-            
+
             var hash = Convert.ToBase64String(hashBytes);
             return hash;
         }
@@ -261,7 +266,7 @@ namespace NuGetGallery.Operations
             if (dataSource.StartsWith("tcp:"))
                 dataSource = dataSource.Substring(4);
             var indexOfFirstPeriod = dataSource.IndexOf(".", StringComparison.Ordinal);
-            
+
             if (indexOfFirstPeriod > -1)
                 return dataSource.Substring(0, indexOfFirstPeriod);
 
@@ -277,6 +282,69 @@ namespace NuGetGallery.Operations
                 new { databaseName });
 
             return dbs.SingleOrDefault();
+        }
+
+        public static IList<CloudBlockBlob> CollectBlobs(Logger log, CloudBlobContainer container, string prefix, Func<CloudBlockBlob, bool> condition = null, int? countEstimate = null)
+        {
+            List<CloudBlockBlob> list;
+            if (countEstimate.HasValue)
+            {
+                list = new List<CloudBlockBlob>(countEstimate.Value);
+            }
+            else
+            {
+                list = new List<CloudBlockBlob>();
+            }
+
+            BlobContinuationToken token = null;
+            do
+            {
+                var segment = container.ListBlobsSegmented(
+                    prefix,
+                    useFlatBlobListing: true,
+                    blobListingDetails: BlobListingDetails.Copy,
+                    maxResults: null,
+                    currentToken: token,
+                    options: new BlobRequestOptions(),
+                    operationContext: new OperationContext());
+                var oldCount = list.Count;
+                int total = 0;
+                foreach (var blob in segment.Results.OfType<CloudBlockBlob>())
+                {
+                    if (condition == null || condition(blob))
+                    {
+                        list.Add(blob);
+                    }
+                    total++;
+                }
+
+                log.Info("Matched {0}/{1} blobs in current segment. Found {2} blobs so far...", list.Count - oldCount, total, list.Count);
+                token = segment.ContinuationToken;
+            } while (token != null);
+
+            return list;
+        }
+
+        public static IEnumerable<CloudBlockBlob> EnumerateBlobs(Logger log, CloudBlobContainer container, string prefix, Func<CloudBlockBlob, bool> condition = null)
+        {
+            BlobContinuationToken token = null;
+            do
+            {
+                var segment = container.ListBlobsSegmented(
+                    prefix,
+                    useFlatBlobListing: true,
+                    blobListingDetails: BlobListingDetails.Copy,
+                    maxResults: null,
+                    currentToken: token,
+                    options: new BlobRequestOptions(),
+                    operationContext: new OperationContext());
+                foreach (var blob in segment.Results.OfType<CloudBlockBlob>().Where(b => condition == null || condition(b)))
+                {
+                    yield return blob;
+                }
+
+                token = segment.ContinuationToken;
+            } while (token != null);
         }
     }
 }

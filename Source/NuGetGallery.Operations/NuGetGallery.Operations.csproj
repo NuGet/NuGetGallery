@@ -51,6 +51,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.OData.5.0.2\lib\net40\Microsoft.Data.OData.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=1.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.1.8.0.0\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
     </Reference>
@@ -64,10 +68,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NLog.2.0.0.2000\lib\net40\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=2.2.31210.9045, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Core, Version=2.5.40416.9020, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Nuget.Core.2.2.0\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <HintPath>..\..\packages\Nuget.Core.2.5.0\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -82,12 +87,34 @@
       <Private>True</Private>
       <HintPath>..\..\packages\System.Net.Http.2.0.20126.16343\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Spatial, Version=5.0.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\System.Spatial.5.0.2\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Helpers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.Helpers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\Microsoft.AspNet.Razor.2.0.20715.0\lib\net40\System.Web.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Deployment.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\..\packages\Microsoft.AspNet.WebPages.2.0.20710.0\lib\net40\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -107,11 +134,28 @@
     <Compile Include="Common\SqlConnectionStringConverter.cs" />
     <Compile Include="Common\SqlHelper.cs" />
     <Compile Include="Common\StreamConverter.cs" />
+    <Compile Include="DatabaseBackupHelper.cs" />
     <Compile Include="DeploymentEnvironment.cs" />
     <Compile Include="Infrastructure\CommandLineParser.cs" />
-    <Compile Include="Tasks\BackupDatabaseTask.cs" />
-    <Compile Include="Tasks\BackupPackageFileTask.cs" />
-    <Compile Include="Tasks\BackupPackagesTask.cs" />
+    <Compile Include="Infrastructure\IAsyncCompletionTask.cs" />
+    <Compile Include="Infrastructure\IDbExecutorFactory.cs" />
+    <Compile Include="Infrastructure\ImportExportHelper.cs" />
+    <Compile Include="Infrastructure\JobLog.cs" />
+    <Compile Include="Infrastructure\JobLogBlob.cs" />
+    <Compile Include="Infrastructure\JobLogEntry.cs" />
+    <Compile Include="Infrastructure\LogLevelConverter.cs" />
+    <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
+    <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
+    <Compile Include="Model\OfflineDatabaseBackup.cs" />
+    <Compile Include="Model\OnlineDatabaseBackup.cs" />
+    <Compile Include="Service References\SqlDac\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+    <Compile Include="Tasks\Backups\BackupDatabaseTask.cs" />
+    <Compile Include="Tasks\Backups\BackupPackageFileTask.cs" />
+    <Compile Include="Tasks\Backups\BackupPackagesTask.cs" />
     <Compile Include="CloudBlobExtensions.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
     <Compile Include="Common\CommandLineException.cs" />
@@ -134,24 +178,33 @@
       <DependentUpon>TaskResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Common\ResourceHelper.cs" />
-    <Compile Include="Tasks\BackupWarehouseTask.cs" />
+    <Compile Include="Tasks\Backups\BackupWarehouseTask.cs" />
+    <Compile Include="Tasks\Backups\CleanOfflineDatabaseBackupsTask.cs" />
+    <Compile Include="Tasks\Backups\CleanWarehouseBackupsTask.cs" />
+    <Compile Include="Tasks\Backups\ExportWarehouseBackupsTask.cs" />
+    <Compile Include="Tasks\Backups\ExportDailyBackupsTask.cs" />
+    <Compile Include="Tasks\Backups\ListOfflineDatabaseBackupsTask.cs" />
     <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
     <Compile Include="Tasks\CheckBlobCopiesTask.cs" />
+    <Compile Include="Tasks\Backups\CleanOnlineDatabaseBackupsTask.cs" />
+    <Compile Include="Tasks\CleanTagsTask.cs" />
     <Compile Include="Tasks\CopyBlobsTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
     <Compile Include="Tasks\DeleteOldWarehouseBackupsTask.cs" />
     <Compile Include="Tasks\CreateWarehouseArtifactsTask.cs" />
-    <Compile Include="Tasks\DeleteOldDatabaseBackupsTask.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Infrastructure\ICommand.cs" />
     <Compile Include="Infrastructure\ICommandManager.cs" />
     <Compile Include="Infrastructure\Verbosity.cs" />
     <Compile Include="Tasks\DeleteUserTask.cs" />
+    <Compile Include="Tasks\ExportDatabaseTask.cs" />
     <Compile Include="Tasks\ListDeploymentSettingsTask.cs" />
     <Compile Include="Tasks\LowerCaseAllPackageBlobsTask.cs" />
     <Compile Include="Tasks\IBackupDatabase.cs" />
+    <Compile Include="Tasks\Monitoring\ListJobLogsTask.cs" />
+    <Compile Include="Tasks\Monitoring\TailJobLogTask.cs" />
     <Compile Include="Tasks\OpsTask.cs" />
     <Compile Include="Tasks\PopulatePackageFrameworksTask.cs" />
     <Compile Include="Tasks\CurateWebmatrixPackagesTask.cs" />
@@ -174,6 +227,7 @@
     <Compile Include="Tasks\RestoreDatabaseTask.cs" />
     <Compile Include="Tasks\RestorePackagesTask.cs" />
     <Compile Include="Tasks\RunMigrationsTask.cs" />
+    <Compile Include="Tasks\SanitizeDatabaseTask.cs" />
     <Compile Include="Tasks\TaskBases.cs" />
     <Compile Include="Tasks\SynchronizePackageBackupsTask.cs" />
     <Compile Include="Tasks\ListMigrationsTask.cs" />
@@ -182,7 +236,22 @@
     <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Service References\SqlDac\Microsoft.SqlServer.Management.Dac.Services.wsdl" />
+    <None Include="Service References\SqlDac\Microsoft.SqlServer.Management.Dac.ServiceTypes.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\SqlDac\NuGetGallery.Operations.SqlDac.StatusInfo.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\SqlDac\service.wsdl" />
+    <None Include="Service References\SqlDac\service.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\SqlDac\service1.xsd">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\NuGetDownloadsProcs_AddDownloadFact.sql" />
@@ -221,9 +290,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityByPackage.sql" />
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularityDetail.sql" />
-    <EmbeddedResource Include="Scripts\DownloadReport_PerMonth.sql" />
-    <EmbeddedResource Include="Scripts\DownloadReport_PreviousThreeMonths.sql" />
-    <EmbeddedResource Include="Scripts\DownloadReport_PreviousMonth.sql" />
     <EmbeddedResource Include="Scripts\DownloadReport_RecentPopularity.sql" />
   </ItemGroup>
   <ItemGroup>
@@ -234,6 +300,33 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\NuGetDownloadsAlterTable.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\DownloadReport_Last6Months.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\DownloadReport_NuGetClientVersion.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\SqlDac\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\SqlDac\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\SqlDac\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\SqlDac\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\NuGetDownloadsAlterTable_2.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

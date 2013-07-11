@@ -18,14 +18,14 @@ to the file share or location where the Environments.xml file is stored.
 .PARAMETER Name
 The name of an environment defined in Environments.xml
 
-.PARAMETER ServiceName
-The name of an Azure Cloud Service which is present in one of the subscriptions you have already registered on this machine and contains the NuGetGallery Web Role.
+.PARAMETER Frontend
+The name of an Azure Web Site which is present in one of the subscriptions you have already registered on this machine and contains the NuGetGallery frontend.
 
-.PARAMETER WorkerName
-The name of an Azure Cloud Service which is present in one of the subscriptions you have already registered on this machine and contains the NuGetOperations Worker Role.
+.PARAMETER Backend
+The name of an Azure Cloud Service which is present in one of the subscriptions you have already registered on this machine and contains the NuGetGallery backend.
 
 .PARAMETER Subscription
-The name of the Azure Subscription containing the service named in ServiceName.
+The name of the Azure Subscription containing the services named in Frontend/Backend.
 
 .PARAMETER NonProduction
 Add this flag to disable extra checks relating to production environments
@@ -34,8 +34,8 @@ Add this flag to disable extra checks relating to production environments
 function Set-Environment {
     param(
         [Parameter(Mandatory=$true, ParameterSetName="FromList")][string]$Name,
-        [Parameter(Mandatory=$true, ParameterSetName="AdHoc")][string]$ServiceName,
-        [Parameter(Mandatory=$true, ParameterSetName="AdHoc")][string]$WorkerName,
+        [Parameter(Mandatory=$true, ParameterSetName="AdHoc")][string]$Frontend,
+        [Parameter(Mandatory=$true, ParameterSetName="AdHoc")][string]$Backend,
         [Parameter(Mandatory=$true, ParameterSetName="AdHoc")][string]$Subscription,
         [Parameter(Mandatory=$false, ParameterSetName="AdHoc")][switch]$NonProduction
     )
@@ -56,8 +56,8 @@ function Set-Environment {
             Version = 0.2;
             Name = $ServiceName;
             Protected = !$NonProduction;
-            Service = $ServiceName;
-            Worker = $WorkerName;
+            Frontend = $Frontend;
+            Backend = $Backend;
             Subscription = $Subscription
         } -InputObject $Global:CurrentEnvironment
     } else {
@@ -66,29 +66,50 @@ function Set-Environment {
 
     Write-Host "Downloading Configuration for $($CurrentEnvironment.Name) environment"
 
-    RunInSubscription $CurrentEnvironment.Subscription {
+    # Check for the subscription
+    $subName = $CurrentEnvironment.Subscription
+    if($subName -isnot [string]) {
+        $subName = $subName.Name;
+    }
+
+    try {
+        Get-AzureSubscription $subName | Out-Null
+    } catch {
+        throw "You need to register the subscription: $subName. Use New-PublishSettingsFile to generate a publish settings file, or Import-PublishSettingsFile if you already have one for this subscription"
+    }
+
+    RunInSubscription $CurrentEnvironment.Subscription.Name {
         
-        Write-Host "Downloading Configuration for Web Role..."
-        $service = Get-AzureDeployment -ServiceName $CurrentEnvironment.Service -Slot "production"
+        Write-Host "Downloading Configuration for Frontend..."
+        $frontend = $null;
+        if($CurrentEnvironment.Type -eq "website") {
+            $frontend = Get-AzureWebsite -Name $CurrentEnvironment.Frontend
+        } elseif($CurrentEnvironment.Type -eq "webrole") {
+            $frontend = Get-AzureDeployment -ServiceName $CurrentEnvironment.Frontend -Slot "production"
+        } else {
+            Write-Warning "Unknown Service Type: $($CurrentEnvironment.Type)"
+        }
         
-        Write-Host "Downloading Configuration for Worker Role..."
-        $worker = Get-AzureDeployment -ServiceName $CurrentEnvironment.Worker -Slot "production"
+        Write-Host "Downloading Configuration for Backend..."
+        $backend = Get-AzureDeployment -ServiceName $CurrentEnvironment.Backend -Slot "production"
 
         $Global:CurrentDeployment = @{
-            "Service" = $service;
-            "Worker" = $worker;
+            "Frontend" = $frontend;
+            "Backend" = $backend;
+        }
+
+        if(_IsProduction) {
+            $Global:OldBgColor = $Host.UI.RawUI.BackgroundColor
+            $Host.UI.RawUI.BackgroundColor = "DarkRed"
+            _RefreshGitColors
+            Write-Warning "You are attached to the PRODUCTION Environment. Use caution!"
+        } else {
+            if($Global:OldBgColor) {
+                $Host.UI.RawUI.BackgroundColor = $Global:OldBgColor
+                del variable:\OldBgColor
+            }
+            _RefreshGitColors
         }
     }
 
-    if(_IsProduction) {
-        $Global:OldBgColor = $Host.UI.RawUI.BackgroundColor
-        $Host.UI.RawUI.BackgroundColor = "DarkRed"
-        _RefreshGitColors
-    } else {
-        if($Global:OldBgColor) {
-            $Host.UI.RawUI.BackgroundColor = $Global:OldBgColor
-            del variable:\OldBgColor
-        }
-        _RefreshGitColors
-    }
 }

@@ -16,7 +16,7 @@ namespace NuGetGallery.Operations.Tools
             {
                 args = args.Skip(1).ToArray();
                 Console.WriteLine("Waiting for Debugger...");
-                SpinWait.SpinUntil(() => Debugger.IsAttached);
+                Debugger.Launch();
             }
         }
     }
