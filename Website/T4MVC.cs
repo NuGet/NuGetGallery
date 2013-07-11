@@ -334,6 +334,9 @@ namespace Links {
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
         public static readonly string async_file_upload_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/async-file-upload.min.js") ? Url("async-file-upload.min.js") : Url("async-file-upload.js");
                       
+        public static readonly string d3_v3_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/d3.v3.min.js") ? Url("d3.v3.min.js") : Url("d3.v3.js");
+                      
+        public static readonly string d3_v3_min_js = Url("d3.v3.min.js");
         public static readonly string jquery_1_6_2_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2-vsdoc.min.js") ? Url("jquery-1.6.2-vsdoc.min.js") : Url("jquery-1.6.2-vsdoc.js");
                       
         public static readonly string jquery_1_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2.min.js") ? Url("jquery-1.6.2.min.js") : Url("jquery-1.6.2.js");
@@ -353,13 +356,17 @@ namespace Links {
                       
         public static readonly string knockout_2_2_1_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/knockout-2.2.1.min.js") ? Url("knockout-2.2.1.min.js") : Url("knockout-2.2.1.js");
                       
-        public static readonly string modernizr_2_0_6_development_only_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/modernizr-2.0.6-development-only.min.js") ? Url("modernizr-2.0.6-development-only.min.js") : Url("modernizr-2.0.6-development-only.js");
+        public static readonly string modernizr_2_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/modernizr-2.6.2.min.js") ? Url("modernizr-2.6.2.min.js") : Url("modernizr-2.6.2.js");
                       
         public static readonly string nugetgallery_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/nugetgallery.min.js") ? Url("nugetgallery.min.js") : Url("nugetgallery.js");
+                      
+        public static readonly string perpackagestatsgraphs_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/perpackagestatsgraphs.min.js") ? Url("perpackagestatsgraphs.min.js") : Url("perpackagestatsgraphs.js");
                       
         public static readonly string stats_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/stats.min.js") ? Url("stats.min.js") : Url("stats.js");
                       
         public static readonly string statsdimensions_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/statsdimensions.min.js") ? Url("statsdimensions.min.js") : Url("statsdimensions.js");
+                      
+        public static readonly string statsgraphs_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/statsgraphs.min.js") ? Url("statsgraphs.min.js") : Url("statsgraphs.js");
                       
         public static readonly string ZeroClipboard_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/ZeroClipboard.min.js") ? Url("ZeroClipboard.min.js") : Url("ZeroClipboard.js");
                       
