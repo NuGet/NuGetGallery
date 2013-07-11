@@ -74,22 +74,26 @@ namespace NuGetGallery
 
         public void UpdatePackage(Package package)
         {
+            string id = package.PackageRegistration.Id;
+            string version = package.Version;
+            int key = package.Key;
+
             var packageRegistrationKey = package.PackageRegistrationKey;
             var updateTerm = new Term("PackageRegistrationKey", packageRegistrationKey.ToString(CultureInfo.InvariantCulture));
 
-            if (!package.IsLatest || package.IsLatestStable)
+            if (!package.IsLatest || !package.IsLatestStable)
             {
                 // Someone passed us in a version which was e.g. just unlisted? Or just not the latest version which is what we want to index. Doesn't really matter. We'll find one to index.
                 package = _packageRepository.GetAll()
-                .Where(p => (p.IsLatest || p.IsLatestStable) && p.PackageRegistrationKey == packageRegistrationKey)
-                .Include(p => p.PackageRegistration)
-                .Include(p => p.PackageRegistration.Owners)
-                .Include(p => p.SupportedFrameworks)
-                .FirstOrDefault();
+                    .Where(p => (p.IsLatest || p.IsLatestStable) && p.PackageRegistrationKey == packageRegistrationKey)
+                    .Include(p => p.PackageRegistration)
+                    .Include(p => p.PackageRegistration.Owners)
+                    .Include(p => p.SupportedFrameworks)
+                    .FirstOrDefault();
             }
 
             // Just update the provided package
-            using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", package.PackageRegistration.Id, package.Version, package.Key)))
+            using (Trace.Activity(String.Format(CultureInfo.CurrentCulture, "Updating Lucene Index for: {0} {1} [PackageKey:{2}]", id, version, key)))
             {
                 EnsureIndexWriter(creatingIndex: false);
                 if (package != null)
