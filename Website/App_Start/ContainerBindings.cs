@@ -29,7 +29,7 @@ namespace NuGetGallery
                 .ToMethod(context => configuration);
 
             Bind<Lucene.Net.Store.Directory>()
-                .ToMethod(_ => LuceneCommon.GetDirectory())
+                .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .InSingletonScope();
 
             Bind<ISearchService>()

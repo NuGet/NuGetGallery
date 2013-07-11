@@ -5,7 +5,8 @@
 }
 
 @section SideColumn {
-    <p>With your account, you’ll be able to achieve all kinds of fame and glory by submitting your own packages.</p>
+    <p>With your account, you’ll be able to achieve all kinds of fame and glory by submitting
+        your own packages.</p>
     <p>Already have an account? <a href="@Url.LogOn()">Log On.</a></p>
 }
 
@@ -19,8 +20,15 @@
 
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true)
-              
+
         @Html.EditorForModel()
+
+        <div class="form-field form-field-inline">
+            @Html.ValidationMessageFor(r => r.AcceptTerms)
+            @Html.CheckBoxFor(r => r.AcceptTerms)
+            <label for="AcceptTerms">I have read and accept the @Html.ActionLink("Terms of Use", "Terms", MVC.Pages.Name)
+                and the @Html.ActionLink("Privacy Policy", "Privacy", MVC.Pages.Name)</label>
+        </div>
 
         <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
 

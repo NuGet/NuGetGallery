@@ -21,4 +21,13 @@
         // Get the service status
         checkServiceStatus();
     });
+
+	// Add validator that ensures provided value is NOT equal to a specified value.
+    $.validator.addMethod('notequal', function (value, element, params) {
+        return value !== params;
+    });
+
+    // Add unobtrusive adapters for mandatory checkboxes and notequal values
+    $.validator.unobtrusive.adapters.addBool("mandatory", "required");
+    $.validator.unobtrusive.adapters.addSingleVal('notequal', 'disallowed');
 })(window, jQuery);

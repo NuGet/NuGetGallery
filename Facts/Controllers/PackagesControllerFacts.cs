@@ -11,6 +11,7 @@ using Moq;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
+using NuGetGallery.Helpers;
 using Xunit;
 using Xunit.Extensions;
 
@@ -420,7 +421,7 @@ namespace NuGetGallery
                     {
                         Email = "frodo@hobbiton.example.com",
                         Message = "Mordor took my finger.",
-                        Reason = "GollumWasThere",
+                        Reason = ReportPackageReason.IsFraudulent,
                         AlreadyContactedOwner = true,
                     };
 
@@ -433,7 +434,7 @@ namespace NuGetGallery
                         It.Is<ReportPackageRequest>(
                             r => r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.Package == package
-                                 && r.Reason == "GollumWasThere"
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
                                  && r.Message == "Mordor took my finger."
                                  && r.AlreadyContactedOwners)));
             }
@@ -464,7 +465,7 @@ namespace NuGetGallery
                 var model = new ReportAbuseViewModel
                     {
                         Message = "Mordor took my finger",
-                        Reason = "GollumWasThere",
+                        Reason = ReportPackageReason.IsFraudulent,
                     };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
@@ -478,7 +479,7 @@ namespace NuGetGallery
                             r => r.Message == "Mordor took my finger"
                                  && r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.FromAddress.DisplayName == "Frodo"
-                                 && r.Reason == "GollumWasThere")));
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent))));
             }
 
             [Fact]
