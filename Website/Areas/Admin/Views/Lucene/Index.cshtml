@@ -17,6 +17,10 @@ else
         @Model.LastUpdated.Value.ToString("F") GMT<br />
         @TimeZoneInfo.ConvertTime(Model.LastUpdated.Value, TimeZoneInfo.Utc, timeZoneInfo).ToString("F") Pacific
     </p>
+    <p>
+        There are @Model.DocumentCount documents in the index.<br />
+        The index consumes @Model.FormatIndexSize() of space and is stored in @Model.Directory (@Model.Location).
+    </p>
 }
 
 @using (Html.BeginForm(MVC.Admin.Lucene.Rebuild()))
