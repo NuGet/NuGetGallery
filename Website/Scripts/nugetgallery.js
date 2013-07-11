@@ -21,4 +21,9 @@
         // Get the service status
         checkServiceStatus();
     });
+
+    $.validator.addMethod('notequal', function (value, element, params) {
+        return value !== params;
+    });
+    $.validator.unobtrusive.adapters.addSingleVal('notequal', 'disallowed');
 })(window, jQuery);
