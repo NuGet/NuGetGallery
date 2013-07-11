@@ -574,7 +574,9 @@
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
+    <Compile Include="Helpers\EnumHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
+    <Compile Include="Helpers\HtmlExtensions.cs" />
     <Compile Include="Helpers\PackageHelper.cs" />
     <Compile Include="Helpers\QuietLog.cs" />
     <Compile Include="Helpers\StringHelper.cs" />
@@ -583,6 +585,7 @@
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
+    <Compile Include="Infrastructure\NotEqualAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\PrincipalExtensions.cs" />
     <Compile Include="Infrastructure\GalleryGateway.cs" />
