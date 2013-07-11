@@ -48,7 +48,7 @@ namespace NuGetGallery.Operations.Tasks
                 var today = DateTime.UtcNow;
 
                 // Get the list of database backups
-                var backups = db.Query<Database>(
+                var backups = db.Query<Db>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'WarehouseBackup_%' AND state = @state",
                     new { state = Util.OnlineState })
                     .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))

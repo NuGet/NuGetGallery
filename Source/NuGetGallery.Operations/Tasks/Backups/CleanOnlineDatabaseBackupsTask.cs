@@ -52,7 +52,7 @@ namespace NuGetGallery.Operations.Tasks
                 connection.Open();
 
                 // Get the list of backups
-                var backups = db.Query<Database>(
+                var backups = db.Query<Db>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'Backup_%'",
                     new { state = Util.OnlineState })
                     .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))

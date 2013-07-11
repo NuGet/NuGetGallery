@@ -11,7 +11,10 @@ namespace NuGetGallery.Operations
 {
     public class DeploymentEnvironment
     {
-        public IDictionary<string, string> Settings { get; private set; } 
+        public IDictionary<string, string> Settings { get; private set; }
+
+        public string Name { get; private set; }
+
         public SqlConnectionStringBuilder MainDatabase { get; private set; }
         public SqlConnectionStringBuilder WarehouseDatabase { get; private set; }
         
@@ -23,6 +26,9 @@ namespace NuGetGallery.Operations
         public DeploymentEnvironment(IDictionary<string, string> deploymentSettings)
         {
             Settings = deploymentSettings;
+            
+            Name = Get("Operations.EnvironmentName");
+
             MainDatabase = GetSqlConnectionStringBuilder("Operations.Sql.Primary");
             WarehouseDatabase = GetSqlConnectionStringBuilder("Operations.Sql.Warehouse");
 
@@ -44,7 +50,7 @@ namespace NuGetGallery.Operations
             return new DeploymentEnvironment(settings);
         }
 
-        private string GetString(string key)
+        private string Get(string key)
         {
             string value;
             if (!Settings.TryGetValue(key, out value))
@@ -56,7 +62,7 @@ namespace NuGetGallery.Operations
 
         private T Get<T>(string key, Func<string, T> thunk)
         {
-            string val = GetString(key);
+            string val = Get(key);
             return String.IsNullOrEmpty(val) ? default(T) : thunk(val);
         }
 
