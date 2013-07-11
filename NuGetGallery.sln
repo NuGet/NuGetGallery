@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Website", "Website\Website.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Facts", "Facts\Facts.csproj", "{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunctionalTests", "FunctionalTests\FunctionalTests.csproj", "{9FBE2D44-F548-4697-8D4F-7D72F5F8FAED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FBE2D44-F548-4697-8D4F-7D72F5F8FAED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FBE2D44-F548-4697-8D4F-7D72F5F8FAED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FBE2D44-F548-4697-8D4F-7D72F5F8FAED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FBE2D44-F548-4697-8D4F-7D72F5F8FAED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
