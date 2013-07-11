@@ -53,6 +53,12 @@ namespace NuGetGallery.Configuration
         public string FileStorageDirectory { get; set; }
 
         /// <summary>
+        /// Gets the location in which the Lucene Index is stored
+        /// </summary>
+        [DefaultValue(LuceneIndexLocation.AppData)]
+        public LuceneIndexLocation LuceneIndexLocation { get; set; }
+
+        /// <summary>
         /// Gets the gallery owner name and email address
         /// </summary>
         [TypeConverter(typeof(MailAddressConverter))]
