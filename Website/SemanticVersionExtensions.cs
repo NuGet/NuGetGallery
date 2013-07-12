@@ -22,7 +22,6 @@ namespace NuGetGallery
                 self.Version.Build,
                 self.Version.Revision > 0 ? ("." + self.Version.Revision.ToString()) : String.Empty,
                 !String.IsNullOrEmpty(self.SpecialVersion) ? ("-" + self.SpecialVersion) : String.Empty);
-
         }
 
         public static string ToDisplayString(this SemanticVersion self)

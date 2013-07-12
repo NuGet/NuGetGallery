@@ -418,7 +418,7 @@ namespace NuGetGallery
 
             package = new Package
             {
-                Version = nugetPackage.Metadata.Version.ToString(),
+                Version = nugetPackage.Metadata.Version.ToNormalizedString(),
                 Description = nugetPackage.Metadata.Description,
                 ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
                 RequiresLicenseAcceptance = nugetPackage.Metadata.RequireLicenseAcceptance,

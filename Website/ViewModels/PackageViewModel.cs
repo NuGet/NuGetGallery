@@ -9,7 +9,7 @@ namespace NuGetGallery
         public PackageViewModel(Package package)
         {
             _package = package;
-            Version = package.Version;
+            Version = SemanticVersionExtensions.Normalize(package.Version);
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
