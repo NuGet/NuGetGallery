@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -194,6 +195,52 @@ namespace NuGetGallery
                 Assert.Equal("foo", model.Id);
                 Assert.Equal("1.0.0", model.Version);
                 Assert.Equal("&copy; 2013", model.Copyright);
+            }
+
+            [Fact]
+            public void GivenAValidPackageVersionWhereDatabaseHasNonNormalizedVersionItReturnsADisplayPackageViewModel()
+            {
+                // Arrange
+                var reg = new PackageRegistration()
+                {
+                    Id = "foo",
+                    Packages = new List<Package>()
+                };
+                reg.Packages.Add(new Package()
+                {
+                    Version = "01.00",
+                    Copyright = "&copy; 2013 a",
+                    PackageRegistration = reg
+                });
+                reg.Packages.Add(new Package()
+                {
+                    Version = "01.01",
+                    Copyright = "&copy; 2013 b",
+                    PackageRegistration = reg
+                });
+                reg.Packages.Add(new Package()
+                {
+                    Version = "2.0.0",
+                    Copyright = "&copy; 2013 c",
+                    PackageRegistration = reg
+                });
+
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService
+                    .Setup(p => p.FindPackageRegistrationById("foo"))
+                    .Returns(reg);
+                var controller = CreateController(packageService: fakePackageService);
+
+                // Act
+                var result = Assert.IsType<ViewResult>(controller.DisplayPackage("foo", "1.0.0"));
+
+                // Assert
+                Assert.Equal("", result.ViewName);
+
+                var model = Assert.IsType<DisplayPackageViewModel>(result.Model);
+                Assert.Equal("foo", model.Id);
+                Assert.Equal("1.0.0", model.Version);
+                Assert.Equal("&copy; 2013 a", model.Copyright);
             }
         }
 

@@ -173,7 +173,19 @@ namespace NuGetGallery
 
             if (package == null)
             {
-                return HttpNotFound();
+                // Try to get the package registration
+                var packagereg = _packageService.FindPackageRegistrationById(id);
+                if (packagereg != null)
+                {
+                    // Do a search to find a matching package version (in case the data is borked)
+                    var packages = packagereg.Packages.ToList();
+                    package = packages.FirstOrDefault(p => String.Equals(SemanticVersionExtensions.Normalize(p.Version), normalizedVersion));
+                }
+
+                if (package == null)
+                {
+                    return HttpNotFound();
+                }
             }
             var model = new DisplayPackageViewModel(package);
             ViewBag.FacebookAppID = _config.FacebookAppId;
