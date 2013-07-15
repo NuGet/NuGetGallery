@@ -26,7 +26,8 @@ namespace NuGetGallery.Migrations
             
             CreateIndex("dbo.PackageAuthors", "PackageKey");
             AddForeignKey("dbo.PackageAuthors", "PackageKey", "dbo.Packages", "Key", cascadeDelete: true);
-            // Note, at this point you still don't have data integrity - all your data was dropped. Ah, such is life.
+            // Note, at this point you aren't back to where you were before you ran the migration - all your data has been dropped.
+            // If you need the data you should restore from backup instead.
         }
     }
 }
