@@ -93,6 +93,7 @@ namespace NuGetGallery
             
             GlobalFilters.Filters.Add(new ElmahHandleErrorAttribute());
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
+            GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
             GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
