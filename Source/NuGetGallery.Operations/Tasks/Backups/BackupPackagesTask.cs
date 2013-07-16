@@ -32,15 +32,15 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            Log.Trace("Getting list of packages to back up...");
+            Log.Info(
+                    "Backing up '{0}/packages' -> '{1}/package-backups'.",
+                    StorageAccount.Credentials.AccountName,
+                    BackupStorage.Credentials.AccountName);
+            Log.Info("Getting list of packages to back up...");
             var packagesToBackUp = GetPackagesToBackUp();
             
             var processedCount = 0;
-            Log.Trace(
-                    "Backing up '{0}/packages' -> '{2}/packagebackups'.",
-                    StorageAccount.Credentials.AccountName,
-                    BackupStorage.Credentials.AccountName);
-
+            
             var client = CreateBlobClient();
             var backupClient = BackupStorage.CreateCloudBlobClient();
 
