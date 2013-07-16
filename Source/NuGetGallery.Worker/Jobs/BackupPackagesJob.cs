@@ -12,7 +12,7 @@ namespace NuGetGallery.Worker.Jobs
         {
             get
             {
-                return TimeSpan.FromHours(1);
+                return TimeSpan.FromMinutes(10);
             }
         }
 
@@ -20,7 +20,7 @@ namespace NuGetGallery.Worker.Jobs
         {
             get
             {
-                return TimeSpan.FromMinutes(30);
+                return TimeSpan.FromMinutes(1);
             }
         }
 
