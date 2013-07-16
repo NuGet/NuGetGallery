@@ -785,6 +785,10 @@
     <Compile Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.Designer.cs">
       <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201307162030182_PackageMetadataEditable.cs" />
+    <Compile Include="Migrations\201307162030182_PackageMetadataEditable.Designer.cs">
+      <DependentUpon>201307162030182_PackageMetadataEditable.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1172,6 +1176,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.resx">
       <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201307162030182_PackageMetadataEditable.resx">
+      <DependentUpon>201307162030182_PackageMetadataEditable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

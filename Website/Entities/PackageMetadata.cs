@@ -25,7 +25,7 @@ namespace NuGetGallery
         public bool IsCompleted { get; set; } // Flag so the worker knows if processing is required.
         public int TriedCount { get; set; } // Count so that the worker role can tell itself not to retry this edit forever.
 
-        #region Package Data (will be partiallly filled until finished by worker role)
+        #region Package Metadata (will only be partially filled until Hash + FileSize are finished by worker role)
         public string Authors { get; set; }
 
         public string Copyright { get; set; }
@@ -34,6 +34,7 @@ namespace NuGetGallery
 
         public string Hash { get; set; }
 
+        [StringLength(10)]
         public string HashAlgorithm { get; set; }
 
         public string IconUrl { get; set; }

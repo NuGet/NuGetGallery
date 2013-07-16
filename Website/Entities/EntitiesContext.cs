@@ -115,7 +115,8 @@ namespace NuGetGallery
 
             modelBuilder.Entity<Package>()
                 .HasOptional<PackageMetadata>(p => p.Metadata) // TODO: PackageMetadata DB contraction makes this required
-                .WithRequired(p => p.Package);
+                .WithRequired(p => p.Package)
+                .WillCascadeOnDelete();
 
             modelBuilder.Entity<PackageStatistics>()
                 .HasKey(ps => ps.Key);
