@@ -70,13 +70,14 @@ namespace NuGetGallery.Worker
                 LoggingRule allMessagesToConsole = new LoggingRule("*", NLog.LogLevel.Trace, consoleTarget);
                 config.LoggingRules.Add(allMessagesToConsole);
 
-                LoggingRule hostToFile = new LoggingRule("JobRunner", NLog.LogLevel.Trace, hostTarget);
+                // All other rules transfer all kinds of log messages EXCEPT Trace.
+                LoggingRule hostToFile = new LoggingRule("JobRunner", NLog.LogLevel.Debug, hostTarget);
                 config.LoggingRules.Add(hostToFile);
 
-                LoggingRule roleToFile = new LoggingRule("WorkerRole", NLog.LogLevel.Trace, hostTarget);
+                LoggingRule roleToFile = new LoggingRule("WorkerRole", NLog.LogLevel.Debug, hostTarget);
                 config.LoggingRules.Add(roleToFile);
 
-                LoggingRule jobLogs = new LoggingRule("Job.*", NLog.LogLevel.Trace, jobLogTarget);
+                LoggingRule jobLogs = new LoggingRule("Job.*", NLog.LogLevel.Debug, jobLogTarget);
                 config.LoggingRules.Add(jobLogs);
 
                 LogManager.Configuration = config;
@@ -155,21 +156,6 @@ namespace NuGetGallery.Worker
         {
             hostTarget.FileAttributes = Win32FileAttributes.WriteThrough;
             hostTarget.Layout = new JsonLayout();
-                
-            //    "{ " +
-            //    "index: ${counter}, " +
-            //    "threadId: ${threadid}, " +
-            //    "callSite: \"${callsite:jsonEncode=true}\", " +
-            //    "date: \"${date:format=s}\", " +
-            //    "level: \"${level:jsonEncode=true}\", " +
-            //    "message: \"${message:jsonEncode=true}\", " +
-            //    "exception: { " +
-            //    "type: \"${exception:format=Type:jsonEncode=true}\", " +
-            //    "message: \"${exception:format=Message:jsonEncode=true}\", " +
-            //    "method: \"${exception:format=Method:jsonEncode=true}\", " +
-            //    "stackTrace: \"${exception:format=StackTrace:jsonEncode=true}\" " +
-            //    "} " +
-            //"}";
             hostTarget.LineEnding = LineEndingMode.CRLF;
             hostTarget.Encoding = Encoding.UTF8;
             hostTarget.CreateDirs = true;

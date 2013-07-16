@@ -63,7 +63,7 @@ namespace NuGetGallery.Operations
                     }
 
                     Interlocked.Increment(ref processedCount);
-                    Log.Info(
+                    Log.Trace(
                         "[{2:000000}/{3:000000} {4:00.0}%] {5} Backup of '{0}@{1}'.",
                         package.Id,
                         package.Version,
@@ -86,6 +86,8 @@ namespace NuGetGallery.Operations
                         ex.Message);
                 }
             });
+
+            Log.Info("Backed up {0} packages from {1} to {2}", processedCount, StorageAccount.Credentials.AccountName, BackupStorage.Credentials.AccountName);
         }
 
         IList<Package> GetPackagesToBackUp()
