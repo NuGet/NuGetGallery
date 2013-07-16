@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGetGallery.Operations.Tasks;
 
 namespace NuGetGallery.Operations
@@ -36,14 +40,23 @@ namespace NuGetGallery.Operations
                     "Backing up '{0}/packages' -> '{1}/package-backups'.",
                     StorageAccount.Credentials.AccountName,
                     BackupStorage.Credentials.AccountName);
-            Log.Info("Getting list of packages to back up...");
-            var packagesToBackUp = GetPackagesToBackUp();
-            
-            var processedCount = 0;
-            
+
             var client = CreateBlobClient();
             var backupClient = BackupStorage.CreateCloudBlobClient();
 
+            // Get the state file object
+            var state = GetStateFile(backupClient);
+            var lastId = state.LastBackedUpId;
+            if (state.LastBackupCompletedUtc.HasValue && ((DateTimeOffset.UtcNow - state.LastBackupCompletedUtc.Value) > TimeSpan.FromDays(1)))
+            {
+                // Do a "full" backup (check every package file) every day
+                lastId = null;
+            }
+            
+            var packagesToBackUp = GetPackagesToBackUp(lastId);
+            
+            var processedCount = 0;
+            
             var backupBlobs = backupClient.GetContainerReference("package-backups");
             var packageBlobs = client.GetContainerReference("packages");
             if (!WhatIf)
@@ -88,23 +101,89 @@ namespace NuGetGallery.Operations
             });
 
             Log.Info("Backed up {0} packages from {1} to {2}", processedCount, StorageAccount.Credentials.AccountName, BackupStorage.Credentials.AccountName);
+
+            state.LastBackupCompletedUtc = DateTimeOffset.UtcNow;
+            state.LastBackedUpId = packagesToBackUp.Max(p => p.Key);
+
+            WriteStateFile(backupClient, state);
         }
 
-        IList<Package> GetPackagesToBackUp()
+        private State GetStateFile(CloudBlobClient backupClient)
+        {
+            var container = backupClient.GetContainerReference("package-backups");
+            container.CreateIfNotExists();
+            var blob = container.GetBlobReferenceFromServer("__backupstate.json");
+            if (blob.Exists())
+            {
+                using (var strm = new MemoryStream())
+                {
+                    blob.DownloadToStream(strm);
+                    strm.Flush();
+                    strm.Seek(0, SeekOrigin.Begin);
+                    using (var rdr = new StreamReader(strm, Encoding.Default, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
+                    {
+                        return JsonConvert.DeserializeObject<State>(rdr.ReadToEnd());
+                    }
+                }
+            }
+            else
+            {
+                return new State();
+            }
+        }
+
+        private void WriteStateFile(CloudBlobClient backupClient, State state)
+        {
+            var container = backupClient.GetContainerReference("package-backups");
+            container.CreateIfNotExists();
+            var blob = container.GetBlobReferenceFromServer("__backupstate.json");
+            using (var strm = new MemoryStream())
+            {
+                using (var writer = new StreamWriter(strm, Encoding.UTF8, bufferSize: 1024, leaveOpen: true))
+                {
+                    writer.Write(JsonConvert.SerializeObject(state));
+                    writer.Flush();
+                }
+                strm.Flush();
+                strm.Seek(0, SeekOrigin.Begin);
+                blob.UploadFromStream(strm);
+            }
+        }
+
+        IList<Package> GetPackagesToBackUp(long? lastBackupId)
         {
             using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
 
-                return dbExecutor.Query<Package>(@"
-                    SELECT pr.Id, p.Version, p.Hash 
-                    FROM Packages p 
-                        JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey 
-                    WHERE p.ExternalPackageUrl IS NULL
-                    ORDER BY Id, Version, Hash").ToList();
+                Log.Info("Getting list of packages to back up (since Package #{0})...", lastBackupId.HasValue ? lastBackupId.Value.ToString() : "?");
+                if (lastBackupId == null)
+                {
+                    return dbExecutor.Query<Package>(@"
+                        SELECT pr.Id, p.Version, p.Hash 
+                        FROM Packages p 
+                            JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey 
+                        WHERE p.ExternalPackageUrl IS NULL
+                        ORDER BY Id, Version, Hash").ToList();
+                }
+                else
+                {
+                    return dbExecutor.Query<Package>(@"
+                        SELECT pr.Id, p.Version, p.Hash 
+                        FROM Packages p 
+                            JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey 
+                        WHERE p.ExternalPackageUrl IS NULL AND p.[Key] > @marker
+                        ORDER BY Id, Version, Hash", new { marker = lastBackupId.Value }).ToList();
+                }
 
             }
+        }
+
+        private class State
+        {
+            public long? LastBackedUpId { get; set; }
+            public DateTimeOffset? LastBackupCompletedUtc { get; set; }
         }
     }
 }
