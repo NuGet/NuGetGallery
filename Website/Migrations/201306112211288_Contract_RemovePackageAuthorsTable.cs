@@ -7,8 +7,8 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            DropForeignKey("dbo.PackageAuthors", "PackageKey", "dbo.Packages");
-            DropIndex("dbo.PackageAuthors", new[] { "PackageKey" });
+            DropIndex(table: "PackageAuthors", name: "IX_PackageAuthors_PackageKey");
+            DropForeignKey("PackageAuthors", "PackageKey", "Packages", "Key");
             DropTable("dbo.PackageAuthors");
         }
         
@@ -23,9 +23,9 @@ namespace NuGetGallery.Migrations
                         Name = c.String(),
                     })
                 .PrimaryKey(t => t.Key);
-            
-            CreateIndex("dbo.PackageAuthors", "PackageKey");
-            AddForeignKey("dbo.PackageAuthors", "PackageKey", "dbo.Packages", "Key", cascadeDelete: true);
+
+            AddForeignKey("PackageAuthors", "PackageKey", "Packages", "Key");
+            Sql("CREATE NONCLUSTERED INDEX [IX_PackageAuthors_PackageKey] ON [dbo].[PackageAuthors] ([PackageKey]) INCLUDE ([Key],[Name])");
             // Note, at this point you aren't back to where you were before you ran the migration - all your data has been dropped.
             // If you need the data you should restore from backup instead.
         }
