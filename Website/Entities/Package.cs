@@ -14,52 +14,57 @@ namespace NuGetGallery
             Listed = true;
         }
 
-        public PackageDescription GetDescription()
-        {
-            if (AppliedEdit != null)
-            {
-                return new PackageDescription
-                {
-                    Authors = AppliedEdit.Authors,
-                    Copyright = AppliedEdit.Copyright,
-                    Description = AppliedEdit.Description,
-                    Hash = AppliedEdit.Hash,
-                    HashAlgorithm = AppliedEdit.HashAlgorithm,
-                    IconUrl = AppliedEdit.IconUrl,
-                    PackageFileSize = AppliedEdit.PackageFileSize,
-                    ProjectUrl = AppliedEdit.ProjectUrl,
-                    ReleaseNotes = AppliedEdit.ReleaseNotes,
-                    Summary = AppliedEdit.Summary,
-                    Tags = AppliedEdit.Tags,
-                    Title = AppliedEdit.Title,
-                };
-            }
-
-            return new PackageDescription
-            {
-                Authors = this.FlattenedAuthors,
-                Copyright = this.Copyright,
-                Description = this.Description,
-                Hash = this.Hash,
-                HashAlgorithm = this.HashAlgorithm,
-                IconUrl = this.IconUrl,
-                PackageFileSize = this.PackageFileSize,
-                ProjectUrl = this.ProjectUrl,
-                ReleaseNotes = this.ReleaseNotes,
-                Summary = this.Summary,
-                Tags = this.Tags,
-                Title = this.Title,
-            };
-        }
-
         public PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
+
+#pragma warning disable 612 // TODO: PackageMetadata DB contraction
+        private PackageMetadata _metadata;
+        public PackageMetadata Metadata
+        {
+            get
+            {
+                // TODO: PackageMetadata DB contraction - this null check workaround code will become unnecessary
+                if (_metadata == null)
+                {
+                    _metadata = new PackageMetadata
+                    {
+                        Authors = this.FlattenedAuthors,
+                        Copyright = this.Copyright,
+                        Description = this.Description,
+                        EditName = "OriginalMetadata",
+                        Hash = this.Hash,
+                        HashAlgorithm = this.HashAlgorithm,
+                        IconUrl = this.IconUrl,
+                        IsCompleted = true,
+                        Package = this,
+                        PackageKey = this.Key,
+                        PackageFileSize = this.PackageFileSize,
+                        ProjectUrl = this.ProjectUrl,
+                        ReleaseNotes = this.ReleaseNotes,
+                        Summary = this.Summary,
+                        Tags = this.Tags,
+                        Title = this.Title,
+                        TriedCount = 0,
+                    };
+                }
+
+                return _metadata;
+            }
+            set
+            {
+                _metadata = value;
+            }
+        }
+#pragma warning restore 612
+
+        public int MetadataKey { get; set; }
 
         public virtual ICollection<PackageStatistics> DownloadStatistics { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Copyright { get; set; }
 
         public DateTime Created { get; set; }
@@ -68,11 +73,13 @@ namespace NuGetGallery
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed but *IS* used for searches. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Description { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string ReleaseNotes { get; set; }
 
         public int DownloadCount { get; set; }
@@ -84,15 +91,18 @@ namespace NuGetGallery
         public string ExternalPackageUrl { get; set; }
 
         [StringLength(10)]
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string HashAlgorithm { get; set; }
 
         [StringLength(256)]
         [Required]
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Hash { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string IconUrl { get; set; }
 
         public bool IsLatest { get; set; }
@@ -102,6 +112,7 @@ namespace NuGetGallery
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string LicenseUrl { get; set; }
 
         [StringLength(20)]
@@ -109,11 +120,13 @@ namespace NuGetGallery
 
         public DateTime Published { get; set; }
 
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public long PackageFileSize { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string ProjectUrl { get; set; }
 
         public bool RequiresLicenseAcceptance { get; set; }
@@ -121,14 +134,17 @@ namespace NuGetGallery
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Summary { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and *IS* used for searches, but is maintained via Lucene. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Tags { get; set; }
 
         [StringLength(256)]
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Title { get; set; }
 
         [StringLength(64)]
@@ -139,6 +155,7 @@ namespace NuGetGallery
         public bool IsPrerelease { get; set; }
         public virtual ICollection<PackageFramework> SupportedFrameworks { get; set; }
 
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string FlattenedAuthors { get; set; }
 
         public string FlattenedDependencies { get; set; }
@@ -146,8 +163,5 @@ namespace NuGetGallery
 
         [StringLength(44)]
         public string MinClientVersion { get; set; }
-
-        public PackageEdit AppliedEdit { get; set; } // This is the currently applied edit, which specifies the actual description of the package. Or NULL.
-
     }
 }

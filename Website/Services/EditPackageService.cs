@@ -1,33 +1,46 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Queue;
-using Newtonsoft.Json.Linq;
-using NuGetGallery.Configuration;
+﻿using System;
+using System.Globalization;
+using System.Linq;
 
 namespace NuGetGallery
 {
     public class EditPackageService
     {
-        public IAppConfiguration AppConfiguration { get; set; }
+        public IEntitiesContext EntitiesContext { get; set; }
 
         public EditPackageService()
         {
         }
 
-        public virtual void PostEditPackageRequest(EditPackageRequest newMetadata, string callbackAddress, string editId)
+        public virtual void StartEditPackageRequest(Package p, EditPackageRequest formData)
         {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-                AppConfiguration.AzureStorageConnectionString);
+            PackageMetadata edit = new PackageMetadata
+            {
+                // Description
+                Authors = formData.EditPackageVersionRequest.Authors,
+                Copyright = formData.EditPackageVersionRequest.Copyright,
+                Description = formData.EditPackageVersionRequest.Description,
+                IconUrl = formData.EditPackageVersionRequest.IconUrl,
+                ProjectUrl = formData.EditPackageVersionRequest.ProjectUrl,
+                ReleaseNotes = formData.EditPackageVersionRequest.ReleaseNotes,
+                Summary = formData.EditPackageVersionRequest.Summary,
+                Tags = formData.EditPackageVersionRequest.Tags,
+                Title = formData.EditPackageVersionRequest.VersionTitle,
 
-            var queueClient = storageAccount.CreateCloudQueueClient();
-            var editsQueue = queueClient.GetQueueReference("EditPackage");
-            editsQueue.CreateIfNotExists();
-            var json = new JObject(newMetadata);
+                // Other
+                Package = p,
+                PackageKey = p.Key,
+                IsCompleted = false,
+                Timestamp = DateTime.UtcNow,
+                TriedCount = 0,
+                EditName = "edit_" + EntitiesContext.Set<PackageMetadata>()
+                    .Where(pe => pe.PackageKey == p.Key)
+                    .Count()
+                    .ToString(CultureInfo.InvariantCulture),
+            };
 
-            json["CallbackAddress"] = callbackAddress;
-            json["EditId"] = editId;
-
-            var message = new CloudQueueMessage(json.ToString(Newtonsoft.Json.Formatting.Indented));
-            editsQueue.AddMessage(message);
+            EntitiesContext.Set<PackageMetadata>().Add(edit);
+            // Note: EditPackageRequests are completed asynchronously by the worker role.
         }
     }
 }

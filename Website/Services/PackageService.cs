@@ -82,41 +82,6 @@ namespace NuGetGallery
             }
         }
 
-        public PackageEdit CreatePackageEdit(Package p, EditPackageRequest formData)
-        {
-            PackageEdit edit = new PackageEdit
-            {
-                // Description
-                Authors = formData.EditPackageVersionRequest.Authors,
-                Copyright = formData.EditPackageVersionRequest.Copyright,
-                Description = formData.EditPackageVersionRequest.Description,
-                IconUrl = formData.EditPackageVersionRequest.IconUrl,
-                ProjectUrl = formData.EditPackageVersionRequest.ProjectUrl,
-                ReleaseNotes = formData.EditPackageVersionRequest.ReleaseNotes,
-                Summary = formData.EditPackageVersionRequest.Summary,
-                Tags = formData.EditPackageVersionRequest.Tags,
-                Title = formData.EditPackageVersionRequest.VersionTitle,
-
-                // Other
-                Package = p,
-                PackageKey = p.Key,
-                IsCompleted = false,
-                EditId = "edit_" + _entitiesContext.Set<PackageEdit>().Where(pe => pe.PackageKey == p.Key).Count().ToString(CultureInfo.InvariantCulture),
-                SecurityToken = CryptographyService.GenerateToken(),
-            };
-
-            _entitiesContext.Set<PackageEdit>().Add(edit);
-            return edit;
-        }
-
-        public void DoEditPackage(PackageEdit pendingEdit)
-        {
-            Package p = _packageRepository.GetEntity(pendingEdit.PackageKey);
-            p.AppliedEdit = pendingEdit;
-            p.AppliedEdit.IsCompleted = true;
-            _packageRepository.CommitChanges();
-        }
-
         public virtual PackageRegistration FindPackageRegistrationById(string id)
         {
             if (id == null)
@@ -142,6 +107,7 @@ namespace NuGetGallery
             // Instead, we can always query for all packages with the ID.
             IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
+                .Include(p => p.Metadata)
                 .Where(p => (p.PackageRegistration.Id == id));
             if (String.IsNullOrEmpty(version) && !allowPrerelease)
             {

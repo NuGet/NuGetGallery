@@ -12,15 +12,15 @@ namespace NuGetGallery
 
         public EditPackageVersionRequest(Package package)
         {
-            VersionTitle = package.GetDescription().Title;
-            IconUrl = package.GetDescription().IconUrl;
-            Summary = package.GetDescription().Summary;
-            Description = package.GetDescription().Description;
-            ProjectUrl = package.GetDescription().ProjectUrl;
-            Authors = package.GetDescription().Authors;
-            Copyright = package.GetDescription().Copyright;
-            Tags = package.GetDescription().Tags;
-            ReleaseNotes = package.GetDescription().ReleaseNotes;
+            VersionTitle = package.Metadata.Title;
+            IconUrl = package.Metadata.IconUrl;
+            Summary = package.Metadata.Summary;
+            Description = package.Metadata.Description;
+            ProjectUrl = package.Metadata.ProjectUrl;
+            Authors = package.Metadata.Authors;
+            Copyright = package.Metadata.Copyright;
+            Tags = package.Metadata.Tags;
+            ReleaseNotes = package.Metadata.ReleaseNotes;
         }
 
         [StringLength(256)]

@@ -480,7 +480,7 @@ namespace NuGetGallery
             {
                 EditingLatest = (version == null),
                 PackageId = package.PackageRegistration.Id,
-                PackageTitle = package.GetDescription().Title,
+                PackageTitle = package.Metadata.Title,
                 Version = version == null ? null : package.Version,
                 PackageVersions = packageRegistration.Packages.ToList(),
             };
@@ -504,12 +504,10 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
-            // Post the authorized request to a queue where it will be processed.
+            // Add the edit request to a queue where it will be processed in the background.
             if (formData.EditPackageVersionRequest != null)
             {
-                var edit = _packageService.CreatePackageEdit(package, formData);
-                var callbackUrl = Url.Action("FinishEditPackage", "ApiController", null, "https");
-                _editPackageService.PostEditPackageRequest(formData, callbackUrl, edit.EditId);
+                _editPackageService.StartEditPackageRequest(package, formData);
             }
             _entitiesContext.SaveChanges();
             return Redirect(Url.Package(id, version));

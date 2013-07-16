@@ -200,61 +200,6 @@ namespace NuGetGallery
             return CreatePackageInternal(apiKey);
         }
 
-        // This is an internal API called by the Worker when it has finished the asynchronous part of a package edit.
-        [HttpPost]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult FinishEditPackage(Stream content)
-        {
-            string messageStr = content.ReadToEnd();
-            JToken token = JObject.Parse(messageStr);
-            var PackageId = (string)token.SelectToken("PackageId");
-            var Version = (string)token.SelectToken("Version");
-            var EditId = (string)token.SelectToken("EditId");
-            var BlobUrl = (string)token.SelectToken("BlobUrl");
-            var SecurityToken = (string)token.SelectToken("SecurityToken");
-
-            Package package = EntitiesContext.Set<Package>()
-                .Where(p => p.Version == Version && p.PackageRegistration.Id == PackageId)
-                .FirstOrDefault();
-            if (package == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            var pendingEdit = EntitiesContext.Set<PackageEdit>()
-                .Where(pe => pe.PackageKey == package.Key && pe.EditId == EditId)
-                .FirstOrDefault();
-            if (pendingEdit == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            if (SecurityToken == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized);
-            }
-
-            if (!String.Equals(pendingEdit.SecurityToken, SecurityToken, StringComparison.Ordinal))
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden);
-            }
-
-            if (pendingEdit.IsCompleted)
-            {
-                // We got called back more than once for the same edit. This happens, we just have to be idempotent...
-                return new HttpStatusCodeResult(HttpStatusCode.OK);
-            }
-
-            // Asynchronously, the blob being returned for the package has already been changed!
-            // We just need to update the database to match.
-            PackageService.DoEditPackage(pendingEdit);
-
-            // Success
-            pendingEdit.IsCompleted = true;
-            EntitiesContext.SaveChanges();
-            return new HttpStatusCodeResult(HttpStatusCode.OK);
-        }
-
         private async Task<ActionResult> CreatePackageInternal(string apiKey)
         {
             Guid parsedApiKey;
