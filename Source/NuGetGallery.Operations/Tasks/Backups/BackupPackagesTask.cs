@@ -112,7 +112,7 @@ namespace NuGetGallery.Operations
         {
             var container = backupClient.GetContainerReference("package-backups");
             container.CreateIfNotExists();
-            var blob = container.GetBlobReferenceFromServer("__backupstate.json");
+            var blob = container.GetBlockBlobReference("__backupstate.json");
             if (blob.Exists())
             {
                 using (var strm = new MemoryStream())
@@ -136,7 +136,7 @@ namespace NuGetGallery.Operations
         {
             var container = backupClient.GetContainerReference("package-backups");
             container.CreateIfNotExists();
-            var blob = container.GetBlobReferenceFromServer("__backupstate.json");
+            var blob = container.GetBlockBlobReference("__backupstate.json");
             using (var strm = new MemoryStream())
             {
                 using (var writer = new StreamWriter(strm, Encoding.UTF8, bufferSize: 1024, leaveOpen: true))
