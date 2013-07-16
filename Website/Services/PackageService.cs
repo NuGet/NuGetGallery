@@ -11,7 +11,6 @@ namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
-        private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
@@ -19,14 +18,12 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageStatistics> _packageStatsRepository;
 
         public PackageService(
-            IEntitiesContext entitiesContext,
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<PackageStatistics> packageStatsRepository,
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IIndexingService indexingService)
         {
-            _entitiesContext = entitiesContext;
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
             _packageStatsRepository = packageStatsRepository;

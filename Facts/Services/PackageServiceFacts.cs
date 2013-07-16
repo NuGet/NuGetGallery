@@ -93,7 +93,6 @@ namespace NuGetGallery
             indexingService = indexingService ?? new Mock<IIndexingService>();
 
             var packageService = new Mock<PackageService>(
-                new Mock<IEntitiesContext>().Object,
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageStatsRepo.Object,
