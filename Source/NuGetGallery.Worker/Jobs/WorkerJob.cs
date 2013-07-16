@@ -21,6 +21,7 @@ namespace NuGetGallery.Worker.Jobs
             StatusMessage = string.Empty;
 
             Logger = LogManager.GetLogger("Job." + GetType().Name);
+            Logger.Info("---- {0} STARTING ----", GetType().Name);
         }
 
         public virtual void Initialize(Settings settings)
