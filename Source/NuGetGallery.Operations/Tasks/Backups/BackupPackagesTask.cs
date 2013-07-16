@@ -122,7 +122,15 @@ namespace NuGetGallery.Operations
                     strm.Seek(0, SeekOrigin.Begin);
                     using (var rdr = new StreamReader(strm, Encoding.Default, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
                     {
-                        return JsonConvert.DeserializeObject<State>(rdr.ReadToEnd());
+                        try
+                        {
+                            return JsonConvert.DeserializeObject<State>(rdr.ReadToEnd());
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.ErrorException(String.Format("Error parsing state file: {0}", ex.Message), ex);
+                            return new State(); // Return an empty state and continue
+                        }
                     }
                 }
             }
