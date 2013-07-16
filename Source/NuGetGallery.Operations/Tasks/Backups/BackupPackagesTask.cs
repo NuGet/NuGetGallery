@@ -205,7 +205,7 @@ namespace NuGetGallery.Operations
                     // Back up in 1000 package chunks
                     uglySqlInjectionyStringBuilder.Append("TOP 1000 ");
                 }
-                uglySqlInjectionyStringBuilder.Append("pr.Id, p.Version, p.Hash ");
+                uglySqlInjectionyStringBuilder.Append("p.[Key], pr.Id, p.Version, p.Hash ");
                 uglySqlInjectionyStringBuilder.Append("FROM Packages p ");
                 uglySqlInjectionyStringBuilder.Append("JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey ");
                 uglySqlInjectionyStringBuilder.Append("WHERE p.ExternalPackageUrl IS NULL ");
