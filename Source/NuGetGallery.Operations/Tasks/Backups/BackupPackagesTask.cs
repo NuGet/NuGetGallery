@@ -18,7 +18,11 @@ namespace NuGetGallery.Operations
     [Command("backuppackages", "Back up all packages at the source storage server", AltName = "bps", MaxArgs = 0)]
     public class BackupPackagesTask : DatabaseAndStorageTask
     {
+        [Option("The destination storage account for the backups", AltName="d")]
         public CloudStorageAccount BackupStorage { get; set; }
+
+        [Option("Perform back ups in a single thread", AltName="s")]
+        public bool SingleThreaded { get; set; }
 
         public override void ValidateArguments()
         {
@@ -47,13 +51,15 @@ namespace NuGetGallery.Operations
             // Get the state file object
             var state = GetStateFile(backupClient);
             var lastId = state.LastBackedUpId;
+            bool forcedRecheck = false;
             if (state.LastBackupCompletedUtc.HasValue && ((DateTimeOffset.UtcNow - state.LastBackupCompletedUtc.Value) > TimeSpan.FromDays(1)))
             {
                 // Do a "full" backup (check every package file) every day
                 lastId = null;
+                forcedRecheck = true;
             }
             
-            var packagesToBackUp = GetPackagesToBackUp(lastId);
+            var packagesToBackUp = GetPackagesToBackUp(lastId, forcedRecheck);
             
             var processedCount = 0;
             
@@ -63,27 +69,52 @@ namespace NuGetGallery.Operations
             {
                 backupBlobs.CreateIfNotExists();
             }
-            Parallel.ForEach(packagesToBackUp, new ParallelOptions { MaxDegreeOfParallelism = 10 }, package =>
+            Parallel.ForEach(packagesToBackUp, new ParallelOptions { MaxDegreeOfParallelism = SingleThreaded ? 1 : 10 }, package =>
             {
                 try
                 {
                     var packageBlob = packageBlobs.GetBlockBlobReference(Util.GetPackageFileName(package.Id, package.Version));
                     var backupBlob = backupBlobs.GetBlockBlobReference(Util.GetPackageBackupFileName(package.Id, package.Version, package.Hash));
-                    bool exists = backupBlob.Exists();
-                    if (!exists && !WhatIf)
+                    if (packageBlob.Exists())
                     {
-                        backupBlob.StartCopyFromBlob(packageBlob);
-                    }
+                        bool shouldCopy = backupBlob.Exists();
 
-                    Interlocked.Increment(ref processedCount);
-                    Log.Trace(
-                        "[{2:000000}/{3:000000} {4:00.0}%] {5} Backup of '{0}@{1}'.",
-                        package.Id,
-                        package.Version,
-                        processedCount,
-                        packagesToBackUp.Count,
-                        (double)processedCount / (double)packagesToBackUp.Count,
-                        exists ? "Skipped" : "Started");
+                        // Verify the package, if it exists
+                        if (shouldCopy)
+                        {
+                            packageBlob.FetchAttributes();
+                            backupBlob.FetchAttributes();
+                            shouldCopy = 
+                                String.IsNullOrEmpty(packageBlob.Properties.ContentMD5) ||
+                                String.IsNullOrEmpty(backupBlob.Properties.ContentMD5) ||
+                                !String.Equals(packageBlob.Properties.ContentMD5, backupBlob.Properties.ContentMD5, StringComparison.Ordinal);
+                        }
+
+                        if (!shouldCopy && !WhatIf)
+                        {
+                            backupBlob.StartCopyFromBlob(packageBlob);
+                        }
+
+                        Interlocked.Increment(ref processedCount);
+                        Log.Trace(
+                            "[{2:000000}/{3:000000} {4:00.0}%] {5} Backup of '{0}@{1}'.",
+                            package.Id,
+                            package.Version,
+                            processedCount,
+                            packagesToBackUp.Count,
+                            (double)processedCount / (double)packagesToBackUp.Count,
+                            shouldCopy ? "Skipped" : "Started");
+                    }
+                    else
+                    {
+                        Log.Warn(
+                            "[{2:000000}/{3:000000} {4:00.0}%] Package File not found in source: '{0}@{1}'",
+                            package.Id,
+                            package.Version,
+                            processedCount,
+                            packagesToBackUp.Count,
+                            (double)processedCount / (double)packagesToBackUp.Count);
+                    }
 
                 }
                 catch (Exception ex)
@@ -158,33 +189,34 @@ namespace NuGetGallery.Operations
             }
         }
 
-        IList<Package> GetPackagesToBackUp(long? lastBackupId)
+        IList<Package> GetPackagesToBackUp(long? lastBackupId, bool forcedRecheck)
         {
             using (var sqlConnection = new SqlConnection(ConnectionString.ConnectionString))
             using (var dbExecutor = new SqlExecutor(sqlConnection))
             {
                 sqlConnection.Open();
 
-                Log.Info("Getting list of packages to back up (since Package #{0})...", lastBackupId.HasValue ? lastBackupId.Value.ToString() : "?");
-                if (lastBackupId == null)
-                {
-                    return dbExecutor.Query<Package>(@"
-                        SELECT pr.Id, p.Version, p.Hash 
-                        FROM Packages p 
-                            JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey 
-                        WHERE p.ExternalPackageUrl IS NULL
-                        ORDER BY Id, Version, Hash").ToList();
-                }
-                else
-                {
-                    return dbExecutor.Query<Package>(@"
-                        SELECT pr.Id, p.Version, p.Hash 
-                        FROM Packages p 
-                            JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey 
-                        WHERE p.ExternalPackageUrl IS NULL AND p.[Key] > @marker
-                        ORDER BY Id, Version, Hash", new { marker = lastBackupId.Value }).ToList();
-                }
+                Log.Info("Getting {1} packages to back up (since Package #{0})...", lastBackupId.HasValue ? lastBackupId.Value.ToString() : "?", forcedRecheck ? "all" : "1000");
 
+                StringBuilder uglySqlInjectionyStringBuilder = new StringBuilder(); // We trust our own code so it's not so SQL Injectiony...
+                uglySqlInjectionyStringBuilder.Append("SELECT ");
+                if (!forcedRecheck)
+                {
+                    // Back up in 1000 package chunks
+                    uglySqlInjectionyStringBuilder.Append("TOP 1000 ");
+                }
+                uglySqlInjectionyStringBuilder.Append("pr.Id, p.Version, p.Hash ");
+                uglySqlInjectionyStringBuilder.Append("FROM Packages p ");
+                uglySqlInjectionyStringBuilder.Append("JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey ");
+                uglySqlInjectionyStringBuilder.Append("WHERE p.ExternalPackageUrl IS NULL ");
+                if (lastBackupId != null)
+                {
+                    uglySqlInjectionyStringBuilder.Append("AND p.[Key] > " + lastBackupId.Value + " ");
+                }
+                uglySqlInjectionyStringBuilder.Append("ORDER BY Id, Version, Hash");
+                var list = dbExecutor.Query<Package>(uglySqlInjectionyStringBuilder.ToString()).ToList();
+                Log.Info("Got {0} packages.", list.Count);
+                return list;
             }
         }
 
