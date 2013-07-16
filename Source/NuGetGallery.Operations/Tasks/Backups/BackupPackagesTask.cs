@@ -106,27 +106,5 @@ namespace NuGetGallery.Operations
 
             }
         }
-
-        void UploadPackageBackup(
-            string id,
-            string version,
-            string hash,
-            string downloadPath)
-        {
-            var cloudClient = CreateBlobClient();
-
-            var packageBackupsContainer = Util.GetPackageBackupsBlobContainer(cloudClient);
-
-            var backupFileName = Util.GetPackageBackupFileName(
-                id,
-                version,
-                hash);
-
-            var backupPackageBlob = packageBackupsContainer.GetBlockBlobReference(backupFileName);
-            
-            backupPackageBlob.UploadFile(downloadPath);
-            backupPackageBlob.Properties.ContentType = "application/zip";
-            backupPackageBlob.SetProperties();
-        }
     }
 }
