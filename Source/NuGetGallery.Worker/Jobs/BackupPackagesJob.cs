@@ -31,6 +31,7 @@ namespace NuGetGallery.Worker.Jobs
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 StorageAccount = Settings.MainStorage,
+                BackupStorage = Settings.BackupStorage,
                 WhatIf = Settings.WhatIf
             });
             Logger.Info("Finished backup packages task.");

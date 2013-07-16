@@ -14,7 +14,7 @@ namespace NuGetGallery.Operations
     [Command("backuppackages", "Back up all packages at the source storage server", AltName = "bps", MaxArgs = 0)]
     public class BackupPackagesTask : DatabaseAndStorageTask
     {
-        public CloudStorageAccount BackupStorage { get; private set; }
+        public CloudStorageAccount BackupStorage { get; set; }
 
         public override void ValidateArguments()
         {
