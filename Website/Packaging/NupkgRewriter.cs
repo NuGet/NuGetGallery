@@ -55,7 +55,6 @@ namespace NuGetGallery
                         manifestOutputStream.SetLength(0);
                         newManifestStream.Position = 0;
                         newManifestStream.CopyTo(manifestOutputStream);
-                        newManifestStream.Close();
                     }
                 }
             }
