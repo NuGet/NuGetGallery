@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
@@ -21,6 +22,7 @@ namespace NuGetGallery
                 Copyright = formData.EditPackageVersionRequest.Copyright,
                 Description = formData.EditPackageVersionRequest.Description,
                 IconUrl = formData.EditPackageVersionRequest.IconUrl,
+                LicenseUrl = p.Metadata.LicenseUrl, // Our current policy is not to allow editing the license URL, so just clone it from its previous value.
                 ProjectUrl = formData.EditPackageVersionRequest.ProjectUrl,
                 ReleaseNotes = formData.EditPackageVersionRequest.ReleaseNotes,
                 Summary = formData.EditPackageVersionRequest.Summary,

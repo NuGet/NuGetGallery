@@ -133,6 +133,7 @@ namespace NuGetGallery
                     HashAlgorithm = doc.Get("HashAlgorithm"),
                     IconUrl = doc.Get("IconUrl"),
                     LicenseUrl = doc.Get("LicenseUrl"),
+                    PackageFileSize = packageSize,
                     ProjectUrl = doc.Get("ProjectUrl"),
                     ReleaseNotes = doc.Get("ReleaseNotes"),
                     Summary = doc.Get("Summary"),
@@ -147,7 +148,6 @@ namespace NuGetGallery
                     Owners = owners
                 },
                 PackageRegistrationKey = packageRegistrationKey,
-                PackageFileSize = packageSize,
                 Published = published,
                 RequiresLicenseAcceptance = requiresLicenseAcceptance,
                 Version = doc.Get("Version"),

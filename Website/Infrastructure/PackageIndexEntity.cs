@@ -124,7 +124,7 @@ namespace NuGetGallery
             document.Add(new Field("Id-Original", Package.PackageRegistration.Id, Field.Store.YES, Field.Index.NO));
             document.Add(new Field("LastUpdated", Package.LastUpdated.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Language", Package.Language.ToStringSafe(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("LicenseUrl", Package.LicenseUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("LicenseUrl", Package.Metadata.LicenseUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("MinClientVersion", Package.MinClientVersion.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Version", Package.Version.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("VersionDownloadCount", Package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));

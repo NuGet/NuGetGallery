@@ -420,6 +420,7 @@ namespace NuGetGallery
             var now = DateTime.UtcNow;
             var packageFileStream = nugetPackage.GetStream();
 
+#pragma warning disable 612 // TODO: PackageMetadata DB contraction
             package = new Package
             {
                 Version = nugetPackage.Metadata.Version.ToString(),
@@ -441,10 +442,37 @@ namespace NuGetGallery
                 Tags = PackageHelper.ParseTags(nugetPackage.Metadata.Tags),
                 Title = nugetPackage.Metadata.Title,
             };
+#pragma warning restore 612
 
+            package.Metadata = new PackageMetadata
+            {
+                Authors = nugetPackage.Metadata.Authors.Flatten(),
+                Copyright = nugetPackage.Metadata.Copyright,
+                Description = nugetPackage.Metadata.Description,
+                EditName = "OriginalMetadata",
+                HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                Hash = Crypto.GenerateHash(packageFileStream.ReadAllBytes()),
+                IconUrl = nugetPackage.Metadata.IconUrl.ToStringOrNull(),
+                IsCompleted = true,
+                LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToStringOrNull(),
+                Package = package,
+                PackageKey = package.Key,
+                PackageFileSize = packageFileStream.Length,
+                ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull(),
+                ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
+                Summary = nugetPackage.Metadata.Summary,
+                Tags = nugetPackage.Metadata.Tags,
+                Timestamp = DateTime.UtcNow,
+                Title = nugetPackage.Metadata.Title,
+                TriedCount = 0,
+            };
+
+#pragma warning disable 612 // TODO: PackageMetadata DB contraction
             package.IconUrl = nugetPackage.Metadata.IconUrl.ToStringOrNull();
             package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToStringOrNull();
             package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
+#pragma warning restore 612
+
             package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
 
             var supportedFrameworks = GetSupportedFrameworks(nugetPackage).Select(fn => fn.ToShortNameOrNull()).ToArray();
@@ -483,7 +511,10 @@ namespace NuGetGallery
                 }
             }
 
+#pragma warning disable 612 // TODO: PackageMetadata DB contraction
             package.FlattenedAuthors = nugetPackage.Metadata.Authors.Flatten();
+#pragma warning restore 612
+
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             return package;

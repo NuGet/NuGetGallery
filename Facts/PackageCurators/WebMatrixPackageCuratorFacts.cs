@@ -90,7 +90,7 @@ namespace NuGetGallery.PackageCurators
             {
                 var curator = new TestableWebMatrixPackageCurator();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Tags = "aTag aspnetwebpages aThirdTag";
+                stubGalleryPackage.Metadata.Tags = "aTag aspnetwebpages aThirdTag";
                 var stubNuGetPackage = CreateStubNuGetPackage();
 
                 curator.Curate(stubGalleryPackage, stubNuGetPackage.Object, commitChanges: true);

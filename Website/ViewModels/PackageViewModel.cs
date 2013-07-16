@@ -14,7 +14,7 @@ namespace NuGetGallery
             ReleaseNotes = package.Metadata.ReleaseNotes;
             IconUrl = package.Metadata.IconUrl;
             ProjectUrl = package.Metadata.ProjectUrl;
-            LicenseUrl = package.LicenseUrl;
+            LicenseUrl = package.Metadata.LicenseUrl;
             LatestVersion = package.IsLatest;
             LatestStableVersion = package.IsLatestStable;
             LastUpdated = package.Published;

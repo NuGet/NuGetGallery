@@ -38,7 +38,9 @@ namespace NuGetGallery
 
         public string IconUrl { get; set; }
 
-        // Going to store the LicenseURL here, but disallow editing it in the UI in case we want to revisit the decision of should license URLs be editable
+        // Going to go ahead and store the LicenseURL here, but disallow editing it in the UI
+        // so that in case we revisit the decision of should license URLs be editable
+        // (which should just be a policy decision, not an implementation concern.)
         public string LicenseUrl { get; set; }
 
         public long PackageFileSize { get; set; }

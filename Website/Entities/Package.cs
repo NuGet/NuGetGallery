@@ -36,6 +36,7 @@ namespace NuGetGallery
                         HashAlgorithm = this.HashAlgorithm,
                         IconUrl = this.IconUrl,
                         IsCompleted = true,
+                        LicenseUrl = this.LicenseUrl,
                         Package = this,
                         PackageKey = this.Key,
                         PackageFileSize = this.PackageFileSize,
@@ -43,6 +44,7 @@ namespace NuGetGallery
                         ReleaseNotes = this.ReleaseNotes,
                         Summary = this.Summary,
                         Tags = this.Tags,
+                        Timestamp = DateTime.UtcNow,
                         Title = this.Title,
                         TriedCount = 0,
                     };

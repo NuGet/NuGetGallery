@@ -360,20 +360,20 @@ namespace NuGetGallery
                 Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionSpec);
                 Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);
                 Assert.Equal("[1.0]", package.Dependencies.ElementAt(1).VersionSpec);
-                Assert.Equal("theDescription", package.Description);
-                Assert.Equal("theReleaseNotes", package.ReleaseNotes);
-                Assert.Equal("http://theiconurl/", package.IconUrl);
-                Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
-                Assert.Equal("http://theprojecturl/", package.ProjectUrl);
+                Assert.Equal("theDescription", package.Metadata.Description);
+                Assert.Equal("theReleaseNotes", package.Metadata.ReleaseNotes);
+                Assert.Equal("http://theiconurl/", package.Metadata.IconUrl);
+                Assert.Equal("http://thelicenseurl/", package.Metadata.LicenseUrl);
+                Assert.Equal("http://theprojecturl/", package.Metadata.ProjectUrl);
                 Assert.Equal(true, package.RequiresLicenseAcceptance);
-                Assert.Equal("theSummary", package.Summary);
-                Assert.Equal("theTags", package.Tags);
-                Assert.Equal("theTitle", package.Title);
-                Assert.Equal("theCopyright", package.Copyright);
+                Assert.Equal("theSummary", package.Metadata.Summary);
+                Assert.Equal("theTags", package.Metadata.Tags);
+                Assert.Equal("theTitle", package.Metadata.Title);
+                Assert.Equal("theCopyright", package.Metadata.Copyright);
                 Assert.Null(package.Language);
                 Assert.False(package.IsPrerelease);
 
-                Assert.Equal("theFirstAuthor, theSecondAuthor", package.FlattenedAuthors);
+                Assert.Equal("theFirstAuthor, theSecondAuthor", package.Metadata.Authors);
                 Assert.Equal(
                     "theFirstDependency:[1.0, 2.0):net4000|theSecondDependency:[1.0]:net4000|theThirdDependency::net4000|theFourthDependency:[1.0]:net35",
                     package.FlattenedDependencies);
@@ -500,8 +500,8 @@ namespace NuGetGallery
                 var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
                 var expectedHash = CryptographyService.GenerateHash(CreateNuGetPackage().Object.GetStream().ReadAllBytes(), Constants.Sha512HashAlgorithmId);
-                Assert.Equal(expectedHash, package.Hash);
-                Assert.Equal(Constants.Sha512HashAlgorithmId, package.HashAlgorithm);
+                Assert.Equal(expectedHash, package.Metadata.Hash);
+                Assert.Equal(Constants.Sha512HashAlgorithmId, package.Metadata.HashAlgorithm);
             }
 
             [Fact]
@@ -541,7 +541,7 @@ namespace NuGetGallery
 
                 var package = service.CreatePackage(nugetPackage.Object, currentUser);
 
-                Assert.Equal(8, package.PackageFileSize);
+                Assert.Equal(8, package.Metadata.PackageFileSize);
             }
 
             [Fact]

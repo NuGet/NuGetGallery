@@ -12,16 +12,16 @@ namespace NuGetGallery
                                                                                            p => p.PackageRegistration.Id.Contains(term);
 
         private static readonly Func<string, Expression<Func<Package, bool>>> DescriptionCriteria = term =>
-                                                                                                    p => p.Description.Contains(term);
+                                                                                                    p => p.Metadata.Description.Contains(term);
 
         private static readonly Func<string, Expression<Func<Package, bool>>> SummaryCriteria = term =>
-                                                                                                p => p.Summary.Contains(term);
+                                                                                                p => p.Metadata.Summary.Contains(term);
 
         private static readonly Func<string, Expression<Func<Package, bool>>> TagCriteria = term =>
-                                                                                            p => p.Tags.Contains(term);
+                                                                                            p => p.Metadata.Tags.Contains(term);
 
         private static readonly Func<string, Expression<Func<Package, bool>>> AuthorCriteria = term =>
-                                                                                               p => p.FlattenedAuthors.Contains(term);
+                                                                                               p => p.Metadata.Authors.Contains(term);
 
         private static readonly Func<string, Expression<Func<Package, bool>>>[] SearchCriteria = new[]
             {
