@@ -14,8 +14,9 @@ namespace NuGetGallery.Migrations
                         Key = c.Int(nullable: false, identity: true),
                         PackageKey = c.Int(nullable: false),
                         CreatedUtc = c.DateTime(nullable: false),
-                        ReportUrl = c.String(),
-                        Comment = c.String(),
+                        Sequence = c.Int(nullable: false),
+                        ReportUrl = c.String(nullable: false, maxLength: 256),
+                        Comment = c.String(maxLength: 256),
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
@@ -26,7 +27,7 @@ namespace NuGetGallery.Migrations
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
-                        Name = c.String(),
+                        Name = c.String(nullable: false, maxLength: 128),
                     })
                 .PrimaryKey(t => t.Key);
             
@@ -44,6 +45,7 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.LicenseKey);
             
             AddColumn("dbo.Packages", "HideLicenseReport", c => c.Boolean(nullable: false));
+            AddColumn("dbo.GallerySettings", "LastSonatypeReport", c => c.String());
         }
         
         public override void Down()
@@ -54,6 +56,7 @@ namespace NuGetGallery.Migrations
             DropForeignKey("dbo.PackageLicenseReportLicenses", "LicenseKey", "dbo.PackageLicenses");
             DropForeignKey("dbo.PackageLicenseReportLicenses", "ReportKey", "dbo.PackageLicenseReports");
             DropForeignKey("dbo.PackageLicenseReports", "PackageKey", "dbo.Packages");
+            DropColumn("dbo.GallerySettings", "LastSonatypeReport");
             DropColumn("dbo.Packages", "HideLicenseReport");
             DropTable("dbo.PackageLicenseReportLicenses");
             DropTable("dbo.PackageLicenses");
