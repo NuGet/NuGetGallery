@@ -130,7 +130,6 @@ namespace NuGetGallery
                 Key = key,
                 Language = doc.Get("Language"),
                 LastUpdated = lastUpdated,
-                LicenseUrl = doc.Get("LicenseUrl"),
                 PackageRegistration = new PackageRegistration
                 {
                     Id = doc.Get("Id-Original"),
@@ -150,6 +149,9 @@ namespace NuGetGallery
                 Version = doc.Get("Version"),
                 SupportedFrameworks = frameworks,
                 MinClientVersion = doc.Get("MinClientVersion"),
+                LicenseUrl = doc.Get("LicenseUrl"),
+                LicenseNames = doc.Get("LicenseNames"),
+                LicenseReportUrl = doc.Get("LicenseReportUrl")
             };
         }
 
