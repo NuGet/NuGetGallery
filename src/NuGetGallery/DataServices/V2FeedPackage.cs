@@ -45,7 +45,7 @@ namespace NuGetGallery
 
         // License Report Information
         public string LicenseUrl { get; set; }
-        public string[] LicenseNames { get; set; }
+        public string LicenseNames { get; set; }
         public string LicenseReportUrl { get; set; }
     }
 }
