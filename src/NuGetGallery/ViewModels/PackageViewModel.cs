@@ -25,18 +25,20 @@ namespace NuGetGallery
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
 
-            if (((package.LicenseReports != null) && (package.LicenseReports.Count() > 0)) 
-                && !package.HideLicenseReport)
+            if (!package.HideLicenseReport)
             {
-                var report = package.LicenseReports.OrderByDescending(r => r.CreatedUtc).FirstOrDefault();
-                LicenseReportUrl = report.ReportUrl;
-                LicensesNames = report.Licenses.Select(p => p.Name);
+                LicenseReportUrl = package.LicenseReportUrl;
+                
+                var licenseNames = package.LicenseNames;
+                if (!String.IsNullOrEmpty(licenseNames))
+                {
+                    LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
+                }
             }
             else
             {
-                HideLicenseReport = true;
                 LicenseReportUrl = null;
-                LicensesNames = null;
+                LicenseNames = null;
             }
         }
 
@@ -46,7 +48,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string LicenseUrl { get; set; }
         public Boolean HideLicenseReport { get; set; }
-        public IEnumerable<string> LicensesNames { get; set; }
+        public IEnumerable<string> LicenseNames { get; set; }
         public string LicenseReportUrl { get; set; }
         public DateTime LastUpdated { get; set; }
         public bool LatestVersion { get; set; }

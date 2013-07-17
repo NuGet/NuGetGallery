@@ -850,6 +850,10 @@
     <Compile Include="Migrations\201306270322551_LicenseMonikers.Designer.cs">
       <DependentUpon>201306270322551_LicenseMonikers.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201307172209360_DenormalizeLicenseReportData.cs" />
+    <Compile Include="Migrations\201307172209360_DenormalizeLicenseReportData.Designer.cs">
+      <DependentUpon>201307172209360_DenormalizeLicenseReportData.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1216,6 +1220,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201306270322551_LicenseMonikers.resx">
       <DependentUpon>201306270322551_LicenseMonikers.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201307172209360_DenormalizeLicenseReportData.resx">
+      <DependentUpon>201307172209360_DenormalizeLicenseReportData.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

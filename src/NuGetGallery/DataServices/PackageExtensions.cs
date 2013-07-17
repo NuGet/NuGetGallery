@@ -54,44 +54,47 @@ namespace NuGetGallery
         public static IQueryable<V2FeedPackage> ToV2FeedPackageQuery(this IQueryable<Package> packages, string siteRoot)
         {
             siteRoot = EnsureTrailingSlash(siteRoot);
-            return packages
+            var packageQuery = packages
                 .Include(p => p.PackageRegistration)
-                .WithoutNullPropagation()
+                .Include(p => p.LicenseReports)
+                .WithoutNullPropagation();
+            return from p in packageQuery
+                   let licenseReport = p.LicenseReports.OrderByDescending(r => r.CreatedUtc)
+                   select new V2FeedPackage
+                    {
+                        Id = p.PackageRegistration.Id,
+                        Version = p.Version,
+                        Authors = p.FlattenedAuthors,
+                        Copyright = p.Copyright,
+                        Created = p.Created,
+                        Dependencies = p.FlattenedDependencies,
+                        Description = p.Description,
+                        DownloadCount = p.PackageRegistration.DownloadCount,
+                        GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.Version,
+                        IconUrl = p.IconUrl,
+                        IsLatestVersion = p.IsLatestStable,
+                        // To maintain parity with v1 behavior of the feed, IsLatestVersion would only be used for stable versions.
+                        IsAbsoluteLatestVersion = p.IsLatest,
+                        IsPrerelease = p.IsPrerelease,
+                        LastUpdated = p.LastUpdated,
+                        Language = p.Language,
+                        PackageHash = p.Hash,
+                        PackageHashAlgorithm = p.HashAlgorithm,
+                        PackageSize = p.PackageFileSize,
+                        ProjectUrl = p.ProjectUrl,
+                        ReleaseNotes = p.ReleaseNotes,
+                        ReportAbuseUrl = siteRoot + "package/ReportAbuse/" + p.PackageRegistration.Id + "/" + p.Version,
+                        RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
+                        Published = p.Listed ? p.Published : UnpublishedDate,
+                        Summary = p.Summary,
+                        Tags = p.Tags,
+                        Title = p.Title,
+                        VersionDownloadCount = p.DownloadCount,
+                        MinClientVersion = p.MinClientVersion,
 
-                // Duplicate of the code above, because EF tries to translate a call to ToV2FeedPackage into a Database operation and fails.
-                .Select(p => new V2FeedPackage
-                {
-                    Id = p.PackageRegistration.Id,
-                    Version = p.Version,
-                    Authors = p.FlattenedAuthors,
-                    Copyright = p.Copyright,
-                    Created = p.Created,
-                    Dependencies = p.FlattenedDependencies,
-                    Description = p.Description,
-                    DownloadCount = p.PackageRegistration.DownloadCount,
-                    GalleryDetailsUrl = siteRoot + "packages/" + p.PackageRegistration.Id + "/" + p.Version,
-                    IconUrl = p.IconUrl,
-                    IsLatestVersion = p.IsLatestStable,
-                    // To maintain parity with v1 behavior of the feed, IsLatestVersion would only be used for stable versions.
-                    IsAbsoluteLatestVersion = p.IsLatest,
-                    IsPrerelease = p.IsPrerelease,
-                    LastUpdated = p.LastUpdated,
-                    LicenseUrl = p.LicenseUrl,
-                    Language = p.Language,
-                    PackageHash = p.Hash,
-                    PackageHashAlgorithm = p.HashAlgorithm,
-                    PackageSize = p.PackageFileSize,
-                    ProjectUrl = p.ProjectUrl,
-                    ReleaseNotes = p.ReleaseNotes,
-                    ReportAbuseUrl = siteRoot + "package/ReportAbuse/" + p.PackageRegistration.Id + "/" + p.Version,
-                    RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
-                    Published = p.Listed ? p.Published : UnpublishedDate,
-                    Summary = p.Summary,
-                    Tags = p.Tags,
-                    Title = p.Title,
-                    VersionDownloadCount = p.DownloadCount,
-                    MinClientVersion = p.MinClientVersion,
-                });
+                        // License Report Information
+                        LicenseUrl = p.LicenseUrl
+                    };
         }
 
         internal static IQueryable<TVal> WithoutVersionSort<TVal>(this IQueryable<TVal> feedQuery)

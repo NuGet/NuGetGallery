@@ -102,6 +102,10 @@ namespace NuGetGallery
 
         public virtual ICollection<PackageLicenseReport> LicenseReports { get; set; }
 
+        // Pre-calcuated data for the feed
+        public string LicenseNames { get; set; }
+        public string LicenseReportUrl { get; set; }
+
         public bool Listed { get; set; }
         public bool IsPrerelease { get; set; }
         public virtual ICollection<PackageFramework> SupportedFrameworks { get; set; }
