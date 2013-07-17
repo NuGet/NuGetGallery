@@ -135,6 +135,9 @@ namespace NuGetGallery
             document.Add(new Field("ReleaseNotes", Package.ReleaseNotes.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("RequiresLicenseAcceptance", Package.RequiresLicenseAcceptance.ToString(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Summary", Package.Summary.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("LicenseNames", Package.LicenseNames.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("LicenseReportUrl", Package.LicenseReportUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+
             if (Package.SupportedFrameworks.AnySafe())
             {
                 string joinedFrameworks = string.Join(";", Package.SupportedFrameworks.Select(f => f.FrameworkName));
