@@ -113,10 +113,17 @@ namespace NuGetGallery
                 .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
 
+            modelBuilder.Entity<PackageMetadata>()
+                .HasKey(pm => pm.Key);
+
+            modelBuilder.Entity<PackageMetadata>()
+                .HasRequired<Package>(pm => pm.Package)
+                .WithMany()
+                .HasForeignKey(pm => pm.PackageKey);
+
             modelBuilder.Entity<Package>()
-                .HasOptional<PackageMetadata>(p => p.Metadata) // TODO: PackageMetadata DB contraction makes this required
-                .WithRequired(p => p.Package)
-                .WillCascadeOnDelete();
+                .HasOptional<PackageMetadata>(p => p.Metadata)
+                .WithRequired();
 
             modelBuilder.Entity<PackageStatistics>()
                 .HasKey(ps => ps.Key);

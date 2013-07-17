@@ -8,7 +8,7 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             CreateTable(
-                "dbo.PackageMetadatas",
+                "PackageMetadatas",
                 c => new
                     {
                         Key = c.Int(nullable: false),
@@ -32,18 +32,67 @@ namespace NuGetGallery.Migrations
                         Title = c.String(),
                     })
                 .PrimaryKey(t => t.Key)
-                .ForeignKey("dbo.Packages", t => t.Key, cascadeDelete: true)
+                .ForeignKey("Packages", t => t.PackageKey, cascadeDelete: true)
+                .Index(t => t.PackageKey)
                 .Index(t => t.Key);
-            
-            AddColumn("dbo.Packages", "MetadataKey", c => c.Int(nullable: false));
+
+            AddColumn("Packages", "MetadataKey", c => c.Int());
+            AddForeignKey("Packages", "MetadataKey", "PackageMetadatas"); //, principalColumn: "Key"
+
+            // Clone the current data from Packages table into PackagesMetadata
+            Sql(@"
+INSERT INTO [PackageMetadatas]
+      ([Key],
+      [PackageKey],
+      [EditName],
+      [Timestamp],
+      [IsCompleted],
+      [TriedCount],
+      [Authors],
+      [Copyright],
+      [Description],
+      [Hash],
+      [HashAlgorithm],
+      [IconUrl],
+      [LicenseUrl],
+      [PackageFileSize],
+      [ProjectUrl],
+      [ReleaseNotes],
+      [Summary],
+      [Tags],
+      [Title])
+SELECT 
+    (ROW_NUMBER( ) OVER ( ORDER BY [Key] ASC )) +
+        COALESCE((SELECT MAX([Key]) FROM [PackageMetadatas]), 0), /*Key*/
+    [Key] as [PackageKey], /*PackageKey*/
+    'OriginalMetadata', /*EditName*/
+    SYSUTCDATETIME(), /*Timestamp*/
+    1, /*IsCompleted*/
+    0, /*TriedCount*/
+    [FlattenedAuthors],/*Authors*/
+    [Copyright],
+    [Description],
+    [Hash],
+    [HashAlgorithm],
+    [IconUrl],
+    [LicenseUrl],
+    [PackageFileSize],
+    [ProjectUrl],
+    [ReleaseNotes],
+    [Summary],
+    [Tags],
+    [Title]
+FROM [Packages]");
         }
         
         public override void Down()
         {
-            DropIndex("dbo.PackageMetadatas", new[] { "Key" });
-            DropForeignKey("dbo.PackageMetadatas", "Key", "dbo.Packages");
-            DropColumn("dbo.Packages", "MetadataKey");
-            DropTable("dbo.PackageMetadatas");
+            DropForeignKey("Packages", "MetadataKey", "PackageMetadatas"); //, principalColumn: "Key"
+            DropIndex("PackageMetadatas", new[] { "Key" });
+            DropIndex("PackageMetadatas", new[] { "PackageKey" });
+            DropForeignKey("PackageMetadatas", "PackageKey", "Packages");
+            DropColumn("Packages", "MetadataKey");
+            DropTable("PackageMetadatas");
         }
     }
 }

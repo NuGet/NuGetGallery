@@ -59,7 +59,7 @@ namespace NuGetGallery
         }
 #pragma warning restore 612
 
-        public int MetadataKey { get; set; }
+        public int? MetadataKey { get; set; }
 
         public virtual ICollection<PackageStatistics> DownloadStatistics { get; set; }
 
