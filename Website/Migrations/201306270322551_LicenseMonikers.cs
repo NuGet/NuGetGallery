@@ -45,7 +45,7 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.LicenseKey);
             
             AddColumn("dbo.Packages", "HideLicenseReport", c => c.Boolean(nullable: false));
-            AddColumn("dbo.GallerySettings", "LastSonatypeReport", c => c.String());
+            AddColumn("dbo.GallerySettings", "LastLicenseReport", c => c.String());
         }
         
         public override void Down()
@@ -56,7 +56,7 @@ namespace NuGetGallery.Migrations
             DropForeignKey("dbo.PackageLicenseReportLicenses", "LicenseKey", "dbo.PackageLicenses");
             DropForeignKey("dbo.PackageLicenseReportLicenses", "ReportKey", "dbo.PackageLicenseReports");
             DropForeignKey("dbo.PackageLicenseReports", "PackageKey", "dbo.Packages");
-            DropColumn("dbo.GallerySettings", "LastSonatypeReport");
+            DropColumn("dbo.GallerySettings", "LastLicenseReport");
             DropColumn("dbo.Packages", "HideLicenseReport");
             DropTable("dbo.PackageLicenseReportLicenses");
             DropTable("dbo.PackageLicenses");

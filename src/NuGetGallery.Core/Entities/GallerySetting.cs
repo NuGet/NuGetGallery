@@ -6,5 +6,6 @@
         public int? DownloadStatsLastAggregatedId { get; set; }
         public long? TotalDownloadCount { get; set; }
         public int Key { get; set; }
+        public string LastLicenseReport { get; set; }
     }
 }

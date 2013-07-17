@@ -30,13 +30,13 @@ namespace NuGetGallery
                 && !package.HideLicenseReport)
             {
                 var report = package.LicenseReports.OrderByDescending(r => r.CreatedUtc).FirstOrDefault();
-                ReportUrl = report.ReportUrl;
+                LicenseReportUrl = report.ReportUrl;
                 LicensesNames = report.Licenses.Select(p => p.Name);
             }
             else
             {
                 HideLicenseReport = true;
-                ReportUrl = null;
+                LicenseReportUrl = null;
                 LicensesNames = null;
             }
         }
@@ -48,7 +48,7 @@ namespace NuGetGallery
         public string LicenseUrl { get; set; }
         public Boolean HideLicenseReport { get; set; }
         public IEnumerable<string> LicensesNames { get; set; }
-        public string ReportUrl { get; set; }
+        public string LicenseReportUrl { get; set; }
         public DateTime LastUpdated { get; set; }
         public bool LatestVersion { get; set; }
         public bool LatestStableVersion { get; set; }
