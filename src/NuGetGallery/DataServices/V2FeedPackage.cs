@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data.Services.Common;
 
 namespace NuGetGallery
@@ -28,7 +30,6 @@ namespace NuGetGallery
         public string Language { get; set; }
         public DateTime LastUpdated { get; set; }
         public DateTime Published { get; set; }
-        public string LicenseUrl { get; set; }
         public string PackageHash { get; set; }
         public string PackageHashAlgorithm { get; set; }
         public long PackageSize { get; set; }
@@ -41,5 +42,10 @@ namespace NuGetGallery
         public string Title { get; set; }
         public int VersionDownloadCount { get; set; }
         public string MinClientVersion { get; set; }
+
+        // License Report Information
+        public string LicenseUrl { get; set; }
+        public string[] LicenseNames { get; set; }
+        public string LicenseReportUrl { get; set; }
     }
 }

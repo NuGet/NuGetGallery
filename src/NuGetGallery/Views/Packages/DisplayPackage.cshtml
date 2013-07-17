@@ -65,11 +65,11 @@
             {
                 <li>
                     <a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a>
-                    @if ((Model.LicensesNames != null) && (!String.IsNullOrEmpty(Model.LicenseReportUrl)))
+                    @if ((Model.LicenseNames != null) && (!String.IsNullOrEmpty(Model.LicenseReportUrl)))
                     {
                         <div id="sonatype">
                             <p id="sonatype-name">
-                                @String.Join(", ", Model.LicensesNames)
+                                @String.Join(", ", Model.LicenseNames)
                             </p>
                             <p id="sonatype-description">License details provided by Sonatype CLM</p>
                             <p id="sonatype-report"><a href="@Model.LicenseReportUrl">Component report</a></p>
