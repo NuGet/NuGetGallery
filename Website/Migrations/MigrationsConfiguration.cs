@@ -25,11 +25,16 @@ namespace NuGetGallery.Migrations
             {
                 // @SYSTEM is just a user with a special (invalid) username, used to denote things not related to a real logged in user 
                 // - it shouldn't have any special privileges but it helps distinguish which Metadata objects were automatically created.
-                var user = new User { Username = Constants.SystemUserName };
-                user.ApiKey = Guid.NewGuid(); // So nobody can push packages as @SYSTEM (unless they got DB access...)
-                user.HashedPassword = CryptographyService.GenerateSaltedHash(
-                    user.ApiKey.ToString(), 
-                    Constants.PBKDF2HashAlgorithmId); // So nobody can log in as @SYSTEM (unless they got DB access...)
+                var apiKey = Guid.NewGuid(); 
+                var hash = CryptographyService.GenerateSaltedHash(apiKey.ToString(), Constants.PBKDF2HashAlgorithmId);
+                var user = new User
+                {
+                    Username = Constants.SystemUserName,
+                    ApiKey = apiKey, // So nobody can push packages as @SYSTEM (unless they got DB access...)
+                    HashedPassword = hash, // So nobody can log in as @SYSTEM (unless they got DB access...)
+                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
+                };
+
                 users.Add(user);
                 context.SaveChanges();
             }
