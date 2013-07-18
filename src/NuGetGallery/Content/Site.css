@@ -803,24 +803,33 @@ button.undo-button {
     margin: -7px 0 0 5px;
 }
 
-    /* Sonatype License analysis */
+    /* License */
 
-#sonatype {
-    margin-left: 16px;
-    margin-right: 16px;
-    margin-bottom: 5px;
-    margin-top: 5px;
-}
-
-#sonatype p {
-    font-size: 0.8em;
+.block {
     margin: 0;
-    padding: 0;
 }
 
-#sonatype-name {
-    font-size: 1em;
+.block-title {
+    font-size: 1.25em;
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+}
+
+#licenseNames {
+    font-size: 0.9em;
     font-weight: bold;
+    margin-top: 0.5em;
+    margin-bottom: 0.4em;
+    margin-left: 0.5em;
+    margin-right: 3em;
+}
+
+.block-link {
+    font-size: 0.9em;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+    margin-left: 0.5em;
+    margin-right: 3em;
 }
 
     /* Side Column Navigation */
