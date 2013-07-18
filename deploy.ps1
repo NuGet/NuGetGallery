@@ -2,16 +2,19 @@ function Set-AppSetting($x, [string]$name, [string]$value) {
     $setting = $x.configuration.appSettings.add | where { $_.key -eq $name }
     if($setting) {
         $setting.value = $value
-        "Patched $name setting."
+        "Set $name = $value."
     } else {
         "Unknown App Setting: $name."
     }
 }
 
 # Gather deployment info
+pushd $env:DEPLOYMENT_SOURCE
+Write-Host "In Deployment Source: $(Get-Location)"
 $Commit = git rev-parse --short HEAD
 $Branch = $env:branch
 $Date = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTimeOffset]::UtcNow, "Pacific Standard Time")
+popd
 
 # Load web.config
 $webConfigPath = Join-Path $env:DEPLOYMENT_TEMP "web.config"
