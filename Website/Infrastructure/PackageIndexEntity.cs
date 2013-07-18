@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Web;
 using Lucene.Net.Documents;
 
 namespace NuGetGallery
