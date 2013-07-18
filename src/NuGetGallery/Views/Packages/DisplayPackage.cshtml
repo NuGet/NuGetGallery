@@ -97,7 +97,7 @@
     @if (!String.IsNullOrEmpty(Model.LicenseUrl) || !Model.HideLicenseReport)
     {
         <div class="block">
-            <h1 class="block-title">License</h1>
+            <h3 class="block-title">License</h3>
             @if (Model.IsOwner(User))
             {
                 if (Model.HideLicenseReport)
@@ -119,13 +119,12 @@
                     && (Model.LicenseNames.Count() > 0) 
                     && !String.IsNullOrEmpty(Model.LicenseReportUrl))
                 {
-                    <p class="licenseName">@String.Join(", ", Model.LicenseNames)</p>
+                    <p id="licenseNames">@String.Join(", ", Model.LicenseNames)</p>
                 }
             }
             @if (!String.IsNullOrEmpty(Model.LicenseUrl))
             {
-                @* TODO: Change a.title *@
-                <p class="block-link"><a href="@Model.LicenseUrl" title="Make sure you agree with the license">View license</a></p>
+                <p class="block-link"><a href="@Model.LicenseUrl" title="License defined by package author">View License</a></p>
             }
             @if (!Model.HideLicenseReport)
             {
@@ -133,7 +132,7 @@
                     && (Model.LicenseNames.Count() > 0) 
                     && !String.IsNullOrEmpty(Model.LicenseReportUrl))
                 {
-                    <p class="block-link"><a href="@Model.LicenseReportUrl">View Sonatype CLM Component Report</a></p>
+                    <p class="block-link"><a href="@Model.LicenseReportUrl" title="License analysis by Sonatype CLM">View Sonatype CLM Component Report</a></p>
                 }
             }
         </div>
