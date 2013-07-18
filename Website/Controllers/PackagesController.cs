@@ -169,24 +169,7 @@ namespace NuGetGallery
                 return RedirectPermanent(Url.Action("DisplayPackage", "Packages", new { id = id, version = normalizedVersion }));
             }
 
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-
-            if (package == null)
-            {
-                // Try to get the package registration
-                var packagereg = _packageService.FindPackageRegistrationById(id);
-                if (packagereg != null)
-                {
-                    // Do a search to find a matching package version (in case the data is borked)
-                    var packages = packagereg.Packages.ToList();
-                    package = packages.FirstOrDefault(p => String.Equals(SemanticVersionExtensions.Normalize(p.Version), normalizedVersion));
-                }
-
-                if (package == null)
-                {
-                    return HttpNotFound();
-                }
-            }
+            var package = _packageService.FindPackageByIdAndVersion(id, version, allowPrerelease: true, checkMalformedVersions: true);
             var model = new DisplayPackageViewModel(package);
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
@@ -242,6 +225,12 @@ namespace NuGetGallery
         };
         public virtual ActionResult ReportAbuse(string id, string version)
         {
+            string normalizedVersion = SemanticVersionExtensions.Normalize(version);
+            if (!String.Equals(version, normalizedVersion))
+            {
+                return RedirectPermanent(Url.Action("ReportAbuse", "Packages", new { id = id, version = normalizedVersion }));
+            }
+
             var package = _packageService.FindPackageByIdAndVersion(id, version);
 
             if (package == null)
@@ -286,6 +275,12 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ReportMyPackage(string id, string version)
         {
+            string normalizedVersion = SemanticVersionExtensions.Normalize(version);
+            if (!String.Equals(version, normalizedVersion))
+            {
+                return RedirectPermanent(Url.Action("ReportMyPackage", "Packages", new { id = id, version = normalizedVersion }));
+            }
+
             var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
 
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -446,7 +441,13 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ManagePackageOwners(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            string normalizedVersion = SemanticVersionExtensions.Normalize(version);
+            if (!String.Equals(version, normalizedVersion))
+            {
+                return RedirectPermanent(Url.Action("ManagePackageOwners", "Packages", new { id = id, version = normalizedVersion }));
+            }
+
+            var package = _packageService.FindPackageByIdAndVersion(id, normalizedVersion);
             if (package == null)
             {
                 return HttpNotFound();
@@ -464,7 +465,13 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Delete(string id, string version)
         {
-            return GetPackageOwnerActionFormResult(id, version);
+            string normalizedVersion = SemanticVersionExtensions.Normalize(version);
+            if (!String.Equals(version, normalizedVersion))
+            {
+                return RedirectPermanent(Url.Action("Delete", "Packages", new { id = id, version = normalizedVersion }));
+            }
+
+            return GetPackageOwnerActionFormResult(id, normalizedVersion);
         }
 
         [Authorize]
