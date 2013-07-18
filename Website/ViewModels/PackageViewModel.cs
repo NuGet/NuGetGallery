@@ -5,6 +5,7 @@ namespace NuGetGallery
     public class PackageViewModel : IPackageVersionModel
     {
         private readonly Package _package;
+        private string _pendingTitle;
 
         public PackageViewModel(Package package)
         {
@@ -49,7 +50,8 @@ namespace NuGetGallery
 
         public string Title
         {
-            get { return String.IsNullOrEmpty(_package.Metadata.Title) ? _package.PackageRegistration.Id : _package.Metadata.Title; }
+            get { return _pendingTitle ?? (String.IsNullOrEmpty(_package.Metadata.Title) ? _package.PackageRegistration.Id : _package.Metadata.Title); }
+            set { _pendingTitle = value; }
         }
 
         public bool IsCurrent(IPackageVersionModel current)

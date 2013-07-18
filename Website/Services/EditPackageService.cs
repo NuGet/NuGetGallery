@@ -13,6 +13,16 @@ namespace NuGetGallery
         {
         }
 
+        /// <summary>
+        /// Returns the newest, uncompleted metadata for a package (i.e. a pending edit)
+        /// </summary>
+        public virtual PackageMetadata GetPendingMetadata(Package p)
+        {
+            return EntitiesContext.Set<PackageMetadata>()
+                .OrderByDescending(m => m.Timestamp)
+                .FirstOrDefault(m => !m.IsCompleted);
+        }
+
         public virtual void StartEditPackageRequest(Package p, EditPackageRequest formData, User editingUser)
         {
             PackageMetadata edit = new PackageMetadata

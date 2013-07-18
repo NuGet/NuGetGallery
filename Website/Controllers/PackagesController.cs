@@ -173,6 +173,25 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
             var model = new DisplayPackageViewModel(package);
+
+            if (package.IsOwner(HttpContext.User))
+            {
+                var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+                if (pendingMetadata != null)
+                {
+                    TempData["Message"] = "An edit is pending for this package version. You are seeing the edited package description now. Eventually everyone will see the new description.";
+                    model.Authors = pendingMetadata.Authors;
+                    model.Copyright = pendingMetadata.Copyright;
+                    model.Description = pendingMetadata.Description;
+                    model.IconUrl = pendingMetadata.IconUrl;
+                    model.LicenseUrl = pendingMetadata.LicenseUrl;
+                    model.ProjectUrl = pendingMetadata.ProjectUrl;
+                    model.ReleaseNotes = pendingMetadata.ReleaseNotes;
+                    model.Tags = pendingMetadata.Tags.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    model.Title = pendingMetadata.Title;
+                }
+            }
+
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
         }

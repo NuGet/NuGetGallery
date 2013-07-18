@@ -29,6 +29,7 @@ namespace NuGetGallery.Migrations
                 var hash = CryptographyService.GenerateSaltedHash(apiKey.ToString(), Constants.PBKDF2HashAlgorithmId);
                 var user = new User
                 {
+                    CreatedUtc = DateTime.UtcNow,
                     Username = Constants.SystemUserName,
                     ApiKey = apiKey, // So nobody can push packages as @SYSTEM (unless they got DB access...)
                     HashedPassword = hash, // So nobody can log in as @SYSTEM (unless they got DB access...)
