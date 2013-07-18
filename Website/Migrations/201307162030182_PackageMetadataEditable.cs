@@ -41,6 +41,56 @@ namespace NuGetGallery.Migrations
 
             AddColumn("Packages", "MetadataKey", c => c.Int());
             AddForeignKey("Packages", "MetadataKey", "PackageMetadatas");
+
+            // Clone the current data from Packages table into PackagesMetadata
+            Sql(@"
+INSERT INTO [PackageMetadatas]
+      ([Key],
+      [PackageKey],
+      [UserKey],
+      [EditName],
+      [Timestamp],
+      [IsCompleted],
+      [TriedCount],
+      [Authors],
+      [Copyright],
+      [Description],
+      [Hash],
+      [HashAlgorithm],
+      [IconUrl],
+      [LicenseUrl],
+      [PackageFileSize],
+      [ProjectUrl],
+      [ReleaseNotes],
+      [Summary],
+      [Tags],
+      [Title])
+SELECT 
+    (ROW_NUMBER( ) OVER ( ORDER BY [Key] ASC )) +
+        COALESCE((SELECT MAX([Key]) FROM [PackageMetadatas]), 0), /*Key*/
+    [Key] as [PackageKey], /*PackageKey*/
+    (SELECT [Key] FROM [Users] WHERE [Username] = '@SYSTEM'), /*UserKey*/
+    'OriginalMetadata', /*EditName*/
+    SYSUTCDATETIME(), /*Timestamp*/
+    1, /*IsCompleted*/
+    0, /*TriedCount*/
+    [FlattenedAuthors],/*Authors*/
+    [Copyright],
+    [Description],
+    [Hash],
+    [HashAlgorithm],
+    [IconUrl],
+    [LicenseUrl],
+    [PackageFileSize],
+    [ProjectUrl],
+    [ReleaseNotes],
+    [Summary],
+    [Tags],
+    [Title]
+FROM [Packages]");
+
+            Sql(@"UPDATE [Packages]
+SET [MetadataKey] = (SELECT TOP 1 [Key] from [PackageMetadatas] WHERE [PackageMetadatas].[PackageKey] = [Packages].[Key])");
         }
         
         public override void Down()
