@@ -37,7 +37,7 @@ namespace NuGetGallery
 
             var packageRegistration = CreateOrGetPackageRegistration(user, nugetPackage.Metadata);
 
-            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
+            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, user);
             packageRegistration.Packages.Add(package);
             UpdateIsLatest(packageRegistration);
 
@@ -404,7 +404,7 @@ namespace NuGetGallery
             return packageRegistration;
         }
 
-        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage)
+        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage, User user)
         {
             var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Metadata.Version.ToString());
 
@@ -462,6 +462,7 @@ namespace NuGetGallery
                 Timestamp = DateTime.UtcNow,
                 Title = nugetPackage.Metadata.Title,
                 TriedCount = 0,
+                User = user,
             };
 
 #pragma warning disable 612 // TODO: PackageMetadata DB contraction

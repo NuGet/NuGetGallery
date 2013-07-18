@@ -18,6 +18,9 @@ namespace NuGetGallery
         public Package Package { get; set; }
         public int PackageKey { get; set; }
 
+        public User User { get; set; } // User who uploaded/edited the package or otherwise caused this Metadata to be created. Should never be null.
+        public int UserKey { get; set; }
+
         [StringLength(64)]
         public string EditName { get; set; }
 

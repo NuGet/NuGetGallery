@@ -499,17 +499,20 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+
             if (!package.IsOwner(HttpContext.User))
             {
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+
             // Add the edit request to a queue where it will be processed in the background.
             if (formData.EditPackageVersionRequest != null)
             {
-                _editPackageService.StartEditPackageRequest(package, formData);
+                _editPackageService.StartEditPackageRequest(package, formData, user);
+                _entitiesContext.SaveChanges();
             }
-            _entitiesContext.SaveChanges();
             return Redirect(Url.Package(id, version));
         }
 

@@ -13,6 +13,7 @@ namespace NuGetGallery.Migrations
                     {
                         Key = c.Int(nullable: false),
                         PackageKey = c.Int(nullable: false),
+                        UserKey = c.Int(nullable: false),
                         EditName = c.String(maxLength: 64),
                         Timestamp = c.DateTime(nullable: false),
                         IsCompleted = c.Boolean(nullable: false),
@@ -33,64 +34,23 @@ namespace NuGetGallery.Migrations
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Packages", t => t.PackageKey, cascadeDelete: true)
+                .ForeignKey("Users", t => t.UserKey, cascadeDelete: true)
                 .Index(t => t.PackageKey)
+                .Index(t => t.UserKey)
                 .Index(t => t.Key);
 
             AddColumn("Packages", "MetadataKey", c => c.Int());
-            AddForeignKey("Packages", "MetadataKey", "PackageMetadatas"); //, principalColumn: "Key"
-
-            // Clone the current data from Packages table into PackagesMetadata
-            Sql(@"
-INSERT INTO [PackageMetadatas]
-      ([Key],
-      [PackageKey],
-      [EditName],
-      [Timestamp],
-      [IsCompleted],
-      [TriedCount],
-      [Authors],
-      [Copyright],
-      [Description],
-      [Hash],
-      [HashAlgorithm],
-      [IconUrl],
-      [LicenseUrl],
-      [PackageFileSize],
-      [ProjectUrl],
-      [ReleaseNotes],
-      [Summary],
-      [Tags],
-      [Title])
-SELECT 
-    (ROW_NUMBER( ) OVER ( ORDER BY [Key] ASC )) +
-        COALESCE((SELECT MAX([Key]) FROM [PackageMetadatas]), 0), /*Key*/
-    [Key] as [PackageKey], /*PackageKey*/
-    'OriginalMetadata', /*EditName*/
-    SYSUTCDATETIME(), /*Timestamp*/
-    1, /*IsCompleted*/
-    0, /*TriedCount*/
-    [FlattenedAuthors],/*Authors*/
-    [Copyright],
-    [Description],
-    [Hash],
-    [HashAlgorithm],
-    [IconUrl],
-    [LicenseUrl],
-    [PackageFileSize],
-    [ProjectUrl],
-    [ReleaseNotes],
-    [Summary],
-    [Tags],
-    [Title]
-FROM [Packages]");
+            AddForeignKey("Packages", "MetadataKey", "PackageMetadatas");
         }
         
         public override void Down()
         {
-            DropForeignKey("Packages", "MetadataKey", "PackageMetadatas"); //, principalColumn: "Key"
             DropIndex("PackageMetadatas", new[] { "Key" });
+            DropIndex("PackageMetadatas", new[] { "UserKey" });
             DropIndex("PackageMetadatas", new[] { "PackageKey" });
+            DropForeignKey("PackageMetadatas", "UserKey", "Users");
             DropForeignKey("PackageMetadatas", "PackageKey", "Packages");
+            DropForeignKey("Packages", "MetadataKey", "PackageMetadatas");
             DropColumn("Packages", "MetadataKey");
             DropTable("PackageMetadatas");
         }

@@ -32,6 +32,7 @@ namespace NuGetGallery
                         Copyright = this.Copyright,
                         Description = this.Description,
                         EditName = "OriginalMetadata",
+                        User = null,
                         Hash = this.Hash,
                         HashAlgorithm = this.HashAlgorithm,
                         IconUrl = this.IconUrl,

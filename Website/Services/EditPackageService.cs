@@ -13,11 +13,12 @@ namespace NuGetGallery
         {
         }
 
-        public virtual void StartEditPackageRequest(Package p, EditPackageRequest formData)
+        public virtual void StartEditPackageRequest(Package p, EditPackageRequest formData, User editingUser)
         {
             PackageMetadata edit = new PackageMetadata
             {
                 // Description
+                User = editingUser,
                 Authors = formData.EditPackageVersionRequest.Authors,
                 Copyright = formData.EditPackageVersionRequest.Copyright,
                 Description = formData.EditPackageVersionRequest.Description,

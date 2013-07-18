@@ -127,6 +127,10 @@ namespace NuGetGallery
                 Metadata = new PackageMetadata
                 {
                     Authors = doc.Get("Authors"),
+                    User = new User
+                    {
+                        Username = doc.Get("MetadataUser"), 
+                    },
                     Copyright = doc.Get("Copyright"),
                     Description = doc.Get("Description"),
                     Hash = doc.Get("Hash"),

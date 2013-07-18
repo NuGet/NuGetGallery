@@ -100,6 +100,12 @@ namespace NuGetGallery
                 document.Add(field);
             }
 
+            // Store Metadata.User for round trip
+            if (Package.Metadata.User != null)
+            {
+                document.Add(new Field("MetadataUser", Package.Metadata.User.Username, Field.Store.YES, Field.Index.NO));
+            }
+
             // note Authors and Dependencies have flattened representations in the data model.
             document.Add(new Field("Authors", Package.Metadata.Authors.ToStringSafe(), Field.Store.YES, Field.Index.ANALYZED));
 

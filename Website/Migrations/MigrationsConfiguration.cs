@@ -19,6 +19,20 @@ namespace NuGetGallery.Migrations
                 roles.Add(new Role { Name = Constants.AdminRoleName });
                 context.SaveChanges();
             }
+
+            var users = context.Set<User>();
+            if (!users.Any(x => x.Username == Constants.SystemUserName))
+            {
+                // @SYSTEM is just a user with a special (invalid) username, used to denote things not related to a real logged in user 
+                // - it shouldn't have any special privileges but it helps distinguish which Metadata objects were automatically created.
+                var user = new User { Username = Constants.SystemUserName };
+                user.ApiKey = Guid.NewGuid(); // So nobody can push packages as @SYSTEM (unless they got DB access...)
+                user.HashedPassword = CryptographyService.GenerateSaltedHash(
+                    user.ApiKey.ToString(), 
+                    Constants.PBKDF2HashAlgorithmId); // So nobody can log in as @SYSTEM (unless they got DB access...)
+                users.Add(user);
+                context.SaveChanges();
+            }
         }
     }
 }
