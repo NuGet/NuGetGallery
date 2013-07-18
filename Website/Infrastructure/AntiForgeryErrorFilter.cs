@@ -6,7 +6,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery.Infrastructure
 {
-    public class AntiForgeryErrorFilter : FilterAttribute, IExceptionFilter
+    public sealed class AntiForgeryErrorFilter : FilterAttribute, IExceptionFilter
     {
         public void OnException(ExceptionContext context)
         {
