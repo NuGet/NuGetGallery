@@ -52,6 +52,7 @@ namespace NuGetGallery.Operations.Tasks
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'WarehouseBackup_%' AND state = @state",
                     new { state = Util.OnlineState })
                     .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
+                    .Where(b => b.Timestamp != null)
                     .OrderByDescending(b => b.Timestamp)
                     .ToList();
 

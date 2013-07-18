@@ -98,12 +98,16 @@ namespace NuGetGallery.Operations
 
         public static Db GetLastBackup(SqlExecutor dbExecutor, string backupNamePrefix)
         {
-            var backupDbs = dbExecutor.Query<Db>(
+            var allBackups = dbExecutor.Query<Db>(
                 "SELECT name, state FROM sys.databases WHERE name LIKE '" + backupNamePrefix + "%' AND state = @state",
-                new { state = OnlineState })
-                .OrderByDescending(db => OnlineDatabaseBackup.ParseTimestamp(db.Name).Value);
+                new { state = OnlineState });
+            var orderedBackups = from db in allBackups
+                                 let t = OnlineDatabaseBackup.ParseTimestamp(db.Name)
+                                 where t != null
+                                 orderby t.Value descending
+                                 select db;
 
-            return backupDbs.FirstOrDefault();
+            return orderedBackups.FirstOrDefault();
         }
 
         public static DateTime GetLastBackupTime(SqlExecutor dbExecutor, string backupNamePrefix)

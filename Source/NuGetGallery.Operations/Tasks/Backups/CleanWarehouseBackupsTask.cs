@@ -28,7 +28,7 @@ namespace NuGetGallery.Operations.Tasks.Backups
 
                 // The last online database is safe
                 keepers.AddRange(backups
-                    .Where(b => b.State == Util.OnlineState)
+                    .Where(b => b.State == Util.OnlineState && b.Timestamp != null)
                     .OrderByDescending(d => d.Timestamp.Value)
                     .Select(b => b.DatabaseName)
                     .Take(1));
