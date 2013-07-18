@@ -55,28 +55,13 @@
         </div>
     </div>
     <nav>
-        <ul class="links">
+        <ul>
             @if (!String.IsNullOrEmpty(Model.ProjectUrl))
             {
                 <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
                         Project Site</a></li>
             }
-            @if (!String.IsNullOrEmpty(Model.LicenseUrl))
-            {
-                <li>
-                    <a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a>
-                    @if ((Model.LicenseNames != null) && (!String.IsNullOrEmpty(Model.LicenseReportUrl)))
-                    {
-                        <div id="sonatype">
-                            <p id="sonatype-name">
-                                @String.Join(", ", Model.LicenseNames)
-                            </p>
-                            <p id="sonatype-description">License details provided by Sonatype CLM</p>
-                            <p id="sonatype-report"><a href="@Model.LicenseReportUrl">Component report</a></p>
-                        </div>
-                    }
-                </li>
-            }
+
             @if (Model.IsOwner(User))
             {
                 <li><a href="@Url.Action(MVC.Packages.ReportMyPackage(Model.Id, Model.Version))" title="Contact support for help with your package">
@@ -108,6 +93,51 @@
             }
         </ul>
     </nav>
+
+    @if (!String.IsNullOrEmpty(Model.LicenseUrl) || !Model.HideLicenseReport)
+    {
+        <div class="block">
+            <h1 class="block-title">License</h1>
+            @if (Model.IsOwner(User))
+            {
+                if (Model.HideLicenseReport)
+                {
+                    @* TODO: Create action for changing flag HideLicenseReport *@
+                    @* TODO: Change for an icon *@
+                    <p class="block-link"><a href="#">Enable license report</a></p>
+                }
+                else
+                {
+                    @* TODO: Create action for changing flag HideLicenseReport *@
+                    @* TODO: Change for an icon *@
+                    <p class="block-link"><a href="#">Disable license report</a></p>
+                }
+            }
+            @if (!Model.HideLicenseReport)
+            {
+                if ((Model.LicenseNames != null) 
+                    && (Model.LicenseNames.Count() > 0) 
+                    && !String.IsNullOrEmpty(Model.LicenseReportUrl))
+                {
+                    <p class="licenseName">@String.Join(", ", Model.LicenseNames)</p>
+                }
+            }
+            @if (!String.IsNullOrEmpty(Model.LicenseUrl))
+            {
+                @* TODO: Change a.title *@
+                <p class="block-link"><a href="@Model.LicenseUrl" title="Make sure you agree with the license">View license</a></p>
+            }
+            @if (!Model.HideLicenseReport)
+            {
+                if ((Model.LicenseNames != null) 
+                    && (Model.LicenseNames.Count() > 0) 
+                    && !String.IsNullOrEmpty(Model.LicenseReportUrl))
+                {
+                    <p class="block-link"><a href="@Model.LicenseReportUrl">View Sonatype CLM Component Report</a></p>
+                }
+            }
+        </div>
+    }
 }
 <div class="package-page">
     @if (Model.Prerelease)
