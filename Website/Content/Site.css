@@ -1175,6 +1175,17 @@ fieldset.form legend { display: none; }
     margin-bottom: 5px;
 }
 
+.form-field-inline label
+{
+    display: inline-block;
+    width: 300px;
+}
+
+.form-field-inline span.field-validation-error
+{
+    top: 0px;
+}
+
 .form-field label.checkbox { display: inline; }
 
 .form-field select {
@@ -1194,7 +1205,34 @@ fieldset.form legend { display: none; }
     font-size: 1.25em;
     padding: 5px 0 5px 10px;
     vertical-align: middle;
-    width: 300px;
+    width: 400px;
+}
+
+.form-field textarea[disabled],
+.form-field input[type="email"][disabled],
+.form-field input[type="text"][disabled],
+.form-field input[type="file"][disabled],
+.form-field input[type="password"][disabled],
+.form input[type="submit"][disabled],
+.form input[type="submit"][disabled]:hover {
+    background: silver;
+    cursor: not-allowed;
+    border: none;
+    opacity: 0.65;
+    filter: alpha(opacity=65);
+    color: #333;
+    background-color: #e6e6e6;
+}
+
+#bug-report-panel
+{
+    font-size: 1em;
+    line-height: 1.2em;
+    padding: 5px;
+    position: absolute;
+    top: 130px;
+    z-index: 550;
+    display: none;
 }
 
 .form-field textarea {
@@ -1219,13 +1257,32 @@ fieldset.form legend { display: none; }
 .field-hint-message,
 .field-validation-error {
     font-size: 1em;
-    left: 330px;
+    left: 440px;
     line-height: 1.2em;
     padding: 5px;
     position: absolute;
     top: 30px;
     width: 400px;
     z-index: 550;
+}
+
+    .field-validation-error.block-validation-error
+    {
+        position: static;
+        display: block;
+        margin-left: 2px;
+        margin-top: 5px;
+    }
+
+
+#form-field-reason
+{
+    margin-bottom: 20px;
+}
+
+#report-abuse-message
+{
+    top: 4.6em;
 }
 
 .field-hint-message {

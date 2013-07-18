@@ -102,7 +102,11 @@ namespace NuGetGallery
             var jobs = configuration.HasWorker ?
                 new IJob[]
                 {
-                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), timeout: TimeSpan.FromMinutes(2))
+                    new LuceneIndexingJob(
+                        TimeSpan.FromMinutes(10), 
+                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), 
+                        timeout: TimeSpan.FromMinutes(2), 
+                        location: configuration.LuceneIndexLocation)
                 }                
                     :
                 new IJob[]
@@ -111,7 +115,11 @@ namespace NuGetGallery
                     new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
                         () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false), 
                         timeout: TimeSpan.FromMinutes(5)),
-                    new LuceneIndexingJob(TimeSpan.FromMinutes(10), () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), timeout: TimeSpan.FromMinutes(2))
+                    new LuceneIndexingJob(
+                        TimeSpan.FromMinutes(10), 
+                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), 
+                        timeout: TimeSpan.FromMinutes(2), 
+                        location: configuration.LuceneIndexLocation)
                 };
             var jobCoordinator = new NuGetJobCoordinator();
             _jobManager = new JobManager(jobs, jobCoordinator)

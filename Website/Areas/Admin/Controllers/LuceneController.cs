@@ -4,17 +4,20 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public partial class LuceneController : AdminControllerBase
     {
         protected IIndexingService IndexingService { get; set; }
+        protected IAppConfiguration Config { get; set; }
 
         protected LuceneController() { }
-        public LuceneController(IIndexingService indexingService)
+        public LuceneController(IIndexingService indexingService, IAppConfiguration config)
         {
             IndexingService = indexingService;
+            Config = config;
         }
 
         //
@@ -24,7 +27,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             return View("Index", new LuceneInfoModel()
             {
-                LastUpdated = IndexingService.GetLastWriteTime()
+                LastUpdated = IndexingService.GetLastWriteTime(),
+                DocumentCount = IndexingService.GetDocumentCount(),
+                IndexSize = IndexingService.GetIndexSizeInBytes(),
+                Directory = IndexingService.IndexPath,
+                Location = Config.LuceneIndexLocation
             });
         }
 

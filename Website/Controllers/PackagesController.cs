@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
+using NuGetGallery.Helpers;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -214,6 +215,13 @@ namespace NuGetGallery
         }
 
         // NOTE: Intentionally NOT requiring authentication
+        private static readonly ReportPackageReason[] ReportOtherPackageReasons = new[] {
+            ReportPackageReason.IsFraudulent,
+            ReportPackageReason.ViolatesALicenseIOwn,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.HasABug,
+            ReportPackageReason.Other
+        };
         public virtual ActionResult ReportAbuse(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -225,14 +233,7 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                ReasonChoices = 
-                {
-                    ReportPackageReason.IsFraudulent,
-                    ReportPackageReason.ViolatesALicenseIOwn,
-                    ReportPackageReason.ContainsMaliciousCode,
-                    ReportPackageReason.HasABug,
-                    ReportPackageReason.Other
-                },
+                ReasonChoices = ReportOtherPackageReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
             };
@@ -257,6 +258,13 @@ namespace NuGetGallery
             return View(model);
         }
 
+        private static readonly ReportPackageReason[] ReportMyPackageReasons = new[] {
+            ReportPackageReason.ContainsPrivateAndConfidentialData,
+            ReportPackageReason.PublishedWithWrongVersion,
+            ReportPackageReason.ReleasedInPublicByAccident,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.Other
+        };
         [Authorize]
         public virtual ActionResult ReportMyPackage(string id, string version)
         {
@@ -277,14 +285,7 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                ReasonChoices =
-                {
-                    ReportPackageReason.ContainsPrivateAndConfidentialData,
-                    ReportPackageReason.PublishedWithWrongVersion,
-                    ReportPackageReason.ReleasedInPublicByAccident,
-                    ReportPackageReason.ContainsMaliciousCode,
-                    ReportPackageReason.Other
-                },
+                ReasonChoices = ReportMyPackageReasons,
                 ConfirmedUser = user.Confirmed,
                 PackageId = id,
                 PackageVersion = package.Version,
@@ -327,7 +328,7 @@ namespace NuGetGallery
                 FromAddress = from,
                 Message = reportForm.Message,
                 Package = package,
-                Reason = reportForm.Reason,
+                Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
                 Url = Url
             };
@@ -364,7 +365,7 @@ namespace NuGetGallery
                     FromAddress = from,
                     Message = reportForm.Message,
                     Package = package,
-                    Reason = reportForm.Reason,
+                    Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                     RequestingUser = user,
                     Url = Url
                 });
