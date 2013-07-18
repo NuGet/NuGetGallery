@@ -6,9 +6,14 @@ namespace NuGetGallery
     public class RegisterRequest
     {
         // Note: regexes must be tested to work in javascript
-        // (?<!\\.)
+        // We do NOT follow strictly the RFCs at this time, and we choose not to support many obscure email address variants. 
+        // Specifically the following are not supported by-design:
+        //  * Addresses containing () or []
+        //  * Second parts with no dots (i.e. foo@localhost or foo@com)
+        //  * Addresses with quoted (" or ') first parts
+        //  * Addresses with IP Address second parts (foo@[127.0.0.1])
         internal const string FirstPart = @"[-A-Za-z0-9!#$%&'*+\/=?^_`{|}~\.]+";
-        internal const string SecondPart = @"[A-Za-z0-9][\w\.-]*[A-Za-z0-9]\.[A-Za-z][A-Za-z\.]*[A-Za-z]";
+        internal const string SecondPart = @"[A-Za-z0-9]+[\w\.-]*[A-Za-z0-9]*\.[A-Za-z0-9][A-Za-z\.]*[A-Za-z]";
         internal const string EmailValidationRegex ="^" + FirstPart + "@" + SecondPart + "$";
 
         internal const string EmailValidationErrorMessage = "This doesn't appear to be a valid email address.";
