@@ -68,7 +68,6 @@ namespace NuGetGallery
         public static IQueryable<Package> SearchCore(
             ISearchService searchService,
             HttpRequestBase request,
-            string siteRoot,
             IQueryable<Package> packages, 
             string searchTerm, 
             string targetFramework, 
@@ -101,6 +100,12 @@ namespace NuGetGallery
 
         private static bool TryReadSearchFilter(string url, out SearchFilter searchFilter)
         {
+            if (url == null)
+            {
+                searchFilter = null;
+                return false;
+            }
+
             int indexOfQuestionMark = url.IndexOf('?');
 
             if (indexOfQuestionMark == -1)
@@ -112,7 +117,7 @@ namespace NuGetGallery
             string path = url.Substring(0, indexOfQuestionMark);
             string query = url.Substring(indexOfQuestionMark + 1);
 
-            if (query == string.Empty)
+            if (string.IsNullOrEmpty(query))
             {
                 searchFilter = null;
                 return false;
@@ -174,7 +179,7 @@ namespace NuGetGallery
             string orderBy;
             if (queryTerms.TryGetValue("$orderby", out orderBy))
             {
-                if (orderBy == string.Empty)
+                if (string.IsNullOrEmpty(orderBy))
                 {
                     searchFilter.SortProperty = SortProperty.Relevance;
                 }
