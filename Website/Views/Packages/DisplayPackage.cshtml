@@ -184,7 +184,22 @@
             }
         </ul>
     }
-    @Html.Partial("_PackageDependencies", Model.Dependencies)
+    @if (Model.Dependencies.DependencySets == null)
+    {
+        if(Model.IsOwner(User)) {
+            <h3>Dependencies</h3>
+            <p>
+                An error occurred processing dependencies. 
+                Your package can still be downloaded and installed, but dependencies cannot be shown.
+                Please @Html.ActionLink("Contact Support", MVC.Packages.ReportMyPackage(Model.Id, Model.Version)) if you have questions.</p>
+            <p>
+                <strong>Note: This message is only visible to you and any other package owners.</strong></p>
+        }
+    }
+    else {
+        <h3>Dependencies</h3>
+        @Html.Partial("_PackageDependencies", Model.Dependencies)
+    }
     <h3>Version History</h3>
     <table class="sexy-table">
         <thead>
