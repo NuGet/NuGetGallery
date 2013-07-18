@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Microsoft.WindowsAzure.Storage;
 using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations
@@ -6,25 +7,48 @@ namespace NuGetGallery.Operations
     [Command("backuppackagefile", "Back up a specific package file", AltName = "bpf", MaxArgs = 0)]
     public class BackupPackageFileTask : PackageVersionTask
     {
+        [Option("The destination storage account for the backups", AltName = "d")]
+        public CloudStorageAccount BackupStorage { get; set; }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+
+            if (BackupStorage == null)
+            {
+                BackupStorage = StorageAccount;
+                if (CurrentEnvironment != null)
+                {
+                    BackupStorage = CurrentEnvironment.BackupStorage;
+                }
+            }
+        }
+
         public override void ExecuteCommand()
         {
-            var blobClient = CreateBlobClient();
+            var client = CreateBlobClient();
+            var backupClient = BackupStorage.CreateCloudBlobClient();
 
-            var packageBackupsBlobContainer = Util.GetPackageBackupsBlobContainer(blobClient);
+            var backupBlobs = backupClient.GetContainerReference("package-backups");
+            var packageBlobs = client.GetContainerReference("packages");
+            if (!WhatIf)
+            {
+                backupBlobs.CreateIfNotExists();
+            }
+
             var backupFileName = Util.GetPackageBackupFileName(
                 PackageId,
                 PackageVersion,
                 PackageHash);
-            var backupPackageBlob = packageBackupsBlobContainer.GetBlockBlobReference(backupFileName);
+            var backupPackageBlob = backupBlobs.GetBlockBlobReference(backupFileName);
             if (backupPackageBlob.Exists())
             {
                 Log.Info("Skipped {0} {1}: backup already exists", PackageId, PackageVersion);
                 return;
             }
 
-            var packagesBlobContainer = Util.GetPackagesBlobContainer(blobClient);
             var packageFileBlob = Util.GetPackageFileBlob(
-                packagesBlobContainer,
+                packageBlobs,
                 PackageId,
                 PackageVersion);
             var packageFileName = Util.GetPackageFileName(
