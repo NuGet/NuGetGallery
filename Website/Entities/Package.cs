@@ -17,48 +17,7 @@ namespace NuGetGallery
         public PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
 
-#pragma warning disable 612 // TODO: PackageMetadata DB contraction
-        private PackageMetadata _metadata;
-        public PackageMetadata Metadata
-        {
-            get
-            {
-                // TODO: PackageMetadata DB contraction - this null check workaround code will become unnecessary
-                if (_metadata == null)
-                {
-                    _metadata = new PackageMetadata
-                    {
-                        Authors = this.FlattenedAuthors,
-                        Copyright = this.Copyright,
-                        Description = this.Description,
-                        EditName = "OriginalMetadata",
-                        User = null,
-                        Hash = this.Hash,
-                        HashAlgorithm = this.HashAlgorithm,
-                        IconUrl = this.IconUrl,
-                        IsCompleted = true,
-                        LicenseUrl = this.LicenseUrl,
-                        Package = this,
-                        PackageKey = this.Key,
-                        PackageFileSize = this.PackageFileSize,
-                        ProjectUrl = this.ProjectUrl,
-                        ReleaseNotes = this.ReleaseNotes,
-                        Summary = this.Summary,
-                        Tags = this.Tags,
-                        Timestamp = DateTime.UtcNow,
-                        Title = this.Title,
-                        TriedCount = 0,
-                    };
-                }
-
-                return _metadata;
-            }
-            set
-            {
-                _metadata = value;
-            }
-        }
-#pragma warning restore 612
+        public PackageMetadata Metadata { get; set; }
 
         public int? MetadataKey { get; set; }
 

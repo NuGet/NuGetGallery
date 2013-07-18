@@ -11,7 +11,7 @@ namespace NuGetGallery.Migrations
                 "PackageMetadatas",
                 c => new
                     {
-                        Key = c.Int(nullable: false),
+                        Key = c.Int(nullable: false, identity: true),
                         PackageKey = c.Int(nullable: false),
                         UserKey = c.Int(nullable: false),
                         EditName = c.String(maxLength: 64),
@@ -36,16 +36,17 @@ namespace NuGetGallery.Migrations
                 .ForeignKey("Packages", t => t.PackageKey, cascadeDelete: true)
                 .ForeignKey("Users", t => t.UserKey, cascadeDelete: true)
                 .Index(t => t.PackageKey)
-                .Index(t => t.UserKey)
-                .Index(t => t.Key);
+                .Index(t => t.UserKey);
 
-            AddColumn("Packages", "MetadataKey", c => c.Int());
-            AddForeignKey("Packages", "MetadataKey", "PackageMetadatas");
+            AddColumn("Packages", "MetadataKey", c => c.Int(nullable: true));
+            AddForeignKey("Packages", "MetadataKey", "PackageMetadatas", "Key");
+            CreateIndex("Packages", "MetadataKey");
 
             // Clone the current data from Packages table into PackagesMetadata
             Sql(@"
 INSERT INTO [PackageMetadatas]
-      ([Key],
+      (
+--[Key],
       [PackageKey],
       [UserKey],
       [EditName],
@@ -66,8 +67,8 @@ INSERT INTO [PackageMetadatas]
       [Tags],
       [Title])
 SELECT 
-    (ROW_NUMBER( ) OVER ( ORDER BY [Key] ASC )) +
-        COALESCE((SELECT MAX([Key]) FROM [PackageMetadatas]), 0), /*Key*/
+--    (ROW_NUMBER( ) OVER ( ORDER BY [Key] ASC )) +
+--        COALESCE((SELECT MAX([Key]) FROM [PackageMetadatas]), 0), /*Key*/
     [Key] as [PackageKey], /*PackageKey*/
     (SELECT [Key] FROM [Users] WHERE [Username] = '@SYSTEM'), /*UserKey*/
     'OriginalMetadata', /*EditName*/
@@ -91,13 +92,14 @@ FROM [Packages]");
 
             Sql(@"UPDATE [Packages]
 SET [MetadataKey] = (SELECT TOP 1 [Key] from [PackageMetadatas] WHERE [PackageMetadatas].[PackageKey] = [Packages].[Key])");
+            
         }
         
         public override void Down()
         {
-            DropIndex("PackageMetadatas", new[] { "Key" });
             DropIndex("PackageMetadatas", new[] { "UserKey" });
             DropIndex("PackageMetadatas", new[] { "PackageKey" });
+            DropIndex("Packages", new[] { "MetadataKey" });
             DropForeignKey("PackageMetadatas", "UserKey", "Users");
             DropForeignKey("PackageMetadatas", "PackageKey", "Packages");
             DropForeignKey("Packages", "MetadataKey", "PackageMetadatas");

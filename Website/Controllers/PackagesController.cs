@@ -504,7 +504,8 @@ namespace NuGetGallery
                 PackageVersions = packageRegistration.Packages.ToList(),
             };
 
-            model.EditPackageVersionRequest = new EditPackageVersionRequest(package);
+            var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+            model.EditPackageVersionRequest = new EditPackageVersionRequest(package, pendingMetadata);
             return View(model);
         }
 

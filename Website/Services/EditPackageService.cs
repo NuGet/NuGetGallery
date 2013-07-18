@@ -9,8 +9,11 @@ namespace NuGetGallery
     {
         public IEntitiesContext EntitiesContext { get; set; }
 
-        public EditPackageService()
+        public EditPackageService() { }
+
+        public EditPackageService(IEntitiesContext entitiesContext)
         {
+            EntitiesContext = entitiesContext;
         }
 
         /// <summary>

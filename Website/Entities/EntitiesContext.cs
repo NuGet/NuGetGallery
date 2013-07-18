@@ -37,6 +37,7 @@ namespace NuGetGallery
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
+
         IDbSet<T> IEntitiesContext.Set<T>()
         {
             return base.Set<T>();
@@ -124,12 +125,10 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageMetadata>()
                 .HasRequired<Package>(pm => pm.Package)
                 .WithMany()
-                .HasForeignKey(pm => pm.PackageKey)
-                .WillCascadeOnDelete();
+                .HasForeignKey(pm => pm.PackageKey);
 
-            modelBuilder.Entity<Package>()
-                .HasOptional<PackageMetadata>(p => p.Metadata)
-                .WithRequired();
+            //EF weirdness. Trying this screws everything up. But why???
+            //modelBuilder.Entity<Package>().HasOptional(p => p.Metadata);
 
             modelBuilder.Entity<PackageStatistics>()
                 .HasKey(ps => ps.Key);

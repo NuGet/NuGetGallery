@@ -143,6 +143,7 @@ namespace NuGetGallery
         public IQueryable<Package> GetPackagesForListing(bool includePrerelease)
         {
             var packages = _packageRepository.GetAll()
+                .Include(p => p.Metadata)
                 .Include(x => x.PackageRegistration)
                 .Include(x => x.PackageRegistration.Owners)
                 .Where(p => p.Listed);
@@ -160,12 +161,14 @@ namespace NuGetGallery
             var latestStablePackageVersions = _packageRegistrationRepository.GetAll()
                 .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
                 .Select(pr => pr.Packages.Where(p => p.IsLatestStable).FirstOrDefault())
+                .Include(p => p.Metadata)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 
             var latestPackageVersions = _packageRegistrationRepository.GetAll()
                 .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
                 .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
+                .Include(p => p.Metadata)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 

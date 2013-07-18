@@ -101,6 +101,8 @@ namespace NuGetGallery
                 .To<PackageService>()
                 .InRequestScope();
 
+            Bind<EditPackageService>().ToSelf();
+
             Bind<IFormsAuthenticationService>()
                 .To<FormsAuthenticationService>()
                 .InSingletonScope();

@@ -10,17 +10,18 @@ namespace NuGetGallery
         {
         }
 
-        public EditPackageVersionRequest(Package package)
+        public EditPackageVersionRequest(Package package, PackageMetadata pendingMetadata)
         {
-            VersionTitle = package.Metadata.Title;
-            IconUrl = package.Metadata.IconUrl;
-            Summary = package.Metadata.Summary;
-            Description = package.Metadata.Description;
-            ProjectUrl = package.Metadata.ProjectUrl;
-            Authors = package.Metadata.Authors;
-            Copyright = package.Metadata.Copyright;
-            Tags = package.Metadata.Tags;
-            ReleaseNotes = package.Metadata.ReleaseNotes;
+            var metadata = pendingMetadata ?? package.Metadata;
+            VersionTitle = metadata.Title;
+            IconUrl = metadata.IconUrl;
+            Summary = metadata.Summary;
+            Description = metadata.Description;
+            ProjectUrl = metadata.ProjectUrl;
+            Authors = metadata.Authors;
+            Copyright = metadata.Copyright;
+            Tags = metadata.Tags;
+            ReleaseNotes = metadata.ReleaseNotes;
         }
 
         [StringLength(256)]

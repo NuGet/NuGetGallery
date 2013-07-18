@@ -10,9 +10,8 @@ namespace NuGetGallery
     /// This class records the data corresponding to a particular 'edit' of a 'package version', 
     /// as created either by package upload or user doing a package edit operation on that version
     /// </summary>
-    public class PackageMetadata
+    public class PackageMetadata : IEntity
     {
-        [Key]
         public int Key { get; set; }
 
         public Package Package { get; set; }
