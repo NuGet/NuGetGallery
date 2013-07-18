@@ -90,7 +90,7 @@ namespace NuGetGallery
                 .SingleOrDefault(pr => pr.Id == id);
         }
 
-        public virtual Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true)
+        public virtual Package FindPackageByIdAndVersion(string id, string version, bool allowPrerelease = true, bool checkMalformedVersions = true)
         {
             if (String.IsNullOrWhiteSpace(id))
             {
@@ -137,6 +137,21 @@ namespace NuGetGallery
                     p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
                          p.Version.Equals(version, StringComparison.OrdinalIgnoreCase));
             }
+
+            // If asked to, and if we didn't find a package using the provided version, try a slower check for incorrectly stored versions in the database
+            string normalizedVersion = SemanticVersionExtensions.Normalize(version);
+            if (package == null && checkMalformedVersions && !String.Equals(normalizedVersion, version, StringComparison.OrdinalIgnoreCase))
+            {
+                // Try to get the package registration
+                var packagereg = FindPackageRegistrationById(id);
+                if (packagereg != null)
+                {
+                    // Do a search to find a matching package version (in case the data is borked)
+                    var packages = packagereg.Packages.ToList();
+                    package = packages.FirstOrDefault(p => String.Equals(SemanticVersionExtensions.Normalize(p.Version), normalizedVersion));
+                }
+            }
+
             return package;
         }
 
@@ -418,7 +433,7 @@ namespace NuGetGallery
 
             package = new Package
             {
-                Version = nugetPackage.Metadata.Version.ToString(),
+                Version = nugetPackage.Metadata.Version.ToNormalizedString(),
                 Description = nugetPackage.Metadata.Description,
                 ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
                 RequiresLicenseAcceptance = nugetPackage.Metadata.RequireLicenseAcceptance,

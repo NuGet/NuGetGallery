@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -115,6 +116,132 @@ namespace NuGetGallery
                 (IQueryable<Package> p, string searchTerm) => p);
 
             return searchService;
+        }
+
+        public class TheDisplayPackageAction
+        {
+            [Fact]
+            public void GivenANonNormalizedVersionIt301RedirectsToTheNormalizedVersion()
+            {
+                // Arrange
+                var fakeContext = new Mock<HttpContextBase>();
+                var controller = CreateController(httpContext: fakeContext);
+                TestUtility.SetupHttpContextMockForUrlGeneration(fakeContext, controller);
+
+                // Act
+                var result = controller.DisplayPackage("foo", "1.0") as RedirectResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.True(result.Permanent);
+                Assert.Equal("/?id=foo&version=1.0.0&action=DisplayPackage&controller=Packages", result.Url);
+            }
+
+            [Fact]
+            public void GivenANonExistentPackageIdIt404s()
+            {
+                // Arrange
+                var controller = CreateController();
+
+                // Act
+                var result = controller.DisplayPackage("foo", "1.0.0") as HttpStatusCodeResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(404, result.StatusCode);
+            }
+
+            [Fact]
+            public void GivenANonExistentPackageVersionIt404s()
+            {
+                // Arrange
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(p => p.FindPackageByIdAndVersion("foo", It.Is<string>(s => s != "1.0.0"), true));
+                var controller = CreateController();
+
+                // Act
+                var result = controller.DisplayPackage("foo", "1.0.0") as HttpStatusCodeResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(404, result.StatusCode);
+            }
+
+            [Fact]
+            public void GivenAValidPackageVersionItReturnsADisplayPackageViewModel()
+            {
+                // Arrange
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService
+                    .Setup(p => p.FindPackageByIdAndVersion("foo", "1.0.0", true))
+                    .Returns(new Package()
+                    {
+                        PackageRegistration = new PackageRegistration()
+                        {
+                            Id = "foo"
+                        },
+                        Version = "1.0.0",
+                        Copyright = "&copy; 2013"
+                    });
+                var controller = CreateController(packageService: fakePackageService);
+
+                // Act
+                var result = Assert.IsType<ViewResult>(controller.DisplayPackage("foo", "1.0.0"));
+
+                // Assert
+                Assert.Equal("", result.ViewName);
+                
+                var model = Assert.IsType<DisplayPackageViewModel>(result.Model);
+                Assert.Equal("foo", model.Id);
+                Assert.Equal("1.0.0", model.Version);
+                Assert.Equal("&copy; 2013", model.Copyright);
+            }
+
+            [Fact]
+            public void GivenAValidPackageVersionWhereDatabaseHasNonNormalizedVersionItReturnsADisplayPackageViewModel()
+            {
+                // Arrange
+                var reg = new PackageRegistration()
+                {
+                    Id = "foo",
+                    Packages = new List<Package>()
+                };
+                reg.Packages.Add(new Package()
+                {
+                    Version = "01.00",
+                    Copyright = "&copy; 2013 a",
+                    PackageRegistration = reg
+                });
+                reg.Packages.Add(new Package()
+                {
+                    Version = "01.01",
+                    Copyright = "&copy; 2013 b",
+                    PackageRegistration = reg
+                });
+                reg.Packages.Add(new Package()
+                {
+                    Version = "2.0.0",
+                    Copyright = "&copy; 2013 c",
+                    PackageRegistration = reg
+                });
+
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService
+                    .Setup(p => p.FindPackageRegistrationById("foo"))
+                    .Returns(reg);
+                var controller = CreateController(packageService: fakePackageService);
+
+                // Act
+                var result = Assert.IsType<ViewResult>(controller.DisplayPackage("foo", "1.0.0"));
+
+                // Assert
+                Assert.Equal("", result.ViewName);
+
+                var model = Assert.IsType<DisplayPackageViewModel>(result.Model);
+                Assert.Equal("foo", model.Id);
+                Assert.Equal("1.0.0", model.Version);
+                Assert.Equal("&copy; 2013 a", model.Copyright);
+            }
         }
 
         public class TheCancelVerifyPackageAction
