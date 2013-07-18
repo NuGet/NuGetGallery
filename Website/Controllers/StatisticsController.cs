@@ -187,7 +187,10 @@ namespace NuGetGallery
 
             ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id, DetermineClientLocale());
 
-            report.Id = MakeReportId(groupby);
+            if (report != null)
+            {
+                report.Id = MakeReportId(groupby);
+            }
 
             StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
 
@@ -210,7 +213,10 @@ namespace NuGetGallery
 
             ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" }, null, DetermineClientLocale());
 
-            report.Id = MakeReportId(groupby);
+            if (report != null)
+            {
+                report.Id = MakeReportId(groupby);
+            }
 
             var model = new StatisticsPackagesViewModel();
 
