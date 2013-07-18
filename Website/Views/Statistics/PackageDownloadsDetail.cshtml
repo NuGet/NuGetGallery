@@ -21,7 +21,10 @@ else
 
 @section BottomScripts
 {
-    @Scripts.Render("~/Scripts/d3.v3.min.js")
+    @if (Model.UseD3)
+    {
+        @Scripts.Render("~/Scripts/d3.v3.min.js")
+    }
     @Scripts.Render("~/Scripts/statsdimensions.js")
     @Scripts.Render("~/Scripts/perpackagestatsgraphs.js")
     <script>
