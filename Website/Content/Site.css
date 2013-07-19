@@ -1175,14 +1175,21 @@ fieldset.form legend { display: none; }
     margin-bottom: 5px;
 }
 
+#form-field-register-policies {
+    margin-bottom: 0;
+}
+
 #form-field-register-policies label
 {
     width: 300px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 #form-field-register-policies input
 {
-    margin-left: 0;
+    display: inline;
+    vertical-align: middle;
 }
 
 #form-field-register-policies span.field-validation-error
