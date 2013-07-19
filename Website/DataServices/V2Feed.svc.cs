@@ -92,7 +92,7 @@ namespace NuGetGallery
                 return Enumerable.Empty<V2FeedPackage>().AsQueryable();
             }
 
-            var versionLookup = Enumerable.Range(0, idValues.Length).Select(i =>
+            var versionLookup = idValues.Select((id, i) =>
                 {
                     SemanticVersion currentVersion = null;
                     if (SemanticVersion.TryParse(versionValues[i], out currentVersion))
@@ -105,7 +105,7 @@ namespace NuGetGallery
                                 versionConstraint = null;
                             }
                         }
-                        return Tuple.Create(idValues[i], Tuple.Create(currentVersion, versionConstraint));
+                        return Tuple.Create(id, Tuple.Create(currentVersion, versionConstraint));
                     }
                     return null;
                 })
