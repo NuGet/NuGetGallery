@@ -132,7 +132,7 @@ namespace NuGetGallery
 
             var curatedPackages = _curatedFeedService.GetPackages(curatedFeedName);
 
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: curatedFeedKey)
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: curatedFeedKey)
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
