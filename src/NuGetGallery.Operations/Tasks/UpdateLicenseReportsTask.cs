@@ -1,59 +1,170 @@
-﻿using System;
+﻿using AnglicanGeek.DbExecutor;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
+using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace NuGetGallery.Operations.Tasks
 {
+ 
     [Command("updatelicensereports", "Updates the license reports from SonaType", AltName="ulr")]
     public class UpdateLicenseReportsTask : DatabaseTask
     {
-        private static readonly string[] _licenses = new[] {
-            "Apache 2 (TEST)",
-            "MIT (TEST)",
-            "BSD (TEST)",
-            "GPL (TEST), BSD (TEST)",
-            "EPL (TEST), MIT (TEST), BSD (TEST)",
-            "Apache 2 (TEST), Just do what you want (TEST)",
-            null
-        };
+        private class PackageLicenseReport
+        {
+            public int Sequence { set; get; }
+            public string PackageId { set; get; }
+            public string Version { set; get; }
+            public string ReportUrl { set; get; }
+            public string Comment { set; get; }
+            public ICollection<string> Licenses { private set; get; }
+
+            public PackageLicenseReport(int sequence)
+            {
+                this.Sequence = sequence;
+                this.PackageId = null;
+                this.Version = null;
+                this.ReportUrl = null;
+                this.Comment = null;
+                this.Licenses = new LinkedList<string>();
+            }
+
+            public override string ToString()
+            {
+                return "{ " + Sequence.ToString() + ", "
+                    + String.Join(", ", new string[] { PackageId, PackageId, Version, ReportUrl, Comment })
+                    + ", [ " + String.Join(", ", Licenses) + " ] }";
+            }
+        }
+
+        private class PackageLicenseReportsStorage
+        {
+            public static void Store(PackageLicenseReport report, SqlConnection connection)
+            {
+                using (SqlCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "AddPackageLicenseReport";
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    DataTable licensesNames = new DataTable();
+                    licensesNames.Columns.Add("Name", typeof(string));
+                    foreach (string license in report.Licenses)
+                    {
+                        licensesNames.Rows.Add(license);
+                    }
+                    command.Parameters.AddWithValue("@licensesNames", licensesNames);
+
+                    command.Parameters.AddWithValue("@sequence", report.Sequence);
+                    command.Parameters.AddWithValue("@packageId", report.PackageId);
+                    command.Parameters.AddWithValue("@version", report.Version);
+                    command.Parameters.AddWithValue("@reportUrl", report.ReportUrl);
+                    command.Parameters.AddWithValue("@comment", report.Comment);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private static readonly JsonSchema sonatypeSchema = JsonSchema.Parse(@"{ 'type': 'object', 'properties': {
+                'next'   : { 'type' : 'string' },
+                'events' : { 'type': 'array', 'items': { 'type': 'object', 'properties': {                                
+                        'sequence'  : { 'type' : 'integer' },
+                        'packageId' : { 'type' : 'string' },
+                        'version'   : { 'type' : 'string' },
+                        'licenses'  : { 'type' : 'array', 'items': { 'type': 'string' } },
+                        'reportUrl' : { 'type' : 'string' },
+                        'comment'   : { 'type' : 'string' } } } } } }");
+  
+        private static PackageLicenseReport CreateReport(JObject messageEvent)
+        {
+            PackageLicenseReport report = new PackageLicenseReport(messageEvent["sequence"].Value<int>());
+            report.PackageId = messageEvent["packageId"].Value<string>();
+            report.Version = messageEvent["version"].Value<string>();
+            report.ReportUrl = messageEvent["reportUrl"].Value<string>();
+            report.Comment = messageEvent["comment"].Value<string>();
+            foreach (JValue l in messageEvent["licenses"])
+            {
+                report.Licenses.Add(l.Value<string>());
+            }
+            return report;
+        }
 
         public override void ExecuteCommand()
         {
-            // Get all packages!
-            WithConnection((c, db) =>
+            
+            string nextLicenseReport = null;
+            WithConnection((connection, executor) =>
             {
-                // Grab the top 100 most downloaded packages
-                var packages = db.Query<Package>(@"
-                    SELECT TOP 100 r.Id, (SELECT TOP 1 [Version] FROM Packages WHERE PackageRegistrationKey = r.[Key] AND IsLatestStable = 1) AS 'Version', (SELECT TOP 1 [Key] FROM Packages WHERE PackageRegistrationKey = r.[Key] AND IsLatestStable = 1) AS 'Key'
-                    FROM Packages p
-                    INNER JOIN PackageRegistrations r ON p.PackageRegistrationKey = r.[Key]
-                    WHERE EXISTS (SELECT * FROM Packages WHERE PackageRegistrationKey = r.[Key] AND IsLatestStable = 1)
-                    GROUP BY r.Id, r.[Key]
-                    ORDER BY MAX(r.DownloadCount) DESC").ToList();
+                nextLicenseReport = executor.Query<string>(
+                    @"SELECT NextLicenseReport FROM GallerySettings").FirstOrDefault();
+            });
+ 
+            Boolean hasNext = true;
+            while (hasNext)
+            {
+                hasNext = false;
 
-                var r = new Random();
-                foreach (var package in packages)
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(nextLicenseReport);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+ 
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    // Pick a random license set for it
-                    var licenses = _licenses[r.Next(_licenses.Length - 1)];
+                    string content = (new StreamReader(response.GetResponseStream())).ReadToEnd();
+                    JObject sonatypeMessage = JObject.Parse(content);
 
-                    // Flip a coin to determine if we put a URL in
-                    var reportUrl = (r.Next(100) % 3 == 0) ? "http://www.microsoft.com" : null;
-
-                    // Add the data!
-                    Log.Info("Adding '{0}' and '{1}' to '{2}@{3}'", licenses, reportUrl, package.Id, package.Version);
-                    if (!WhatIf)
+                    if (!sonatypeMessage.IsValid(sonatypeSchema))
                     {
-                        db.Execute(@"
-                            UPDATE Packages 
-                            SET LicenseNames = @licenses, LicenseReportUrl = @reportUrl
-                            WHERE [Key] = @key",
-                            new { licenses, reportUrl, key = package.Key });
+                        if (!WhatIf)
+                        {
+                            // TODO: Report to backend log.
+                        }
+                        return;
+                    }
+
+                    foreach (JObject messageEvent in sonatypeMessage["events"])
+                    {
+                        PackageLicenseReport report = CreateReport(messageEvent);
+                        if (!WhatIf)
+                        {
+                            WithConnection((connection) =>
+                            {
+                                PackageLicenseReportsStorage.Store(report, connection);
+                            });
+                        }
+                    }
+
+                    if (sonatypeMessage["next"].Value<string>().Count() > 0)
+                    {
+                        hasNext = true;
+                        nextLicenseReport = sonatypeMessage["next"].Value<string>();
+                        if (!WhatIf)
+                        {
+                            WithConnection((connection, executor) =>
+                            {
+                                executor.Execute(@"
+                                    UPDATE GallerySettings
+                                    SET NextLicenseReport = @nextLicenseReport",
+                                    new { nextLicenseReport });
+                            });
+                        }
                     }
                 }
-            });
+                else if (response.StatusCode != HttpStatusCode.NoContent)
+                {
+                    if (!WhatIf)
+                    {
+                        // TODO: Report to backend log.
+                    }
+                    return;
+                }
+            }
         }
     }
 }
