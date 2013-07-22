@@ -880,6 +880,15 @@ section.package div.tags {
 
 section.package div.tags h2 { margin-right: 5px; }
 
+section.package div.licenses {
+    border-left: 1px solid #ccc;
+    display: inline;
+    margin-left: 10px;
+    padding-left: 10px;
+}
+section.package div.licenses h2 { margin-right: 5px; }
+section.package div.licenses p  { display: inline; }
+
 section.package .side {
     float: left;
     width: 70px;
