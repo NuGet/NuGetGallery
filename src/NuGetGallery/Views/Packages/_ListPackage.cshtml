@@ -54,6 +54,23 @@
                     </ul>
                 </div>
             }
+
+            @if (!Model.HideLicenseReport && Model.LicenseNames.AnySafe())
+            {
+                <div class="licenses">
+                    <h2>Licenses</h2>
+                    <p>
+                        @if (Model.LicenseNames.Count() > 10)
+                        {
+                            @String.Concat(String.Join(", ", Model.LicenseNames.Take(10)), ", ...")
+                        }
+                        else
+                        {
+                            @String.Join(", ", Model.LicenseNames)
+                        }
+                    </p>
+                </div>
+            }
         </footer>
     </div>
 </section>
