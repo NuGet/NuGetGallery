@@ -13,8 +13,8 @@ var packageDisplayGraphs = function () {
     }
 }
 
-var SemVer = function (s) {
-    var n = s.split('-');
+var SemVer = function (versionString) {
+    var n = versionString.split('-');
     var v = n[0].split('.');
 
     this.preRelease = n[1];
@@ -48,35 +48,35 @@ var SemVer = function (s) {
         }
         return s;
     }
-}
 
-var semVerCompare = function (a, b) {
-    if (a.major === b.major && a.minor === b.minor && a.patch === b.patch && a.preRelease === b.preRelease) {
-        return 0;
-    }
-    if (a.major < b.major) {
-        return -1;
-    }
-    if (a.major === b.major) {
-        if (a.minor < b.minor) {
+    this.compareTo = function (other) {
+        if (this.major === other.major && this.minor === other.minor && this.patch === other.patch && this.preRelease === other.preRelease) {
+            return 0;
+        }
+        if (this.major < other.major) {
             return -1;
         }
-        if (a.minor === b.minor) {
-            if (a.patch < b.patch) {
+        if (this.major === other.major) {
+            if (this.minor < other.minor) {
                 return -1;
             }
-            if (a.patch === b.patch) {
-                if (a.preRelease < b.preRelease) {
+            if (this.minor === other.minor) {
+                if (this.patch < other.patch) {
                     return -1;
+                }
+                if (this.patch === other.patch) {
+                    if (this.preRelease < other.preRelease) {
+                        return -1;
+                    }
                 }
             }
         }
+        return 1;
     }
-    return 1;
 }
 
 var sortByVersion = function (a, b) {
-    return semVerCompare(new SemVer(a.version), new SemVer(b.version));
+    return (new SemVer(a.version)).compareTo(new SemVer(b.version));
 }
 
 var drawDownloadsByVersionBarChart = function () {
