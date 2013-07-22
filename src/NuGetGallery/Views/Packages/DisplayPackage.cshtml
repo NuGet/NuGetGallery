@@ -115,7 +115,7 @@
             }
             @if (!Model.HideLicenseReport)
             {
-                if ((Model.LicenseNames != null) && (Model.LicenseNames.Count() > 0))
+                if (Model.LicenseNames.AnySafe())
                 {
                     <p id="licenseNames">@String.Join(", ", Model.LicenseNames)</p>
                 }
@@ -126,9 +126,7 @@
             }
             @if (!Model.HideLicenseReport)
             {
-                if ((Model.LicenseNames != null) 
-                    && (Model.LicenseNames.Count() > 0) 
-                    && !String.IsNullOrEmpty(Model.LicenseReportUrl))
+                if (Model.LicenseNames.AnySafe() && !String.IsNullOrEmpty(Model.LicenseReportUrl))
                 {
                     <p class="block-link"><a href="@Model.LicenseReportUrl" title="License analysis by Sonatype CLM">View Sonatype CLM Component Report</a></p>
                 }
