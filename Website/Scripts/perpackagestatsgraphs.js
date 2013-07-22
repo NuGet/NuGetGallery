@@ -13,13 +13,70 @@ var packageDisplayGraphs = function () {
     }
 }
 
-var sortByVersion = function (a, b) {
-    var versionA = a.version.toLowerCase(), versionB = b.version.toLowerCase()
-    if (versionA < versionB)
+var SemVer = function (s) {
+    var n = s.split('-');
+    var v = n[0].split('.');
+
+    this.preRelease = n[1];
+
+    if (v[0] !== undefined) {
+        this.major = Number(v[0]);
+    }
+    if (v[1] !== undefined) {
+        this.minor = Number(v[1]);
+    }
+    if (v[2] !== undefined) {
+        this.patch = Number(v[2]);
+    }
+
+    this.toString = function () {
+        var s = '';
+        if (this.major !== undefined && !isNaN(this.major)) {
+            s += this.major.toString();
+        }
+        if (this.minor !== undefined && !isNaN(this.minor)) {
+            s += '.';
+            s += this.minor.toString();
+        }
+        if (this.patch !== undefined && !isNaN(this.patch)) {
+            s += '.';
+            s += this.patch.toString();
+        }
+        if (this.preRelease !== undefined) {
+            s += '-';
+            s += this.preRelease;
+        }
+        return s;
+    }
+}
+
+var semVerCompare = function (a, b) {
+    if (a.major === b.major && a.minor === b.minor && a.patch === b.patch && a.preRelease === b.preRelease) {
+        return 0;
+    }
+    if (a.major < b.major) {
         return -1;
-    if (versionA > versionB)
-        return 1;
-    return 0;
+    }
+    if (a.major === b.major) {
+        if (a.minor < b.minor) {
+            return -1;
+        }
+        if (a.minor === b.minor) {
+            if (a.patch < b.patch) {
+                return -1;
+            }
+            if (a.patch === b.patch) {
+                if (a.preRelease < b.preRelease) {
+                    return -1;
+                }
+            }
+        }
+    }
+    return 1;
+}
+
+var sortByVersion = function (a, b) {
+    return semVerCompare(new SemVer(a.version), new SemVer(b.version));
 }
 
 var drawDownloadsByVersionBarChart = function () {
