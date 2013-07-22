@@ -106,9 +106,22 @@
     @gravatarHtml
 }
 
+@helper ReleaseMeta() {
+    // Using ConfigurationManager to reduce external dependencies here
+    string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"];
+    string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"];
+    string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"];
+    if (!String.IsNullOrEmpty(sha) && !String.IsNullOrEmpty(branch) && !String.IsNullOrEmpty(time))
+    {
+        <meta name="deployment-commit" content="@sha" />
+        <meta name="deployment-branch" content="@branch" />
+        <meta name="deployment-time" content="@time" />
+    }
+}
+
 @helper ReleaseTag()
 {
-    // Using ConfigurationManager because these settings are part of the cspkg itself and thus are always in web.config.
+    // Using ConfigurationManager to reduce external dependencies here
     string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"];
     string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"];
     string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"];
