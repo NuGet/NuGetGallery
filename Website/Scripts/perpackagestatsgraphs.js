@@ -67,9 +67,12 @@ var drawDownloadsByVersionBarChart = function () {
     var svg = d3.select('#statistics-graph-id')
         .append('svg')
         .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        .attr('height', height + margin.top + margin.bottom);
+
+    svg.append('title').text('Downloads By Version');
+    svg.append('desc').text('This is a graph showing the number of downloads of this Package broken out by version.');
+
+    svg = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
     xScale.domain(data.map(function (d) { return d.version; }));
     yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
@@ -149,9 +152,12 @@ var drawDownloadsByClientNameBarChart = function () {
     var svg = d3.select('#statistics-graph-id')
         .append('svg')
         .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        .attr('height', height + margin.top + margin.bottom);
+
+    svg.append('title').text('Downloads By Client');
+    svg.append('desc').text('This is a graph showing the number of downloads of this Package broken out by client.');
+
+    svg = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
     xScale.domain(data.map(function (d) { return d.clientName; }));
     yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
