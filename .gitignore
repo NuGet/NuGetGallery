@@ -4,6 +4,8 @@ Website/App_Data/*
 Website/App_Data/Files/*
 !Website/App_Data/Files/Content
 
+.nuget/nuget.exe
+
 *.results.xml
 _AzurePackage
 *.bak

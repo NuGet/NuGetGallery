@@ -126,6 +126,8 @@ namespace NuGetGallery
 
             model.Update();
 
+            model.UseD3 = UseD3();
+
             return View(model);
         }
 
@@ -187,11 +189,16 @@ namespace NuGetGallery
 
             ProcessReport(report, groupby, new string[] { "Version", "ClientName", "ClientVersion", "Operation" }, id, DetermineClientLocale());
 
-            report.Id = MakeReportId(groupby);
+            if (report != null)
+            {
+                report.Id = MakeReportId(groupby);
+            }
 
             StatisticsPackagesViewModel model = new StatisticsPackagesViewModel();
 
             model.SetPackageDownloadsByVersion(id, report);
+
+            model.UseD3 = UseD3();
 
             return View(model);
         }
@@ -210,11 +217,16 @@ namespace NuGetGallery
 
             ProcessReport(report, groupby, new string[] { "ClientName", "ClientVersion", "Operation" }, null, DetermineClientLocale());
 
-            report.Id = MakeReportId(groupby);
+            if (report != null)
+            {
+                report.Id = MakeReportId(groupby);
+            }
 
             var model = new StatisticsPackagesViewModel();
 
             model.SetPackageVersionDownloadsByClient(id, version, report);
+
+            model.UseD3 = UseD3();
 
             return View(model);
         }
@@ -326,6 +338,22 @@ namespace NuGetGallery
                 }
             }
             return graphId;
+        }
+
+        private bool UseD3()
+        {
+            //  the aim here is to explicit eliminate IE 7.0 and IE 8.0 from the browsers that support D3
+            //  we are doing this on the server rather than in the browser because even downloading the D3 script fails
+            bool f = true;
+            if (Request != null && Request.Browser != null && Request.Browser.Browser == "IE")
+            {
+                float version;
+                if (float.TryParse(Request.Browser.Version, out version))
+                {
+                    f = version > 8.0;
+                }
+            }
+            return f;
         }
     }
 }

@@ -444,6 +444,43 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void V2FeedGetUpdatesReturnsUpdateIfAnyOfTheProvidedVersionsIsOlder()
+        {
+            // Arrange
+            var packageRegistrationA = new PackageRegistration { Id = "Foo" };
+            var packageRegistrationB = new PackageRegistration { Id = "Qux" };
+            var repo = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+            repo.Setup(r => r.GetAll()).Returns(
+                new[]
+                    {
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                    }.AsQueryable());
+            var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
+            configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
+            var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
+
+            // Act
+            var result = v2Service.GetUpdates(
+                "Foo|Foo|Qux",
+                "1.0.0|1.2.0|0.9",
+                includePrerelease: false,
+                includeAllVersions: false,
+                targetFrameworks: null,
+                versionConstraints: null)
+                .ToList();
+
+            // Assert
+            Assert.Equal(2, result.Count);
+            AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[0]);
+            AssertPackage(new { Id = "Qux", Version = "3.0" }, result[1]);
+        }
+
+        [Fact]
         public void V2FeedGetUpdatesReturnsPrereleasePackages()
         {
             // Arrange
@@ -475,7 +512,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void V2FeedGetUpdatesReturnsEmptyResultsIfDuplicatesInPackageList()
+        public void V2FeedGetUpdatesReturnsResultsIfDuplicatesInPackageList()
         {
             // Arrange
             var packageRegistrationA = new PackageRegistration { Id = "Foo" };
@@ -500,7 +537,12 @@ namespace NuGetGallery
                     .ToList();
 
             // Assert
-            Assert.Equal(0, result.Count);
+            Assert.Equal(4, result.Count);
+            AssertPackage(new { Id = "Foo", Version = "1.0.0" }, result[0]);
+            AssertPackage(new { Id = "Foo", Version = "1.1.0" }, result[1]);
+            AssertPackage(new { Id = "Foo", Version = "1.2.0" }, result[2]);
+            AssertPackage(new { Id = "Qux", Version = "2.0" }, result[3]);
+
         }
 
         [Fact]
