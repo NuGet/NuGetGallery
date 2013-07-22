@@ -115,9 +115,7 @@
             }
             @if (!Model.HideLicenseReport)
             {
-                if ((Model.LicenseNames != null) 
-                    && (Model.LicenseNames.Count() > 0) 
-                    && !String.IsNullOrEmpty(Model.LicenseReportUrl))
+                if ((Model.LicenseNames != null) && (Model.LicenseNames.Count() > 0))
                 {
                     <p id="licenseNames">@String.Join(", ", Model.LicenseNames)</p>
                 }
