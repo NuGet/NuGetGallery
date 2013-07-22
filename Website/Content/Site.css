@@ -179,7 +179,6 @@ nav, section { display: block; }
 
 #content-wrapper {
     margin: 0 auto;
-    min-height: 100%;
     min-width: 960px;
     width: 960px;
 }
