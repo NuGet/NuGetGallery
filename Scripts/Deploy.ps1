@@ -10,7 +10,7 @@ function Set-AppSetting($x, [string]$name, [string]$value) {
 
 # Gather deployment info
 pushd $env:DEPLOYMENT_SOURCE
-Write-Host "In Deployment Source: $(Get-Location)"
+"In Deployment Source: $(Get-Location)"
 $Commit = git rev-parse --short HEAD
 $Branch = $env:branch
 $Date = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTimeOffset]::UtcNow, "Pacific Standard Time")
