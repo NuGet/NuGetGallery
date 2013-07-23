@@ -1126,6 +1126,7 @@
     <Content Include="favicon.ico" />
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
+    <Content Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="robots.txt" />
     <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
     <Content Include="Scripts\jquery-1.6.4.js" />
