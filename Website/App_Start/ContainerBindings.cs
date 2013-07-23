@@ -243,6 +243,8 @@ namespace NuGetGallery
             Bind<Lucene.Net.Store.Directory>()
                 .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .InSingletonScope();
+
+            //TODO: use Azure blobs
         }
     }
 }
