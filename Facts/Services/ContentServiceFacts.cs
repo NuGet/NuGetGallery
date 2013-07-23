@@ -132,7 +132,6 @@ namespace NuGetGallery.Services
                 Assert.Equal(CachedContent, updatedCache.Content.ToString());
                 Assert.Equal(file.ContentId, updatedCache.ContentId);
                 Assert.True(EqualWithDrift(TimeSpan.FromHours(12), (updatedCache.ExpiryUtc - updatedCache.RetrievedUtc), TimeSpan.FromSeconds(2)));
-                Assert.True(updatedCache.RetrievedUtc > testStart);
             }
 
             [Fact]
@@ -163,7 +162,6 @@ namespace NuGetGallery.Services
                 Assert.Equal(RenderedNewContent, updatedCache.Content.ToString());
                 Assert.Equal(file.ContentId, updatedCache.ContentId);
                 Assert.True(EqualWithDrift(TimeSpan.FromHours(12), (updatedCache.ExpiryUtc - updatedCache.RetrievedUtc), TimeSpan.FromSeconds(2)));
-                Assert.True(updatedCache.RetrievedUtc > testStart);
             }
         }
 
