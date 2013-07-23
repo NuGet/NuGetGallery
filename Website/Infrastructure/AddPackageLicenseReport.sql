@@ -1,23 +1,23 @@
 SET ANSI_NULLS ON
-SET QUOTED_IDENTIFIER OFF
-
-IF TYPE_ID(N'[dbo].[LicenseNamesList]') IS NOT NULL
-    DROP TYPE [dbo].[LicenseNamesList]
-GO
-EXEC dbo.sp_executesql @statement = N'
-CREATE TYPE [dbo].[LicenseNamesList] AS TABLE
-(
-     Name VARCHAR(128) NOT NULL PRIMARY KEY
-)
-'
-GO
 
 IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AddPackageLicenseReport]') AND type IN (N'P', N'PC'))
 BEGIN
     DROP PROCEDURE [dbo].[AddPackageLicenseReport]
 END
 GO
-EXEC dbo.sp_executesql @statement = N'
+
+IF TYPE_ID(N'[dbo].[LicenseNamesList]') IS NOT NULL
+    DROP TYPE [dbo].[LicenseNamesList]
+GO
+
+--EXEC dbo.sp_executesql @statement = N'
+CREATE TYPE [dbo].[LicenseNamesList] AS TABLE
+(
+     Name VARCHAR(128) NOT NULL PRIMARY KEY
+)
+--'
+GO
+
 CREATE PROCEDURE [dbo].[AddPackageLicenseReport]
 (
      @sequence INT,
@@ -25,11 +25,11 @@ CREATE PROCEDURE [dbo].[AddPackageLicenseReport]
      @version NVARCHAR(64),
      @reportUrl NVARCHAR(256),
      @licenseNames LicenseNamesList READONLY,
-     @comment NVARCHAR
+     @comment NVARCHAR(256)
  )
  AS
  BEGIN
- 
+	
     SET NOCOUNT ON 
 
     DECLARE @reportKey       INT
@@ -64,33 +64,35 @@ CREATE PROCEDURE [dbo].[AddPackageLicenseReport]
         -- Add non-existing license names 
  
         MERGE PackageLicenses
-        USING [@licenseNames]
-        ON    PackageLicenses.Name = [@licenseNames].Name
+        USING @licenseNames l
+        ON    PackageLicenses.Name = l.Name
         WHEN NOT MATCHED THEN
-            INSERT (Name) VALUES ([@licenseNames].Name);
+            INSERT (Name) VALUES (l.Name);
     
         -- Get license names keys
  
         INSERT @licenseKeys
         SELECT PackageLicenses.[Key] FROM PackageLicenses 
-        JOIN   [@licenseNames]
-        ON     PackageLicenses.Name = [@licenseNames].Name
+        JOIN   @licenseNames l
+        ON     PackageLicenses.Name = l.Name
          
         -- Add report 
  
         INSERT PackageLicenseReports (PackageKey, CreatedUtc, Sequence, ReportUrl, Comment)
-        OUTPUT INSERTED.ID INTO @reportKey
         VALUES (@packageKey, GETDATE(), @sequence, @reportUrl, @Comment)
+
+		SELECT @reportKey = SCOPE_IDENTITY()
  
         -- Create relationship between report and licenses names 
  
         -- INSERT PackageLicenseReportLicenses (ReportKey, LicenseKey)
-        -- TODO
+		INSERT PackageLicenseReportLicenses
+		SELECT @reportKey AS ReportKey, [Key] FROM @licenseKeys
 
         -- Add denormalized data for optimization 
     
         -- Creates a comma-separated list
-        SELECT @licenseNamesStr = COALESCE(@licenseNamesStr + ",", "") + Name 
+        SELECT @licenseNamesStr = COALESCE(@licenseNamesStr + ',', '') + Name 
         FROM   @licenseNames
  
         UPDATE Packages
@@ -100,5 +102,3 @@ CREATE PROCEDURE [dbo].[AddPackageLicenseReport]
         
     COMMIT TRANSACTION
 END
-'
-GO
