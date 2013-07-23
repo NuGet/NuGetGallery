@@ -21,9 +21,12 @@ var drawNugetClientVersionBarChart = function () {
 
     var svg = d3.select('#downloads-by-nuget-version').append('svg')
         .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-      .append('g')
-        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        .attr('height', height + margin.top + margin.bottom);
+
+    svg.append('title').text('NuGet Client Usage (Last 6 Weeks)');
+    svg.append('desc').text('This is a graph showing the number of downloads by each version of the NuGet client over the last six weeks.');
+
+    svg = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
     var data = [];
 
@@ -113,9 +116,12 @@ var drawMonthlyDownloadsLineChart = function () {
 
     var svg = d3.select("#downloads-per-month").append("svg")
         .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        .attr("height", height + margin.top + margin.bottom);
+
+    svg.append('title').text('Packages Downloaded Per Month');
+    svg.append('desc').text('This is a graph showing the number of downloads from NuGet per month.');
+
+    svg = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     xScale.domain(data.map(function (d) { return d.month; }));
     yScale.domain([0, d3.max(data, function (d) { return d.downloads; })]);
