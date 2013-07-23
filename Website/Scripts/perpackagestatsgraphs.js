@@ -38,6 +38,11 @@ var drawDownloadsByVersionBarChart = function () {
     
     data.sort(sortByVersion);
 
+    //  limit the bar graph to the most recent 15 versions
+    if (data.length > 15) {
+        data = data.slice(data.length - 15, data.length);
+    }
+
     //  draw graph
 
     var reportTableWidth = $('#report-Version').width();
