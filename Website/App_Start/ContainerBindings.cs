@@ -28,10 +28,6 @@ namespace NuGetGallery
             Bind<PoliteCaptcha.IConfigurationSource>()
                 .ToMethod(context => configuration);
 
-            Bind<Lucene.Net.Store.Directory>()
-                .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
-                .InSingletonScope();
-
             Bind<ISearchService>()
                 .To<LuceneSearchService>()
                 .InRequestScope();
@@ -171,7 +167,7 @@ namespace NuGetGallery
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
-                    ConfigureForLocalFileSystem();
+                    ConfigureForLocalFileSystem(configuration);
                     break;
                 case StorageType.AzureStorage:
                     ConfigureForAzureStorage(configuration);
@@ -214,10 +210,14 @@ namespace NuGetGallery
                 .InRequestScope();
         }
 
-        private void ConfigureForLocalFileSystem()
+        private void ConfigureForLocalFileSystem(ConfigurationService configuration)
         {
             Bind<IFileStorageService>()
                 .To<FileSystemFileStorageService>()
+                .InSingletonScope();
+
+            Bind<Lucene.Net.Store.Directory>()
+                .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .InSingletonScope();
         }
 
@@ -237,6 +237,11 @@ namespace NuGetGallery
                 .InSingletonScope();
             Bind<IStatisticsService>()
                 .To<JsonStatisticsService>()
+                .InSingletonScope();
+
+            // when running on Windows Azure, save the Lucene index in storage
+            Bind<Lucene.Net.Store.Directory>()
+                .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .InSingletonScope();
         }
     }
