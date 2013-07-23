@@ -20,7 +20,8 @@ namespace NuGetGallery.Migrations
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
-                .Index(t => t.PackageKey);
+                .Index(t => t.PackageKey)
+                .Index(t => t.Sequence, unique: true);
             
             CreateTable(
                 "dbo.PackageLicenses",
@@ -56,7 +57,7 @@ namespace NuGetGallery.Migrations
             DropForeignKey("dbo.PackageLicenseReportLicenses", "LicenseKey", "dbo.PackageLicenses");
             DropForeignKey("dbo.PackageLicenseReportLicenses", "ReportKey", "dbo.PackageLicenseReports");
             DropForeignKey("dbo.PackageLicenseReports", "PackageKey", "dbo.Packages");
-            DropColumn("dbo.GallerySettings", "NextLicenseReport");
+            DropColumn("dbo.GallerySettings", "LastLicenseReport");
             DropColumn("dbo.Packages", "HideLicenseReport");
             DropTable("dbo.PackageLicenseReportLicenses");
             DropTable("dbo.PackageLicenses");
