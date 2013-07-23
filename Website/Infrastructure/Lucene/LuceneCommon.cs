@@ -3,6 +3,8 @@ using Lucene.Net.Util;
 using System.Web.Hosting;
 using Lucene.Net.Store;
 using NuGetGallery.Configuration;
+using Lucene.Net.Store.Azure;
+using Microsoft.WindowsAzure.Storage;
 
 namespace NuGetGallery
 {
@@ -44,6 +46,17 @@ namespace NuGetGallery
             }
 
             return _directorySingleton;
+        }
+
+        internal static Lucene.Net.Store.Directory GetAzureDirectory(string storageConnectionString)
+        {
+            CloudStorageAccount storageAccount;
+
+            CloudStorageAccount.TryParse(storageConnectionString, out storageAccount);
+
+            Lucene.Net.Store.Directory directory = new AzureDirectory(storageAccount, "lucene", new RAMDirectory());
+
+            return directory;
         }
 
         private static string GetIndexLocation(LuceneIndexLocation location)

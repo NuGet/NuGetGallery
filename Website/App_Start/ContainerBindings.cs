@@ -241,7 +241,7 @@ namespace NuGetGallery
 
             // when running on Windows Azure, save the Lucene index in storage
             Bind<Lucene.Net.Store.Directory>()
-                .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
+                .ToMethod(_ => LuceneCommon.GetAzureDirectory(configuration.Current.AzureStorageConnectionString))
                 .InSingletonScope();
 
             //TODO: use Azure blobs
