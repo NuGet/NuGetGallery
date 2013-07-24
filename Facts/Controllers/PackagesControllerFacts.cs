@@ -64,6 +64,8 @@ namespace NuGetGallery
 
             cacheService = cacheService ?? new Mock<ICacheService>();
 
+            var editPackageservice = new Mock<EditPackageService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -76,7 +78,8 @@ namespace NuGetGallery
                 entitiesContext.Object,
                 config.Object,
                 indexingService.Object,
-                cacheService.Object);
+                cacheService.Object,
+                editPackageservice.Object);
             controller.CallBase = true;
 
             if (httpContext != null)

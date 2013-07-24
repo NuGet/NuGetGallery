@@ -5,16 +5,17 @@ namespace NuGetGallery
     public class PackageViewModel : IPackageVersionModel
     {
         private readonly Package _package;
+        private string _pendingTitle;
 
         public PackageViewModel(Package package)
         {
             _package = package;
             Version = package.Version;
-            Description = package.Description;
-            ReleaseNotes = package.ReleaseNotes;
-            IconUrl = package.IconUrl;
-            ProjectUrl = package.ProjectUrl;
-            LicenseUrl = package.LicenseUrl;
+            Description = package.Metadata.Description;
+            ReleaseNotes = package.Metadata.ReleaseNotes;
+            IconUrl = package.Metadata.IconUrl;
+            ProjectUrl = package.Metadata.ProjectUrl;
+            LicenseUrl = package.Metadata.LicenseUrl;
             LatestVersion = package.IsLatest;
             LatestStableVersion = package.IsLatestStable;
             LastUpdated = package.Published;
@@ -49,7 +50,8 @@ namespace NuGetGallery
 
         public string Title
         {
-            get { return String.IsNullOrEmpty(_package.Title) ? _package.PackageRegistration.Id : _package.Title; }
+            get { return _pendingTitle ?? (String.IsNullOrEmpty(_package.Metadata.Title) ? _package.PackageRegistration.Id : _package.Metadata.Title); }
+            set { _pendingTitle = value; }
         }
 
         public bool IsCurrent(IPackageVersionModel current)

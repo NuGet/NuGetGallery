@@ -36,7 +36,7 @@ namespace NuGetGallery
 
             var packageRegistration = CreateOrGetPackageRegistration(user, nugetPackage.Metadata);
 
-            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage);
+            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, user);
             packageRegistration.Packages.Add(package);
             UpdateIsLatest(packageRegistration);
 
@@ -102,8 +102,8 @@ namespace NuGetGallery
             // This resulted in a gnarly query. 
             // Instead, we can always query for all packages with the ID.
             IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
-                .Include(p => p.Authors)
                 .Include(p => p.PackageRegistration)
+                .Include(p => p.Metadata)
                 .Where(p => (p.PackageRegistration.Id == id));
             if (String.IsNullOrEmpty(version) && !allowPrerelease)
             {
@@ -143,6 +143,7 @@ namespace NuGetGallery
         public IQueryable<Package> GetPackagesForListing(bool includePrerelease)
         {
             var packages = _packageRepository.GetAll()
+                .Include(p => p.Metadata)
                 .Include(x => x.PackageRegistration)
                 .Include(x => x.PackageRegistration.Owners)
                 .Where(p => p.Listed);
@@ -160,12 +161,14 @@ namespace NuGetGallery
             var latestStablePackageVersions = _packageRegistrationRepository.GetAll()
                 .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
                 .Select(pr => pr.Packages.Where(p => p.IsLatestStable).FirstOrDefault())
+                .Include(p => p.Metadata)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 
             var latestPackageVersions = _packageRegistrationRepository.GetAll()
                 .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
                 .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
+                .Include(p => p.Metadata)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners);
 
@@ -403,7 +406,7 @@ namespace NuGetGallery
             return packageRegistration;
         }
 
-        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage)
+        private Package CreatePackageFromNuGetPackage(PackageRegistration packageRegistration, INupkg nugetPackage, User user)
         {
             var package = packageRegistration.Packages.SingleOrDefault(pv => pv.Version == nugetPackage.Metadata.Version.ToString());
 
@@ -416,6 +419,7 @@ namespace NuGetGallery
             var now = DateTime.UtcNow;
             var packageFileStream = nugetPackage.GetStream();
 
+#pragma warning disable 612 // TODO: PackageMetadata DB contraction
             package = new Package
             {
                 Version = nugetPackage.Metadata.Version.ToString(),
@@ -437,16 +441,39 @@ namespace NuGetGallery
                 Tags = PackageHelper.ParseTags(nugetPackage.Metadata.Tags),
                 Title = nugetPackage.Metadata.Title,
             };
+#pragma warning restore 612
 
+            package.Metadata = new PackageMetadata
+            {
+                Authors = nugetPackage.Metadata.Authors.Flatten(),
+                Copyright = nugetPackage.Metadata.Copyright,
+                Description = nugetPackage.Metadata.Description,
+                EditName = "OriginalMetadata",
+                HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                Hash = Crypto.GenerateHash(packageFileStream.ReadAllBytes()),
+                IconUrl = nugetPackage.Metadata.IconUrl.ToStringOrNull(),
+                IsCompleted = true,
+                LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToStringOrNull(),
+                Package = package,
+                PackageKey = package.Key,
+                PackageFileSize = packageFileStream.Length,
+                ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull(),
+                ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
+                Summary = nugetPackage.Metadata.Summary,
+                Tags = nugetPackage.Metadata.Tags,
+                Timestamp = DateTime.UtcNow,
+                Title = nugetPackage.Metadata.Title,
+                TriedCount = 0,
+                User = user,
+            };
+
+#pragma warning disable 612 // TODO: PackageMetadata DB contraction
             package.IconUrl = nugetPackage.Metadata.IconUrl.ToStringOrNull();
             package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToStringOrNull();
             package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
-            package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
+#pragma warning restore 612
 
-            foreach (var author in nugetPackage.Metadata.Authors)
-            {
-                package.Authors.Add(new PackageAuthor { Name = author });
-            }
+            package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
 
             var supportedFrameworks = GetSupportedFrameworks(nugetPackage).Select(fn => fn.ToShortNameOrNull()).ToArray();
             if (!supportedFrameworks.AnySafe(sf => sf == null))
@@ -484,7 +511,10 @@ namespace NuGetGallery
                 }
             }
 
-            package.FlattenedAuthors = package.Authors.Flatten();
+#pragma warning disable 612 // TODO: PackageMetadata DB contraction
+            package.FlattenedAuthors = nugetPackage.Metadata.Authors.Flatten();
+#pragma warning restore 612
+
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             return package;
@@ -503,7 +533,7 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "128");
             }
-            if (nugetPackage.Authors != null && String.Join(",", nugetPackage.Authors.ToArray()).Length > 4000)
+            if (nugetPackage.Authors != null && nugetPackage.Authors.Flatten().Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
             }

@@ -124,6 +124,7 @@ namespace NuGetGallery
 
             IQueryable<Package> set = _packageRepository.GetAll()
                 .Where(p => p.IsLatest || p.IsLatestStable)  // which implies that p.IsListed by the way!
+                .Include(p => p.Metadata)
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Include(p => p.SupportedFrameworks);

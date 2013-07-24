@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Web;
 using Lucene.Net.Documents;
 
 namespace NuGetGallery
@@ -48,7 +47,7 @@ namespace NuGetGallery
             document.Add(field);
 
             // Store description so we can show them in search results
-            field = new Field("Description", Package.Description, Field.Store.YES, Field.Index.ANALYZED);
+            field = new Field("Description", Package.Metadata.Description, Field.Store.YES, Field.Index.ANALYZED);
             field.Boost = 0.1f;
             document.Add(field);
 
@@ -73,9 +72,9 @@ namespace NuGetGallery
             document.Add(field);
 
             // If an element does not have a Title, fall back to Id, same as the website.
-            var workingTitle = String.IsNullOrEmpty(Package.Title)
+            var workingTitle = String.IsNullOrEmpty(Package.Metadata.Title)
                                    ? Package.PackageRegistration.Id
-                                   : Package.Title;
+                                   : Package.Metadata.Title;
 
             // As-Is (stored for search results)
             field = new Field("Title", workingTitle, Field.Store.YES, Field.Index.ANALYZED);
@@ -92,22 +91,27 @@ namespace NuGetGallery
             field.Boost = 0.5f;
             document.Add(field);
 
-            if (!String.IsNullOrEmpty(Package.Tags))
+            if (!String.IsNullOrEmpty(Package.Metadata.Tags))
             {
                 // Store tags so we can show them in search results
-                field = new Field("Tags", Package.Tags, Field.Store.YES, Field.Index.ANALYZED);
+                field = new Field("Tags", Package.Metadata.Tags, Field.Store.YES, Field.Index.ANALYZED);
                 field.Boost = 0.8f;
                 document.Add(field);
             }
 
+            // Store Metadata.User for round trip
+            if (Package.Metadata.User != null)
+            {
+                document.Add(new Field("MetadataUser", Package.Metadata.User.Username, Field.Store.YES, Field.Index.NO));
+            }
+
             // note Authors and Dependencies have flattened representations in the data model.
-            document.Add(new Field("Authors", Package.FlattenedAuthors.ToStringSafe(), Field.Store.NO, Field.Index.ANALYZED));
-            document.Add(new Field("FlattenedAuthors", Package.FlattenedAuthors.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Authors", Package.Metadata.Authors.ToStringSafe(), Field.Store.YES, Field.Index.ANALYZED));
 
             // Fields for storing data to avoid hitting SQL while doing searches
-            if (!String.IsNullOrEmpty(Package.IconUrl))
+            if (!String.IsNullOrEmpty(Package.Metadata.IconUrl))
             {
-                document.Add(new Field("IconUrl", Package.IconUrl, Field.Store.YES, Field.Index.NO));
+                document.Add(new Field("IconUrl", Package.Metadata.IconUrl, Field.Store.YES, Field.Index.NO));
             }
 
             if (Package.PackageRegistration.Owners.AnySafe())
@@ -117,24 +121,24 @@ namespace NuGetGallery
                 document.Add(new Field("FlattenedOwners", flattenedOwners, Field.Store.YES, Field.Index.NO));
             }
 
-            document.Add(new Field("Copyright", Package.Copyright.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Copyright", Package.Metadata.Copyright.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Created", Package.Created.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("FlattenedDependencies", Package.FlattenedDependencies.ToStringSafe(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("Hash", Package.Hash.ToStringSafe(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("HashAlgorithm", Package.HashAlgorithm.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Hash", Package.Metadata.Hash.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("HashAlgorithm", Package.Metadata.HashAlgorithm.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Id-Original", Package.PackageRegistration.Id, Field.Store.YES, Field.Index.NO));
             document.Add(new Field("LastUpdated", Package.LastUpdated.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Language", Package.Language.ToStringSafe(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("LicenseUrl", Package.LicenseUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("LicenseUrl", Package.Metadata.LicenseUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("MinClientVersion", Package.MinClientVersion.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Version", Package.Version.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("VersionDownloadCount", Package.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("PackageFileSize", Package.PackageFileSize.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("ProjectUrl", Package.ProjectUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("PackageFileSize", Package.Metadata.PackageFileSize.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("ProjectUrl", Package.Metadata.ProjectUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Published", Package.Published.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("ReleaseNotes", Package.ReleaseNotes.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("ReleaseNotes", Package.Metadata.ReleaseNotes.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("RequiresLicenseAcceptance", Package.RequiresLicenseAcceptance.ToString(), Field.Store.YES, Field.Index.NO));
-            document.Add(new Field("Summary", Package.Summary.ToStringSafe(), Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("Summary", Package.Metadata.Summary.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             if (Package.SupportedFrameworks.AnySafe())
             {
                 string joinedFrameworks = string.Join(";", Package.SupportedFrameworks.Select(f => f.FrameworkName));
@@ -151,7 +155,7 @@ namespace NuGetGallery
             document.Add(
                  new Field("DownloadCount", Package.PackageRegistration.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
 
-            string displayName = String.IsNullOrEmpty(Package.Title) ? Package.PackageRegistration.Id : Package.Title;
+            string displayName = String.IsNullOrEmpty(Package.Metadata.Title) ? Package.PackageRegistration.Id : Package.Metadata.Title;
             document.Add(new Field("DisplayName", displayName.ToLower(CultureInfo.CurrentCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
 
             return document;

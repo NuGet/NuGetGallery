@@ -1,12 +1,12 @@
-﻿using Lucene.Net.Analysis;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Globalization;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -102,10 +102,6 @@ namespace NuGetGallery
                             .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
                             .Select(o => new User {Username = o})
                             .ToArray();
-            var authors = doc.Get("FlattenedAuthors")
-                             .SplitSafe(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                             .Select(a => new PackageAuthor {Name = a.Trim()})
-                             .ToArray();
             var frameworks =
                 doc.Get("JoinedSupportedFrameworks")
                    .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
@@ -119,23 +115,35 @@ namespace NuGetGallery
 
             return new Package
             {
-                Authors = authors,
-                Copyright = doc.Get("Copyright"),
                 Created = created,
-                Description = doc.Get("Description"),
                 Dependencies = dependencies,
                 DownloadCount = versionDownloadCount,
-                FlattenedAuthors = doc.Get("FlattenedAuthors"),
                 FlattenedDependencies = doc.Get("FlattenedDependencies"),
-                Hash = doc.Get("Hash"),
-                HashAlgorithm = doc.Get("HashAlgorithm"),
-                IconUrl = doc.Get("IconUrl"),
                 IsLatest = isLatest,
                 IsLatestStable = isLatestStable,
                 Key = key,
                 Language = doc.Get("Language"),
                 LastUpdated = lastUpdated,
-                LicenseUrl = doc.Get("LicenseUrl"),
+                Metadata = new PackageMetadata
+                {
+                    Authors = doc.Get("Authors"),
+                    User = new User
+                    {
+                        Username = doc.Get("MetadataUser"), 
+                    },
+                    Copyright = doc.Get("Copyright"),
+                    Description = doc.Get("Description"),
+                    Hash = doc.Get("Hash"),
+                    HashAlgorithm = doc.Get("HashAlgorithm"),
+                    IconUrl = doc.Get("IconUrl"),
+                    LicenseUrl = doc.Get("LicenseUrl"),
+                    PackageFileSize = packageSize,
+                    ProjectUrl = doc.Get("ProjectUrl"),
+                    ReleaseNotes = doc.Get("ReleaseNotes"),
+                    Summary = doc.Get("Summary"),
+                    Tags = doc.Get("Tags"),
+                    Title = doc.Get("Title"),
+                },
                 PackageRegistration = new PackageRegistration
                 {
                     Id = doc.Get("Id-Original"),
@@ -144,14 +152,8 @@ namespace NuGetGallery
                     Owners = owners
                 },
                 PackageRegistrationKey = packageRegistrationKey,
-                PackageFileSize = packageSize,
-                ProjectUrl = doc.Get("ProjectUrl"),
                 Published = published,
-                ReleaseNotes = doc.Get("ReleaseNotes"),
                 RequiresLicenseAcceptance = requiresLicenseAcceptance,
-                Summary = doc.Get("Summary"),
-                Tags = doc.Get("Tags"),
-                Title = doc.Get("Title"),
                 Version = doc.Get("Version"),
                 SupportedFrameworks = frameworks,
                 MinClientVersion = doc.Get("MinClientVersion"),

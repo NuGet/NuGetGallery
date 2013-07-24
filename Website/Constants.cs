@@ -13,6 +13,7 @@
         public const string NuGetPackageFileExtension = ".nupkg";
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
+        public const string SystemUserName = "@SYSTEM";
 
         public const string PackagesFolderName = "packages";
         public const string DownloadsFolderName = "downloads";
@@ -42,6 +43,8 @@
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";
         }
+
+        public const string UrlValidationRegEx = @"(ftp|https?):\/\/[^ ""]+$";
 
     }
 }

@@ -34,6 +34,7 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
+        private readonly EditPackageService _editPackageService;
 
         public PackagesController(
             IPackageService packageService,
@@ -47,7 +48,8 @@ namespace NuGetGallery
             IEntitiesContext entitiesContext,
             IAppConfiguration config,
             IIndexingService indexingService,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            EditPackageService editPackageService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -61,6 +63,7 @@ namespace NuGetGallery
             _config = config;
             _indexingService = indexingService;
             _cacheService = cacheService;
+            _editPackageService = editPackageService;
         }
 
         [Authorize]
@@ -170,6 +173,25 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
             var model = new DisplayPackageViewModel(package);
+
+            if (package.IsOwner(HttpContext.User))
+            {
+                var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+                if (pendingMetadata != null)
+                {
+                    TempData["Message"] = "An edit is pending for this package version. You are seeing the edited package description now. Eventually everyone will see the new description.";
+                    model.Authors = pendingMetadata.Authors;
+                    model.Copyright = pendingMetadata.Copyright;
+                    model.Description = pendingMetadata.Description;
+                    model.IconUrl = pendingMetadata.IconUrl;
+                    model.LicenseUrl = pendingMetadata.LicenseUrl;
+                    model.ProjectUrl = pendingMetadata.ProjectUrl;
+                    model.ReleaseNotes = pendingMetadata.ReleaseNotes;
+                    model.Tags = pendingMetadata.Tags.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    model.Title = pendingMetadata.Title;
+                }
+            }
+
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
         }
@@ -461,15 +483,57 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Edit(string id, string version)
         {
-            return GetPackageOwnerActionFormResult(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+            var model = new EditPackageRequest
+            {
+                EditingLatest = (version == null),
+                PackageId = package.PackageRegistration.Id,
+                PackageTitle = package.Metadata.Title,
+                Version = version == null ? null : package.Version,
+                PackageVersions = packageRegistration.Packages.ToList(),
+            };
+
+            var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+            model.EditPackageVersionRequest = new EditPackageVersionRequest(package, pendingMetadata);
+            return View(model);
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(string id, string version, bool? listed)
+        public virtual ActionResult Edit(string id, string version, EditPackageRequest formData)
         {
-            return Edit(id, version, listed, Url.Package);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+
+            // Add the edit request to a queue where it will be processed in the background.
+            if (formData.EditPackageVersionRequest != null)
+            {
+                _editPackageService.StartEditPackageRequest(package, formData, user);
+                _entitiesContext.SaveChanges();
+            }
+            return Redirect(Url.Package(id, version));
         }
 
         [Authorize]

@@ -175,14 +175,14 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByOwner(user);
 
             var model = new ManagePackagesViewModel
-                {
-                    Packages = from p in packages
-                               select new PackageViewModel(p)
-                                   {
-                                       DownloadCount = p.PackageRegistration.DownloadCount,
-                                       Version = null
-                                   },
-                };
+            {
+                Packages = from p in packages
+                           select new PackageViewModel(p)
+                           {
+                               DownloadCount = p.PackageRegistration.DownloadCount,
+                               Version = null
+                           },
+            };
             return View(model);
         }
 

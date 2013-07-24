@@ -197,6 +197,7 @@
     <Compile Include="PackageCurators\Windows8PackageCuratorFacts.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCuratorFacts.cs" />
     <Compile Include="Packaging\NupkgFacts.cs" />
+    <Compile Include="Packaging\NupkgRewriterFacts.cs" />
     <Compile Include="PathToTreeConverterFacts.cs" />
     <Compile Include="PolicyFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

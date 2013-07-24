@@ -24,14 +24,17 @@ namespace NuGetGallery.Infrastructure
                     {
                         Id = "Package #1",
                     },
-                    Title = "Package #1 4.2.0",
-                    Description = "Package #1 is an awesome package",
+                    Metadata = new PackageMetadata
+                    {
+                        Authors = "",
+                        Title = "Package #1 4.2.0",
+                        Description = "Package #1 is an awesome package",
+                    },
                     Listed = true,
                     IsLatestStable = true,
                     IsLatest = true,
                     IsPrerelease = true,
                     DownloadCount = 100,
-                    FlattenedAuthors = "",
                     SupportedFrameworks =
                     {
                         new PackageFramework { TargetFramework = "net45" },
@@ -62,12 +65,15 @@ namespace NuGetGallery.Infrastructure
                         Key = 11500,
                         DownloadCount = 495
                     },
-                    Description = "Description",
+                    Metadata = new PackageMetadata
+                    {
+                        Description = "Description",
+                        Authors = "DavidX",
+                        Title = "DavidTest123",
+                    },
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "DavidX",
-                    Title = "DavidTest123",
                     Version = "1.1",
                 }
             };
@@ -75,7 +81,7 @@ namespace NuGetGallery.Infrastructure
             var results = IndexAndSearch(packages, "12");
 
             Assert.Single(results);
-            Assert.Equal("DavidTest123", results[0].Title);
+            Assert.Equal("DavidTest123", results[0].Metadata.Title);
         }
 
         [Fact]
@@ -93,12 +99,15 @@ namespace NuGetGallery.Infrastructure
                         Key = 12,
                         DownloadCount = 41
                     },
-                    Description = "Library for compressing your filez",
+                    Metadata = new PackageMetadata
+                    {
+                        Description = "Library for compressing your filez",
+                        Authors = "Eric",
+                        Title = "SuperzipLib",
+                    },
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Eric",
-                    Title = "SuperzipLib",
                     Version = "1.1.2",
                 }
             };
@@ -124,12 +133,15 @@ namespace NuGetGallery.Infrastructure
                         Key = 12,
                         DownloadCount = 41
                     },
-                    Description = "Yeah",
+                    Metadata = new PackageMetadata
+                    {
+                        Description = "Yeah",
+                        Authors = "Eric I",
+                        Title = "Red Death",
+                    },
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Eric I",
-                    Title = "Red Death",
                     Version = "1.1.2",
                 },
                 new Package
@@ -142,12 +154,15 @@ namespace NuGetGallery.Infrastructure
                         Key = 12,
                         DownloadCount = 41
                     },
-                    Description = "Library for compressing your filez",
+                    Metadata = new PackageMetadata
+                    {
+                        Description = "Library for compressing your filez",
+                        Authors = "Eric II",
+                        Title = "Red Herring",
+                    },
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Eric II",
-                    Title = "Red Herring",
                     Version = "1.1.2",
                 },
             };
@@ -155,7 +170,7 @@ namespace NuGetGallery.Infrastructure
             var results = IndexAndSearch(packages, "Id:Red Death");
 
             Assert.Equal(1, results.Count);
-            Assert.Equal("Red Death", results[0].Title);
+            Assert.Equal("Red Death", results[0].Metadata.Title);
         }
 
         [Fact]
@@ -173,14 +188,17 @@ namespace NuGetGallery.Infrastructure
                         Key = 12,
                         DownloadCount = 25
                     },
-                    Description = "NuGet.Core is the core framework assembly for NuGet",
+                    Metadata = new PackageMetadata
+                    {
+                        Description = "NuGet.Core is the core framework assembly for NuGet",
+                        Authors = "M S C",
+                        Tags = "NuGetTag",
+                        Title = "NuGet.Core",
+                    },
                     DownloadCount = 3,
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "M S C",
-                    Tags = "NuGetTag",
-                    Title = "NuGet.Core",
                     Version = "1.5.20902.9026",
                 },
                 new Package
@@ -193,14 +211,17 @@ namespace NuGetGallery.Infrastructure
                         Key = 13,
                         DownloadCount = 25,
                     },
-                    Description =
-                        "This isn't really NuGet.Core. The confusing package ID is the test!",
+                    Metadata = new PackageMetadata
+                    {
+                        Authors = "Laugh",
+                        Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                        Description =
+                            "This isn't really NuGet.Core. The confusing package ID is the test!",
+                    },
                     DownloadCount = 3,
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Laugh",
-                    Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
                     Version = "1.5.20902.9026",
                 }
             };
@@ -208,15 +229,15 @@ namespace NuGetGallery.Infrastructure
             // simple query
             var results = IndexAndSearch(packages, "NuGet.Core");
             Assert.Equal(2, results.Count);
-            Assert.Equal("NuGet.Core", results[0].Title);
+            Assert.Equal("NuGet.Core", results[0].Metadata.Title);
             Assert.Equal(144, results[0].Key);
             Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
             Assert.Equal(12, results[0].PackageRegistrationKey);
             Assert.Equal(12, results[0].PackageRegistration.Key);
-            Assert.Equal("NuGet.Core is the core framework assembly for NuGet", results[0].Description);
+            Assert.Equal("NuGet.Core is the core framework assembly for NuGet", results[0].Metadata.Description);
             Assert.True(results[0].IsLatest);
             Assert.True(results[0].IsLatestStable);
-            Assert.Equal("NuGetTag", results[0].Tags);
+            Assert.Equal("NuGetTag", results[0].Metadata.Tags);
         }
 
         [Theory]
@@ -248,14 +269,17 @@ namespace NuGetGallery.Infrastructure
                         DownloadCount = 41,
                         Owners = { new User { Username = "NugetCoreOwner" } },
                     },
-                    Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
+                    Metadata = new PackageMetadata
+                    {
+                        Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
+                        Authors = "Alpha, Beta Gamma",
+                        Title = "NuGet.Core",
+                        Tags = "dotnet",
+                    },
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Alpha Beta Gamma",
-                    Title = "NuGet.Core",
                     Version = "1.5.20902.9026",
-                    Tags = "dotnet",
                 },
                 new Package
                 {
@@ -268,21 +292,24 @@ namespace NuGetGallery.Infrastructure
                         DownloadCount = 2,
                         Owners = { new User { Username = "SomeOtherOwner" } },
                     },
-                    Description = "This isn't really NuGet.Core. But it needs to look a bit like it for the test case!",
+                    Metadata = new PackageMetadata
+                    {
+                        Description = "This isn't really NuGet.Core. But it needs to look a bit like it for the test case!",
+                        Authors = "Laugh",
+                        Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                        Tags = "javascript",
+                    },
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Laugh",
-                    Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
                     Version = "1.5.20902.9026",
-                    Tags = "javascript"
                 }
             };
 
             // query targeted specifically against id field should work equally well
             var results = IndexAndSearch(packages, field + ":" + term);
             Assert.NotEmpty(results);
-            Assert.Equal("NuGet.Core", results[0].Title);
+            Assert.Equal("NuGet.Core", results[0].Metadata.Title);
             Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
         }
 
@@ -301,13 +328,16 @@ namespace NuGetGallery.Infrastructure
                         Key = 12,
                         DownloadCount = 41
                     },
-                    Description = "jQuery UI is etc etc and many more important things",
+                    Metadata = new PackageMetadata
+                    {
+                        Description = "jQuery UI is etc etc and many more important things",
+                        Authors = "Alpha Beta Gamma",
+                        Title = "JQuery UI (Combined Blobbary)",
+                        Tags = "web javascript",
+                    },
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Alpha Beta Gamma",
-                    Title = "JQuery UI (Combined Blobbary)",
-                    Tags = "web javascript",
                 },
             };
 
@@ -331,13 +361,16 @@ namespace NuGetGallery.Infrastructure
                         Key = 12,
                         DownloadCount = 41
                     },
-                    Description = "jQuery UI is etc etc and many more important things",
+                    Metadata = new PackageMetadata
+                    {
+                        Description = "jQuery UI is etc etc and many more important things",
+                        Authors = "Alpha Beta Gamma",
+                        Title = "JQuery UI (Combined Blobbary)",
+                        Tags = "web javascript",
+                    },
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Alpha Beta Gamma",
-                    Title = "JQuery UI (Combined Blobbary)",
-                    Tags = "web javascript",
                 },
             };
 
@@ -361,14 +394,17 @@ namespace NuGetGallery.Infrastructure
                             Key = 13,
                             DownloadCount = 21
                         },
-                        Description = "FooQuery is overall much less popular than JQuery UI",
+                        Metadata = new PackageMetadata
+                        {
+                            Description = "FooQuery is overall much less popular than JQuery UI",
+                            Authors = "Alpha Beta Gamma",
+                            Title = "FooQuery",
+                            Tags = "web javascript",
+                        },
                         DownloadCount = 5,
                         Listed = true,
                         IsLatest = true,
                         IsLatestStable = true,
-                        FlattenedAuthors = "Alpha Beta Gamma",
-                        Title = "FooQuery",
-                        Tags = "web javascript",
                     },
                     new Package
                     {
@@ -381,13 +417,16 @@ namespace NuGetGallery.Infrastructure
                             DownloadCount = 42
                         },
                         DownloadCount = 3,
-                        Description = "jQuery UI has only a few downloads of its latest and greatest version, but many total downloads",
+                        Metadata = new PackageMetadata
+                        {
+                            Description = "jQuery UI has only a few downloads of its latest and greatest version, but many total downloads",
+                            Authors = "Alpha Beta Gamma",
+                            Title = "JQuery UI (Combined Blobbary)",
+                            Tags = "web javascript",
+                        },
                         Listed = true,
                         IsLatest = true,
                         IsLatestStable = true,
-                        FlattenedAuthors = "Alpha Beta Gamma",
-                        Title = "JQuery UI (Combined Blobbary)",
-                        Tags = "web javascript",
                     },
                 };
 
@@ -402,8 +441,6 @@ namespace NuGetGallery.Infrastructure
         {
             Package p = new Package
             {
-                Copyright = "Copyright 2013 by Oldies and Newies",
-                FlattenedAuthors = "Oldies, Newies",
                 Key = 123,
                 PackageRegistrationKey = 456,
                 PackageRegistration = new PackageRegistration
@@ -412,24 +449,33 @@ namespace NuGetGallery.Infrastructure
                     Key = 456,
                     DownloadCount = 123456
                 },
+                Metadata = new PackageMetadata
+                {
+                    Authors = "Oldies, Newies",
+                    Copyright = "Copyright 2013 by Oldies and Newies",
+                    Description = "DescriptionText",
+                    HashAlgorithm = "SHA512",
+                    Hash = "Ii4+Gr44RAClAno38k5MYAkcBE6yn2LE2xO+/ViKco45+hoxtwKAytmPWEMCJWhH8FyitjebvS5Fsf+ixI5xIg==",
+                    PackageFileSize = 234567,
+                    ProjectUrl = "http://projecturl.com",
+                    LicenseUrl = "nuget.org/license.txt",
+                    ReleaseNotes = "ReleaseNotesText",
+                    Summary = "SummaryText",
+                    Tags = "Tag1 Tag2 Tag3",
+                    Title = "TitleText",
+                },
+                
                 Created = new DateTime(2019, 2, 28, 0, 5, 59, DateTimeKind.Utc),
-                Description = "DescriptionText",
                 DownloadCount = 12345,
                 FlattenedDependencies = "adjunct-System.FluentCast:1.0.0.4|xunit:1.8.0.1545|adjunct-XUnit.Assertions:1.0.0.5|adjunct-XUnit.Assertions.Linq2Xml:1.0.0.3",
-                HashAlgorithm = "SHA512",
-                Hash = "Ii4+Gr44RAClAno38k5MYAkcBE6yn2LE2xO+/ViKco45+hoxtwKAytmPWEMCJWhH8FyitjebvS5Fsf+ixI5xIg==",
                 IsLatest = true,
                 IsLatestStable = true,
                 IsPrerelease = false,
                 Language = "en",
                 LastUpdated = DateTime.UtcNow,
-                LicenseUrl = "nuget.org/license.txt",
                 Listed = true,
                 MinClientVersion = new Version(1, 2, int.MaxValue, int.MaxValue - 1).ToString(),
-                PackageFileSize = 234567,
-                ProjectUrl = "http://projecturl.com",
                 Published = DateTime.UtcNow,
-                ReleaseNotes = "ReleaseNotesText",
                 RequiresLicenseAcceptance = true,
                 SupportedFrameworks = new PackageFramework[]
                 {
@@ -439,9 +485,6 @@ namespace NuGetGallery.Infrastructure
                         TargetFramework = "net45",
                     }
                 },
-                Summary = "SummaryText",
-                Tags = "Tag1 Tag2 Tag3",
-                Title = "TitleText",
                 Version = "3.4 RC",
             };
 
@@ -466,7 +509,7 @@ namespace NuGetGallery.Infrastructure
             Assert.Equal("en", r.Language);
             Assert.Equal(234567, r.PackageSize);
             Assert.Equal("SHA512", r.PackageHashAlgorithm);
-            Assert.Equal(p.Hash, r.PackageHash);
+            Assert.Equal(p.Metadata.Hash, r.PackageHash);
             Assert.True(r.Published > DateTime.UtcNow.Subtract(TimeSpan.FromSeconds(20)));
             Assert.Equal("http://projecturl.com", r.ProjectUrl);
             Assert.NotEmpty(r.ReportAbuseUrl);
@@ -495,13 +538,16 @@ namespace NuGetGallery.Infrastructure
                         Key = 12,
                         DownloadCount = 41
                     },
-                    Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
+                    Metadata = new PackageMetadata
+                    {
+                        Authors = "Alpha Beta Gamma",
+                        LicenseUrl = "http://nuget.codeplex.com/license",
+                        Title = "NuGet.Core",
+                        Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
+                    },
                     Listed = true,
                     IsLatest = true,
                     IsLatestStable = true,
-                    FlattenedAuthors = "Alpha Beta Gamma",
-                    LicenseUrl = "http://nuget.codeplex.com/license",
-                    Title = "NuGet.Core",
                     Version = "1.5.20902.9026",
                 },
             };

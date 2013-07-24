@@ -14,7 +14,7 @@ namespace NuGetGallery
         public DisplayPackageViewModel(Package package, bool isVersionHistory)
             : base(package)
         {
-            Copyright = package.Copyright;
+            Copyright = package.Metadata.Copyright;
             if (!isVersionHistory)
             {
                 Dependencies = new DependencySetsViewModel(package.Dependencies);

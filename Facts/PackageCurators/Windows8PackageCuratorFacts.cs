@@ -42,7 +42,7 @@ namespace NuGetGallery.PackageCurators
                 var curator = new TestableWindows8PackageCurator();
                 curator.StubCuratedFeedService.Setup(stub => stub.GetFeedByName(It.IsAny<string>(), It.IsAny<bool>())).Returns((CuratedFeed)null);
                 var package = CreateStubGalleryPackage();
-                package.Tags = "winrt";
+                package.Metadata.Tags = "winrt";
 
                 curator.Curate(package, null, commitChanges: true);
 
@@ -70,7 +70,7 @@ namespace NuGetGallery.PackageCurators
             {
                 var curator = new TestableWindows8PackageCurator();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Tags = "aTag " + tag + " aThirdTag";
+                stubGalleryPackage.Metadata.Tags = "aTag " + tag + " aThirdTag";
 
                 curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
@@ -90,7 +90,7 @@ namespace NuGetGallery.PackageCurators
             {
                 var curator = new TestableWindows8PackageCurator();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Tags = "aTag notforwinrt aThirdTag";
+                stubGalleryPackage.Metadata.Tags = "aTag notforwinrt aThirdTag";
 
                 curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
@@ -110,7 +110,7 @@ namespace NuGetGallery.PackageCurators
             {
                 var curator = new TestableWindows8PackageCurator();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Tags = null;
+                stubGalleryPackage.Metadata.Tags = null;
 
                 curator.Curate(stubGalleryPackage, null, commitChanges: true);
 
@@ -132,7 +132,7 @@ namespace NuGetGallery.PackageCurators
                 var stubNuGetPackage = CreateStubNuGetPackage();
 
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Tags = "win8";
+                stubGalleryPackage.Metadata.Tags = "win8";
                 stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "NotACuratedPackage" });
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
@@ -154,7 +154,7 @@ namespace NuGetGallery.PackageCurators
                 curator.StubCuratedFeed.Packages.Add(new CuratedPackage { AutomaticallyCurated = false, Included = false, PackageRegistration = new PackageRegistration { Id = "ManuallyExcludedPackage" } });
 
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Tags = "win8";
+                stubGalleryPackage.Metadata.Tags = "win8";
                 stubGalleryPackage.Dependencies.Add(new PackageDependency { Id = "ManuallyExcludedPackage" });
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
@@ -175,7 +175,7 @@ namespace NuGetGallery.PackageCurators
                 var curator = new TestableWindows8PackageCurator();
                 curator.StubCuratedFeed.Key = 42;
                 var package = CreateStubGalleryPackage();
-                package.Tags = "winrt";
+                package.Metadata.Tags = "winrt";
 
                 curator.Curate(package, CreateStubNuGetPackage().Object, commitChanges: true);
 
@@ -195,7 +195,7 @@ namespace NuGetGallery.PackageCurators
                 var curator = new TestableWindows8PackageCurator();
                 var stubGalleryPackage = CreateStubGalleryPackage();
                 stubGalleryPackage.PackageRegistration.Key = 42;
-                stubGalleryPackage.Tags = "winrt";
+                stubGalleryPackage.Metadata.Tags = "winrt";
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 
@@ -214,7 +214,7 @@ namespace NuGetGallery.PackageCurators
             {
                 var curator = new TestableWindows8PackageCurator();
                 var stubGalleryPackage = CreateStubGalleryPackage();
-                stubGalleryPackage.Tags = "winrt";
+                stubGalleryPackage.Metadata.Tags = "winrt";
 
                 curator.Curate(stubGalleryPackage, CreateStubNuGetPackage().Object, commitChanges: true);
 

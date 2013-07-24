@@ -574,6 +574,7 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\IEntitiesContext.cs" />
+    <Compile Include="Entities\PackageMetadata.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
@@ -780,6 +781,14 @@
     <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.Designer.cs">
       <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.cs" />
+    <Compile Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.Designer.cs">
+      <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201307162030182_PackageMetadataEditable.cs" />
+    <Compile Include="Migrations\201307162030182_PackageMetadataEditable.Designer.cs">
+      <DependentUpon>201307162030182_PackageMetadataEditable.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -792,12 +801,15 @@
     </Compile>
     <Compile Include="Packaging\INupkg.cs" />
     <Compile Include="Packaging\Nupkg.cs" />
+    <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="PagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
+    <Compile Include="RequestModels\EditPackageRequest.cs" />
+    <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
@@ -836,6 +848,7 @@
     <Compile Include="Services\SearchFilter.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
+    <Compile Include="Services\EditPackageService.cs" />
     <Compile Include="SharedController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -915,7 +928,6 @@
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesContext.cs" />
     <Compile Include="Entities\PackageRegistration.cs" />
-    <Compile Include="Entities\PackageAuthor.cs" />
     <Compile Include="Entities\Package.cs" />
     <Compile Include="Entities\EntityRepository.cs" />
     <Compile Include="RequestModels\DisplayPackageRequest.cs" />
@@ -1161,6 +1173,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201306031754328_SupportNewClientHeaders.resx">
       <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.resx">
+      <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201307162030182_PackageMetadataEditable.resx">
+      <DependentUpon>201307162030182_PackageMetadataEditable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

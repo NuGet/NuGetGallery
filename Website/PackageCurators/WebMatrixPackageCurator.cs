@@ -38,8 +38,8 @@ namespace NuGetGallery
                 return false;
             }
 
-            bool shouldBeIncluded = galleryPackage.Tags != null && 
-                galleryPackage.Tags.ToLowerInvariant().Contains("aspnetwebpages");
+            bool shouldBeIncluded = galleryPackage.Metadata.Tags != null &&
+                galleryPackage.Metadata.Tags.ToLowerInvariant().Contains("aspnetwebpages");
 
             if (!shouldBeIncluded)
             {
