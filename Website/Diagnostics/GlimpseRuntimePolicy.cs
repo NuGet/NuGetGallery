@@ -33,13 +33,16 @@ namespace NuGetGallery.Diagnostics
 
         public RuntimePolicy Execute(HttpContextBase context)
         {
-            // Policy is: Localhost sees everything, admins always see Glimpse (even when remote) but only over SSL if SSL is required, everyone uses the setting in web config.
-            if (context.Request.IsLocal ||
-                (context.Request.IsAuthenticated &&
+            // Policy is: Localhost collects data, admins always see Glimpse (even when remote) but only over SSL if SSL is required, everyone uses the setting in web config.
+            if (context.Request.IsAuthenticated &&
                  (!Configuration.RequireSSL || context.Request.IsSecureConnection) &&
-                 context.User.IsAdministrator()))
+                 context.User.IsAdministrator())
             {
                 return RuntimePolicy.On;
+            }
+            else if (context.Request.IsLocal)
+            {
+                return RuntimePolicy.PersistResults;
             }
             return RuntimePolicy.Off;
         }
