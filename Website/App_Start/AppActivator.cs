@@ -107,7 +107,8 @@ namespace NuGetGallery
                         TimeSpan.FromMinutes(10), 
                         () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), 
                         timeout: TimeSpan.FromMinutes(2), 
-                        location: configuration.LuceneIndexLocation)
+                        location: configuration.LuceneIndexLocation,
+                        storageConnectionString: configuration.AzureStorageConnectionString)
                 }                
                     :
                 new IJob[]
@@ -120,7 +121,8 @@ namespace NuGetGallery
                         TimeSpan.FromMinutes(10), 
                         () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), 
                         timeout: TimeSpan.FromMinutes(2), 
-                        location: configuration.LuceneIndexLocation)
+                        location: configuration.LuceneIndexLocation,
+                        storageConnectionString: configuration.AzureStorageConnectionString)
                 };
             var jobCoordinator = new NuGetJobCoordinator();
             _jobManager = new JobManager(jobs, jobCoordinator)
