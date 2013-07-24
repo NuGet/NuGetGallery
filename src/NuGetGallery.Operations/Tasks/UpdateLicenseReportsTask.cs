@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.Operations.Tasks
 {
- 
     [Command("updatelicensereports", "Updates the license reports from SonaType", AltName="ulr")]
     public class UpdateLicenseReportsTask : DatabaseTask
     {
@@ -39,12 +38,12 @@ namespace NuGetGallery.Operations.Tasks
             public override string ToString()
             {
                 return "{ " + Sequence.ToString() + ", "
-                    + String.Join(", ", new string[] { PackageId, PackageId, Version, ReportUrl, Comment })
+                    + String.Join(", ", new string[] { PackageId, Version, ReportUrl, Comment })
                     + ", [ " + String.Join(", ", Licenses) + " ] }";
             }
         }
 
-        private class PackageLicenseReportsStorage
+        private static class PackageLicenseReportsStorage
         {
             public static void Store(PackageLicenseReport report, SqlConnection connection)
             {
@@ -98,70 +97,106 @@ namespace NuGetGallery.Operations.Tasks
 
         public override void ExecuteCommand()
         {
-            
+            Log.Info("Loading URL for the next license report");
             string nextLicenseReport = null;
-            WithConnection((connection, executor) =>
+            try
             {
-                nextLicenseReport = executor.Query<string>(
-                    @"SELECT NextLicenseReport FROM GallerySettings").FirstOrDefault();
-            });
- 
+                WithConnection((connection, executor) =>
+                {
+                    nextLicenseReport = executor.Query<string>(
+                        @"SELECT NextLicenseReport FROM GallerySettings").FirstOrDefault();
+                });
+            }
+            catch (Exception e)
+            {
+                Log.Error("Database error\n\nCallstack:\n" + e.ToString());
+                return;
+            }
+            if (nextLicenseReport == null)
+            {
+                Log.Error("URL for the next license report was not found");
+                return;
+            }
+            Log.Info("Found URL for the next license report: {0}", nextLicenseReport);
+
             Boolean hasNext = true;
             while (hasNext)
             {
                 hasNext = false;
 
+                Log.Info("Sending request to {0}", nextLicenseReport);
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(nextLicenseReport);
+
+                Log.Info("Receiving response");
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
- 
+
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
+                    Log.Info("Parsing JSON from response");
                     string content = (new StreamReader(response.GetResponseStream())).ReadToEnd();
                     JObject sonatypeMessage = JObject.Parse(content);
-
                     if (!sonatypeMessage.IsValid(sonatypeSchema))
                     {
-                        if (!WhatIf)
-                        {
-                            // TODO: Report to backend log.
-                        }
+                        Log.Error("JSON message uses an invalid schema");
                         return;
                     }
 
                     foreach (JObject messageEvent in sonatypeMessage["events"])
                     {
                         PackageLicenseReport report = CreateReport(messageEvent);
+                        
+                        Log.Info("Found new report for package {0} {1}", report.PackageId, report.Version);
                         if (!WhatIf)
                         {
-                            WithConnection((connection) =>
+                            Log.Info("Saving new report for package {0} {1}", report.PackageId, report.Version);
+                            try
                             {
-                                PackageLicenseReportsStorage.Store(report, connection);
-                            });
+                                WithConnection((connection) =>
+                                {
+                                    PackageLicenseReportsStorage.Store(report, connection);
+                                });
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error("Database error\n\nCallstack:\n{0}", e.ToString());
+                                return;
+                            }
                         }
                     }
 
-                    if (sonatypeMessage["next"].Value<string>().Count() > 0)
+                    if (sonatypeMessage["next"].Value<string>().Length > 0)
                     {
                         hasNext = true;
                         nextLicenseReport = sonatypeMessage["next"].Value<string>();
+                        Log.Info("Found URL for the next license report: {0}", nextLicenseReport);
                         if (!WhatIf)
                         {
-                            WithConnection((connection, executor) =>
+                            Log.Info("Saving URL for the next license report: {0}", nextLicenseReport);
+                            try
                             {
-                                executor.Execute(@"
+                                WithConnection((connection, executor) =>
+                                {
+                                    executor.Execute(@"
                                     UPDATE GallerySettings
                                     SET NextLicenseReport = @nextLicenseReport",
-                                    new { nextLicenseReport });
-                            });
+                                        new { nextLicenseReport });
+                                });
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error("Database error\n\nCallstack:\n{0}", e.ToString());
+                                return;
+                            }
                         }
                     }
                 }
                 else if (response.StatusCode != HttpStatusCode.NoContent)
                 {
-                    if (!WhatIf)
-                    {
-                        // TODO: Report to backend log.
-                    }
+                    Log.Info("Report is not available");
+                }
+                else
+                {
+                    Log.Error("URL for the next license report caused HTTP status {0}", response.StatusCode);
                     return;
                 }
             }
