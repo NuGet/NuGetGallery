@@ -120,6 +120,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="xunit">
+      <HintPath>..\..\packages\xunit.1.9.1\lib\net20\xunit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\CommonAssemblyInfo.cs">
@@ -246,7 +249,9 @@
     <Compile Include="Tasks\TaskBases.cs" />
     <Compile Include="Tasks\SynchronizePackageBackupsTask.cs" />
     <Compile Include="Tasks\ListMigrationsTask.cs" />
-    <Compile Include="Tasks\UpdateLicenseReportsTask.cs" />
+    <Compile Include="..\..\..\..\Desktop\UpdateLicenseReportsTask.cs">
+      <Link>Tasks\UpdateLicenseReportsTask.cs</Link>
+    </Compile>
     <Compile Include="Tasks\UploadPackageTask.cs" />
     <Compile Include="User.cs" />
     <Compile Include="Util.cs" />
