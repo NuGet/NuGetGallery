@@ -14,7 +14,7 @@ namespace NuGetGallery
 {
     public class AzureLuceneIndexingService : IIndexingService
     {
-        private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromHours(3);
+        //private static readonly TimeSpan IndexRecreateInterval = TimeSpan.FromHours(3);
 
         private Lucene.Net.Store.Directory _directory;
         private IndexWriter _indexWriter;

@@ -5,12 +5,13 @@ using Lucene.Net.Store;
 using NuGetGallery.Configuration;
 using Lucene.Net.Store.Azure;
 using Microsoft.WindowsAzure.Storage;
+using System;
 
 namespace NuGetGallery
 {
     internal static class LuceneCommon
     {
-        internal static readonly Version LuceneVersion = Version.LUCENE_30;
+        internal static readonly Lucene.Net.Util.Version LuceneVersion = Lucene.Net.Util.Version.LUCENE_30;
 
         private static SingleInstanceLockFactory LuceneLock = new SingleInstanceLockFactory();
 
@@ -51,9 +52,15 @@ namespace NuGetGallery
         internal static Lucene.Net.Store.Directory GetAzureDirectory(string storageConnectionString)
         {
             CloudStorageAccount storageAccount;
-            CloudStorageAccount.TryParse(storageConnectionString, out storageAccount);
-            Lucene.Net.Store.Directory directory = new AzureDirectory(storageAccount, "lucene", new RAMDirectory());
-            return directory;
+            if (CloudStorageAccount.TryParse(storageConnectionString, out storageAccount))
+            {
+                Lucene.Net.Store.Directory directory = new AzureDirectory(storageAccount, "lucene", new RAMDirectory());
+                return directory;
+            }
+            else
+            {
+                throw new ArgumentException("argument 0 storageConnectionString failed to be parsed");
+            }
         }
 
         private static string GetIndexLocation(LuceneIndexLocation location)
