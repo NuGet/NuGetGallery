@@ -167,10 +167,29 @@ namespace NuGetGallery
             {
                 case StorageType.FileSystem:
                 case StorageType.NotSpecified:
-                    ConfigureForLocalFileSystem(configuration);
+                    ConfigureForLocalFileSystem();
                     break;
                 case StorageType.AzureStorage:
                     ConfigureForAzureStorage(configuration);
+                    break;
+            }
+
+            switch (configuration.Current.LuceneIndexLocation)
+            {
+                case LuceneIndexLocation.AppData:
+                case LuceneIndexLocation.Temp:
+
+                    Bind<Lucene.Net.Store.Directory>()
+                        .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
+                        .InSingletonScope();
+
+                    break;
+                case LuceneIndexLocation.AzureStorage:
+
+                    Bind<Lucene.Net.Store.Directory>()
+                        .ToMethod(_ => LuceneCommon.GetAzureDirectory(configuration.Current.AzureStorageConnectionString))
+                        .InSingletonScope();
+
                     break;
             }
 
@@ -210,14 +229,10 @@ namespace NuGetGallery
                 .InRequestScope();
         }
 
-        private void ConfigureForLocalFileSystem(ConfigurationService configuration)
+        private void ConfigureForLocalFileSystem()
         {
             Bind<IFileStorageService>()
                 .To<FileSystemFileStorageService>()
-                .InSingletonScope();
-
-            Bind<Lucene.Net.Store.Directory>()
-                .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
                 .InSingletonScope();
         }
 
@@ -238,13 +253,6 @@ namespace NuGetGallery
             Bind<IStatisticsService>()
                 .To<JsonStatisticsService>()
                 .InSingletonScope();
-
-            // when running on Windows Azure, save the Lucene index in storage
-            Bind<Lucene.Net.Store.Directory>()
-                .ToMethod(_ => LuceneCommon.GetAzureDirectory(configuration.Current.AzureStorageConnectionString))
-                .InSingletonScope();
-
-            //TODO: use Azure blobs
         }
     }
 }

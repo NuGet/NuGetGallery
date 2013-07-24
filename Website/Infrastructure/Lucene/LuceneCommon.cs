@@ -51,11 +51,8 @@ namespace NuGetGallery
         internal static Lucene.Net.Store.Directory GetAzureDirectory(string storageConnectionString)
         {
             CloudStorageAccount storageAccount;
-
             CloudStorageAccount.TryParse(storageConnectionString, out storageAccount);
-
             Lucene.Net.Store.Directory directory = new AzureDirectory(storageAccount, "lucene", new RAMDirectory());
-
             return directory;
         }
 
