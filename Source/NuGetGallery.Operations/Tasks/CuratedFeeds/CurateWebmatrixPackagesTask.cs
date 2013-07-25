@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using AnglicanGeek.DbExecutor;
 using NuGet;
 
-namespace NuGetGallery.Operations
+namespace NuGetGallery.Operations.CuratedFeeds
 {
     [Command("curatewebmatrix", "Runs the WebMatrix Curator on the specified storage server", AltName = "cwm", IsSpecialPurpose = true)]
     public class CurateWebmatrixPackagesTask : DatabaseAndStorageTask
