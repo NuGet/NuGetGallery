@@ -190,6 +190,7 @@
     <Compile Include="Tasks\CleanTagsTask.cs" />
     <Compile Include="Tasks\CopyBlobsTask.cs" />
     <Compile Include="Tasks\CuratedFeeds\CopyCuratedFeedTask.cs" />
+    <Compile Include="Tasks\CuratedFeeds\CreateCuratedFeed.cs" />
     <Compile Include="Tasks\CuratedFeeds\ListCuratedFeedsTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
