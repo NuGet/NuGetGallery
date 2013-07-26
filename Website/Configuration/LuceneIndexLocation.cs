@@ -8,6 +8,7 @@ namespace NuGetGallery.Configuration
     public enum LuceneIndexLocation
     {
         AppData,
-        Temp
+        Temp,
+        AzureStorage
     }
 }

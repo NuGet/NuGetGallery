@@ -28,10 +28,6 @@ namespace NuGetGallery
             Bind<PoliteCaptcha.IConfigurationSource>()
                 .ToMethod(context => configuration);
 
-            Bind<Lucene.Net.Store.Directory>()
-                .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
-                .InSingletonScope();
-
             Bind<ISearchService>()
                 .To<LuceneSearchService>()
                 .InRequestScope();
@@ -175,6 +171,25 @@ namespace NuGetGallery
                     break;
                 case StorageType.AzureStorage:
                     ConfigureForAzureStorage(configuration);
+                    break;
+            }
+
+            switch (configuration.Current.LuceneIndexLocation)
+            {
+                case LuceneIndexLocation.AppData:
+                case LuceneIndexLocation.Temp:
+
+                    Bind<Lucene.Net.Store.Directory>()
+                        .ToMethod(_ => LuceneCommon.GetDirectory(configuration.Current.LuceneIndexLocation))
+                        .InSingletonScope();
+
+                    break;
+                case LuceneIndexLocation.AzureStorage:
+
+                    Bind<Lucene.Net.Store.Directory>()
+                        .ToMethod(_ => LuceneCommon.GetAzureDirectory(configuration.Current.AzureStorageConnectionString))
+                        .InSingletonScope();
+
                     break;
             }
 
