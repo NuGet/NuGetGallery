@@ -100,17 +100,11 @@
             <h3 class="block-title">License</h3>
             @if (Model.IsOwner(User))
             {
-                if (Model.HideLicenseReport)
+                @* TODO: Change for an icon *@
+                using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport)))
                 {
-                    @* TODO: Create action for changing flag HideLicenseReport *@
-                    @* TODO: Change for an icon *@
-                    <p class="block-link"><a href="#">Enable license report</a></p>
-                }
-                else
-                {
-                    @* TODO: Create action for changing flag HideLicenseReport *@
-                    @* TODO: Change for an icon *@
-                    <p class="block-link"><a href="#">Disable license report</a></p>
+                    @Html.AntiForgeryToken()
+                    <input type="submit" value="@(Model.HideLicenseReport ? "Enable" : "Disable") license report"/>
                 }
             }
             @if (!Model.HideLicenseReport)
