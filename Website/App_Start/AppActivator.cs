@@ -18,6 +18,7 @@ using NuGetGallery.Jobs;
 using NuGetGallery.Migrations;
 using WebActivator;
 using WebBackgrounder;
+using System.Collections.Generic;
 
 [assembly: WebActivator.PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
 [assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
@@ -100,18 +101,30 @@ namespace NuGetGallery
 
         private static void BackgroundJobsPostStart(IAppConfiguration configuration)
         {
-            var jobs = configuration.HasWorker ?
-                new IJob[]
+            IEnumerable<IJob> jobs;
+
+            if (configuration.HasWorker)
+            {
+                //  if we are using AzureStorage then we will let the worker do the indexing
+                if (configuration.LuceneIndexLocation != LuceneIndexLocation.AzureStorage)
                 {
-                    new LuceneIndexingJob(
-                        TimeSpan.FromMinutes(10), 
-                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), 
-                        timeout: TimeSpan.FromMinutes(2), 
-                        location: configuration.LuceneIndexLocation,
-                        storageConnectionString: configuration.AzureStorageConnectionString)
-                }                
-                    :
-                new IJob[]
+                    jobs = new IJob[]
+                    {
+                        new LuceneIndexingJob(
+                            TimeSpan.FromMinutes(10), 
+                            () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), 
+                            timeout: TimeSpan.FromMinutes(2), 
+                            location: configuration.LuceneIndexLocation)
+                    };
+                }
+                else
+                {
+                    jobs = new IJob[0];
+                }
+            }
+            else
+            {
+                jobs = new IJob[]
                 {
                     // readonly: false workaround - let statistics background job write to DB in read-only mode since we don't care too much about losing that data
                     new UpdateStatisticsJob(TimeSpan.FromMinutes(5), 
@@ -121,9 +134,10 @@ namespace NuGetGallery
                         TimeSpan.FromMinutes(10), 
                         () => new EntitiesContext(configuration.SqlConnectionString, readOnly: true), 
                         timeout: TimeSpan.FromMinutes(2), 
-                        location: configuration.LuceneIndexLocation,
-                        storageConnectionString: configuration.AzureStorageConnectionString)
+                        location: configuration.LuceneIndexLocation)
                 };
+            }
+
             var jobCoordinator = new NuGetJobCoordinator();
             _jobManager = new JobManager(jobs, jobCoordinator)
                 {
