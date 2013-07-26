@@ -76,6 +76,11 @@ namespace NuGetGallery {
         public System.Web.Mvc.ActionResult ConfirmOwner() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmOwner);
         }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult SetLicenseReportVisibility() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.SetLicenseReportVisibility);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public PackagesController Actions { get { return MVC.Packages; } }
@@ -100,6 +105,7 @@ namespace NuGetGallery {
             public readonly string Delete = "Delete";
             public readonly string Edit = "Edit";
             public readonly string ConfirmOwner = "ConfirmOwner";
+            public readonly string SetLicenseReportVisibility = "SetLicenseReportVisibility";
         }
 
 
@@ -241,6 +247,14 @@ namespace NuGetGallery {
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("username", username);
             callInfo.RouteValueDictionary.Add("token", token);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult SetLicenseReportVisibility(string id, string version, bool visible) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.SetLicenseReportVisibility);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            callInfo.RouteValueDictionary.Add("visible", visible);
             return callInfo;
         }
 

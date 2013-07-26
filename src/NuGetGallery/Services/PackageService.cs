@@ -639,5 +639,20 @@ namespace NuGetGallery
         {
             _indexingService.UpdateIndex();
         }
+
+
+        public void SetLicenseReportVisibility(Package package, bool visible, bool commitChanges = true)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+            package.HideLicenseReport = !visible;
+            if (commitChanges)
+            {
+                _packageRepository.CommitChanges();
+            }
+            _packageRepository.CommitChanges();
+        }
     }
 }
