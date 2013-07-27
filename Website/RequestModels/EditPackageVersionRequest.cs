@@ -25,7 +25,7 @@ namespace NuGetGallery
         }
 
         [StringLength(256)]
-        [Display(Name = "Package Title")]
+        [Display(Name = "Title")]
         [DataType(DataType.Text)]
         public string VersionTitle { get; set; } // not naming it Title in our model because that would clash with page Title in the property bag. Blech.
 
@@ -37,22 +37,22 @@ namespace NuGetGallery
 
         [StringLength(1024)]
         [DataType(DataType.MultilineText)]
-        [Display(Name = "Summary")]
-        [Subtext("Summary is a short text shown in package search results.")]
+        [Display(Name = "Summary (visible in search results)")]
         public string Summary { get; set; }
 
         [DataType(DataType.MultilineText)]
-        [Subtext("Description is a long text shown on the package page.")]
+        [Display(Name = "Description (a longer description)")]
         public string Description { get; set; }
 
         [StringLength(256)]
-        [Display(Name = "Project Homepage URL")]
+        [Display(Name = "Project Home Page URL")]
         [DataType(DataType.Url)]
         [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
         public string ProjectUrl { get; set; }
 
         [StringLength(512)]
-        [Display(Name = "Authors - as a comma-separated list (ex. 'Annie, Bob, Charlie')")]
+        [Display(Name = "Authors")]
+        [Subtext("(Authors: use a comma-separated list - example: 'Annie, Bob, Charlie')")]
         [DataType(DataType.Text)]
         public string Authors { get; set; }
 
@@ -63,10 +63,11 @@ namespace NuGetGallery
 
         [StringLength(1024)]
         [DataType(DataType.Text)]
-        [Subtext("Tags - a space delimited list of keywords. (ex. 'CommandLine ASP.NET Proxies Scaffolding')")]
+        [Display(Name = "Tags")]
+        [Subtext("(Tags: use space delimited keywords - example: 'CommandLine ASP.NET Proxies Scaffolding')")]
         public string Tags { get; set; }
 
-        [Display(Name = "Release Notes (for this version)")]
+        [Display(Name = "Release Notes [for this version]")]
         [DataType(DataType.MultilineText)]
         public string ReleaseNotes { get; set; }
     }
