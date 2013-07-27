@@ -102,10 +102,6 @@ namespace NuGetGallery
                             .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
                             .Select(o => new User {Username = o})
                             .ToArray();
-            var authors = doc.Get("FlattenedAuthors")
-                             .SplitSafe(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                             .Select(a => new PackageAuthor {Name = a.Trim()})
-                             .ToArray();
             var frameworks =
                 doc.Get("JoinedSupportedFrameworks")
                    .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
@@ -119,13 +115,12 @@ namespace NuGetGallery
 
             return new Package
             {
-                Authors = authors,
                 Copyright = doc.Get("Copyright"),
                 Created = created,
                 Description = doc.Get("Description"),
                 Dependencies = dependencies,
                 DownloadCount = versionDownloadCount,
-                FlattenedAuthors = doc.Get("FlattenedAuthors"),
+                FlattenedAuthors = doc.Get("Authors"),
                 FlattenedDependencies = doc.Get("FlattenedDependencies"),
                 Hash = doc.Get("Hash"),
                 HashAlgorithm = doc.Get("HashAlgorithm"),

@@ -99,11 +99,6 @@ namespace NuGetGallery
                 .HasKey(p => p.Key);
 
             modelBuilder.Entity<Package>()
-                .HasMany<PackageAuthor>(p => p.Authors)
-                .WithRequired(pa => pa.Package)
-                .HasForeignKey(pa => pa.PackageKey);
-
-            modelBuilder.Entity<Package>()
                 .HasMany<PackageStatistics>(p => p.DownloadStatistics)
                 .WithRequired(ps => ps.Package)
                 .HasForeignKey(ps => ps.PackageKey);
@@ -112,9 +107,6 @@ namespace NuGetGallery
                 .HasMany<PackageDependency>(p => p.Dependencies)
                 .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
-
-            modelBuilder.Entity<PackageAuthor>()
-                .HasKey(pa => pa.Key);
 
             modelBuilder.Entity<PackageStatistics>()
                 .HasKey(ps => ps.Key);

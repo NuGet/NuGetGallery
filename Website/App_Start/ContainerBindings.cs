@@ -81,10 +81,6 @@ namespace NuGetGallery
                 .To<EntityRepository<Package>>()
                 .InRequestScope();
 
-            Bind<IEntityRepository<PackageAuthor>>()
-                .To<EntityRepository<PackageAuthor>>()
-                .InRequestScope();
-
             Bind<IEntityRepository<PackageDependency>>()
                 .To<EntityRepository<PackageDependency>>()
                 .InRequestScope();

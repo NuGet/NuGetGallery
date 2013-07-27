@@ -780,6 +780,10 @@
     <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.Designer.cs">
       <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.cs" />
+    <Compile Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.Designer.cs">
+      <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -915,7 +919,6 @@
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesContext.cs" />
     <Compile Include="Entities\PackageRegistration.cs" />
-    <Compile Include="Entities\PackageAuthor.cs" />
     <Compile Include="Entities\Package.cs" />
     <Compile Include="Entities\EntityRepository.cs" />
     <Compile Include="RequestModels\DisplayPackageRequest.cs" />
@@ -1161,6 +1164,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201306031754328_SupportNewClientHeaders.resx">
       <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.resx">
+      <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

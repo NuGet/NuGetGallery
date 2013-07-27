@@ -18,7 +18,7 @@ namespace NuGetGallery
             _packageMetadata = packageMetadata;
             _rootFolder = rootFolder;
 
-            FlattenedAuthors = String.Join(", ", packageMetadata.Authors);
+            FlattenedAuthors = packageMetadata.Authors.Flatten();
             FlattenedOwners = String.Join(", ", owners.Select(o => o.Username));
             IconUrl = packageMetadata.IconUrl == null ? null : packageMetadata.IconUrl.AbsoluteUri;
             FrameworkAssemblies = packageMetadata.FrameworkAssemblies.Select(

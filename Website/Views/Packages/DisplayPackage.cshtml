@@ -162,13 +162,12 @@
 
     <h3>Owners</h3>
     @ViewHelpers.OwnersGravatar(Model.Owners, 32, Url)
-    <h3>Authors</h3>
-    <ul class="authors">
-        @foreach (var author in Model.Authors)
-        {
-            <li><a href="@Url.Search("Author:\"" + author.Name + "\"")" title="Search for @author.Name">@author.Name</a></li>
-        }
-    </ul>
+    <div title="These authors' works form part of the package or its contents">
+        <h3>Authors</h3>
+        <p class="authors">
+            @Model.Authors
+        </p>
+    </div>
     @if (!String.IsNullOrEmpty(Model.Copyright))
     {
         <h3>Copyright</h3>

@@ -102,7 +102,6 @@ namespace NuGetGallery
             // This resulted in a gnarly query. 
             // Instead, we can always query for all packages with the ID.
             IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
-                .Include(p => p.Authors)
                 .Include(p => p.PackageRegistration)
                 .Where(p => (p.PackageRegistration.Id == id));
             if (String.IsNullOrEmpty(version) && !allowPrerelease)
@@ -443,11 +442,6 @@ namespace NuGetGallery
             package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
             package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
 
-            foreach (var author in nugetPackage.Metadata.Authors)
-            {
-                package.Authors.Add(new PackageAuthor { Name = author });
-            }
-
             var supportedFrameworks = GetSupportedFrameworks(nugetPackage).Select(fn => fn.ToShortNameOrNull()).ToArray();
             if (!supportedFrameworks.AnySafe(sf => sf == null))
             {
@@ -484,7 +478,7 @@ namespace NuGetGallery
                 }
             }
 
-            package.FlattenedAuthors = package.Authors.Flatten();
+            package.FlattenedAuthors = nugetPackage.Metadata.Authors.Flatten();
             package.FlattenedDependencies = package.Dependencies.Flatten();
 
             return package;
@@ -503,7 +497,7 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Id", "128");
             }
-            if (nugetPackage.Authors != null && String.Join(",", nugetPackage.Authors.ToArray()).Length > 4000)
+            if (nugetPackage.Authors != null && nugetPackage.Authors.Flatten().Length > 4000)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Authors", "4000");
             }
