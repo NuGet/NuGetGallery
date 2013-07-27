@@ -57,6 +57,7 @@ namespace NuGetGallery
                         new Package
                             {
                                 PackageRegistration = packageRegistration,
+                                Metadata = new PackageMetadata(),
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = true,
@@ -64,7 +65,8 @@ namespace NuGetGallery
                             },
                         new Package
                             {
-                                PackageRegistration = packageRegistration,
+                                PackageRegistration = packageRegistration, 
+                                Metadata = new PackageMetadata(),
                                 Version = "1.0.1-a",
                                 IsPrerelease = true,
                                 Listed = true,
@@ -104,7 +106,8 @@ namespace NuGetGallery
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = false,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                DownloadStatistics = new List<PackageStatistics>(),
+                                Metadata = new PackageMetadata()
                             },
                         new Package
                             {
@@ -112,7 +115,8 @@ namespace NuGetGallery
                                 Version = "1.0.1-a",
                                 IsPrerelease = true,
                                 Listed = true,
-                                DownloadStatistics = new List<PackageStatistics>()
+                                DownloadStatistics = new List<PackageStatistics>(), 
+                                Metadata = new PackageMetadata()
                             },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
@@ -141,6 +145,7 @@ namespace NuGetGallery
                         new Package
                             {
                                 PackageRegistration = packageRegistration,
+                                Metadata = new PackageMetadata(),
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = false,
@@ -149,6 +154,7 @@ namespace NuGetGallery
                         new Package
                             {
                                 PackageRegistration = packageRegistration,
+                                Metadata = new PackageMetadata(),
                                 Version = "1.0.1-a",
                                 IsPrerelease = true,
                                 Listed = true,
@@ -206,11 +212,11 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -235,11 +241,11 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -306,12 +312,12 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -343,12 +349,12 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -381,12 +387,12 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -418,12 +424,12 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -453,12 +459,12 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "3.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "3.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -490,11 +496,11 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -521,11 +527,11 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.2.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.1.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0-alpha", IsPrerelease = true, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationA, Metadata = new PackageMetadata(), Version = "1.2.0", IsPrerelease = false, Listed = true },
+                        new Package { PackageRegistration = packageRegistrationB, Metadata = new PackageMetadata(), Version = "2.0", IsPrerelease = false, Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -555,10 +561,17 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package {
+                            PackageRegistration = packageRegistrationA, 
+                            Metadata = new PackageMetadata(),
+                            Version = "1.0.0",
+                            IsPrerelease = false,
+                            Listed = true
+                        },
                         new Package
                             {
                                 PackageRegistration = packageRegistrationA,
+                                Metadata = new PackageMetadata(),
                                 Version = "1.1.0",
                                 IsPrerelease = false,
                                 Listed = true,
@@ -569,6 +582,7 @@ namespace NuGetGallery
                         new Package
                             {
                                 PackageRegistration = packageRegistrationA,
+                                Metadata = new PackageMetadata(),
                                 Version = "1.3.0-alpha",
                                 IsPrerelease = true,
                                 Listed = true,
@@ -579,13 +593,19 @@ namespace NuGetGallery
                         new Package
                             {
                                 PackageRegistration = packageRegistrationA,
+                                Metadata = new PackageMetadata(),
                                 Version = "2.0.0",
                                 IsPrerelease = false,
                                 Listed = true,
                                 SupportedFrameworks =
                                     new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "WinRT" } }
                             },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package {
+                            PackageRegistration = packageRegistrationB,
+                            Metadata = new PackageMetadata(),
+                            Version = "2.0",
+                            IsPrerelease = false, 
+                            Listed = true },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");
@@ -611,10 +631,18 @@ namespace NuGetGallery
             repo.Setup(r => r.GetAll()).Returns(
                 new[]
                     {
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
+                        new Package
+                        {
+                            PackageRegistration = packageRegistrationA, 
+                            Metadata = new PackageMetadata(),
+                            Version = "1.0.0", 
+                            IsPrerelease = false, 
+                            Listed = true
+                        },
                         new Package
                             {
                                 PackageRegistration = packageRegistrationA,
+                                Metadata = new PackageMetadata(),
                                 Version = "1.1.0",
                                 IsPrerelease = false,
                                 Listed = true,
@@ -625,6 +653,7 @@ namespace NuGetGallery
                         new Package
                             {
                                 PackageRegistration = packageRegistrationA,
+                                Metadata = new PackageMetadata(),
                                 Version = "1.2.0",
                                 IsPrerelease = false,
                                 Listed = true,
@@ -635,6 +664,7 @@ namespace NuGetGallery
                         new Package
                             {
                                 PackageRegistration = packageRegistrationA,
+                                Metadata = new PackageMetadata(),
                                 Version = "1.3.0-alpha",
                                 IsPrerelease = true,
                                 Listed = true,
@@ -645,13 +675,21 @@ namespace NuGetGallery
                         new Package
                             {
                                 PackageRegistration = packageRegistrationA,
+                                Metadata = new PackageMetadata(),
                                 Version = "2.0.0",
                                 IsPrerelease = false,
                                 Listed = true,
                                 SupportedFrameworks =
                                     new[] { new PackageFramework { TargetFramework = "SL5" }, new PackageFramework { TargetFramework = "WinRT" } }
                             },
-                        new Package { PackageRegistration = packageRegistrationB, Version = "2.0", IsPrerelease = false, Listed = true },
+                        new Package
+                        {
+                            PackageRegistration = packageRegistrationB, 
+                            Metadata = new PackageMetadata(),
+                            Version = "2.0",
+                            IsPrerelease = false,
+                            Listed = true
+                        },
                     }.AsQueryable());
             var configuration = new Mock<ConfigurationService>(MockBehavior.Strict);
             configuration.Setup(c => c.GetSiteRoot(false)).Returns("https://localhost:8081/");

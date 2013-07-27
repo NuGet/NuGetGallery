@@ -12,7 +12,6 @@ namespace NuGetGallery
             Dependencies = new HashSet<PackageDependency>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             Listed = true;
-            Metadata = new PackageMetadata();
         }
 
         public PackageRegistration PackageRegistration { get; set; }

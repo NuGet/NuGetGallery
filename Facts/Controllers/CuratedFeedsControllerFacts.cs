@@ -191,6 +191,7 @@ namespace NuGetGallery
                         new Package
                         {
                             Key = 89932,
+                            Metadata = new PackageMetadata(), 
                         }
                     },
                     Owners = new [] 

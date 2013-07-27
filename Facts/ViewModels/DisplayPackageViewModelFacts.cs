@@ -14,19 +14,19 @@ namespace NuGetGallery.ViewModels
                     PackageRegistration = new PackageRegistration
                         {
                             Owners = Enumerable.Empty<User>().ToList(),
-                        }
+                        },
+                    Metadata = new PackageMetadata(),
                 };
 
             package.PackageRegistration.Packages = new[]
                 {
-                    new Package { Version = "1.0.0-alpha2", PackageRegistration = package.PackageRegistration }
-                    ,
-                    new Package { Version = "1.0.0", PackageRegistration = package.PackageRegistration },
-                    new Package { Version = "1.0.0-alpha", PackageRegistration = package.PackageRegistration },
-                    new Package { Version = "1.0.0-beta", PackageRegistration = package.PackageRegistration },
-                    new Package { Version = "1.0.2-beta", PackageRegistration = package.PackageRegistration },
-                    new Package { Version = "1.0.2", PackageRegistration = package.PackageRegistration },
-                    new Package { Version = "1.0.10", PackageRegistration = package.PackageRegistration }
+                    new Package { Version = "1.0.0-alpha2", PackageRegistration = package.PackageRegistration, Metadata = new PackageMetadata() },
+                    new Package { Version = "1.0.0", PackageRegistration = package.PackageRegistration, Metadata = new PackageMetadata() },
+                    new Package { Version = "1.0.0-alpha", PackageRegistration = package.PackageRegistration, Metadata = new PackageMetadata() },
+                    new Package { Version = "1.0.0-beta", PackageRegistration = package.PackageRegistration, Metadata = new PackageMetadata() },
+                    new Package { Version = "1.0.2-beta", PackageRegistration = package.PackageRegistration, Metadata = new PackageMetadata() },
+                    new Package { Version = "1.0.2", PackageRegistration = package.PackageRegistration, Metadata = new PackageMetadata() },
+                    new Package { Version = "1.0.10", PackageRegistration = package.PackageRegistration, Metadata = new PackageMetadata() }
                 };
 
             var packageVersions = new DisplayPackageViewModel(package).PackageVersions.ToList();

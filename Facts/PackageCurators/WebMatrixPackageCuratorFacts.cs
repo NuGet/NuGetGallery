@@ -267,6 +267,7 @@ namespace NuGetGallery.PackageCurators
                             {
                                 Key = 0,
                             },
+                        Metadata = new PackageMetadata(),
                     };
             }
 
