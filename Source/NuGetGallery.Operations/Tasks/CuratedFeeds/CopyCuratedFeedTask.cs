@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NuGetGallery.Operations.Common;
 
 namespace NuGetGallery.Operations.Tasks.CuratedFeeds
 {
@@ -86,6 +87,14 @@ COMMIT TRAN";
 
         [Option("The name of the destination feed", AltName = "d")]
         public string DestinationFeed { get; set; }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+
+            ArgCheck.Required(SourceFeed, "SourceFeed");
+            ArgCheck.Required(DestinationFeed, "DestinationFeed");
+        }
 
         public override void ExecuteCommand()
         {
