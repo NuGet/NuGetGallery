@@ -108,13 +108,24 @@
 
 @helper ReleaseMeta() {
     // Using ConfigurationManager to reduce external dependencies here
-    string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"];
-    string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"];
-    string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"];
-    if (!String.IsNullOrEmpty(sha) && !String.IsNullOrEmpty(branch) && !String.IsNullOrEmpty(time))
+    string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"].Trim();
+    string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"].Trim();
+    string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"].Trim();
+    string environment = ConfigurationManager.AppSettings["Gallery.Environment"].Trim();
+    if(!String.IsNullOrEmpty(environment)) 
+    {
+        <meta name="deployment-environment" content="@environment" />
+    }
+    if(!String.IsNullOrEmpty(sha)) 
     {
         <meta name="deployment-commit" content="@sha" />
+    }
+    if (!String.IsNullOrEmpty(branch))
+    {
         <meta name="deployment-branch" content="@branch" />
+    }
+    if (!String.IsNullOrEmpty(time))
+    {
         <meta name="deployment-time" content="@time" />
     }
 }
@@ -122,18 +133,22 @@
 @helper ReleaseTag()
 {
     // Using ConfigurationManager to reduce external dependencies here
-    string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"];
-    string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"];
-    string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"];
+    string sha = ConfigurationManager.AppSettings["Gallery.ReleaseSha"].Trim();
+    string branch = ConfigurationManager.AppSettings["Gallery.ReleaseBranch"].Trim();
+    string time = ConfigurationManager.AppSettings["Gallery.ReleaseTime"].Trim();
     <p id="releaseTag">
         This is the NuGet Gallery.
-        @if (!String.IsNullOrEmpty(sha) && !String.IsNullOrEmpty(branch) && !String.IsNullOrEmpty(time))
+        @if (!String.IsNullOrEmpty(sha))
         {
-            <text>
-                Deployed from <a href="https://github.com/NuGet/NuGetGallery/commit/@sha" title="View the commit.">@sha.Substring(0, Math.Min(sha.Length, 10))</a>.
-                Originally built on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a> 
-                at @time.
-            </text>
+            @:Deployed from <a href="https://github.com/NuGet/NuGetGallery/commit/@sha" title="View the commit.">@sha.Substring(0, Math.Min(sha.Length, 10))</a>.
+        }
+        @if(!String.IsNullOrEmpty(branch)) 
+        {
+            @:Originally built on <a href="https://github.com/NuGet/NuGetGallery/branches/@branch" title="View the branch.">@branch</a>.
+        }
+        @if(!String.IsNullOrEmpty(time)) 
+        {
+            @:Built at @time.
         }
         
         @* A little quick-n-dirty code to display the current machine *@
