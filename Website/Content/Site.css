@@ -726,7 +726,7 @@ ul.dependencySet li {
     list-style-image: none;
 }
 
-.edit-root, .edit-root-selected {
+.edit-root {
     font-size: 1.3em;
 }
 

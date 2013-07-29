@@ -1,6 +1,6 @@
 ﻿@model EditPackageRequest
 @{
-    ViewBag.Title = "Edit: " + Model.PackageTitle + " " + Model.Version;
+    ViewBag.Title = "Editing: " + Model.PackageTitle + " " + Model.Version;
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
@@ -29,27 +29,46 @@
 }
 
 @section SideColumn {
-    <nav id="edit-list">
-        <h2>Editing</h2>
-        <span class="@(Model.Version == null ? "edit-root-selected" : "edit-root")">
-            <a href="@Url.EditPackage(Model.PackageId, null)" >@(Model.PackageTitle)</a>
-        </span>
-        <ul id="packageVersions">
-        @foreach (var version in Model.PackageVersions)
-        {
-            var versionStr = version.Version;
-            <li>
-                <span class="@(string.Equals(Model.Version, versionStr, StringComparison.OrdinalIgnoreCase) ? "edit-tree-selected" : "edit-tree")">
-                    <a href="@Url.EditPackage(Model.PackageId, versionStr)" >@(versionStr)</a>
-                    @if (!version.Listed)
-                    {
-                        <text>(unlisted)</text>
-                    }
-                </span>
-            </li>
-        }
-        </ul>
-    </nav>
+    @{
+        var isRootSelected = Model.Version == null;
+        <nav id="edit-list">
+            <h2>Editing</h2>
+            <span class="edit-root">
+                <text>@(Model.PackageId)</text>
+            </span>
+            <ul id="packageVersions">
+            @foreach (var version in Model.PackageVersions)
+            {
+                var versionStr = version.Version;
+                var isSelected = string.Equals(Model.Version, versionStr, StringComparison.OrdinalIgnoreCase);
+                <li>
+                    <span class="@(isSelected ? "edit-tree-selected" : "edit-tree")">
+                        @if (isSelected)
+                        {
+                            <text>@(versionStr)</text>
+                        }
+                        else
+                        {
+                            <a href="@Url.EditPackage(Model.PackageId, versionStr)" >@(versionStr)</a>
+                        }
+                        @if (!version.Listed)
+                        {
+                            <text>(unlisted)</text>
+                        }
+                        @if (version.IsLatest)
+                        {
+                            <text>(latest)</text>
+                        }
+                        else if (version.IsLatestStable)
+                        {
+                            <text>(latest stable)</text>
+                        }
+                    </span>
+                </li>
+            }
+            </ul>
+        </nav>
+    }
 }
 
 @using (Html.BeginForm())
@@ -61,7 +80,7 @@
             
             @Html.AntiForgeryToken()
             @Html.ValidationSummary(true)
-            @(Html.EditorFor<EditPackageRequest,EditPackageVersionRequest>(model => model.EditPackageVersionRequest))
+            @(Html.EditorFor<EditPackageRequest, EditPackageVersionRequest>(model => model.EditPackageVersionRequest))
         </fieldset>
         <input type="submit" value="Save" title="Save" />
     }

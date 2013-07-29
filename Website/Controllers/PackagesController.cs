@@ -497,10 +497,9 @@ namespace NuGetGallery
             var packageRegistration = _packageService.FindPackageRegistrationById(id);
             var model = new EditPackageRequest
             {
-                EditingLatest = (version == null),
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Metadata.Title,
-                Version = version == null ? null : package.Version,
+                Version = package.Version,
                 PackageVersions = packageRegistration.Packages.ToList(),
             };
 
