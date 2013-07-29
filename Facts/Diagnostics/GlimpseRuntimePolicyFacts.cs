@@ -107,7 +107,7 @@ namespace NuGetGallery.Diagnostics
             }
 
             [Fact]
-            public void EnablesGlimpseCompletelyIfRequestIsLocal()
+            public void EnablesGlimpsePersistenceIfRequestIsLocal()
             {
                 // Arrange
                 var context = new Mock<HttpContextBase>();
@@ -125,7 +125,7 @@ namespace NuGetGallery.Diagnostics
                     .Returns(true);
 
                 // Act/Assert
-                Assert.Equal(RuntimePolicy.On, policy.Execute(context.Object));
+                Assert.Equal(RuntimePolicy.PersistResults, policy.Execute(context.Object));
             }
         }
 
