@@ -192,6 +192,13 @@
     <Compile Include="Tasks\Database\CreateSqlUserTask.cs" />
     <Compile Include="Tasks\Database\DeleteSqlUserTask.cs" />
     <Compile Include="Tasks\Database\ListSqlUserTask.cs" />
+    <Compile Include="Tasks\CuratedFeeds\AddCuratedFeedManagerTask.cs" />
+    <Compile Include="Tasks\CuratedFeeds\RemoveCuratedFeedManagerTask.cs" />
+    <Compile Include="Tasks\CuratedFeeds\ListCuratedFeedManagersTask.cs" />
+    <Compile Include="Tasks\CuratedFeeds\CopyCuratedFeedTask.cs" />
+    <Compile Include="Tasks\CuratedFeeds\CreateCuratedFeed.cs" />
+    <Compile Include="Tasks\CuratedFeeds\DeleteCuratedFeedTask.cs" />
+    <Compile Include="Tasks\CuratedFeeds\ListCuratedFeedsTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />
@@ -210,7 +217,7 @@
     <Compile Include="Tasks\Monitoring\TailJobLogTask.cs" />
     <Compile Include="Tasks\OpsTask.cs" />
     <Compile Include="Tasks\PopulatePackageFrameworksTask.cs" />
-    <Compile Include="Tasks\CurateWebmatrixPackagesTask.cs" />
+    <Compile Include="Tasks\CuratedFeeds\CurateWebmatrixPackagesTask.cs" />
     <Compile Include="Model\Database.cs" />
     <Compile Include="Tasks\DeleteBrokenPackageBackupsTask.cs" />
     <Compile Include="Tasks\DeletePackageFileTask.cs" />
