@@ -1,0 +1,3 @@
+Azure SDK 1.8
+
+No NuGet Package for these yet :(
