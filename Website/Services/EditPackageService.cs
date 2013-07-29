@@ -23,7 +23,9 @@ namespace NuGetGallery
         {
             return EntitiesContext.Set<PackageMetadata>()
                 .OrderByDescending(m => m.Timestamp)
-                .FirstOrDefault(m => !m.IsCompleted);
+                .FirstOrDefault(
+                    m => m.PackageKey == p.Key && !m.IsCompleted
+                );
         }
 
         public virtual void StartEditPackageRequest(Package p, EditPackageRequest formData, User editingUser)
