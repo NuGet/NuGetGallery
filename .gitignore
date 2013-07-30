@@ -152,10 +152,10 @@ $RECYCLE.BIN/
 .DS_Store
 
 # NuGetGallery Specific Ignores (and unignores)
-Website/App_Data/*
-!Website/App_Data/Files/
-Website/App_Data/Files/*
-!Website/App_Data/Files/Content
+src/NuGetGallery.Frontend/App_Data/
+!src/NuGetGallery.Frontend/App_Data/Files/
+src/NuGetGallery.Frontend/App_Data/Files/
+!src/NuGetGallery.Frontend/App_Data/Files/Content
 
 # Allow the entire 'ops' folder
 !/ops/
