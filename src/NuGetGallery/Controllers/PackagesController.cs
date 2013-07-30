@@ -711,6 +711,11 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult SetLicenseReportVisibility(string id, string version, bool visible)
         {
+            return SetLicenseReportVisibility(id, version, visible, Url.Package);
+        }
+
+        internal virtual ActionResult SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, string> urlFactory)
+        {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
@@ -722,12 +727,16 @@ namespace NuGetGallery
             }
 
             _packageService.SetLicenseReportVisibility(package, visible);
+
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture,
                 "The license report for this package has been {0}. It may take several hours for this change to propagate through our system.",
                 visible ? "enabled" : "disabled");
 
-            return Redirect(Url.Package(package));
+            // Update the index
+            _indexingService.UpdatePackage(package);
+
+            return Redirect(urlFactory(package));
         }
     }
 }
