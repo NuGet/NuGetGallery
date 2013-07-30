@@ -162,3 +162,6 @@ Website/App_Data/Files/*
 
 # Allow the tasks/backups folder
 !src/NuGetGallery.Operations/Tasks/Backups/
+
+# Allow the Views/Packages folder
+!src/NuGetGallery.Frontend/Views/Packages/
