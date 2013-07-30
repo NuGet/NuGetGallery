@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend.Facts
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{025BD6EE-2702-4D9B-A88E-F07D7D26B0E5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Worker", "src\NuGetGallery.Backend\NuGetGallery.Worker.csproj", "{7F92C174-5310-4090-A6A3-3CC7C67C19D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -34,5 +40,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1DACF781-5CD0-4123-8BAC-CD385D864BE5} = {EB7A8F8C-BD84-47A1-BBE2-A5908E70833F}
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5} = {EB7A8F8C-BD84-47A1-BBE2-A5908E70833F}
+		{7F92C174-5310-4090-A6A3-3CC7C67C19D6} = {025BD6EE-2702-4D9B-A88E-F07D7D26B0E5}
 	EndGlobalSection
 EndGlobal
