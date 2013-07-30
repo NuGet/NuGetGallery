@@ -156,3 +156,6 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
+
+# Allow the entire 'ops' folder
+!/ops/
