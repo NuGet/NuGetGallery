@@ -9,6 +9,7 @@ using NuGetGallery;
 using System.IO;
 using Moq;
 using Xunit;
+using NuGet;
 
 namespace SearchQuality
 {
@@ -73,7 +74,7 @@ namespace SearchQuality
             List<Package> packages = LoadPackages(asArray);
 
             Lucene.Net.Store.Directory d = new Lucene.Net.Store.RAMDirectory();
-            var packageSource = new Mock<IPackageSource>();
+            var packageSource = new Mock<NuGetGallery.IIndexingService>();
             packageSource
                 .Setup(ps => ps.GetPackagesForIndexing(It.IsAny<DateTime?>()))
                 .Returns(new PackageIndexEntity[0].AsQueryable());
