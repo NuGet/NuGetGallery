@@ -88,13 +88,14 @@ SELECT
     [Summary],
     [Tags],
     [Title]
-FROM [Packages]");
+FROM [Packages] WHERE [MetadataKey] = NULL");
 
-            Sql(@"UPDATE [Packages]
-SET [MetadataKey] = (SELECT TOP 1 [Key] from [PackageMetadatas] WHERE [PackageMetadatas].[PackageKey] = [Packages].[Key])");
-            
+            Sql(@"
+UPDATE [Packages]
+SET [MetadataKey] = (SELECT TOP 1 [Key] from [PackageMetadatas] WHERE [PackageMetadatas].[PackageKey] = [Packages].[Key])
+WHERE [MetadataKey] = NULL");
         }
-        
+
         public override void Down()
         {
             DropIndex("PackageMetadatas", new[] { "UserKey" });
