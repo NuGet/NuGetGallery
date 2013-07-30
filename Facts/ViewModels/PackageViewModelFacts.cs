@@ -14,13 +14,8 @@ namespace NuGetGallery.ViewModels
             {
                 LicenseNames = "l1,l2, l3 ,l4  ,  l5 ",
             };
-            var licenseNames = (new PackageViewModel(package)).LicenseNames;
-            Assert.Contains("l1", licenseNames);
-            Assert.Contains("l2", licenseNames);
-            Assert.Contains("l3", licenseNames);
-            Assert.Contains("l4", licenseNames);
-            Assert.Contains("l5", licenseNames);
-            Assert.Equal(5, licenseNames.Count());
+            var packageViewModel = new PackageViewModel(package);
+            Assert.Equal(new string[] { "l1", "l2", "l3", "l4", "l5" }, packageViewModel.LicenseNames);
         }
 
         [Fact]
@@ -59,6 +54,18 @@ namespace NuGetGallery.ViewModels
             };
             var packageViewModel = new PackageViewModel(package);
             Assert.NotNull(packageViewModel.LicenseNames);
+        }
+
+        [Fact]
+        public void LicenseUrlKeptWhenLicenseReportDisabled()
+        {
+            var package = new Package
+            {
+                HideLicenseReport = true,
+                LicenseUrl = "url"
+            };
+            var packageViewModel = new PackageViewModel(package);
+            Assert.NotNull(packageViewModel.LicenseUrl);
         }
     }
 }
