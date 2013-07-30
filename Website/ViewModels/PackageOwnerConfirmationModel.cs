@@ -2,7 +2,7 @@
 {
     public class PackageOwnerConfirmationModel
     {
-        public bool Success { get; set; }
+        public ConfirmOwnershipResult Result { get; set; }
         public string PackageId { get; set; }
     }
 }

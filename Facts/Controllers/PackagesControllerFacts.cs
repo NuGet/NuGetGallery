@@ -193,9 +193,11 @@ namespace NuGetGallery
             [Fact]
             public void WithNonExistentUserReturnsHttpNotFound()
             {
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.User.Identity.Name).Returns("username");
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(new PackageRegistration());
-                var controller = CreateController(packageService: packageService);
+                var controller = CreateController(packageService: packageService, httpContext: httpContext);
 
                 var result = controller.ConfirmOwner("foo", "username", "token");
 
@@ -209,7 +211,7 @@ namespace NuGetGallery
                 var user = new User { Username = "username" };
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
-                packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(true);
+                packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(ConfirmOwnershipResult.Success);
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername("username")).Returns(user);
                 var httpContext = new Mock<HttpContextBase>();
@@ -221,14 +223,17 @@ namespace NuGetGallery
                 Assert.NotNull(result);
             }
 
-            [Fact]
-            public void WithValidTokenConfirmsUser()
+            [Theory]
+            [InlineData(ConfirmOwnershipResult.Success)]
+            [InlineData(ConfirmOwnershipResult.AlreadyOwner)]
+            [InlineData(ConfirmOwnershipResult.Failure)]
+            public void AcceptsResultOfPackageServiceIfOtherwiseValid(ConfirmOwnershipResult result)
             {
                 var package = new PackageRegistration { Id = "foo" };
                 var user = new User { Username = "username" };
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
-                packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(true);
+                packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(result);
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername("username")).Returns(user);
                 var httpContext = new Mock<HttpContextBase>();
@@ -238,8 +243,29 @@ namespace NuGetGallery
 
                 var model = (controller.ConfirmOwner("foo", "username", "token") as ViewResult).Model as PackageOwnerConfirmationModel;
 
-                Assert.True(model.Success);
+                Assert.Equal(result, model.Result);
                 Assert.Equal("foo", model.PackageId);
+            }
+
+            [Fact]
+            public void WhenUserIsAdminReturnsAlreadyOwner()
+            {
+                var package = new PackageRegistration { Id = "foo" };
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
+                var userService = new Mock<IUserService>();
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.User.Identity.Name).Returns("username");
+                httpContext.Setup(c => c.User.IsInRole(Constants.AdminRoleName)).Returns(true);
+                var controller = CreateController(packageService: packageService, userService: userService, httpContext: httpContext);
+
+
+                var model = (controller.ConfirmOwner("foo", "username", "token") as ViewResult).Model as PackageOwnerConfirmationModel;
+
+                Assert.Equal(ConfirmOwnershipResult.AlreadyOwner, model.Result);
+                Assert.Equal("foo", model.PackageId);
+                userService.Verify(u => u.FindByUsername("username"), Times.Never());
+                packageService.Verify(p => p.ConfirmPackageOwner(package, It.IsAny<User>(), "token"), Times.Never());
             }
         }
 

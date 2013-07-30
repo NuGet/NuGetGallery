@@ -486,21 +486,31 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var user = _userService.FindByUsername(username);
-            if (user == null)
+            ConfirmOwnershipResult result;
+            if (User.IsAdministrator())
             {
-                return HttpNotFound();
+                result = ConfirmOwnershipResult.AlreadyOwner;
             }
-
-            if (!String.Equals(user.Username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            else
             {
-                return new HttpStatusCodeResult(403);
+                var user = _userService.FindByUsername(username);
+                if (user == null)
+                {
+                    return HttpNotFound();
+                }
+
+                if (!String.Equals(user.Username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new HttpStatusCodeResult(403);
+                }
+
+                result = _packageService.ConfirmPackageOwner(package, user, token);
             }
 
             var model = new PackageOwnerConfirmationModel
                 {
-                    Success = _packageService.ConfirmPackageOwner(package, user, token),
-                    PackageId = id
+                    Result = result,
+                    PackageId = package.Id
                 };
 
             return View(model);
