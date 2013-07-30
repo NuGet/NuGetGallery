@@ -220,6 +220,7 @@ namespace NuGetGallery
             {
                 // Ensure that the user can push packages for this partialId.
                 var packageRegistration = PackageService.FindPackageRegistrationById(packageToPush.Metadata.Id);
+
                 if (packageRegistration != null)
                 {
                     if (!packageRegistration.IsOwner(user))
@@ -244,11 +245,21 @@ namespace NuGetGallery
                     }
                 }
 
-                var package = PackageService.CreatePackage(packageToPush, user, commitChanges: true);
+                var package = PackageService.CreatePackage(packageToPush, user, commitChanges: false);
+                
+                // Update the package registration's ID if it doesn't already match.
+                if (packageToPush != null && packageToPush.Metadata != null) // A little extra defensiveness makes the tests simpler :)
+                {
+                    package.PackageRegistration.Id = packageToPush.Metadata.Id;
+                }
+                
                 using (Stream uploadStream = packageToPush.GetStream())
                 {
                     await PackageFileService.SavePackageFileAsync(package, uploadStream);
                 }
+
+                EntitiesContext.SaveChanges();
+                IndexingService.UpdateIndex();
 
                 if (
                     packageToPush.Metadata.Id.Equals(Constants.NuGetCommandLinePackageId,

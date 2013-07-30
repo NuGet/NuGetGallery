@@ -622,6 +622,12 @@ namespace NuGetGallery
                 package = _packageService.CreatePackage(nugetPackage, currentUser, commitChanges: false);
                 Debug.Assert(package.PackageRegistration != null);
 
+                // Update the package registration's ID if it doesn't already match.
+                if (nugetPackage.Metadata != null) // A little extra defensiveness makes the tests simpler :)
+                {
+                    package.PackageRegistration.Id = nugetPackage.Metadata.Id;
+                }
+                
                 _packageService.PublishPackage(package, commitChanges: false);
 
                 if (listed == false)
@@ -642,7 +648,8 @@ namespace NuGetGallery
                 _indexingService.UpdateIndex();
 
                 // If we're pushing a new stable version of NuGet.CommandLine, update the extracted executable.
-                if (package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) &&
+                if (!String.IsNullOrEmpty(package.PackageRegistration.Id) &&
+                    package.PackageRegistration.Id.Equals(Constants.NuGetCommandLinePackageId, StringComparison.OrdinalIgnoreCase) &&
                     package.IsLatestStable)
                 {
                     await _nugetExeDownloaderService.UpdateExecutableAsync(nugetPackage);
