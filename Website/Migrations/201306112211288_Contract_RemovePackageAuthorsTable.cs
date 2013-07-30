@@ -2,14 +2,20 @@ namespace NuGetGallery.Migrations
 {
     using System;
     using System.Data.Entity.Migrations;
+    using System.Diagnostics;
     
     public partial class Contract_RemovePackageAuthorsTable : DbMigration
     {
         public override void Up()
         {
-            DropIndex(table: "PackageAuthors", name: "IX_PackageAuthors_PackageKey");
-            DropForeignKey("PackageAuthors", "PackageKey", "Packages", "Key");
-            DropTable("PackageAuthors");
+            // This is a drop Table migration! Instead of automigration, 
+            // run the following SQL script manually.
+            Trace.WriteLine(@"To drop the package authors table, run this SQL manually:
+
+            ALTER TABLE [PackageAuthors] DROP CONSTRAINT [FK_PackageAuthors_Packages_PackageKey]
+            DROP INDEX [PackageAuthors].[IX_PackageAuthors_PackageKey]
+            DROP TABLE [PackageAuthors]
+");
         }
         
         public override void Down()
