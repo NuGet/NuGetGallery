@@ -49,12 +49,9 @@ namespace NuGetGallery
                 Package = p,
                 PackageKey = p.Key,
                 IsCompleted = false,
+                IsOriginalMetadata = false,
                 Timestamp = DateTime.UtcNow,
                 TriedCount = 0,
-                EditName = "edit_" + EntitiesContext.Set<PackageMetadata>()
-                    .Where(pe => pe.PackageKey == p.Key)
-                    .Count()
-                    .ToString(CultureInfo.InvariantCulture),
             };
 
             EntitiesContext.Set<PackageMetadata>().Add(edit);

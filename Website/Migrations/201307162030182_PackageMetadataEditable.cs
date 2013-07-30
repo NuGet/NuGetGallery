@@ -14,9 +14,9 @@ namespace NuGetGallery.Migrations
                         Key = c.Int(nullable: false, identity: true),
                         PackageKey = c.Int(nullable: false),
                         UserKey = c.Int(nullable: false),
-                        EditName = c.String(maxLength: 64),
                         Timestamp = c.DateTime(nullable: false),
                         IsCompleted = c.Boolean(nullable: false),
+                        IsOriginalMetadata = c.Boolean(nullable: false),
                         TriedCount = c.Int(nullable: false),
                         Authors = c.String(),
                         Copyright = c.String(),
@@ -49,9 +49,9 @@ INSERT INTO [PackageMetadatas]
 --[Key],
       [PackageKey],
       [UserKey],
-      [EditName],
       [Timestamp],
       [IsCompleted],
+      [IsOriginalMetadata],
       [TriedCount],
       [Authors],
       [Copyright],
@@ -71,9 +71,9 @@ SELECT
 --        COALESCE((SELECT MAX([Key]) FROM [PackageMetadatas]), 0), /*Key*/
     [Key] as [PackageKey], /*PackageKey*/
     (SELECT [Key] FROM [Users] WHERE [Username] = '@SYSTEM'), /*UserKey*/
-    'OriginalMetadata', /*EditName*/
     SYSUTCDATETIME(), /*Timestamp*/
     1, /*IsCompleted*/
+    1, /*IsOriginalMetadata*/
     0, /*TriedCount*/
     [FlattenedAuthors],/*Authors*/
     [Copyright],
