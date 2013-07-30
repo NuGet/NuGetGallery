@@ -148,8 +148,6 @@
     <Compile Include="Common\StreamConverter.cs" />
     <Compile Include="DatabaseBackupHelper.cs" />
     <Compile Include="DeploymentEnvironment.cs" />
-    <Compile Include="Indexing\PackageDocumentSerializer.cs" />
-    <Compile Include="Indexing\PackageIndex.cs" />
     <Compile Include="Infrastructure\CommandLineParser.cs" />
     <Compile Include="Infrastructure\IAsyncCompletionTask.cs" />
     <Compile Include="Infrastructure\IDbExecutorFactory.cs" />
@@ -160,7 +158,6 @@
     <Compile Include="Infrastructure\LogLevelConverter.cs" />
     <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
     <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
-    <Compile Include="Indexing\IndexMetadata.cs" />
     <Compile Include="Model\OfflineDatabaseBackup.cs" />
     <Compile Include="Model\OnlineDatabaseBackup.cs" />
     <Compile Include="Service References\SqlDac\Reference.cs">
@@ -215,7 +212,6 @@
     <Compile Include="Infrastructure\Verbosity.cs" />
     <Compile Include="Tasks\DeleteUserTask.cs" />
     <Compile Include="Tasks\ExportDatabaseTask.cs" />
-    <Compile Include="Tasks\Indexing\UpdateIndexTask.cs" />
     <Compile Include="Tasks\ListDeploymentSettingsTask.cs" />
     <Compile Include="Tasks\LowerCaseAllPackageBlobsTask.cs" />
     <Compile Include="Tasks\IBackupDatabase.cs" />
