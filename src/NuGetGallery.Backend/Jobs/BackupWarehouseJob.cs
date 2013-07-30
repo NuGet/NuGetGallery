@@ -5,7 +5,7 @@ using NuGetGallery.Operations;
 using NuGetGallery.Operations.Tasks;
 using NuGetGallery.Operations.Tasks.Backups;
 
-namespace NuGetGallery.Worker.Jobs
+namespace NuGetGallery.Backend.Jobs
 {
     [Export(typeof(WorkerJob))]
     public class BackupWarehouseJob : WorkerJob

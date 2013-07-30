@@ -8,8 +8,8 @@
     <ProjectGuid>{7F92C174-5310-4090-A6A3-3CC7C67C19D6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGetGallery.Worker</RootNamespace>
-    <AssemblyName>NuGetGallery.Worker</AssemblyName>
+    <RootNamespace>NuGetGallery.Backend</RootNamespace>
+    <AssemblyName>NuGetGallery.Backend</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <RoleType>Worker</RoleType>

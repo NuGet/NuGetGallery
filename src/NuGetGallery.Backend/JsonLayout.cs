@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using NLog.Layouts;
 
-namespace NuGetGallery.Worker
+namespace NuGetGallery.Backend
 {
     public class JsonLayout : Layout
     {

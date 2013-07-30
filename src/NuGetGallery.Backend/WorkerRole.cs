@@ -14,7 +14,7 @@ using NLog.Targets;
 using NLog.Targets.Wrappers;
 using NuGetGallery.Operations.Infrastructure;
 
-namespace NuGetGallery.Worker
+namespace NuGetGallery.Backend
 {
     public class WorkerRole : RoleEntryPoint
     {

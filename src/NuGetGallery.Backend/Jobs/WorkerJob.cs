@@ -3,7 +3,7 @@ using NLog;
 using NuGetGallery.Operations;
 using NuGetGallery.Operations.Infrastructure;
 
-namespace NuGetGallery.Worker.Jobs
+namespace NuGetGallery.Backend.Jobs
 {
     public abstract class WorkerJob
     {
