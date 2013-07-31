@@ -60,3 +60,11 @@ A sub-feature of this is Auditing. It's time to get a richer auditing flow in th
  * ReportTimestampUtc - datetime - Timestamp used in the report (must be identical to report name). If ReportId is a URL, this may be unnecessary
 3. Changes to user lookup:
  * Add "AND Disabled = 0" to all queries for users across the system (login, package ownership, profile pages, etc.)
+
+## Rollout Schedule
+The schedule is defined in terms of numbered sprints. At this point, which sprint each sprint below corresponds to is open to change.
+
+1. Sprint 1: Roll out new Audit Tables and augment User table with new columns. NO EntityFramework models for these tables yet. NO CODE USES THIS during Sprint 1. The code at the end of Sprint 1 will be able to work without the migration being run.
+2. Sprint 2: Roll out Merge functionality. This code will REQUIRE that the migration from Sprint 1 was run, which it should have been.
+
+It is my suggestion that, if we can close on the spec shortly, Sprint 1 be the sprint started on 7/22 (i.e. the new tables would be merged to QA on 8/2). Since this is a very low-impact additive database change, I feel that's a safe schedule.
