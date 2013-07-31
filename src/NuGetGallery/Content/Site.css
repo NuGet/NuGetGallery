@@ -765,47 +765,6 @@ ul.dependencySet li {
     /* License */
 
 .block {
-    margin: 0;
-}
-
-.block-title {
-    font-size: 1.25em;
-    margin-top: 0.25em;
-    margin-bottom: 0.25em;
-    display: inline-block;
-}
-
-.block-link {
-    font-size: 1em;
-    margin-top: 0.2em;
-    margin-bottom: 0.2em;
-    margin-left: 0.5em;
-    margin-right: 3em;
-}
-
-#licenseNames {
-    font-size: 0.9em;
-    font-weight: bold;
-    margin-top: 0.5em;
-    margin-bottom: 0.4em;
-    margin-left: 0.5em;
-    margin-right: 3em;
-}
-
-/*
-#enableDisableLicenseReportButton {
-    display: inline;
-}
-*/
-
-#enableDisableLicenseReportButton {
-    margin: 0 auto;
-    margin-top: 1.5em;
-    display: block;
-    font-size: 0.9em;
-}
-
-.prototype-block {
     margin-top: 1.5em;
     margin-bottom: 2em;
     margin-left: 0;
@@ -814,15 +773,15 @@ ul.dependencySet li {
     background: #e4f1f7;
 }
 
-.prototype-block-title {
+.block-title {
     margin-top: 0;
-    margin-bottom: 0; /*1.2em*/
-    text-align: left; /* center */
+    margin-bottom: 0;
+    text-align: left;
     font-size: 1.25em;
     color: #0071BC;
 }
 
-#prototype-sonatypeHeader {
+#sonatypeHeader {
     margin-top: 0;
     margin-bottom: 1.75em;
     text-align: left;
@@ -830,19 +789,31 @@ ul.dependencySet li {
     color: black;
 }
 
-.prototype-licenseNames {
+.licenseName {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
     font-size: 0.9em;
     font-weight: 600;
 }
 
-.prototype-block-link {
+.block-link {
     margin-top: 0.25em;
     margin-bottom: 0.25em;
     font-size: 1em;
 }
 
+.block-text {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+    font-size: 0.9em;
+}
+
+#enableDisableLicenseReportButton {
+    margin: 0 auto;
+    margin-top: 1.5em;
+    display: block;
+    font-size: 0.9em;
+}
 
     /* Side Column Navigation */
 
