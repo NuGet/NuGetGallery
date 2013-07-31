@@ -96,49 +96,8 @@
             }
         </ul>
     </nav>
-@*
-    @if (!String.IsNullOrEmpty(Model.LicenseUrl) || !Model.HideLicenseReport)
-    {
-        <div class="block">
-            <h3 class="block-title">License</h3>
-            @*if (Model.IsOwner(User))
-            {
-                using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @id = "enableDisableLicenseReportButton" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <input type="image" src="@(Model.HideLicenseReport ? Content.Images.plus_png : Content.Images.minus_png)" value="@(Model.HideLicenseReport ? "Enable" : "Disable") license report" title="@(Model.HideLicenseReport ? "Enable" : "Disable") license report" />
-                }
-            }*@@*
-           @if (!Model.HideLicenseReport)
-            {
-                if (Model.LicenseNames.AnySafe())
-                {
-                    <p id="licenseNames">@String.Join(", ", Model.LicenseNames)</p>
-                }
-            }
-            @if (!String.IsNullOrEmpty(Model.LicenseUrl))
-            {
-                <p class="block-link"><a href="@Model.LicenseUrl" title="License defined by package author">View License</a></p>
-            }
-            @if (!Model.HideLicenseReport)
-            {
-                if (Model.LicenseNames.AnySafe() && !String.IsNullOrEmpty(Model.LicenseReportUrl))
-                {
-                    <p class="block-link"><a href="@Model.LicenseReportUrl" title="License analysis by Sonatype CLM">View Sonatype CLM Component Report</a></p>
-                }
-            }
-            @if (Model.IsOwner(User))
-            {
-                using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <input id="enableDisableLicenseReportButton" type="submit" value="@(Model.HideLicenseReport ? "Enable" : "Disable") license report"/>
-                }
-            }
-        </div>
-    }
-*@
-    @if (!Model.HideLicenseReport || Model.IsOwner(User))
+    @* Package with license report enabled and at least one license field  OR  Owned by user *@
+    @if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || Model.IsOwner(User))
     {
         <div class="prototype-block">
             <h3 class="prototype-block-title">License details</h3>
