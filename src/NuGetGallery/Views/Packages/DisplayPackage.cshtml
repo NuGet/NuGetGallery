@@ -96,32 +96,40 @@
             }
         </ul>
     </nav>
+
     @* Package with license report enabled and at least one license field  OR  Owned by user *@
     @if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || Model.IsOwner(User))
     {
-        <div class="prototype-block">
-            <h3 class="prototype-block-title">License details</h3>
-            <p id="prototype-sonatypeHeader">provided by Sonatype</p>
+        <div class="block">
+            <h3 class="block-title">License details</h3>
+            <p id="sonatypeHeader">provided by Sonatype</p>
             @if (Model.LicenseNames.AnySafe())
             {
                 foreach (var licenseName in Model.LicenseNames)
                 {
                     if (!String.IsNullOrEmpty(licenseName))
                     {
-                        <p class="prototype-licenseNames">@licenseName</p>
+                        <p class="licenseName">@licenseName</p>
                     }
                 }
             }
             @if (!String.IsNullOrEmpty(Model.LicenseReportUrl))
             {
-                <p class="prototype-block-link"><a href="@Model.LicenseReportUrl" title="License analysis by Sonatype CLM">View report</a></p>
+                <p class="block-link"><a href="@Model.LicenseReportUrl" title="License analysis by Sonatype CLM">View report</a></p>
             }
             @if (Model.IsOwner(User))
             {
-                using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
+                if (!Model.LicenseNames.AnySafe() && String.IsNullOrEmpty(Model.LicenseReportUrl))
                 {
-                    @Html.AntiForgeryToken()
-                    <input id="enableDisableLicenseReportButton" type="submit" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
+                    <p class="block-text">License information is not yet available.</p>
+                }
+                else
+                {
+                    using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input id="enableDisableLicenseReportButton" type="submit" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
+                    }
                 }
             }
         </div>
