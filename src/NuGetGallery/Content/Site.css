@@ -819,6 +819,15 @@ button.undo-button {
     font-size: 1.25em;
     margin-top: 0.25em;
     margin-bottom: 0.25em;
+    display: inline-block;
+}
+
+.block-link {
+    font-size: 1em;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+    margin-left: 0.5em;
+    margin-right: 3em;
 }
 
 #licenseNames {
@@ -830,13 +839,57 @@ button.undo-button {
     margin-right: 3em;
 }
 
-.block-link {
-    font-size: 0.9em;
-    margin-top: 0.2em;
-    margin-bottom: 0.2em;
-    margin-left: 0.5em;
-    margin-right: 3em;
+/*
+#enableDisableLicenseReportButton {
+    display: inline;
 }
+*/
+
+#enableDisableLicenseReportButton {
+    margin: 0 auto;
+    margin-top: 1.5em;
+    display: block;
+    font-size: 0.9em;
+}
+
+.prototype-block {
+    margin-top: 1.5em;
+    margin-bottom: 2em;
+    margin-left: 0;
+    margin-right: 7.2em;
+    padding: 1.1em;
+    background: #e4f1f7;
+}
+
+.prototype-block-title {
+    margin-top: 0;
+    margin-bottom: 0; /*1.2em*/
+    text-align: left; /* center */
+    font-size: 1.25em;
+    color: #0071BC;
+}
+
+#prototype-sonatypeHeader {
+    margin-top: 0;
+    margin-bottom: 1.75em;
+    text-align: left;
+    font-size: 0.7em;
+    color: black;
+}
+
+.prototype-licenseNames {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.prototype-block-link {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+    font-size: 1em;
+}
+
 
     /* Side Column Navigation */
 
