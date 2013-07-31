@@ -60,9 +60,9 @@
                 <div class="licenses">
                     <h2>Licenses</h2>
                     <p>
-                        @if (Model.LicenseNames.Count() > 10)
+                        @if (Model.LicenseNames.Count() > 3)
                         {
-                            @String.Concat(String.Join(", ", Model.LicenseNames.Take(10)), ", ...")
+                            @String.Concat(String.Join(", ", Model.LicenseNames.Take(3)), ", ...")
                         }
                         else
                         {
