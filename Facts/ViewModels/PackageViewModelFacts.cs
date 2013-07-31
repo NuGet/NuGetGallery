@@ -19,7 +19,7 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
-        public void LicenseReportFieldsNullWhenLicenseReportDisabled()
+        public void LicenseReportFieldsKeptWhenLicenseReportDisabled()
         {
             var package = new Package
             {
@@ -28,8 +28,8 @@ namespace NuGetGallery.ViewModels
                 LicenseReportUrl = "url" 
             };
             var packageViewModel = new PackageViewModel(package);
-            Assert.Null(packageViewModel.LicenseNames);
-            Assert.Null(packageViewModel.LicenseReportUrl);
+            Assert.NotNull(packageViewModel.LicenseNames);
+            Assert.NotNull(packageViewModel.LicenseReportUrl);
         }
 
         [Fact]

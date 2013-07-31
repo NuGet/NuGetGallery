@@ -24,21 +24,12 @@ namespace NuGetGallery
             Listed = package.Listed;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
+            LicenseReportUrl = package.LicenseReportUrl;
 
-            if (!package.HideLicenseReport)
+            var licenseNames = package.LicenseNames;
+            if (!String.IsNullOrEmpty(licenseNames))
             {
-                LicenseReportUrl = package.LicenseReportUrl;
-                
-                var licenseNames = package.LicenseNames;
-                if (!String.IsNullOrEmpty(licenseNames))
-                {
-                    LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
-                }
-            }
-            else
-            {
-                LicenseReportUrl = null;
-                LicenseNames = null;
+                LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
             }
         }
 
