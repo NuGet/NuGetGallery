@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
                     {
                         Key = c.Int(nullable: false, identity: true),
                         PackageKey = c.Int(nullable: false),
-                        UserKey = c.Int(nullable: false),
+                        UserKey = c.Int(nullable: true),
                         Timestamp = c.DateTime(nullable: false),
                         IsCompleted = c.Boolean(nullable: false),
                         IsOriginalMetadata = c.Boolean(nullable: false),
@@ -35,8 +35,7 @@ namespace NuGetGallery.Migrations
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Packages", t => t.PackageKey, cascadeDelete: true)
                 .ForeignKey("Users", t => t.UserKey, cascadeDelete: true)
-                .Index(t => t.PackageKey)
-                .Index(t => t.UserKey);
+                .Index(t => t.PackageKey);
 
             AddColumn("Packages", "MetadataKey", c => c.Int(nullable: true));
             AddForeignKey("Packages", "MetadataKey", "PackageMetadatas", "Key");
@@ -70,7 +69,7 @@ SELECT
 --    (ROW_NUMBER( ) OVER ( ORDER BY [Key] ASC )) +
 --        COALESCE((SELECT MAX([Key]) FROM [PackageMetadatas]), 0), /*Key*/
     [Key] as [PackageKey], /*PackageKey*/
-    (SELECT [Key] FROM [Users] WHERE [Username] = '@SYSTEM'), /*UserKey*/
+    NULL, /*UserKey*/
     SYSUTCDATETIME(), /*Timestamp*/
     1, /*IsCompleted*/
     1, /*IsOriginalMetadata*/
@@ -88,17 +87,16 @@ SELECT
     [Summary],
     [Tags],
     [Title]
-FROM [Packages] WHERE [MetadataKey] = NULL");
+FROM [Packages] WHERE [MetadataKey] IS NULL");
 
             Sql(@"
 UPDATE [Packages]
 SET [MetadataKey] = (SELECT TOP 1 [Key] from [PackageMetadatas] WHERE [PackageMetadatas].[PackageKey] = [Packages].[Key])
-WHERE [MetadataKey] = NULL");
+WHERE [MetadataKey] IS NULL");
         }
 
         public override void Down()
         {
-            DropIndex("PackageMetadatas", new[] { "UserKey" });
             DropIndex("PackageMetadatas", new[] { "PackageKey" });
             DropIndex("Packages", new[] { "MetadataKey" });
             DropForeignKey("PackageMetadatas", "UserKey", "Users");

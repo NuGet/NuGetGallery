@@ -118,7 +118,7 @@ namespace NuGetGallery
                 .HasKey(pm => pm.Key);
 
             modelBuilder.Entity<PackageMetadata>()
-                .HasRequired<User>(pm => pm.User)
+                .HasOptional(pm => pm.User)
                 .WithMany()
                 .HasForeignKey(pm => pm.UserKey);
 
