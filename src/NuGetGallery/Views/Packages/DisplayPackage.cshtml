@@ -61,7 +61,10 @@
                 <li><a href="@Model.ProjectUrl" title="Visit the project site to learn more about this package">
                         Project Site</a></li>
             }
-
+            @if (!String.IsNullOrEmpty(Model.LicenseUrl))
+            {
+                <li><a href="@Model.LicenseUrl" title="Make sure you agree with the license">License</a></li>
+            }
             @if (Model.IsOwner(User))
             {
                 <li><a href="@Url.Action(MVC.Packages.ReportMyPackage(Model.Id, Model.Version))" title="Contact support for help with your package">
@@ -93,21 +96,20 @@
             }
         </ul>
     </nav>
-
+@*
     @if (!String.IsNullOrEmpty(Model.LicenseUrl) || !Model.HideLicenseReport)
     {
         <div class="block">
             <h3 class="block-title">License</h3>
-            @if (Model.IsOwner(User))
+            @*if (Model.IsOwner(User))
             {
-                @* TODO: Change for an icon *@
-                using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport)))
+                using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @id = "enableDisableLicenseReportButton" }))
                 {
                     @Html.AntiForgeryToken()
-                    <input type="submit" value="@(Model.HideLicenseReport ? "Enable" : "Disable") license report"/>
+                    <input type="image" src="@(Model.HideLicenseReport ? Content.Images.plus_png : Content.Images.minus_png)" value="@(Model.HideLicenseReport ? "Enable" : "Disable") license report" title="@(Model.HideLicenseReport ? "Enable" : "Disable") license report" />
                 }
-            }
-            @if (!Model.HideLicenseReport)
+            }*@@*
+           @if (!Model.HideLicenseReport)
             {
                 if (Model.LicenseNames.AnySafe())
                 {
@@ -125,8 +127,47 @@
                     <p class="block-link"><a href="@Model.LicenseReportUrl" title="License analysis by Sonatype CLM">View Sonatype CLM Component Report</a></p>
                 }
             }
+            @if (Model.IsOwner(User))
+            {
+                using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input id="enableDisableLicenseReportButton" type="submit" value="@(Model.HideLicenseReport ? "Enable" : "Disable") license report"/>
+                }
+            }
         </div>
     }
+*@
+    @if (!Model.HideLicenseReport || Model.IsOwner(User))
+    {
+        <div class="prototype-block">
+            <h3 class="prototype-block-title">License details</h3>
+            <p id="prototype-sonatypeHeader">provided by Sonatype</p>
+            @if (Model.LicenseNames.AnySafe())
+            {
+                foreach (var licenseName in Model.LicenseNames)
+                {
+                    if (!String.IsNullOrEmpty(licenseName))
+                    {
+                        <p class="prototype-licenseNames">@licenseName</p>
+                    }
+                }
+            }
+            @if (!String.IsNullOrEmpty(Model.LicenseReportUrl))
+            {
+                <p class="prototype-block-link"><a href="@Model.LicenseReportUrl" title="License analysis by Sonatype CLM">View report</a></p>
+            }
+            @if (Model.IsOwner(User))
+            {
+                using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <input id="enableDisableLicenseReportButton" type="submit" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
+                }
+            }
+        </div>
+    }
+
 }
 <div class="package-page">
     @if (Model.Prerelease)
@@ -175,7 +216,7 @@
                     <text> -Pre </text>
                 }</code></p>
     </div>
-    @if (!String.IsNullOrEmpty(Model.MinClientVersion)) 
+    @if (!String.IsNullOrEmpty(Model.MinClientVersion))
     { 
         <p>Requires NuGet @Model.MinClientVersion or higher.</p>
     }
