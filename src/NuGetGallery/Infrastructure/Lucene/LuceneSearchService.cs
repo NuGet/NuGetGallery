@@ -94,6 +94,7 @@ namespace NuGetGallery
             bool isLatest = Boolean.Parse(doc.Get("IsLatest"));
             bool isLatestStable = Boolean.Parse(doc.Get("IsLatestStable"));
             bool requiresLicenseAcceptance = Boolean.Parse(doc.Get("RequiresLicenseAcceptance"));
+            bool hideLicenseReport = Boolean.Parse(doc.Get("HideLicenseReport"));
             DateTime created = DateTime.Parse(doc.Get("Created"), CultureInfo.InvariantCulture);
             DateTime published = DateTime.Parse(doc.Get("Published"), CultureInfo.InvariantCulture);
             DateTime lastUpdated = DateTime.Parse(doc.Get("LastUpdated"), CultureInfo.InvariantCulture);
@@ -156,7 +157,8 @@ namespace NuGetGallery
                 MinClientVersion = doc.Get("MinClientVersion"),
                 LicenseUrl = doc.Get("LicenseUrl"),
                 LicenseNames = doc.Get("LicenseNames"),
-                LicenseReportUrl = doc.Get("LicenseReportUrl")
+                LicenseReportUrl = doc.Get("LicenseReportUrl"),
+                HideLicenseReport = hideLicenseReport
             };
         }
 
