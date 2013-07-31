@@ -287,10 +287,22 @@ namespace NuGetGallery
             }
 
             var sb = new StringBuilder();
-            sb.AppendFormat("{0} {1}", frameworkName.Identifier, frameworkName.Version);
-            if (String.IsNullOrEmpty(frameworkName.Profile))
+            if (String.Equals(frameworkName.Identifier, ".NETPortable", StringComparison.OrdinalIgnoreCase))
             {
-                sb.AppendFormat(" {0}", frameworkName.Profile);
+                sb.Append("Portable Class Library (");
+
+                // Recursively parse the profile
+                var subprofiles = frameworkName.Profile.Split('+');
+                sb.Append(String.Join(", ", subprofiles.Select(s => VersionUtility.ParseFrameworkName(s).ToFriendlyName())));
+                sb.Append(")");
+            }
+            else
+            {
+                sb.AppendFormat("{0} {1}", frameworkName.Identifier, frameworkName.Version);
+                if (!String.IsNullOrEmpty(frameworkName.Profile))
+                {
+                    sb.AppendFormat(" {0}", frameworkName.Profile);
+                }
             }
             return sb.ToString();
         }

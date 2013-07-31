@@ -32,6 +32,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult LogOn(SignInRequest request, string returnUrl)
         {

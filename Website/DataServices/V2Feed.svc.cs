@@ -49,7 +49,7 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .Where(p => p.Listed);
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, packages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: null).ToV2FeedPackageQuery(GetSiteRoot());
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, packages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: null).ToV2FeedPackageQuery(GetSiteRoot());
         }
 
         [WebGet]
@@ -92,31 +92,25 @@ namespace NuGetGallery
                 return Enumerable.Empty<V2FeedPackage>().AsQueryable();
             }
 
-            var versionLookup = new Dictionary<string, Tuple<SemanticVersion, IVersionSpec>>(idValues.Length, StringComparer.OrdinalIgnoreCase);
-            for (int i = 0; i < idValues.Length; i++)
-            {
-                var id = idValues[i];
-
-                if (versionLookup.ContainsKey(id))
+            var versionLookup = idValues.Select((id, i) =>
                 {
-                    // Exit early if the request contains duplicate ids
-                    return Enumerable.Empty<V2FeedPackage>().AsQueryable();
-                }
-
-                SemanticVersion currentVersion = null;
-                if (SemanticVersion.TryParse(versionValues[i], out currentVersion))
-                {
-                    IVersionSpec versionConstraint = null;
-                    if (versionConstraintValues[i] != null)
+                    SemanticVersion currentVersion = null;
+                    if (SemanticVersion.TryParse(versionValues[i], out currentVersion))
                     {
-                        if (!VersionUtility.TryParseVersionSpec(versionConstraintValues[i], out versionConstraint))
+                        IVersionSpec versionConstraint = null;
+                        if (versionConstraintValues[i] != null)
                         {
-                            versionConstraint = null;
+                            if (!VersionUtility.TryParseVersionSpec(versionConstraintValues[i], out versionConstraint))
+                            {
+                                versionConstraint = null;
+                            }
                         }
+                        return Tuple.Create(id, Tuple.Create(currentVersion, versionConstraint));
                     }
-                    versionLookup.Add(id, Tuple.Create(currentVersion, versionConstraint));
-                }
-            }
+                    return null;
+                })
+                .Where(t => t != null)
+                .ToLookup(t => t.Item1, t => t.Item2);
 
             var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
@@ -129,21 +123,14 @@ namespace NuGetGallery
 
         private static IEnumerable<Package> GetUpdates(
             IEnumerable<Package> packages,
-            Dictionary<string, Tuple<SemanticVersion, IVersionSpec>> versionLookup,
+            ILookup<string, Tuple<SemanticVersion, IVersionSpec>> versionLookup,
             IEnumerable<FrameworkName> targetFrameworkValues,
             bool includeAllVersions)
         {
-            var updates = packages.AsEnumerable()
-                .Where(
-                    p =>
-                        {
-                            // For each package, if the version is higher than the client version and we satisty the target framework, return it.
-                            // TODO: We could optimize for the includeAllVersions case here by short circuiting the operation once we've encountered the highest version
-                            // for a given Id
-                            var version = SemanticVersion.Parse(p.Version);
-                            Tuple<SemanticVersion, IVersionSpec> versionTuple;
-                            
-                            if (versionLookup.TryGetValue(p.PackageRegistration.Id, out versionTuple))
+            var updates = from p in packages.AsEnumerable()
+                          let version = SemanticVersion.Parse(p.Version)
+                          where versionLookup[p.PackageRegistration.Id]
+                            .Any(versionTuple =>
                             {
                                 SemanticVersion clientVersion = versionTuple.Item1;
                                 var supportedPackageFrameworks = p.SupportedFrameworks.Select(f => f.FrameworkName);
@@ -151,16 +138,15 @@ namespace NuGetGallery
                                 IVersionSpec versionConstraint = versionTuple.Item2;
 
                                 return (version > clientVersion) &&
-                                       (targetFrameworkValues == null || 
+                                        (targetFrameworkValues == null ||
                                         targetFrameworkValues.Any(s => VersionUtility.IsCompatible(s, supportedPackageFrameworks))) &&
                                         (versionConstraint == null || versionConstraint.Satisfies(version));
-                            }
-                            return false;
-                        });
+                            })
+                          select p;
 
             if (!includeAllVersions)
             {
-                return updates.GroupBy(p => p.PackageRegistration.Id)
+                updates = updates.GroupBy(p => p.PackageRegistration.Id)
                     .Select(g => g.OrderByDescending(p => SemanticVersion.Parse(p.Version)).First());
             }
             return updates;

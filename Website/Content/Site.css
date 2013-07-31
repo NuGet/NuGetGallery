@@ -391,7 +391,7 @@ nav.main ul a:hover {
 /* Body */
 
 #body {
-    padding-bottom: 175px;
+    padding-bottom: 14px;
     padding-top: 20px;
 }
 
@@ -1031,6 +1031,44 @@ ul.pager li.next { padding-left: 10px; }
 
 .pivot-table tbody td { padding: 5px 25px 5px 0; }
 
+    /* stats Table */
+
+.stats-table {
+    border-collapse: collapse;
+    font-size: 1.1em;
+}
+
+        /* header */
+
+.stats-table thead tr { border-bottom: solid 1px #333; }
+
+.stats-table th {
+    font-size: 1.25em;
+    font-weight: normal;
+    padding: 5px 5px 0px 0px;
+    text-align: left;
+}
+
+        /* body */
+
+.stats-table tbody tr { margin-bottom: 10px; }
+
+.stats-table tbody tr:hover { background-color: #f4f5f6; }
+
+.stats-table tbody td { padding: 5px 5px 5px 0; }
+
+        /* footer */
+
+.stats-table tfoot {
+    border-bottom: solid 1px #333;
+    font-weight: 600;
+}
+
+.stats-table tfoot td { padding: 3px 0; }
+
+.stats-table tfoot tr { border-top: 2px solid #333; }
+
+
     /* statistics */
 
 .statistics-number {
@@ -1043,9 +1081,9 @@ ul.pager li.next { padding-left: 10px; }
 }
 
 .statistics-layout {
-    width:400px;
+    width:440px;
     float:left;
-    padding:25px
+    padding:10px 25px 10px 0px 
 }
 
 .statistics-more {
@@ -1097,16 +1135,6 @@ ul.pager li.next { padding-left: 10px; }
 {
     position:relative;
     top:50px;
-}
-
-#downloads-by-nuget-version table 
-{
-    display:none;
-}
-
-#downloads-per-month table
-{
-    display:none;
 }
 
 .axis path,
@@ -1175,13 +1203,24 @@ fieldset.form legend { display: none; }
     margin-bottom: 5px;
 }
 
-.form-field-inline label
-{
-    display: inline-block;
-    width: 300px;
+#form-field-register-policies {
+    margin-bottom: 0;
 }
 
-.form-field-inline span.field-validation-error
+#form-field-register-policies label
+{
+    width: 300px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#form-field-register-policies input
+{
+    display: inline;
+    vertical-align: middle;
+}
+
+#form-field-register-policies span.field-validation-error
 {
     top: 0px;
 }
@@ -1377,7 +1416,6 @@ input:focus ~ .field-validation-error ~ .field-hint-message { display: none; }
     border-top: 1px solid #d3e7fe;
     clear: both;
     color: #3e483c;
-    margin-top: -161px;
     padding-bottom: 1em;
     padding-top: 0px;
     position: relative;

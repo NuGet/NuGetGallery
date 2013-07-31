@@ -9,20 +9,29 @@ namespace NuGetGallery
     {
         public DependencySetsViewModel(IEnumerable<PackageDependency> packageDependencies)
         {
-            DependencySets = new Dictionary<string, IEnumerable<DependencyViewModel>>();
-
-            var dependencySets = packageDependencies
-                .GroupBy(d => d.TargetFramework)
-                .OrderBy(ds => ds.Key);
-
-            OnlyHasAllFrameworks = dependencySets.Count() == 1 && dependencySets.First().Key == null;
-
-            foreach (var dependencySet in dependencySets)
+            try
             {
-                var targetFramework = dependencySet.Key == null
-                                          ? "All Frameworks"
-                                          : VersionUtility.ParseFrameworkName(dependencySet.Key).ToFriendlyName();
-                DependencySets.Add(targetFramework, dependencySet.Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec)));
+                DependencySets = new Dictionary<string, IEnumerable<DependencyViewModel>>();
+
+                var dependencySets = packageDependencies
+                    .GroupBy(d => d.TargetFramework)
+                    .OrderBy(ds => ds.Key);
+
+                OnlyHasAllFrameworks = dependencySets.Count() == 1 && dependencySets.First().Key == null;
+
+                foreach (var dependencySet in dependencySets)
+                {
+                    var targetFramework = dependencySet.Key == null
+                                              ? "All Frameworks"
+                                              : VersionUtility.ParseFrameworkName(dependencySet.Key).ToFriendlyName();
+                    DependencySets.Add(targetFramework, dependencySet.Select(d => d.Id == null ? null : new DependencyViewModel(d.Id, d.VersionSpec)));
+                }
+            }
+            catch (Exception e)
+            {
+                DependencySets = null;
+                QuietLog.LogHandledException(e);
+                // Just set Dependency Sets to null but still render the package.
             }
         }
 
