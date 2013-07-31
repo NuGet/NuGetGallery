@@ -1,0 +1,23 @@
+﻿@{
+    Layout = "~/views/Shared/Layout.cshtml";
+    ViewBag.Title = "Merge Accounts";
+}
+
+<h1 class="page-heading">Merge Account</h1>
+<section id="merge-info">
+    <p>
+        Merging with another account is a two-step process:
+    </p>
+    <ol>
+        <li>First, you must log in to the account you wish to merge in to your current account</li>
+        <li>Next, you can choose which username and email should be used by the merged account and preview the merged account</li>
+    </ol>
+    <p>
+        Note: Once you merge accounts, the username you choose to discard is <strong>permanently lost</strong>
+        and will <strong>not</strong> be available for reuse. 
+        @Html.ActionLink("NuGet Support", MVC.Pages.Contact()) can recover it if absolutely necessary, 
+        but only on a case-by-case basis.
+    </p>
+</section>
+
+@RenderBody()

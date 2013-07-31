@@ -1,0 +1,47 @@
+﻿@model PlanMergeViewModel
+@{
+    Layout = "~/Views/Users/_MergeLayout.cshtml";
+}
+
+<section id="merge-plan">
+    <p>
+        Now, select the information you want to use in the merged account and preview the merge result
+    </p>
+    <div class="columns">
+        <div class="column merge-box">
+            <h2>@Model.SourceUser.Username</h2>
+            <p>@Model.SourceUser.EmailAddress</p>
+            <p><strong>Packages:</strong></p>
+            <ol id="merge-packages">
+            @foreach (var package in Model.SourcePackages)
+            {
+                <li><a href="@Url.Package(package)">@package.PackageRegistration.Id</a></li>
+            }
+            </ol>
+        </div>
+        <div class="column merge-box">
+            <h2>@Model.TargetUser.Username</h2>
+            <p>@Model.TargetUser.EmailAddress</p>
+            <p><strong>Packages:</strong></p>
+            <ol id="merge-packages">
+                @foreach (var package in Model.TargetPackages)
+                {
+                    <li><a href="@Url.Package(package)">@package.PackageRegistration.Id</a></li>
+                }
+            </ol>
+        </div>
+    </div>
+    <div id="merge-output" class="merge-box">
+        <div id="merge-output-content">
+            <h2>@Model.TargetUser.Username</h2>
+            <p>@Model.TargetUser.EmailAddress</p>
+            <p><strong>Packages:</strong></p>
+            <ol id="merge-packages">
+                @foreach (var package in Enumerable.Concat(Model.SourcePackages, Model.TargetPackages))
+                {
+                    <li><a href="@Url.Package(package)">@package.PackageRegistration.Id</a></li>
+                }
+            </ol>
+        </div>
+    </div>
+</section>

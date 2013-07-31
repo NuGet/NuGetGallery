@@ -17,10 +17,12 @@ namespace NuGetGallery
 
         private const string ForceSSLCookieName = "ForceSSL";
 
-        public void SetAuthCookie(
-            string userName,
-            bool createPersistentCookie,
-            IEnumerable<string> roles)
+        public string GetAuthTicket(string userName, bool createPersistentCookie, IEnumerable<string> roles)
+        {
+            return GetAuthTicket(userName, createPersistentCookie, roles, TimeSpan.FromMinutes(30));
+        }
+
+        public string GetAuthTicket(string userName, bool createPersistentCookie, IEnumerable<string> roles, TimeSpan validFor)
         {
             string formattedRoles = String.Empty;
             if (roles.AnySafe())
@@ -28,18 +30,26 @@ namespace NuGetGallery
                 formattedRoles = String.Join("|", roles);
             }
 
-            HttpContext context = HttpContext.Current;
-
             var ticket = new FormsAuthenticationTicket(
                 version: 1,
                 name: userName,
                 issueDate: DateTime.UtcNow,
-                expiration: DateTime.UtcNow.AddMinutes(30),
+                expiration: DateTime.UtcNow.Add(validFor),
                 isPersistent: createPersistentCookie,
                 userData: formattedRoles
                 );
 
-            string encryptedTicket = FormsAuthentication.Encrypt(ticket);
+            return FormsAuthentication.Encrypt(ticket);
+        }
+
+        public void SetAuthCookie(
+            string userName,
+            bool createPersistentCookie,
+            IEnumerable<string> roles)
+        {
+            HttpContext context = HttpContext.Current;
+
+            var encryptedTicket = GetAuthTicket(userName, createPersistentCookie, roles);
             var formsCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket)
             {
                 HttpOnly = true,
@@ -80,6 +90,23 @@ namespace NuGetGallery
             }
             
             return false;
+        }
+
+        public string GetUserNameFromTicket(string ticket)
+        {
+            try
+            {
+                var decryptedTicket = FormsAuthentication.Decrypt(ticket);
+                if (!decryptedTicket.Expired)
+                {
+                    return decryptedTicket.Name;
+                }
+            }
+            catch(Exception e)
+            {
+                QuietLog.LogHandledException(e);
+            }
+            return null;
         }
     }
 }

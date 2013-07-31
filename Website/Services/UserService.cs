@@ -235,7 +235,7 @@ namespace NuGetGallery
 
             if (!user.Confirmed)
             {
-                throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
+                throw new InvalidOperationException(Strings.CannotResetPasswordUserNotConfirmed);
             }
 
             if (!String.IsNullOrEmpty(user.PasswordResetToken) && !user.PasswordResetTokenExpirationDate.IsInThePast())
@@ -263,7 +263,7 @@ namespace NuGetGallery
             {
                 if (!user.Confirmed)
                 {
-                    throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
+                    throw new InvalidOperationException(Strings.CannotResetPasswordUserNotConfirmed);
                 }
 
                 ChangePasswordInternal(user, newPassword);

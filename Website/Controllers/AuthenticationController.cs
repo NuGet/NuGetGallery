@@ -9,6 +9,7 @@ namespace NuGetGallery
     {
         public IFormsAuthenticationService FormsAuth { get; protected set; }
         public IUserService Users { get; protected set; }
+        public AuthenticationService Auth { get; protected set; }
         
         // For sub-classes to initialize services themselves
         protected AuthenticationController()
@@ -17,10 +18,12 @@ namespace NuGetGallery
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthService,
-            IUserService userService)
+            IUserService userService,
+            AuthenticationService auth)
         {
             FormsAuth = formsAuthService;
             Users = userService;
+            Auth = auth;
         }
 
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -28,7 +31,7 @@ namespace NuGetGallery
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
-            return View();
+            return View(new SignInRequest());
         }
 
         [HttpPost]
@@ -41,43 +44,32 @@ namespace NuGetGallery
 
             // TODO: improve the styling of the validation summary
             // TODO: modify the Object.cshtml partial to make the first text box autofocus, or use additional metadata
-
+            
             if (!ModelState.IsValid)
             {
-                return View();
+                return View(request);
             }
 
-            var user = Users.FindByUsernameOrEmailAddressAndPassword(
-                request.UserNameOrEmail,
-                request.Password);
+            var authResult = Auth.Authenticate(request.UserNameOrEmail, request.Password);
 
-            if (user == null)
-            {
-                ModelState.AddModelError(
-                    String.Empty,
-                    Strings.UserNotFound);
+            switch(authResult.Status) {
+                case AuthenticationResultStatus.Unconfirmed:
+                    ViewBag.ConfirmationRequired = true;
+                    return View(request);
+                case AuthenticationResultStatus.Success:
+                    FormsAuth.SetAuthCookie(
+                        authResult.User.Username,
+                        true,
+                        authResult.Roles);
 
-                return View();
+                    return SafeRedirect(returnUrl);
+                default:
+                    ModelState.AddModelError(
+                        String.Empty,
+                        Strings.UserNotFound);
+
+                    return View(request);
             }
-
-            if (!user.Confirmed)
-            {
-                ViewBag.ConfirmationRequired = true;
-                return View();
-            }
-
-            IEnumerable<string> roles = null;
-            if (user.Roles.AnySafe())
-            {
-                roles = user.Roles.Select(r => r.Name);
-            }
-
-            FormsAuth.SetAuthCookie(
-                user.Username,
-                true,
-                roles);
-
-            return SafeRedirect(returnUrl);
         }
 
         public virtual ActionResult LogOff(string returnUrl)

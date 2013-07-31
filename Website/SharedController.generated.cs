@@ -28,6 +28,7 @@ namespace T4MVC {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string _LoginPartial = "~/Views/Shared/_LoginPartial.cshtml";
             public readonly string Error = "~/Views/Shared/Error.cshtml";
             public readonly string Layout = "~/Views/Shared/Layout.cshtml";
             public readonly string TwoColumnLayout = "~/Views/Shared/TwoColumnLayout.cshtml";

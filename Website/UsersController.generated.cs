@@ -41,6 +41,11 @@ namespace NuGetGallery {
         public System.Web.Mvc.ActionResult Profiles() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Profiles);
         }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult PlanMerge() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.PlanMerge);
+        }
 
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public UsersController Actions { get { return MVC.Users; } }
@@ -68,6 +73,8 @@ namespace NuGetGallery {
             public readonly string Profiles = "Profiles";
             public readonly string ChangePassword = "ChangePassword";
             public readonly string PasswordChanged = "PasswordChanged";
+            public readonly string Merge = "Merge";
+            public readonly string PlanMerge = "PlanMerge";
         }
 
 
@@ -76,14 +83,17 @@ namespace NuGetGallery {
         public ViewNames Views { get { return s_views; } }
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
+            public readonly string _MergeLayout = "~/Views/Users/_MergeLayout.cshtml";
             public readonly string Account = "~/Views/Users/Account.cshtml";
             public readonly string ChangePassword = "~/Views/Users/ChangePassword.cshtml";
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
             public readonly string Edit = "~/Views/Users/Edit.cshtml";
             public readonly string ForgotPassword = "~/Views/Users/ForgotPassword.cshtml";
+            public readonly string Merge = "~/Views/Users/Merge.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
             public readonly string PasswordChanged = "~/Views/Users/PasswordChanged.cshtml";
             public readonly string PasswordSent = "~/Views/Users/PasswordSent.cshtml";
+            public readonly string PlanMerge = "~/Views/Users/PlanMerge.cshtml";
             public readonly string Profiles = "~/Views/Users/Profiles.cshtml";
             public readonly string Register = "~/Views/Users/Register.cshtml";
             public readonly string ResendConfirmation = "~/Views/Users/ResendConfirmation.cshtml";
@@ -204,6 +214,23 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult PasswordChanged() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PasswordChanged);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Merge() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Merge);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Merge(NuGetGallery.SignInRequest request) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Merge);
+            callInfo.RouteValueDictionary.Add("request", request);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult PlanMerge(string username) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.PlanMerge);
+            callInfo.RouteValueDictionary.Add("username", username);
             return callInfo;
         }
 

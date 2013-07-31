@@ -128,6 +128,11 @@ namespace NuGetGallery
                 MVC.Users.ResetPassword());
 
             routes.MapRoute(
+                RouteName.AccountWithUsername,
+                "account/{action}/{username}",
+                new { controller = MVC.Users.Name });
+
+            routes.MapRoute(
                 RouteName.Account,
                 "account/{action}",
                 MVC.Users.Account());

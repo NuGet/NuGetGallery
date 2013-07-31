@@ -1,20 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public partial class UsersController : AppController
     {
+        private const string MergeTokenCookieName = "MergeToken";
+
         public ICuratedFeedService CuratedFeedService { get; protected set; }
         public IPrincipal CurrentUser { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
         public IAppConfiguration Config { get; protected set; }
         public IUserService UserService { get; protected set; }
+        public AuthenticationService Auth { get; protected set; }
+        public IFormsAuthenticationService FormsAuth { get; protected set; }
 
         protected UsersController() { }
 
@@ -24,7 +31,9 @@ namespace NuGetGallery
             IPackageService packageService,
             IMessageService messageService,
             IAppConfiguration config,
-            IPrincipal currentUser) : this()
+            IPrincipal currentUser,
+            AuthenticationService auth,
+            IFormsAuthenticationService formsAuth) : this()
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
@@ -32,6 +41,8 @@ namespace NuGetGallery
             MessageService = messageService;
             Config = config;
             CurrentUser = currentUser;
+            Auth = auth;
+            FormsAuth = formsAuth;
         }
 
         [Authorize]
@@ -401,6 +412,138 @@ namespace NuGetGallery
         public virtual ActionResult PasswordChanged()
         {
             return View();
+        }
+
+        private static readonly RouteValueDictionary _postToMergeRoute = new RouteValueDictionary() {
+            {"controller", "Users"},
+            {"action", "Merge"},
+            {"area", ""}
+        };
+
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult Merge()
+        {
+            var username = ReadMergeToken();
+            if (!String.IsNullOrEmpty(username))
+            {
+                TempData["Message"] = Strings.ResumeMerge;
+                return RedirectToAction(MVC.Users.PlanMerge(username));
+            }
+
+            return View(ConfigureSignInRequestForMerge(new SignInRequest()));
+        }
+
+        [HttpPost]
+        [Authorize]
+        public virtual ActionResult Merge(SignInRequest request)
+        {
+            // Restore "post-to" route
+            ConfigureSignInRequestForMerge(request);
+
+            if (!ModelState.IsValid)
+            {
+                return View(request);
+            }
+            else
+            {
+                // Authenticate the other user
+                var otherUserResult = Auth.Authenticate(request.UserNameOrEmail, request.Password);
+                switch (otherUserResult.Status)
+                {
+                    case AuthenticationResultStatus.Success:
+                        if(String.Equals(otherUserResult.User.Username, User.Identity.Name, StringComparison.OrdinalIgnoreCase)) {
+                            ModelState.AddModelError(String.Empty, Strings.CantMergeWithSelf);
+                            return View(request);
+                        }
+                        // Make a psuedo auth cookie (just the user name)
+                        var encryptedTicket = FormsAuth.GetAuthTicket(
+                            otherUserResult.User.Username, 
+                            createPersistentCookie: false, 
+                            roles: Enumerable.Empty<string>(), 
+                            validFor: TimeSpan.FromMinutes(5));
+                        var formsCookie = new HttpCookie(MergeTokenCookieName, encryptedTicket)
+                        {
+                            HttpOnly = true,
+                            Secure = Config.RequireSSL,
+                            Expires = DateTime.UtcNow.AddMinutes(5) // Short expiration on the merge operation
+                        };
+                        Response.Cookies.Add(formsCookie);
+                        return RedirectToAction(MVC.Users.PlanMerge(otherUserResult.User.Username));
+                    case AuthenticationResultStatus.Unconfirmed:
+                        ModelState.AddModelError(String.Empty, Strings.UserHasNotConfirmedEmail);
+                        return View(request);
+                    default:
+                        ModelState.AddModelError(
+                            String.Empty,
+                            Strings.UserNotFound);
+                        return View(request);
+                }
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult PlanMerge(string username)
+        {
+            // Check the target username against the merge token
+            if (!String.Equals(ReadMergeToken(), username))
+            {
+                return ExpiredMerge();
+            }
+
+            User source = UserService.FindByUsername(username);
+            if (source == null)
+            {
+                return ExpiredMerge();
+            }
+            if (String.Equals(source.Username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Message"] = Strings.CantMergeWithSelf;
+                return RedirectToAction("Merge");
+            }
+
+            User target = UserService.FindByUsername(User.Identity.Name);
+            if (target == null)
+            {
+                return ExpiredMerge();
+            }
+
+            // Get a list of packages owned by the source and target
+            IEnumerable<Package> sourcePackages = PackageService.FindPackagesByOwner(source);
+            IEnumerable<Package> targetPackages = PackageService.FindPackagesByOwner(target);
+
+            return View(new PlanMergeViewModel()
+            {
+                SourceUser = source,
+                TargetUser = target,
+                SourcePackages = sourcePackages,
+                TargetPackages = targetPackages
+            });
+        }
+
+        private ActionResult ExpiredMerge()
+        {
+            TempData["Message"] = Strings.SessionExpired;
+            return RedirectToAction("Merge");
+        }
+
+        private string ReadMergeToken()
+        {
+            var cookie = Request.Cookies[MergeTokenCookieName];
+            if (cookie != null)
+            {
+                return FormsAuth.GetUserNameFromTicket(cookie.Value);
+            }
+            return null;
+        }
+
+        private SignInRequest ConfigureSignInRequestForMerge(SignInRequest signInRequest)
+        {
+            signInRequest.PostToRoute = _postToMergeRoute;
+            signInRequest.SubmitButtonTitle = "Start Merge";
+            signInRequest.ShowLostPassword = false;
+            return signInRequest;
         }
     }
 }

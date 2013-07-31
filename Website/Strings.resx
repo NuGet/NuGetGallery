@@ -144,7 +144,7 @@
   <data name="CurrentPasswordIncorrect" xml:space="preserve">
     <value>The current password you provided is incorrect.</value>
   </data>
-  <data name="UserIsNotYetConfirmed" xml:space="preserve">
+  <data name="CannotResetPasswordUserNotConfirmed" xml:space="preserve">
     <value>You cannot reset your password until you confirm your account.</value>
   </data>
   <data name="SSLRequired" xml:space="preserve">
@@ -173,5 +173,17 @@
   </data>
   <data name="ParameterCannotBeNullOrEmpty" xml:space="preserve">
     <value>'{0}' cannot be null or an empty string</value>
+  </data>
+  <data name="CantMergeWithSelf" xml:space="preserve">
+    <value>You cannot merge with yourself!</value>
+  </data>
+  <data name="ResumeMerge" xml:space="preserve">
+    <value>You're already in the middle of a merge. Click Cancel to abort this merge and start a new one.</value>
+  </data>
+  <data name="SessionExpired" xml:space="preserve">
+    <value>Something went wrong! Maybe you stayed too long on a page or clicked a link that has expired.</value>
+  </data>
+  <data name="UserHasNotConfirmedEmail" xml:space="preserve">
+    <value>User has not confirmed their email address.</value>
   </data>
 </root>

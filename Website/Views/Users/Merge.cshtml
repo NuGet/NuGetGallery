@@ -1,0 +1,11 @@
+﻿@model SignInRequest
+@{
+    Layout = "~/Views/Users/_MergeLayout.cshtml";
+}
+
+<section id="merge-login">
+    <p>
+        To begin the merge, enter the username and password of the user to merge with.
+    </p>
+    @Html.Partial("_LoginPartial", Model)
+</section>
