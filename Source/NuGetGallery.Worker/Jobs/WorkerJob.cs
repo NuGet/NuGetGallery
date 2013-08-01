@@ -48,7 +48,7 @@ namespace NuGetGallery.Worker.Jobs
                 return;
             }
 
-            if (completion != null)
+            if (completion != null && !completion.DoNotPoll)
             {
                 DateTime startUtc = DateTime.UtcNow;
                 while (DateTime.UtcNow - startUtc < completion.MaximumPollingLength && !completed)

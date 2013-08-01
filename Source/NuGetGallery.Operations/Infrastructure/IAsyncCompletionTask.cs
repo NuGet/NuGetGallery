@@ -11,6 +11,7 @@ namespace NuGetGallery.Operations.Infrastructure
     /// </summary>
     public interface IAsyncCompletionTask
     {
+        bool DoNotPoll { get; set; }
         TimeSpan MaximumPollingLength { get; }
         TimeSpan RecommendedPollingPeriod { get; }
         bool PollForCompletion();

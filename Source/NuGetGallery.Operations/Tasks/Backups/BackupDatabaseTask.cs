@@ -10,6 +10,8 @@ namespace NuGetGallery.Operations
     {
         private bool _startedBackup = false;
 
+        public bool DoNotPoll { get; set; }
+
         [Option("Backup should occur if the database is older than X minutes (default 30 minutes)")]
         public int IfOlderThan { get; set; }
 

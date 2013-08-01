@@ -36,6 +36,7 @@ namespace NuGetGallery.Worker.Jobs
                 ConnectionString = warehouse,
                 WhatIf = Settings.WhatIf,
                 IfOlderThan = 60,
+                DoNotPoll = false // Warehouse backups take a while...
             });
 
             Logger.Info("Complete Warehouse Backup job");
