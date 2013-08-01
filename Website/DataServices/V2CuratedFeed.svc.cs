@@ -84,20 +84,14 @@ namespace NuGetGallery
             // Null checks aren't really worth much here. If it does break, it'll result in a 500 to the client.
             var hostInterfaceField = operationContext.GetType().GetField("hostInterface", BindingFlags.NonPublic | BindingFlags.Instance);
             var hostInterface = hostInterfaceField.GetValue(operationContext);
-            var hostWrapperField = operationContext.GetType().GetField("hostWrapper", BindingFlags.NonPublic | BindingFlags.Instance);
-            var hostWrapper = hostWrapperField.GetValue(operationContext);
 
             // Fix up the service URIs
             var interfaceServiceUriField = hostInterface.GetType().GetField("absoluteServiceUri", BindingFlags.NonPublic | BindingFlags.Instance);
             interfaceServiceUriField.SetValue(hostInterface, new Uri(fixedUpSeriveUri));
-            var wrapperServiceUriField = hostWrapper.GetType().GetField("absoluteServiceUri", BindingFlags.NonPublic | BindingFlags.Instance);
-            wrapperServiceUriField.SetValue(hostWrapper, new Uri(fixedUpSeriveUri));
 
             // Fix up the request URIs
             var interfaceRequestUriField = hostInterface.GetType().GetField("absoluteRequestUri", BindingFlags.NonPublic | BindingFlags.Instance);
             interfaceRequestUriField.SetValue(hostInterface, new Uri(fixedUpRequestUri));
-            var wrapperRequestUriField = hostWrapper.GetType().GetField("absoluteRequestUri", BindingFlags.NonPublic | BindingFlags.Instance);
-            wrapperRequestUriField.SetValue(hostWrapper, new Uri(fixedUpRequestUri));
 
             // Take a shower.
         }
@@ -132,7 +126,7 @@ namespace NuGetGallery
 
             var curatedPackages = _curatedFeedService.GetPackages(curatedFeedName);
 
-            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, SiteRoot, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: curatedFeedKey)
+            return SearchAdaptor.SearchCore(SearchService, HttpContext.Request, curatedPackages, searchTerm, targetFramework, includePrerelease, curatedFeedKey: curatedFeedKey)
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 

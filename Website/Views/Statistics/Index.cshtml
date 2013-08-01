@@ -16,7 +16,7 @@
 {
     <div class="statistics-layout" >
         <h1 class="statistics-report-title">Downloaded&nbsp;Packages&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
-        <table class="sexy-table">
+        <table class="stats-table">
             <thead>
                 <tr>
                     <th scope="col"></th><th scope="col" class="first">Package</th><th scope="col">Downloads</th>
@@ -45,7 +45,7 @@
 {
     <div class="statistics-layout" >
         <h1 class="statistics-report-title">Downloaded&nbsp;Package&nbsp;Versions&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
-        <table class="sexy-table">
+        <table class="stats-table">
             <thead>
                 <tr>
                     <th scope="col"></th><th scope="col" class="first">Package</th><th scope="col">Version</th><th scope="col">Downloads</th>
@@ -78,7 +78,7 @@
 {
     <div class="statistics-layout" id="downloads-by-nuget-version">
         <h1 class="statistics-report-title">NuGet&nbsp;Client&nbsp;Usage&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
-        <table class="sexy-table">
+        <table class="stats-table">
             <thead>
                 <tr>
                     <th class="first">Version</th><th>Downloads</th><th>Percentage</th>
@@ -103,7 +103,7 @@
 {
     <div class="statistics-layout" id="downloads-per-month">
         <h1 class="statistics-report-title">Packages&nbsp;Downloaded&nbsp;Per&nbsp;Month</h1>
-        <table class="sexy-table">
+        <table class="stats-table">
             <thead>
                 <tr>
                     <th class="first">Month</th><th>Downloads</th>
@@ -127,9 +127,29 @@
 @section BottomScripts
 {
     @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
-    @Scripts.Render("~/Scripts/d3.v3.min.js")
-    @Scripts.Render("~/Scripts/statsgraphs.js")
+
+    @if (Model.UseD3)
+    {
+        @Scripts.Render("~/Scripts/d3.v3.min.js")
+        @Scripts.Render("~/Scripts/statsgraphs.js")
+    }
+
     <script>
-        $(document).ready(displayGraphs);
+        $(document).ready(function () {
+
+            if ($('#downloads-by-nuget-version').length) {
+                if (Modernizr.svg) {
+                    $('#downloads-by-nuget-version table').css('display', 'none');
+                    drawNugetClientVersionBarChart();
+                }
+            }
+
+            if ($('#downloads-per-month').length) {
+                if (Modernizr.svg) {
+                    $('#downloads-per-month table').css('display', 'none');
+                    drawMonthlyDownloadsLineChart();
+                }
+            }
+        });
     </script>
 }

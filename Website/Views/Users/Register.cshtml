@@ -23,11 +23,13 @@
 
         @Html.EditorForModel()
 
-        <div class="form-field form-field-inline">
+        <div id="form-field-register-policies" class="form-field">
             @Html.ValidationMessageFor(r => r.AcceptTerms)
             @Html.CheckBoxFor(r => r.AcceptTerms)
-            <label for="AcceptTerms">I have read and accept the @Html.ActionLink("Terms of Use", "Terms", MVC.Pages.Name)
-                and the @Html.ActionLink("Privacy Policy", "Privacy", MVC.Pages.Name)</label>
+            <label for="AcceptTerms">
+                I have read and accept the @Html.ActionLink("Terms of Use", "Terms", MVC.Pages.Name)
+                        and the @Html.ActionLink("Privacy Policy", "Privacy", MVC.Pages.Name)
+                            </label>
         </div>
 
         <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />

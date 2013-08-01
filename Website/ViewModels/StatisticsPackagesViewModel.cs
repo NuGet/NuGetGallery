@@ -60,6 +60,12 @@ namespace NuGetGallery
         public string PackageId { get; private set; }
         public string PackageVersion { get; private set; }
 
+        public bool UseD3
+        {
+            get;
+            set;
+        }
+
         public void SetPackageDownloadsByVersion(string packageId, StatisticsPackagesReport report)
         {
             PackageId = packageId;
