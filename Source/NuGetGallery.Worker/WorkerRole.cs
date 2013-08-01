@@ -58,17 +58,38 @@ namespace NuGetGallery.Worker
                     ArchiveFileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.${date:yyyy-MM-dd}.log")
                 };
                 ConfigureFileTarget(jobLogTarget);
-                config.AddTarget("file", jobLogTarget);
+                config.AddTarget("file-job", jobLogTarget);
                 FileTarget hostTarget = new FileTarget()
                 {
                     FileName = Path.Combine(logDir, "Host", "Host.log.json"),
                     ArchiveFileName = Path.Combine(logDir, "Host", "Host.${date:yyyy-MM-dd}.log")
                 };
                 ConfigureFileTarget(hostTarget);
-                config.AddTarget("file", hostTarget);
+                config.AddTarget("file-host", hostTarget);
+                FileTarget globalTarget = new FileTarget()
+                {
+                    FileName = Path.Combine(logDir, "Master", "Master.log.json")
+                };
+                ConfigureFileTarget(globalTarget);
+                globalTarget.MaxArchiveFiles = 1;
+                globalTarget.ArchiveAboveSize = 1024 * 1024;
+                globalTarget.EnableFileDelete = true;
+                globalTarget.DeleteOldFileOnStartup = true;
+                globalTarget.AutoFlush = true;
+                config.AddTarget("file-master", globalTarget);
 
+                TraceTarget traceTarget = new TraceTarget()
+                {
+                    Layout = "[${logger:shortName=true}][${date:yyyy-MM-ddTHHmmss}]${message}"
+                };
+                config.AddTarget("trace", traceTarget);
+                
                 LoggingRule allMessagesToConsole = new LoggingRule("*", NLog.LogLevel.Trace, consoleTarget);
                 config.LoggingRules.Add(allMessagesToConsole);
+                LoggingRule allMessagesToGlobal = new LoggingRule("*", NLog.LogLevel.Trace, globalTarget);
+                config.LoggingRules.Add(allMessagesToGlobal);
+                LoggingRule allMessagesToTrace = new LoggingRule("*", NLog.LogLevel.Trace, traceTarget);
+                config.LoggingRules.Add(allMessagesToTrace);
 
                 // All other rules transfer all kinds of log messages EXCEPT Trace.
                 LoggingRule hostToFile = new LoggingRule("JobRunner", NLog.LogLevel.Debug, hostTarget);
