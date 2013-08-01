@@ -211,6 +211,7 @@
     <Compile Include="Tasks\DeleteUserTask.cs" />
     <Compile Include="Tasks\ExportDatabaseTask.cs" />
     <Compile Include="Tasks\ListDeploymentSettingsTask.cs" />
+    <Compile Include="Tasks\ListPackageBlobBackupsTask.cs" />
     <Compile Include="Tasks\LowerCaseAllPackageBlobsTask.cs" />
     <Compile Include="Tasks\IBackupDatabase.cs" />
     <Compile Include="Tasks\Monitoring\ListJobLogsTask.cs" />
