@@ -50,7 +50,7 @@ namespace NuGetGallery.Operations
                     throw new InvalidOperationException("Please provide a specific database name");
                 }
 
-                Log.Info("'{0}' State: {1}", BackupName, State);
+                Log.Trace("'{0}' State: {1}", BackupName, State);
             }
         }
     }

@@ -86,9 +86,9 @@ namespace NuGetGallery.Worker
                 
                 LoggingRule allMessagesToConsole = new LoggingRule("*", NLog.LogLevel.Trace, consoleTarget);
                 config.LoggingRules.Add(allMessagesToConsole);
-                LoggingRule allMessagesToGlobal = new LoggingRule("*", NLog.LogLevel.Trace, globalTarget);
+                LoggingRule allMessagesToGlobal = new LoggingRule("*", NLog.LogLevel.Debug, globalTarget);
                 config.LoggingRules.Add(allMessagesToGlobal);
-                LoggingRule allMessagesToTrace = new LoggingRule("*", NLog.LogLevel.Trace, traceTarget);
+                LoggingRule allMessagesToTrace = new LoggingRule("*", NLog.LogLevel.Debug, traceTarget);
                 config.LoggingRules.Add(allMessagesToTrace);
 
                 // All other rules transfer all kinds of log messages EXCEPT Trace.
