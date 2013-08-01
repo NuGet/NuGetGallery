@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Data.SqlClient;
-using NuGetGallery.Operations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using NuGetGallery.Operations.Tasks;
 using NuGetGallery.Operations.Tasks.Backups;
 
 namespace NuGetGallery.Worker.Jobs
 {
     [Export(typeof(WorkerJob))]
-    public class BackupWarehouseJob : WorkerJob
+    public class ExportWarehouseBackupsJob : WorkerJob
     {
         public override TimeSpan Period
         {
@@ -28,15 +31,25 @@ namespace NuGetGallery.Worker.Jobs
 
         public override void RunOnce()
         {
-            Logger.Info("Running Warehouse Backup job");
+            Logger.Info("Running Warehouse Backup Export job");
 
+            // Run the export and clean tasks next
             var warehouse = new SqlConnectionStringBuilder(Settings.WarehouseConnectionString);
-            ExecuteTask(new BackupWarehouseTask
+            ExecuteTask(new ExportWarehouseBackupsTask()
+            {
+                ConnectionString = warehouse,
+                StorageAccount = Settings.BackupStorage,
+                WhatIf = Settings.WhatIf,
+                SqlDacEndpoint = Settings.SqlDac
+            });
+
+            ExecuteTask(new CleanWarehouseBackupsTask()
             {
                 ConnectionString = warehouse,
                 WhatIf = Settings.WhatIf,
-                IfOlderThan = 60,
             });
+
+            
 
             Logger.Info("Complete Warehouse Backup job");
         }

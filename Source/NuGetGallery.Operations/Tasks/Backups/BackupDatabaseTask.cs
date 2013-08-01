@@ -93,12 +93,12 @@ namespace NuGetGallery.Operations
 
         public TimeSpan RecommendedPollingPeriod
         {
-            get { return TimeSpan.FromMinutes(1); }
+            get { return TimeSpan.FromMinutes(3); }
         }
 
         public TimeSpan MaximumPollingLength
         {
-            get { return TimeSpan.FromMinutes(45); }
+            get { return TimeSpan.FromMinutes(15); }
         }
 
         public bool PollForCompletion()

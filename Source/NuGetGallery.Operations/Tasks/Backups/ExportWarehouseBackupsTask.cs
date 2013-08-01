@@ -9,7 +9,7 @@ using Microsoft.WindowsAzure.Storage;
 using NuGetGallery.Operations.Common;
 using NuGetGallery.Operations.Model;
 
-namespace NuGetGallery.Operations.Tasks
+namespace NuGetGallery.Operations.Tasks.Backups
 {
     [Command("exportwarehousebackups", "Exports the daily backup for each day to Blob storage", AltName = "xwb", IsSpecialPurpose = true)]
     public class ExportWarehouseBackupsTask : WarehouseTask
