@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using AnglicanGeek.DbExecutor;
 using NuGetGallery.Operations.Common;
+using NuGetGallery.Operations.Model;
 
 namespace NuGetGallery.Operations
 {
@@ -21,7 +22,7 @@ namespace NuGetGallery.Operations
 
                 using (var dbExecutor = new SqlExecutor(sqlConnection))
                 {
-                    var dbs = dbExecutor.Query<Database>(
+                    var dbs = dbExecutor.Query<Db>(
                         "SELECT name FROM sys.databases WHERE name LIKE 'WarehouseBackup_%' AND state = @state",
                         new { state = Util.OnlineState });
 
@@ -36,7 +37,7 @@ namespace NuGetGallery.Operations
             }
         }
 
-        private void DeleteDatabaseBackup(Database db, SqlExecutor dbExecutor)
+        private void DeleteDatabaseBackup(Db db, SqlExecutor dbExecutor)
         {
             if (!WhatIf)
             {

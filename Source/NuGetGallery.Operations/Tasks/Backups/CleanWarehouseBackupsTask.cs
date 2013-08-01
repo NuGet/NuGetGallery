@@ -15,7 +15,7 @@ namespace NuGetGallery.Operations.Tasks.Backups
             WithMasterConnection((connection, db) =>
             {
                 // Get the list of backups
-                var backups = db.Query<Database>(
+                var backups = db.Query<Db>(
                     "SELECT name, state FROM sys.databases WHERE name LIKE 'WarehouseBackup_%'",
                     new { state = Util.OnlineState })
                     .Select(d => new OnlineDatabaseBackup(Util.GetDatabaseServerName(ConnectionString), d.Name, d.State))
@@ -28,7 +28,7 @@ namespace NuGetGallery.Operations.Tasks.Backups
 
                 // The last online database is safe
                 keepers.AddRange(backups
-                    .Where(b => b.State == Util.OnlineState)
+                    .Where(b => b.State == Util.OnlineState && b.Timestamp != null)
                     .OrderByDescending(d => d.Timestamp.Value)
                     .Select(b => b.DatabaseName)
                     .Take(1));
