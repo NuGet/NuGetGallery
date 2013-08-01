@@ -94,10 +94,15 @@ namespace NuGetGallery
             bool isLatest = Boolean.Parse(doc.Get("IsLatest"));
             bool isLatestStable = Boolean.Parse(doc.Get("IsLatestStable"));
             bool requiresLicenseAcceptance = Boolean.Parse(doc.Get("RequiresLicenseAcceptance"));
-            bool hideLicenseReport = Boolean.Parse(doc.Get("HideLicenseReport"));
             DateTime created = DateTime.Parse(doc.Get("Created"), CultureInfo.InvariantCulture);
             DateTime published = DateTime.Parse(doc.Get("Published"), CultureInfo.InvariantCulture);
             DateTime lastUpdated = DateTime.Parse(doc.Get("LastUpdated"), CultureInfo.InvariantCulture);
+
+            bool hideLicenseReport;
+            if (!Boolean.TryParse(doc.Get("HideLicenseReport") ?? "false", out hideLicenseReport))
+            {
+                hideLicenseReport = false;
+            }
 
             var owners = doc.Get("FlattenedOwners")
                             .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
