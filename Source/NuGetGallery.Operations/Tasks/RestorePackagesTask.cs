@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AnglicanGeek.DbExecutor;
+using Microsoft.WindowsAzure.Storage;
 
 namespace NuGetGallery.Operations
 {
@@ -14,10 +15,30 @@ namespace NuGetGallery.Operations
     {
         private readonly string _tempFolder;
 
+        [Option("The destination storage account for the backups", AltName = "d")]
+        public CloudStorageAccount BackupStorage { get; set; }
+
+        [Option("Actually run the command", AltName = "f")]
+        public bool Force { get; set; }
+
         public RestorePackagesTask()
         {
             _tempFolder = Path.Combine(Path.GetTempPath(), "NuGetGalleryOps");
             Directory.CreateDirectory(_tempFolder);
+        }
+
+        public override void ValidateArguments()
+        {
+            base.ValidateArguments();
+
+            if (BackupStorage == null)
+            {
+                BackupStorage = StorageAccount;
+                if (CurrentEnvironment != null)
+                {
+                    BackupStorage = CurrentEnvironment.BackupStorage;
+                }
+            }
         }
 
         string DownloadPackageBackup(
@@ -25,7 +46,7 @@ namespace NuGetGallery.Operations
             string version,
             string hash)
         {
-            var blobClient = CreateBlobClient();
+            var blobClient = BackupStorage.CreateCloudBlobClient();
             var packageBackupsBlobContainer = Util.GetPackageBackupsBlobContainer(blobClient);
             var packageBackupFileName = Util.GetPackageBackupFileName(
                 id,
@@ -39,6 +60,12 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
+            if (!Force)
+            {
+                Log.Error("This task is deprecated because it only re-uploads the file, it doesn't restore the DB changes...");
+                return;
+            }
+
             Log.Info("Getting list of packages to restore; this will take some time.");
             var packages = GetPackages();
             var packageBlobFileNames = GetPackageBlobFileNames();
