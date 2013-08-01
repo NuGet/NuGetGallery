@@ -93,8 +93,8 @@ namespace NuGetGallery
 
                     // License Report Information
                     LicenseUrl = p.LicenseUrl,
-                    LicenseNames = p.LicenseNames,
-                    LicenseReportUrl = p.LicenseReportUrl
+                    LicenseNames = p.HideLicenseReport ? null : p.LicenseNames,
+                    LicenseReportUrl = p.HideLicenseReport ? null : p.LicenseReportUrl
                 });
         }
 
