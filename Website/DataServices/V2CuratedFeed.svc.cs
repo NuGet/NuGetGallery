@@ -12,6 +12,7 @@ using NuGetGallery.Configuration;
 namespace NuGetGallery
 {
     // TODO : Have V2CuratedFeed derive from V2Feed?
+    [RewriteBaseUrlMessageInspector]
     public class V2CuratedFeed : FeedServiceBase<V2FeedPackage>
     {
         private const int FeedVersion = 2;
@@ -66,36 +67,6 @@ namespace NuGetGallery
                 .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()));
         }
 
-        private static void FixUpDataServiceUrisForCuratedFeedName(
-            DataServiceOperationContext operationContext,
-            string curatedFeedName)
-        {
-            // AVERT YOUR EYES!
-
-            // This is an *evil* hack to get proper URIs into the data servive's output, e.g. /api/v2/curated-feeds/{name}.
-            // Without this, the URIs in the data service will be wrong, and won't work if a client tried to use them.
-
-            var fixedUpSeriveUri = operationContext.AbsoluteServiceUri.AbsoluteUri.Replace(
-                "/api/v2/curated-feed/", "/api/v2/curated-feeds/" + curatedFeedName + "/");
-            var fixedUpRequestUri = operationContext.AbsoluteRequestUri.AbsoluteUri.Replace(
-                "/api/v2/curated-feed/", "/api/v2/curated-feeds/" + curatedFeedName + "/");
-
-            // The URI needs to be fixed up both on the actual IDataService host (hostInterface) and the service host wrapper (hostWrapper)
-            // Null checks aren't really worth much here. If it does break, it'll result in a 500 to the client.
-            var hostInterfaceField = operationContext.GetType().GetField("hostInterface", BindingFlags.NonPublic | BindingFlags.Instance);
-            var hostInterface = hostInterfaceField.GetValue(operationContext);
-
-            // Fix up the service URIs
-            var interfaceServiceUriField = hostInterface.GetType().GetField("absoluteServiceUri", BindingFlags.NonPublic | BindingFlags.Instance);
-            interfaceServiceUriField.SetValue(hostInterface, new Uri(fixedUpSeriveUri));
-
-            // Fix up the request URIs
-            var interfaceRequestUriField = hostInterface.GetType().GetField("absoluteRequestUri", BindingFlags.NonPublic | BindingFlags.Instance);
-            interfaceRequestUriField.SetValue(hostInterface, new Uri(fixedUpRequestUri));
-
-            // Take a shower.
-        }
-
         private string GetCuratedFeedName()
         {
             var curatedFeedName = HttpContext.Request.QueryString["name"];
@@ -106,11 +77,6 @@ namespace NuGetGallery
         {
             var curatedFeedName = GetCuratedFeedName();
             return _curatedFeedService.GetPackages(curatedFeedName);
-        }
-
-        protected override void OnStartProcessingRequest(ProcessRequestArgs args)
-        {
-            FixUpDataServiceUrisForCuratedFeedName(args.OperationContext, GetCuratedFeedName());
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "targetFramework", Justification = "We can't change it because it's now part of the contract of this service method.")]
