@@ -20,20 +20,19 @@ namespace NuGetGallery.Migrations
         
         public override void Down()
         {
-            CreateTable(
-                "PackageAuthors",
-                c => new
-                    {
-                        Key = c.Int(nullable: false, identity: true),
-                        PackageKey = c.Int(nullable: false),
-                        Name = c.String(),
-                    })
-                .PrimaryKey(t => t.Key);
+            // We can't recreate the table for you in a migration, so ...
+            Trace.WriteLine(@"To recreate the package authors table, either restore it from backup, or run this SQL manually:
 
-            AddForeignKey("PackageAuthors", "PackageKey", "Packages", "Key");
-            Sql("CREATE NONCLUSTERED INDEX [IX_PackageAuthors_PackageKey] ON [PackageAuthors] ([PackageKey]) INCLUDE ([Key],[Name])");
-            // Note, at this point you aren't back to where you were before you ran the migration - all your data has been dropped.
-            // If you need the data you should restore from backup instead.
+                CREATE TABLE [PackageAuthors] (
+    [Key] [int] NOT NULL IDENTITY,
+    [PackageKey] [int] NOT NULL,
+    [Name] [nvarchar](max),
+    CONSTRAINT [PK_PackageAuthors] PRIMARY KEY ([Key])
+)
+CREATE NONCLUSTERED INDEX [IX_PackageAuthors_PackageKey] ON [PackageAuthors] ([PackageKey]) INCLUDE ([Key],[Name])
+ALTER TABLE [PackageAuthors] ADD CONSTRAINT [FK_PackageAuthors_Packages_PackageKey] FOREIGN KEY ([PackageKey]) REFERENCES [Packages] ([Key])");
+
+            // Note, at this point whichever way you go, package authors are still missing from PackageAuthors table for packages uploaded while you had future migrations applied.
         }
     }
 }
