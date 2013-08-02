@@ -213,7 +213,7 @@ namespace NuGetGallery
         public class TheConfirmPackageOwnerMethod
         {
             [Fact]
-            public void WithValidUserAndMatchingTokenReturnsTrue()
+            public void WithValidUserAndMatchingTokenReturnsSuccess()
             {
                 var package = new PackageRegistration { Key = 2, Id = "pkg42" };
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
@@ -230,13 +230,13 @@ namespace NuGetGallery
 
                 var result = service.ConfirmPackageOwner(package, pendingOwner, "secret-token");
 
-                Assert.True(result);
+                Assert.Equal(ConfirmOwnershipResult.Success, result);
                 Assert.Contains(pendingOwner, package.Owners);
                 packageRepository.VerifyAll();
             }
 
             [Fact]
-            public void WhenUserIsAlreadyOwnerReturnsTrue()
+            public void WhenUserIsAlreadyOwnerReturnsAlreadyOwner()
             {
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
                 var package = new PackageRegistration { Key = 2, Id = "pkg42", Owners = new[] { pendingOwner } };
@@ -250,11 +250,11 @@ namespace NuGetGallery
 
                 var result = service.ConfirmPackageOwner(package, pendingOwner, "secret-token");
 
-                Assert.True(result);
+                Assert.Equal(ConfirmOwnershipResult.AlreadyOwner, result);
             }
 
             [Fact]
-            public void WithNoMatchingPackgageOwnerRequestReturnsFalse()
+            public void WithNoMatchingPackgageOwnerRequestReturnsFailure()
             {
                 var package = new PackageRegistration { Key = 2, Id = "pkg42" };
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
@@ -268,11 +268,11 @@ namespace NuGetGallery
 
                 var result = service.ConfirmPackageOwner(package, pendingOwner, "secret-token");
 
-                Assert.False(result);
+                Assert.Equal(ConfirmOwnershipResult.Failure, result);
             }
 
             [Fact]
-            public void WithValidUserAndNonMatchingTokenReturnsFalse()
+            public void WithValidUserAndNonMatchingTokenReturnsFailure()
             {
                 var package = new PackageRegistration { Key = 2, Id = "pkg42" };
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
@@ -289,7 +289,7 @@ namespace NuGetGallery
 
                 var result = service.ConfirmPackageOwner(package, pendingOwner, "secret-token");
 
-                Assert.False(result);
+                Assert.Equal(ConfirmOwnershipResult.Failure, result);
                 Assert.DoesNotContain(pendingOwner, package.Owners);
             }
 

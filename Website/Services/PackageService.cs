@@ -347,7 +347,7 @@ namespace NuGetGallery
             return newRequest;
         }
 
-        public bool ConfirmPackageOwner(PackageRegistration package, User pendingOwner, string token)
+        public ConfirmOwnershipResult ConfirmPackageOwner(PackageRegistration package, User pendingOwner, string token)
         {
             if (package == null)
             {
@@ -366,17 +366,17 @@ namespace NuGetGallery
 
             if (package.IsOwner(pendingOwner))
             {
-                return true;
+                return ConfirmOwnershipResult.AlreadyOwner;
             }
 
             var request = FindExistingPackageOwnerRequest(package, pendingOwner);
             if (request != null && request.ConfirmationCode == token)
             {
                 AddPackageOwner(package, pendingOwner);
-                return true;
+                return ConfirmOwnershipResult.Success;
             }
 
-            return false;
+            return ConfirmOwnershipResult.Failure;
         }
 
         private PackageRegistration CreateOrGetPackageRegistration(User currentUser, IPackageMetadata nugetPackage)
