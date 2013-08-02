@@ -47,7 +47,6 @@ namespace NuGetGallery
 
                 // Other
                 Package = p,
-                PackageKey = p.Key,
                 IsCompleted = false,
                 IsOriginalMetadata = false,
                 Timestamp = DateTime.UtcNow,

@@ -127,7 +127,9 @@ namespace NuGetGallery
                 .WithMany()
                 .HasForeignKey(pm => pm.PackageKey);
 
-            //EF weirdness. Trying this screws everything up. But why???
+            //Note, I was going to be explicit about this next relationship and uncomment the code, but I ran into
+            //EF weirdness. This appears to be a bug in EF that NOT writing this code has the desired effect, where as writing it has the undesired effect of
+            //screwing up the EF model.
             //modelBuilder.Entity<Package>().HasOptional(p => p.Metadata);
 
             modelBuilder.Entity<PackageStatistics>()
