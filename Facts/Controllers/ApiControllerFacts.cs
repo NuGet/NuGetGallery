@@ -91,6 +91,11 @@ namespace NuGetGallery
                 nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
+                controller
+                    .MockPackageService
+                    .Setup(p => p.CreatePackage(nuGetPackage.Object, fakeUser, false))
+                    .Returns(new Package() { PackageRegistration = new PackageRegistration() { Id = "theId" } });
+
                 // Act
                 await controller.CreatePackagePut(guid);
 
@@ -192,7 +197,33 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
-                controller.MockPackageService.Verify(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true));
+                controller.MockPackageService.Verify(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false));
+            }
+
+            [Fact]
+            public void WillUpdateThePackageRegistrationIdIfTheCasingIsDifferent()
+            {
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+
+                var controller = new TestableApiController();
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var package = new Package() { PackageRegistration = new PackageRegistration() { Id = "TheID" } };
+                controller
+                    .MockPackageService
+                    .Setup(x => x.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false))
+                    .Returns(package)
+                    .Verifiable();
+
+
+                controller.CreatePackagePut(Guid.NewGuid().ToString());
+                
+                Assert.Equal("theId", package.PackageRegistration.Id);
+                controller.MockEntitiesContext.Verify(e => e.SaveChanges());
+                controller.MockPackageService.VerifyAll();
             }
 
             [Fact]
@@ -208,7 +239,7 @@ namespace NuGetGallery
 
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
-                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<INupkg>(), matchingUser, true));
+                controller.MockPackageService.Verify(x => x.CreatePackage(It.IsAny<INupkg>(), matchingUser, false));
             }
 
             [Fact]
@@ -220,12 +251,18 @@ namespace NuGetGallery
                 nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
                 var matchingUser = new User();
                 var controller = new TestableApiController();
-                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
+                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false))
                           .Returns(new Package { IsLatestStable = true });
                 controller.MockNuGetExeDownloaderService.Setup(s => s.UpdateExecutableAsync(nuGetPackage.Object)).Verifiable();
                 controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
+                controller
+                    .MockPackageService
+                    .Setup(p => p.CreatePackage(nuGetPackage.Object, matchingUser, false))
+                    .Returns(new Package() { IsLatestStable = true, PackageRegistration = new PackageRegistration() { Id = "NuGet.CommandLine" } });
+
+                
                 // Act
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
 
@@ -242,7 +279,7 @@ namespace NuGetGallery
                 nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("2.0.0-alpha"));
                 var matchingUser = new User();
                 var controller = new TestableApiController();
-                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
+                controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), false))
                           .Returns(new Package { IsLatest = true, IsLatestStable = false });
                 controller.MockNuGetExeDownloaderService.Setup(s => s.UpdateExecutableAsync(nuGetPackage.Object)).Verifiable();
                 controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
