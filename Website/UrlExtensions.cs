@@ -146,7 +146,7 @@ namespace NuGetGallery
 
         public static string UploadPackage(this UrlHelper url)
         {
-            return url.Action(actionName: "UploadPackage", controllerName: MVC.Packages.Name);
+            return url.RouteUrl(RouteName.UploadPackage);
         }
 
         public static string User(this UrlHelper url, User user, string scheme = null)
