@@ -100,8 +100,7 @@ namespace NuGetGallery
                 document.Add(field);
             }
 
-            // note Authors and Dependencies have flattened representations in the data model.
-            document.Add(new Field("Authors", Package.Metadata.Authors.ToStringSafe(), Field.Store.YES, Field.Index.ANALYZED));
+            document.Add(new Field("Authors", Package.FlattenedAuthors.ToStringSafe(), Field.Store.YES, Field.Index.ANALYZED));
 
             // Fields for storing data to avoid hitting SQL while doing searches
             if (!String.IsNullOrEmpty(Package.IconUrl))

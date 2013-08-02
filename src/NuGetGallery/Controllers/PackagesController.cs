@@ -498,7 +498,7 @@ namespace NuGetGallery
             var model = new EditPackageRequest
             {
                 PackageId = package.PackageRegistration.Id,
-                PackageTitle = package.Metadata.Title,
+                PackageTitle = package.Title,
                 Version = package.Version,
                 PackageVersions = packageRegistration.Packages.ToList(),
             };

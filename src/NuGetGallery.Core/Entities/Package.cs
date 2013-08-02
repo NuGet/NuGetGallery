@@ -17,10 +17,6 @@ namespace NuGetGallery
         public PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
 
-        public PackageMetadata Metadata { get; set; }
-
-        public int? MetadataKey { get; set; }
-
         public virtual ICollection<PackageStatistics> DownloadStatistics { get; set; }
 
         /// <remarks>
@@ -81,20 +77,19 @@ namespace NuGetGallery
         /// </remarks>
         public string ProjectUrl { get; set; }
 
+        public bool RequiresLicenseAcceptance { get; set; }
+
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
-        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Summary { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and *IS* used for searches, but is maintained via Lucene. Db column is nvarchar(max).
         /// </remarks>
-        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Tags { get; set; }
 
         [StringLength(256)]
-        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Title { get; set; }
 
         [StringLength(64)]
@@ -105,7 +100,6 @@ namespace NuGetGallery
         public bool IsPrerelease { get; set; }
         public virtual ICollection<PackageFramework> SupportedFrameworks { get; set; }
 
-        [Obsolete] // TODO: PackageMetadata DB contraction
         public string FlattenedAuthors { get; set; }
 
         public string FlattenedDependencies { get; set; }
@@ -113,5 +107,12 @@ namespace NuGetGallery
 
         [StringLength(44)]
         public string MinClientVersion { get; set; }
+
+        /// <summary>
+        /// The logged in user when this package version was created.
+        /// NULL for older packages.
+        /// </summary>
+        public User User { get; set; }
+        public int? UserKey { get; set; }
     }
 }

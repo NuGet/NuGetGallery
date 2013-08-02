@@ -896,10 +896,7 @@
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
     <Compile Include="ViewModels\EditProfileViewModel.cs" />
     <Compile Include="ViewModels\EmailConfirmationModel.cs" />
-    <Compile Include="ViewModels\PackageContentsViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnerConfirmationModel.cs" />
-    <Compile Include="ViewModels\PackagePart\PackageItem.cs" />
-    <Compile Include="ViewModels\PackagePart\PathToTreeConverter.cs" />
     <Compile Include="ViewModels\StatisticsPackagesItemViewModel.cs" />
     <Compile Include="ViewModels\StatisticsPackagesViewModel.cs" />
     <Compile Include="ViewModels\ResendConfirmationEmailViewModel.cs" />
@@ -1101,7 +1098,6 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\nugetgallery.js" />
     <Content Include="Scripts\statsdimensions.js" />
-    <Content Include="Scripts\jquery.treeview.js" />
     <Content Include="Scripts\async-file-upload.js" />
     <Content Include="Scripts\knockout-2.2.1.debug.js" />
     <Content Include="Scripts\knockout-2.2.1.js" />

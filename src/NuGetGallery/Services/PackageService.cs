@@ -428,20 +428,21 @@ namespace NuGetGallery
                 LastUpdated = now,
                 Published = now,
                 Copyright = nugetPackage.Metadata.Copyright,
+                FlattenedAuthors = nugetPackage.Metadata.Authors.Flatten(),
                 IsPrerelease = !nugetPackage.Metadata.IsReleaseVersion(),
                 Listed = true,
                 PackageRegistration = packageRegistration,
+                RequiresLicenseAcceptance = nugetPackage.Metadata.RequireLicenseAcceptance,
                 Summary = nugetPackage.Metadata.Summary,
                 Tags = PackageHelper.ParseTags(nugetPackage.Metadata.Tags),
                 Title = nugetPackage.Metadata.Title,
-            };
                 User = user,
+            };
 
             package.IconUrl = nugetPackage.Metadata.IconUrl.ToStringOrNull();
             package.LicenseUrl = nugetPackage.Metadata.LicenseUrl.ToStringOrNull();
             package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
             package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
-
 
             var supportedFrameworks = GetSupportedFrameworks(nugetPackage).Select(fn => fn.ToShortNameOrNull()).ToArray();
             if (!supportedFrameworks.AnySafe(sf => sf == null))
@@ -478,8 +479,6 @@ namespace NuGetGallery
                     }
                 }
             }
-
-            package.FlattenedAuthors = package.Authors.Flatten();
 
             package.FlattenedDependencies = package.Dependencies.Flatten();
 

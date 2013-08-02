@@ -12,7 +12,7 @@ namespace NuGetGallery
 
         public EditPackageVersionRequest(Package package, PackageMetadata pendingMetadata)
         {
-            var metadata = pendingMetadata ?? package.Metadata;
+            var metadata = pendingMetadata ?? new PackageMetadata(); // TODO!
             VersionTitle = metadata.Title;
             IconUrl = metadata.IconUrl;
             Summary = metadata.Summary;

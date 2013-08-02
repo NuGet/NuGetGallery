@@ -11,8 +11,7 @@ namespace NuGetGallery
         {
             Tags = package.Tags != null ? package.Tags.Trim().Split(' ') : null;
 
-
-            Authors = package.Metadata.Authors;
+            Authors = package.FlattenedAuthors;
             MinClientVersion = package.MinClientVersion;
             Owners = package.PackageRegistration.Owners;
         }

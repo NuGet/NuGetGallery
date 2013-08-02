@@ -355,8 +355,6 @@ namespace NuGetGallery
                 // I'm sorry, but I just can't imagine adding a test per property.
                 // Note that there is no assertion on package identifier, because that's at the package registration level (and covered in another test).
                 Assert.Equal("1.0.42.0", package.Version);
-                Assert.Equal("theFirstAuthor", package.Authors.ElementAt(0).Name);
-                Assert.Equal("theSecondAuthor", package.Authors.ElementAt(1).Name);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
                 Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionSpec);
                 Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);

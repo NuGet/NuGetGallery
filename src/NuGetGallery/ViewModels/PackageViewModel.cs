@@ -50,7 +50,7 @@ namespace NuGetGallery
 
         public string Title
         {
-            get { return _pendingTitle ?? (String.IsNullOrEmpty(_package.Metadata.Title) ? _package.PackageRegistration.Id : _package.Metadata.Title); }
+            get { return _pendingTitle ?? (String.IsNullOrEmpty(_package.Title) ? _package.PackageRegistration.Id : _package.Title); }
             set { _pendingTitle = value; }
         }
 
