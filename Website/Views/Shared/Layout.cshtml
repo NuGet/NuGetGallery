@@ -10,6 +10,7 @@
         @Scripts.Render("~/bundles/modernizr")
         @ViewHelpers.AnalyticsScript()
         @RenderSection("TopScripts", required: false)
+        @ViewHelpers.ReleaseMeta()
     </head>
     <body>
         <div id="service-alert"></div>
