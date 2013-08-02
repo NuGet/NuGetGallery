@@ -109,13 +109,13 @@
                 {
                     if (!String.IsNullOrEmpty(licenseName))
                     {
-                        <p class="licenseName">@licenseName</p>
+                        <p class="@(Model.HideLicenseReport ? "fadedLicenseName" : "licenseName")">@licenseName</p>
                     }
                 }
             }
             @if (!String.IsNullOrEmpty(Model.LicenseReportUrl))
             {
-                <p class="block-link"><a href="@Model.LicenseReportUrl" title="License analysis by Sonatype CLM">View report</a></p>
+                <p><a class="@(Model.HideLicenseReport ? "block-fadedLink": "block-link")" href="@Model.LicenseReportUrl" title="Find out more details about the licenses in this package">View report</a></p>
             }
             @if (Model.IsOwner(User))
             {
@@ -128,7 +128,7 @@
                     using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
                     {
                         @Html.AntiForgeryToken()
-                        <input id="enableDisableLicenseReportButton" type="submit" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
+                        <input id="enableDisableLicenseReportButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
                     }
                 }
             }
