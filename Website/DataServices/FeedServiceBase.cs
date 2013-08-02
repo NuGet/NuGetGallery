@@ -10,6 +10,7 @@ using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
+    [OutputReformatingInspector]
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple)]
     public abstract class FeedServiceBase<TPackage> : DataService<FeedContext<TPackage>>, IDataServiceStreamProvider, IServiceProvider
     {
