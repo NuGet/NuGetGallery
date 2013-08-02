@@ -119,6 +119,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
     <Reference Include="System.IO.Compression" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Spatial, Version=5.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\System.Spatial.5.5.0\lib\net40\System.Spatial.dll</HintPath>
@@ -184,6 +185,7 @@
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="DataServices\RewriteBaseUrlMessageInspectorFacts.cs" />
     <Compile Include="Diagnostics\DiagnosticsServiceFacts.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicyFacts.cs" />
     <Compile Include="EmailValidationRegex.cs" />
