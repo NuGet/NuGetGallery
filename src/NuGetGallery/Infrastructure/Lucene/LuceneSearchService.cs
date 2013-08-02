@@ -1,12 +1,12 @@
-﻿using Lucene.Net.Analysis;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
 using Lucene.Net.Search.Function;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Globalization;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -102,10 +102,6 @@ namespace NuGetGallery
                             .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
                             .Select(o => new User {Username = o})
                             .ToArray();
-            var authors = doc.Get("FlattenedAuthors")
-                             .SplitSafe(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                             .Select(a => new PackageAuthor {Name = a.Trim()})
-                             .ToArray();
             var frameworks =
                 doc.Get("JoinedSupportedFrameworks")
                    .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)

@@ -17,9 +17,7 @@ namespace NuGetGallery
             bool includePrerelease)
         {
             // TODO: Implement actual sorting
-            IEnumerable<ListPackageItemViewModel> items = 
-                packages.ToList()
-                        .Select(pv => new ListPackageItemViewModel(pv, needAuthors: false));
+            IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv));
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalCount = totalCount;

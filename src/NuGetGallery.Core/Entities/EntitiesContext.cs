@@ -16,6 +16,7 @@ namespace NuGetGallery
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
+
         IDbSet<T> IEntitiesContext.Set<T>()
         {
             return base.Set<T>();
@@ -29,6 +30,11 @@ namespace NuGetGallery
             }
 
             return base.SaveChanges();
+        }
+
+        public void DeleteOnCommit<T>(T entity) where T : class
+        {
+            Set<T>().Remove(entity);
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -78,11 +84,6 @@ namespace NuGetGallery
                 .HasKey(p => p.Key);
 
             modelBuilder.Entity<Package>()
-                .HasMany<PackageAuthor>(p => p.Authors)
-                .WithRequired(pa => pa.Package)
-                .HasForeignKey(pa => pa.PackageKey);
-
-            modelBuilder.Entity<Package>()
                 .HasMany<PackageStatistics>(p => p.DownloadStatistics)
                 .WithRequired(ps => ps.Package)
                 .HasForeignKey(ps => ps.PackageKey);
@@ -92,8 +93,23 @@ namespace NuGetGallery
                 .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
 
-            modelBuilder.Entity<PackageAuthor>()
-                .HasKey(pa => pa.Key);
+            modelBuilder.Entity<PackageMetadata>()
+                .HasKey(pm => pm.Key);
+
+            modelBuilder.Entity<PackageMetadata>()
+                .HasOptional(pm => pm.User)
+                .WithMany()
+                .HasForeignKey(pm => pm.UserKey);
+
+            modelBuilder.Entity<PackageMetadata>()
+                .HasRequired<Package>(pm => pm.Package)
+                .WithMany()
+                .HasForeignKey(pm => pm.PackageKey);
+
+            //Note, I was going to be explicit about this next relationship and uncomment the code, but I ran into
+            //EF weirdness. This appears to be a bug in EF that NOT writing this code has the desired effect, where as writing it has the undesired effect of
+            //screwing up the EF model.
+            //modelBuilder.Entity<Package>().HasOptional(p => p.Metadata);
 
             modelBuilder.Entity<PackageStatistics>()
                 .HasKey(ps => ps.Key);

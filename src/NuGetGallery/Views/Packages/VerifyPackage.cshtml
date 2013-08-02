@@ -37,8 +37,10 @@
         <p>@Model.Description</p>
     </li>
     <li>
-        <h3>Authors</h3>
-        <p>@Model.Authors</p>
+        <div title="These authors' works form part of the package or its contents">
+            <h3>Authors</h3>
+            <p>@Model.Authors</p>
+        </div>
     </li>
     @if (!String.IsNullOrEmpty(Model.Tags))
     {

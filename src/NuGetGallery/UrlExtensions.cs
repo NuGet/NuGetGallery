@@ -155,9 +155,13 @@ namespace NuGetGallery
             return EnsureTrailingSlash(result);
         }
 
-        public static string EditPackage(this UrlHelper url, IPackageVersionModel package)
+        public static string EditPackage(this UrlHelper url, string id, string version)
         {
-            return url.Action(MVC.Packages.Edit(package.Id, package.Version));
+            string result =
+                version == null ?
+                url.RouteUrl(RouteName.PackageAction, new { action = "Edit", id }) :
+                url.RouteUrl(RouteName.PackageVersionAction, new { action = "Edit", id, version });
+            return version == null ? EnsureTrailingSlash(result) : result;
         }
 
         public static string DeletePackage(this UrlHelper url, IPackageVersionModel package)
@@ -177,7 +181,7 @@ namespace NuGetGallery
 
         public static string VerifyPackage(this UrlHelper url)
         {
-            return url.Action(actionName: "VerifyPackage", controllerName:  MVC.Packages.Name);
+            return url.Action(actionName: "VerifyPackage", controllerName: MVC.Packages.Name);
         }
 
         public static string CancelUpload(this UrlHelper url)

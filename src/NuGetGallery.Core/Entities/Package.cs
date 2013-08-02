@@ -9,7 +9,6 @@ namespace NuGetGallery
     {
         public Package()
         {
-            Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             Listed = true;
@@ -18,8 +17,11 @@ namespace NuGetGallery
         public PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
 
+        public PackageMetadata Metadata { get; set; }
+
+        public int? MetadataKey { get; set; }
+
         public virtual ICollection<PackageStatistics> DownloadStatistics { get; set; }
-        public virtual ICollection<PackageAuthor> Authors { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
@@ -44,6 +46,7 @@ namespace NuGetGallery
         /// <remarks>
         ///     Is not a property that we support. Maintained for legacy reasons.
         /// </remarks>
+        [Obsolete]
         public string ExternalPackageUrl { get; set; }
 
         [StringLength(10)]
@@ -78,19 +81,20 @@ namespace NuGetGallery
         /// </remarks>
         public string ProjectUrl { get; set; }
 
-        public bool RequiresLicenseAcceptance { get; set; }
-
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Summary { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and *IS* used for searches, but is maintained via Lucene. Db column is nvarchar(max).
         /// </remarks>
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Tags { get; set; }
 
         [StringLength(256)]
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string Title { get; set; }
 
         [StringLength(64)]
@@ -101,8 +105,9 @@ namespace NuGetGallery
         public bool IsPrerelease { get; set; }
         public virtual ICollection<PackageFramework> SupportedFrameworks { get; set; }
 
-        // TODO: it would be nice if we could change the feed so that we don't need to flatten authors and dependencies
+        [Obsolete] // TODO: PackageMetadata DB contraction
         public string FlattenedAuthors { get; set; }
+
         public string FlattenedDependencies { get; set; }
         public int Key { get; set; }
 
