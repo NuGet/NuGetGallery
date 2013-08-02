@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 using System.ServiceModel.Web;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace NuGetGallery
@@ -25,8 +27,8 @@ namespace NuGetGallery
                 UriBuilder requestUriBuilder = new UriBuilder(context.IncomingRequest.UriTemplateMatch.RequestUri);
 
                 // Replace "/api/v2/curated-feed" with "/api/v2/curated-feeds/[feedname]"
-                baseUriBuilder.Path = baseUriBuilder.Path.TrimEnd('/').Replace("/api/v2/curated-feed", "/api/v2/curated-feeds/" + curatedFeedName + "/");
-                requestUriBuilder.Path = requestUriBuilder.Path.TrimEnd('/').Replace("/api/v2/curated-feed", "/api/v2/curated-feeds/" + curatedFeedName);
+                baseUriBuilder.Path = RewriteUrlPath(baseUriBuilder.Path, curatedFeedName);
+                requestUriBuilder.Path = RewriteUrlPath(requestUriBuilder.Path, curatedFeedName);
 
                 // Set the matching properties on the incoming request
                 OperationContext.Current.IncomingMessageProperties["MicrosoftDataServicesRootUri"] = baseUriBuilder.Uri;
@@ -61,6 +63,13 @@ namespace NuGetGallery
         public void Validate(ServiceDescription serviceDescription, ServiceHostBase serviceHostBase)
         {
             // No-op
+        }
+
+        private static Regex UrlPattern = new Regex("/api/v2/curated-feed(/)?");
+        private static string ReplacementFormat = "/api/v2/curated-feeds/{0}$1";
+        public static string RewriteUrlPath(string path, string curatedFeedName)
+        {
+            return UrlPattern.Replace(path, String.Format(CultureInfo.InvariantCulture, ReplacementFormat, curatedFeedName));
         }
     }
 }
