@@ -803,6 +803,7 @@
     <Compile Include="Queries\PackageIdsQuery.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
+    <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
