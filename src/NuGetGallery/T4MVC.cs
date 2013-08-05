@@ -342,8 +342,6 @@ namespace Links {
         public static readonly string jquery_1_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2.min.js") ? Url("jquery-1.6.2.min.js") : Url("jquery-1.6.2.js");
                       
         public static readonly string jquery_1_6_2_min_js = Url("jquery-1.6.2.min.js");
-        public static readonly string jquery_treeview_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.treeview.min.js") ? Url("jquery.treeview.min.js") : Url("jquery.treeview.js");
-                      
         public static readonly string jquery_validate_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate-vsdoc.min.js") ? Url("jquery.validate-vsdoc.min.js") : Url("jquery.validate-vsdoc.js");
                       
         public static readonly string jquery_validate_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate.min.js") ? Url("jquery.validate.min.js") : Url("jquery.validate.js");

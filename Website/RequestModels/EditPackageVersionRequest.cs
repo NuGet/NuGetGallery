@@ -10,19 +10,33 @@ namespace NuGetGallery
         {
         }
 
-        public EditPackageVersionRequest(Package package, PackageMetadata pendingMetadata)
+        public EditPackageVersionRequest(Package package, PackageEdit pendingMetadata)
         {
-            var metadata = pendingMetadata ?? new PackageMetadata(); // TODO!
-            VersionTitle = metadata.Title;
-            IconUrl = metadata.IconUrl;
-            Summary = metadata.Summary;
-            Description = metadata.Description;
-            ProjectUrl = metadata.ProjectUrl;
+            var metadata = pendingMetadata ?? new PackageEdit
+            {
+                Authors = package.FlattenedAuthors,
+                Copyright = package.Copyright,
+                Description = package.Description,
+                IconUrl = package.IconUrl,
+                LicenseUrl = package.LicenseUrl,
+                ProjectUrl = package.ProjectUrl,
+                ReleaseNotes = package.ReleaseNotes,
+                RequiresLicenseAcceptance = package.RequiresLicenseAcceptance,
+                Summary = package.Summary,
+                Tags = package.Tags,
+                Title = package.Title,
+            };
             Authors = metadata.Authors;
             Copyright = metadata.Copyright;
-            Tags = metadata.Tags;
+            Description = metadata.Description;
+            IconUrl = metadata.IconUrl;
+            // no LicenseUrl - by current policy
+            ProjectUrl = metadata.ProjectUrl;
             ReleaseNotes = metadata.ReleaseNotes;
             RequiresLicenseAcceptance = metadata.RequiresLicenseAcceptance;
+            Summary = metadata.Summary;
+            Tags = metadata.Tags;
+            VersionTitle = metadata.Title;
         }
 
         [StringLength(256)]

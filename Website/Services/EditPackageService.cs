@@ -19,18 +19,18 @@ namespace NuGetGallery
         /// <summary>
         /// Returns the newest, uncompleted metadata for a package (i.e. a pending edit)
         /// </summary>
-        public virtual PackageMetadata GetPendingMetadata(Package p)
+        public virtual PackageEdit GetPendingMetadata(Package p)
         {
-            return EntitiesContext.Set<PackageMetadata>()
+            return EntitiesContext.Set<PackageEdit>()
                 .OrderByDescending(m => m.Timestamp)
                 .FirstOrDefault(
-                    m => m.PackageKey == p.Key && !m.IsCompleted
+                    m => m.PackageKey == p.Key
                 );
         }
 
         public virtual void StartEditPackageRequest(Package p, EditPackageRequest formData, User editingUser)
         {
-            PackageMetadata edit = new PackageMetadata
+            PackageEdit edit = new PackageEdit
             {
                 // Description
                 User = editingUser,
@@ -48,13 +48,11 @@ namespace NuGetGallery
 
                 // Other
                 Package = p,
-                IsCompleted = false,
-                IsOriginalMetadata = false,
                 Timestamp = DateTime.UtcNow,
                 TriedCount = 0,
             };
 
-            EntitiesContext.Set<PackageMetadata>().Add(edit);
+            EntitiesContext.Set<PackageEdit>().Add(edit);
             // Note: EditPackageRequests are completed asynchronously by the worker role.
         }
     }

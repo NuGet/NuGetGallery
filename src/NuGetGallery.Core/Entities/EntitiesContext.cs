@@ -93,23 +93,31 @@ namespace NuGetGallery
                 .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
 
-            modelBuilder.Entity<PackageMetadata>()
+            modelBuilder.Entity<PackageEdit>()
                 .HasKey(pm => pm.Key);
 
-            modelBuilder.Entity<PackageMetadata>()
-                .HasOptional(pm => pm.User)
+            modelBuilder.Entity<PackageEdit>()
+                .HasRequired(pm => pm.User)
                 .WithMany()
                 .HasForeignKey(pm => pm.UserKey);
 
-            modelBuilder.Entity<PackageMetadata>()
+            modelBuilder.Entity<PackageEdit>()
                 .HasRequired<Package>(pm => pm.Package)
                 .WithMany()
                 .HasForeignKey(pm => pm.PackageKey);
 
-            //Note, I was going to be explicit about this next relationship and uncomment the code, but I ran into
-            //EF weirdness. This appears to be a bug in EF that NOT writing this code has the desired effect, where as writing it has the undesired effect of
-            //screwing up the EF model.
-            //modelBuilder.Entity<Package>().HasOptional(p => p.Metadata);
+            modelBuilder.Entity<PackageHistory>()
+                .HasKey(pm => pm.Key);
+
+            modelBuilder.Entity<PackageHistory>()
+                .HasOptional(pm => pm.User)
+                .WithMany()
+                .HasForeignKey(pm => pm.UserKey);
+
+            modelBuilder.Entity<PackageHistory>()
+                .HasRequired<Package>(pm => pm.Package)
+                .WithMany()
+                .HasForeignKey(pm => pm.PackageKey);
 
             modelBuilder.Entity<PackageStatistics>()
                 .HasKey(ps => ps.Key);

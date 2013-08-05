@@ -592,7 +592,8 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\GallerySetting.cs" />
     <Compile Include="Entities\IEntitiesContext.cs" />
-    <Compile Include="Entities\PackageMetadata.cs" />
+    <Compile Include="Entities\PackageHistory.cs" />
+    <Compile Include="Entities\PackageEdit.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
@@ -804,9 +805,9 @@
     <Compile Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.Designer.cs">
       <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201307162030182_PackageMetadataEditable.cs" />
-    <Compile Include="Migrations\201307162030182_PackageMetadataEditable.Designer.cs">
-      <DependentUpon>201307162030182_PackageMetadataEditable.cs</DependentUpon>
+    <Compile Include="Migrations\201308051913351_EditableMetadata.cs" />
+    <Compile Include="Migrations\201308051913351_EditableMetadata.Designer.cs">
+      <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1185,8 +1186,8 @@
     <EmbeddedResource Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.resx">
       <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201307162030182_PackageMetadataEditable.resx">
-      <DependentUpon>201307162030182_PackageMetadataEditable.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201308051913351_EditableMetadata.resx">
+      <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
