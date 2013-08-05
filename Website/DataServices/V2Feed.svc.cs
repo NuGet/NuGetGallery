@@ -62,7 +62,21 @@ namespace NuGetGallery
 
         [WebGet]
         public IQueryable<V2FeedPackage> GetUpdates(
-            string packageIds, string versions, bool includePrerelease, bool includeAllVersions, string targetFrameworks, string versionConstraints)
+            string packageIds, string versions, bool includePrerelease, bool includeAllVersions, string targetFrameworks,
+            string versionConstraints)
+        {
+            return GetUpdatesCore(packageIds, versions, includePrerelease, includeAllVersions, targetFrameworks,
+                versionConstraints, isTest: false);
+        }
+
+        internal IQueryable<V2FeedPackage> GetUpdatesCore(
+            string packageIds, 
+            string versions, 
+            bool includePrerelease, 
+            bool includeAllVersions, 
+            string targetFrameworks,
+            string versionConstraints,
+            bool isTest) // Yes, we really need isTest... see below.
         {
             if (String.IsNullOrEmpty(packageIds) || String.IsNullOrEmpty(versions))
             {
@@ -110,13 +124,32 @@ namespace NuGetGallery
                     return null;
                 })
                 .Where(t => t != null)
-                .ToLookup(t => t.Item1, t => t.Item2);
+                .ToLookup(t => t.Item1, t => t.Item2, StringComparer.OrdinalIgnoreCase);
 
             var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Include(p => p.SupportedFrameworks)
-                .Where(p => p.Listed && (includePrerelease || !p.IsPrerelease) && idValues.Contains(p.PackageRegistration.Id))
-                .OrderBy(p => p.PackageRegistration.Id);
+                .Include(p => p.SupportedFrameworks);
+
+            // If we're testing, the query is being done on objects, otherwise on SQL
+            // The SQL version is case-insensitive, but the objects version is case-sensitive
+            // Unfortunately, as soon as we use the Contains overload that takes a IEqualityComparer,
+            // EF won't let it be converted in to SQL... so we have this gross conditional.
+            if (!isTest)
+            {
+                packages = packages.Where(
+                    p =>
+                        p.Listed && (includePrerelease || !p.IsPrerelease) &&
+                        idValues.Contains(p.PackageRegistration.Id));
+            }
+            else
+            {
+                packages =
+                    packages.Where(p =>
+                        p.Listed && (includePrerelease || !p.IsPrerelease) && 
+                        idValues.Contains(p.PackageRegistration.Id, StringComparer.OrdinalIgnoreCase));
+            }
+            packages = packages.OrderBy(p => p.PackageRegistration.Id);
+
             return GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions).AsQueryable()
                 .ToV2FeedPackageQuery(GetSiteRoot());
         }
