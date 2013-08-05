@@ -1,0 +1,16 @@
+﻿@{
+    ViewBag.Tab = "Packages";
+}
+
+<h1 class="page-heading">Edit @Model.Title Package</h1>
+<p class="message">
+    To edit the metadata for a package, please <a href="@Url.UploadPackage()">upload an updated version of the package</a>.
+</p>
+<p>
+    NuGet currently does not allow updating package metadata on the website. This helps ensure 
+    that the package itself (and the source used to build the package) remains the one true 
+    source of package metadata.
+</p>
+<p>
+    This does require that you increment the package version.
+</p>

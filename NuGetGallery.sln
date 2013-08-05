@@ -22,8 +22,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend.Funct
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend.FunctionalTests", "tests\NuGetGallery.Frontend.FunctionalTests\NuGetGallery.Frontend.FunctionalTests.csproj", "{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend.SearchQualityTests", "tests\NuGetGallery.Frontend.SearchQualityTests\NuGetGallery.Frontend.SearchQualityTests.csproj", "{C4D23BC3-6653-4B87-B8C1-E7028DC67916}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,10 +44,6 @@ Global
 		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C4D23BC3-6653-4B87-B8C1-E7028DC67916}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C4D23BC3-6653-4B87-B8C1-E7028DC67916}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C4D23BC3-6653-4B87-B8C1-E7028DC67916}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C4D23BC3-6653-4B87-B8C1-E7028DC67916}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -59,6 +53,5 @@ Global
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
 		{8FB56455-C688-44AE-95F1-48FFCB199BFE} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
 		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
-		{C4D23BC3-6653-4B87-B8C1-E7028DC67916} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
 	EndGlobalSection
 EndGlobal

@@ -1,9 +1,3 @@
-# NuGetGallery Specific Ignores
-Website/App_Data/*
-!Website/App_Data/Files/
-Website/App_Data/Files/*
-!Website/App_Data/Files/Content
-
 .nuget/nuget.exe
 
 *.results.xml
@@ -156,3 +150,10 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
+
+# NuGetGallery Specific Ignores
+src/NuGetGallery.Frontend/App_Data/*
+!src/NuGetGallery.Frontend/App_Data/Files/
+src/NuGetGallery.Frontend/App_Data/Files/*
+!src/NuGetGallery.Frontend/App_Data/Files/Content
+!src/NuGetGallery.Frontend/Views/Packages/
