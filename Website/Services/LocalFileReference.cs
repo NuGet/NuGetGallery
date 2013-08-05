@@ -23,7 +23,7 @@ namespace NuGetGallery
 
         public Stream OpenRead()
         {
-            return _file.Open(FileMode.Open);
+            return _file.Open(FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         }
     }
 }

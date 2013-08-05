@@ -30,7 +30,7 @@ function print-message {
 function Get-StorageAccountConnectionString {
     param($name)
 
-    $StorageAccountKeyContext = Get-AzureStorageKey $name
+    $StorageAccountKeyContext = Get-AzureStorageKey  –StorageAccountName $name
     while($StorageAccountKeyContext.OperationStatus -ne "Succeeded") { }
     "DefaultEndpointsProtocol=https;AccountName=$($name);AccountKey=$($StorageAccountKeyContext.Primary)";
 }
@@ -58,7 +58,7 @@ function Select-ListItem {
     while($selection -lt 0) {
         $selectionString = Read-Host "Enter your selection [1-$($counter-1)]"
         $temp = -1;
-        if([String]::IsNullOrWhitespace($selectionString)) {
+        if([string]::IsNullOrEmpty($selectionString)) {
             Write-Host "Nothing specified."
         } elseif(![Int32]::TryParse($selectionString, [ref]$temp)) {
             Write-Host "Not a valid integer."

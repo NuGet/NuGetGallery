@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet;
+using NuGetGallery;
 
 namespace NuGetGallery
 {
@@ -44,7 +45,7 @@ namespace NuGetGallery
         void AddDownloadStatistics(PackageStatistics stats);
 
         PackageOwnerRequest CreatePackageOwnerRequest(PackageRegistration package, User currentOwner, User newOwner);
-        bool ConfirmPackageOwner(PackageRegistration package, User user, string token);
+        ConfirmOwnershipResult ConfirmPackageOwner(PackageRegistration package, User user, string token);
         void AddPackageOwner(PackageRegistration package, User user);
         void RemovePackageOwner(PackageRegistration package, User user);
     }
