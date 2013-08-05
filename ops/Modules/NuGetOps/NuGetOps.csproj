@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{0DB976EC-BB58-471A-AC68-1F92CD6343C2}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="NuGetOps.psm1" />
+    <None Include="Private\Require-Param.ps1" />
+    <None Include="Public\Backup-Database.ps1" />
+    <None Include="Public\Backup-Packages.ps1" />
+    <None Include="Public\Copy-DatabaseBackup.ps1" />
+    <None Include="Public\Invoke-WebMatrixCurator.ps1" />
+    <None Include="Public\Publish-Symbols.ps1" />
+    <None Include="Public\Remove-BrokenPackageBackups.ps1" />
+    <None Include="Public\Remove-OldDatabaseBackups.ps1" />
+    <None Include="Public\Remove-Package.ps1" />
+    <None Include="Public\Remove-PackageRegistration.ps1" />
+    <None Include="Public\Repair-ExternalPackage.ps1" />
+    <None Include="Public\Repair-PackageFilesContentType.ps1" />
+    <None Include="Public\Get-DatabaseBackup.ps1" />
+    <None Include="Public\Initialize-PackageFrameworks.ps1" />
+    <None Include="Public\Initialize-RestoredDatabase.ps1" />
+    <None Include="Public\Reset-GalleryRepo.ps1" />
+    <None Include="Public\Restore-Database.ps1" />
+    <None Include="Public\Restore-Packages.ps1" />
+    <None Include="Public\Invoke-Worker.ps1" />
+    <None Include="Public\Send-Package.ps1" />
+    <None Include="Public\Sync-PackageBackups.ps1" />
+    <None Include="Public\Test-Symbols.ps1" />
+    <None Include="Public\Update-PackageFile.ps1" />
+  </ItemGroup>
+  <Target Name="Build">
+    <Message Text="No-op. This is a project for editing the PowerShell Module." />
+  </Target>
+</Project>

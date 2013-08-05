@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>PS-CmdInterop</id>
+    <version>1.0</version>
+    <authors>Andrew Nurse</authors>
+    <owners>Andrew Nurse</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Provides the Invoke-CmdScript cmdlet, which invokes a CMD script and copies it's environment variables in to the current session.</description>
+  </metadata>
+</package>
