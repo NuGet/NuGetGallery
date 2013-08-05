@@ -173,6 +173,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\src\CommonAssemblyInfo.cs">
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="App_Start\IConfiguration.cs" />
     <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
