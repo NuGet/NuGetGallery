@@ -189,7 +189,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo, configuration, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore(id, version, includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null, isTest: true)
+            var result = v2Service.GetUpdates(id, version, includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -217,7 +217,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore("Foo|Qux", "1.0.0|abcd", includePrerelease: false, includeAllVersions: false, targetFrameworks: null, versionConstraints: null, isTest: true)
+            var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|abcd", includePrerelease: false, includeAllVersions: false, targetFrameworks: null, versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -246,7 +246,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore("Foo|Qux", "1.0.0|0.9", includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null, isTest: true)
+            var result = v2Service.GetUpdates("Foo|Qux", "1.0.0|0.9", includePrerelease: false, includeAllVersions: true, targetFrameworks: null, versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -283,14 +283,13 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore(
+            var result = v2Service.GetUpdates(
                 "Foo|Qux",
                 "1.0.0|0.9",
                 includePrerelease: false,
                 includeAllVersions: true,
                 targetFrameworks: null,
-                versionConstraints: constraintString, 
-                isTest: true)
+                versionConstraints: constraintString)
                 .ToList();
 
             // Assert
@@ -319,14 +318,13 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore(
+            var result = v2Service.GetUpdates(
                 "Foo|Qux",
                 "1.0.0|0.9",
                 includePrerelease: false,
                 includeAllVersions: true,
                 targetFrameworks: null,
-                versionConstraints: "(,1.2.0)|[2.0,2.3]", 
-                isTest: true)
+                versionConstraints: "(,1.2.0)|[2.0,2.3]")
                 .ToList();
 
             // Assert
@@ -357,14 +355,13 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore(
+            var result = v2Service.GetUpdates(
                 "Foo|Qux",
                 "1.0.0|0.9",
                 includePrerelease: false,
                 includeAllVersions: true,
                 targetFrameworks: null,
-                versionConstraints: "(,1.2.0)|abdfsdf", 
-                isTest: true)
+                versionConstraints: "(,1.2.0)|abdfsdf")
                 .ToList();
 
             // Assert
@@ -396,14 +393,13 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore(
+            var result = v2Service.GetUpdates(
                 "Foo|Qux",
                 "1.0.0|0.9",
                 includePrerelease: false,
                 includeAllVersions: false,
                 targetFrameworks: null,
-                versionConstraints: "|(1.2,2.8)", 
-                isTest: true)
+                versionConstraints: "|(1.2,2.8)")
                 .ToList();
 
             // Assert
@@ -434,14 +430,13 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore(
+            var result = v2Service.GetUpdates(
                 "Foo|Qux",
                 "1.0.0|0.9",
                 includePrerelease: false,
                 includeAllVersions: false,
                 targetFrameworks: null,
-                versionConstraints: "3.4|4.0",
-                isTest: true)
+                versionConstraints: "3.4|4.0")
                 .ToList();
 
             // Assert
@@ -467,14 +462,13 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore(
+            var result = v2Service.GetUpdates(
                 "foo",
                 "1.0.0",
                 includePrerelease: false,
                 includeAllVersions: false,
                 targetFrameworks: null,
-                versionConstraints: null,
-                isTest: true)
+                versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -505,14 +499,13 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore(
+            var result = v2Service.GetUpdates(
                 "Foo|Foo|Qux",
                 "1.0.0|1.2.0|0.9",
                 includePrerelease: false,
                 includeAllVersions: false,
                 targetFrameworks: null,
-                versionConstraints: null,
-                isTest: true)
+                versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -542,14 +535,13 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore(
+            var result = v2Service.GetUpdates(
                 "Foo|Qux", 
                 "1.1.0|0.9", 
                 includePrerelease: true, 
                 includeAllVersions: true, 
                 targetFrameworks: null, 
-                versionConstraints: null,
-                isTest: true)
+                versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -581,14 +573,13 @@ namespace NuGetGallery
 
             // Act
             var result =
-                v2Service.GetUpdatesCore(
+                v2Service.GetUpdates(
                     "Foo|Qux|Foo", 
                     "0.9|1.5|1.1.2", 
                     includePrerelease: false, 
                     includeAllVersions: true, 
                     targetFrameworks: null,
-                    versionConstraints: null,
-                isTest: true)
+                    versionConstraints: null)
                     .ToList();
 
             // Assert
@@ -647,7 +638,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore("Foo|Qux", "1.0|1.5", includePrerelease: false, includeAllVersions: true, targetFrameworks: "net40", versionConstraints: null, isTest: true)
+            var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: false, includeAllVersions: true, targetFrameworks: "net40", versionConstraints: null)
                 .ToList();
 
             // Assert
@@ -713,7 +704,7 @@ namespace NuGetGallery
             var v2Service = new TestableV2Feed(repo.Object, configuration.Object, null);
 
             // Act
-            var result = v2Service.GetUpdatesCore("Foo|Qux", "1.0|1.5", includePrerelease: true, includeAllVersions: false, targetFrameworks: "net40", versionConstraints: null, isTest: true)
+            var result = v2Service.GetUpdates("Foo|Qux", "1.0|1.5", includePrerelease: true, includeAllVersions: false, targetFrameworks: "net40", versionConstraints: null)
                 .ToList();
 
             // Assert
