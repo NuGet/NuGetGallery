@@ -71,7 +71,7 @@ echo Handling .NET Web Application deployment.
 IF !ERRORLEVEL! NEQ 0 goto error
 
 :: 2. Deployment Prep
-powershell -ExecutionPolicy Unrestricted -NoProfile -NoLogo "& %~dp0Deploy.ps1"
+powershell -ExecutionPolicy Unrestricted -NoProfile -NoLogo "& %~dp0DeployFrontend.ps1"
 IF !ERRORLEVEL! NEQ 0 goto error
 
 :: 3. KuduSync
