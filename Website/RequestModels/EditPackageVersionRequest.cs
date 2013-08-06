@@ -61,7 +61,7 @@ namespace NuGetGallery
 
         [StringLength(256)]
         [Display(Name = "Project Home Page URL")]
-        [DataType(DataType.Url)]
+        [DataType(DataType.Text)]
         [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
         public string ProjectUrl { get; set; }
 

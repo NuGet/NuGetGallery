@@ -17,12 +17,41 @@
         });
 
         $(function () {
-            var form = $('form[action="/packages/PoliteCaptcha/Edit/"]').toArray()[0];
+            var form = $('#EditForm').toArray()[0];
             $("input[type=url]").bind("focusin focusout keyup", function (event) {
                 var target = $(event.target);
                 var validator = $.data(form, "validator"),
                     eventType = "on" + event.type.replace(/^validate/, "");
                 validator.settings[eventType] && validator.settings[eventType].call(validator, event.target);
+            });
+        });
+
+        $(function () {
+            var initialDictionary = [];
+            function ReadFormValues(dictionary) {
+                $("textarea").each(function () {
+                    dictionary[this.id] = this.value;
+                });
+                $("input:text").each(function () {
+                    dictionary[this.id] = this.value;
+                });
+                $("input:radio").each(function () {
+                    dictionary[this.id] = this.checked;
+                });
+                $("input:checkbox").each(function () {
+                    dictionary[this.id] = this.checked;
+                });
+            };
+            ReadFormValues(initialDictionary);
+            $("a").click(function () {
+                var dictionary = [];
+                ReadFormValues(dictionary);
+                for (var key in initialDictionary) {
+                    if (initialDictionary.hasOwnProperty(key) &&
+                        dictionary[key] != initialDictionary[key]) {
+                        return confirm('Your changes have not yet been saved. Press OK to discard your changes.');
+                    }
+                }
             });
         });
     </script>
@@ -34,7 +63,7 @@
         <nav id="edit-list">
             <h2>Editing</h2>
             <span class="edit-root">
-                <text>@(Model.PackageId)</text>
+                @(Model.PackageId)
             </span>
             <ul id="packageVersions">
             @foreach (var version in Model.PackageVersions)
@@ -71,7 +100,7 @@
     }
 }
 
-@using (Html.BeginForm())
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "EditForm" }))
 {
     if (Model.EditPackageVersionRequest != null)
     {
