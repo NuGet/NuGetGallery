@@ -5,15 +5,17 @@
   
   <PropertyGroup>
     <Platform>Any CPU</Platform>
-    <OutDir>$(MSBuildThisFileDirectory)..\NuGetGallery.FunctionalTests\bin\</OutDir>    
+    <OutDir>$(MSBuildThisFileDirectory)..\tests\NuGetGallery.FunctionalTests\bin\</OutDir>    
   </PropertyGroup>
   
   <Target Name="Clean">
-    <MSBuild Projects="..\NuGetGallery.FunctionalTests.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform);OutDir=$(OutDir)"/>    
+    <MSBuild Projects="..\tests\NuGetGallery.FunctionalTests\NuGetGallery.FunctionalTests.csproj" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform);OutDir=$(OutDir)"/>    
+    <MSBuild Projects="..\tests\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform);OutDir=$(OutDir)"/>    
   </Target>
   
   <Target Name="Build" DependsOnTargets="Clean">
-    <MSBuild Projects="..\NuGetGallery.FunctionalTests.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);OutDir=$(OutDir)" />    
+    <MSBuild Projects="..\tests\NuGetGallery.FunctionalTests\NuGetGallery.FunctionalTests.csproj" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);OutDir=$(OutDir)" />    
+    <MSBuild Projects="..\tests\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);OutDir=$(OutDir)" />    
   </Target>
 
   
