@@ -197,7 +197,6 @@
     </Reference>
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.Services.Client" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
@@ -582,26 +581,6 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
-    <Compile Include="Entities\CuratedFeed.cs" />
-    <Compile Include="Entities\CuratedPackage.cs" />
-    <Compile Include="Entities\EmailMessage.cs" />
-    <Compile Include="Entities\EntitiesContext.cs" />
-    <Compile Include="Entities\EntityException.cs" />
-    <Compile Include="Entities\EntityRepository.cs" />
-    <Compile Include="Entities\GallerySetting.cs" />
-    <Compile Include="Entities\IEntitiesContext.cs" />
-    <Compile Include="Entities\IEntity.cs" />
-    <Compile Include="Entities\IEntityRepository.cs" />
-    <Compile Include="Entities\Package.cs" />
-    <Compile Include="Entities\PackageAuthor.cs" />
-    <Compile Include="Entities\PackageDependency.cs" />
-    <Compile Include="Entities\PackageFramework.cs" />
-    <Compile Include="Entities\PackageOwnerRequest.cs" />
-    <Compile Include="Entities\PackageRegistration.cs" />
-    <Compile Include="Entities\PackageStatistics.cs" />
-    <Compile Include="Entities\ReadOnlyModeException.cs" />
-    <Compile Include="Entities\Role.cs" />
-    <Compile Include="Entities\User.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />
@@ -615,6 +594,7 @@
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AntiForgeryErrorFilter.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\EntitiesContextFactory.cs" />
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
@@ -1218,6 +1198,12 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
+      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
+      <Name>NuGetGallery.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

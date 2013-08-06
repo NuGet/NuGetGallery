@@ -364,7 +364,7 @@ namespace NuGetGallery.Infrastructure
 
             void ITableEntity.ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
             {
-                Count = properties[CountPropertyName].Int64Value;
+                Count = properties[CountPropertyName].Int64Value ?? 0;
             }
 
             IDictionary<string, EntityProperty> ITableEntity.WriteEntity(OperationContext operationContext)

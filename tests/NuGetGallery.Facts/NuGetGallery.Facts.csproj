@@ -242,6 +242,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj">
+      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
+      <Name>NuGetGallery.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGetGallery\NuGetGallery.csproj">
       <Project>{1DACF781-5CD0-4123-8BAC-CD385D864BE5}</Project>
       <Name>NuGetGallery.Frontend</Name>

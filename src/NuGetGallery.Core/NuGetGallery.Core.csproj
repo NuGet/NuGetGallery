@@ -7,7 +7,7 @@
     <ProjectGuid>{097B2CDD-9623-4C34-93C2-D373D51F5B4E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGetGallery.Core</RootNamespace>
+    <RootNamespace>NuGetGallery</RootNamespace>
     <AssemblyName>NuGetGallery.Core</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -35,6 +35,13 @@
     <Reference Include="EntityFramework">
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Web.XmlTransform">
+      <HintPath>..\..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Core, Version=2.6.40619.9041, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Nuget.Core.2.6.0.1\lib\net40-Client\NuGet.Core.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -49,6 +56,26 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Entities\CuratedFeed.cs" />
+    <Compile Include="Entities\CuratedPackage.cs" />
+    <Compile Include="Entities\EmailMessage.cs" />
+    <Compile Include="Entities\EntitiesContext.cs" />
+    <Compile Include="Entities\EntityException.cs" />
+    <Compile Include="Entities\EntityRepository.cs" />
+    <Compile Include="Entities\GallerySetting.cs" />
+    <Compile Include="Entities\IEntitiesContext.cs" />
+    <Compile Include="Entities\IEntity.cs" />
+    <Compile Include="Entities\IEntityRepository.cs" />
+    <Compile Include="Entities\Package.cs" />
+    <Compile Include="Entities\PackageAuthor.cs" />
+    <Compile Include="Entities\PackageDependency.cs" />
+    <Compile Include="Entities\PackageFramework.cs" />
+    <Compile Include="Entities\PackageOwnerRequest.cs" />
+    <Compile Include="Entities\PackageRegistration.cs" />
+    <Compile Include="Entities\PackageStatistics.cs" />
+    <Compile Include="Entities\ReadOnlyModeException.cs" />
+    <Compile Include="Entities\Role.cs" />
+    <Compile Include="Entities\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
