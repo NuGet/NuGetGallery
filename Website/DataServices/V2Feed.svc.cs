@@ -62,7 +62,12 @@ namespace NuGetGallery
 
         [WebGet]
         public IQueryable<V2FeedPackage> GetUpdates(
-            string packageIds, string versions, bool includePrerelease, bool includeAllVersions, string targetFrameworks, string versionConstraints)
+            string packageIds, 
+            string versions, 
+            bool includePrerelease, 
+            bool includeAllVersions, 
+            string targetFrameworks,
+            string versionConstraints)
         {
             if (String.IsNullOrEmpty(packageIds) || String.IsNullOrEmpty(versions))
             {
@@ -77,7 +82,7 @@ namespace NuGetGallery
                 targetFrameworks = targetFrameworks.Replace(' ', '+');
             }
 
-            var idValues = packageIds.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            var idValues = packageIds.Trim().ToLowerInvariant().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             var versionValues = versions.Trim().Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
             var targetFrameworkValues = String.IsNullOrEmpty(targetFrameworks)
                                             ? null
@@ -110,13 +115,16 @@ namespace NuGetGallery
                     return null;
                 })
                 .Where(t => t != null)
-                .ToLookup(t => t.Item1, t => t.Item2);
+                .ToLookup(t => t.Item1, t => t.Item2, StringComparer.OrdinalIgnoreCase);
 
             var packages = PackageRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.SupportedFrameworks)
-                .Where(p => p.Listed && (includePrerelease || !p.IsPrerelease) && idValues.Contains(p.PackageRegistration.Id))
+                .Where(p =>
+                    p.Listed && (includePrerelease || !p.IsPrerelease) &&
+                    idValues.Contains(p.PackageRegistration.Id.ToLower()))
                 .OrderBy(p => p.PackageRegistration.Id);
+
             return GetUpdates(packages, versionLookup, targetFrameworkValues, includeAllVersions).AsQueryable()
                 .ToV2FeedPackageQuery(GetSiteRoot());
         }
