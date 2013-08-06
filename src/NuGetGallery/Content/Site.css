@@ -742,6 +742,11 @@ ul.dependencySet li {
     margin: 5px 0;
 }
 
+.form-field label[for="EditPackageVersionRequest_RequiresLicenseAcceptance"] {
+    display: inline;
+    vertical-align: middle;
+    }
+
     /* Package page owners */
 
 .package-page .owners li { margin-bottom: 12px; }
