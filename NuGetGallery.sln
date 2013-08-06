@@ -14,13 +14,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{B9B1
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Operations", "Operations", "{2ECA1159-9B9D-4D65-95AF-F14337FD3DA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend", "src\NuGetGallery.Frontend\NuGetGallery.Frontend.csproj", "{1DACF781-5CD0-4123-8BAC-CD385D864BE5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery", "src\NuGetGallery\NuGetGallery.csproj", "{1DACF781-5CD0-4123-8BAC-CD385D864BE5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend.Facts", "tests\NuGetGallery.Frontend.Facts\NuGetGallery.Frontend.Facts.csproj", "{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Facts", "tests\NuGetGallery.Facts\NuGetGallery.Facts.csproj", "{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend.FunctionalTests.Helpers", "tests\NuGetGallery.Frontend.FunctionalTests.Helpers\NuGetGallery.Frontend.FunctionalTests.Helpers.csproj", "{8FB56455-C688-44AE-95F1-48FFCB199BFE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTests.Helpers", "tests\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj", "{8FB56455-C688-44AE-95F1-48FFCB199BFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend.FunctionalTests", "tests\NuGetGallery.Frontend.FunctionalTests\NuGetGallery.Frontend.FunctionalTests.csproj", "{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTests", "tests\NuGetGallery.FunctionalTests\NuGetGallery.FunctionalTests.csproj", "{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Backend", "src\NuGetGallery.Backend\NuGetGallery.Backend.csproj", "{7F92C174-5310-4090-A6A3-3CC7C67C19D6}"
 EndProject

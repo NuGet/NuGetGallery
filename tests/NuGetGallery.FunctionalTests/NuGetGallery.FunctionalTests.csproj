@@ -106,7 +106,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.Frontend.FunctionalTests.Helpers\NuGetGallery.FunctionTests.Helpers.csproj" />
-    <ProjectReference Include="..\NuGetGallery.Frontend.FunctionalTests.Helpers\NuGetGallery.Frontend.FunctionalTests.Helpers.csproj">
+    <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj">
       <Project>{8fb56455-c688-44ae-95f1-48ffcb199bfe}</Project>
       <Name>NuGetGallery.Frontend.FunctionalTests.Helpers</Name>
     </ProjectReference>
