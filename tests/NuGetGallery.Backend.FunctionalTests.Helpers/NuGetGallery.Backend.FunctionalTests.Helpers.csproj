@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4405C24C-7F57-4826-831F-D5D7E139F02E}</ProjectGuid>
+    <ProjectGuid>{33A7049D-338D-4883-9325-731B91E9A0BB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OpsAzureWorker.Facts</RootNamespace>
-    <AssemblyName>OpsAzureWorker.Facts</AssemblyName>
+    <RootNamespace>NuGetOperations.FunctionalTests.Helpers</RootNamespace>
+    <AssemblyName>NuGetGallery.Backend.FunctionalTests.Helpers</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AnglicanGeek.DbExecutor">
+      <HintPath>..\..\packages\AnglicanGeek.DbExecutor.0.1.2\lib\net40\AnglicanGeek.DbExecutor.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -39,37 +42,31 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="xunit">
-      <HintPath>..\packages\xunit.1.9.1\lib\net20\xunit.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.extensions">
-      <HintPath>..\packages\xunit.extensions.1.9.1\lib\net20\xunit.extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.runner.msbuild">
-      <HintPath>..\packages\xunit.1.9.1\lib\net20\xunit.runner.msbuild.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.runner.tdnet">
-      <HintPath>..\packages\xunit.1.9.1\lib\net20\xunit.runner.tdnet.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.runner.utility">
-      <HintPath>..\packages\xunit.1.9.1\lib\net20\xunit.runner.utility.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="BlobStorageHelper.cs" />
+    <Compile Include="DataBaseHelper.cs" />
+    <Compile Include="EnvironmentSettings.cs" />
+    <Compile Include="GalopsProcessHelper.cs" />
+    <Compile Include="PackageHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Source\OpsAzureWorker\OpsAzureWorker.csproj">
-      <Project>{cbff8f30-a237-4eea-86da-104272e80657}</Project>
-      <Name>OpsAzureWorker</Name>
-    </ProjectReference>
+    <Compile Include="TaskInvocationHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGetGallery.Operations\NuGetGallery.Operations.csproj">
+      <Project>{dbecf66b-8f2f-4b32-9143-e243baff12df}</Project>
+      <Name>NuGetGallery.Operations</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery.Frontend.FunctionalTests\NuGetGallery.Frontend.FunctionalTests.csproj">
+      <Project>{0a6b1a52-4d26-4946-9ddd-416d01a1adbf}</Project>
+      <Name>NuGetGallery.Frontend.FunctionalTests</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NuGetOperations.FunctionalTests</RootNamespace>
-    <AssemblyName>NuGetOperations.FunctionalTests</AssemblyName>
+    <AssemblyName>NuGetGallery.Backend.FunctionalTests.Helpers</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -35,10 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NuGetGallery.Operations, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\NuGetGallery.Operations.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -64,9 +60,13 @@
     <Compile Include="BackupWarehouseTaskTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGetOperations.FunctionalTests.Helpers\NuGetOperations.FunctionalTests.Helpers.csproj">
-      <Project>{33a7049d-338d-4883-9325-731b91e9a0bb}</Project>
-      <Name>NuGetOperations.FunctionalTests.Helpers</Name>
+    <ProjectReference Include="..\..\src\NuGetGallery.Backend\NuGetGallery.Backend.csproj">
+      <Project>{7f92c174-5310-4090-a6a3-3cc7c67c19d6}</Project>
+      <Name>NuGetGallery.Backend</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\NuGetGallery.Operations\NuGetGallery.Operations.csproj">
+      <Project>{dbecf66b-8f2f-4b32-9143-e243baff12df}</Project>
+      <Name>NuGetGallery.Operations</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

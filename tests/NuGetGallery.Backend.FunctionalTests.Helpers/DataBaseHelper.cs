@@ -7,7 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using AnglicanGeek.DbExecutor;
 using NuGetGallery.Operations;
-
+using NuGetGallery.Operations.Model;
 
 namespace NuGetOperations.FunctionalTests.Helpers
 {
@@ -45,7 +45,7 @@ namespace NuGetOperations.FunctionalTests.Helpers
         /// <returns></returns>
         public static DataBaseState GetDataBaseState(string dbName)
         {
-            var dbs = MasterDataBaseExecutor.Query<Database>(
+            var dbs = MasterDataBaseExecutor.Query<OnlineDatabaseBackup>(
                 "SELECT name, state FROM sys.databases WHERE name = @dbName",
                 new { dbName });                        
 
@@ -59,7 +59,7 @@ namespace NuGetOperations.FunctionalTests.Helpers
         /// <returns></returns>
         public static int GetTotalBackupDataBaseCount()
         {
-            return MasterDataBaseExecutor.Query<Database>(
+            return MasterDataBaseExecutor.Query<OnlineDatabaseBackup>(
                      "SELECT name FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
                      new { state = Util.OnlineState }).ToArray().Length;
         }
@@ -68,9 +68,9 @@ namespace NuGetOperations.FunctionalTests.Helpers
         /// Returns the list of all database backups present in the server.
         /// </summary>
         /// <returns></returns>
-        public static List<Database> GetAllDatabaseBackups()
+        public static List<OnlineDatabaseBackup> GetAllDatabaseBackups()
         {
-            return MasterDataBaseExecutor.Query<Database>(
+            return MasterDataBaseExecutor.Query<OnlineDatabaseBackup>(
                      "SELECT name FROM sys.databases WHERE name LIKE 'Backup_%' AND state = @state",
                      new { state = Util.OnlineState }).ToList();
         }
