@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ServiceDefinition name="NuGetGallery.Operations.Worker.Emulator" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-03.2.0">
-  <WorkerRole name="NuGetGallery.Worker" vmsize="Small">
+  <WorkerRole name="NuGetGallery.Backend" vmsize="Small">
     <ConfigurationSettings>
       <Setting name="Operations.EnvironmentName" />
       <Setting name="Operations.Sql.Primary" />
