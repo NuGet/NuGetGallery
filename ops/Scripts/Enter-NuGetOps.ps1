@@ -5,10 +5,9 @@ Enters the NuGet Operations Console
 
 $MsftDomainNames = @("REDMOND","FAREAST","NORTHAMERICA","NTDEV")
 
-$root = (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $OpsProfile = $MyInvocation.MyCommand.Path
+$root = (Split-Path -Parent (Split-Path -Parent $OpsProfile))
 $OpsModules = Join-Path $root "Modules"
-$OpsTools = Join-Path $root "Tools"
 $env:PSModulePath = "$env:PSModulePath;$OpsModules"
 
 if($EnvironmentList) {
@@ -28,7 +27,7 @@ if(!$env:NUGET_OPS_DEFINITION) {
 
 $env:WinSDKRoot = "$(cat "env:\ProgramFiles(x86)")\Windows Kits\8.0"
 
-$env:PATH = "$root;$OpsTools\bin;$env:PATH;$env:WinSDKRoot\bin\x86;$env:WinSDKRoot\Debuggers\x86"
+$env:PATH = "$root;$env:PATH;$env:WinSDKRoot\bin\x86;$env:WinSDKRoot\Debuggers\x86"
 
 function LoadOrReloadModule($name) {
 	if(Get-Module $name) {
@@ -42,12 +41,6 @@ LoadOrReloadModule PS-CmdInterop
 LoadOrReloadModule PS-VsVars
 
 Import-VsVars -Architecture x86
-
-if(Test-Path "$OpsTools\Paths.txt") {
-	cat "$OpsTools\Paths.txt" | ForEach {
-		$env:PATH = "$($env:PATH);$OpsTools\$_"
-	}
-}
 
 if(!(Get-Module posh-git)) {
 	Import-Module posh-git

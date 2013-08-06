@@ -1,5 +1,8 @@
+$Global:RepoRoot = (Convert-Path "$PsScriptRoot\..\..\..")
 $Global:OpsRoot = (Convert-Path "$PsScriptRoot\..\..")
 $Global:NuGetOpsDefinition = $env:NUGET_OPS_DEFINITION
+
+$GalOpsRoot = Join-Path $RepoRoot "src\galops"
 
 $CurrentDeployment = $null
 $CurrentEnvironment = $null
@@ -7,7 +10,7 @@ Export-ModuleMember -Variable CurrentDeployment, CurrentEnvironment
 
 # Extract Ops NuGetOpsVersion
 $NuGetOpsVersion = 
-	cat .\Source\CommonAssemblyInfo.cs | 
+	cat (Join-Path $RepoRoot "src\CommonAssemblyInfo.cs") | 
 	where { $_ -match "\[assembly:\s+AssemblyInformationalVersion\(`"(?<ver>[^`"]*)`"\)\]" } | 
 	foreach { $matches["ver"] }
 
@@ -176,14 +179,13 @@ function env([string]$Name) {
 }
 Export-ModuleMember -Function env
 
-$galopsExe = join-path $OpsRoot "Source\NuGetGallery.Operations.Tools\bin\Debug\galops.exe"
-if(!(Test-Path $galopsExe)) {
+$Global:GalOpsExe = join-path $GalOpsRoot "bin\Debug\galops.exe"
+if(!(Test-Path $GalOpsExe)) {
 	$answer = Read-Host "Gallery ops exe not built. Build it now? (Y/n)"
 	if([String]::IsNullOrEmpty($answer) -or $answer.Equals("y", "OrdinalIgnoreCase") -or $answer.Equals("yes", "OrdinalIgnoreCase")) {
-		pushd $OpsRoot
+		pushd $RepoRoot
 		Write-Host "Building GalOps.exe..."
-		& "$OpsRoot\Scripts\Restore-Packages.ps1"
-		& msbuild NuGetOperations.sln /v:m | Out-Host
+		& msbuild /v:m | Out-Host
 		popd
 	} else {
 		Write-Host -Background Yellow -Foreground Black "Warning: Do not execute gallery ops tasks until you have built the GalOps.exe executable"

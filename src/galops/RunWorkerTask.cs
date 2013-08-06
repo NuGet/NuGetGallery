@@ -2,7 +2,7 @@
 using System.Linq;
 using NLog;
 using NLog.Targets;
-using NuGetGallery.Worker;
+using NuGetGallery.Backend;
 
 namespace NuGetGallery.Operations.Tools.Tasks
 {

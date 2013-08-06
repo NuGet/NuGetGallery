@@ -12,6 +12,7 @@
     <AssemblyName>NuGetGallery.Operations.Worker.Emulator</AssemblyName>
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
     <Name>NuGetGallery.Backend.Cloud</Name>
+    <TargetProfile>Build</TargetProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,7 +34,7 @@
   <!-- Items for the project -->
   <ItemGroup>
     <ServiceDefinition Include="ServiceDefinition.csdef" />
-    <ServiceConfiguration Include="ServiceConfiguration.Local.cscfg" />
+    <ServiceConfiguration Include="ServiceConfiguration.Build.cscfg" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NuGetGallery.WorkerContent\" />

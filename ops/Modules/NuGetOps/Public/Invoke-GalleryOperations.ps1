@@ -1,13 +1,11 @@
 function Invoke-GalleryOperations() {
-    if(!(Test-Path $OpsRoot\Source\NuGetGallery.Operations.Tools\bin\Debug\galops.exe)) {
-        Write-Warning "Gallery Ops Runner not built. Building..."
-        msbuild $OpsRoot\NuGetGalleryOps.sln
-        Write-Warning "Gallery Ops Runner has been built, try your command again."
+    if(!(Test-Path $GalOpsExe)) {
+        Write-Warning "Gallery Ops Runner has not been built, build it and try your command again."
         return;
     }
 
     if($args.Length -eq 0) {
-        & $OpsRoot\Source\NuGetGallery.Operations.Tools\bin\Debug\galops.exe
+        & $GalOpsExe
         return;
     }
 
@@ -19,9 +17,9 @@ function Invoke-GalleryOperations() {
     }
     try {
         if($tmpfile) {
-            & $OpsRoot\Source\NuGetGallery.Operations.Tools\bin\Debug\galops.exe @args -ConfigFile $tmpfile -EnvironmentName $CurrentEnvironment.Name
+            & $GalOpsExe @args -ConfigFile $tmpfile -EnvironmentName $CurrentEnvironment.Name
         } else {
-            & $OpsRoot\Source\NuGetGallery.Operations.Tools\bin\Debug\galops.exe @args
+            & $GalOpsExe @args
         }
     } finally {
         if($tmpfile -and (Test-Path $tmpfile)) {

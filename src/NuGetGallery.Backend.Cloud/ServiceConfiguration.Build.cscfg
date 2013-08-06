@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ServiceConfiguration serviceName="NuGetGallery.Operations.Worker.Emulator" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-03.2.0">
+  <!-- This service configuration is the minimal set required to allow the package to build. It doesn't correspond to any deployment environment -->
   <Role name="NuGetGallery.Worker">
     <Instances count="1" />
     <ConfigurationSettings>
@@ -17,7 +18,7 @@
       <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
     </ConfigurationSettings>
     <Certificates>
-      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="989B374546A186C4EADAFA4F17EB05D7FA2E5C83" thumbprintAlgorithm="sha1" />
+      <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="8787878787878787878787878787878787878787" thumbprintAlgorithm="sha1" />
     </Certificates>
   </Role>
 </ServiceConfiguration>
