@@ -87,40 +87,40 @@ namespace NuGetGallery
             return String.Join(", ", list.ToArray());
         }
 
-        public static string Flatten(this IEnumerable<PackageDependencySet> dependencySets)
-        {
-            var dependencies = new List<dynamic>();
+        //public static string Flatten(this IEnumerable<PackageDependencySet> dependencySets)
+        //{
+        //    var dependencies = new List<dynamic>();
 
-            foreach (var dependencySet in dependencySets)
-            {
-                if (dependencySet.Dependencies.Count == 0)
-                {
-                    dependencies.Add(
-                        new
-                            {
-                                Id = (string)null,
-                                VersionSpec = (string)null,
-                                TargetFramework =
-                            dependencySet.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependencySet.TargetFramework)
-                            });
-                }
-                else
-                {
-                    foreach (var dependency in dependencySet.Dependencies.Select(d => new { d.Id, d.VersionSpec, dependencySet.TargetFramework }))
-                    {
-                        dependencies.Add(
-                            new
-                                {
-                                    dependency.Id,
-                                    VersionSpec = dependency.VersionSpec == null ? null : dependency.VersionSpec.ToString(),
-                                    TargetFramework =
-                                dependency.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependency.TargetFramework)
-                                });
-                    }
-                }
-            }
-            return FlattenDependencies(dependencies);
-        }
+        //    foreach (var dependencySet in dependencySets)
+        //    {
+        //        if (dependencySet.Dependencies.Count == 0)
+        //        {
+        //            dependencies.Add(
+        //                new
+        //                    {
+        //                        Id = (string)null,
+        //                        VersionSpec = (string)null,
+        //                        TargetFramework =
+        //                    dependencySet.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependencySet.TargetFramework)
+        //                    });
+        //        }
+        //        else
+        //        {
+        //            foreach (var dependency in dependencySet.Dependencies.Select(d => new { d.Id, d.VersionSpec, dependencySet.TargetFramework }))
+        //            {
+        //                dependencies.Add(
+        //                    new
+        //                        {
+        //                            dependency.Id,
+        //                            VersionSpec = dependency.VersionSpec == null ? null : dependency.VersionSpec.ToString(),
+        //                            TargetFramework =
+        //                        dependency.TargetFramework == null ? null : VersionUtility.GetShortFrameworkName(dependency.TargetFramework)
+        //                        });
+        //            }
+        //        }
+        //    }
+        //    return FlattenDependencies(dependencies);
+        //}
 
         public static string Flatten(this ICollection<PackageDependency> dependencies)
         {

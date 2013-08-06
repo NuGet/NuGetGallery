@@ -1,0 +1,16 @@
+﻿@model IPackageVersionModel
+@{
+    ViewBag.Tab = "Packages";
+}
+
+<h1 class="page-heading"><em>Cancel @Model.Title @Model.Version</em> Edits</h1>
+<p class="message">
+    This will cancel ALL pending edits for the @Model.Title package, version @Model.Version.
+</p>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="dummy" value="true" />
+    <input type="submit" value="Cancel Pending Edits" title="Cancel Pending Edits" />
+}
