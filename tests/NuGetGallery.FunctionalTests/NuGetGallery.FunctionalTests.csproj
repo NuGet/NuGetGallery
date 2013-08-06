@@ -8,6 +8,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <OutputPath>bin\</OutputPath>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
     <AssemblyName>NuGetGallery.FunctionalTests</AssemblyName>
