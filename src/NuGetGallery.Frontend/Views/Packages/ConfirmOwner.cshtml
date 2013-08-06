@@ -1,0 +1,43 @@
+﻿@model PackageOwnerConfirmationModel
+@{
+    ViewBag.Title = "Confirm Ownership";
+}
+
+<h1 class="page-heading">Confirm Ownership</h1>
+
+@switch(Model.Result)
+{
+    case ConfirmOwnershipResult.Success:
+        <p>
+            You are now an owner of the 
+            '<strong><a href="@Url.Package(@Model.PackageId)" title="The @Model.PackageId package">@Model.PackageId</a></strong>' package.
+        </p>
+        break;
+    case ConfirmOwnershipResult.AlreadyOwner:
+        <p class="message error">
+            You are already an owner of the
+            '<strong><a href="@Url.Package(@Model.PackageId)" title="The @Model.PackageId package">@Model.PackageId</a></strong>' package.
+        </p>
+        <p>
+            If you manage multiple accounts, make sure you sign-in as the user who received the request before clicking the confirmation link.
+        </p>
+        break;
+    default:
+        <p class="message error">
+            Could not confirm package ownership for '@Model.PackageId'.
+        </p>
+        <p>
+            Make sure you clicked on the confirmation URL in the email we sent. 
+            It&#8217;s also possible that the existing owner revoked the 
+            request to add you as an owner.
+        </p>
+        break;
+}
+
+
+
+
+
+
+
+

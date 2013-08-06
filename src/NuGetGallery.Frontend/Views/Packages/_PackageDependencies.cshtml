@@ -1,0 +1,35 @@
+﻿@model DependencySetsViewModel
+@if (Model.DependencySets.Any())
+{
+    <ul id="dependencySets">
+        @foreach (var dependencySet in Model.DependencySets)
+        {
+            <li>
+                @if (!Model.OnlyHasAllFrameworks)
+                {
+                    <h4>@dependencySet.Key</h4>
+                }
+                <ul class="dependencySet">
+                    @foreach (var dependency in dependencySet.Value)
+                    {
+                        <li>
+                            @if (dependency == null)
+                            {
+                                @:No dependencies.
+                            }
+                            else
+                            {
+                                <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                                <span>@dependency.VersionSpec</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>This package has no dependencies.</p>
+}

@@ -3,7 +3,7 @@ using System.ComponentModel.Composition;
 using System.Data.SqlClient;
 using NuGetGallery.Operations;
 
-namespace NuGetGallery.Worker.Jobs
+namespace NuGetGallery.Backend.Jobs
 {
     [Export(typeof(WorkerJob))]
     public class PurgePackageStatisticsJob : WorkerJob

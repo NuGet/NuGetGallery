@@ -6,9 +6,9 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using NLog;
-using NuGetGallery.Worker.Jobs;
+using NuGetGallery.Backend.Jobs;
 
-namespace NuGetGallery.Worker
+namespace NuGetGallery.Backend
 {
     [Export]
     public class JobRunner

@@ -10,9 +10,9 @@
       <Setting name="Operations.SqlDac" />
     </ConfigurationSettings>
     <Imports>
-      <Import moduleName="Diagnostics" />
       <Import moduleName="RemoteAccess" />
       <Import moduleName="RemoteForwarder" />
+      <Import moduleName="Diagnostics" />
     </Imports>
     <LocalResources>
       <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
