@@ -62,6 +62,11 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.ListPackages);
         }
 
+        public static string CancelPendingEdits(this UrlHelper url, IPackageVersionModel package)
+        {
+            return url.Action(MVC.Packages.CancelPendingEdits(package.Id, package.Version));
+        }
+
         public static string Package(this UrlHelper url, string id)
         {
             return url.Package(id, null, scheme: null);

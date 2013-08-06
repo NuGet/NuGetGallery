@@ -73,6 +73,11 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult CancelPendingEdits() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.CancelPendingEdits);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult ConfirmOwner() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmOwner);
         }
@@ -99,6 +104,7 @@ namespace NuGetGallery {
             public readonly string ManagePackageOwners = "ManagePackageOwners";
             public readonly string Delete = "Delete";
             public readonly string Edit = "Edit";
+            public readonly string CancelPendingEdits = "CancelPendingEdits";
             public readonly string ConfirmOwner = "ConfirmOwner";
         }
 
@@ -110,6 +116,7 @@ namespace NuGetGallery {
         public class ViewNames {
             public readonly string _ListPackage = "~/Views/Packages/_ListPackage.cshtml";
             public readonly string _PackageDependencies = "~/Views/Packages/_PackageDependencies.cshtml";
+            public readonly string CancelPendingEdits = "~/Views/Packages/CancelPendingEdits.cshtml";
             public readonly string ConfirmOwner = "~/Views/Packages/ConfirmOwner.cshtml";
             public readonly string ContactOwners = "~/Views/Packages/ContactOwners.cshtml";
             public readonly string Delete = "~/Views/Packages/Delete.cshtml";
@@ -233,6 +240,21 @@ namespace NuGetGallery {
             callInfo.RouteValueDictionary.Add("id", id);
             callInfo.RouteValueDictionary.Add("version", version);
             callInfo.RouteValueDictionary.Add("formData", formData);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult CancelPendingEdits(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CancelPendingEdits);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult CancelPendingEdits(string id, string version, string dummy) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.CancelPendingEdits);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            callInfo.RouteValueDictionary.Add("dummy", dummy);
             return callInfo;
         }
 

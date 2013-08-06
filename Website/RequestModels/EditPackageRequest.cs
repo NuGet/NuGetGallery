@@ -11,5 +11,7 @@ namespace NuGetGallery
         public string Version { get; set; }
 
         public IList<Package> PackageVersions { get; set; }
+
+        public bool HasPendingMetadata { get; set; }
     }
 }

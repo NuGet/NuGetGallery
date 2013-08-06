@@ -179,16 +179,7 @@ namespace NuGetGallery
                 var pendingMetadata = _editPackageService.GetPendingMetadata(package);
                 if (pendingMetadata != null)
                 {
-                    TempData["Message"] = "An edit is pending for this package version. You are seeing the edited package description now. Eventually everyone will see the new description.";
-                    model.Authors = pendingMetadata.Authors;
-                    model.Copyright = pendingMetadata.Copyright;
-                    model.Description = pendingMetadata.Description;
-                    model.IconUrl = pendingMetadata.IconUrl;
-                    model.LicenseUrl = pendingMetadata.LicenseUrl;
-                    model.ProjectUrl = pendingMetadata.ProjectUrl;
-                    model.ReleaseNotes = pendingMetadata.ReleaseNotes;
-                    model.Tags = pendingMetadata.Tags.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    model.Title = pendingMetadata.Title;
+                    model.SetPendingMetadata(pendingMetadata);
                 }
             }
 
@@ -504,6 +495,7 @@ namespace NuGetGallery
             };
 
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+            model.HasPendingMetadata = pendingMetadata != null;
             model.EditPackageVersionRequest = new EditPackageVersionRequest(package, pendingMetadata);
             return View(model);
         }
@@ -532,6 +524,51 @@ namespace NuGetGallery
                 _editPackageService.StartEditPackageRequest(package, formData, user);
                 _entitiesContext.SaveChanges();
             }
+            return Redirect(Url.Package(id, version));
+        }
+
+        public virtual ActionResult CancelPendingEdits(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var model = new TrivialPackageVersionModel
+            {
+                Id = package.PackageRegistration.Id,
+                Version = package.Version,
+                Title = package.Title,
+            };
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult CancelPendingEdits(string id, string version, string dummy)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            var results = _entitiesContext.Set<PackageEdit>().Where(
+                pe => pe.PackageKey == package.Key);
+            foreach (var result in results)
+            {
+                _entitiesContext.Set<PackageEdit>().Remove(result);
+            }
+
+            _entitiesContext.SaveChanges();
             return Redirect(Url.Package(id, version));
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NuGet;
 
@@ -25,9 +26,25 @@ namespace NuGetGallery
             DownloadCount = package.DownloadCount;
         }
 
+        public void SetPendingMetadata(PackageEdit pendingMetadata)
+        {
+            HasPendingMetadata = true;
+            Authors = pendingMetadata.Authors;
+            Copyright = pendingMetadata.Copyright;
+            Description = pendingMetadata.Description;
+            IconUrl = pendingMetadata.IconUrl;
+            LicenseUrl = pendingMetadata.LicenseUrl;
+            ProjectUrl = pendingMetadata.ProjectUrl;
+            ReleaseNotes = pendingMetadata.ReleaseNotes;
+            Tags = pendingMetadata.Tags.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            Title = pendingMetadata.Title;
+        }
+
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
+
+        public bool HasPendingMetadata { get; set; }
         
         public bool IsLatestVersionAvailable
         {

@@ -204,6 +204,7 @@ nav, section { display: block; }
     color: #ff9600;
 }
 
+.pending-edit-message,
 .prerelease-message,
 .not-latest-message {
     -moz-border-radius: 0 0 5px 5px;
@@ -223,6 +224,7 @@ nav, section { display: block; }
     color: #ff9600;
 }
 
+.pending-edit-message,
 .not-latest-message {
     background-color: #eff7fa;
     border-color: #52a4ca;
