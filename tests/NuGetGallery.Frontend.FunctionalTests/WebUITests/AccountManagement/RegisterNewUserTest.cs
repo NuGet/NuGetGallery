@@ -1,24 +1,23 @@
-﻿
-namespace NuGetGallery.FunctionalTests
+﻿namespace NuGetGallery.FunctionalTests
 {
+    using Microsoft.VisualStudio.TestTools.WebTesting;
+    using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
+    using NuGetGallery.FunctionTests.Helpers;
+    using NuGetGallery.FunctionalTests.TestBase;
     using System;
     using System.Collections.Generic;
     using System.Text;
-    using Microsoft.VisualStudio.TestTools.WebTesting;
-    using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
-    using System.Web.UI;
-    using NuGetGallery.FunctionTests.Helpers;
-    using NuGetGallery.FunctionalTests.TestBase;
 
     /// <summary>
-    /// Tries to login with a POST request with the credentials retrieved from the data source. Validates that the response has the logged in user name.
-    /// </summary>   
-    public class InvalidLogonTest : WebTest
+    /// Sends http POST request to register a new user and checks that a pending confirmation page is shown as response.
+    /// </summary>
+    public class RegisterNewUserTest : WebTest
     {
-        public InvalidLogonTest()
+        public RegisterNewUserTest()
         {
             this.PreAuthenticate = true;
         }
+
         public override IEnumerator<WebTestRequest> GetRequestEnumerator()
         {
             WebTestRequest registerPageRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.RegisterPageUrl);
@@ -34,8 +33,8 @@ namespace NuGetGallery.FunctionalTests
             registerNewUserFormPost.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString() + "@live.com"); //add a dummy mail account. This will be fixed once we incorporate the logic to delete user.
             registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, DateTime.Now.Ticks.ToString() + "NewAccount");
-            registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxx");
-            registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordFormField, "xxxxxxx");
+            registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxxx");
+            registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordField, "xxxxxxxx");
             registerNewUserFormPost.FormPostParameters.Add(Constants.AcceptTermsField, "true");
             registerPagePostRequest.Body = registerNewUserFormPost;
             //Validate the response to make sure that it has the pending confirmation text in it.           
@@ -46,3 +45,4 @@ namespace NuGetGallery.FunctionalTests
         }
     }
 }
+

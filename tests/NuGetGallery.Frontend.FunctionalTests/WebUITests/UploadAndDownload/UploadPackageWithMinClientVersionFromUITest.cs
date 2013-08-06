@@ -51,6 +51,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
             yield return logonPost;
             logonPost = null;
 
+            System.Threading.Thread.Sleep(60000);
             WebTestRequest packageRequest = new WebTestRequest(UrlHelper.GetPackagePageUrl(packageId));           
             //Rule to check manage my packages contains a html link to the newly uploaded package.     
             ValidationRuleFindText requiredMinVersionValidationRule = AssertAndValidationHelper.GetValidationRuleForFindText(minClientVersion);   

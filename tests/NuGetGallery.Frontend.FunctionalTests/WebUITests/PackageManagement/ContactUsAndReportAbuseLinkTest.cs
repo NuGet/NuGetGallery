@@ -40,6 +40,11 @@ namespace NuGetGallery.FunctionalTests.WebUITests.PackageManagement
             yield return uploadPostRequest;
             uploadPostRequest = null;
 
+            WebTestRequest verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0");
+            yield return verifyUploadPostRequest;
+            verifyUploadPostRequest = null; 
+
+            System.Threading.Thread.Sleep(60000);
             WebTestRequest packageRequest = new WebTestRequest(UrlHelper.GetPackagePageUrl(packageId));    
             ValidationRuleFindText findTextRule = AssertAndValidationHelper.GetValidationRuleForFindText("Contact Us");
             packageRequest.ValidateResponse += new EventHandler<ValidationEventArgs>(findTextRule.Validate);

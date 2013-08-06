@@ -34,8 +34,8 @@ namespace NuGetGallery.FunctionalTests
             registerNewUserFormPost.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             registerNewUserFormPost.FormPostParameters.Add(Constants.EmailAddressFormField, DateTime.Now.Ticks.ToString() + "@gmail.com");
             registerNewUserFormPost.FormPostParameters.Add(Constants.UserNameFormField, DateTime.Now.Ticks.ToString());
-            registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "xxxxxxx");
-            registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordFormField, "xxxxxxx");
+            registerNewUserFormPost.FormPostParameters.Add(Constants.PasswordFormField, "1qq1qq1qq");
+            registerNewUserFormPost.FormPostParameters.Add(Constants.ConfirmPasswordFormField, "1qq1qq1qq");
             registerPagePostRequest.Body = registerNewUserFormPost;
             //Validate the response to make sure that it has the pending confirmation text in it.           
             ValidationRuleFindText PendingConfirmationTextRule = AssertAndValidationHelper.GetValidationRuleForFindText(Constants.ReadOnlyModeRegisterNewUserText);

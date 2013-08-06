@@ -93,7 +93,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         {
             List<IPackage> packages;
             IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;
-            IServiceBasedRepository serviceRepo = repo as IServiceBasedRepository;
+            IPackageRepository serviceRepo = repo as IPackageRepository;
          
             if(serviceRepo != null)
             {
@@ -101,7 +101,7 @@ namespace NuGetGallery.FunctionTests.Helpers
             }
             else
             {
-                packages = repo.GetPackages().Find(searchQuery).FilterByPrerelease(false).ToList();
+                packages = repo.GetPackages().Find(searchQuery).ToList();
             }
             return packages.Count;
         }

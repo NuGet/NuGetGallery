@@ -13,12 +13,14 @@ namespace NuGetGallery.FunctionalTests
         internal const string ConfirmPasswordFormField = "ConfirmPassword";
         internal const string EmailAddressFormField = "EmailAddress";
         internal const string PasswordFormField = "Password";
+        internal const string ConfirmPasswordField = "ConfirmPassword";
         internal const string UserNameFormField = "Username";
         internal const string UserNameOrEmailFormField = "UserNameOrEmail";
+        internal const string AcceptTermsField = "AcceptTerms";
         #endregion FormFields
 
         #region PredefinedText
-        internal const string HomePageText = "Jump Start Your Projects with NuGet";
+        internal const string HomePageText = "What is NuGet?";
         internal const string RegisterNewUserPendingConfirmationText = "An email with instructions on how to activate your account is on its way to you.";
         internal const string UserAlreadyExistsText = "User already exists";
         internal const string ReadOnlyModeRegisterNewUserText = "503 : Please try again later! (Read-only)";

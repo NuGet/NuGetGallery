@@ -65,6 +65,8 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Features\SearchTest.cs" />
+    <Compile Include="WebUITests\AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="WebUITests\AssertAndValidationHelper.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCommandLineTests.cs" />
     <Compile Include="ClientIntegrationTests\NuGetCoreTests.cs" />
@@ -76,6 +78,7 @@
     <Compile Include="TestBase\GalleryTestBase.cs" />
     <Compile Include="WebTestExtensions\ValidationRuleFindHeaderText.cs" />
     <Compile Include="WebUITests\AccountManagement\InvalidLogonTest.cs" />
+    <Compile Include="WebUITests\BasicPages\OutercurveBrandingValidationTest.cs" />
     <Compile Include="WebUITests\BasicPages\SecurityHeaderTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactOwnerTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactUsAndReportAbuseLinkTest.cs" />
@@ -95,7 +98,7 @@
     <Compile Include="WebUITests\AccountManagement\UploadPackageWithoutLoginTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionTests.Helpers.csproj">
+    <ProjectReference Include="..\NuGetGallery.Frontend.FunctionalTests.Helpers\NuGetGallery.FunctionTests.Helpers.csproj">
       <Project>{8fb56455-c688-44ae-95f1-48ffcb199bfe}</Project>
       <Name>NuGetGallery.FunctionTests.Helpers</Name>
     </ProjectReference>
