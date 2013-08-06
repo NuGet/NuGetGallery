@@ -40,16 +40,6 @@
     <Folder Include="NuGetGallery.WorkerContent\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGetGallery.Backend\NuGetGallery.Backend.csproj">
-      <Name>NuGetGallery.Backend</Name>
-      <Project>{7f92c174-5310-4090-a6a3-3cc7c67c19d6}</Project>
-      <Private>True</Private>
-      <RoleType>Worker</RoleType>
-      <RoleName>NuGetGallery.Worker</RoleName>
-      <UpdateDiagnosticsConnectionStringOnPublish>True</UpdateDiagnosticsConnectionStringOnPublish>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="NuGetGallery.WorkerContent\diagnostics.wadcfg">
       <SubType>Content</SubType>
     </Content>
