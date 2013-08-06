@@ -4,7 +4,7 @@ using System.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 
-namespace NuGetGallery.Worker
+namespace NuGetGallery.Backend
 {
     public class Settings
     {

@@ -11,7 +11,7 @@
     <RootNamespace>NuGetGallery.Operations.Worker.Emulator</RootNamespace>
     <AssemblyName>NuGetGallery.Operations.Worker.Emulator</AssemblyName>
     <StartDevelopmentStorage>True</StartDevelopmentStorage>
-    <Name>NuGetGallery.Worker.Cloud</Name>
+    <Name>NuGetGallery.Backend.Cloud</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

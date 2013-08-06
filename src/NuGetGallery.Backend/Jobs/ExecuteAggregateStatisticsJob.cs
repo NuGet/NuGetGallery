@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 using System.Threading;
 using NuGetGallery.Operations;
 
-namespace NuGetGallery.Worker.Jobs
+namespace NuGetGallery.Backend.Jobs
 {
     [Export(typeof(WorkerJob))]
     public class ExecuteAggregateStatisticsJob : WorkerJob

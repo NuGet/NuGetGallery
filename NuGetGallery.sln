@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Frontend", "Frontend", "{05
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{B9B19787-DCC0-489E-9173-36A32C6B6848}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Operations", "Operations", "{2ECA1159-9B9D-4D65-95AF-F14337FD3DA6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{2ECA1159-9B9D-4D65-95AF-F14337FD3DA6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend", "src\NuGetGallery.Frontend\NuGetGallery.Frontend.csproj", "{1DACF781-5CD0-4123-8BAC-CD385D864BE5}"
 EndProject
@@ -24,7 +24,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Frontend.Funct
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Backend", "src\NuGetGallery.Backend\NuGetGallery.Backend.csproj", "{7F92C174-5310-4090-A6A3-3CC7C67C19D6}"
 EndProject
-Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGetGallery.Worker.Cloud", "src\NuGetGallery.Backend.Cloud\NuGetGallery.Worker.Cloud.ccproj", "{0EA1CBE8-DEFB-4D97-86E2-33657204C764}"
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "NuGetGallery.Backend.Cloud", "src\NuGetGallery.Backend.Cloud\NuGetGallery.Backend.Cloud.ccproj", "{0EA1CBE8-DEFB-4D97-86E2-33657204C764}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Operations", "src\NuGetGallery.Operations\NuGetGallery.Operations.csproj", "{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,6 +58,10 @@ Global
 		{0EA1CBE8-DEFB-4D97-86E2-33657204C764}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0EA1CBE8-DEFB-4D97-86E2-33657204C764}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0EA1CBE8-DEFB-4D97-86E2-33657204C764}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,5 +73,6 @@ Global
 		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
 		{7F92C174-5310-4090-A6A3-3CC7C67C19D6} = {B9B19787-DCC0-489E-9173-36A32C6B6848}
 		{0EA1CBE8-DEFB-4D97-86E2-33657204C764} = {B9B19787-DCC0-489E-9173-36A32C6B6848}
+		{DBECF66B-8F2F-4B32-9143-E243BAFF12DF} = {2ECA1159-9B9D-4D65-95AF-F14337FD3DA6}
 	EndGlobalSection
 EndGlobal

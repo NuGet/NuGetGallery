@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NuGetGallery.Operations.Tasks;
 
-namespace NuGetGallery.Worker.Jobs
+namespace NuGetGallery.Backend.Jobs
 {
     [Export(typeof(WorkerJob))]
     public class CleanOnlineDatabaseBackupsJob : WorkerJob
