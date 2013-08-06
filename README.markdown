@@ -9,16 +9,16 @@ website for the NuGet client. For information about the NuGet clients, visit htt
  1. Visual Studio 2012
  2. PowerShell 2.0 (comes with Windows 7+)
  3. [NuGet](http://docs.nuget.org/docs/start-here/installing-nuget)
- 4. [Windows Azure SDK v1.8 or later](http://www.microsoft.com/windowsazure/sdk/)
+ 4. [Windows Azure SDK v2.1 or later](http://www.microsoft.com/windowsazure/sdk/)
  5. (Optional, for unit tests) [xUnit for Visual Studio 2012](http://visualstudiogallery.msdn.microsoft.com/463c5987-f82b-46c8-a97e-b1cde42b9099)
 2. Clone it!
     
     ```git clone git@github.com:NuGet/NuGetGallery.git```
-3. Build it! (from PowerShell)
+3. Build it!
     
     ```
     cd NuGetGallery
-    .\Build-Solution.ps1
+    .\build
     ```
 4. Create the Database!
  1. Open Visual Studio 2012
@@ -31,7 +31,7 @@ website for the NuGet client. For information about the NuGet clients, visit htt
     ```
 5. Set up the website in IIS Express!
  1. We highly recommend using IIS Express. Use the [Web Platform Installer](microsoft.com/web) to install it if you don't have it already (it comes with recent versions of VS and WebMatrix though)
- 2. In an ADMIN powershell prompt, run the Scripts\Enable-LocalTestMe.ps1 file. It allows non-admins to host websites at: http://nuget.localtest.me, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on localtest.me, check out [readme.localtest.me](readme.localtest.me)
+ 2. In an ADMIN powershell prompt, run the .\build\Enable-LocalTestMe.ps1 file. It allows non-admins to host websites at: http://nuget.localtest.me, it configures an IIS Express site at that URL and creates a self-signed SSL certificate. For more information on localtest.me, check out [readme.localtest.me](readme.localtest.me)
  3. If you're having trouble, go to the Project Properties for the Website project, click on the Web tab and change the URL to localhost:port where _port_ is some port number above 1024.
   
 
