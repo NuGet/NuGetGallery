@@ -1,3 +1,3 @@
 ﻿using System.Reflection;
 
-[assembly: AssemblyTitle("NuGetGallery.Frontend.FunctionalTests")]
+[assembly: AssemblyTitle("NuGetGallery.FunctionalTests")]
