@@ -7,6 +7,8 @@ namespace NuGetGallery
 {
     public class StatisticsPackagesViewModel
     {
+        private DateTime? _lastUpdatedUtc;
+
         public StatisticsPackagesViewModel()
         {
         }
@@ -65,6 +67,12 @@ namespace NuGetGallery
         {
             get;
             set;
+        }
+
+        public DateTime? LastUpdatedUtc
+        {
+            get { return Report == null ? _lastUpdatedUtc : Report.LastUpdatedUtc; }
+            set { _lastUpdatedUtc = value; }
         }
 
         public void SetPackageDownloadsByVersion(string packageId, StatisticsPackagesReport report)

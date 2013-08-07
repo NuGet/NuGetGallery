@@ -104,7 +104,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task<bool> LoadDownloadPackages()
+        public async Task<StatisticsReportResult> LoadDownloadPackages()
         {
             try
             {
@@ -112,7 +112,7 @@ namespace NuGetGallery
 
                 if (reportContent == null)
                 {
-                    return false;
+                    return StatisticsReportResult.Failed;
                 }
 
                 JArray array = JArray.Parse(reportContent.Content);
@@ -137,31 +137,16 @@ namespace NuGetGallery
                     ((List<StatisticsPackagesItemViewModel>)DownloadPackagesSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll)[i]);
                 }
 
-                return true;
+                return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (NullReferenceException e)
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (JsonReaderException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (StorageException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (ArgumentException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
+                return StatisticsReportResult.Failed;
             }
         }
 
-        public async Task<bool> LoadDownloadPackageVersions()
+        public async Task<StatisticsReportResult> LoadDownloadPackageVersions()
         {
             try
             {
@@ -169,7 +154,7 @@ namespace NuGetGallery
 
                 if (reportContent == null)
                 {
-                    return false;
+                    return StatisticsReportResult.Failed;
                 }
 
                 JArray array = JArray.Parse(reportContent.Content);
@@ -198,31 +183,16 @@ namespace NuGetGallery
                     ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll)[i]);
                 }
 
-                return true;
+                return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (NullReferenceException e)
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (JsonReaderException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (StorageException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (ArgumentException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
+                return StatisticsReportResult.Failed;
             }
         }
 
-        public async Task<bool> LoadNuGetClientVersion()
+        public async Task<StatisticsReportResult> LoadNuGetClientVersion()
         {
             try
             {
@@ -230,7 +200,7 @@ namespace NuGetGallery
 
                 if (reportContent == null)
                 {
-                    return false;
+                    return StatisticsReportResult.Failed;
                 }
 
                 JArray array = JArray.Parse(reportContent.Content);
@@ -247,26 +217,16 @@ namespace NuGetGallery
                         });
                 }
 
-                return true;
+                return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (JsonReaderException e)
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (StorageException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (ArgumentException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
+                return StatisticsReportResult.Failed;
             }
         }
 
-        public async Task<bool> LoadLast6Months()
+        public async Task<StatisticsReportResult> LoadLast6Months()
         {
             try
             {
@@ -274,7 +234,7 @@ namespace NuGetGallery
 
                 if (reportContent == null)
                 {
-                    return false;
+                    return StatisticsReportResult.Failed;
                 }
 
                 JArray array = JArray.Parse(reportContent.Content);
@@ -292,22 +252,12 @@ namespace NuGetGallery
                         });
                 }
 
-                return true;
+                return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (JsonReaderException e)
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (StorageException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (ArgumentException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
+                return StatisticsReportResult.Failed;
             }
         }
 

@@ -771,7 +771,7 @@ namespace NuGetGallery
 
                 var fakeReportService = new Mock<IReportService>();
 
-                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
                 
                 var controller = new TestableApiController
                 {
@@ -795,7 +795,7 @@ namespace NuGetGallery
             public async void VerifyStatsDownloadsReturnsNotFoundWhenStatsNotAvailable()
             {
                 var controller = new TestableApiController();
-                controller.MockStatisticsService.Setup(x => x.LoadDownloadPackageVersions()).Returns(Task.FromResult(false));
+                controller.MockStatisticsService.Setup(x => x.LoadDownloadPackageVersions()).Returns(Task.FromResult(StatisticsReportResult.Failed));
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
 
@@ -823,7 +823,7 @@ namespace NuGetGallery
 
                 var fakeReportService = new Mock<IReportService>();
 
-                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+                fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
 
                 var controller = new TestableApiController
                 {

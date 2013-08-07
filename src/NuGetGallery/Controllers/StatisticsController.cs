@@ -104,7 +104,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            bool[] availablity = await Task.WhenAll(
+            var availablity = await Task.WhenAll(
                 _statisticsService.LoadDownloadPackages(), 
                 _statisticsService.LoadDownloadPackageVersions(),
                 _statisticsService.LoadNuGetClientVersion(),
@@ -112,14 +112,19 @@ namespace NuGetGallery
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageAvailable = availablity[0],
+                IsDownloadPackageAvailable = availablity[0].Loaded,
                 DownloadPackagesSummary = _statisticsService.DownloadPackagesSummary,
-                IsDownloadPackageDetailAvailable = availablity[1],
+                IsDownloadPackageDetailAvailable = availablity[1].Loaded,
                 DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary,
-                IsNuGetClientVersionAvailable = availablity[2],
+                IsNuGetClientVersionAvailable = availablity[2].Loaded,
                 NuGetClientVersion = _statisticsService.NuGetClientVersion,
-                IsLast6MonthsAvailable = availablity[3],
+                IsLast6MonthsAvailable = availablity[3].Loaded,
                 Last6Months = _statisticsService.Last6Months,
+                LastUpdatedUtc = availablity
+                    .Where(r => r.LastUpdatedUtc.HasValue)
+                    .OrderByDescending(r => r.LastUpdatedUtc.Value)
+                    .Select(r => r.LastUpdatedUtc)
+                    .FirstOrDefault()
             };
 
             model.ClientCulture = DetermineClientLocale();
@@ -127,8 +132,6 @@ namespace NuGetGallery
             model.Update();
 
             model.UseD3 = UseD3();
-
-            
 
             return View(model);
         }
@@ -143,13 +146,14 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            bool isAvailable = await _statisticsService.LoadDownloadPackages();
+            var result = await _statisticsService.LoadDownloadPackages();
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageAvailable = isAvailable,
+                IsDownloadPackageAvailable = result.Loaded,
                 DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
-                ClientCulture = DetermineClientLocale()
+                ClientCulture = DetermineClientLocale(),
+                LastUpdatedUtc = result.LastUpdatedUtc
             };
 
             return View(model);
@@ -165,13 +169,14 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            bool isAvailable = await _statisticsService.LoadDownloadPackageVersions();
+            var result = await _statisticsService.LoadDownloadPackageVersions();
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageDetailAvailable = isAvailable,
+                IsDownloadPackageDetailAvailable = result.Loaded,
                 DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
-                ClientCulture = DetermineClientLocale()
+                ClientCulture = DetermineClientLocale(),
+                LastUpdatedUtc = result.LastUpdatedUtc
             };
 
             return View(model);

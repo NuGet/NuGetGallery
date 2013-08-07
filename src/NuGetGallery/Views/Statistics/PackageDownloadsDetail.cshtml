@@ -11,9 +11,7 @@
 
         <div class="statistics-graph" id="statistics-graph-id">
     </div>
-    if(Model.Report != null) {
-        @Html.Partial("_LastUpdated", Model.Report)
-    }
+    @Html.Partial("_LastUpdated", Model)
 }
 else
 {
