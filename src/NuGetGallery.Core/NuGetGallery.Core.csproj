@@ -57,6 +57,7 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesContext.cs" />
+    <Compile Include="Entities\EntitiesContextFactory.cs" />
     <Compile Include="Entities\EntityException.cs" />
     <Compile Include="Entities\EntityRepository.cs" />
     <Compile Include="Entities\GallerySetting.cs" />

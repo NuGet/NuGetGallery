@@ -6,6 +6,8 @@ namespace NuGetGallery
 {
     public class EntitiesContext : DbContext, IEntitiesContext
     {
+        internal EntitiesContext() : base("Gallery.SqlServer") { }
+
         public EntitiesContext(string connectionString, bool readOnly)
             : base(connectionString)
         {

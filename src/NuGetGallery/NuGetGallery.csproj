@@ -653,7 +653,6 @@
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AntiForgeryErrorFilter.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
-    <Compile Include="Infrastructure\EntitiesContextFactory.cs" />
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
@@ -857,6 +856,9 @@
     <Compile Include="Migrations\201307231825361_AddPackageLicenseReportSproc.cs" />
     <Compile Include="Migrations\201307231825361_AddPackageLicenseReportSproc.Designer.cs">
       <DependentUpon>201307231825361_AddPackageLicenseReportSproc.cs</DependentUpon>
+    <Compile Include="Migrations\201308072252317_Dummy.cs" />
+    <Compile Include="Migrations\201308072252317_Dummy.Designer.cs">
+      <DependentUpon>201308072252317_Dummy.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1231,6 +1233,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201307231825361_AddPackageLicenseReportSproc.resx">
       <DependentUpon>201307231825361_AddPackageLicenseReportSproc.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201308072252317_Dummy.resx">
+      <DependentUpon>201308072252317_Dummy.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

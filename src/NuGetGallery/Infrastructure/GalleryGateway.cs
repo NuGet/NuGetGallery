@@ -23,12 +23,13 @@ namespace NuGetGallery.Infrastructure
         [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification="This is designed to be called using C#'s dynamic feature, so an instance method is preferable")]
         public DbMigrator CreateMigrator(string connectionString, string providerType)
         {
-            var config = new MigrationsConfiguration()
-            {
-                TargetDatabase = new DbConnectionInfo(connectionString, providerType)
-            };
-            EntitiesContextFactory.OverrideConnectionString = connectionString;
-            return new DbMigrator(config);
+            throw new NotImplementedException("Broken temporarily");
+            //var config = new MigrationsConfiguration()
+            //{
+            //    TargetDatabase = new DbConnectionInfo(connectionString, providerType)
+            //};
+            //EntitiesContextFactory.OverrideConnectionString = connectionString;
+            //return new DbMigrator(config);
         }
     }
 }
