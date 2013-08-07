@@ -6,6 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{8FB56455-C688-44AE-95F1-48FFCB199BFE}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <OutputPath>bin\</OutputPath>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NuGetGallery.FunctionTests.Helpers</RootNamespace>
     <AssemblyName>NuGetGallery.FunctionalTests.Helpers</AssemblyName>
