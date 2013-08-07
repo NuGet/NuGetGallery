@@ -6,6 +6,7 @@
 }
 
 @section BottomScripts {
+    @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
     <script>
         $('#EditPackageVersionRequest_IconUrl').focusout(function (event) {
             var target = event.target;
@@ -27,7 +28,30 @@
         });
 
         $(function () {
-            var initialDictionary = [];
+            var href = '';
+            $("#navigate-away-dialog").dialog({
+                autoOpen: false,
+                width: 350,
+                resizable: false,
+                modal: true,
+                buttons: [{
+                    text: "Save", click: function () {
+                        document.forms.EditForm.submit();
+                        window.location.href = href;
+                    }
+                },
+                {
+                    text: "Don't Save", click: function () {
+                        window.location.href = href;
+                    }
+                },
+                {
+                    text: "Cancel", click: function () {
+                        $("#navigate-away-dialog").dialog("close");
+                    }
+                }],
+            });
+
             function ReadFormValues(dictionary) {
                 $("textarea").each(function () {
                     dictionary[this.id] = this.value;
@@ -42,20 +66,32 @@
                     dictionary[this.id] = this.checked;
                 });
             };
+
+            var initialDictionary = [];
             ReadFormValues(initialDictionary);
-            $("a").click(function () {
+
+            $("a").click(function (event) {
                 var dictionary = [];
                 ReadFormValues(dictionary);
                 for (var key in initialDictionary) {
                     if (initialDictionary.hasOwnProperty(key) &&
                         dictionary[key] != initialDictionary[key]) {
-                        return confirm('Your changes have not yet been saved. Press OK to discard your changes.');
+                        href = event.target.href;
+                        $("#navigate-away-dialog").dialog("open");
+                        return false;
                     }
                 }
             });
         });
     </script>
 }
+
+@Styles.Render("~/Content/themes/custom/jquery-ui-1.10.3.custom.css")
+<div id="navigate-away-dialog" title="Save Changes?">
+    <p>
+    You are about to view a different page but your changes are not yet saved. Do you wish to save your changes?
+    </p>
+</div>
 
 @section SideColumn {
     @{
