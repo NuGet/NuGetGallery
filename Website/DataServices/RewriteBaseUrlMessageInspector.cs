@@ -26,6 +26,10 @@ namespace NuGetGallery
                 UriBuilder baseUriBuilder = new UriBuilder(context.IncomingRequest.UriTemplateMatch.BaseUri);
                 UriBuilder requestUriBuilder = new UriBuilder(context.IncomingRequest.UriTemplateMatch.RequestUri);
 
+                // Replace host
+                baseUriBuilder.Host = HttpContext.Current.Request.Url.Host;
+                requestUriBuilder.Host = baseUriBuilder.Host;
+
                 // Replace "/api/v2/curated-feed" with "/api/v2/curated-feeds/[feedname]"
                 baseUriBuilder.Path = RewriteUrlPath(baseUriBuilder.Path, curatedFeedName);
                 requestUriBuilder.Path = RewriteUrlPath(requestUriBuilder.Path, curatedFeedName);
