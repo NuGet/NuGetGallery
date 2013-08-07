@@ -123,6 +123,9 @@
         </table>
     </div>
 }
+@if(Model.Report != null) {
+    @Html.Partial("_LastUpdated", Model.Report)
+}
 
 @section BottomScripts
 {

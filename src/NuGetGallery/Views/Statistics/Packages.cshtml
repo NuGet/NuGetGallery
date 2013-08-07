@@ -29,4 +29,7 @@
     }
     </tbody>
 </table>
+@if(Model.Report != null) {
+    @Html.Partial("_LastUpdated", Model.Report)
+}
 </div>

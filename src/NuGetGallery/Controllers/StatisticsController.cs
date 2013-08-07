@@ -128,6 +128,8 @@ namespace NuGetGallery
 
             model.UseD3 = UseD3();
 
+            
+
             return View(model);
         }
 

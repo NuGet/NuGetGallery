@@ -108,14 +108,14 @@ namespace NuGetGallery
         {
             try
             {
-                string json = await _reportService.Load(Reports.RecentPopularity.ToString() + ".json");
+                var reportContent = await _reportService.Load(Reports.RecentPopularity.ToString() + ".json");
 
-                if (json == null)
+                if (reportContent == null)
                 {
                     return false;
                 }
 
-                JArray array = JArray.Parse(json);
+                JArray array = JArray.Parse(reportContent.Content);
 
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Clear();
 
@@ -165,14 +165,14 @@ namespace NuGetGallery
         {
             try
             {
-                string json = await _reportService.Load(Reports.RecentPopularityDetail.ToString() + ".json");
+                var reportContent = await _reportService.Load(Reports.RecentPopularityDetail.ToString() + ".json");
 
-                if (json == null)
+                if (reportContent == null)
                 {
                     return false;
                 }
 
-                JArray array = JArray.Parse(json);
+                JArray array = JArray.Parse(reportContent.Content);
 
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Clear();
 
@@ -226,14 +226,14 @@ namespace NuGetGallery
         {
             try
             {
-                string json = await _reportService.Load(Reports.NuGetClientVersion.ToString() + ".json");
+                var reportContent = await _reportService.Load(Reports.NuGetClientVersion.ToString() + ".json");
 
-                if (json == null)
+                if (reportContent == null)
                 {
                     return false;
                 }
 
-                JArray array = JArray.Parse(json);
+                JArray array = JArray.Parse(reportContent.Content);
 
                 ((List<StatisticsNuGetUsageItem>)NuGetClientVersion).Clear();
 
@@ -270,14 +270,14 @@ namespace NuGetGallery
         {
             try
             {
-                string json = await _reportService.Load(Reports.Last6Months.ToString() + ".json");
+                var reportContent = await _reportService.Load(Reports.Last6Months.ToString() + ".json");
 
-                if (json == null)
+                if (reportContent == null)
                 {
                     return false;
                 }
 
-                JArray array = JArray.Parse(json);
+                JArray array = JArray.Parse(reportContent.Content);
 
                 ((List<StatisticsMonthlyUsageItem>)Last6Months).Clear();
 
@@ -334,16 +334,19 @@ namespace NuGetGallery
 
                 reportName = reportName.ToLowerInvariant();
 
-                string json = await _reportService.Load(reportName);
+                var reportContent = await _reportService.Load(reportName);
 
-                if (json == null)
+                if (reportContent == null)
                 {
                     return null;
                 }
 
-                JObject content = JObject.Parse(json);
+                JObject content = JObject.Parse(reportContent.Content);
 
-                StatisticsPackagesReport report = new StatisticsPackagesReport();
+                StatisticsPackagesReport report = new StatisticsPackagesReport()
+                {
+                    LastUpdatedUtc = reportContent.LastUpdatedUtc
+                };
 
                 report.Facts = CreateFacts(content);
 
@@ -384,16 +387,19 @@ namespace NuGetGallery
 
                 reportName = reportName.ToLowerInvariant();
 
-                string json = await _reportService.Load(reportName);
+                var reportContent = await _reportService.Load(reportName);
 
-                if (json == null)
+                if (reportContent == null)
                 {
                     return null;
                 }
 
-                JObject content = JObject.Parse(json);
+                JObject content = JObject.Parse(reportContent.Content);
 
-                StatisticsPackagesReport report = new StatisticsPackagesReport();
+                StatisticsPackagesReport report = new StatisticsPackagesReport()
+                {
+                    LastUpdatedUtc = reportContent.LastUpdatedUtc
+                };
 
                 IList<StatisticsFact> facts = new List<StatisticsFact>();
 
