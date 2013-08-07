@@ -62,7 +62,27 @@
         <div>
             <p>
                 <span id="key">@Model.ApiKey</span>
-                <img id="copyButton" alt="Copy To Clipboard" src="@Url.Content("~/Content/Images/copy.png")" />
+                <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+                        width="110"
+                        height="14"
+                        id="clippy">
+                    <param name="movie" value="@Url.Content("~/Content/clippy.swf")">
+                    <param name="allowScriptAccess" value="always" />
+                    <param name="quality" value="high" />
+                    <param name="scale" value="noscale" />
+                    <param name="FlashVars" value="text=#{text}">
+                    <param name="bgcolor" value="#{bgcolor}">
+                    <embed src="@Url.Content("~/Content/clippy.swf")"
+                           width="110"
+                           height="14"
+                           name="clippy"
+                           quality="high"
+                           allowscriptaccess="always"
+                           type="application/x-shockwave-flash"
+                           pluginspage="http://www.macromedia.com/go/getflashplayer"
+                           flashvars="text=@Model.ApiKey"
+                           bgcolor="#fff" />
+                </object>
             </p>
             
 
@@ -90,20 +110,12 @@ nuget.exe push MyPackage.1.0.nupkg</pre>
 </section>
 
 @section BottomScripts {
-    @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
-    <script type="text/javascript" src="@Url.Content("~/Scripts/ZeroClipboard.js")"></script>
     <script>
         $(function() {
             $("#overlayWrapper").click(function() {
                 $("#overlayWrapper").fadeOut();
                 return false;
             });
-
-            ZeroClipboard.setMoviePath('@Url.Content("~/Scripts/ZeroClipboard.swf")');
-            var clip = new ZeroClipboard.Client();
-            clip.setText('@HttpUtility.JavaScriptStringEncode(Model.ApiKey)');
-            clip.setHandCursor(true);
-            clip.glue('copyButton');
         });
     </script>
 }

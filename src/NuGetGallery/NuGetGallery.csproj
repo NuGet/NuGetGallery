@@ -979,6 +979,7 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
     <Content Include="Areas\Admin\DynamicData\Site.css" />
     <Content Include="clientaccesspolicy.xml" />
+    <Content Include="Content\clippy.swf" />
     <Content Include="Content\Images\changePassword.png" />
     <Content Include="Content\Images\copy.png" />
     <Content Include="Content\Images\errorPage.png" />
@@ -1076,8 +1077,6 @@
     <Content Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
-    <Content Include="Scripts\ZeroClipboard.js" />
-    <Content Include="Scripts\ZeroClipboard.swf" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
