@@ -1277,6 +1277,12 @@ fieldset.form legend { display: none; }
     width: 400px;
 }
 
+.form-field textarea {
+    font-family: inherit; /* fixes an oddity that textarea doesn't inherit by default*/
+    width: 100%;
+    height: 140px;
+}
+
 .form-field textarea[disabled],
 .form-field input[type="email"][disabled],
 .form-field input[type="text"][disabled],
@@ -1307,14 +1313,6 @@ fieldset.form legend { display: none; }
 .form-field input[type="url"] {
     width: 100%;
 }
-
-.form-field textarea {
-    font-size: 1em;
-    width: 100%;
-    height: 140px;
-    padding-top: 5px;
-}
-
 
 .form-field input[data-val-required],
 .form-field textarea[data-val-required] {
