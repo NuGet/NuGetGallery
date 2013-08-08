@@ -718,9 +718,9 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual Task<ActionResult> VerifyPackage(bool listed)
+        public virtual Task<ActionResult> VerifyPackage(bool? listed)
         {
-            return VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = null });
+            return VerifyPackage(new VerifyPackageRequest { Listed = listed.GetValueOrDefault(true), Edit = null });
         }
 
         [Authorize]

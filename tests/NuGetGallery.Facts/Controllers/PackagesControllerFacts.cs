@@ -896,7 +896,7 @@ namespace NuGetGallery
 
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("theTitle", model.Title);
+                Assert.Equal("theTitle", model.Edit.VersionTitle);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -920,7 +920,7 @@ namespace NuGetGallery
 
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("theSummary", model.Summary);
+                Assert.Equal("theSummary", model.Edit.Summary);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -944,7 +944,7 @@ namespace NuGetGallery
 
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("theDescription", model.Description);
+                Assert.Equal("theDescription", model.Edit.Description);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -968,7 +968,7 @@ namespace NuGetGallery
 
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.True(model.RequiresLicenseAcceptance);
+                Assert.True(model.Edit.RequiresLicenseAcceptance);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -1016,7 +1016,7 @@ namespace NuGetGallery
 
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("theTags", model.Tags);
+                Assert.Equal("theTags", model.Edit.Tags);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -1040,7 +1040,7 @@ namespace NuGetGallery
 
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("http://theprojecturi/", model.ProjectUrl);
+                Assert.Equal("http://theprojecturi/", model.Edit.ProjectUrl);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -1064,7 +1064,7 @@ namespace NuGetGallery
 
                 var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("firstAuthor, secondAuthor", model.Authors);
+                Assert.Equal("firstAuthor, secondAuthor", model.Edit.Authors);
                 fakeUploadFileStream.Dispose();
             }
         }
@@ -1085,7 +1085,7 @@ namespace NuGetGallery
                     userService: fakeUserService,
                     fakeIdentity: fakeIdentity);
 
-                var result = await controller.VerifyPackage(null) as HttpNotFoundResult;
+                var result = await controller.VerifyPackage((bool?)null) as HttpNotFoundResult;
 
                 Assert.NotNull(result);
             }
@@ -1114,7 +1114,7 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 fakePackageService.Verify(x => x.CreatePackage(fakeNuGetPackage.Object, fakeCurrentUser, false));
                 fakeFileStream.Dispose();
@@ -1149,7 +1149,7 @@ namespace NuGetGallery
                     packageFileService: fakePackageFileService);
 
                 // Act
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 // Assert
                 fakePackageService.Verify(x => x.CreatePackage(fakeNuGetPackage.Object, fakeCurrentUser, false));
@@ -1190,7 +1190,7 @@ namespace NuGetGallery
                     indexingService: fakeIndexingService);
 
                 // Act
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 // Assert
                 fakeIndexingService.Verify();
@@ -1227,7 +1227,7 @@ namespace NuGetGallery
                     entitiesContext: entitiesContext);
 
                 // Act
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 // Assert
                 entitiesContext.Verify();
@@ -1293,7 +1293,7 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 fakePackageService.Verify(x => x.PublishPackage(fakePackage, false), Times.Once());
                 fakeFileStream.Dispose();
