@@ -75,6 +75,7 @@
     <Compile Include="..\..\src\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Packaging\NupkgFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Packaging\NupkgRewriterFacts.cs" />
   </ItemGroup>

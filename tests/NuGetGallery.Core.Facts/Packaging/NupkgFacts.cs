@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Versioning;
 using Moq;
 using NuGet;
+using NuGetGallery.Core.Packaging;
 using Xunit;
 using Xunit.Extensions;
-using System.Collections.Generic;
-using System.Reflection;
-using NuGetGallery.Core.Packaging;
 
-namespace NuGetGallery
+namespace NuGetGallery.Core
 {
     public class NupkgFacts
     {

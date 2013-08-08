@@ -85,10 +85,6 @@ namespace NuGetGallery
         public async virtual Task<ActionResult> UploadPackage()
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
-            if (currentUser == null)
-            {
-                return new HttpUnauthorizedResult();
-            }
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
