@@ -8,6 +8,7 @@ using Xunit;
 using Xunit.Extensions;
 using System.Collections.Generic;
 using System.Reflection;
+using NuGetGallery.Core.Packaging;
 
 namespace NuGetGallery
 {

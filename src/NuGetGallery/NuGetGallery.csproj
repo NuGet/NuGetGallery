@@ -203,7 +203,6 @@
     </Reference>
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data.Entity" />
-    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
@@ -810,9 +809,6 @@
     <Compile Include="PackagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="Packaging\INupkg.cs" />
-    <Compile Include="Packaging\Nupkg.cs" />
-    <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="PagesController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
@@ -1301,6 +1297,7 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />
     <Folder Include="Areas\Admin\Views\Shared\" />
+    <Folder Include="Packaging\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">

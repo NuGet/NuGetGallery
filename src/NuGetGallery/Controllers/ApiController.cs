@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGetGallery.Core.Packaging;
 
 namespace NuGetGallery
 {

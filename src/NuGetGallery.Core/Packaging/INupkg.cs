@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using NuGet;
 
-namespace NuGetGallery
+namespace NuGetGallery.Core.Packaging
 {
     public interface INupkg : IDisposable
     {

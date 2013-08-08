@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using NuGet;
+using NuGetGallery.Core.Packaging;
 
 namespace NuGetGallery
 {

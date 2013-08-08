@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using NuGet;
 
-namespace NuGetGallery
+namespace NuGetGallery.Core.Packaging
 {
     public class NupkgRewriter
     {
