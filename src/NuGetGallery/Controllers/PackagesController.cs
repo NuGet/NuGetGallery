@@ -84,6 +84,10 @@ namespace NuGetGallery
         public async virtual Task<ActionResult> UploadPackage()
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            if (currentUser == null)
+            {
+                return new HttpUnauthorizedResult();
+            }
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -707,6 +711,7 @@ namespace NuGetGallery
                         Copyright = packageMetadata.Copyright,
                         Description = packageMetadata.Description,
                         ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
+                        ReleaseNotes = packageMetadata.ReleaseNotes,
                         RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
                         Summary = packageMetadata.Summary,
                         Tags = PackageHelper.ParseTags(packageMetadata.Tags),
@@ -760,6 +765,7 @@ namespace NuGetGallery
                     pendEdit = pendEdit || formData.Edit.Description.ToStringSafe() != nugetPackage.Metadata.Description.ToStringSafe();
                     pendEdit = pendEdit || formData.Edit.IconUrl.ToStringSafe() != nugetPackage.Metadata.IconUrl.ToStringSafe();
                     pendEdit = pendEdit || formData.Edit.ProjectUrl.ToStringSafe() != nugetPackage.Metadata.ProjectUrl.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.ReleaseNotes.ToStringSafe() != nugetPackage.Metadata.ReleaseNotes.ToStringSafe();
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != nugetPackage.Metadata.RequireLicenseAcceptance;
                     pendEdit = pendEdit || formData.Edit.Summary.ToStringSafe() != nugetPackage.Metadata.Summary.ToStringSafe();
                     pendEdit = pendEdit || formData.Edit.Tags.ToStringSafe() != nugetPackage.Metadata.Tags.ToStringSafe();

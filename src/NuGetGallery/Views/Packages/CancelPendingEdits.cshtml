@@ -3,14 +3,17 @@
     ViewBag.Tab = "Packages";
 }
 
-<h1 class="page-heading"><em>Cancel @Model.Title @Model.Version</em> Edits</h1>
+<h1 class="page-heading">Cancel Edits for @Model.Id @Model.Version</h1>
 <p class="message">
-    This will cancel ALL pending edits for the @Model.Title package, version @Model.Version.
+    Click cancel to revert ALL pending metadata edits for package <b>@Model.Id @Model.Version</b>
+</p>
+<p>
+    Note: pending edits might complete and thereby become non-pending any minute, so please decide quickly.
 </p>
 
 @using (Html.BeginForm())
 {
     @Html.AntiForgeryToken()
     <input type="hidden" name="dummy" value="true" />
-    <input type="submit" value="Cancel Pending Edits" title="Cancel Pending Edits" />
+    <input type="submit" value="Cancel" title="Cancel Pending Edits" />
 }

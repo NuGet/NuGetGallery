@@ -36,7 +36,7 @@ namespace NuGetGallery
             LicenseUrl = pendingMetadata.LicenseUrl;
             ProjectUrl = pendingMetadata.ProjectUrl;
             ReleaseNotes = pendingMetadata.ReleaseNotes;
-            Tags = pendingMetadata.Tags.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            Tags = pendingMetadata.Tags.ToStringSafe().Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
             Title = pendingMetadata.Title;
         }
 

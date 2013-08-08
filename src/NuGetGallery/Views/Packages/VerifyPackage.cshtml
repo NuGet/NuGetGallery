@@ -35,7 +35,7 @@
     <input type="hidden" name="@formid" value="@value" />
 }
 
-@helper EditableField(string name, Expression<Func<VerifyPackageRequest, object>> func, bool link = false, bool multiline = false)
+@helper EditableField(string name, Expression<Func<VerifyPackageRequest, object>> func, bool link = false)
 {
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
@@ -71,19 +71,20 @@
 @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "VerifyForm" }))
 {
     <fieldset class="form">
-        <legend>XXX</legend>
+        <legend>Verify Package Details</legend>
     <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
         <li>@ReadOnlyField("Package ID", "Id", Model.Id)</li>
         <li>@ReadOnlyField("Version", "Version", Model.Version)</li>
         <li>@ReadOnlyField("License URL", "LicenseUrl", Model.LicenseUrl, link: true)</li>
 
         <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
-        <li>@EditableField("Description", m => m.Edit.Description, multiline: true)</li>
-        <li>@EditableField("Summary", m => m.Edit.Summary, multiline: true)</li>
+        <li>@EditableField("Description", m => m.Edit.Description)</li>
+        <li>@EditableField("Summary", m => m.Edit.Summary)</li>
         <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
         <li>@EditableField("Authors", m => m.Edit.Authors)</li>
         <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
         <li>@EditableField("Tags", m => m.Edit.Tags, link: true)</li>
+        <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes)</li>
         <li>
             <h4>Requires License Acceptance
                 @{
@@ -190,6 +191,7 @@
             SetupInput('Edit_Authors');
             SetupInput('Edit_Copyright');
             SetupInput('Edit_Tags');
+            SetupInput('Edit_ReleaseNotes');
             SetupInput('Edit_RequiresLicenseAcceptance');
         });
     </script>
