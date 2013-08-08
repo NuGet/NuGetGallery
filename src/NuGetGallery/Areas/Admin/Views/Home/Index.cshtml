@@ -1,6 +1,9 @@
-﻿@{
+﻿@using System.Reflection
+@{
     ViewBag.Title = "Site Administration";
     ViewBag.Tab = "Admin";
+    var nugetCore = typeof(NuGet.PackageBuilder).Assembly;
+    var infoVerAttr = nugetCore.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
 }
 
 <section id="actions">
@@ -31,5 +34,8 @@
             </p>
         </li>
     </ul>
-    <div>NuGet.Core version: @typeof(NuGet.PackageBuilder).Assembly.GetName().Version</div>
+    <div>
+        NuGet.Core version:
+        @typeof(NuGet.PackageBuilder).Assembly.GetName().Version
+        (@(infoVerAttr == null ? "<unknown package version>" : infoVerAttr.InformationalVersion))</div>
 </section>
