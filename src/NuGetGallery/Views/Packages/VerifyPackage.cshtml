@@ -1,93 +1,188 @@
-﻿@model VerifyPackageViewModel
+﻿@model VerifyPackageRequest
 @{
     ViewBag.Title = "Upload";
     ViewBag.Tab = "Upload";
 }
 
-   
 <h1 class="page-heading">Verify Details &amp; Submit</h1>
 
 @ViewHelpers.UploadSequence(2)
 
 <h2>Verify Details</h2>
 <p class="long note">
-    These package details are read from the package file and cannot be changed. 
-    If anything below is incorrect, click Cancel and upload 
-    a correct package.
+    Your package was successfully uploaded, but it is not yet submitted to the gallery. The package's metadata 
+    was read and it is shown below.  Please verify the details and make any necessary changes before clicking submit.
+    The ID, Version, and License URL cannot be edited without canceling and uploading a corrected package file.
 </p>
 
-<ul id="packageDetails">
-    <li>
-        <h3>Package ID</h3>
-        <p>@Model.Id</p>
-    </li>
-    <li>
-        <h3>Version</h3>
-        <p>@Model.Version</p>
-    </li>
-    @if (!String.IsNullOrEmpty(Model.Title))
-    {
-        <li>
-            <h3>Title</h3>
-            <p>@Model.Title</p>
-        </li>
-    }
-    <li>
-        <h3>Description</h3>
-        <p>@Model.Description</p>
-    </li>
-    <li>
-        <div title="These authors' works form part of the package or its contents">
-            <h3>Authors</h3>
-            <p>@Model.Authors</p>
-        </div>
-    </li>
-    @if (!String.IsNullOrEmpty(Model.Tags))
-    {
-        <li>
-            <h3>Tags</h3>
-            <p>@Model.Tags</p>
-        </li>
-    }
-    @if (!String.IsNullOrEmpty(Model.LicenseUrl))
-    {
-        <li>
-            <h3>License URL</h3>
-            <p>
-                @if (Model.RequiresLicenseAcceptance)
-                {
-                    <text>Acceptance of license required: </text>
-                }
-                <a href="@Model.LicenseUrl" target="_blank">@Model.LicenseUrl</a>
-                
-            </p>
-        </li>
-    }
-    @if (!String.IsNullOrEmpty(Model.ProjectUrl))
-    {
-        <li>
-            <h3>Project URL</h3>
-            <p><a href="@Model.ProjectUrl" target="_blank">@Model.ProjectUrl</a></p>
-        </li>
-    }
-</ul>
-
-
-<h2>Submit Package</h2>
-@using (Html.BeginForm())
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "VerifyForm" }))
 {
     <fieldset class="form">
-        <legend>Submit Package</legend>
-        @Html.AntiForgeryToken()
-        <div class="form-field">
-            @Html.EditorFor(package => package.Listed)
-            <label for="Listed" class="checkbox">
-                List this package in search results. 
-            </label>
-        </div>
-        <input type="submit" value="Submit" title="Verify Details &amp; Submit" /> 
-        <a class="cancel" href="@Url.CancelUpload()" title="Cancel the upload in progress.">Cancel</a>
-    </fieldset>
+    <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
+        <li>
+            <h3>Package ID</h3>
+            <p>@Model.Id</p>
+            <input type="hidden" name="Id" value="@Model.Id" />
+        </li>
+        <li>
+            <h3>Version</h3>
+            <p>@Model.Version</p>
+            <input type="hidden" name="Version" value="@Model.Version" />
+        </li>
+        <li>
+            <h3>License URL</h3>
+            @if (Model.LicenseUrl != null)
+            {
+                <a href="@Model.LicenseUrl" target="_blank">@Model.LicenseUrl</a>
+            }
+            else
+            {
+                <p>(No license URL. People may assume they have no license to use your package!)</p>
+            }
+        </li>
+        <li>
+            <h3>Title</h3>
+            <div style="position: relative">
+                <div id="TitleText">
+                    <p>@(String.IsNullOrEmpty(Model.Title) ? "(blank)" : Model.Title) <button type="button" class="edit-button" id="EditTitle"></button></p>
+                </div>
+                <div id="TitleField" style="display: none; width: 100%">
+                    <div class="form-field" style="display: inline">
+                        @Html.TextBoxFor(model => model.Title)
+                        @Html.ValidationMessageFor(model => model.Title)
+                    </div>
+                    <button type="button" class="undobutton" id="UndoEditTitle" style="display: none">Undo</button>
+                </div>
+            </div>
+        </li>
+        <li>
+            <h3>Description</h3>
+            <div style="position: relative">
+                <div id="DescriptionText">
+                    <p>@(String.IsNullOrEmpty(Model.Description) ? "(blank)" : Model.Description) <button type="button" class="edit-button" id="EditDescription"></button></p>
+                </div>
+                <div id="DescriptionField" style="display: none; width: 100%">
+                    <div class="form-field" style="display: inline">
+                        @Html.TextAreaFor(model => model.Description)
+                        @Html.ValidationMessageFor(model => model.Description)
+                    </div>
+                    <button type="button" class="undobutton" id="UndoEditDescription" style="display: none">Undo</button>
+                </div>
+            </div>
+        </li>
+        <li>
+            <h3>Summary</h3>
+            <div style="position: relative">
+                <div id="SummaryText">
+                    <p>@(String.IsNullOrEmpty(Model.Summary) ? "(blank)" : Model.Summary) <button type="button" class="edit-button" id="EditSummary"></button></p>
+                </div>
+                <div id="SummaryField" style="display: none; width: 100%">
+                    <div class="form-field" style="display: inline">
+                        @Html.TextAreaFor(model => model.Summary)
+                        @Html.ValidationMessageFor(model => model.Summary)
+                    </div>
+                    <button type="button" class="undobutton" id="UndoEditSummary" style="display: none">Undo</button>
+                </div>
+            </div>
+        </li>
+        <li>
+            <h3>Project URL</h3>
+            <div style="position: relative">
+                <div id="ProjectUrlText">
+                    <p>@(String.IsNullOrEmpty(Model.ProjectUrl) ? "(blank)" : Model.ProjectUrl) <button type="button" class="edit-button" id="EditProjectUrl"></button></p>
+                </div>
+                <div id="ProjectUrlField" style="display: none; width: 100%">
+                    <div class="form-field" style="display: inline">
+                        @Html.TextBoxFor(model => model.ProjectUrl)
+                        @Html.ValidationMessageFor(model => model.ProjectUrl)
+                    </div>
+                    <button type="button" class="undobutton" id="UndoEditProjectUrl" style="display: none">Undo</button>
+                </div>
+            </div>
+        </li>
+        <li>
+            <div title="These authors' works form part of the package or its contents">
+                <h3>Authors</h3>
+                <div style="position: relative">
+                    <div id="AuthorsText">
+                        <p>@(String.IsNullOrEmpty(Model.Authors) ? "(blank)" : Model.Authors) <button type="button" class="edit-button" id="EditAuthors"></button></p>
+                    </div>
+                    <div id="AuthorsField" title="" style="display: none; width: 100%">
+                        <div class="form-field" style="display: inline">
+                            @Html.TextBoxFor(model => model.Authors)
+                            @Html.ValidationMessageFor(model => model.Authors)
+                        </div>
+                        <button type="button" class="undobutton" id="UndoEditAuthors" style="display: none">Undo</button>
+                    </div>
+                </div>
+            </div>
+        </li>
+        <li>
+            <h3>Copyright</h3>
+            <div style="position: relative">
+                <div id="CopyrightText">
+                    <p>@(String.IsNullOrEmpty(Model.Copyright) ? "(blank)" : Model.Copyright) <button type="button" class="edit-button" id="EditCopyright"></button></p>
+                </div>
+                <div id="CopyrightField" style="display: none; width: 100%">
+                    <div class="form-field" style="display: inline">
+                        @Html.TextBoxFor(model => model.Copyright)
+                        @Html.ValidationMessageFor(model => model.Copyright)
+                    </div>
+                    <button type="button" class="undobutton" id="UndoEditCopyright" style="display: none">Undo</button>
+                </div>
+            </div>
+        </li>
+        <li>
+            <h3>Tags</h3>
+            <div style="position: relative">
+                <div id="TagsText">
+                    <p>@(String.IsNullOrEmpty(Model.Tags) ? "(blank)" : Model.Tags) <button type="button" class="edit-button" id="EditTags"></button></p>
+                </div>
+                <div id="TagsField" style="display: none; width: 100%">
+                    <div class="form-field" style="display: inline">
+                        @Html.TextBoxFor(model => model.Tags)
+                        @Html.ValidationMessageFor(model => model.Tags)
+                    </div>
+                    <button type="button" class="undobutton" id="UndoEditTags" style="display: none">Undo</button>
+                </div>
+            </div>
+        </li>
+        <li>
+            <h3>Requires License Acceptance</h3>
+            <div style="position: relative">
+                <div id="RequiresLicenseAcceptanceText">
+                    <p>@(Model.RequiresLicenseAcceptance ? "Yes" : "No") <button type="button" class="edit-button" id="EditRequiresLicenseAcceptance"></button></p>
+                </div>
+                <div id="RequiresLicenseAcceptanceField" style="display: none; width: 100%">
+                    <div class="form-field" style="display: inline">
+                        @Html.EditorFor(model => model.RequiresLicenseAcceptance)
+                        @Html.ValidationMessageFor(model => model.RequiresLicenseAcceptance)
+                    </div>
+                    <button type="button" class="undobutton" id="UndoEditRequiresLicenseAcceptance" style="display: none">Undo</button>
+                </div>
+            </div>
+        </li>
+        <li>
+            <h3>List This Package in Search Results</h3>
+                <div class="form-field">
+                    <select>
+                        <option>Yes</option>
+                        <option>No</option>
+                    </select>
+                    <!--
+                    @Html.EditorFor(package => package.Listed)
+                    <label for="Listed" class="checkbox">
+                        List this package in search results. 
+                    </label>
+                    -->
+                </div>
+        </li>
+    </ul>
+
+                @Html.AntiForgeryToken()
+                <input type="submit" value="Submit" title="Verify Details &amp; Submit" /> 
+                <a class="cancel" href="@Url.CancelUpload()" title="Cancel the upload in progress.">Cancel</a>
+</fieldset>
 }
 
 @section BottomScripts {
@@ -101,6 +196,84 @@
                 return false;
             });
         });
+        $(function () {
+            var form = $('#VerifyForm').toArray()[0];
+            $(".edit-button").click(function (event) {
+                event.preventDefault();
+            });
+
+            function SetupInput(name) {
+                $("#Edit" + name).click(function (event) {
+                    event.preventDefault();
+                    $("#" + name + "Text").css("visibility", "hidden");
+                    $("#" + name + "Text").css("position", "absolute");
+                    $("#" + name + "Field").show();
+                    $("#UndoEdit" + name).hide();
+                });
+
+                $("input[name=" + name + "]").keyup(function (event) {
+                    $(event.target).attr("data-edited", event.target.value != event.target.defaultValue);
+                    $("#UndoEdit" + name).show();
+                });
+                $("textarea[name=" + name + "]").keyup(function (event) {
+                    $(event.target).attr("data-edited", event.target.value != event.target.defaultValue);
+                    $("#UndoEdit" + name).show();
+                });
+
+                $("#UndoEdit" + name + "").click(function (event) {
+                    event.preventDefault();
+                    $(document.forms.VerifyForm.elements["" + name + ""]).each(function () {
+                        this.value = this.defaultValue;
+                        $(this).attr("data-edited", "false");
+                    });
+                    $(event.target).hide();
+                    $("#" + name + "Text").css("position", "static");
+                    $("#" + name + "Text").css("visibility", "inherit");
+                    $("#" + name + "Field").hide();
+                });
+            }
+
+            SetupInput('Title');
+            SetupInput('Description');
+            SetupInput('Summary');
+            SetupInput('ProjectURL');
+            SetupInput('Authors');
+            SetupInput('Copyright');
+            SetupInput('Tags');
+            SetupInput('RequiresLicenseAcceptance');
+
+            //$("#EditTitle").click(function (event) {
+            //    event.preventDefault();
+            //    $("#TitleText").css("visibility", "hidden");
+            //    $("#TitleText").css("position", "absolute");
+            //    $("#TitleField").show();
+            //    $("#UndoEditTitle").hide();
+            //});
+            //$("#UndoEditTitle").click(function (event) {
+            //    event.preventDefault();
+            //    $(document.forms.VerifyForm.elements["Title"]).each(function () { this.value = this.defaultValue; });
+            //    $("#TitleText").css("position", "static");
+            //    $("#TitleText").css("visibility", "inherit");
+            //    $("#TitleField").hide();
+            //});
+
+            //$("#EditDescription").click(function (event) {
+            //    event.preventDefault();
+            //    $("#DescriptionText").css("visibility", "hidden");
+            //    $("#DescriptionText").css("position", "absolute");
+            //    $("#DescriptionField").show();
+            //    $("#UndoEditDescription").hide();
+            //});
+            //$("textarea[name=Description]").change(function (event) {
+            //    $("#UndoEditDescription").show();
+            //});
+            //$("#UndoEditDescription").click(function (event) {
+            //    event.preventDefault();
+            //    $(document.forms.VerifyForm.elements["Description"]).each (function () { this.value = this.defaultValue; });
+            //    $("#DescriptionText").css("visibility", "inherit");
+            //    $("#DescriptionText").css("position", "static");
+            //    $("#DescriptionField").hide();
+            //});
+        });
     </script>
 }
-

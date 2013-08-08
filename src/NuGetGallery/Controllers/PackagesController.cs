@@ -695,26 +695,38 @@ namespace NuGetGallery
             }
 
             return View(
-                new VerifyPackageViewModel
+                new VerifyPackageRequest
                 {
                     Id = packageMetadata.Id,
                     Version = packageMetadata.Version.ToStringSafe(),
-                    Title = packageMetadata.Title,
-                    Summary = packageMetadata.Summary,
-                    Description = packageMetadata.Description,
-                    RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
                     LicenseUrl = packageMetadata.LicenseUrl.ToStringSafe(),
-                    Tags = PackageHelper.ParseTags(packageMetadata.Tags),
-                    ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
-                    Authors = packageMetadata.Authors.Flatten(),
-                    Listed = true
+                    Listed = true,
+                    Edit = new EditPackageVersionRequest
+                    {
+                        Authors = packageMetadata.Authors.Flatten(),
+                        Copyright = packageMetadata.Copyright,
+                        Description = packageMetadata.Description,
+                        ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
+                        RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
+                        Summary = packageMetadata.Summary,
+                        Tags = PackageHelper.ParseTags(packageMetadata.Tags),
+                        VersionTitle = packageMetadata.Title,
+                    }
                 });
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> VerifyPackage(bool? listed)
+        public virtual Task<ActionResult> VerifyPackage(bool listed)
+        {
+            return VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = null });
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest verifyRequest)
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
 
@@ -723,10 +735,33 @@ namespace NuGetGallery
             {
                 if (uploadFile == null)
                 {
-                    return HttpNotFound();
+                    TempData["Message"] = "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again.";
+                    return new RedirectResult(Url.UploadPackage());
                 }
 
                 INupkg nugetPackage = CreatePackage(uploadFile);
+
+                // Rule out problem scenario - verification was submitted by user viewing a different package than what was uploaded
+                if (!(String.IsNullOrEmpty(verifyRequest.Id) || String.IsNullOrEmpty(verifyRequest.Version)))
+                {
+                    if (!(String.Equals(nugetPackage.Metadata.Id, verifyRequest.Id, StringComparison.InvariantCulture)
+                        && String.Equals(nugetPackage.Metadata.Version.ToString(), verifyRequest.Version, StringComparison.InvariantCulture)))
+                    {
+                        TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
+                        return new RedirectResult(Url.VerifyPackage());
+                    }
+                }
+
+                // TODO: Check whether the verifyRequest has edited fields
+                //bool hasEditedFields = (false
+                //    || verifyRequest.Authors != null
+                //    || verifyRequest.Copyright != null
+                //    || verifyRequest.Description != null
+                //    || verifyRequest.ProjectUrl != null // but deliberately NOT verifyRequest.LicenseUrl != null
+                //    || verifyRequest.RequiresLicenseAcceptance != nugetPackage.Metadata.RequireLicenseAcceptance
+                //    || verifyRequest.Summary != null
+                //    || verifyRequest.Title != null
+                //    || verifyRequest.Tags != null);
 
                 // update relevant database tables
                 package = _packageService.CreatePackage(nugetPackage, currentUser, commitChanges: false);
@@ -734,7 +769,7 @@ namespace NuGetGallery
 
                 _packageService.PublishPackage(package, commitChanges: false);
 
-                if (listed == false)
+                if (false == verifyRequest.Listed)
                 {
                     _packageService.MarkPackageUnlisted(package, commitChanges: false);
                 }

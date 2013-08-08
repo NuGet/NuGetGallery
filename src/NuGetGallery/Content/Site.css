@@ -721,6 +721,16 @@ ul.dependencySet li {
 }
     
 
+/* Package Verify Upload Page */
+
+button.edit-button {
+    background: url("/Content/Images/editIcon.png") no-repeat center;
+    cursor: pointer;
+    border: none;
+    width: 20px;
+    height: 20px;
+}
+
 /* Package Edit Page */
 
 #edit-list ul {
@@ -1275,6 +1285,12 @@ fieldset.form legend { display: none; }
     padding: 5px 0 5px 10px;
     vertical-align: middle;
     width: 400px;
+}
+
+.form-field textarea[data-edited=true],
+.form-field input[data-edited=true] {
+    border-left: solid 5px #2ef12e;
+    padding: 5px 0 5px 5px;
 }
 
 .form-field textarea {

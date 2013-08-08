@@ -833,6 +833,7 @@
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
+    <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
@@ -965,7 +966,6 @@
     <Compile Include="ViewModels\PasswordResetRequestViewModel.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
-    <Compile Include="ViewModels\VerifyPackageViewModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
   </ItemGroup>
   <ItemGroup>
