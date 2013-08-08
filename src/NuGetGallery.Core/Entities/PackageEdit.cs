@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
 namespace NuGetGallery
 {
@@ -32,7 +28,7 @@ namespace NuGetGallery
         /// </summary>
         public int TriedCount { get; set; }
 
-        #region Rest = same as Package
+        //////////////// The rest are same as on Package ////////////
 
         public string Authors { get; set; }
         public string Copyright { get; set; }
@@ -45,7 +41,5 @@ namespace NuGetGallery
         public string Summary { get; set; }
         public string Tags { get; set; }
         public string Title { get; set; }
-
-        #endregion
     }
 }

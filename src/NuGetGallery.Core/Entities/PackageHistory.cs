@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
 
 namespace NuGetGallery
 {
@@ -27,7 +24,7 @@ namespace NuGetGallery
         /// </summary
         public DateTime Timestamp { get; set; }
 
-        #region Rest = same as Package
+        //////////////// The rest are same as on Package ////////////
 
         public string Authors { get; set; }
         public string Copyright { get; set; }
@@ -46,7 +43,5 @@ namespace NuGetGallery
         public string Title { get; set; }
         public DateTime LastUpdated { get; set; }
         public DateTime Published { get; set; }
-
-        #endregion
     }
 }

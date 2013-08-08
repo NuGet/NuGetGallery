@@ -152,8 +152,6 @@
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.2.0.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
-    <Reference Include="Microsoft.WindowsAzure.Configuration">
-      <HintPath>..\..\packages\Microsoft.WindowsAzure.ConfigurationManager.1.7.0.3\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.ServiceRuntime, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -589,14 +587,6 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
-    <Compile Include="Entities\CuratedFeed.cs" />
-    <Compile Include="Entities\CuratedPackage.cs" />
-    <Compile Include="Entities\GallerySetting.cs" />
-    <Compile Include="Entities\IEntitiesContext.cs" />
-    <Compile Include="Entities\PackageHistory.cs" />
-    <Compile Include="Entities\PackageEdit.cs" />
-    <Compile Include="Entities\PackageFramework.cs" />
-    <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />
@@ -938,11 +928,6 @@
     <Compile Include="Services\IFormsAuthenticationService.cs" />
     <Compile Include="Services\IPackageFileService.cs" />
     <Compile Include="Services\IUserService.cs" />
-    <Compile Include="Entities\EmailMessage.cs" />
-    <Compile Include="Entities\EntitiesContext.cs" />
-    <Compile Include="Entities\PackageRegistration.cs" />
-    <Compile Include="Entities\Package.cs" />
-    <Compile Include="Entities\EntityRepository.cs" />
     <Compile Include="RequestModels\DisplayPackageRequest.cs" />
     <Compile Include="Strings.Designer.cs">
       <DependentUpon>Strings.resx</DependentUpon>
