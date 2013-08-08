@@ -710,6 +710,7 @@ namespace NuGetGallery
                         Authors = packageMetadata.Authors.Flatten(),
                         Copyright = packageMetadata.Copyright,
                         Description = packageMetadata.Description,
+                        IconUrl = packageMetadata.IconUrl.ToStringSafe(),
                         ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
                         ReleaseNotes = packageMetadata.ReleaseNotes,
                         RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,

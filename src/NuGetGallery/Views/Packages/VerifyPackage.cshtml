@@ -80,6 +80,7 @@
         <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
         <li>@EditableField("Description", m => m.Edit.Description)</li>
         <li>@EditableField("Summary", m => m.Edit.Summary)</li>
+        <li>@EditableField("Icon URL", m => m.Edit.IconUrl, link: true)</li>
         <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
         <li>@EditableField("Authors", m => m.Edit.Authors)</li>
         <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
@@ -187,6 +188,7 @@
             SetupInput('Edit_VersionTitle');
             SetupInput('Edit_Description');
             SetupInput('Edit_Summary');
+            SetupInput('Edit_IconUrl');
             SetupInput('Edit_ProjectUrl');
             SetupInput('Edit_Authors');
             SetupInput('Edit_Copyright');
