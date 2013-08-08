@@ -521,7 +521,7 @@ namespace NuGetGallery
             // Add the edit request to a queue where it will be processed in the background.
             if (formData.EditPackageVersionRequest != null)
             {
-                _editPackageService.StartEditPackageRequest(package, formData, user);
+                _editPackageService.StartEditPackageRequest(package, formData.EditPackageVersionRequest, user);
                 _entitiesContext.SaveChanges();
             }
             return Redirect(Url.Package(id, version));
@@ -726,7 +726,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest verifyRequest)
+        public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
 
@@ -741,27 +741,31 @@ namespace NuGetGallery
 
                 INupkg nugetPackage = CreatePackage(uploadFile);
 
-                // Rule out problem scenario - verification was submitted by user viewing a different package than what was uploaded
-                if (!(String.IsNullOrEmpty(verifyRequest.Id) || String.IsNullOrEmpty(verifyRequest.Version)))
+                // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user 
+                // viewing a different package to what was actually most recently uploaded
+                if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
                 {
-                    if (!(String.Equals(nugetPackage.Metadata.Id, verifyRequest.Id, StringComparison.InvariantCulture)
-                        && String.Equals(nugetPackage.Metadata.Version.ToString(), verifyRequest.Version, StringComparison.InvariantCulture)))
+                    if (!(String.Equals(nugetPackage.Metadata.Id, formData.Id, StringComparison.InvariantCulture)
+                        && String.Equals(nugetPackage.Metadata.Version.ToString(), formData.Version, StringComparison.InvariantCulture)))
                     {
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
                         return new RedirectResult(Url.VerifyPackage());
                     }
                 }
 
-                // TODO: Check whether the verifyRequest has edited fields
-                //bool hasEditedFields = (false
-                //    || verifyRequest.Authors != null
-                //    || verifyRequest.Copyright != null
-                //    || verifyRequest.Description != null
-                //    || verifyRequest.ProjectUrl != null // but deliberately NOT verifyRequest.LicenseUrl != null
-                //    || verifyRequest.RequiresLicenseAcceptance != nugetPackage.Metadata.RequireLicenseAcceptance
-                //    || verifyRequest.Summary != null
-                //    || verifyRequest.Title != null
-                //    || verifyRequest.Tags != null);
+                bool pendEdit = false;
+                if (formData.Edit != null)
+                {
+                    pendEdit = pendEdit || formData.Edit.Authors != nugetPackage.Metadata.Authors.Flatten();
+                    pendEdit = pendEdit || formData.Edit.Copyright != nugetPackage.Metadata.Copyright;
+                    pendEdit = pendEdit || formData.Edit.Description != nugetPackage.Metadata.Description;
+                    pendEdit = pendEdit || formData.Edit.IconUrl != nugetPackage.Metadata.IconUrl.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.ProjectUrl != nugetPackage.Metadata.ProjectUrl.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != nugetPackage.Metadata.RequireLicenseAcceptance;
+                    pendEdit = pendEdit || formData.Edit.Summary != nugetPackage.Metadata.Summary;
+                    pendEdit = pendEdit || formData.Edit.Tags != nugetPackage.Metadata.Tags;
+                    pendEdit = pendEdit || formData.Edit.VersionTitle != nugetPackage.Metadata.Title;
+                }
 
                 // update relevant database tables
                 package = _packageService.CreatePackage(nugetPackage, currentUser, commitChanges: false);
@@ -769,7 +773,13 @@ namespace NuGetGallery
 
                 _packageService.PublishPackage(package, commitChanges: false);
 
-                if (false == verifyRequest.Listed)
+                if (pendEdit)
+                {
+                    // Add the edit request to a queue where it will be processed in the background.
+                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
+                }
+
+                if (false == formData.Listed)
                 {
                     _packageService.MarkPackageUnlisted(package, commitChanges: false);
                 }

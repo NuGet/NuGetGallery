@@ -7,6 +7,18 @@ Main Accent: #39922C
 Links: #0071BC
 *************************************************************/
 
+ /* Fonts
+***************************************************************/
+
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('font/fontawesome-webfont.eot?v=3.0.2');
+  src: url('font/fontawesome-webfont.eot?#iefix&v=3.0.2') format('embedded-opentype'),
+    url('font/fontawesome-webfont.woff?v=3.0.2') format('woff'),
+    url('font/fontawesome-webfont.ttf?v=3.0.2') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 
 /* Resets
 ***************************************************************/
@@ -723,12 +735,12 @@ ul.dependencySet li {
 
 /* Package Verify Upload Page */
 
-button.edit-button {
-    background: url("/Content/Images/editIcon.png") no-repeat center;
+button.edit-button,
+button.undo-button {
+    color: #5a92c2;
     cursor: pointer;
     border: none;
-    width: 20px;
-    height: 20px;
+    background: none;
 }
 
 /* Package Edit Page */
