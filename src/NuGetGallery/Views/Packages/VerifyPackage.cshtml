@@ -32,7 +32,7 @@
     {
         <p>@value</p>
     }
-    <input type="hidden" name="formid" value="@value" />
+    <input type="hidden" name="@formid" value="@value" />
 }
 
 @helper EditableField(string name, Expression<Func<VerifyPackageRequest, object>> func, bool link = false, bool multiline = false)
@@ -112,16 +112,16 @@
         <li>
             <h4>List This Package in Search Results</h4>
                 <div class="form-field">
-                    <select>
-                        <option>Yes</option>
-                        <option>No</option>
-                    </select>
-                    <!--
-                    @Html.EditorFor(package => package.Listed)
-                    <label for="Listed" class="checkbox">
+                   @Html.DropDownList("Listed", 
+                            new List<SelectListItem>
+                            {
+                                new SelectListItem { Text = "Yes", Value = "true", Selected = true },
+                                new SelectListItem { Text = "No", Value = "false" },
+                            })
+                        @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                    @*<label for="Listed" class="checkbox">
                         List this package in search results. 
-                    </label>
-                    -->
+                    </label>*@
                 </div>
         </li>
     </ul>

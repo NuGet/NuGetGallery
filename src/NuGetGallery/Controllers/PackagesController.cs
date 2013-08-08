@@ -715,10 +715,9 @@ namespace NuGetGallery
                 });
         }
 
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public virtual Task<ActionResult> VerifyPackage(bool? listed)
+        // The easiest way of keeping unit tests working.
+        [NonAction]
+        internal virtual Task<ActionResult> VerifyPackage(bool? listed)
         {
             return VerifyPackage(new VerifyPackageRequest { Listed = listed.GetValueOrDefault(true), Edit = null });
         }
@@ -756,15 +755,15 @@ namespace NuGetGallery
                 bool pendEdit = false;
                 if (formData.Edit != null)
                 {
-                    pendEdit = pendEdit || formData.Edit.Authors != nugetPackage.Metadata.Authors.Flatten();
-                    pendEdit = pendEdit || formData.Edit.Copyright != nugetPackage.Metadata.Copyright;
-                    pendEdit = pendEdit || formData.Edit.Description != nugetPackage.Metadata.Description;
-                    pendEdit = pendEdit || formData.Edit.IconUrl != nugetPackage.Metadata.IconUrl.ToStringSafe();
-                    pendEdit = pendEdit || formData.Edit.ProjectUrl != nugetPackage.Metadata.ProjectUrl.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.Authors.ToStringSafe() != nugetPackage.Metadata.Authors.Flatten();
+                    pendEdit = pendEdit || formData.Edit.Copyright.ToStringSafe() != nugetPackage.Metadata.Copyright.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.Description.ToStringSafe() != nugetPackage.Metadata.Description.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.IconUrl.ToStringSafe() != nugetPackage.Metadata.IconUrl.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.ProjectUrl.ToStringSafe() != nugetPackage.Metadata.ProjectUrl.ToStringSafe();
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != nugetPackage.Metadata.RequireLicenseAcceptance;
-                    pendEdit = pendEdit || formData.Edit.Summary != nugetPackage.Metadata.Summary;
-                    pendEdit = pendEdit || formData.Edit.Tags != nugetPackage.Metadata.Tags;
-                    pendEdit = pendEdit || formData.Edit.VersionTitle != nugetPackage.Metadata.Title;
+                    pendEdit = pendEdit || formData.Edit.Summary.ToStringSafe() != nugetPackage.Metadata.Summary.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.Tags.ToStringSafe() != nugetPackage.Metadata.Tags.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.VersionTitle.ToStringSafe() != nugetPackage.Metadata.Title.ToStringSafe();
                 }
 
                 // update relevant database tables
