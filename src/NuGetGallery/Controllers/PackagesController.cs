@@ -529,6 +529,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [Authorize]
         public virtual ActionResult CancelPendingEdits(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
