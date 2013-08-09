@@ -578,6 +578,7 @@ namespace NuGetGallery
             _entitiesContext.SaveChanges();
 
             TempData["Message"] = string.Format(
+                CultureInfo.InvariantCulture,
                 "{0} pending edits were successfully cancelled. Please review your package to ensure it looks as expected.", 
                 numCanceled);
 
