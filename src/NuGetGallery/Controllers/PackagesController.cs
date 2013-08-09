@@ -550,7 +550,8 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult CancelPendingEdits(string id, string version, string dummy)
+        [ActionName("CancelPendingEdits")]
+        public virtual ActionResult CancelPendingEditsPost(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -754,8 +755,8 @@ namespace NuGetGallery
                 // viewing a different package to what was actually most recently uploaded
                 if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
                 {
-                    if (!(String.Equals(nugetPackage.Metadata.Id, formData.Id, StringComparison.InvariantCulture)
-                        && String.Equals(nugetPackage.Metadata.Version.ToString(), formData.Version, StringComparison.InvariantCulture)))
+                    if (!(String.Equals(nugetPackage.Metadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
+                        && String.Equals(nugetPackage.Metadata.Version.ToString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
                         return new RedirectResult(Url.VerifyPackage());
