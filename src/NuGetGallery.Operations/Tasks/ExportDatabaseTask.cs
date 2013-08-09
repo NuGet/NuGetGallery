@@ -24,9 +24,6 @@ namespace NuGetGallery.Operations
         [Option("Blob container in which the backup should be placed", AltName = "c")]
         public string DestinationContainer { get; set; }
 
-        [Option("The name of the database to export (if not specified, the one in the connection string will be used)", AltName = "dbname")]
-        public string DatabaseName { get; set; }
-
         [Option("URL of the SQL DAC endpoint to talk to", AltName = "dac")]
         public Uri SqlDacEndpoint { get; set; }
 

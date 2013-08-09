@@ -29,9 +29,6 @@ namespace NuGetGallery.Operations.Tasks
             "Export_" // Only exports can be sanitized
         };
 
-        [Option("The database name on the server to santize if different from the database identified in the connection string", AltName = "d")]
-        public string DatabaseName { get; set; }
-
         [Option("Domain name to use for sanitized email addresses, username@[emaildomain]", AltName = "e")]
         public string EmailDomain { get; set; }
 
