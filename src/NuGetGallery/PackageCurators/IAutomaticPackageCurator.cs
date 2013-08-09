@@ -1,5 +1,5 @@
 ﻿using NuGet;
-using NuGetGallery.Core.Packaging;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {

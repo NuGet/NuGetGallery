@@ -9,7 +9,7 @@ using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using NuGet;
 
-namespace NuGetGallery.Core.Packaging
+namespace NuGetGallery.Packaging
 {
     // Note - a lot of this code is based on the OPC format which we've traditionally used to generate (save) nupkg files.
     // This class is intended for *reading* the packages only.

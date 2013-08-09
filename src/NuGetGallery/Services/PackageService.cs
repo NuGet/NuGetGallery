@@ -4,7 +4,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Versioning;
 using NuGet;
-using NuGetGallery.Core.Packaging;
+using NuGetGallery.Packaging;
 using Crypto = NuGetGallery.CryptographyService;
 
 namespace NuGetGallery

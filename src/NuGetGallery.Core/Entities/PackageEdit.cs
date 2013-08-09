@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
@@ -13,13 +14,13 @@ namespace NuGetGallery
         public int PackageKey { get; set; }
 
         /// <summary>
-        /// User who edited the package and thereby caused this Metadata to be created.
+        /// User who edited the package and thereby caused this edit to be created.
         /// </summary>
         public User User { get; set; }
         public int UserKey { get; set; }
 
         /// <summary>
-        /// Time this metadata was generated
+        /// Time this edit was generated
         /// </summary>
         public DateTime Timestamp { get; set; }
 
@@ -30,6 +31,8 @@ namespace NuGetGallery
 
         //////////////// The rest are same as on Package ////////////
 
+        [StringLength(256)]
+        public string Title { get; set; }
         public string Authors { get; set; }
         public string Copyright { get; set; }
         public string Description { get; set; }
@@ -40,6 +43,5 @@ namespace NuGetGallery
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
-        public string Title { get; set; }
     }
 }

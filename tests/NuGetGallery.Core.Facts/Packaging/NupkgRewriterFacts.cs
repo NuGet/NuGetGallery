@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using Moq;
 using NuGet;
-using NuGetGallery.Core.Packaging;
+using NuGetGallery.Packaging;
 using Xunit;
 
-namespace NuGetGallery.Core.Facts
+namespace NuGetGallery.Facts
 {
     public class NupkgRewriterFacts
     {

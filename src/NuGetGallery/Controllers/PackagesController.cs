@@ -11,7 +11,7 @@ using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
-using NuGetGallery.Core.Packaging;
+using NuGetGallery.Packaging;
 using NuGetGallery.Helpers;
 using PoliteCaptcha;
 
@@ -528,6 +528,7 @@ namespace NuGetGallery
             return Redirect(Url.Package(id, version));
         }
 
+        [HttpGet]
         public virtual ActionResult CancelPendingEdits(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -564,12 +565,18 @@ namespace NuGetGallery
 
             var results = _entitiesContext.Set<PackageEdit>().Where(
                 pe => pe.PackageKey == package.Key);
+
+            int nCancelled = 0;
             foreach (var result in results)
             {
                 _entitiesContext.Set<PackageEdit>().Remove(result);
+                nCancelled += 1;
             }
 
             _entitiesContext.SaveChanges();
+
+            TempData["Message"] = string.Format("{0} pending edits were successfully cancelled. Please review this page to ensure it looks as expected.");
+
             return Redirect(Url.Package(id, version));
         }
 

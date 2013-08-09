@@ -120,5 +120,8 @@ namespace NuGetGallery
         /// </summary>
         public User User { get; set; }
         public int? UserKey { get; set; }
+
+        public virtual ICollection<PackageEdit> PackageEdits { get; set; }
+        public virtual ICollection<PackageHistory> PackageHistories { get; set; }
     }
 }

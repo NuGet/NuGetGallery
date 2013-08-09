@@ -1,7 +1,7 @@
 ﻿using System;
 using Moq;
 using NuGet;
-using NuGetGallery.Core.Packaging;
+using NuGetGallery.Packaging;
 using Xunit;
 using Xunit.Extensions;
 

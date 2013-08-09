@@ -5,11 +5,11 @@ using System.Linq;
 using System.Runtime.Versioning;
 using Moq;
 using NuGet;
-using NuGetGallery.Core.Packaging;
+using NuGetGallery.Packaging;
 using Xunit;
 using Xunit.Extensions;
 
-namespace NuGetGallery.Core
+namespace NuGetGallery
 {
     public class NupkgFacts
     {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -22,10 +23,9 @@ namespace NuGetGallery
         public virtual PackageEdit GetPendingMetadata(Package p)
         {
             return EntitiesContext.Set<PackageEdit>()
+                .Where(m => m.PackageKey == p.Key)
                 .OrderByDescending(m => m.Timestamp)
-                .FirstOrDefault(
-                    m => m.PackageKey == p.Key
-                );
+                .FirstOrDefault();
         }
 
         public virtual void StartEditPackageRequest(Package p, EditPackageVersionRequest request, User editingUser)

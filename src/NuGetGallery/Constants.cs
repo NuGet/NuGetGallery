@@ -43,7 +43,7 @@
             public static readonly string PrivacyPolicy = "Privacy-Policy";
         }
 
-        public const string UrlValidationRegEx = @"(ftp|https?):\/\/[^ ""]+$";
+        public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
 
     }
 }

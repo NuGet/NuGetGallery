@@ -26,21 +26,26 @@ namespace NuGetGallery
 
         //////////////// The rest are same as on Package ////////////
 
+        [StringLength(256)]
+        public string Title { get; set; }
         public string Authors { get; set; }
         public string Copyright { get; set; }
         public string Description { get; set; }
-        public string Hash { get; set; }
-        [StringLength(10)]
-        public string HashAlgorithm { get; set; }
         public string IconUrl { get; set; }
         public string LicenseUrl { get; set; }
-        public long PackageFileSize { get; set; }
         public string ProjectUrl { get; set; }
         public string ReleaseNotes { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
-        public string Title { get; set; }
+
+        [StringLength(256)]
+        public string Hash { get; set; }
+
+        [StringLength(10)]
+        public string HashAlgorithm { get; set; }
+
+        public long PackageFileSize { get; set; }
         public DateTime LastUpdated { get; set; }
         public DateTime Published { get; set; }
     }

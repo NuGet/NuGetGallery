@@ -11,7 +11,7 @@ using Moq;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
-using NuGetGallery.Core.Packaging;
+using NuGetGallery.Packaging;
 using NuGetGallery.Helpers;
 using Xunit;
 using Xunit.Extensions;

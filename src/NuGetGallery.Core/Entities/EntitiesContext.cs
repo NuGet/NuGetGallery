@@ -103,8 +103,9 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageEdit>()
                 .HasRequired<Package>(pm => pm.Package)
-                .WithMany()
-                .HasForeignKey(pm => pm.PackageKey);
+                .WithMany(p => p.PackageEdits)
+                .HasForeignKey(pm => pm.PackageKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageHistory>()
                 .HasKey(pm => pm.Key);
@@ -116,8 +117,9 @@ namespace NuGetGallery
 
             modelBuilder.Entity<PackageHistory>()
                 .HasRequired<Package>(pm => pm.Package)
-                .WithMany()
-                .HasForeignKey(pm => pm.PackageKey);
+                .WithMany(p => p.PackageHistories)
+                .HasForeignKey(pm => pm.PackageKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageStatistics>()
                 .HasKey(ps => ps.Key);

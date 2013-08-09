@@ -3,7 +3,7 @@ using System.Linq;
 using System.Web.Mvc;
 using Ninject;
 using NuGet;
-using NuGetGallery.Core.Packaging;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {

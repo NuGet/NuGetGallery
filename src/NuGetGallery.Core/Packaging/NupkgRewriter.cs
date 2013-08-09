@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using NuGet;
 
-namespace NuGetGallery.Core.Packaging
+namespace NuGetGallery.Packaging
 {
     public class NupkgRewriter
     {
@@ -17,24 +17,24 @@ namespace NuGetGallery.Core.Packaging
         /// 
         /// This function leaves readWriteStream open.
         /// </summary>
-        public static void RewriteNupkgManifest(Stream readWriteStream, List<Action<ManifestMetadata>> edits)
+        public static void RewriteNupkgManifest(Stream readWriteStream, IEnumerable<Action<ManifestMetadata>> edits)
         {
             if (!readWriteStream.CanRead)
             {
-                throw new ArgumentException("Must be a readable stream");
+                throw new ArgumentException("Must be a readable stream", "readWriteStream");
             }
 
             if (!readWriteStream.CanWrite)
             {
-                throw new ArgumentException("Must be a writeable stream");
+                throw new ArgumentException("Must be a writeable stream", "readWriteStream");
             }
 
             if (!readWriteStream.CanSeek)
             {
-                throw new ArgumentException("Must be a seekable stream");
+                throw new ArgumentException("Must be a seekable stream", "readWriteStream");
             }
 
-            var manifest = Nupkg.SafelyLoadManifest(readWriteStream, leaveOpen: true);
+            Manifest manifest = Nupkg.SafelyLoadManifest(readWriteStream, leaveOpen: true);
             foreach (var edit in edits)
             {
                 edit.Invoke(manifest.Metadata);
