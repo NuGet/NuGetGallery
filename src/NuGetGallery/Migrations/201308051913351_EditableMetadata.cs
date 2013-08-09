@@ -16,6 +16,7 @@ namespace NuGetGallery.Migrations
                         UserKey = c.Int(nullable: false),
                         Timestamp = c.DateTime(nullable: false),
                         TriedCount = c.Int(nullable: false),
+                        Title = c.String(maxLength: 256),
                         Authors = c.String(),
                         Copyright = c.String(),
                         Description = c.String(),
@@ -26,10 +27,9 @@ namespace NuGetGallery.Migrations
                         RequiresLicenseAcceptance = c.Boolean(nullable: false),
                         Summary = c.String(),
                         Tags = c.String(),
-                        Title = c.String(),
                     })
                 .PrimaryKey(t => t.Key)
-                .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
+                .ForeignKey("dbo.Packages", t => t.PackageKey)
                 .ForeignKey("dbo.Users", t => t.UserKey, cascadeDelete: true)
                 .Index(t => t.PackageKey)
                 .Index(t => t.UserKey);
@@ -42,31 +42,32 @@ namespace NuGetGallery.Migrations
                         PackageKey = c.Int(nullable: false),
                         UserKey = c.Int(),
                         Timestamp = c.DateTime(nullable: false),
+                        Title = c.String(maxLength: 256),
                         Authors = c.String(),
                         Copyright = c.String(),
                         Description = c.String(),
-                        Hash = c.String(),
-                        HashAlgorithm = c.String(maxLength: 10),
                         IconUrl = c.String(),
                         LicenseUrl = c.String(),
-                        PackageFileSize = c.Long(nullable: false),
                         ProjectUrl = c.String(),
                         ReleaseNotes = c.String(),
                         RequiresLicenseAcceptance = c.Boolean(nullable: false),
                         Summary = c.String(),
                         Tags = c.String(),
-                        Title = c.String(),
+                        Hash = c.String(maxLength: 256),
+                        HashAlgorithm = c.String(maxLength: 10),
+                        PackageFileSize = c.Long(nullable: false),
                         LastUpdated = c.DateTime(nullable: false),
                         Published = c.DateTime(nullable: false),
                     })
                 .PrimaryKey(t => t.Key)
-                .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
+                .ForeignKey("dbo.Packages", t => t.PackageKey)
                 .ForeignKey("dbo.Users", t => t.UserKey)
                 .Index(t => t.PackageKey)
                 .Index(t => t.UserKey);
             
             AddColumn("dbo.Packages", "UserKey", c => c.Int());
             AddForeignKey("dbo.Packages", "UserKey", "dbo.Users", "Key");
+            CreateIndex("dbo.Packages", "UserKey");
         }
         
         public override void Down()
@@ -75,6 +76,7 @@ namespace NuGetGallery.Migrations
             DropIndex("dbo.PackageHistories", new[] { "PackageKey" });
             DropIndex("dbo.PackageEdits", new[] { "UserKey" });
             DropIndex("dbo.PackageEdits", new[] { "PackageKey" });
+            DropIndex("dbo.Packages", new[] { "UserKey" });
             DropForeignKey("dbo.PackageHistories", "UserKey", "dbo.Users");
             DropForeignKey("dbo.PackageHistories", "PackageKey", "dbo.Packages");
             DropForeignKey("dbo.PackageEdits", "UserKey", "dbo.Users");

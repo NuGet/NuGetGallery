@@ -1,10 +1,23 @@
 ﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.Web.Configuration;
 
 namespace NuGetGallery
 {
     public class EntitiesContext : DbContext, IEntitiesContext
     {
+        static string GetDefaultConnectionString()
+        {
+            Debug.Assert(false, "If you see this during Migrations Ignore it. Otherwise pay attention. The website should be passing in a readonly mode flag");
+            return WebConfigurationManager.ConnectionStrings["Gallery.SqlServer"].ConnectionString;
+        }
+
+        public EntitiesContext()
+            : base(GetDefaultConnectionString())
+        {
+        }
+
         public EntitiesContext(string connectionString, bool readOnly)
             : base(connectionString)
         {

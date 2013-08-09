@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Web;
-using Ninject;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Infrastructure
 {
@@ -22,7 +20,7 @@ namespace NuGetGallery.Infrastructure
             // readOnly: false - without read access, database migrations will fail and 
             // the whole site will be down (even when migrations are a no-op apparently).
             return new EntitiesContext(
-                OverrideConnectionString ?? Container.Kernel.Get<IAppConfiguration>().SqlConnectionString,
+                OverrideConnectionString,
                 readOnly: false);
         }
     }
