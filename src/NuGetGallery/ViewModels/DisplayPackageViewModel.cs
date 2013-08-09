@@ -44,7 +44,7 @@ namespace NuGetGallery
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
 
-        public bool HasPendingMetadata { get; set; }
+        public bool HasPendingMetadata { get; private set; }
         
         public bool IsLatestVersionAvailable
         {
