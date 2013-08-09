@@ -567,16 +567,18 @@ namespace NuGetGallery
             var results = _entitiesContext.Set<PackageEdit>().Where(
                 pe => pe.PackageKey == package.Key);
 
-            int nCancelled = 0;
+            int numCanceled = 0;
             foreach (var result in results)
             {
                 _entitiesContext.Set<PackageEdit>().Remove(result);
-                nCancelled += 1;
+                numCanceled += 1;
             }
 
             _entitiesContext.SaveChanges();
 
-            TempData["Message"] = string.Format("{0} pending edits were successfully cancelled. Please review this page to ensure it looks as expected.");
+            TempData["Message"] = string.Format(
+                "{0} pending edits were successfully cancelled. Please review your package to ensure it looks as expected.", 
+                numCanceled);
 
             return Redirect(Url.Package(id, version));
         }
