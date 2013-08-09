@@ -11,7 +11,8 @@ using NuGetGallery.Configuration;
 namespace NuGetGallery
 {
     [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple)]
-    public abstract class FeedServiceBase<TPackage> : DataService<FeedContext<TPackage>>, IDataServiceStreamProvider, IServiceProvider
+    public abstract class FeedServiceBase<TContext, TPackage> : DataService<TContext>, IDataServiceStreamProvider, IServiceProvider
+        where TContext : FeedContext<TPackage>
     {
         private readonly ConfigurationService _configuration;
 
@@ -96,7 +97,6 @@ namespace NuGetGallery
         public abstract Uri GetReadStreamUri(
             object entity,
             DataServiceOperationContext operationContext);
-
 
         public string GetStreamContentType(
             object entity,
