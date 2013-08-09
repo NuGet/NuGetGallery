@@ -1,5 +1,5 @@
 ﻿// Global utility script for NuGetGallery
-/// <reference path="jquery-1.10.2.js" />
+/// <reference path="jquery-1.6.4.js" />
 (function (window, $, undefined) {
     function checkServiceStatus() {
         $.get(app.root + 'api/v2/service-alert?cachebust=' + new Date().getTime())

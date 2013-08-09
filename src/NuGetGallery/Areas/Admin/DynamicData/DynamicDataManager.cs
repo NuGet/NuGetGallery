@@ -31,8 +31,8 @@ namespace NuGetGallery.Areas.Admin.DynamicData
         {
             ScriptManager.ScriptResourceMapping.AddDefinition("jquery", new ScriptResourceDefinition()
             {
-                Path = "~/Scripts/jquery-1.10.2.min.js",
-                DebugPath = "~/Scripts/jquery-1.10.2.js"
+                Path = "~/Scripts/jquery-1.6.4.min.js",
+                DebugPath = "~/Scripts/jquery-1.6.4.js"
             });
         }
 

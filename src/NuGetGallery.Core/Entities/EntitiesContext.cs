@@ -9,7 +9,7 @@ namespace NuGetGallery
     {
         static string GetDefaultConnectionString()
         {
-            Debug.Assert(false, "If you see this during Migrations Ignore it. Otherwise pay attention. The website should be passing in a readonly mode flag");
+            //Debug.Assert(false, "If you see this during Migrations Ignore it. Otherwise pay attention. The website should be passing in a readonly mode flag");
             return WebConfigurationManager.ConnectionStrings["Gallery.SqlServer"].ConnectionString;
         }
 

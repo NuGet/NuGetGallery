@@ -337,12 +337,11 @@ namespace Links {
         public static readonly string d3_v3_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/d3.v3.min.js") ? Url("d3.v3.min.js") : Url("d3.v3.js");
                       
         public static readonly string d3_v3_min_js = Url("d3.v3.min.js");
-        public static readonly string jquery_1_10_2_intellisense_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.10.2.intellisense.min.js") ? Url("jquery-1.10.2.intellisense.min.js") : Url("jquery-1.10.2.intellisense.js");
+        public static readonly string jquery_1_6_4_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.4-vsdoc.min.js") ? Url("jquery-1.6.4-vsdoc.min.js") : Url("jquery-1.6.4-vsdoc.js");
                       
-        public static readonly string jquery_1_10_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.10.2.min.js") ? Url("jquery-1.10.2.min.js") : Url("jquery-1.10.2.js");
+        public static readonly string jquery_1_6_4_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.4.min.js") ? Url("jquery-1.6.4.min.js") : Url("jquery-1.6.4.js");
                       
-        public static readonly string jquery_1_10_2_min_js = Url("jquery-1.10.2.min.js");
-        public static readonly string jquery_1_10_2_min_map = Url("jquery-1.10.2.min.map");
+        public static readonly string jquery_1_6_4_min_js = Url("jquery-1.6.4.min.js");
         public static readonly string jquery_ui_1_10_3_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-ui-1.10.3.min.js") ? Url("jquery-ui-1.10.3.min.js") : Url("jquery-ui-1.10.3.js");
                       
         public static readonly string jquery_ui_1_10_3_min_js = Url("jquery-ui-1.10.3.min.js");
