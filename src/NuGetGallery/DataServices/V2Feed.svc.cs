@@ -13,7 +13,9 @@ using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
-    public class V2Feed : FeedServiceBase<V2FeedPackage>
+    public class V2FeedContext : FeedContext<V2FeedPackage> { }
+
+    public class V2Feed : FeedServiceBase<V2FeedContext, V2FeedPackage>
     {
         private const int FeedVersion = 2;
 
@@ -26,9 +28,9 @@ namespace NuGetGallery
         {
         }
 
-        protected override FeedContext<V2FeedPackage> CreateDataSource()
+        protected override V2FeedContext CreateDataSource()
         {
-            return new FeedContext<V2FeedPackage>
+            return new V2FeedContext
                 {
                     Packages = PackageRepository.GetAll()
                         .WithoutVersionSort()

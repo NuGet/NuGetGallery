@@ -13,11 +13,11 @@ namespace NuGetGallery
 {
     // TODO : Have V2CuratedFeed derive from V2Feed?
     [RewriteBaseUrlMessageInspector]
-    public class V2CuratedFeed : FeedServiceBase<V2FeedPackage>
+    public class V2CuratedFeed : FeedServiceBase<V2FeedContext, V2FeedPackage>
     {
         private const int FeedVersion = 2;
 
-        ICuratedFeedService _curatedFeedService;
+        private ICuratedFeedService _curatedFeedService;
 
         public V2CuratedFeed()
             : this(DependencyResolver.Current.GetService<ICuratedFeedService>())
@@ -36,7 +36,7 @@ namespace NuGetGallery
             _curatedFeedService = curatedFeedService;
         }
 
-        protected override FeedContext<V2FeedPackage> CreateDataSource()
+        protected override V2FeedContext CreateDataSource()
         {
             var curatedFeedName = GetCuratedFeedName();
 
@@ -47,7 +47,7 @@ namespace NuGetGallery
 
             var packages = _curatedFeedService.GetPackages(curatedFeedName);
 
-            return new FeedContext<V2FeedPackage>
+            return new V2FeedContext
                 {
                     Packages = packages.ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()))
                 };
@@ -83,7 +83,7 @@ namespace NuGetGallery
         [WebGet]
         public IQueryable<V2FeedPackage> Search(string searchTerm, string targetFramework, bool includePrerelease)
         {
-            var curatedFeedName =  GetCuratedFeedName();
+            var curatedFeedName = GetCuratedFeedName();
             var curatedFeedKey = _curatedFeedService.GetKey(curatedFeedName);
             if (curatedFeedKey == null)
             {
