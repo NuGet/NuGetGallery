@@ -52,6 +52,7 @@ namespace NuGetGallery
             Set<T>().Remove(entity);
         }
 
+#pragma warning disable 618
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
@@ -99,6 +100,11 @@ namespace NuGetGallery
                 .HasKey(p => p.Key);
 
             modelBuilder.Entity<Package>()
+                .HasMany<PackageAuthor>(p => p.Authors)
+                .WithRequired(pa => pa.Package)
+                .HasForeignKey(pa => pa.PackageKey);
+
+            modelBuilder.Entity<Package>()
                 .HasMany<PackageStatistics>(p => p.DownloadStatistics)
                 .WithRequired(ps => ps.Package)
                 .HasForeignKey(ps => ps.PackageKey);
@@ -136,6 +142,9 @@ namespace NuGetGallery
                 .HasForeignKey(pm => pm.PackageKey)
                 .WillCascadeOnDelete(false);
 
+            modelBuilder.Entity<PackageAuthor>()
+                .HasKey(pa => pa.Key);
+
             modelBuilder.Entity<PackageStatistics>()
                 .HasKey(ps => ps.Key);
 
@@ -171,5 +180,6 @@ namespace NuGetGallery
             modelBuilder.Entity<CuratedPackage>()
                 .HasRequired(cp => cp.PackageRegistration);
         }
+#pragma warning restore 618
     }
 }

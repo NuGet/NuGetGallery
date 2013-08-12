@@ -7,17 +7,24 @@ namespace NuGetGallery
     [DisplayColumn("Title")]
     public class Package : IEntity
     {
+
+#pragma warning disable 618
         public Package()
         {
+            Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             Listed = true;
         }
+#pragma warning restore 618
 
         public PackageRegistration PackageRegistration { get; set; }
         public int PackageRegistrationKey { get; set; }
 
         public virtual ICollection<PackageStatistics> DownloadStatistics { get; set; }
+
+        [Obsolete("Will be removed in a future iteration, for now is write-only")]
+        public virtual ICollection<PackageAuthor> Authors { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).

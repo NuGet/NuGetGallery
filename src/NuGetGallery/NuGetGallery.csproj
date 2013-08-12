@@ -783,10 +783,6 @@
     <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.Designer.cs">
       <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.cs" />
-    <Compile Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.Designer.cs">
-      <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\201308051913351_EditableMetadata.cs" />
     <Compile Include="Migrations\201308051913351_EditableMetadata.Designer.cs">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
@@ -1230,9 +1226,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201306031754328_SupportNewClientHeaders.resx">
       <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201306112211288_Contract_RemovePackageAuthorsTable.resx">
-      <DependentUpon>201306112211288_Contract_RemovePackageAuthorsTable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308051913351_EditableMetadata.resx">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>

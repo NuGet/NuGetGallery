@@ -165,7 +165,7 @@ namespace NuGetGallery.Operations.Tasks
                         package.PackageEdits.Remove(edit);
                         entitiesContext.SaveChanges();
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         // Database update failed. Try (single attempt) to revert the blob update by restoring the previous snapshot.
                         // Since AFAIK there's no transaction support for blobs...

@@ -23,6 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\CodeAnalysis.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -71,6 +72,7 @@
     <Compile Include="Entities\IEntity.cs" />
     <Compile Include="Entities\IEntityRepository.cs" />
     <Compile Include="Entities\Package.cs" />
+    <Compile Include="Entities\PackageAuthor.cs" />
     <Compile Include="Entities\PackageDependency.cs" />
     <Compile Include="Entities\PackageEdit.cs" />
     <Compile Include="Entities\PackageFramework.cs" />

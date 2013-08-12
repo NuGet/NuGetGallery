@@ -445,6 +445,13 @@ namespace NuGetGallery
             package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
             package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
 
+#pragma warning disable 618
+            foreach (var author in nugetPackage.Metadata.Authors)
+            {
+                package.Authors.Add(new PackageAuthor { Name = author });
+            }
+#pragma warning restore 618
+
             var supportedFrameworks = GetSupportedFrameworks(nugetPackage).Select(fn => fn.ToShortNameOrNull()).ToArray();
             if (!supportedFrameworks.AnySafe(sf => sf == null))
             {

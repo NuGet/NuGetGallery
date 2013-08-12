@@ -566,43 +566,35 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
-            for (int attempts = 0; attempts < 3; attempts++)
+            // To do as much successful cancellation as possible, Will not batch, but will instead try to cancel 
+            // pending edits 1 at a time, starting with oldest first.
+            var pendingEdits = _entitiesContext.Set<PackageEdit>()
+                .Where(pe => pe.PackageKey == package.Key)
+                .OrderBy(pe => pe.Timestamp)
+                .ToList();
+
+            int numOK = 0;
+            int numConflicts = 0;
+            foreach (var result in pendingEdits)
             {
                 try
                 {
-                    var results = _entitiesContext.Set<PackageEdit>().Where(
-                        pe => pe.PackageKey == package.Key).ToList();
-
-                    int numCanceled = results.Count();
-                    foreach (var result in results)
-                    {
-                        _entitiesContext.DeleteOnCommit(result);
-                    }
-
+                    _entitiesContext.DeleteOnCommit(result);
                     _entitiesContext.SaveChanges();
-
-                    TempData["Message"] = string.Format(
-                        CultureInfo.InvariantCulture,
-                        "{0} pending {1} were successfully canceled. Please review your package to ensure it looks as expected.",
-                        numCanceled,
-                        numCanceled == 1 ? "edit" : "edits");
-
-                    break;
+                    numOK += 1;
                 }
-                catch (DataException e)
+                catch (DataException)
                 {
-                    if (attempts == 2)
-                    {
-                        QuietLog.LogHandledException(e);
-
-                        TempData["Message"] = string.Format(
-                           CultureInfo.InvariantCulture,
-                           "An error occurred while trying to cancel pending edits. Please try again later.");
-
-                        break;
-                    }
+                    numConflicts += 1;
                 }
             }
+
+            TempData["Message"] = string.Format(
+                CultureInfo.InvariantCulture,
+                "{0} pending {1} were successfully canceled. {2}Please review your package to ensure it looks as expected.",
+                numOK,
+                numOK == 1 ? "edit" : "edits",
+                numConflicts > 0 ? "Some pending edits failed to be canceled, they may have instead been committed. " : "");
 
             return Redirect(Url.Package(id, version));
         }
