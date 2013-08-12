@@ -120,7 +120,8 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageEdit>()
                 .HasRequired(pm => pm.User)
                 .WithMany()
-                .HasForeignKey(pm => pm.UserKey);
+                .HasForeignKey(pm => pm.UserKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageEdit>()
                 .HasRequired<Package>(pm => pm.Package)
@@ -134,7 +135,8 @@ namespace NuGetGallery
             modelBuilder.Entity<PackageHistory>()
                 .HasOptional(pm => pm.User)
                 .WithMany()
-                .HasForeignKey(pm => pm.UserKey);
+                .HasForeignKey(pm => pm.UserKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageHistory>()
                 .HasRequired<Package>(pm => pm.Package)

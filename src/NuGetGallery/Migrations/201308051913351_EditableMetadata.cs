@@ -30,7 +30,7 @@ namespace NuGetGallery.Migrations
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Packages", t => t.PackageKey)
-                .ForeignKey("dbo.Users", t => t.UserKey, cascadeDelete: true)
+                .ForeignKey("dbo.Users", t => t.UserKey)
                 .Index(t => t.PackageKey)
                 .Index(t => t.UserKey);
             
