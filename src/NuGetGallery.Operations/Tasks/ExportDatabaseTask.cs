@@ -50,10 +50,6 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            if (!String.IsNullOrEmpty(DatabaseName))
-            {
-                ConnectionString.InitialCatalog = DatabaseName;
-            }
             Log.Info("Exporting {0} on {1} to {2}", ConnectionString.InitialCatalog, Util.GetDatabaseServerName(ConnectionString), DestinationStorage.Credentials.AccountName);
 
             string serverName = ConnectionString.DataSource;

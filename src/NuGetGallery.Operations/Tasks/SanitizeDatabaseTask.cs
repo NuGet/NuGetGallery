@@ -45,16 +45,6 @@ namespace NuGetGallery.Operations.Tasks
 
         public override void ExecuteCommand()
         {
-            // Coalesce the database name
-            DatabaseName = String.IsNullOrEmpty(DatabaseName) ?
-                ConnectionString.InitialCatalog :
-                DatabaseName;
-
-            ConnectionString = new SqlConnectionStringBuilder(ConnectionString.ConnectionString)
-            {
-                InitialCatalog = DatabaseName
-            };
-
             // Verify the name
             if (!Force && !AllowedPrefixes.Any(p => ConnectionString.InitialCatalog.StartsWith(p)))
             {
