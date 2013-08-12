@@ -121,7 +121,15 @@ namespace NuGetGallery
         public User User { get; set; }
         public int? UserKey { get; set; }
 
+        /// <summary>
+        /// The set of pending edits to package metadata (for this package).
+        /// Asynchronously updated by the worker.
+        /// </summary>
         public virtual ICollection<PackageEdit> PackageEdits { get; set; }
+
+        /// <summary>
+        /// List of historical metadata info of this package (before edits were applied)
+        /// </summary>
         public virtual ICollection<PackageHistory> PackageHistories { get; set; }
     }
 }

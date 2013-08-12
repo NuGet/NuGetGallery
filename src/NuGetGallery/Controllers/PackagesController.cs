@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -11,8 +12,8 @@ using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
-using NuGetGallery.Packaging;
 using NuGetGallery.Helpers;
+using NuGetGallery.Packaging;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -565,22 +566,43 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
-            var results = _entitiesContext.Set<PackageEdit>().Where(
-                pe => pe.PackageKey == package.Key);
-
-            int numCanceled = 0;
-            foreach (var result in results)
+            for (int attempts = 0; attempts < 3; attempts++)
             {
-                _entitiesContext.Set<PackageEdit>().Remove(result);
-                numCanceled += 1;
+                try
+                {
+                    var results = _entitiesContext.Set<PackageEdit>().Where(
+                        pe => pe.PackageKey == package.Key).ToList();
+
+                    int numCanceled = results.Count();
+                    foreach (var result in results)
+                    {
+                        _entitiesContext.DeleteOnCommit(result);
+                    }
+
+                    _entitiesContext.SaveChanges();
+
+                    TempData["Message"] = string.Format(
+                        CultureInfo.InvariantCulture,
+                        "{0} pending {1} were successfully canceled. Please review your package to ensure it looks as expected.",
+                        numCanceled,
+                        numCanceled == 1 ? "edit" : "edits");
+
+                    break;
+                }
+                catch (DataException e)
+                {
+                    if (attempts == 2)
+                    {
+                        QuietLog.LogHandledException(e);
+
+                        TempData["Message"] = string.Format(
+                           CultureInfo.InvariantCulture,
+                           "An error occurred while trying to cancel pending edits. Please try again later.");
+
+                        break;
+                    }
+                }
             }
-
-            _entitiesContext.SaveChanges();
-
-            TempData["Message"] = string.Format(
-                CultureInfo.InvariantCulture,
-                "{0} pending edits were successfully cancelled. Please review your package to ensure it looks as expected.", 
-                numCanceled);
 
             return Redirect(Url.Package(id, version));
         }
@@ -794,7 +816,7 @@ namespace NuGetGallery
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
                 }
 
-                if (false == formData.Listed)
+                if (!formData.Listed)
                 {
                     _packageService.MarkPackageUnlisted(package, commitChanges: false);
                 }

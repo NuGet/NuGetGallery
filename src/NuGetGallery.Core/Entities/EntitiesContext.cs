@@ -7,12 +7,9 @@ namespace NuGetGallery
 {
     public class EntitiesContext : DbContext, IEntitiesContext
     {
-        static string GetDefaultConnectionString()
-        {
-            //Debug.Assert(false, "If you see this during Migrations Ignore it. Otherwise pay attention. The website should be passing in a readonly mode flag");
-            return WebConfigurationManager.ConnectionStrings["Gallery.SqlServer"].ConnectionString;
-        }
-
+        /// <summary>
+        /// This constructor is provided only for purposes of running migrations from Package Manager console.
+        /// </summary>
         public EntitiesContext()
             : base(GetDefaultConnectionString())
         {
@@ -29,6 +26,11 @@ namespace NuGetGallery
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
+
+        private static string GetDefaultConnectionString()
+        {
+            return WebConfigurationManager.ConnectionStrings["Gallery.SqlServer"].ConnectionString;
+        }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {
