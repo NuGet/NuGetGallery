@@ -9,7 +9,7 @@ using NuGetGallery.Packaging;
 using Xunit;
 using Xunit.Extensions;
 
-namespace NuGetGallery
+namespace NuGetGallery.Packaging
 {
     public class NupkgFacts
     {

@@ -6,7 +6,7 @@ using NuGet;
 using NuGetGallery.Packaging;
 using Xunit;
 
-namespace NuGetGallery.Facts
+namespace NuGetGallery.Packaging
 {
     public class NupkgRewriterFacts
     {
