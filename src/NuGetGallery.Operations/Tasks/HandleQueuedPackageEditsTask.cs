@@ -95,7 +95,7 @@ namespace NuGetGallery.Operations.Tasks
             return originalPackageBlob;
         }
 
-        private void UpdateNupkgBlob(PackageEdit edit, CloudBlockBlob nupkgBlob, IEntitiesContext entitiesContext)
+        private void UpdateNupkgBlob(PackageEdit edit, CloudBlockBlob nupkgBlob, EntitiesContext entitiesContext)
         {
             // Work to do:
             // 1) Backup old blob, if it is an original
@@ -151,27 +151,39 @@ namespace NuGetGallery.Operations.Tasks
                     byte[] hashBytes = hashAlgorithm.ComputeHash(readWriteStream.GetBuffer());
                     var newHash = Convert.ToBase64String(hashBytes);
 
-                    // Reupload blob
-                    Log.Info("Uploading blob from memory {0}", nupkgBlob.Name);
-                    readWriteStream.Position = 0;
-                    nupkgBlob.UploadFromStream(readWriteStream);
-
+                    // Start Transaction: Complete the edit in the gallery DB.
+                    // Use explicit SQL transactions on the assumption EF SaveChanges() is doing it in some other way which doesn't
+                    // support auto-rollback (how could it, since there's no explicit begin transaction?).
+                    var transaction = entitiesContext.Database.Connection.BeginTransaction();
                     try
                     {
-                        // Complete the edit in the gallery DB.
                         var package = edit.Package;
                         package.PackageHistories.Add(new PackageHistory(package));
                         edit.ApplyTo(package, hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
                         package.PackageEdits.Remove(edit);
                         entitiesContext.SaveChanges();
+
+                        // Reupload blob
+                        Log.Info("Uploading blob from memory {0}", nupkgBlob.Name);
+                        readWriteStream.Position = 0;
+                        nupkgBlob.UploadFromStream(readWriteStream);
+                        try
+                        {
+                            transaction.Commit();
+                        }
+                        catch (Exception)
+                        {
+                            // Commit to database update failed. 
+                            // Since our blob update wasn't really part of the transaction (and doesn't AFAIK have a 'commit()' operator we can utilize for the type of blobs we are using)
+                            // try, (single attempt) to revert the blob update by restoring the previous snapshot.
+                            Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
+                            Log.Error("(note) - blob snapshot URL = " + snapshotBlob.Uri);
+                            nupkgBlob.StartCopyFromBlob(snapshotBlob);
+                        }
                     }
                     catch (Exception)
                     {
-                        // Database update failed. Try (single attempt) to revert the blob update by restoring the previous snapshot.
-                        // Since AFAIK there's no transaction support for blobs...
-                        Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
-                        Log.Error("(note) - blob snapshot URL = " + snapshotBlob.Uri);
-                        nupkgBlob.StartCopyFromBlob(snapshotBlob);
+                        transaction.Rollback();
                         throw;
                     }
 
