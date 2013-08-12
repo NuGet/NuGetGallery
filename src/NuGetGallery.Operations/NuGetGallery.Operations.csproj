@@ -189,6 +189,7 @@
     <Compile Include="Tasks\Backups\ExportWarehouseBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ExportDailyBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ListOfflineDatabaseBackupsTask.cs" />
+    <Compile Include="Tasks\BlobBackupFailedException.cs" />
     <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
     <Compile Include="Tasks\CheckBlobCopiesTask.cs" />
     <Compile Include="Tasks\Backups\CleanOnlineDatabaseBackupsTask.cs" />
@@ -215,6 +216,7 @@
     <Compile Include="Infrastructure\Verbosity.cs" />
     <Compile Include="Tasks\DeleteUserTask.cs" />
     <Compile Include="Tasks\ExportDatabaseTask.cs" />
+    <Compile Include="Tasks\HandleQueuedPackageEditsTask.cs" />
     <Compile Include="Tasks\ListDeploymentSettingsTask.cs" />
     <Compile Include="Tasks\ListPackageBlobBackupsTask.cs" />
     <Compile Include="Tasks\LowerCaseAllPackageBlobsTask.cs" />

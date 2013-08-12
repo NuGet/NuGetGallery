@@ -8,6 +8,29 @@ namespace NuGetGallery
     /// </summary>
     public class PackageHistory : IEntity
     {
+        public PackageHistory(Package package)
+        {
+            this.Package = package;
+            this.User = package.User;
+            this.Timestamp = DateTime.UtcNow;
+            this.Title = package.Title;
+            this.Authors = package.FlattenedAuthors;
+            this.Copyright = package.Copyright;
+            this.Description = package.Description;
+            this.IconUrl = package.IconUrl;
+            this.LicenseUrl = package.LicenseUrl;
+            this.ProjectUrl = package.ProjectUrl;
+            this.ReleaseNotes = package.ReleaseNotes;
+            this.RequiresLicenseAcceptance = package.RequiresLicenseAcceptance;
+            this.Summary = package.Summary;
+            this.Tags = package.Tags;
+            this.Hash = package.Hash;
+            this.HashAlgorithm = package.HashAlgorithm;
+            this.PackageFileSize = package.PackageFileSize;
+            this.LastUpdated = package.LastUpdated;
+            this.Published = package.Published;
+        }
+
         public int Key { get; set; }
 
         public Package Package { get; set; }
@@ -20,7 +43,7 @@ namespace NuGetGallery
         public int? UserKey { get; set; }
 
         /// <summary>
-        /// Time the metadata replacement occurred
+        /// Time the metadata replacement occurred (UTC)
         /// </summary
         public DateTime Timestamp { get; set; }
 

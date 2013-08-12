@@ -43,5 +43,27 @@ namespace NuGetGallery
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
+
+        public void ApplyTo(Package package, string hashAlgorithm, string hash, long packageFileSize)
+        {
+            package.Title = this.Title;
+            package.FlattenedAuthors = this.Authors;
+            package.Copyright = this.Copyright;
+            package.Description = this.Description;
+            package.IconUrl = this.IconUrl;
+            package.LicenseUrl = this.LicenseUrl;
+            package.ProjectUrl = this.ProjectUrl;
+            package.ReleaseNotes = this.ReleaseNotes;
+            package.RequiresLicenseAcceptance = this.RequiresLicenseAcceptance;
+            package.Summary = this.Summary;
+            package.Tags = this.Tags;
+
+            package.User = this.User;
+
+            package.Hash = hash;
+            package.HashAlgorithm = hashAlgorithm;
+            package.PackageFileSize = packageFileSize;
+            package.LastUpdated = DateTime.UtcNow;
+        }
     }
 }

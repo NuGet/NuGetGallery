@@ -194,6 +194,14 @@ namespace NuGetGallery.Operations
                 HttpServerUtility.UrlTokenEncode(hashBytes));
         }
 
+        public static string GetBackupOriginalPackageFileName(string id, string version)
+        {
+            return string.Format(
+                "originals/{0}/{0}.{1}+original.nupkg",
+                id.ToLowerInvariant(),
+                version.ToLowerInvariant());
+        }
+
         internal static ICloudBlob GetPackageFileBlob(
             CloudBlobContainer packagesBlobContainer,
             string id,
