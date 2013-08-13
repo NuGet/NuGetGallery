@@ -10,7 +10,7 @@
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <title>NuGet Gallery Database Administration</title>
-        <%: Styles.Render("~/bundles/css") %>
+        <%: Styles.Render("~/content/css") %>
         <link href="~/favicon.ico" runat="server" rel="shortcut icon" type="image/x-icon" />
         <%: Scripts.Render("~/bundles/modernizr") %>
         <asp:ContentPlaceHolder id="head" runat="server">
