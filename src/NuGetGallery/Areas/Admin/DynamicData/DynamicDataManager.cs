@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Web.DynamicData;
+using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.UI;
 using DynamicData.EFCodeFirstProvider;
@@ -29,11 +30,6 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 
         private static void InitializeValidation()
         {
-            ScriptManager.ScriptResourceMapping.AddDefinition("jquery", new ScriptResourceDefinition()
-            {
-                Path = "~/Scripts/jquery-1.6.2.min.js",
-                DebugPath = "~/Scripts/jquery-1.6.2.js"
-            });
         }
 
         private static void InitializeDynamicData(RouteCollection routes, string root, IAppConfiguration configuration)
