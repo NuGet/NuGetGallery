@@ -5,13 +5,13 @@ namespace NuGetGallery.Migrations
     using System.Data.Entity.Migrations.Infrastructure;
     using System.Resources;
     
-    public sealed partial class LicenseMonikers : IMigrationMetadata
+    public sealed partial class AddPackageLicenseReportSproc : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(LicenseMonikers));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddPackageLicenseReportSproc));
         
         string IMigrationMetadata.Id
         {
-            get { return "201306270322551_LicenseMonikers"; }
+            get { return "201308132048012_AddPackageLicenseReportSproc"; }
         }
         
         string IMigrationMetadata.Source

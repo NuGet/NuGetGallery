@@ -1,6 +1,6 @@
 ﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using NuGetGallery.Entities;
+using NuGetGallery;
 
 namespace NuGetGallery
 {

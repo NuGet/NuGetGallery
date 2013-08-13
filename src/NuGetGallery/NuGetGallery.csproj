@@ -289,6 +289,7 @@
     <Compile Include="Areas\Admin\Controllers\ConfigController.cs" />
     <Compile Include="Areas\Admin\ViewModels\ConfigViewModel.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
+    <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\LuceneIndexLocation.cs" />
     <Compile Include="Configuration\MailAddressConverter.cs" />
     <Compile Include="Configuration\SmtpUri.cs" />
@@ -578,68 +579,6 @@
     </Compile>
     <Compile Include="Diagnostics\DiagnosticsNinjectModule.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
-    <Compile Include="Entities\CuratedFeed.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\CuratedPackage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\EmailMessage.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\EntitiesContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\EntityException.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\EntityRepository.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\GallerySetting.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\IEntitiesContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\IEntity.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\IEntityRepository.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\Package.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\PackageAuthor.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\PackageDependency.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\PackageFramework.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\PackageLicense.cs" />
-    <Compile Include="Entities\PackageLicenseReport.cs" />
-    <Compile Include="Entities\PackageOwnerRequest.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\PackageRegistration.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\PackageStatistics.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\ReadOnlyModeException.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\Role.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Entities\User.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />
@@ -845,20 +784,13 @@
     <Compile Include="Migrations\201306031754328_SupportNewClientHeaders.Designer.cs">
       <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201306270322551_LicenseMonikers.cs" />
-    <Compile Include="Migrations\201306270322551_LicenseMonikers.Designer.cs">
-      <DependentUpon>201306270322551_LicenseMonikers.cs</DependentUpon>
+    <Compile Include="Migrations\201308132043424_FriendlyLicenseNames.cs" />
+    <Compile Include="Migrations\201308132043424_FriendlyLicenseNames.Designer.cs">
+      <DependentUpon>201308132043424_FriendlyLicenseNames.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201307172209360_DenormalizeLicenseReportData.cs" />
-    <Compile Include="Migrations\201307172209360_DenormalizeLicenseReportData.Designer.cs">
-      <DependentUpon>201307172209360_DenormalizeLicenseReportData.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201307231825361_AddPackageLicenseReportSproc.cs" />
-    <Compile Include="Migrations\201307231825361_AddPackageLicenseReportSproc.Designer.cs">
-      <DependentUpon>201307231825361_AddPackageLicenseReportSproc.cs</DependentUpon>
-    <Compile Include="Migrations\201308072252317_Dummy.cs" />
-    <Compile Include="Migrations\201308072252317_Dummy.Designer.cs">
-      <DependentUpon>201308072252317_Dummy.cs</DependentUpon>
+    <Compile Include="Migrations\201308132048012_AddPackageLicenseReportSproc.cs" />
+    <Compile Include="Migrations\201308132048012_AddPackageLicenseReportSproc.Designer.cs">
+      <DependentUpon>201308132048012_AddPackageLicenseReportSproc.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1225,16 +1157,11 @@
     <EmbeddedResource Include="Migrations\201306031754328_SupportNewClientHeaders.resx">
       <DependentUpon>201306031754328_SupportNewClientHeaders.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201306270322551_LicenseMonikers.resx">
-      <DependentUpon>201306270322551_LicenseMonikers.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201308132043424_FriendlyLicenseNames.resx">
+      <DependentUpon>201308132043424_FriendlyLicenseNames.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201307172209360_DenormalizeLicenseReportData.resx">
-      <DependentUpon>201307172209360_DenormalizeLicenseReportData.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201307231825361_AddPackageLicenseReportSproc.resx">
-      <DependentUpon>201307231825361_AddPackageLicenseReportSproc.cs</DependentUpon>
-    <EmbeddedResource Include="Migrations\201308072252317_Dummy.resx">
-      <DependentUpon>201308072252317_Dummy.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201308132048012_AddPackageLicenseReportSproc.resx">
+      <DependentUpon>201308132048012_AddPackageLicenseReportSproc.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
