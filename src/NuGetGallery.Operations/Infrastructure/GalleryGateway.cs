@@ -1,6 +1,7 @@
 ﻿using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using NuGetGallery.Migrations;
 
 namespace NuGetGallery.Infrastructure
@@ -21,7 +22,9 @@ namespace NuGetGallery.Infrastructure
         {
             var config = new MigrationsConfiguration()
             {
-                TargetDatabase = new DbConnectionInfo(connectionString, providerType)
+                TargetDatabase = new DbConnectionInfo(connectionString, providerType),
+                ContextType = typeof(EntitiesContext),
+                MigrationsAssembly = Assembly.Load("NuGetGallery"),
             };
             EntitiesContextFactory.OverrideConnectionString = connectionString;
             return new DbMigrator(config);

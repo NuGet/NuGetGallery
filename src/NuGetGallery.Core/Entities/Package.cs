@@ -13,6 +13,8 @@ namespace NuGetGallery
         {
             Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
+            PackageEdits = new HashSet<PackageEdit>();
+            PackageHistories = new HashSet<PackageHistory>();
             SupportedFrameworks = new HashSet<PackageFramework>();
             Listed = true;
         }
@@ -138,5 +140,30 @@ namespace NuGetGallery
         /// List of historical metadata info of this package (before edits were applied)
         /// </summary>
         public virtual ICollection<PackageHistory> PackageHistories { get; set; }
+
+        public void ApplyEdit(PackageEdit edit, string hashAlgorithm, string hash, long packageFileSize)
+        {
+            // before we modify this package, record its state in history
+            PackageHistories.Add(new PackageHistory(this));
+
+            Title = edit.Title;
+            FlattenedAuthors = edit.Authors;
+            Copyright = edit.Copyright;
+            Description = edit.Description;
+            IconUrl = edit.IconUrl;
+            LicenseUrl = edit.LicenseUrl;
+            ProjectUrl = edit.ProjectUrl;
+            ReleaseNotes = edit.ReleaseNotes;
+            RequiresLicenseAcceptance = edit.RequiresLicenseAcceptance;
+            Summary = edit.Summary;
+            Tags = edit.Tags;
+            User = edit.User;
+
+            Hash = hash;
+            HashAlgorithm = hashAlgorithm;
+            PackageFileSize = packageFileSize;
+            LastUpdated = DateTime.UtcNow;
+            PackageEdits.Remove(edit);
+        }
     }
 }

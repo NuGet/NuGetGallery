@@ -46,24 +46,7 @@ namespace NuGetGallery
 
         public void Apply(string hashAlgorithm, string hash, long packageFileSize)
         {
-            Package.Title = this.Title;
-            Package.FlattenedAuthors = this.Authors;
-            Package.Copyright = this.Copyright;
-            Package.Description = this.Description;
-            Package.IconUrl = this.IconUrl;
-            Package.LicenseUrl = this.LicenseUrl;
-            Package.ProjectUrl = this.ProjectUrl;
-            Package.ReleaseNotes = this.ReleaseNotes;
-            Package.RequiresLicenseAcceptance = this.RequiresLicenseAcceptance;
-            Package.Summary = this.Summary;
-            Package.Tags = this.Tags;
-
-            Package.User = this.User;
-
-            Package.Hash = hash;
-            Package.HashAlgorithm = hashAlgorithm;
-            Package.PackageFileSize = packageFileSize;
-            Package.LastUpdated = DateTime.UtcNow;
+            Package.ApplyEdit(this, hashAlgorithm, hash, packageFileSize);
         }
     }
 }

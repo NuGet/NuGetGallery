@@ -591,10 +591,10 @@ namespace NuGetGallery
 
             TempData["Message"] = string.Format(
                 CultureInfo.InvariantCulture,
-                "{0} pending {1} were successfully canceled. {2}Please review your package to ensure it looks as expected.",
+                "{0} pending {1} successfully canceled. {2}",
                 numOK,
-                numOK == 1 ? "edit" : "edits",
-                numConflicts > 0 ? "Some pending edits failed to be canceled, they may have instead been committed. " : "");
+                numOK == 1 ? "edit was" : "edits were",
+                numConflicts > 0 ? "Some pending edits had already been applied and could not be canceled." : "");
 
             return Redirect(Url.Package(id, version));
         }

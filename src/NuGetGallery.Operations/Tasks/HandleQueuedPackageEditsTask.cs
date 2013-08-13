@@ -18,6 +18,7 @@ namespace NuGetGallery.Operations.Tasks
     public class HandleQueuedPackageEditsTask : DatabaseAndStorageTask
     {
         static int[] SleepTimes = { 50, 750, 1500, 2500, 3750, 5250, 7000, 9000 };
+
         public override void ExecuteCommand()
         {
             // Work to do:
@@ -42,7 +43,7 @@ namespace NuGetGallery.Operations.Tasks
             // c) we [currently] might see multiple edits of a single package, and we want to back them up and apply them in the correct order.
             foreach (var edit in edits)
             {
-                UpdateNupkgBlob(edit, entitiesContext);
+                ProcessPackageEdit(edit, entitiesContext);
             }
         }
 
@@ -56,7 +57,7 @@ namespace NuGetGallery.Operations.Tasks
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
 
             var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
-            var originalPackageFileName = Util.GetBackupOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
+            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
 
             var originalPackageBlob = packagesContainer.GetBlockBlobReference(originalPackageFileName);
             var latestPackageBlob = packagesContainer.GetBlockBlobReference(latestPackageFileName);
@@ -70,7 +71,8 @@ namespace NuGetGallery.Operations.Tasks
                 else
                 {
                     Log.Info("Backing up blob: {0} to {1}", latestPackageFileName, originalPackageFileName);
-                    originalPackageBlob.StartCopyFromBlob(latestPackageBlob);
+                    AccessCondition whenblobDoesNotExist = AccessCondition.GenerateIfNoneMatchCondition("*");
+                    originalPackageBlob.StartCopyFromBlob(latestPackageBlob, destAccessCondition: whenblobDoesNotExist);
                     CopyState state = originalPackageBlob.CopyState;
 
                     int i = 0;
@@ -96,12 +98,13 @@ namespace NuGetGallery.Operations.Tasks
             return originalPackageBlob;
         }
 
-        private void UpdateNupkgBlob(PackageEdit edit, EntitiesContext entitiesContext)
+        private void ProcessPackageEdit(PackageEdit edit, EntitiesContext entitiesContext)
         {
-            // Work to do:
-            // 1) Backup old blob, if it is an original
-            // 2) Download blob, create new NUPKG locally
+            // List of Work to do:
+            // 1) Backup old blob, if the original has not been backed up yet
+            // 2) Downloads blob, create new NUPKG locally
             // 3) Upload blob
+            // 4) Update the database
             var edits = new List<Action<ManifestMetadata>>
             { 
                 (m) => { m.Authors = edit.Authors; },
@@ -158,15 +161,12 @@ namespace NuGetGallery.Operations.Tasks
                     var snapshotBlob = nupkgBlob.CreateSnapshot();
 
                     // Start Transaction: Complete the edit in the gallery DB.
-                    // Use explicit SQL transactions on the assumption EF SaveChanges() is doing it in some other way which doesn't
-                    // support auto-rollback (how could it, since there's no explicit begin transaction?).
+                    // Use explicit SQL transactions instead of EF operation-grouping 
+                    // so that we can manually roll the transaction back on a blob related failure.
                     var transaction = entitiesContext.Database.Connection.BeginTransaction();
                     try
                     {
-                        var package = edit.Package;
-                        package.PackageHistories.Add(new PackageHistory(package));
                         edit.Apply(hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
-                        package.PackageEdits.Remove(edit);
                         entitiesContext.SaveChanges();
 
                         // Reupload blob
@@ -176,24 +176,26 @@ namespace NuGetGallery.Operations.Tasks
                         try
                         {
                             transaction.Commit();
+                            Log.Info("(success)");
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
                             // Commit to database update failed. 
                             // Since our blob update wasn't really part of the transaction (and doesn't AFAIK have a 'commit()' operator we can utilize for the type of blobs we are using)
                             // try, (single attempt) to revert the blob update by restoring the previous snapshot.
                             Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
+                            Log.ErrorException("(exception", e);
                             Log.Error("(note) - blob snapshot URL = " + snapshotBlob.Uri);
                             nupkgBlob.StartCopyFromBlob(snapshotBlob);
                         }
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        Log.Error("(error) - package edit blob update failed. Rolling back the DB transaction.");
+                        Log.ErrorException("(exception", e);
+                        Log.Error("(note) - blob snapshot URL = " + snapshotBlob.Uri);
                         transaction.Rollback();
-                        throw;
                     }
-
-                    Log.Info("(success)");
                 }
             }
         }
