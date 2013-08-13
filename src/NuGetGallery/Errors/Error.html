@@ -4,9 +4,9 @@
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <title>NuGet Gallery</title> 
-        <link href="../Content/site.css" rel="stylesheet" />
+        <link href="../Content/Site.css" rel="stylesheet" />
         <link href="../favicon.ico" rel="shortcut icon" type="image/x-icon" />
-        <script src="../Scripts/modernizr-2.0.6-development-only.js"></script>
+        <script src="../Scripts/modernizr"></script>
     </head>
     <body>
         <div id="content-wrapper">
@@ -18,7 +18,7 @@
                     <li><a href="../">Home</a></li>
                     <li><a href="../Packages">Packages</a></li>
                     <li><a href="http://docs.nuget.org">Documentation</a></li>
-                    <li><a href="/packages/upload" class="upload">Upload Package</a></li>
+                    <li><a href="../packages/upload" class="upload">Upload Package</a></li>
                 </ul>
             </nav>
             <div id="body">
@@ -71,13 +71,5 @@
                 </div>
             </footer>
         </div>
-        <script src="../Scripts/jquery-1.6.2.min.js"></script>
-        <script type="text/javascript">
-            function submitQuery() {
-                window.location = "../packages?q="
-                + encodeURIComponent($("#searchBoxInput").val());
-                return false;
-            }
-        </script>
     </body>
 </html>
