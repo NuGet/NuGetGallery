@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 
-namespace NuGetGallery.Entities
+namespace NuGetGallery
 {
     public class PackageLicense
     {
