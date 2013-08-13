@@ -1559,7 +1559,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("nuget-commandline")]
-            [InlineData("nuget..commandline")]
+            [InlineData("nuget.x.commandline")]
             [InlineData("nuget.command")]
             public async Task WillNotExtractNuGetExeIfIsItDoesNotMatchId(string id)
             {
@@ -1577,6 +1577,7 @@ namespace NuGetGallery
 
                 fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(
                     CreateTestPackageStream(commandLinePackage)));
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(42)).Returns(Task.FromResult(0));
 
                 fakePackageService.Setup(x => x.CreatePackage(It.IsAny<INupkg>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(commandLinePackage);
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
