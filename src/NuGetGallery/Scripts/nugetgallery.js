@@ -1,5 +1,5 @@
 ﻿// Global utility script for NuGetGallery
-/// <reference path="jquery-1.6.2.js" />
+/// <reference path="jquery-1.6.4.js" />
 (function (window, $, undefined) {
     function attachSearchBoxBehavior($input, $menu) {
         // Remember the previous state in order to perform smooth animation transforms
@@ -39,8 +39,8 @@
         }
 
         // Bind handlers
-        $input.on('keyup', popit);
-        $input.on('blur', popit);
+        $input.delegate('', 'keyup', popit);
+        $input.delegate('', 'blur', popit);
     }
 
     function checkServiceStatus() {
@@ -59,6 +59,10 @@
         // Export an object with global config data
         var app = $(document.documentElement).data();
         window.app = app;
+
+        if (!app.root) {
+            app.root = '';
+        }
 
         // Get the service status
         checkServiceStatus();
