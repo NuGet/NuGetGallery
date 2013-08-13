@@ -44,26 +44,26 @@ namespace NuGetGallery
         public string Summary { get; set; }
         public string Tags { get; set; }
 
-        public void ApplyTo(Package package, string hashAlgorithm, string hash, long packageFileSize)
+        public void Apply(string hashAlgorithm, string hash, long packageFileSize)
         {
-            package.Title = this.Title;
-            package.FlattenedAuthors = this.Authors;
-            package.Copyright = this.Copyright;
-            package.Description = this.Description;
-            package.IconUrl = this.IconUrl;
-            package.LicenseUrl = this.LicenseUrl;
-            package.ProjectUrl = this.ProjectUrl;
-            package.ReleaseNotes = this.ReleaseNotes;
-            package.RequiresLicenseAcceptance = this.RequiresLicenseAcceptance;
-            package.Summary = this.Summary;
-            package.Tags = this.Tags;
+            Package.Title = this.Title;
+            Package.FlattenedAuthors = this.Authors;
+            Package.Copyright = this.Copyright;
+            Package.Description = this.Description;
+            Package.IconUrl = this.IconUrl;
+            Package.LicenseUrl = this.LicenseUrl;
+            Package.ProjectUrl = this.ProjectUrl;
+            Package.ReleaseNotes = this.ReleaseNotes;
+            Package.RequiresLicenseAcceptance = this.RequiresLicenseAcceptance;
+            Package.Summary = this.Summary;
+            Package.Tags = this.Tags;
 
-            package.User = this.User;
+            Package.User = this.User;
 
-            package.Hash = hash;
-            package.HashAlgorithm = hashAlgorithm;
-            package.PackageFileSize = packageFileSize;
-            package.LastUpdated = DateTime.UtcNow;
+            Package.Hash = hash;
+            Package.HashAlgorithm = hashAlgorithm;
+            Package.PackageFileSize = packageFileSize;
+            Package.LastUpdated = DateTime.UtcNow;
         }
     }
 }

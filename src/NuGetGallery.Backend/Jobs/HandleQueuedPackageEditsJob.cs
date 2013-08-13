@@ -4,13 +4,13 @@ using NuGetGallery.Operations.Tasks;
 
 namespace NuGetGallery.Backend.Jobs
 {
-    class HandleQueuedPackageEditsJob : WorkerJob
+    internal class HandleQueuedPackageEditsJob : WorkerJob
     {
         public override TimeSpan Period
         {
             get
             {
-                return TimeSpan.FromMinutes(5);
+                return TimeSpan.FromSeconds(30);
             }
         }
 

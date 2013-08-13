@@ -17,6 +17,7 @@ namespace NuGetGallery.Operations.Tasks
     [Command("handlequeuededits", "Handle Queued Package Edits", AltName = "hqe", MaxArgs = 0)]
     public class HandleQueuedPackageEditsTask : DatabaseAndStorageTask
     {
+        static int[] SleepTimes = { 50, 750, 1500, 2500, 3750, 5250, 7000, 9000 };
         public override void ExecuteCommand()
         {
             // Work to do:
@@ -32,30 +33,26 @@ namespace NuGetGallery.Operations.Tasks
                 .Include(pe => pe.Package)
                 .Include(pe => pe.Package.PackageRegistration)
                 .Include(pe => pe.Package.User)
+                .OrderBy(pe => pe.Timestamp) // Get PackageEdits in the order they were created.
                 .ToList();
 
-            ConcurrentDictionary<PackageEdit, CloudBlockBlob> blobCache = new ConcurrentDictionary<PackageEdit,CloudBlockBlob>();
-
-            Parallel.ForEach(edits, new ParallelOptions { MaxDegreeOfParallelism = 10 }, edit =>
-                {
-                    var blob = BackupBlob(edit);
-                    blobCache.TryAdd(edit, blob); //should always succeed 
-                });
-
-            // Not doing the actual editing in parallel because
+            // Not doing editing in parallel because
             // a) any particular blob may use a large amount of memory to process. Let's not multiply that!
             // b) we don't want multithreaded SaveChanges on the entitiesContext!
+            // c) we [currently] might see multiple edits of a single package, and we want to back them up and apply them in the correct order.
             foreach (var edit in edits)
             {
-                UpdateNupkgBlob(edit, blobCache[edit], entitiesContext);
+                UpdateNupkgBlob(edit, entitiesContext);
             }
         }
 
-        // Hack: in WhatIf mode, returns the original blob
+        /// <summary>
+        /// Backups up the blob (original package blob) and returns the backup.
+        /// note: in WhatIf mode, doesn't actually create a backup, and returns the original blob instead.
+        /// </summary>
         private CloudBlockBlob BackupBlob(PackageEdit edit)
         {
-            CloudStorageAccount storageAccount = CurrentEnvironment.MainStorage;
-            var blobClient = storageAccount.CreateCloudBlobClient();
+            var blobClient = StorageAccount.CreateCloudBlobClient();
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
 
             var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
@@ -68,18 +65,20 @@ namespace NuGetGallery.Operations.Tasks
             {
                 if (WhatIf)
                 {
-                    return latestPackageBlob; // said hack
+                    return latestPackageBlob; // returning original blob, NOT backup. Hopefully in WhatIf mode nobody will do anything destructive with that.
                 }
                 else
                 {
                     Log.Info("Backing up blob: {0} to {1}", latestPackageFileName, originalPackageFileName);
                     originalPackageBlob.StartCopyFromBlob(latestPackageBlob);
                     CopyState state = originalPackageBlob.CopyState;
-                    while (state == null || state.Status == CopyStatus.Pending)
+
+                    int i = 0;
+                    while (state == null || state.Status == CopyStatus.Pending && i < SleepTimes.Length)
                     {
                         Log.Info("(sleeping for a copy completion)");
-                        Thread.Sleep(3000); 
-                        originalPackageBlob.FetchAttributes(); // To get a refreshed x-ms-copy-status response header - according to my theoretical understanding
+                        Thread.Sleep(SleepTimes[i]); 
+                        originalPackageBlob.FetchAttributes(); // To get a refreshed CopyState
 
                         //refresh state
                         state = originalPackageBlob.CopyState;
@@ -87,7 +86,9 @@ namespace NuGetGallery.Operations.Tasks
 
                     if (state.Status != CopyStatus.Success)
                     {
-                        throw new BlobBackupFailedException(string.Format("Blob copy failed: CopyState={0}", state.StatusDescription));
+                        string msg = string.Format("Blob copy failed: CopyState={0}", state.StatusDescription);
+                        Log.Error("(error) " + msg);
+                        throw new BlobBackupFailedException(msg);
                     }
                 }
             }
@@ -95,14 +96,13 @@ namespace NuGetGallery.Operations.Tasks
             return originalPackageBlob;
         }
 
-        private void UpdateNupkgBlob(PackageEdit edit, CloudBlockBlob nupkgBlob, EntitiesContext entitiesContext)
+        private void UpdateNupkgBlob(PackageEdit edit, EntitiesContext entitiesContext)
         {
             // Work to do:
             // 1) Backup old blob, if it is an original
             // 2) Download blob, create new NUPKG locally
             // 3) Upload blob
-
-            List<Action<ManifestMetadata>> edits = new List<Action<ManifestMetadata>>
+            var edits = new List<Action<ManifestMetadata>>
             { 
                 (m) => { m.Authors = edit.Authors; },
                 (m) => { m.Copyright = edit.Copyright; },
@@ -122,34 +122,40 @@ namespace NuGetGallery.Operations.Tasks
                 edit.Key,
                 edit.Package.PackageRegistration.Id,
                 edit.Package.Version);
-
+            
             if (!WhatIf)
             {
-                using (var readWriteStream = new MemoryStream())
+                edit.TriedCount += 1;
+                int nr = entitiesContext.SaveChanges();
+                if (nr != 1)
                 {
-                    edit.TriedCount += 1;
-                    int nr = entitiesContext.SaveChanges();
-                    if (nr != 1)
-                    {
-                        throw new ApplicationException("Something went terribly wrong, only one entity should be updated but actually " + nr + "entity(ies) were updated");
-                    }
+                    throw new ApplicationException(
+                        String.Format("Something went terribly wrong, only one entity should be updated but actually {0} entity(ies) were updated", nr));
+                }
+            }
 
+            CloudBlockBlob nupkgBlob = BackupBlob(edit);
+            using (var readWriteStream = new MemoryStream())
+            {
+                // Download to memory
+                Log.Info("Downloading blob to memory {0}", nupkgBlob.Name);
+                nupkgBlob.DownloadToStream(readWriteStream);
+
+                // Rewrite in memory
+                Log.Info("Rewriting nupkg package in memory", nupkgBlob.Name);
+                NupkgRewriter.RewriteNupkgManifest(readWriteStream, edits);
+
+                // Get updated hash code, and file size
+                Log.Info("Computing updated hash code of memory stream");
+                var newPackageFileSize = readWriteStream.Length;
+                var hashAlgorithm = HashAlgorithm.Create("SHA512");
+                byte[] hashBytes = hashAlgorithm.ComputeHash(readWriteStream.GetBuffer());
+                var newHash = Convert.ToBase64String(hashBytes);
+
+                if (!WhatIf)
+                {
                     // Snapshot the blob
                     var snapshotBlob = nupkgBlob.CreateSnapshot();
-
-                    // Download to memory
-                    Log.Info("Downloading blob to memory {0}", nupkgBlob.Name);
-                    nupkgBlob.DownloadToStream(readWriteStream);
-
-                    // Rewrite in memory
-                    Log.Info("Rewriting nupkg package in memory", nupkgBlob.Name);
-                    NupkgRewriter.RewriteNupkgManifest(readWriteStream, edits);
-
-                    // Get updated hash code, and file size
-                    var newPackageFileSize = readWriteStream.Length;
-                    var hashAlgorithm = HashAlgorithm.Create("SHA512");
-                    byte[] hashBytes = hashAlgorithm.ComputeHash(readWriteStream.GetBuffer());
-                    var newHash = Convert.ToBase64String(hashBytes);
 
                     // Start Transaction: Complete the edit in the gallery DB.
                     // Use explicit SQL transactions on the assumption EF SaveChanges() is doing it in some other way which doesn't
@@ -159,7 +165,7 @@ namespace NuGetGallery.Operations.Tasks
                     {
                         var package = edit.Package;
                         package.PackageHistories.Add(new PackageHistory(package));
-                        edit.ApplyTo(package, hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
+                        edit.Apply(hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
                         package.PackageEdits.Remove(edit);
                         entitiesContext.SaveChanges();
 
@@ -191,6 +197,5 @@ namespace NuGetGallery.Operations.Tasks
                 }
             }
         }
-
     }
 } 

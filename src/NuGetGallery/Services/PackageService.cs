@@ -445,7 +445,7 @@ namespace NuGetGallery
             package.ProjectUrl = nugetPackage.Metadata.ProjectUrl.ToStringOrNull();
             package.MinClientVersion = nugetPackage.Metadata.MinClientVersion.ToStringOrNull();
 
-#pragma warning disable 618
+#pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
             foreach (var author in nugetPackage.Metadata.Authors)
             {
                 package.Authors.Add(new PackageAuthor { Name = author });

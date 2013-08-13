@@ -246,7 +246,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\src\NuGetGallery\NuGetGallery.csproj">
       <Project>{1DACF781-5CD0-4123-8BAC-CD385D864BE5}</Project>
-      <Name>NuGetGallery.Frontend</Name>
+      <Name>NuGetGallery</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

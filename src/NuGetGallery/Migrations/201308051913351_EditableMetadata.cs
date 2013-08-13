@@ -29,7 +29,7 @@ namespace NuGetGallery.Migrations
                         Tags = c.String(),
                     })
                 .PrimaryKey(t => t.Key)
-                .ForeignKey("dbo.Packages", t => t.PackageKey)
+                .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
                 .ForeignKey("dbo.Users", t => t.UserKey)
                 .Index(t => t.PackageKey)
                 .Index(t => t.UserKey);
@@ -60,7 +60,7 @@ namespace NuGetGallery.Migrations
                         Published = c.DateTime(nullable: false),
                     })
                 .PrimaryKey(t => t.Key)
-                .ForeignKey("dbo.Packages", t => t.PackageKey)
+                .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
                 .ForeignKey("dbo.Users", t => t.UserKey)
                 .Index(t => t.PackageKey)
                 .Index(t => t.UserKey);

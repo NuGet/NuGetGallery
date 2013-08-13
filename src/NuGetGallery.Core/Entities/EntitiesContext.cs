@@ -52,7 +52,7 @@ namespace NuGetGallery
             Set<T>().Remove(entity);
         }
 
-#pragma warning disable 618
+#pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
@@ -127,7 +127,7 @@ namespace NuGetGallery
                 .HasRequired<Package>(pm => pm.Package)
                 .WithMany(p => p.PackageEdits)
                 .HasForeignKey(pm => pm.PackageKey)
-                .WillCascadeOnDelete(false);
+                .WillCascadeOnDelete(true); // Pending PackageEdits get deleted with their package, since hey, there's no way to apply them without the package anyway.
 
             modelBuilder.Entity<PackageHistory>()
                 .HasKey(pm => pm.Key);
@@ -142,7 +142,7 @@ namespace NuGetGallery
                 .HasRequired<Package>(pm => pm.Package)
                 .WithMany(p => p.PackageHistories)
                 .HasForeignKey(pm => pm.PackageKey)
-                .WillCascadeOnDelete(false);
+                .WillCascadeOnDelete(true); // PackageHistories get deleted with their package.
 
             modelBuilder.Entity<PackageAuthor>()
                 .HasKey(pa => pa.Key);
