@@ -1073,7 +1073,7 @@ namespace NuGetGallery
         public class TheVerifyPackageActionForPostRequests
         {
             [Fact]
-            public async Task WillReturn404WhenThereIsNoUploadInProgress()
+            public async Task WillRedirectToUploadPageWhenThereIsNoUploadInProgress()
             {
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
@@ -1086,7 +1086,8 @@ namespace NuGetGallery
                     userService: fakeUserService,
                     fakeIdentity: fakeIdentity);
 
-                var result = await controller.VerifyPackage((bool?)null) as HttpNotFoundResult;
+                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://uploadpackage.xyz"));
+                var result = await controller.VerifyPackage((bool?)null) as RedirectResult;
 
                 Assert.NotNull(result);
             }
@@ -1527,7 +1528,6 @@ namespace NuGetGallery
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakeUploadFileService = new Mock<IUploadFileService>();
 
-                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(null));
                 var fakePackageService = new Mock<IPackageService>();
                 var commandLinePackage = new Package
                     {
@@ -1535,7 +1535,13 @@ namespace NuGetGallery
                         Version = "2.0.0",
                         IsLatestStable = false
                     };
+                
                 fakePackageService.Setup(x => x.CreatePackage(It.IsAny<INupkg>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(commandLinePackage);
+
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(
+                    CreateTestPackageStream(commandLinePackage)));
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(42)).Returns(Task.FromResult(0));
+
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var controller = CreateController(
                     packageService: fakePackageService,
@@ -1565,10 +1571,13 @@ namespace NuGetGallery
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakeUploadFileService = new Mock<IUploadFileService>();
 
-                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(null));
                 var fakePackageService = new Mock<IPackageService>();
                 var commandLinePackage = new Package
                     { PackageRegistration = new PackageRegistration { Id = id }, Version = "2.0.0", IsLatestStable = true };
+
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(
+                    CreateTestPackageStream(commandLinePackage)));
+
                 fakePackageService.Setup(x => x.CreatePackage(It.IsAny<INupkg>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(commandLinePackage);
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var controller = CreateController(
@@ -1579,10 +1588,35 @@ namespace NuGetGallery
                     downloaderService: nugetExeDownloader);
 
                 // Act
+                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://1.1.1.1"));
                 await controller.VerifyPackage(false);
 
                 // Assert
                 nugetExeDownloader.Verify(d => d.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
+            }
+
+            private Stream CreateTestPackageStream(Package commandLinePackage)
+            {
+                var packageStream = new MemoryStream();
+                var builder = new PackageBuilder
+                {
+                    Id = commandLinePackage.PackageRegistration.Id,
+                    Version = SemanticVersion.Parse(commandLinePackage.Version),
+                    Authors = 
+                    {
+                        "dummyAuthor",
+                    },
+                    Description = commandLinePackage.Description ?? "dummyDesription",
+                };
+
+                // Make the package buildable by adding a dependency
+                if (builder.Files.Count == 0 && !builder.DependencySets.Any(s => s.Dependencies.Any()))
+                {
+                    builder.DependencySets.Add(new PackageDependencySet(null, new[] { new NuGet.PackageDependency("dummy") }));
+                }
+
+                builder.Save(packageStream);
+                return packageStream;
             }
         }
 
