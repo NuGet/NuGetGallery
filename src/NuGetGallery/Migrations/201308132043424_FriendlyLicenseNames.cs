@@ -3,7 +3,7 @@ namespace NuGetGallery.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class LicenseMonikers : DbMigration
+    public partial class FriendlyLicenseNames : DbMigration
     {
         public override void Up()
         {
@@ -20,8 +20,7 @@ namespace NuGetGallery.Migrations
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
-                .Index(t => t.PackageKey)
-                .Index(t => t.Sequence, unique: true);
+                .Index(t => t.PackageKey);
             
             CreateTable(
                 "dbo.PackageLicenses",
@@ -46,6 +45,8 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.LicenseKey);
             
             AddColumn("dbo.Packages", "HideLicenseReport", c => c.Boolean(nullable: false));
+            AddColumn("dbo.Packages", "LicenseNames", c => c.String());
+            AddColumn("dbo.Packages", "LicenseReportUrl", c => c.String());
             AddColumn("dbo.GallerySettings", "NextLicenseReport", c => c.String());
         }
         
@@ -57,7 +58,9 @@ namespace NuGetGallery.Migrations
             DropForeignKey("dbo.PackageLicenseReportLicenses", "LicenseKey", "dbo.PackageLicenses");
             DropForeignKey("dbo.PackageLicenseReportLicenses", "ReportKey", "dbo.PackageLicenseReports");
             DropForeignKey("dbo.PackageLicenseReports", "PackageKey", "dbo.Packages");
-            DropColumn("dbo.GallerySettings", "LastLicenseReport");
+            DropColumn("dbo.GallerySettings", "NextLicenseReport");
+            DropColumn("dbo.Packages", "LicenseReportUrl");
+            DropColumn("dbo.Packages", "LicenseNames");
             DropColumn("dbo.Packages", "HideLicenseReport");
             DropTable("dbo.PackageLicenseReportLicenses");
             DropTable("dbo.PackageLicenses");
