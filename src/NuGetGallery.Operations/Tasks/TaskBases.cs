@@ -8,6 +8,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
 using System.Data.Entity.Migrations.Infrastructure;
 using AnglicanGeek.DbExecutor;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery.Operations
 {
@@ -143,39 +144,11 @@ namespace NuGetGallery.Operations
 
     public abstract class MigrationsTask : DatabaseTask
     {
-        private const string DefaultGatewayType = "NuGetGallery.Infrastructure.GalleryGateway";
-
-        [Option("Path to the assembly containing the migrations", AltName = "a")]
-        public string GalleryAssembly { get; set; }
-
-        [Option("The type that will serve as a Gateway into the Gallery code. Usually the default value is fine", AltName = "t")]
-        public string GatewayType { get; set; }
-
-        public override void ValidateArguments()
-        {
-            base.ValidateArguments();
-            if (String.IsNullOrEmpty(GatewayType))
-            {
-                GatewayType = DefaultGatewayType;
-            }
-
-            ArgCheck.Required(GalleryAssembly, "GalleryAssembly");
-        }
-
         public override void ExecuteCommand()
         {
-            // Load the assembly and find the configuration type
-            Assembly asm = Assembly.LoadFrom(GalleryAssembly);
-            Type configType = asm.GetType(GatewayType);
-            if (configType == null)
-            {
-                Log.Error("Could not find gateway type: {0}", GatewayType);
-                return;
-            }
-
             // Create the gateway instance
-            dynamic gateway = Activator.CreateInstance(configType);
-            
+            var gateway = new GalleryGateway();
+
             // Get a migrator from it
             DbMigrator migrator = gateway.CreateMigrator(ConnectionString.ConnectionString, "System.Data.SqlClient");
 

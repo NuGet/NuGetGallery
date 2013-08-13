@@ -7,6 +7,18 @@ Main Accent: #39922C
 Links: #0071BC
 *************************************************************/
 
+ /* Fonts
+***************************************************************/
+
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('font/fontawesome-webfont.eot?v=3.0.2');
+  src: url('font/fontawesome-webfont.eot?#iefix&v=3.0.2') format('embedded-opentype'),
+    url('font/fontawesome-webfont.woff?v=3.0.2') format('woff'),
+    url('font/fontawesome-webfont.ttf?v=3.0.2') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
 
 /* Resets
 ***************************************************************/
@@ -204,6 +216,7 @@ nav, section { display: block; }
     color: #ff9600;
 }
 
+.pending-edit-message,
 .prerelease-message,
 .not-latest-message {
     -moz-border-radius: 0 0 5px 5px;
@@ -223,6 +236,7 @@ nav, section { display: block; }
     color: #ff9600;
 }
 
+.pending-edit-message,
 .not-latest-message {
     background-color: #eff7fa;
     border-color: #52a4ca;
@@ -644,17 +658,15 @@ hgroup.page-heading h2 { padding-left: 7px; }
 }
 
 
-/* Tags & Authors */
+/* Tags */
 
-ul.tags,
-ul.authors {
+ul.tags {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-ul.tags li,
-ul.authors li {
+ul.tags li {
     display: inline;
     padding-right: 6px;
 }
@@ -720,6 +732,43 @@ ul.dependencySet li {
     margin-top: 25px;
 }
     
+
+/* Package Verify Upload Page */
+
+button.edit-button,
+button.undo-button {
+    color: #5a92c2;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+/* Package Edit Page */
+
+#edit-list ul {
+    list-style-type: none;
+    list-style-image: none;
+}
+
+.edit-root {
+    font-size: 1.3em;
+}
+
+.edit-tree, .edit-tree-selected {
+    position: relative;
+    left: 1em;
+}
+
+.edit-root-selected, .edit-tree-selected {
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.form-field label[for="EditPackageVersionRequest_RequiresLicenseAcceptance"] {
+    display: inline;
+    vertical-align: middle;
+    }
+
     /* Package page owners */
 
 .package-page .owners li { margin-bottom: 12px; }
@@ -733,16 +782,19 @@ ul.dependencySet li {
     /* Tags & Authors */
 
 .package-page ul.tags li a,
-.package-page ul.authors li a { font-size: 1.25em; }
+.package-page p.authors { font-size: 1.25em; }
 
 
-    /* Icon */
+    /* Large Icon 128x128 */
+
+.logo {
+    height: 128px;
+    width: 128px;
+}
 
 #sideColumn .logo {
     display: block;
-    height: 128px;
     margin: 0 0 20px 0;
-    width: 128px;
 }
 
     /* Stats */
@@ -1080,9 +1132,9 @@ ul.pager li.next { padding-left: 10px; }
 }
 
 .statistics-layout {
-    width:440px;
+    width:400px;
     float:left;
-    padding:10px 25px 10px 0px 
+    padding:25px
 }
 
 .statistics-more {
@@ -1236,6 +1288,7 @@ fieldset.form legend { display: none; }
 .form-field input[type="email"],
 .form-field input[type="text"],
 .form-field input[type="file"],
+.form-field input[type="url"],
 .form-field input[type="password"] {
     background: #fff url("../content/images/inputBackground.png") repeat-x;
     border: solid 1px #ccc;
@@ -1244,6 +1297,18 @@ fieldset.form legend { display: none; }
     padding: 5px 0 5px 10px;
     vertical-align: middle;
     width: 400px;
+}
+
+.form-field textarea[data-edited=true],
+.form-field input[data-edited=true] {
+    border-left: solid 5px #2ef12e;
+    padding: 5px 0 5px 5px;
+}
+
+.form-field textarea {
+    font-family: inherit; /* fixes an oddity that textarea doesn't inherit by default*/
+    width: 100%;
+    height: 140px;
 }
 
 .form-field textarea[disabled],
@@ -1273,12 +1338,9 @@ fieldset.form legend { display: none; }
     display: none;
 }
 
-.form-field textarea {
-    font-size: 1em;
-    height: 200px;
-    padding-top: 5px;
+.form-field input[type="url"] {
+    width: 100%;
 }
-
 
 .form-field input[data-val-required],
 .form-field textarea[data-val-required] {

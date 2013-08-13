@@ -1,6 +1,7 @@
 ﻿using System;
 using Moq;
 using NuGet;
+using NuGetGallery.Packaging;
 using Xunit;
 
 namespace NuGetGallery.PackageCurators
