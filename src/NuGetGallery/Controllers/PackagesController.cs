@@ -588,13 +588,19 @@ namespace NuGetGallery
                     numConflicts += 1;
                 }
             }
-
-            TempData["Message"] = string.Format(
-                CultureInfo.InvariantCulture,
-                "{0} pending {1} successfully canceled. {2}",
-                numOK == 1 && numConflicts == 0 ? "Your" : numOK.ToString(),
-                numOK == 1 ? "edit was" : "edits were",
-                numConflicts > 0 ? "Some pending edits had already been applied and could not be canceled." : "");
+            
+            if (numConflicts > 0)
+            {
+                TempData["Message"] = "Your pending edit has already been completed and could not be canceled.";
+            }
+            else if (numOK > 0)
+            {
+                TempData["Message"] = "Your pending edits for this package were successfully canceled.";
+            }
+            else
+            {
+                TempData["Message"] = "No pending edits were found for this package. The edits may have already been completed.";
+            }
 
             return Redirect(Url.Package(id, version));
         }
