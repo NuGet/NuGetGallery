@@ -9,7 +9,9 @@ using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
-    public class V1Feed : FeedServiceBase<V1FeedPackage>
+    public class V1FeedContext : FeedContext<V1FeedPackage> { }
+
+    public class V1Feed : FeedServiceBase<V1FeedContext, V1FeedPackage>
     {
         private const int FeedVersion = 1;
 
@@ -27,9 +29,9 @@ namespace NuGetGallery
             InitializeServiceBase(config);
         }
 
-        protected override FeedContext<V1FeedPackage> CreateDataSource()
+        protected override V1FeedContext CreateDataSource()
         {
-            return new FeedContext<V1FeedPackage>
+            return new V1FeedContext
                 {
                     Packages = PackageRepository.GetAll()
                         .Where(p => !p.IsPrerelease)

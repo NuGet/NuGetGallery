@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.20617.1 PREVIEW
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{96E4AFF8-D3A1-4102-ADCF-05F186F916A9}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\packages.config = .nuget\packages.config
@@ -17,10 +15,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery", "src\NuGetGallery\NuGetGallery.csproj", "{1DACF781-5CD0-4123-8BAC-CD385D864BE5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Facts", "tests\NuGetGallery.Facts\NuGetGallery.Facts.csproj", "{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTests.Helpers", "tests\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj", "{8FB56455-C688-44AE-95F1-48FFCB199BFE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.FunctionalTests", "tests\NuGetGallery.FunctionalTests\NuGetGallery.FunctionalTests.csproj", "{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Backend", "src\NuGetGallery.Backend\NuGetGallery.Backend.csproj", "{7F92C174-5310-4090-A6A3-3CC7C67C19D6}"
 EndProject
@@ -64,26 +58,6 @@ Global
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5}.Release|x86.ActiveCfg = Release|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE}.Release|x86.ActiveCfg = Release|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF}.Release|x86.ActiveCfg = Release|Any CPU
 		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F92C174-5310-4090-A6A3-3CC7C67C19D6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -151,8 +125,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1DACF781-5CD0-4123-8BAC-CD385D864BE5} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
 		{FDC76BEF-3360-45AC-A13E-AE8F14D343D5} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
-		{8FB56455-C688-44AE-95F1-48FFCB199BFE} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
-		{0A6B1A52-4D26-4946-9DDD-416D01A1ADBF} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
 		{7F92C174-5310-4090-A6A3-3CC7C67C19D6} = {B9B19787-DCC0-489E-9173-36A32C6B6848}
 		{0EA1CBE8-DEFB-4D97-86E2-33657204C764} = {B9B19787-DCC0-489E-9173-36A32C6B6848}
 		{4405C24C-7F57-4826-831F-D5D7E139F02E} = {B9B19787-DCC0-489E-9173-36A32C6B6848}

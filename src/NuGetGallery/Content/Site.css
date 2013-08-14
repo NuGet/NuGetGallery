@@ -1493,3 +1493,11 @@ form .async-upload-progress-advance
 {
     display: none;
 }
+
+.last-updated
+{
+    margin-top: 1em;
+    clear: both;
+    color: grey;
+    font-size: 8pt;
+}
