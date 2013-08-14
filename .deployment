@@ -1,2 +1,2 @@
 [config]
-command = Scripts\deploy.cmd
+command = build\DeployFrontend.cmd

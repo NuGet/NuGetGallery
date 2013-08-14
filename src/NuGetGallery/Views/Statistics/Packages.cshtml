@@ -1,0 +1,33 @@
+﻿@model StatisticsPackagesViewModel
+@{
+    ViewBag.Title = "Package Download Statistics";
+    ViewBag.Tab = "Statistics";
+}
+
+<div class="statistics-layout">
+<h1 class="statistics-report-title">Most Downloaded Packages (Top 100 Over the Last 6 Weeks)</h1>
+<table class="sexy-table">
+    <thead>
+        <tr>
+            <th scope="col"></th><th  scope="col" class="first">Package</th><th scope="col">Downloads</th>
+        </tr>
+    </thead>
+    <tbody>
+    @{
+        var index = 0;
+        
+        foreach (var item in Model.DownloadPackagesAll)
+        {
+            index++;
+            
+            <tr>
+                <td class="statistics-rank">@index</td>
+                <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                <td class="statistics-number"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>
+@Html.Partial("_LastUpdated", Model)
+</div>

@@ -1,0 +1,156 @@
+﻿@model StatisticsPackagesViewModel
+@{
+    ViewBag.Title = "Statistics";
+    ViewBag.Tab = "Statistics";
+}
+
+<section class="release">
+    <p>
+        <strong>NOTE: </strong>Download statistics displayed on this page reflect the actual package downloads from the NuGet.org site. This is an indicator of usage, however,
+        many package installs, particular those of widely depended upon packages, will actually be done from a client machine's local NuGet cache, as a result these numbers should
+        not be taken as exact usage. 
+    </p>
+</section>
+
+@if (Model.IsDownloadPackageAvailable)
+{
+    <div class="statistics-layout" >
+        <h1 class="statistics-report-title">Downloaded&nbsp;Packages&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th scope="col"></th><th scope="col" class="first">Package</th><th scope="col">Downloads</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{
+                var index = 0;
+                foreach (var item in Model.DownloadPackagesSummary)
+                {
+                    index++;
+                    
+                    <tr>
+                        <td class="statistics-rank">@index</td>
+                        <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                        <td class="statistics-number"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+        <span class="statistics-more"><a href="@Url.StatisticsAllPackageDownloads()">More...</a></span>
+    </div>
+}
+@if (Model.IsDownloadPackageDetailAvailable)
+{
+    <div class="statistics-layout" >
+        <h1 class="statistics-report-title">Downloaded&nbsp;Package&nbsp;Versions&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th scope="col"></th><th scope="col" class="first">Package</th><th scope="col">Version</th><th scope="col">Downloads</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{
+                var index = 0;
+                foreach (var item in Model.DownloadPackageVersionsSummary)
+                {
+                    index++;
+                    
+                    <tr>
+                        <td class="statistics-rank">@index</td>
+                        <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                        <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                        <td class="statistics-number"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+        <span class="statistics-more"><a href="@Url.StatisticsAllPackageVersionDownloads()">More...</a></span>
+    </div>
+}
+
+<p></p>
+
+@if (Model.IsNuGetClientVersionAvailable)
+{
+    <div class="statistics-layout" id="downloads-by-nuget-version">
+        <h1 class="statistics-report-title">NuGet&nbsp;Client&nbsp;Usage&nbsp;(Last&nbsp;6&nbsp;Weeks)</h1>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th class="first">Version</th><th>Downloads</th><th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{
+                foreach (var item in Model.NuGetClientVersion)
+                {
+                    <tr>
+                        <td>@item.Version</td>
+                        <td>@Model.DisplayDownloads(item.Downloads)</td>
+                        <td class="statistics-number">@Model.DisplayPercentage(item.Downloads, Model.NuGetClientVersionTotalDownloads)</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+}
+@if (Model.IsLast6MonthsAvailable)
+{
+    <div class="statistics-layout" id="downloads-per-month">
+        <h1 class="statistics-report-title">Packages&nbsp;Downloaded&nbsp;Per&nbsp;Month</h1>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th class="first">Month</th><th>Downloads</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{
+                foreach (var item in Model.Last6Months)
+                {
+                    <tr>
+                        <td>@Model.DisplayMonth(item.Year, item.MonthOfYear)</td>
+                        <td class="statistics-number">@Model.DisplayDownloads(item.Downloads)</td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+}
+@Html.Partial("_LastUpdated", Model)
+
+@section BottomScripts
+{
+    @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
+
+    @if (Model.UseD3)
+    {
+        @Scripts.Render("~/Scripts/d3.v3.min.js")
+        @Scripts.Render("~/Scripts/statsgraphs.js")
+    }
+
+    <script>
+        $(document).ready(function () {
+
+            if ($('#downloads-by-nuget-version').length) {
+                if (Modernizr.svg) {
+                    $('#downloads-by-nuget-version table').css('display', 'none');
+                    drawNugetClientVersionBarChart();
+                }
+            }
+
+            if ($('#downloads-per-month').length) {
+                if (Modernizr.svg) {
+                    $('#downloads-per-month table').css('display', 'none');
+                    drawMonthlyDownloadsLineChart();
+                }
+            }
+        });
+    </script>
+}

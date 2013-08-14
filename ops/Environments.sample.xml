@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<environments>
+	<!-- 
+		'name': A descriptive name (has no purpose outside of UI)
+		'protected': If present, and set to "true", this environment is considered a production environment
+		'frontend': Name of the Azure web site containing the Front End
+		'backend': Name of the Azure cloud service containing the Back End
+		'subscription': Name of the Azure subscription containing the service. If Subscriptions.xml is present beside this file, it will be linked by the ops console -->
+	<environment name="Production" protected="true" frontend="mynugetgallery" backend="mynugetops" subscription="My Subscription" />
+</environments>
