@@ -8,6 +8,10 @@ namespace NuGetGallery
     /// </summary>
     public class PackageHistory : IEntity
     {
+        public PackageHistory()
+        {
+        }
+
         public PackageHistory(Package package)
         {
             this.Package = package;

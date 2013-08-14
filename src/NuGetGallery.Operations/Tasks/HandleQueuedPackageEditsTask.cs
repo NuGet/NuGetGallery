@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Data.EntityClient;
+using System.Data.Objects;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet;
 using NuGetGallery.Packaging;
@@ -48,35 +48,20 @@ namespace NuGetGallery.Operations.Tasks
         }
 
         /// <summary>
-        /// Backups up the blob (original package blob) and returns the backup.
-        /// note: in WhatIf mode, doesn't actually create a backup, and returns the original blob instead.
+        /// Backups up the blob (original package blob)
         /// </summary>
-        private CloudBlockBlob BackupBlob(PackageEdit edit)
+        private void BackupBlob(PackageEdit edit, CloudBlockBlob originalPackageBlob, CloudBlockBlob latestPackageBlob)
         {
-            var blobClient = StorageAccount.CreateCloudBlobClient();
-            var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
-
-            var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
-            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
-
-            var originalPackageBlob = packagesContainer.GetBlockBlobReference(originalPackageFileName);
-            var latestPackageBlob = packagesContainer.GetBlockBlobReference(latestPackageFileName);
-
-            if (!originalPackageBlob.Exists())
+            // Copy the blob to backup only if it isn't already successfully copied
+            if ((!originalPackageBlob.Exists()) || (originalPackageBlob.CopyState != null && originalPackageBlob.CopyState.Status != CopyStatus.Success))
             {
-                if (WhatIf)
+                if (!WhatIf)
                 {
-                    return latestPackageBlob; // returning original blob, NOT backup. Hopefully in WhatIf mode nobody will do anything destructive with that.
-                }
-                else
-                {
-                    Log.Info("Backing up blob: {0} to {1}", latestPackageFileName, originalPackageFileName);
-                    AccessCondition whenblobDoesNotExist = AccessCondition.GenerateIfNoneMatchCondition("*");
-                    originalPackageBlob.StartCopyFromBlob(latestPackageBlob, destAccessCondition: whenblobDoesNotExist);
+                    Log.Info("Backing up blob: {0} to {1}", latestPackageBlob.Name, originalPackageBlob.Name);
+                    originalPackageBlob.StartCopyFromBlob(latestPackageBlob);
                     CopyState state = originalPackageBlob.CopyState;
 
-                    int i = 0;
-                    while (state == null || state.Status == CopyStatus.Pending && i < SleepTimes.Length)
+                    for (int i = 0; (state == null || state.Status == CopyStatus.Pending) && i < SleepTimes.Length; i++)
                     {
                         Log.Info("(sleeping for a copy completion)");
                         Thread.Sleep(SleepTimes[i]); 
@@ -94,12 +79,19 @@ namespace NuGetGallery.Operations.Tasks
                     }
                 }
             }
-
-            return originalPackageBlob;
         }
 
         private void ProcessPackageEdit(PackageEdit edit, EntitiesContext entitiesContext)
         {
+            var blobClient = StorageAccount.CreateCloudBlobClient();
+            var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
+
+            var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
+            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
+
+            var originalPackageBackupBlob = packagesContainer.GetBlockBlobReference(originalPackageFileName);
+            var latestPackageBlob = packagesContainer.GetBlockBlobReference(latestPackageFileName);
+
             // List of Work to do:
             // 1) Backup old blob, if the original has not been backed up yet
             // 2) Downloads blob, create new NUPKG locally
@@ -137,15 +129,16 @@ namespace NuGetGallery.Operations.Tasks
                 }
             }
 
-            CloudBlockBlob nupkgBlob = BackupBlob(edit);
+            BackupBlob(edit, originalPackageBackupBlob, latestPackageBlob);
             using (var readWriteStream = new MemoryStream())
             {
                 // Download to memory
-                Log.Info("Downloading blob to memory {0}", nupkgBlob.Name);
-                nupkgBlob.DownloadToStream(readWriteStream);
+                CloudBlockBlob downloadSourceBlob = WhatIf ? latestPackageBlob : originalPackageBackupBlob;
+                Log.Info("Downloading original package blob to memory {0}", downloadSourceBlob.Name);
+                downloadSourceBlob.DownloadToStream(readWriteStream);
 
                 // Rewrite in memory
-                Log.Info("Rewriting nupkg package in memory", nupkgBlob.Name);
+                Log.Info("Rewriting nupkg package in memory", downloadSourceBlob.Name);
                 NupkgRewriter.RewriteNupkgManifest(readWriteStream, edits);
 
                 // Get updated hash code, and file size
@@ -158,21 +151,24 @@ namespace NuGetGallery.Operations.Tasks
                 if (!WhatIf)
                 {
                     // Snapshot the blob
-                    var snapshotBlob = nupkgBlob.CreateSnapshot();
+                    var blobSnapshot = latestPackageBlob.CreateSnapshot();
 
                     // Start Transaction: Complete the edit in the gallery DB.
                     // Use explicit SQL transactions instead of EF operation-grouping 
                     // so that we can manually roll the transaction back on a blob related failure.
-                    var transaction = entitiesContext.Database.Connection.BeginTransaction();
+                    ObjectContext objectContext = (entitiesContext as IObjectContextAdapter).ObjectContext;
+                    ((objectContext.Connection) as EntityConnection).Open(); // must open in order to begin transaction
+                    EntityTransaction transaction = ((objectContext.Connection) as EntityConnection).BeginTransaction();
                     try
                     {
                         edit.Apply(hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
+                        entitiesContext.DeleteOnCommit(edit);
                         entitiesContext.SaveChanges();
 
                         // Reupload blob
-                        Log.Info("Uploading blob from memory {0}", nupkgBlob.Name);
+                        Log.Info("Uploading blob from memory {0}", latestPackageBlob.Name);
                         readWriteStream.Position = 0;
-                        nupkgBlob.UploadFromStream(readWriteStream);
+                        latestPackageBlob.UploadFromStream(readWriteStream);
                         try
                         {
                             transaction.Commit();
@@ -185,15 +181,15 @@ namespace NuGetGallery.Operations.Tasks
                             // try, (single attempt) to revert the blob update by restoring the previous snapshot.
                             Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
                             Log.ErrorException("(exception", e);
-                            Log.Error("(note) - blob snapshot URL = " + snapshotBlob.Uri);
-                            nupkgBlob.StartCopyFromBlob(snapshotBlob);
+                            Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
+                            latestPackageBlob.StartCopyFromBlob(blobSnapshot);
                         }
                     }
                     catch (Exception e)
                     {
                         Log.Error("(error) - package edit blob update failed. Rolling back the DB transaction.");
                         Log.ErrorException("(exception", e);
-                        Log.Error("(note) - blob snapshot URL = " + snapshotBlob.Uri);
+                        Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
                         transaction.Rollback();
                     }
                 }
