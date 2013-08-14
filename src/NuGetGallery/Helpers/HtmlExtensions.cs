@@ -34,6 +34,9 @@ namespace NuGetGallery.Helpers
             return self.DropDownListFor(expression, items);
         }
 
-        
+        public static IHtmlString PreFormattedText(this HtmlHelper self, string text)
+        {
+            return self.Raw(HttpUtility.HtmlEncode(text).Replace("\n", "<br />").Replace("  ", "&nbsp; "));
+        }
     }
 }

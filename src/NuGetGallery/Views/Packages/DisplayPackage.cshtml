@@ -160,10 +160,9 @@
     @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
     {
         <h3>Release Notes</h3>
-        foreach (var note in Model.ReleaseNotes.Split('\n'))
-        {
-            <p>@note</p>
-        }
+        
+        // Not actually using <pre/> because its better to have wrapping text
+        <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
     }
 
     <h3>Owners</h3>

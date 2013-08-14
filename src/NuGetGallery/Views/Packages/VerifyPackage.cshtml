@@ -37,20 +37,25 @@
     <input type="hidden" name="@formid" value="@value" />
 }
 
-@helper EditableField(string name, Expression<Func<VerifyPackageRequest, object>> func, bool link = false)
+@helper EditableField(string name, Expression<Func<VerifyPackageRequest, object>> func, bool link = false, bool pre = false)
 {
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
     string value = temp == null ? null : temp.ToString();
     <h4>@name
-        <button type="button" class="edit-button" id="@(formid + "Button")"><span class="icon-edit"></span></button>
-        <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo"></span></button>
+        <button type="button" class="edit-button" id="@(formid + "Button")"><span class="icon-edit" title="Edit"></span></button>
+        <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
     </h4>
     <div style="position: relative">
         <div id="@(formid + "Text")">
             @if (String.IsNullOrEmpty(value))
             {
                 <p><i>(none specified)</i></p>
+            }
+            else if (pre)
+            {
+                // Not actually using <pre/> because its better to have wrapping text
+                <p>@Html.PreFormattedText(value)</p>
             }
             else if (link)
             {
@@ -87,7 +92,7 @@
         <li>@EditableField("Authors", m => m.Edit.Authors)</li>
         <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
         <li>@EditableField("Tags", m => m.Edit.Tags, link: true)</li>
-        <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes)</li>
+        <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
         <li>
             <h4>Requires License Acceptance
                 @{
@@ -105,8 +110,8 @@
                         @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
                             new List<SelectListItem>
                             {
-                                new SelectListItem { Text = "Yes", Value = "true", Selected = Model.Edit.RequiresLicenseAcceptance },
-                                new SelectListItem { Text = "No", Value = "false", Selected = !Model.Edit.RequiresLicenseAcceptance },
+                                new SelectListItem { Text = "Yes", Value = "true" },
+                                new SelectListItem { Text = "No", Value = "false" },
                             })
                         @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
                     </div>
@@ -114,7 +119,7 @@
             </div>
         </li>
         <li>
-            <h4>List This Package in Search Results</h4>
+            <h4>Listed in Search Results</h4>
                 <div class="form-field">
                    @Html.DropDownList("Listed", 
                             new List<SelectListItem>
@@ -163,14 +168,14 @@
                     $("#Undo" + name).show();
                 });
 
-                $("input[id=" + name + "]").keyup(function (event) {
+                SetDataEditedFlag = function (event) {
                     $(event.target).attr("data-edited", event.target.value != event.target.defaultValue);
                     $("#Undo" + name).show();
-                });
-                $("textarea[id=" + name + "]").keyup(function (event) {
-                    $(event.target).attr("data-edited", event.target.value != event.target.defaultValue);
-                    $("#Undo" + name).show();
-                });
+                };
+
+                $("input[id=" + name + "]").keyup(SetDataEditedFlag);
+                $("textarea[id=" + name + "]").keyup(SetDataEditedFlag);
+                $("select[id=" + name + "]").change(SetDataEditedFlag);
 
                 $("#Undo" + name + "").click(function (event) {
                     event.preventDefault();
@@ -197,6 +202,10 @@
             SetupInput('Edit_Tags');
             SetupInput('Edit_ReleaseNotes');
             SetupInput('Edit_RequiresLicenseAcceptance');
+
+            // Fix our SetupInput function to work with RequiresLicenseAcceptance
+            // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
+            $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")"
         });
     </script>
 }
