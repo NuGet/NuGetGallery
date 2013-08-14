@@ -65,7 +65,7 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.PackageKey)
                 .Index(t => t.UserKey);
 
-            // SQL to create the Foreign Key UserKey with extra ON DELETE SET NULL
+            // SQL script: redefines the UserKey foreign key with 'ON DELETE SET NULL'
             Sql(@"
 ALTER TABLE [PackageHistories] WITH CHECK ADD CONSTRAINT [FK.PackageHistories.Users_UserKey] FOREIGN KEY([UserKey])
 REFERENCES [Users] ([Key]) ON DELETE SET NULL");
