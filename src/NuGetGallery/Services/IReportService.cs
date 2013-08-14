@@ -1,10 +1,11 @@
 ﻿
 using System.Threading.Tasks;
+using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
     public interface IReportService
     {
-        Task<string> Load(string name);
+        Task<StatisticsReport> Load(string name);
     }
 }

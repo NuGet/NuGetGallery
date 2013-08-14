@@ -20,6 +20,11 @@ namespace NuGetGallery
 {
     public static class ExtensionMethods
     {
+        public static string ToNuGetShortDateTimeString(this DateTime self)
+        {
+            return self.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.CurrentCulture);
+        }
+
         public static string ToNuGetShortDateString(this DateTime self)
         {
             return self.ToString("yyyy-MM-dd", CultureInfo.CurrentCulture);
