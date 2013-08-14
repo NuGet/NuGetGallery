@@ -104,18 +104,18 @@ namespace NuGetGallery
             }
         }
 
-        public async Task<bool> LoadDownloadPackages()
+        public async Task<StatisticsReportResult> LoadDownloadPackages()
         {
             try
             {
-                string json = await _reportService.Load(Reports.RecentPopularity.ToString() + ".json");
+                var reportContent = await _reportService.Load(Reports.RecentPopularity.ToString() + ".json");
 
-                if (json == null)
+                if (reportContent == null)
                 {
-                    return false;
+                    return StatisticsReportResult.Failed;
                 }
 
-                JArray array = JArray.Parse(json);
+                JArray array = JArray.Parse(reportContent.Content);
 
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll).Clear();
 
@@ -137,42 +137,27 @@ namespace NuGetGallery
                     ((List<StatisticsPackagesItemViewModel>)DownloadPackagesSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackagesAll)[i]);
                 }
 
-                return true;
+                return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (NullReferenceException e)
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (JsonReaderException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (StorageException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (ArgumentException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
+                return StatisticsReportResult.Failed;
             }
         }
 
-        public async Task<bool> LoadDownloadPackageVersions()
+        public async Task<StatisticsReportResult> LoadDownloadPackageVersions()
         {
             try
             {
-                string json = await _reportService.Load(Reports.RecentPopularityDetail.ToString() + ".json");
+                var reportContent = await _reportService.Load(Reports.RecentPopularityDetail.ToString() + ".json");
 
-                if (json == null)
+                if (reportContent == null)
                 {
-                    return false;
+                    return StatisticsReportResult.Failed;
                 }
 
-                JArray array = JArray.Parse(json);
+                JArray array = JArray.Parse(reportContent.Content);
 
                 ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll).Clear();
 
@@ -198,42 +183,27 @@ namespace NuGetGallery
                     ((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsSummary).Add(((List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll)[i]);
                 }
 
-                return true;
+                return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (NullReferenceException e)
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (JsonReaderException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (StorageException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (ArgumentException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
+                return StatisticsReportResult.Failed;
             }
         }
 
-        public async Task<bool> LoadNuGetClientVersion()
+        public async Task<StatisticsReportResult> LoadNuGetClientVersion()
         {
             try
             {
-                string json = await _reportService.Load(Reports.NuGetClientVersion.ToString() + ".json");
+                var reportContent = await _reportService.Load(Reports.NuGetClientVersion.ToString() + ".json");
 
-                if (json == null)
+                if (reportContent == null)
                 {
-                    return false;
+                    return StatisticsReportResult.Failed;
                 }
 
-                JArray array = JArray.Parse(json);
+                JArray array = JArray.Parse(reportContent.Content);
 
                 ((List<StatisticsNuGetUsageItem>)NuGetClientVersion).Clear();
 
@@ -247,37 +217,27 @@ namespace NuGetGallery
                         });
                 }
 
-                return true;
+                return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (JsonReaderException e)
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (StorageException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (ArgumentException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
+                return StatisticsReportResult.Failed;
             }
         }
 
-        public async Task<bool> LoadLast6Months()
+        public async Task<StatisticsReportResult> LoadLast6Months()
         {
             try
             {
-                string json = await _reportService.Load(Reports.Last6Months.ToString() + ".json");
+                var reportContent = await _reportService.Load(Reports.Last6Months.ToString() + ".json");
 
-                if (json == null)
+                if (reportContent == null)
                 {
-                    return false;
+                    return StatisticsReportResult.Failed;
                 }
 
-                JArray array = JArray.Parse(json);
+                JArray array = JArray.Parse(reportContent.Content);
 
                 ((List<StatisticsMonthlyUsageItem>)Last6Months).Clear();
 
@@ -292,22 +252,12 @@ namespace NuGetGallery
                         });
                 }
 
-                return true;
+                return StatisticsReportResult.Success(reportContent.LastUpdatedUtc);
             }
-            catch (JsonReaderException e)
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (StorageException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
-            }
-            catch (ArgumentException e)
-            {
-                QuietLog.LogHandledException(e);
-                return false;
+                return StatisticsReportResult.Failed;
             }
         }
 
@@ -334,16 +284,19 @@ namespace NuGetGallery
 
                 reportName = reportName.ToLowerInvariant();
 
-                string json = await _reportService.Load(reportName);
+                var reportContent = await _reportService.Load(reportName);
 
-                if (json == null)
+                if (reportContent == null)
                 {
                     return null;
                 }
 
-                JObject content = JObject.Parse(json);
+                JObject content = JObject.Parse(reportContent.Content);
 
-                StatisticsPackagesReport report = new StatisticsPackagesReport();
+                StatisticsPackagesReport report = new StatisticsPackagesReport()
+                {
+                    LastUpdatedUtc = reportContent.LastUpdatedUtc
+                };
 
                 report.Facts = CreateFacts(content);
 
@@ -384,16 +337,19 @@ namespace NuGetGallery
 
                 reportName = reportName.ToLowerInvariant();
 
-                string json = await _reportService.Load(reportName);
+                var reportContent = await _reportService.Load(reportName);
 
-                if (json == null)
+                if (reportContent == null)
                 {
                     return null;
                 }
 
-                JObject content = JObject.Parse(json);
+                JObject content = JObject.Parse(reportContent.Content);
 
-                StatisticsPackagesReport report = new StatisticsPackagesReport();
+                StatisticsPackagesReport report = new StatisticsPackagesReport()
+                {
+                    LastUpdatedUtc = reportContent.LastUpdatedUtc
+                };
 
                 IList<StatisticsFact> facts = new List<StatisticsFact>();
 

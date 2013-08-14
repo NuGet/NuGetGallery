@@ -406,9 +406,9 @@ namespace NuGetGallery
         {
             if (StatisticsService != null)
             {
-                bool isAvailable = await StatisticsService.LoadDownloadPackageVersions();
+                var result = await StatisticsService.LoadDownloadPackageVersions();
 
-                if (isAvailable)
+                if (result.Loaded)
                 {
                     int i = 0;
 

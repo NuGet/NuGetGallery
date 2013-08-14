@@ -602,6 +602,7 @@
     <Compile Include="Infrastructure\PrincipalExtensions.cs" />
     <Compile Include="Infrastructure\GalleryGateway.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
+    <Compile Include="Infrastructure\StatisticsReport.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="AsyncFileUpload\AsyncFileUploadExtensions.cs" />
@@ -842,6 +843,7 @@
     <Compile Include="Services\AggregateStatsService.cs" />
     <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />
+    <Compile Include="Services\StatisticsReportResult.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="SharedController.generated.cs">
@@ -1194,6 +1196,7 @@
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Statistics\_PivotTable.cshtml" />
+    <Content Include="Views\Statistics\_LastUpdated.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />

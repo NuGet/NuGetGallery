@@ -91,10 +91,12 @@ namespace NuGetGallery
 
             var fakeReportService = new Mock<IReportService>();
 
-            fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
-            fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
-            fakeReportService.Setup(x => x.Load("NuGetClientVersion.json")).Returns(Task.FromResult(fakeNuGetClientVersion));
-            fakeReportService.Setup(x => x.Load("Last6Months.json")).Returns(Task.FromResult(fakeLast6Months));
+            var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
+
+            fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.MinValue)));
+            fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, null)));
+            fakeReportService.Setup(x => x.Load("NuGetClientVersion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.MinValue)));
+            fakeReportService.Setup(x => x.Load("Last6Months.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Months, updatedUtc)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -118,7 +120,9 @@ namespace NuGetGallery
                 }
             }
 
-            Assert.Equal<int>(15, sum);
+            Assert.Equal(15, sum);
+            Assert.True(model.LastUpdatedUtc.HasValue);
+            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
         }
 
         [Fact]
@@ -199,10 +203,10 @@ namespace NuGetGallery
 
             var fakeReportService = new Mock<IReportService>();
 
-            fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
-            fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
-            fakeReportService.Setup(x => x.Load("NuGetClientVersion.json")).Returns(Task.FromResult(fakeNuGetClientVersion));
-            fakeReportService.Setup(x => x.Load("Last6Months.json")).Returns(Task.FromResult(fakeLast6Months));
+            fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.UtcNow)));
+            fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
+            fakeReportService.Setup(x => x.Load("NuGetClientVersion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.UtcNow)));
+            fakeReportService.Setup(x => x.Load("Last6Months.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Months, DateTime.UtcNow)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -266,7 +270,7 @@ namespace NuGetGallery
 
             var fakeReportService = new Mock<IReportService>();
 
-            fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(fakePackageReport));
+            fakeReportService.Setup(x => x.Load("RecentPopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.UtcNow)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -310,8 +314,9 @@ namespace NuGetGallery
             var fakePackageVersionReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
+            var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
 
-            fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(fakePackageVersionReport));
+            fakeReportService.Setup(x => x.Load("RecentPopularityDetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -324,7 +329,9 @@ namespace NuGetGallery
                 sum += item.Downloads;
             }
 
-            Assert.Equal<int>(106, sum);
+            Assert.Equal(106, sum);
+            Assert.True(model.LastUpdatedUtc.HasValue);
+            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
         }
 
         [Fact]
@@ -387,7 +394,8 @@ namespace NuGetGallery
             string reportName = "RecentPopularityDetail_" + PackageId + ".json";
             reportName = reportName.ToLowerInvariant();
 
-            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(fakeReport));
+            var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
+            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new StatisticsReport(fakeReport, updatedUtc)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -402,8 +410,10 @@ namespace NuGetGallery
                 sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
-            Assert.Equal<int>(603, sum);
-            Assert.Equal<string>("603", model.Report.Total);
+            Assert.Equal(603, sum);
+            Assert.Equal("603", model.Report.Total);
+            Assert.True(model.LastUpdatedUtc.HasValue);
+            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
         }
 
         [Fact]
@@ -467,7 +477,8 @@ namespace NuGetGallery
             string reportName = "RecentPopularityDetail_" + PackageId + ".json";
             reportName = reportName.ToLowerInvariant();
 
-            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(fakeReport));
+            var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
+            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new StatisticsReport(fakeReport, updatedUtc)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -482,8 +493,10 @@ namespace NuGetGallery
                 sum += int.Parse(row[row.GetLength(0) - 1].Data);
             }
 
-            Assert.Equal<int>(502, sum);
-            Assert.Equal<string>("502", model.Report.Total);
+            Assert.Equal(502, sum);
+            Assert.Equal("502", model.Report.Total);
+            Assert.True(model.LastUpdatedUtc.HasValue);
+            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
         }
 
         public class TheTotalsAllAction

@@ -14,10 +14,10 @@ namespace NuGetGallery
         IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion { get; }
         IEnumerable<StatisticsMonthlyUsageItem> Last6Months { get; }
 
-        Task<bool> LoadDownloadPackages();
-        Task<bool> LoadDownloadPackageVersions();
-        Task<bool> LoadNuGetClientVersion();
-        Task<bool> LoadLast6Months();
+        Task<StatisticsReportResult> LoadDownloadPackages();
+        Task<StatisticsReportResult> LoadDownloadPackageVersions();
+        Task<StatisticsReportResult> LoadNuGetClientVersion();
+        Task<StatisticsReportResult> LoadLast6Months();
 
         Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId);
         Task<StatisticsPackagesReport> GetPackageVersionDownloadsByClient(string packageId, string packageVersion);

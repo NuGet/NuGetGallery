@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 
 namespace NuGetGallery
@@ -16,6 +17,8 @@ namespace NuGetGallery
 
         public ICollection<StatisticsPivot.TableEntry[]> Table { get; set; }
         public IEnumerable<string> Columns { get; set; }
+
+        public DateTime? LastUpdatedUtc { get; set; }
 
         public string Id { get; set; }
     }
