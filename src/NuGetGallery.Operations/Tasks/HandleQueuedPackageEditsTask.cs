@@ -50,7 +50,7 @@ namespace NuGetGallery.Operations.Tasks
         /// <summary>
         /// Backups up the blob (original package blob)
         /// </summary>
-        private void BackupBlob(PackageEdit edit, CloudBlockBlob originalPackageBlob, CloudBlockBlob latestPackageBlob)
+        private void ArchiveOriginalPackageBlob(CloudBlockBlob originalPackageBlob, CloudBlockBlob latestPackageBlob)
         {
             // Copy the blob to backup only if it isn't already successfully copied
             if ((!originalPackageBlob.Exists()) || (originalPackageBlob.CopyState != null && originalPackageBlob.CopyState.Status != CopyStatus.Success))
@@ -125,11 +125,11 @@ namespace NuGetGallery.Operations.Tasks
                 if (nr != 1)
                 {
                     throw new ApplicationException(
-                        String.Format("Something went terribly wrong, only one entity should be updated but actually {0} entity(ies) were updated", nr));
+                        String.Format("Something went terribly wrong, only one entity should be updated but actually {0} entities were updated", nr));
                 }
             }
 
-            BackupBlob(edit, originalPackageBackupBlob, latestPackageBlob);
+            ArchiveOriginalPackageBlob(originalPackageBackupBlob, latestPackageBlob);
             using (var readWriteStream = new MemoryStream())
             {
                 // Download to memory
@@ -169,28 +169,44 @@ namespace NuGetGallery.Operations.Tasks
                         Log.Info("Uploading blob from memory {0}", latestPackageBlob.Name);
                         readWriteStream.Position = 0;
                         latestPackageBlob.UploadFromStream(readWriteStream);
-                        try
-                        {
-                            transaction.Commit();
-                            Log.Info("(success)");
-                        }
-                        catch (Exception e)
-                        {
-                            // Commit to database update failed. 
-                            // Since our blob update wasn't really part of the transaction (and doesn't AFAIK have a 'commit()' operator we can utilize for the type of blobs we are using)
-                            // try, (single attempt) to revert the blob update by restoring the previous snapshot.
-                            Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
-                            Log.ErrorException("(exception", e);
-                            Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
-                            latestPackageBlob.StartCopyFromBlob(blobSnapshot);
-                        }
                     }
                     catch (Exception e)
                     {
+                        // Uploading the updated nupkg failed.
+                        // Rollback the transaction, which restores the Edit to PackageEdits so it can be attempted again.
                         Log.Error("(error) - package edit blob update failed. Rolling back the DB transaction.");
                         Log.ErrorException("(exception", e);
                         Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
                         transaction.Rollback();
+                        return;
+                    }
+
+                    try
+                    {
+                        transaction.Commit();
+                        Log.Info("(success)");
+                    }
+                    catch (Exception e)
+                    {
+                        // Commit transaction to DB failed. I don't think we know if it *really* failed or if we got a spurious/connection-related error.
+                        // But assuming it really failed...
+                        // Since our blob update wasn't part of the transaction (and doesn't AFAIK have a 'commit()' operator we can utilize for the type of blobs we are using)
+                        // try, (single attempt) to roll back the blob update by restoring the previous snapshot.
+                        Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
+                        Log.ErrorException("(exception", e);
+                        Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
+                        try
+                        {
+                            latestPackageBlob.StartCopyFromBlob(blobSnapshot);
+                        }
+                        catch (Exception e2)
+                        {
+                            // In this case it may not be the end of the world - the package metadata mismatches the edit now, 
+                            // but there's still an edit in the queue, waiting to be rerun and put everything back in synch.
+                            Log.Error("(error) - rolling back the package blob to its previous snapshot failed.");
+                            Log.ErrorException("(exception", e2);
+                            Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
+                        }
                     }
                 }
             }

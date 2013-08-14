@@ -592,7 +592,7 @@ namespace NuGetGallery
             TempData["Message"] = string.Format(
                 CultureInfo.InvariantCulture,
                 "{0} pending {1} successfully canceled. {2}",
-                numOK,
+                numOK == 1 && numConflicts == 0 ? "Your" : numOK.ToString(),
                 numOK == 1 ? "edit was" : "edits were",
                 numConflicts > 0 ? "Some pending edits had already been applied and could not be canceled." : "");
 
