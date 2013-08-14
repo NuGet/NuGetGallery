@@ -34,8 +34,8 @@ namespace NuGetGallery.Operations.Tasks
                 .Include(pe => pe.Package)
                 .Include(pe => pe.Package.PackageRegistration)
                 .Include(pe => pe.Package.User)
-                .GroupBy(pe => pe.PackageKey)
-                .ToList();
+                .ToList()
+                .GroupBy(pe => pe.PackageKey);
 
             // Do edit with a 'most recent edit to this package wins - other edits are deleted' strategy.
             // Not doing editing in parallel because
