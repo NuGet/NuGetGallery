@@ -60,7 +60,11 @@ namespace NuGetGallery
 
         private static void BundlingPostStart()
         {
-            var scriptBundle = new ScriptBundle("~/bundles/js")
+            var jQueryBundle = new ScriptBundle("~/Scripts/jquery")
+                .Include("~/Scripts/jquery-{version}.js");
+            BundleTable.Bundles.Add(jQueryBundle);
+
+            var scriptBundle = new ScriptBundle("~/Scripts/all")
                 .Include("~/Scripts/jquery-{version}.js")
                 .Include("~/Scripts/jquery.validate.js")
                 .Include("~/Scripts/jquery.validate.unobtrusive.js")
@@ -69,11 +73,11 @@ namespace NuGetGallery
 
             // Modernizr needs to be delivered at the top of the page but putting it in a bundle gets us a cache-buster.
             // TODO: Use minified modernizr!
-            var modernizrBundle = new ScriptBundle("~/bundles/modernizr")
-                .Include("~/Scripts/modernizr-2.6.2.js");
+            var modernizrBundle = new ScriptBundle("~/Scripts/modernizr")
+                .Include("~/Scripts/modernizr-{version}.js");
             BundleTable.Bundles.Add(modernizrBundle);
 
-            var stylesBundle = new StyleBundle("~/content/css")
+            var stylesBundle = new StyleBundle("~/Content/css")
                 .Include("~/Content/site.css");
             BundleTable.Bundles.Add(stylesBundle);
 

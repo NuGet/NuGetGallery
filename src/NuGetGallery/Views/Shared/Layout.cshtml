@@ -5,9 +5,9 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         @RenderSection("OpenGraph", required: false)
         <title>NuGet Gallery @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
-        @Styles.Render("~/content/css")
+        @Styles.Render("~/Content/css")
         <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
-        @Scripts.Render("~/bundles/modernizr")
+        @Scripts.Render("~/Scripts/modernizr")
         @ViewHelpers.AnalyticsScript()
         @RenderSection("TopScripts", required: false)
         @ViewHelpers.ReleaseMeta()
@@ -94,7 +94,7 @@
                 </footer>
             </div>
         </div>
-        @Scripts.Render("~/bundles/js")
+        @Scripts.Render("~/Scripts/all")
         @RenderSection("BottomScripts", required: false)
     </body>
 </html>
