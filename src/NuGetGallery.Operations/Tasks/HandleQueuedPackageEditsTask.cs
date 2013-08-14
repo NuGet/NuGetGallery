@@ -29,21 +29,23 @@ namespace NuGetGallery.Operations.Tasks
             var storageAccount = StorageAccount;
 
             var entitiesContext = new EntitiesContext(connectionString, readOnly: false);
-            var edits = entitiesContext.Set<PackageEdit>()
+            var editsPerPackage = entitiesContext.Set<PackageEdit>()
                 .Where(pe => pe.TriedCount < 3)
                 .Include(pe => pe.Package)
                 .Include(pe => pe.Package.PackageRegistration)
                 .Include(pe => pe.Package.User)
-                .OrderBy(pe => pe.Timestamp) // Get PackageEdits in the order they were created.
+                .GroupBy(pe => pe.PackageKey)
                 .ToList();
 
+            // Do edit with a 'most recent edit to this package wins - other edits are deleted' strategy.
             // Not doing editing in parallel because
             // a) any particular blob may use a large amount of memory to process. Let's not multiply that!
-            // b) we don't want multithreaded SaveChanges on the entitiesContext!
-            // c) we [currently] might see multiple edits of a single package, and we want to back them up and apply them in the correct order.
-            foreach (var edit in edits)
+            // b) we don't want multithreaded usage of the entitiesContext (and its implied transactions)!
+            foreach (IGrouping<int, PackageEdit> editsGroup in editsPerPackage)
             {
-                ProcessPackageEdit(edit, entitiesContext);
+                var mostRecentEdit = editsGroup.OrderBy(pe => pe.Timestamp).Last();
+                var otherEdits = editsGroup.Where(pe => pe != mostRecentEdit);
+                ProcessPackageEdit(mostRecentEdit, otherEdits, entitiesContext);
             }
         }
 
@@ -81,7 +83,7 @@ namespace NuGetGallery.Operations.Tasks
             }
         }
 
-        private void ProcessPackageEdit(PackageEdit edit, EntitiesContext entitiesContext)
+        private void ProcessPackageEdit(PackageEdit edit, IEnumerable<PackageEdit> otherEdits, EntitiesContext entitiesContext)
         {
             var blobClient = StorageAccount.CreateCloudBlobClient();
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
@@ -161,8 +163,19 @@ namespace NuGetGallery.Operations.Tasks
                     EntityTransaction transaction = ((objectContext.Connection) as EntityConnection).BeginTransaction();
                     try
                     {
+                        var package = edit.Package;
                         edit.Apply(hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
+
+                        // the edit is now detached from its package but EF needs us to explicitly delete it
                         entitiesContext.DeleteOnCommit(edit);
+
+                        // also clean up all the older edits that were obsoleted by this one
+                        foreach (var otherEdit in otherEdits)
+                        {
+                            package.PackageEdits.Remove(otherEdit);
+                            entitiesContext.DeleteOnCommit(otherEdit);
+                        }
+
                         entitiesContext.SaveChanges();
 
                         // Reupload blob
