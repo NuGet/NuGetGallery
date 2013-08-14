@@ -8,7 +8,7 @@ namespace NuGetGallery.Migrations
         public override void Up()
         {
             CreateTable(
-                "dbo.PackageEdits",
+                "PackageEdits",
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
@@ -29,13 +29,13 @@ namespace NuGetGallery.Migrations
                         Tags = c.String(),
                     })
                 .PrimaryKey(t => t.Key)
-                .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
-                .ForeignKey("dbo.Users", t => t.UserKey)
+                .ForeignKey("Packages", t => t.PackageKey, cascadeDelete: true)
+                .ForeignKey("Users", t => t.UserKey)
                 .Index(t => t.PackageKey)
                 .Index(t => t.UserKey);
             
             CreateTable(
-                "dbo.PackageHistories",
+                "PackageHistories",
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
@@ -60,35 +60,36 @@ namespace NuGetGallery.Migrations
                         Published = c.DateTime(nullable: false),
                     })
                 .PrimaryKey(t => t.Key)
-                .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
-                .ForeignKey("dbo.Users", t => t.UserKey)
+                .ForeignKey("Packages", t => t.PackageKey, cascadeDelete: true)
+                .ForeignKey("Users", t => t.UserKey)
                 .Index(t => t.PackageKey)
                 .Index(t => t.UserKey);
-            
-            AddColumn("dbo.Packages", "UserKey", c => c.Int());
 
             // SQL to create the Foreign Key UserKey with extra ON DELETE SET NULL
             Sql(@"
-ALTER TABLE [dbo].[PackageHistories] WITH CHECK ADD CONSTRAINT [FK_dbo.PackageHistories_dbo.Users_UserKey] FOREIGN KEY([UserKey])
-REFERENCES [dbo].[Users] ([Key]) ON DELETE SET NULL");
-            CreateIndex("dbo.Packages", "UserKey");
+ALTER TABLE [PackageHistories] WITH CHECK ADD CONSTRAINT [FK.PackageHistories.Users_UserKey] FOREIGN KEY([UserKey])
+REFERENCES [Users] ([Key]) ON DELETE SET NULL");
+
+            AddColumn("Packages", "UserKey", c => c.Int());
+            AddForeignKey("Packages", "UserKey", "Users", "Key");
+            CreateIndex("Packages", "UserKey");
         }
         
         public override void Down()
         {
-            DropIndex("dbo.PackageHistories", new[] { "UserKey" });
-            DropIndex("dbo.PackageHistories", new[] { "PackageKey" });
-            DropIndex("dbo.PackageEdits", new[] { "UserKey" });
-            DropIndex("dbo.PackageEdits", new[] { "PackageKey" });
-            DropIndex("dbo.Packages", new[] { "UserKey" });
-            DropForeignKey("dbo.PackageHistories", "UserKey", "dbo.Users");
-            DropForeignKey("dbo.PackageHistories", "PackageKey", "dbo.Packages");
-            DropForeignKey("dbo.PackageEdits", "UserKey", "dbo.Users");
-            DropForeignKey("dbo.PackageEdits", "PackageKey", "dbo.Packages");
-            DropForeignKey("dbo.Packages", "UserKey", "dbo.Users");
-            DropColumn("dbo.Packages", "UserKey");
-            DropTable("dbo.PackageHistories");
-            DropTable("dbo.PackageEdits");
+            DropIndex("PackageHistories", new[] { "UserKey" });
+            DropIndex("PackageHistories", new[] { "PackageKey" });
+            DropIndex("PackageEdits", new[] { "UserKey" });
+            DropIndex("PackageEdits", new[] { "PackageKey" });
+            DropIndex("Packages", new[] { "UserKey" });
+            DropForeignKey("PackageHistories", "UserKey", "Users");
+            DropForeignKey("PackageHistories", "PackageKey", "Packages");
+            DropForeignKey("PackageEdits", "UserKey", "Users");
+            DropForeignKey("PackageEdits", "PackageKey", "Packages");
+            DropForeignKey("Packages", "UserKey", "Users");
+            DropColumn("Packages", "UserKey");
+            DropTable("PackageHistories");
+            DropTable("PackageEdits");
         }
     }
 }
