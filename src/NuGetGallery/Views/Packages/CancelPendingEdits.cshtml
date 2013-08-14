@@ -1,0 +1,18 @@
+﻿@model IPackageVersionModel
+@{
+    ViewBag.Tab = "Packages";
+}
+
+<h1 class="page-heading">Cancel Edits for @Model.Id @Model.Version</h1>
+<p class="message">
+    Click cancel to revert ALL pending metadata edits for package <b>@Model.Id @Model.Version</b>
+</p>
+<p>
+    Note: pending edits can be completed before your cancel request is received. Completed edits cannot be canceled.
+</p>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <input type="submit" value="Cancel" title="Cancel Pending Edits" />
+}

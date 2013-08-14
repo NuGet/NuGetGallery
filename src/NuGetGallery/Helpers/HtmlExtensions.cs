@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
@@ -34,6 +31,9 @@ namespace NuGetGallery.Helpers
             return self.DropDownListFor(expression, items);
         }
 
-        
+        public static IHtmlString PreFormattedText(this HtmlHelper self, string text)
+        {
+            return self.Raw(HttpUtility.HtmlEncode(text).Replace("\n", "<br />").Replace("  ", "&nbsp; "));
+        }
     }
 }

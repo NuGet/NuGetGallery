@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -12,6 +13,7 @@ using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
+using NuGetGallery.Packaging;
 using PoliteCaptcha;
 
 namespace NuGetGallery
@@ -34,6 +36,7 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
+        private readonly EditPackageService _editPackageService;
 
         public PackagesController(
             IPackageService packageService,
@@ -47,7 +50,8 @@ namespace NuGetGallery
             IEntitiesContext entitiesContext,
             IAppConfiguration config,
             IIndexingService indexingService,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            EditPackageService editPackageService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -61,6 +65,7 @@ namespace NuGetGallery
             _config = config;
             _indexingService = indexingService;
             _cacheService = cacheService;
+            _editPackageService = editPackageService;
         }
 
         [Authorize]
@@ -170,6 +175,16 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
             var model = new DisplayPackageViewModel(package);
+
+            if (package.IsOwner(HttpContext.User))
+            {
+                var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+                if (pendingMetadata != null)
+                {
+                    model.SetPendingMetadata(pendingMetadata);
+                }
+            }
+
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
         }
@@ -461,15 +476,133 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Edit(string id, string version)
         {
-            return GetPackageOwnerActionFormResult(id, version);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+            var model = new EditPackageRequest
+            {
+                PackageId = package.PackageRegistration.Id,
+                PackageTitle = package.Title,
+                Version = package.Version,
+                PackageVersions = packageRegistration.Packages.ToList(),
+            };
+
+            var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+            model.HasPendingMetadata = pendingMetadata != null;
+            model.EditPackageVersionRequest = new EditPackageVersionRequest(package, pendingMetadata);
+            return View(model);
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(string id, string version, bool? listed)
+        public virtual ActionResult Edit(string id, string version, EditPackageRequest formData)
         {
-            return Edit(id, version, listed, Url.Package);
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+
+            // Add the edit request to a queue where it will be processed in the background.
+            if (formData.EditPackageVersionRequest != null)
+            {
+                _editPackageService.StartEditPackageRequest(package, formData.EditPackageVersionRequest, user);
+                _entitiesContext.SaveChanges();
+            }
+            return Redirect(Url.Package(id, version));
+        }
+
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult CancelPendingEdits(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var model = new TrivialPackageVersionModel
+            {
+                Id = package.PackageRegistration.Id,
+                Version = package.Version,
+                Title = package.Title,
+            };
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ActionName("CancelPendingEdits")]
+        public virtual ActionResult CancelPendingEditsPost(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            // To do as much successful cancellation as possible, Will not batch, but will instead try to cancel 
+            // pending edits 1 at a time, starting with oldest first.
+            var pendingEdits = _entitiesContext.Set<PackageEdit>()
+                .Where(pe => pe.PackageKey == package.Key)
+                .OrderBy(pe => pe.Timestamp)
+                .ToList();
+
+            int numOK = 0;
+            int numConflicts = 0;
+            foreach (var result in pendingEdits)
+            {
+                try
+                {
+                    _entitiesContext.DeleteOnCommit(result);
+                    _entitiesContext.SaveChanges();
+                    numOK += 1;
+                }
+                catch (DataException)
+                {
+                    numConflicts += 1;
+                }
+            }
+            
+            if (numConflicts > 0)
+            {
+                TempData["Message"] = "Your pending edit has already been completed and could not be canceled.";
+            }
+            else if (numOK > 0)
+            {
+                TempData["Message"] = "Your pending edits for this package were successfully canceled.";
+            }
+            else
+            {
+                TempData["Message"] = "No pending edits were found for this package. The edits may have already been completed.";
+            }
+
+            return Redirect(Url.Package(id, version));
         }
 
         [Authorize]
@@ -595,26 +728,39 @@ namespace NuGetGallery
             }
 
             return View(
-                new VerifyPackageViewModel
+                new VerifyPackageRequest
                 {
                     Id = packageMetadata.Id,
                     Version = packageMetadata.Version.ToStringSafe(),
-                    Title = packageMetadata.Title,
-                    Summary = packageMetadata.Summary,
-                    Description = packageMetadata.Description,
-                    RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
                     LicenseUrl = packageMetadata.LicenseUrl.ToStringSafe(),
-                    Tags = PackageHelper.ParseTags(packageMetadata.Tags),
-                    ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
-                    Authors = packageMetadata.Authors.Flatten(),
-                    Listed = true
+                    Listed = true,
+                    Edit = new EditPackageVersionRequest
+                    {
+                        Authors = packageMetadata.Authors.Flatten(),
+                        Copyright = packageMetadata.Copyright,
+                        Description = packageMetadata.Description,
+                        IconUrl = packageMetadata.IconUrl.ToStringSafe(),
+                        ProjectUrl = packageMetadata.ProjectUrl.ToStringSafe(),
+                        ReleaseNotes = packageMetadata.ReleaseNotes,
+                        RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance,
+                        Summary = packageMetadata.Summary,
+                        Tags = PackageHelper.ParseTags(packageMetadata.Tags),
+                        VersionTitle = packageMetadata.Title,
+                    }
                 });
+        }
+
+        // The easiest way of keeping unit tests working.
+        [NonAction]
+        internal virtual Task<ActionResult> VerifyPackage(bool? listed)
+        {
+            return VerifyPackage(new VerifyPackageRequest { Listed = listed.GetValueOrDefault(true), Edit = null });
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> VerifyPackage(bool? listed)
+        public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
 
@@ -623,10 +769,38 @@ namespace NuGetGallery
             {
                 if (uploadFile == null)
                 {
-                    return HttpNotFound();
+                    TempData["Message"] = "Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again.";
+                    return new RedirectResult(Url.UploadPackage());
                 }
 
                 INupkg nugetPackage = CreatePackage(uploadFile);
+
+                // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user 
+                // viewing a different package to what was actually most recently uploaded
+                if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
+                {
+                    if (!(String.Equals(nugetPackage.Metadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
+                        && String.Equals(nugetPackage.Metadata.Version.ToString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
+                        return new RedirectResult(Url.VerifyPackage());
+                    }
+                }
+
+                bool pendEdit = false;
+                if (formData.Edit != null)
+                {
+                    pendEdit = pendEdit || formData.Edit.Authors.ToStringSafe() != nugetPackage.Metadata.Authors.Flatten();
+                    pendEdit = pendEdit || formData.Edit.Copyright.ToStringSafe() != nugetPackage.Metadata.Copyright.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.Description.ToStringSafe() != nugetPackage.Metadata.Description.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.IconUrl.ToStringSafe() != nugetPackage.Metadata.IconUrl.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.ProjectUrl.ToStringSafe() != nugetPackage.Metadata.ProjectUrl.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.ReleaseNotes.ToStringSafe() != nugetPackage.Metadata.ReleaseNotes.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != nugetPackage.Metadata.RequireLicenseAcceptance;
+                    pendEdit = pendEdit || formData.Edit.Summary.ToStringSafe() != nugetPackage.Metadata.Summary.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.Tags.ToStringSafe() != nugetPackage.Metadata.Tags.ToStringSafe();
+                    pendEdit = pendEdit || formData.Edit.VersionTitle.ToStringSafe() != nugetPackage.Metadata.Title.ToStringSafe();
+                }
 
                 // update relevant database tables
                 package = _packageService.CreatePackage(nugetPackage, currentUser, commitChanges: false);
@@ -634,7 +808,13 @@ namespace NuGetGallery
 
                 _packageService.PublishPackage(package, commitChanges: false);
 
-                if (listed == false)
+                if (pendEdit)
+                {
+                    // Add the edit request to a queue where it will be processed in the background.
+                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
+                }
+
+                if (!formData.Listed)
                 {
                     _packageService.MarkPackageUnlisted(package, commitChanges: false);
                 }

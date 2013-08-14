@@ -106,6 +106,7 @@
     <Compile Include="WebUITests\AccountManagement\UploadPackageWithoutLoginTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Frontend.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj" />
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj">
       <Project>{8fb56455-c688-44ae-95f1-48ffcb199bfe}</Project>
       <Name>NuGetGallery.Frontend.FunctionalTests.Helpers</Name>

@@ -63,7 +63,7 @@ else
                         }
                         else
                         {
-                            <a href="@Url.EditPackage(package)" title="Edit" class="editPackageLink"><img src="@Content.Images.editIcon_png" alt="Edit" /></a>
+                            <a href="@Url.EditPackage(package.Id, package.Version)" title="Edit" class="editPackageLink"><img src="@Content.Images.editIcon_png" alt="Edit" /></a>
                             <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Content.Images.trash_png" alt="Delete" /></a>
                         }
                     </td>

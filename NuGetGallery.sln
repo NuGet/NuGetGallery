@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Core", "src\Nu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Backend.Facts", "tests\NuGetGallery.Backend.Facts\NuGetGallery.Backend.Facts.csproj", "{4405C24C-7F57-4826-831F-D5D7E139F02E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.Core.Facts", "tests\NuGetGallery.Core.Facts\NuGetGallery.Core.Facts.csproj", "{8AC9E39E-366C-47E5-80AE-38E71CD31386}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -118,6 +120,16 @@ Global
 		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4405C24C-7F57-4826-831F-D5D7E139F02E}.Release|x86.ActiveCfg = Release|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8AC9E39E-366C-47E5-80AE-38E71CD31386}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

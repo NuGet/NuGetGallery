@@ -97,8 +97,7 @@
     <Reference Include="MvcHaack.Ajax">
       <HintPath>..\..\packages\MvcHaack.Ajax.MVC4.2.0.0.0\lib\net40\MvcHaack.Ajax.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Core, Version=2.7.40807.165, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -205,7 +204,6 @@
     <Compile Include="Infrastructure\NuGetQueryParserFacts.cs" />
     <Compile Include="PackageCurators\Windows8PackageCuratorFacts.cs" />
     <Compile Include="PackageCurators\WebMatrixPackageCuratorFacts.cs" />
-    <Compile Include="Packaging\NupkgFacts.cs" />
     <Compile Include="PolicyFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequireRemoteHttpsAttributeFacts.cs" />
@@ -248,7 +246,7 @@
     </ProjectReference>
     <ProjectReference Include="..\..\src\NuGetGallery\NuGetGallery.csproj">
       <Project>{1DACF781-5CD0-4123-8BAC-CD385D864BE5}</Project>
-      <Name>NuGetGallery.Frontend</Name>
+      <Name>NuGetGallery</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

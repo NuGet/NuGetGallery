@@ -6,21 +6,17 @@ namespace NuGetGallery
 {
     public class ListPackageItemViewModel : PackageViewModel
     {
-        public ListPackageItemViewModel(Package package, bool needAuthors = true)
+        public ListPackageItemViewModel(Package package)
             : base(package)
         {
             Tags = package.Tags != null ? package.Tags.Trim().Split(' ') : null;
 
-            if (needAuthors)
-            {
-                Authors = package.Authors;
-            }
-
+            Authors = package.FlattenedAuthors;
             MinClientVersion = package.MinClientVersion;
             Owners = package.PackageRegistration.Owners;
         }
 
-        public IEnumerable<PackageAuthor> Authors { get; set; }
+        public string Authors { get; set; }
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public string MinClientVersion { get; set; }

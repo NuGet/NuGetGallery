@@ -140,6 +140,8 @@
     <Compile Include="DatabaseBackupHelper.cs" />
     <Compile Include="DeploymentEnvironment.cs" />
     <Compile Include="Infrastructure\CommandLineParser.cs" />
+    <Compile Include="Infrastructure\EntitiesContextFactory.cs" />
+    <Compile Include="Infrastructure\GalleryGateway.cs" />
     <Compile Include="Infrastructure\IAsyncCompletionTask.cs" />
     <Compile Include="Infrastructure\IDbExecutorFactory.cs" />
     <Compile Include="Infrastructure\ImportExportHelper.cs" />
@@ -187,6 +189,7 @@
     <Compile Include="Tasks\Backups\ExportWarehouseBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ExportDailyBackupsTask.cs" />
     <Compile Include="Tasks\Backups\ListOfflineDatabaseBackupsTask.cs" />
+    <Compile Include="Tasks\BlobBackupFailedException.cs" />
     <Compile Include="Tasks\CheckDatabaseStatusTask.cs" />
     <Compile Include="Tasks\CheckBlobCopiesTask.cs" />
     <Compile Include="Tasks\Backups\CleanOnlineDatabaseBackupsTask.cs" />
@@ -213,6 +216,7 @@
     <Compile Include="Infrastructure\Verbosity.cs" />
     <Compile Include="Tasks\DeleteUserTask.cs" />
     <Compile Include="Tasks\ExportDatabaseTask.cs" />
+    <Compile Include="Tasks\HandleQueuedPackageEditsTask.cs" />
     <Compile Include="Tasks\ListDeploymentSettingsTask.cs" />
     <Compile Include="Tasks\ListPackageBlobBackupsTask.cs" />
     <Compile Include="Tasks\LowerCaseAllPackageBlobsTask.cs" />
@@ -341,6 +345,16 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\NuGetDownloadsAlterTable_2.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj">
+      <Project>{097b2cdd-9623-4c34-93c2-d373d51f5b4e}</Project>
+      <Name>NuGetGallery.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGetGallery\NuGetGallery.csproj">
+      <Project>{1dacf781-5cd0-4123-8bac-cd385d864be5}</Project>
+      <Name>NuGetGallery</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

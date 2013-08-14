@@ -337,13 +337,14 @@ namespace Links {
         public static readonly string d3_v3_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/d3.v3.min.js") ? Url("d3.v3.min.js") : Url("d3.v3.js");
                       
         public static readonly string d3_v3_min_js = Url("d3.v3.min.js");
-        public static readonly string jquery_1_6_2_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2-vsdoc.min.js") ? Url("jquery-1.6.2-vsdoc.min.js") : Url("jquery-1.6.2-vsdoc.js");
+        public static readonly string jquery_1_6_4_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.4-vsdoc.min.js") ? Url("jquery-1.6.4-vsdoc.min.js") : Url("jquery-1.6.4-vsdoc.js");
                       
-        public static readonly string jquery_1_6_2_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.2.min.js") ? Url("jquery-1.6.2.min.js") : Url("jquery-1.6.2.js");
+        public static readonly string jquery_1_6_4_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-1.6.4.min.js") ? Url("jquery-1.6.4.min.js") : Url("jquery-1.6.4.js");
                       
-        public static readonly string jquery_1_6_2_min_js = Url("jquery-1.6.2.min.js");
-        public static readonly string jquery_treeview_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.treeview.min.js") ? Url("jquery.treeview.min.js") : Url("jquery.treeview.js");
+        public static readonly string jquery_1_6_4_min_js = Url("jquery-1.6.4.min.js");
+        public static readonly string jquery_ui_1_10_3_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery-ui-1.10.3.min.js") ? Url("jquery-ui-1.10.3.min.js") : Url("jquery-ui-1.10.3.js");
                       
+        public static readonly string jquery_ui_1_10_3_min_js = Url("jquery-ui-1.10.3.min.js");
         public static readonly string jquery_validate_vsdoc_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate-vsdoc.min.js") ? Url("jquery.validate-vsdoc.min.js") : Url("jquery.validate-vsdoc.js");
                       
         public static readonly string jquery_validate_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/jquery.validate.min.js") ? Url("jquery.validate.min.js") : Url("jquery.validate.js");
@@ -378,6 +379,21 @@ namespace Links {
         private const string URLPATH = "~/Content";
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public static class font {
+            private const string URLPATH = "~/Content/font";
+            public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+            public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+            public static readonly string fontawesome_webfont_eot = Url("fontawesome-webfont.eot");
+            public static readonly string fontawesome_webfont_svg = Url("fontawesome-webfont.svg");
+            public static readonly string fontawesome_webfont_ttf = Url("fontawesome-webfont.ttf");
+            public static readonly string fontawesome_webfont_woff = Url("fontawesome-webfont.woff");
+            public static readonly string FontAwesome_otf = Url("FontAwesome.otf");
+        }
+    
+        public static readonly string font_awesome_ie7_min_css = Url("font-awesome-ie7.min.css");
+        public static readonly string font_awesome_css = Url("font-awesome.css");
+        public static readonly string font_awesome_min_css = Url("font-awesome.min.css");
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public static class Images {
             private const string URLPATH = "~/Content/Images";
@@ -443,7 +459,6 @@ namespace Links {
             public static readonly string YourPackage_png = Url("YourPackage.png");
         }
     
-        public static readonly string jquery_treeview_css = Url("jquery.treeview.css");
         public static readonly string Site_css = Url("Site.css");
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public static class SyntaxHighlighter {
@@ -467,6 +482,112 @@ namespace Links {
             public static readonly string shThemeMDUltra_css = Url("shThemeMDUltra.css");
             public static readonly string shThemeMidnight_css = Url("shThemeMidnight.css");
             public static readonly string shThemeRDark_css = Url("shThemeRDark.css");
+        }
+    
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public static class themes {
+            private const string URLPATH = "~/Content/themes";
+            public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+            public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+            [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+            public static class @base {
+                private const string URLPATH = "~/Content/themes/base";
+                public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+                public static class images {
+                    private const string URLPATH = "~/Content/themes/base/images";
+                    public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                    public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                    public static readonly string animated_overlay_gif = Url("animated-overlay.gif");
+                    public static readonly string ui_bg_flat_0_aaaaaa_40x100_png = Url("ui-bg_flat_0_aaaaaa_40x100.png");
+                    public static readonly string ui_bg_flat_75_ffffff_40x100_png = Url("ui-bg_flat_75_ffffff_40x100.png");
+                    public static readonly string ui_bg_glass_55_fbf9ee_1x400_png = Url("ui-bg_glass_55_fbf9ee_1x400.png");
+                    public static readonly string ui_bg_glass_65_ffffff_1x400_png = Url("ui-bg_glass_65_ffffff_1x400.png");
+                    public static readonly string ui_bg_glass_75_dadada_1x400_png = Url("ui-bg_glass_75_dadada_1x400.png");
+                    public static readonly string ui_bg_glass_75_e6e6e6_1x400_png = Url("ui-bg_glass_75_e6e6e6_1x400.png");
+                    public static readonly string ui_bg_glass_95_fef1ec_1x400_png = Url("ui-bg_glass_95_fef1ec_1x400.png");
+                    public static readonly string ui_bg_highlight_soft_75_cccccc_1x100_png = Url("ui-bg_highlight-soft_75_cccccc_1x100.png");
+                    public static readonly string ui_icons_222222_256x240_png = Url("ui-icons_222222_256x240.png");
+                    public static readonly string ui_icons_2e83ff_256x240_png = Url("ui-icons_2e83ff_256x240.png");
+                    public static readonly string ui_icons_454545_256x240_png = Url("ui-icons_454545_256x240.png");
+                    public static readonly string ui_icons_888888_256x240_png = Url("ui-icons_888888_256x240.png");
+                    public static readonly string ui_icons_cd0a0a_256x240_png = Url("ui-icons_cd0a0a_256x240.png");
+                }
+            
+                public static readonly string jquery_ui_css = Url("jquery-ui.css");
+                public static readonly string jquery_ui_accordion_css = Url("jquery.ui.accordion.css");
+                public static readonly string jquery_ui_all_css = Url("jquery.ui.all.css");
+                public static readonly string jquery_ui_autocomplete_css = Url("jquery.ui.autocomplete.css");
+                public static readonly string jquery_ui_base_css = Url("jquery.ui.base.css");
+                public static readonly string jquery_ui_button_css = Url("jquery.ui.button.css");
+                public static readonly string jquery_ui_core_css = Url("jquery.ui.core.css");
+                public static readonly string jquery_ui_datepicker_css = Url("jquery.ui.datepicker.css");
+                public static readonly string jquery_ui_dialog_css = Url("jquery.ui.dialog.css");
+                public static readonly string jquery_ui_menu_css = Url("jquery.ui.menu.css");
+                public static readonly string jquery_ui_progressbar_css = Url("jquery.ui.progressbar.css");
+                public static readonly string jquery_ui_resizable_css = Url("jquery.ui.resizable.css");
+                public static readonly string jquery_ui_selectable_css = Url("jquery.ui.selectable.css");
+                public static readonly string jquery_ui_slider_css = Url("jquery.ui.slider.css");
+                public static readonly string jquery_ui_spinner_css = Url("jquery.ui.spinner.css");
+                public static readonly string jquery_ui_tabs_css = Url("jquery.ui.tabs.css");
+                public static readonly string jquery_ui_theme_css = Url("jquery.ui.theme.css");
+                public static readonly string jquery_ui_tooltip_css = Url("jquery.ui.tooltip.css");
+                [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+                public static class minified {
+                    private const string URLPATH = "~/Content/themes/base/minified";
+                    public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                    public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                    [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+                    public static class images {
+                        private const string URLPATH = "~/Content/themes/base/minified/images";
+                        public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                        public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                        public static readonly string animated_overlay_gif = Url("animated-overlay.gif");
+                        public static readonly string ui_bg_flat_0_aaaaaa_40x100_png = Url("ui-bg_flat_0_aaaaaa_40x100.png");
+                        public static readonly string ui_bg_flat_75_ffffff_40x100_png = Url("ui-bg_flat_75_ffffff_40x100.png");
+                        public static readonly string ui_bg_glass_55_fbf9ee_1x400_png = Url("ui-bg_glass_55_fbf9ee_1x400.png");
+                        public static readonly string ui_bg_glass_65_ffffff_1x400_png = Url("ui-bg_glass_65_ffffff_1x400.png");
+                        public static readonly string ui_bg_glass_75_dadada_1x400_png = Url("ui-bg_glass_75_dadada_1x400.png");
+                        public static readonly string ui_bg_glass_75_e6e6e6_1x400_png = Url("ui-bg_glass_75_e6e6e6_1x400.png");
+                        public static readonly string ui_bg_glass_95_fef1ec_1x400_png = Url("ui-bg_glass_95_fef1ec_1x400.png");
+                        public static readonly string ui_bg_highlight_soft_75_cccccc_1x100_png = Url("ui-bg_highlight-soft_75_cccccc_1x100.png");
+                        public static readonly string ui_icons_222222_256x240_png = Url("ui-icons_222222_256x240.png");
+                        public static readonly string ui_icons_2e83ff_256x240_png = Url("ui-icons_2e83ff_256x240.png");
+                        public static readonly string ui_icons_454545_256x240_png = Url("ui-icons_454545_256x240.png");
+                        public static readonly string ui_icons_888888_256x240_png = Url("ui-icons_888888_256x240.png");
+                        public static readonly string ui_icons_cd0a0a_256x240_png = Url("ui-icons_cd0a0a_256x240.png");
+                    }
+                
+                    public static readonly string jquery_ui_min_css = Url("jquery-ui.min.css");
+                    public static readonly string jquery_ui_accordion_min_css = Url("jquery.ui.accordion.min.css");
+                    public static readonly string jquery_ui_autocomplete_min_css = Url("jquery.ui.autocomplete.min.css");
+                    public static readonly string jquery_ui_button_min_css = Url("jquery.ui.button.min.css");
+                    public static readonly string jquery_ui_core_min_css = Url("jquery.ui.core.min.css");
+                    public static readonly string jquery_ui_datepicker_min_css = Url("jquery.ui.datepicker.min.css");
+                    public static readonly string jquery_ui_dialog_min_css = Url("jquery.ui.dialog.min.css");
+                    public static readonly string jquery_ui_menu_min_css = Url("jquery.ui.menu.min.css");
+                    public static readonly string jquery_ui_progressbar_min_css = Url("jquery.ui.progressbar.min.css");
+                    public static readonly string jquery_ui_resizable_min_css = Url("jquery.ui.resizable.min.css");
+                    public static readonly string jquery_ui_selectable_min_css = Url("jquery.ui.selectable.min.css");
+                    public static readonly string jquery_ui_slider_min_css = Url("jquery.ui.slider.min.css");
+                    public static readonly string jquery_ui_spinner_min_css = Url("jquery.ui.spinner.min.css");
+                    public static readonly string jquery_ui_tabs_min_css = Url("jquery.ui.tabs.min.css");
+                    public static readonly string jquery_ui_theme_min_css = Url("jquery.ui.theme.min.css");
+                    public static readonly string jquery_ui_tooltip_min_css = Url("jquery.ui.tooltip.min.css");
+                }
+            
+            }
+        
+            [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+            public static class custom {
+                private const string URLPATH = "~/Content/themes/custom";
+                public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
+                public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+                public static readonly string jquery_ui_1_10_3_custom_css = Url("jquery-ui-1.10.3.custom.css");
+                public static readonly string jquery_ui_1_10_3_custom_min_css = Url("jquery-ui-1.10.3.custom.min.css");
+            }
+        
         }
     
     }
