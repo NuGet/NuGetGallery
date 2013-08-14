@@ -66,7 +66,11 @@ namespace NuGetGallery.Migrations
                 .Index(t => t.UserKey);
             
             AddColumn("dbo.Packages", "UserKey", c => c.Int());
-            AddForeignKey("dbo.Packages", "UserKey", "dbo.Users", "Key");
+
+            // SQL to create the Foreign Key UserKey with extra ON DELETE SET NULL
+            Sql(@"
+ALTER TABLE [dbo].[PackageHistories] WITH CHECK ADD CONSTRAINT [FK_dbo.PackageHistories_dbo.Users_UserKey] FOREIGN KEY([UserKey])
+REFERENCES [dbo].[Users] ([Key]) ON DELETE SET NULL");
             CreateIndex("dbo.Packages", "UserKey");
         }
         
