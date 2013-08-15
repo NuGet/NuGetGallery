@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ using NuGetGallery.Operations.Tasks;
 
 namespace NuGetGallery.Backend.Jobs
 {
+    [Export(typeof(WorkerJob))]
     public class UpdateLicenseReportsJob : WorkerJob
     {
         public override TimeSpan Period
