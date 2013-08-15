@@ -42,7 +42,7 @@ namespace NuGetGallery.Operations.Tasks
         [Option("The password for the reporting service", AltName = "p")]
         public string LicenseReportPassword { get; set; }
 
-        private NetworkCredential _licenseReportCredential;
+        public NetworkCredential LicenseReportCredentials { get; set; }
 
         public override void ValidateArguments()
         {
@@ -50,7 +50,7 @@ namespace NuGetGallery.Operations.Tasks
 
             if (CurrentEnvironment != null)
             {
-                _licenseReportCredential = CurrentEnvironment.LicenseReportServiceCredentials;
+                LicenseReportCredentials = LicenseReportCredentials ?? CurrentEnvironment.LicenseReportServiceCredentials;
                 LicenseReportService = LicenseReportService ?? CurrentEnvironment.LicenseReportService;
             }
 
@@ -58,19 +58,19 @@ namespace NuGetGallery.Operations.Tasks
             {
                 if (!String.IsNullOrEmpty(LicenseReportPassword))
                 {
-                    _licenseReportCredential = new NetworkCredential(LicenseReportUser, LicenseReportPassword);
+                    LicenseReportCredentials = new NetworkCredential(LicenseReportUser, LicenseReportPassword);
                 }
                 else
                 {
-                    _licenseReportCredential = new NetworkCredential(LicenseReportUser, String.Empty);
+                    LicenseReportCredentials = new NetworkCredential(LicenseReportUser, String.Empty);
                 }
             }
             else if (!String.IsNullOrEmpty(LicenseReportPassword))
             {
-                _licenseReportCredential = new NetworkCredential(String.Empty, LicenseReportPassword);
+                LicenseReportCredentials = new NetworkCredential(String.Empty, LicenseReportPassword);
             }
 
-            ArgCheck.RequiredOrConfig(_licenseReportCredential, "LicenseReportUser");
+            ArgCheck.RequiredOrConfig(LicenseReportCredentials, "LicenseReportUser");
             ArgCheck.RequiredOrConfig(LicenseReportService, "LicenseReportService");
         }
 
@@ -123,9 +123,9 @@ namespace NuGetGallery.Operations.Tasks
             while (nextLicenseReport != null)
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(nextLicenseReport);
-                if (_licenseReportCredential != null)
+                if (LicenseReportCredentials != null)
                 {
-                    request.Credentials = _licenseReportCredential;
+                    request.Credentials = LicenseReportCredentials;
                 }
                 Log.Http(request);
 
