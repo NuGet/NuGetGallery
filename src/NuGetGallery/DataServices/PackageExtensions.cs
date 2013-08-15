@@ -51,7 +51,7 @@ namespace NuGetGallery
                         });
         }
 
-        public static IQueryable<V2FeedPackage> ToV2FeedPackageQuery(this IQueryable<Package> packages, string siteRoot)
+        public static IQueryable<V2FeedPackage> ToV2FeedPackageQuery(this IQueryable<Package> packages, string siteRoot, bool includeLicenseReport)
         {
             siteRoot = EnsureTrailingSlash(siteRoot);
             return packages
@@ -93,8 +93,8 @@ namespace NuGetGallery
 
                     // License Report Information
                     LicenseUrl = p.LicenseUrl,
-                    LicenseNames = p.HideLicenseReport ? null : p.LicenseNames,
-                    LicenseReportUrl = p.HideLicenseReport ? null : p.LicenseReportUrl
+                    LicenseNames = (!includeLicenseReport || p.HideLicenseReport) ? null : p.LicenseNames,
+                    LicenseReportUrl = (!includeLicenseReport || p.HideLicenseReport) ? null : p.LicenseReportUrl
                 });
         }
 

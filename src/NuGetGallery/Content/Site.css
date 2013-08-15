@@ -768,7 +768,7 @@ ul.dependencySet li {
     margin-top: 1.5em;
     margin-bottom: 2em;
     margin-left: 0;
-    margin-right: 7.2em;
+    margin-right: 2em;
     padding: 1.1em;
     background: #e4f1f7;
 }
@@ -779,6 +779,12 @@ ul.dependencySet li {
     text-align: left;
     font-size: 1.25em;
     color: #0071BC;
+}
+
+.block-notice {
+    color: red;
+    padding: 0.1em;
+    display: inline-block;
 }
 
 #sonatypeHeader {
