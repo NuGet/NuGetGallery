@@ -18,18 +18,20 @@ namespace NuGetGallery.Configuration
         private const string FeaturePrefix = "Feature.";
 
         private IAppConfiguration _current;
-        public IAppConfiguration Current
+
+        public virtual IAppConfiguration Current
         {
             get { return _current ?? (_current = ResolveSettings()); }
             set { _current = value; }
         }
 
         private FeatureConfiguration _features;
-        public FeatureConfiguration Features {
+
+        public virtual FeatureConfiguration Features
+        {
             get { return _features ?? (_features = ResolveFeatures()); }
             set { _features = value; }
         }
-
 
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
@@ -126,6 +128,7 @@ namespace NuGetGallery.Configuration
         }
 
         public bool _notInCloud = false;
+
         public virtual string GetCloudSetting(string settingName)
         {
             // Short-circuit if we've already determined we're not in the cloud
