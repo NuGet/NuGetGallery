@@ -97,42 +97,53 @@
         </ul>
     </nav>
 
-    @* Package with license report enabled and at least one license field  OR  Owned by user *@
-    @if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || Model.IsOwner(User))
-    {
-        <div class="block">
-            <h3 class="block-title">License details</h3>
-            <p id="sonatypeHeader">provided by Sonatype</p>
-            @if (Model.LicenseNames.AnySafe())
-            {
-                foreach (var licenseName in Model.LicenseNames)
+    @* ** FEATURE: License Reports ** *@
+    @if(Config.Features.FriendlyLicenses || User.IsAdministrator()) {
+        @* Package with license report enabled and at least one license field  OR  Owned by user *@
+        if ((!Model.HideLicenseReport && (Model.LicenseNames.AnySafe() || !String.IsNullOrEmpty(Model.LicenseReportUrl))) || Model.IsOwner(User))
+        {
+            <div class="block">
+                <h3 class="block-title">License details</h3>
+                <p id="sonatypeHeader">provided by Sonatype</p>
+                @if (Model.HideLicenseReport)
                 {
-                    if (!String.IsNullOrEmpty(licenseName))
+                    <p class="block-notice">Visible only to owners</p>
+                }
+                @if (!Config.Features.FriendlyLicenses && User.IsAdministrator())
+                {
+                    <p class="block-notice">Visible only to admins</p>
+                }
+                @if (Model.LicenseNames.AnySafe())
+                {
+                    foreach (var licenseName in Model.LicenseNames)
                     {
-                        <p class="@(Model.HideLicenseReport ? "fadedLicenseName" : "licenseName")">@licenseName</p>
+                        if (!String.IsNullOrEmpty(licenseName))
+                        {
+                            <p class="@(Model.HideLicenseReport ? "fadedLicenseName" : "licenseName")">@licenseName</p>
+                        }
                     }
                 }
-            }
-            @if (!String.IsNullOrEmpty(Model.LicenseReportUrl))
-            {
-                <p><a class="@(Model.HideLicenseReport ? "block-fadedLink": "block-link")" href="@Model.LicenseReportUrl" title="Find out more details about the licenses in this package">View report</a></p>
-            }
-            @if (Model.IsOwner(User))
-            {
-                if (!Model.LicenseNames.AnySafe() && String.IsNullOrEmpty(Model.LicenseReportUrl))
+                @if (!String.IsNullOrEmpty(Model.LicenseReportUrl))
                 {
-                    <p class="block-text">License information is not yet available.</p>
+                    <p><a class="@(Model.HideLicenseReport ? "block-fadedLink": "block-link")" href="@Model.LicenseReportUrl" title="Find out more details about the licenses in this package">View report</a></p>
                 }
-                else
+                @if (Model.IsOwner(User))
                 {
-                    using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
+                    if (!Model.LicenseNames.AnySafe() && String.IsNullOrEmpty(Model.LicenseReportUrl))
                     {
-                        @Html.AntiForgeryToken()
-                        <input id="enableDisableLicenseReportButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
+                        <p class="block-text">License information is not yet available.</p>
+                    }
+                    else
+                    {
+                        using (Html.BeginForm(MVC.Packages.SetLicenseReportVisibility(Model.Id, Model.Version, Model.HideLicenseReport), FormMethod.Post, new { @class = "form" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <input id="enableDisableLicenseReportButton" type="submit" title="@(Model.HideLicenseReport ? "Display" : "Hide") license information provided by Sonatype CLM" value="@(Model.HideLicenseReport ? "Enable" : "Disable")"/>
+                        }
                     }
                 }
-            }
-        </div>
+            </div>
+        }
     }
 
 }
