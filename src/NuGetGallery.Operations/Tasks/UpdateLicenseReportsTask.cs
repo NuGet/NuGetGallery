@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AnglicanGeek.DbExecutor;
 using Newtonsoft.Json.Linq;
@@ -129,20 +130,44 @@ namespace NuGetGallery.Operations.Tasks
                 }
                 Log.Http(request);
 
-                HttpWebResponse response;
-                try
+                HttpWebResponse response = null;
+                int tries = 0;
+                while (tries < 10 && response == null)
                 {
-                    response = (HttpWebResponse)request.GetResponse();
-                }
-                catch (WebException ex)
-                {
-                    var httpResp = ex.Response as HttpWebResponse;
-                    if (httpResp != null)
+                    try
                     {
-                        Log.Http(httpResp);
-                        return;
+                        response = (HttpWebResponse)request.GetResponse();
                     }
-                    throw;
+                    catch (WebException ex)
+                    {
+                        response = null;
+                        var httpResp = ex.Response as HttpWebResponse;
+                        if (httpResp != null)
+                        {
+                            Log.Http(httpResp);
+                            return;
+                        }
+                        else if (ex.Status == WebExceptionStatus.Timeout)
+                        {
+                            // Try again in 10 seconds
+                            tries++;
+                            if (tries < 10)
+                            {
+                                Log.Warn("Timeout connecting to service. Sleeping for 30 seconds and trying again ({0}/10 tries)", tries);
+                                Thread.Sleep(10 * 1000);
+                            }
+                            else
+                            {
+                                Log.Error("Timeout connecting to service. Tried 10 times. Aborting Job");
+                                throw;
+                            }
+                        }
+                        else
+                        {
+                            Log.ErrorException(String.Format("WebException contacting service: {0}", ex.Status), ex);
+                            throw;
+                        }
+                    }
                 }
                 Log.Http(response);
 
