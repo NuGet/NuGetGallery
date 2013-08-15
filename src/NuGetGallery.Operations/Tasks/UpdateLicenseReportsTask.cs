@@ -123,17 +123,17 @@ namespace NuGetGallery.Operations.Tasks
 
             while (nextLicenseReport != null)
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(nextLicenseReport);
-                if (LicenseReportCredentials != null)
-                {
-                    request.Credentials = LicenseReportCredentials;
-                }
-                Log.Http(request);
-
                 HttpWebResponse response = null;
                 int tries = 0;
                 while (tries < 10 && response == null)
                 {
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(nextLicenseReport);
+                    if (LicenseReportCredentials != null)
+                    {
+                        request.Credentials = LicenseReportCredentials;
+                    }
+                    Log.Http(request);
+
                     try
                     {
                         response = (HttpWebResponse)request.GetResponse();
