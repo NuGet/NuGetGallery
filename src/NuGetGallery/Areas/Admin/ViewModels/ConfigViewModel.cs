@@ -12,7 +12,6 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     public class FeatureConfigViewModel
     {
         public PropertyInfo Property { get; private set; }
-        public string Name { get; set; }
         public string Description { get; set; }
         public bool Enabled { get; set; }
 
@@ -22,7 +21,6 @@ namespace NuGetGallery.Areas.Admin.ViewModels
             
             var dna = property.GetCustomAttribute<DisplayNameAttribute>();
             var desca = property.GetCustomAttribute<DescriptionAttribute>();
-            Name = (dna != null ? dna.DisplayName : property.Name);
             Description = (desca != null ? desca.Description : "");
             Enabled = (bool)property.GetValue(config);
         }
