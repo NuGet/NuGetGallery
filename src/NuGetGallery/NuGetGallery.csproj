@@ -1281,7 +1281,7 @@
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Statistics\_PivotTable.cshtml" />
     <Content Include="Views\Statistics\_LastUpdated.cshtml" />
-    <Content Include="Views\Packages\CancelPendingEdits.cshtml" />
+    <Content Include="Views\Packages\UndoPendingEdits.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Areas\Admin\DynamicData\CustomPages\" />

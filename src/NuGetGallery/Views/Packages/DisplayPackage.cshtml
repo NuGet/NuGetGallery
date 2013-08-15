@@ -101,7 +101,7 @@
     @if (Model.HasPendingMetadata)
     {
         <p class="pending-edit-message">
-            An edit is pending for this package version. You are seeing the <em>edited</em> package description now. These changes will be completed and visible to everybody soon unless you <a href="@Url.CancelPendingEdits(Model)">cancel pending edits</a>.
+            An edit is pending for this package version. You are seeing the <em>edited</em> package description now. These changes will be completed and visible to everybody soon unless you <a href="@Url.UndoPendingEdits(Model)">cancel pending edits</a>.
         </p>
     }
     @if (Model.Prerelease)

@@ -91,7 +91,7 @@
         <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
         <li>@EditableField("Authors", m => m.Edit.Authors)</li>
         <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
-        <li>@EditableField("Tags", m => m.Edit.Tags, link: true)</li>
+        <li>@EditableField("Tags", m => m.Edit.Tags)</li>
         <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
         <li>
             <h4>Requires License Acceptance
@@ -179,7 +179,7 @@
 
                 $("#Undo" + name + "").click(function (event) {
                     event.preventDefault();
-                    $(document.forms.VerifyForm.elements["" + name + ""]).each(function () {
+                    $(this.form.elements["" + name + ""]).each(function () {
                         this.value = this.defaultValue;
                         $(this).attr("data-edited", "false");
                     });

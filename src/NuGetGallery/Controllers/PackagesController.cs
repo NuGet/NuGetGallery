@@ -82,6 +82,82 @@ namespace NuGetGallery
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
 
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult UndoPendingEdits(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var model = new TrivialPackageVersionModel
+            {
+                Id = package.PackageRegistration.Id,
+                Version = package.Version,
+                Title = package.Title,
+            };
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ActionName("UndoPendingEdits")]
+        public virtual ActionResult UndoPendingEditsPost(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            // To do as much successful cancellation as possible, Will not batch, but will instead try to cancel 
+            // pending edits 1 at a time, starting with oldest first.
+            var pendingEdits = _entitiesContext.Set<PackageEdit>()
+                .Where(pe => pe.PackageKey == package.Key)
+                .OrderBy(pe => pe.Timestamp)
+                .ToList();
+
+            int numOK = 0;
+            int numConflicts = 0;
+            foreach (var result in pendingEdits)
+            {
+                try
+                {
+                    _entitiesContext.DeleteOnCommit(result);
+                    _entitiesContext.SaveChanges();
+                    numOK += 1;
+                }
+                catch (DataException)
+                {
+                    numConflicts += 1;
+                }
+            }
+
+            if (numConflicts > 0)
+            {
+                TempData["Message"] = "Your pending edit has already been completed and could not be canceled.";
+            }
+            else if (numOK > 0)
+            {
+                TempData["Message"] = "Your pending edits for this package were successfully canceled.";
+            }
+            else
+            {
+                TempData["Message"] = "No pending edits were found for this package. The edits may have already been completed.";
+            }
+
+            return Redirect(Url.Package(id, version));
+        }
+
         [Authorize]
         public async virtual Task<ActionResult> UploadPackage()
         {
@@ -498,7 +574,7 @@ namespace NuGetGallery
 
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
             model.HasPendingMetadata = pendingMetadata != null;
-            model.EditPackageVersionRequest = new EditPackageVersionRequest(package, pendingMetadata);
+            model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
             return View(model);
         }
 
@@ -521,87 +597,11 @@ namespace NuGetGallery
             var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
 
             // Add the edit request to a queue where it will be processed in the background.
-            if (formData.EditPackageVersionRequest != null)
+            if (formData.Edit != null)
             {
-                _editPackageService.StartEditPackageRequest(package, formData.EditPackageVersionRequest, user);
+                _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                 _entitiesContext.SaveChanges();
             }
-            return Redirect(Url.Package(id, version));
-        }
-
-        [HttpGet]
-        [Authorize]
-        public virtual ActionResult CancelPendingEdits(string id, string version)
-        {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-
-            var model = new TrivialPackageVersionModel
-            {
-                Id = package.PackageRegistration.Id,
-                Version = package.Version,
-                Title = package.Title,
-            };
-
-            return View(model);
-        }
-
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [ActionName("CancelPendingEdits")]
-        public virtual ActionResult CancelPendingEditsPost(string id, string version)
-        {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-
-            if (!package.IsOwner(HttpContext.User))
-            {
-                return new HttpStatusCodeResult(403, "Forbidden");
-            }
-
-            // To do as much successful cancellation as possible, Will not batch, but will instead try to cancel 
-            // pending edits 1 at a time, starting with oldest first.
-            var pendingEdits = _entitiesContext.Set<PackageEdit>()
-                .Where(pe => pe.PackageKey == package.Key)
-                .OrderBy(pe => pe.Timestamp)
-                .ToList();
-
-            int numOK = 0;
-            int numConflicts = 0;
-            foreach (var result in pendingEdits)
-            {
-                try
-                {
-                    _entitiesContext.DeleteOnCommit(result);
-                    _entitiesContext.SaveChanges();
-                    numOK += 1;
-                }
-                catch (DataException)
-                {
-                    numConflicts += 1;
-                }
-            }
-            
-            if (numConflicts > 0)
-            {
-                TempData["Message"] = "Your pending edit has already been completed and could not be canceled.";
-            }
-            else if (numOK > 0)
-            {
-                TempData["Message"] = "Your pending edits for this package were successfully canceled.";
-            }
-            else
-            {
-                TempData["Message"] = "No pending edits were found for this package. The edits may have already been completed.";
-            }
-
             return Redirect(Url.Package(id, version));
         }
 
