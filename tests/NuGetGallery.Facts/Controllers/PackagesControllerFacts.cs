@@ -11,6 +11,7 @@ using Moq;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
+using NuGetGallery.Packaging;
 using NuGetGallery.Helpers;
 using Xunit;
 using Xunit.Extensions;
@@ -64,6 +65,8 @@ namespace NuGetGallery
 
             cacheService = cacheService ?? new Mock<ICacheService>();
 
+            var editPackageservice = new Mock<EditPackageService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -76,7 +79,8 @@ namespace NuGetGallery
                 entitiesContext.Object,
                 config.Object,
                 indexingService.Object,
-                cacheService.Object);
+                cacheService.Object,
+                editPackageservice.Object);
             controller.CallBase = true;
 
             if (httpContext != null)
@@ -843,7 +847,7 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
                 Assert.Equal("theId", model.Id);
                 fakeUploadFileStream.Dispose();
@@ -867,7 +871,7 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
                 Assert.Equal("1.0.42", model.Version);
                 fakeUploadFileStream.Dispose();
@@ -891,9 +895,9 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("theTitle", model.Title);
+                Assert.Equal("theTitle", model.Edit.VersionTitle);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -915,9 +919,9 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("theSummary", model.Summary);
+                Assert.Equal("theSummary", model.Edit.Summary);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -939,9 +943,9 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("theDescription", model.Description);
+                Assert.Equal("theDescription", model.Edit.Description);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -963,9 +967,9 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.True(model.RequiresLicenseAcceptance);
+                Assert.True(model.Edit.RequiresLicenseAcceptance);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -987,7 +991,7 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
                 Assert.Equal("http://thelicenseuri/", model.LicenseUrl);
                 fakeUploadFileStream.Dispose();
@@ -1011,9 +1015,9 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("theTags", model.Tags);
+                Assert.Equal("theTags", model.Edit.Tags);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -1035,9 +1039,9 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("http://theprojecturi/", model.ProjectUrl);
+                Assert.Equal("http://theprojecturi/", model.Edit.ProjectUrl);
                 fakeUploadFileStream.Dispose();
             }
 
@@ -1059,9 +1063,9 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageViewModel;
+                var model = ((ViewResult)await controller.VerifyPackage()).Model as VerifyPackageRequest;
 
-                Assert.Equal("firstAuthor, secondAuthor", model.Authors);
+                Assert.Equal("firstAuthor, secondAuthor", model.Edit.Authors);
                 fakeUploadFileStream.Dispose();
             }
         }
@@ -1069,7 +1073,7 @@ namespace NuGetGallery
         public class TheVerifyPackageActionForPostRequests
         {
             [Fact]
-            public async Task WillReturn404WhenThereIsNoUploadInProgress()
+            public async Task WillRedirectToUploadPageWhenThereIsNoUploadInProgress()
             {
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService.Setup(x => x.FindByUsername(It.IsAny<string>())).Returns(new User { Key = 42 });
@@ -1082,7 +1086,8 @@ namespace NuGetGallery
                     userService: fakeUserService,
                     fakeIdentity: fakeIdentity);
 
-                var result = await controller.VerifyPackage(null) as HttpNotFoundResult;
+                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://uploadpackage.xyz"));
+                var result = await controller.VerifyPackage((bool?)null) as RedirectResult;
 
                 Assert.NotNull(result);
             }
@@ -1111,7 +1116,7 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 fakePackageService.Verify(x => x.CreatePackage(fakeNuGetPackage.Object, fakeCurrentUser, false));
                 fakeFileStream.Dispose();
@@ -1146,7 +1151,7 @@ namespace NuGetGallery
                     packageFileService: fakePackageFileService);
 
                 // Act
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 // Assert
                 fakePackageService.Verify(x => x.CreatePackage(fakeNuGetPackage.Object, fakeCurrentUser, false));
@@ -1187,7 +1192,7 @@ namespace NuGetGallery
                     indexingService: fakeIndexingService);
 
                 // Act
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 // Assert
                 fakeIndexingService.Verify();
@@ -1224,7 +1229,7 @@ namespace NuGetGallery
                     entitiesContext: entitiesContext);
 
                 // Act
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 // Assert
                 entitiesContext.Verify();
@@ -1290,7 +1295,7 @@ namespace NuGetGallery
                     fakeIdentity: fakeIdentity,
                     fakeNuGetPackage: fakeNuGetPackage);
 
-                await controller.VerifyPackage(null);
+                await controller.VerifyPackage((bool?)null);
 
                 fakePackageService.Verify(x => x.PublishPackage(fakePackage, false), Times.Once());
                 fakeFileStream.Dispose();
@@ -1523,7 +1528,6 @@ namespace NuGetGallery
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakeUploadFileService = new Mock<IUploadFileService>();
 
-                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(null));
                 var fakePackageService = new Mock<IPackageService>();
                 var commandLinePackage = new Package
                     {
@@ -1531,7 +1535,13 @@ namespace NuGetGallery
                         Version = "2.0.0",
                         IsLatestStable = false
                     };
+                
                 fakePackageService.Setup(x => x.CreatePackage(It.IsAny<INupkg>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(commandLinePackage);
+
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(
+                    CreateTestPackageStream(commandLinePackage)));
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(42)).Returns(Task.FromResult(0));
+
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var controller = CreateController(
                     packageService: fakePackageService,
@@ -1549,7 +1559,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("nuget-commandline")]
-            [InlineData("nuget..commandline")]
+            [InlineData("nuget.x.commandline")]
             [InlineData("nuget.command")]
             public async Task WillNotExtractNuGetExeIfIsItDoesNotMatchId(string id)
             {
@@ -1561,10 +1571,14 @@ namespace NuGetGallery
                 fakeIdentity.Setup(x => x.Name).Returns("theUsername");
                 var fakeUploadFileService = new Mock<IUploadFileService>();
 
-                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(null));
                 var fakePackageService = new Mock<IPackageService>();
                 var commandLinePackage = new Package
                     { PackageRegistration = new PackageRegistration { Id = id }, Version = "2.0.0", IsLatestStable = true };
+
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(
+                    CreateTestPackageStream(commandLinePackage)));
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(42)).Returns(Task.FromResult(0));
+
                 fakePackageService.Setup(x => x.CreatePackage(It.IsAny<INupkg>(), It.IsAny<User>(), It.IsAny<bool>())).Returns(commandLinePackage);
                 var nugetExeDownloader = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict);
                 var controller = CreateController(
@@ -1575,10 +1589,35 @@ namespace NuGetGallery
                     downloaderService: nugetExeDownloader);
 
                 // Act
+                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://1.1.1.1"));
                 await controller.VerifyPackage(false);
 
                 // Assert
                 nugetExeDownloader.Verify(d => d.UpdateExecutableAsync(It.IsAny<INupkg>()), Times.Never());
+            }
+
+            private Stream CreateTestPackageStream(Package commandLinePackage)
+            {
+                var packageStream = new MemoryStream();
+                var builder = new PackageBuilder
+                {
+                    Id = commandLinePackage.PackageRegistration.Id,
+                    Version = SemanticVersion.Parse(commandLinePackage.Version),
+                    Authors = 
+                    {
+                        "dummyAuthor",
+                    },
+                    Description = commandLinePackage.Description ?? "dummyDesription",
+                };
+
+                // Make the package buildable by adding a dependency
+                if (builder.Files.Count == 0 && !builder.DependencySets.Any(s => s.Dependencies.Any()))
+                {
+                    builder.DependencySets.Add(new PackageDependencySet(null, new[] { new NuGet.PackageDependency("dummy") }));
+                }
+
+                builder.Save(packageStream);
+                return packageStream;
             }
         }
 

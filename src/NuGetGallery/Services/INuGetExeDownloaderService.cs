@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {

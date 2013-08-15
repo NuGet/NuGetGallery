@@ -1,10 +1,20 @@
 ﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Diagnostics;
+using System.Web.Configuration;
 
 namespace NuGetGallery
 {
     public class EntitiesContext : DbContext, IEntitiesContext
     {
+        /// <summary>
+        /// This constructor is provided only for purposes of running migrations from Package Manager console.
+        /// </summary>
+        public EntitiesContext()
+            : base(GetDefaultConnectionString())
+        {
+        }
+
         public EntitiesContext(string connectionString, bool readOnly)
             : base(connectionString)
         {
@@ -16,6 +26,12 @@ namespace NuGetGallery
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
+
+        private static string GetDefaultConnectionString()
+        {
+            return WebConfigurationManager.ConnectionStrings["Gallery.SqlServer"].ConnectionString;
+        }
+
         IDbSet<T> IEntitiesContext.Set<T>()
         {
             return base.Set<T>();
@@ -31,6 +47,12 @@ namespace NuGetGallery
             return base.SaveChanges();
         }
 
+        public void DeleteOnCommit<T>(T entity) where T : class
+        {
+            Set<T>().Remove(entity);
+        }
+
+#pragma warning disable 618 // TODO: remove Package.Authors completely once prodution services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
@@ -92,6 +114,36 @@ namespace NuGetGallery
                 .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
 
+            modelBuilder.Entity<PackageEdit>()
+                .HasKey(pm => pm.Key);
+
+            modelBuilder.Entity<PackageEdit>()
+                .HasRequired(pm => pm.User)
+                .WithMany()
+                .HasForeignKey(pm => pm.UserKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageEdit>()
+                .HasRequired<Package>(pm => pm.Package)
+                .WithMany(p => p.PackageEdits)
+                .HasForeignKey(pm => pm.PackageKey)
+                .WillCascadeOnDelete(true); // Pending PackageEdits get deleted with their package, since hey, there's no way to apply them without the package anyway.
+
+            modelBuilder.Entity<PackageHistory>()
+                .HasKey(pm => pm.Key);
+
+            modelBuilder.Entity<PackageHistory>()
+                .HasOptional(pm => pm.User)
+                .WithMany()
+                .HasForeignKey(pm => pm.UserKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<PackageHistory>()
+                .HasRequired<Package>(pm => pm.Package)
+                .WithMany(p => p.PackageHistories)
+                .HasForeignKey(pm => pm.PackageKey)
+                .WillCascadeOnDelete(true); // PackageHistories get deleted with their package.
+
             modelBuilder.Entity<PackageAuthor>()
                 .HasKey(pa => pa.Key);
 
@@ -130,5 +182,6 @@ namespace NuGetGallery
             modelBuilder.Entity<CuratedPackage>()
                 .HasRequired(cp => cp.PackageRegistration);
         }
+#pragma warning restore 618
     }
 }

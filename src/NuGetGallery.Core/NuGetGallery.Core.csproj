@@ -22,6 +22,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>..\CodeAnalysis.ruleset</CodeAnalysisRuleSet>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -44,8 +46,11 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -69,13 +74,18 @@
     <Compile Include="Entities\Package.cs" />
     <Compile Include="Entities\PackageAuthor.cs" />
     <Compile Include="Entities\PackageDependency.cs" />
+    <Compile Include="Entities\PackageEdit.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
+    <Compile Include="Entities\PackageHistory.cs" />
     <Compile Include="Entities\PackageOwnerRequest.cs" />
     <Compile Include="Entities\PackageRegistration.cs" />
     <Compile Include="Entities\PackageStatistics.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\User.cs" />
+    <Compile Include="Packaging\INupkg.cs" />
+    <Compile Include="Packaging\Nupkg.cs" />
+    <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
