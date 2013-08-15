@@ -757,6 +757,19 @@ namespace NuGetGallery
             return VerifyPackage(new VerifyPackageRequest { Listed = listed.GetValueOrDefault(true), Edit = null });
         }
 
+        // Determine whether an 'Edit' string submitted differs from one read from the package.
+        private bool IsDifferent(string posted, string package)
+        {
+            if (String.IsNullOrEmpty(posted) || String.IsNullOrEmpty(package))
+            {
+                return String.IsNullOrEmpty(posted) != String.IsNullOrEmpty(package);
+            }
+
+            // Compare non-empty strings
+            // Ignore those pesky '\r' characters which screw up comparisons.
+            return !String.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.InvariantCulture);
+        }
+
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -790,16 +803,18 @@ namespace NuGetGallery
                 bool pendEdit = false;
                 if (formData.Edit != null)
                 {
-                    pendEdit = pendEdit || formData.Edit.Authors.ToStringSafe() != nugetPackage.Metadata.Authors.Flatten();
-                    pendEdit = pendEdit || formData.Edit.Copyright.ToStringSafe() != nugetPackage.Metadata.Copyright.ToStringSafe();
-                    pendEdit = pendEdit || formData.Edit.Description.ToStringSafe() != nugetPackage.Metadata.Description.ToStringSafe();
-                    pendEdit = pendEdit || formData.Edit.IconUrl.ToStringSafe() != nugetPackage.Metadata.IconUrl.ToStringSafe();
-                    pendEdit = pendEdit || formData.Edit.ProjectUrl.ToStringSafe() != nugetPackage.Metadata.ProjectUrl.ToStringSafe();
-                    pendEdit = pendEdit || formData.Edit.ReleaseNotes.ToStringSafe() != nugetPackage.Metadata.ReleaseNotes.ToStringSafe();
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != nugetPackage.Metadata.RequireLicenseAcceptance;
-                    pendEdit = pendEdit || formData.Edit.Summary.ToStringSafe() != nugetPackage.Metadata.Summary.ToStringSafe();
-                    pendEdit = pendEdit || formData.Edit.Tags.ToStringSafe() != nugetPackage.Metadata.Tags.ToStringSafe();
-                    pendEdit = pendEdit || formData.Edit.VersionTitle.ToStringSafe() != nugetPackage.Metadata.Title.ToStringSafe();
+
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, nugetPackage.Metadata.IconUrl.ToStringSafe());
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, nugetPackage.Metadata.ProjectUrl.ToStringSafe());
+
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Authors, nugetPackage.Metadata.Authors.Flatten());
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Copyright, nugetPackage.Metadata.Copyright);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Description, nugetPackage.Metadata.Description);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.ReleaseNotes, nugetPackage.Metadata.ReleaseNotes);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Summary, nugetPackage.Metadata.Summary);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Tags, nugetPackage.Metadata.Tags);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.VersionTitle, nugetPackage.Metadata.Title);
                 }
 
                 // update relevant database tables
