@@ -147,7 +147,7 @@ namespace NuGetGallery.Operations.Tasks
                             Log.Http(httpResp);
                             return;
                         }
-                        else if (ex.Status == WebExceptionStatus.Timeout)
+                        else if (ex.Status == WebExceptionStatus.Timeout || ex.Status == WebExceptionStatus.ConnectFailure)
                         {
                             // Try again in 10 seconds
                             tries++;
@@ -239,6 +239,9 @@ namespace NuGetGallery.Operations.Tasks
                                 return;
                             }
                         }
+
+                        // Sleep for a few seconds before starting the next iteration
+                        Thread.Sleep(5 * 1000);
                     }
                     else
                     {

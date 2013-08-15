@@ -16,7 +16,7 @@ namespace NuGetGallery.Backend.Jobs
         {
             get
             {
-                return TimeSpan.FromHours(12);
+                return TimeSpan.FromMinutes(30);
             }
         }
 
