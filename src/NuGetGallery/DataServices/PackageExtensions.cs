@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public static class PackageExtensions
     {
-        private static readonly DateTime UnpublishedDate = new DateTime(1900, 1, 1, 0, 0, 0);
+        internal static readonly DateTime UnpublishedDate = new DateTime(1900, 1, 1, 0, 0, 0);
 
         public static IQueryable<V1FeedPackage> ToV1FeedPackageQuery(this IQueryable<Package> packages, string siteRoot)
         {
@@ -44,7 +44,7 @@ namespace NuGetGallery
                             RequireLicenseAcceptance = p.RequiresLicenseAcceptance,
                             Summary = p.Summary,
                             Tags = p.Tags == null ? null : " " + p.Tags.Trim() + " ",
-                            // In the current feed, tags are padded with a single leading and trailing space 
+                            // In the current feed, tags are padded with a single leading and trailing space
                             Title = p.Title ?? p.PackageRegistration.Id, // Need to do this since the older feed always showed a title.
                             VersionDownloadCount = p.DownloadCount,
                             Rating = 0
@@ -53,13 +53,19 @@ namespace NuGetGallery
 
         public static IQueryable<V2FeedPackage> ToV2FeedPackageQuery(this IQueryable<Package> packages, string siteRoot, bool includeLicenseReport)
         {
-            siteRoot = EnsureTrailingSlash(siteRoot);
-            return packages
-                .Include(p => p.PackageRegistration)
-                .WithoutNullPropagation()
+            return ProjectV2FeedPackage(
+                packages
+                    .Include(p => p.PackageRegistration)
+                    .WithoutNullPropagation(),
+                siteRoot, includeLicenseReport);
+        }
 
-                // Duplicate of the code above, because EF tries to translate a call to ToV2FeedPackage into a Database operation and fails.
-                .Select(p => new V2FeedPackage
+        // Does the actual projection of a Package object to a V2FeedPackage.
+        // This is in a separate method for testability
+        internal static IQueryable<V2FeedPackage> ProjectV2FeedPackage(this IQueryable<Package> packages, string siteRoot, bool includeLicenseReport)
+        {
+            siteRoot = EnsureTrailingSlash(siteRoot);
+            return packages.Select(p => new V2FeedPackage
                 {
                     Id = p.PackageRegistration.Id,
                     Version = p.Version,
