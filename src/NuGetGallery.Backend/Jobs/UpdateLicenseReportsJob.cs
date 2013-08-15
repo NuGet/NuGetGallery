@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using NuGetGallery.Operations.Tasks;
+
+namespace NuGetGallery.Backend.Jobs
+{
+    public class UpdateLicenseReportsJob : WorkerJob
+    {
+        public override TimeSpan Period
+        {
+            get
+            {
+                return TimeSpan.FromHours(12);
+            }
+        }
+
+        public override void RunOnce()
+        {
+            ExecuteTask(new UpdateLicenseReportsTask
+            {
+                ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
+                WhatIf = Settings.WhatIf,
+                LicenseReportService = Settings.LicenseReportService,
+                LicenseReportCredentials = Settings.LicenseReportCredentials
+            });
+        }
+    }
+}
