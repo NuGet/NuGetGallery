@@ -6,10 +6,10 @@ using NuGetGallery.Operations;
 
 namespace NuGetGallery.Backend.Jobs
 {
-    [Export(typeof(WorkerJob))]
+    //[Export(typeof(WorkerJob))]
     public class ReplicatePackageStatisticsJob : WorkerJob
     {
-        CancellationTokenSource _cts = new CancellationTokenSource();
+        private CancellationTokenSource _cts = new CancellationTokenSource();
 
         public override TimeSpan Period
         {
