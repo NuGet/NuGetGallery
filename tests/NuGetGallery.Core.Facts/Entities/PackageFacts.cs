@@ -66,7 +66,7 @@ namespace NuGetGallery
                 Assert.Equal("NewHash", p.Hash);
                 Assert.Equal(1, p.PackageFileSize);
 
-                Assert.Equal(0, p.PackageEdits.Count);
+                Assert.Equal(1, p.PackageEdits.Count); // It has to be deleted from the ObjectContext anyway so no point trying to delete it as part of ApplyEdit.
             }
         }
     }

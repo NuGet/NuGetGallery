@@ -163,7 +163,6 @@ namespace NuGetGallery
             HashAlgorithm = hashAlgorithm;
             PackageFileSize = packageFileSize;
             LastUpdated = DateTime.UtcNow;
-            PackageEdits.Remove(edit);
         }
     }
 }
