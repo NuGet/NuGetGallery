@@ -4,21 +4,24 @@
     <Role name="NuGetGallery.Backend">
         <Instances count="1" />
         <ConfigurationSettings>
-            <Setting name="Operations.EnvironmentName" value="" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+            <Setting name="Operations.EnvironmentName" value="Emulator" />
             <Setting name="Operations.Sql.Primary" value="" />
             <Setting name="Operations.Sql.Warehouse" value="" />
             <Setting name="Operations.Storage.Primary" value="" />
             <Setting name="Operations.Storage.Backup" value="" />
             <Setting name="Operations.SqlDac" value="" />
-            <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
-            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="" />
-            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
-            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
-            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="" />
-            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="" />
+            <Setting name="Operations.LicenseReport.Service" value="" />
+            <Setting name="Operations.LicenseReport.User" value="" />
+            <Setting name="Operations.LicenseReport.Password" value="" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="true" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="nuget-worker" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="MIIBnQYJKoZIhvcNAQcDoIIBjjCCAYoCAQAxggFOMIIBSgIBADAyMB4xHDAaBgNVBAMME1dpbmRvd3MgQXp1cmUgVG9vbHMCED1YtMrozay5TZ2Cd+arTMswDQYJKoZIhvcNAQEBBQAEggEAuHIs9qCq7stj/ZnHuiXTk8QZTQ5z9rhlY7Tyw4oV5Usp/pXTVRnCo7D1BbrAbcW/kGVz/PLsTgd5OTNzGQsn63U7NISnx1mJd7Jk4lG5ptFVk4JGPGu1ijUUkkKdLQNtiyd35hX78EPbZ8HD7nX/G+gquWpetMPaCaqLaqdoadAlsNI+5HEFai0AnNgOWsEUuM/qfHfD5YTMgWHJqDQ5J96ae4dTaJyWCKML6QZREQC+vyB63lJ4OG2IZxZoL7g5C/YTw8ouFRXWfil/TpP2J4X/BEEunbwNP2t/Rwd3On8bYm3Quy8KE1F87CchX3UMzbTANKEMU/URDvVeZs70RTAzBgkqhkiG9w0BBwEwFAYIKoZIhvcNAwcECKkICCWBn5CugBAZRHDbsxlvp99ZCdeZwZNp" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="2014-06-11T23:59:59.0000000-07:00" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="true" />
         </ConfigurationSettings>
         <Certificates>
-            <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="4456837edeabc85749289c8d8e743f2485728947" thumbprintAlgorithm="sha1" />
+            <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="989B374546A186C4EADAFA4F17EB05D7FA2E5C83" thumbprintAlgorithm="sha1" />
         </Certificates>
     </Role>
 </ServiceConfiguration>

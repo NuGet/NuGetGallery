@@ -151,6 +151,7 @@
     <Compile Include="Infrastructure\LogLevelConverter.cs" />
     <Compile Include="Infrastructure\SnazzyConsoleTarget.cs" />
     <Compile Include="Infrastructure\SqlDbExecutorFactory.cs" />
+    <Compile Include="LoggerExtensions.cs" />
     <Compile Include="Model\OfflineDatabaseBackup.cs" />
     <Compile Include="Model\OnlineDatabaseBackup.cs" />
     <Compile Include="Service References\SqlDac\Reference.cs">
@@ -249,9 +250,7 @@
     <Compile Include="Tasks\TaskBases.cs" />
     <Compile Include="Tasks\SynchronizePackageBackupsTask.cs" />
     <Compile Include="Tasks\ListMigrationsTask.cs" />
-    <Compile Include="..\..\..\..\Desktop\UpdateLicenseReportsTask.cs">
-      <Link>Tasks\UpdateLicenseReportsTask.cs</Link>
-    </Compile>
+    <Compile Include="Tasks\UpdateLicenseReportsTask.cs" />
     <Compile Include="Tasks\UploadPackageTask.cs" />
     <Compile Include="User.cs" />
     <Compile Include="Util.cs" />
