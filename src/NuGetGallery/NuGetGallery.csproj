@@ -596,7 +596,6 @@
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\PrincipalExtensions.cs" />
-    <Compile Include="Infrastructure\GalleryGateway.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\StatisticsReport.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />

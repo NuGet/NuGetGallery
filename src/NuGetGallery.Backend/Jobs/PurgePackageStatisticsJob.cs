@@ -5,7 +5,7 @@ using NuGetGallery.Operations;
 
 namespace NuGetGallery.Backend.Jobs
 {
-    [Export(typeof(WorkerJob))]
+    //[Export(typeof(WorkerJob))]
     public class PurgePackageStatisticsJob : WorkerJob
     {
         public override TimeSpan Period

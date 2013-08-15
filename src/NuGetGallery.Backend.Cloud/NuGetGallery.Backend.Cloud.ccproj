@@ -34,7 +34,7 @@
   <!-- Items for the project -->
   <ItemGroup>
     <ServiceDefinition Include="ServiceDefinition.csdef" />
-    <ServiceConfiguration Include="ServiceConfiguration.Local.cscfg" />
+    <ServiceConfiguration Include="ServiceConfiguration.Build.cscfg" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NuGetGallery.BackendContent\" />

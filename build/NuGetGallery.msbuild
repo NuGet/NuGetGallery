@@ -13,5 +13,6 @@
   
   <Target Name="Build" DependsOnTargets="Clean">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true" />
+    <MSBuild Projects="..\src\NuGetGallery.Backend.Cloud\NuGetGallery.Backend.Cloud.ccproj" Targets="Package" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
   </Target>
 </Project>
