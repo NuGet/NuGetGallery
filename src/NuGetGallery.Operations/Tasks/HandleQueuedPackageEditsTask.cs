@@ -195,8 +195,7 @@ namespace NuGetGallery.Operations.Tasks
                         }
                         catch (Exception e)
                         {
-                            // Commit changes to DB failed. I don't think we know if it *really* failed or if we got a spurious/connection-related error.
-                            // But assuming it really failed...
+                            // Commit changes to DB failed.
                             // Since our blob update wasn't part of the transaction (and doesn't AFAIK have a 'commit()' operator we can utilize for the type of blobs we are using)
                             // try, (single attempt) to roll back the blob update by restoring the previous snapshot.
                             Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
