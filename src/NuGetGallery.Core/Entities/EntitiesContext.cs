@@ -8,17 +8,22 @@ namespace NuGetGallery
     public class EntitiesContext : DbContext, IEntitiesContext
     {
         /// <summary>
-        /// This constructor is provided only for purposes of running migrations from Package Manager console.
+        /// The NuGet Gallery code should usually use this constructor, in order to respect read only mode.
         /// </summary>
-        public EntitiesContext()
-            : base(GetDefaultConnectionString())
-        {
-        }
-
         public EntitiesContext(string connectionString, bool readOnly)
             : base(connectionString)
         {
             ReadOnly = readOnly;
+        }
+
+        /// <summary>
+        /// This constructor is provided mainly for purposes of running migrations from Package Manager console,
+        /// or any other scenario where a connection string will be set after the EntitiesContext is created 
+        /// (and read only mode is don't care).
+        /// </summary>
+        public EntitiesContext()
+            : base()
+        {
         }
 
         public bool ReadOnly { get; private set; }
@@ -26,11 +31,6 @@ namespace NuGetGallery
         public IDbSet<CuratedPackage> CuratedPackages { get; set; }
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
-
-        private static string GetDefaultConnectionString()
-        {
-            return WebConfigurationManager.ConnectionStrings["Gallery.SqlServer"].ConnectionString;
-        }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {

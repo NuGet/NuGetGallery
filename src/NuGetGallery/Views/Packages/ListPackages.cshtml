@@ -76,7 +76,7 @@
     <script>
         $(function() {
             $("#sortOrder,#prerelease").change(function() {
-                $(this).closest("form").submit();
+                this.form.submit();
             });
         });
     </script>

@@ -61,12 +61,11 @@ namespace NuGetGallery.Migrations
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("Packages", t => t.PackageKey, cascadeDelete: true)
-                .ForeignKey("Users", t => t.UserKey)
                 .Index(t => t.PackageKey);
 
             // SQL script: redefines the UserKey foreign key with 'ON DELETE SET NULL'
             Sql(@"
-ALTER TABLE [PackageHistories] WITH CHECK ADD CONSTRAINT [FK_PackageHistories.Users_UserKey] FOREIGN KEY([UserKey])
+ALTER TABLE [PackageHistories] WITH CHECK ADD CONSTRAINT [FK_PackageHistories_Users_UserKey] FOREIGN KEY([UserKey])
 REFERENCES [Users] ([Key]) ON DELETE SET NULL");
             CreateIndex("PackageHistories", "UserKey");
 

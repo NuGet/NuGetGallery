@@ -4,7 +4,7 @@ namespace NuGetGallery
 {
     public class EditPackageRequest
     {
-        public EditPackageVersionRequest EditPackageVersionRequest { get; set; }
+        public EditPackageVersionRequest Edit { get; set; }
 
         public string PackageId { get; set; }
         public string PackageTitle { get; set; }

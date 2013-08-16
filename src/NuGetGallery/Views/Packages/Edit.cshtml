@@ -1,32 +1,97 @@
-﻿@model EditPackageRequest
+﻿@using System.Linq.Expressions
+@model EditPackageRequest
 @{
     ViewBag.Title = "Editing: " + Model.PackageTitle + " " + Model.Version;
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
 }
 
+@Styles.Render("~/Content/font-awesome.css")
+
 @section BottomScripts {
     @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
     <script>
-        $('#EditPackageVersionRequest_IconUrl').focusout(function (event) {
-            var target = event.target;
-            var newValue = event.target.value;
-            $('#IconUrl_Preview').remove();
-            if (newValue.trim().length) {
-                $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '"></img>'))
-            }
-        });
-
         $(function () {
-            var form = $('#EditForm').toArray()[0];
-            $("input[type=url]").bind("focusin focusout keyup", function (event) {
+            function RunValidationForEvent(event) {
                 var target = $(event.target);
-                var validator = $.data(form, "validator"),
+                var validator = $.data(event.target.form, "validator"),
                     eventType = "on" + event.type.replace(/^validate/, "");
                 validator.settings[eventType] && validator.settings[eventType].call(validator, event.target);
+            }
+
+            function UpdateIconAndRunValidation(event) {
+                var target = event.target;
+                var newValue = event.target.value;
+                $('#IconUrl_Preview').remove();
+                if (newValue.trim().length) {
+                    $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '"></img>'))
+                }
+
+                RunValidationForEvent(event);
+            }
+
+            function SetupInput(name) {
+                SetDataEditedFlag = function (event) {
+                    $(event.target).attr("data-edited", event.target.value != event.target.defaultValue);
+                    if (event.target.value != event.target.defaultValue) {
+                        $("#Undo" + name).show();
+                    } else {
+                        $("#Undo" + name).hide();
+                    }
+                };
+
+                $("input[id=" + name + "]").keyup(SetDataEditedFlag);
+                $("textarea[id=" + name + "]").keyup(SetDataEditedFlag);
+                $("select[id=" + name + "]").change(SetDataEditedFlag);
+
+                $("#Undo" + name + "").click(function (event) {
+                    event.preventDefault();
+                    $(this.form.elements["" + name + ""]).each(function () {
+                        this.value = this.defaultValue;
+                        $(this).attr("data-edited", "false");
+                    });
+                    $("#Undo" + name).hide();
+                });
+            }
+
+            SetupInput('Edit_VersionTitle');
+            SetupInput('Edit_Description');
+            SetupInput('Edit_Summary');
+            SetupInput('Edit_IconUrl');
+            SetupInput('Edit_ProjectUrl');
+            SetupInput('Edit_Authors');
+            SetupInput('Edit_Copyright');
+            SetupInput('Edit_Tags');
+            SetupInput('Edit_ReleaseNotes');
+            SetupInput('Edit_RequiresLicenseAcceptance');
+
+            // Fix our SetupInput function to work with RequiresLicenseAcceptance
+            // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
+            $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")"
+
+            $("#Edit_ProjectUrl").bind("focusin focusout", RunValidationForEvent);
+            $("#Edit_IconUrl").bind("focusin focusout", UpdateIconAndRunValidation);
+
+            $("#UndoEdit_IconUrl").click(function () {
+                var validator = $.data($("#Edit_IconUrl")[0].form, "validator");
+                validator.settings["onfocusout"].call(validator, $("#Edit_IconUrl")[0]);
+            });
+            $("#UndoEdit_ProjectUrl").click(function () {
+                var validator = $.data($("#Edit_ProjectUrl")[0].form, "validator");
+                validator.settings["onfocusout"].call(validator, $("#Edit_ProjectUrl")[0]);
+            });
+
+            $("#UndoEdit_IconUrl").click(function () {
+                var x = $("#Edit_IconUrl")[0];
+                var newValue = x.value;
+                $('#IconUrl_Preview').remove();
+                if (newValue.trim().length) {
+                    $(x).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '"></img>'))
+                }
             });
         });
 
+        // Scripts for dialog for prompting you to save when you navigate away
         $(function () {
             var href = '';
             $("#navigate-away-dialog").dialog({
@@ -136,23 +201,73 @@
     }
 }
 
-@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "EditForm" }))
+@helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false)
 {
-    if (Model.EditPackageVersionRequest != null)
-    {
-        <fieldset class="form">
-            <legend>Edit Version @(Model.Version)</legend>
-            
-            @Html.AntiForgeryToken()
-            @Html.ValidationSummary(true)
-            @(Html.EditorFor<EditPackageRequest, EditPackageVersionRequest>(model => model.EditPackageVersionRequest))
-        </fieldset>
-        <input type="submit" value="Save" title="Save" />
-    }
+    var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
+    object temp = func.Compile().Invoke(Model);
+    string value = temp == null ? null : temp.ToString();
+    <h4>@name
+        <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
+    </h4>
+    <div style="position: relative">
+        <div id="@(formid + "Field")" style="width: 100%">
+            <div class="form-field" style="display: inline">
+                @Html.EditorFor(func)
+                @Html.ValidationMessageFor(func)
+            </div>
+        </div>
+    </div>
 }
 
-<h2>Note:</h2>
-<p>
-    To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package. 
-    Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
-</p>
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "EditForm" }))
+{
+    <fieldset class="form">
+        <legend>Edit @(Model.PackageId) @(Model.Version)</legend>
+
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+
+        <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
+        @if (Model.Edit != null)
+        {
+            <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
+            <li>@EditableField("Description (a longer description)", m => m.Edit.Description)</li>
+            <li>@EditableField("Summary (visible in search results)", m => m.Edit.Summary)</li>
+            <li>@EditableField("Icon URL", m => m.Edit.IconUrl, link: true)</li>
+            <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
+            <li>@EditableField("Authors (comma-separated list - example: 'Annie, Bob, Charlie')", m => m.Edit.Authors)</li>
+            <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
+            <li>@EditableField("Tags (space-separated keywords - example: 'CommandLine ASP.NET Proxies Scaffolding)", m => m.Edit.Tags)</li>
+            <li>@EditableField("Release Notes (for this version)", m => m.Edit.ReleaseNotes)</li>
+            <li>
+                <h4>Requires License Acceptance
+                    @{
+                        var formid2 = "Edit_RequiresLicenseAcceptance";
+                        <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
+                    }
+                </h4>
+                <div style="position: relative">
+                    <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
+                        <div class="form-field" style="display: inline">
+                            @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
+                                new List<SelectListItem>
+                                {
+                                    new SelectListItem { Text = "Yes", Value = "true" },
+                                    new SelectListItem { Text = "No", Value = "false" },
+                                })
+                            @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                        </div>
+                    </div>
+                </div>
+            </li>
+        }
+        </ul>
+
+    <h2>Note:</h2>
+    <p>
+        To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package. 
+        Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
+    </p>
+    <input type="submit" value="Save" title="Save" />
+    </fieldset>
+}
