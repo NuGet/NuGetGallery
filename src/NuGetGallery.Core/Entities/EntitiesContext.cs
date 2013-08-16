@@ -32,11 +32,6 @@ namespace NuGetGallery
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<User> Users { get; set; }
 
-        private static string GetDefaultConnectionString()
-        {
-            return WebConfigurationManager.ConnectionStrings["Gallery.SqlServer"].ConnectionString;
-        }
-
         IDbSet<T> IEntitiesContext.Set<T>()
         {
             return base.Set<T>();
