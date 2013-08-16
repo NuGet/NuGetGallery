@@ -1,10 +1,12 @@
 ﻿using System;
+using System.ComponentModel.Composition;
 using System.Data.SqlClient;
 using NuGetGallery.Operations.Tasks;
 
 namespace NuGetGallery.Backend.Jobs
 {
-    internal class HandleQueuedPackageEditsJob : WorkerJob
+    [Export(typeof(WorkerJob))]
+    public class HandleQueuedPackageEditsJob : WorkerJob
     {
         public override TimeSpan Period
         {
