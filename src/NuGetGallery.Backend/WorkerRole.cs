@@ -86,9 +86,7 @@ namespace NuGetGallery.Backend
                 {
                     LogentriesTarget logentriesTarget = new LogentriesTarget()
                     {
-                        Debug = true,
                         HttpPut = false,
-                        Ssl = true,
                         Token = settings.LogentriesToken,
                         Name = "logentries",
                         Layout = "${date:format=ddd MMM dd} ${time:format=HH:mm:ss} ${date:format=zzz yyyy} ${logger} : ${LEVEL}, ${message}"

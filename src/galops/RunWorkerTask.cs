@@ -42,6 +42,10 @@ namespace NuGetGallery.Operations.Tools.Tasks
                         Log.Error("Invalid Setting: {0}", setting);
                         cont = false;
                     }
+                    else
+                    {
+                        overrideSettings[splitted[0]] = splitted[1];
+                    }
                 }
                 if (!cont)
                 {
