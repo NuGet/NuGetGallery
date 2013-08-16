@@ -758,7 +758,7 @@ namespace NuGetGallery
         }
 
         // Determine whether an 'Edit' string submitted differs from one read from the package.
-        private bool IsDifferent(string posted, string package)
+        private static bool IsDifferent(string posted, string package)
         {
             if (String.IsNullOrEmpty(posted) || String.IsNullOrEmpty(package))
             {
@@ -767,7 +767,7 @@ namespace NuGetGallery
 
             // Compare non-empty strings
             // Ignore those pesky '\r' characters which screw up comparisons.
-            return !String.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.InvariantCulture);
+            return !String.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.Ordinal);
         }
 
         [Authorize]
