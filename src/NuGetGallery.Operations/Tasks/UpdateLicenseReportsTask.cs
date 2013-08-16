@@ -169,68 +169,37 @@ namespace NuGetGallery.Operations.Tasks
                         }
                     }
                 }
-                Log.Http(response);
 
-                if (response.StatusCode == HttpStatusCode.OK)
+                using (response)
                 {
-                    string content = (new StreamReader(response.GetResponseStream())).ReadToEnd();
-                    JObject sonatypeMessage = JObject.Parse(content);
-                    if (!sonatypeMessage.IsValid(sonatypeSchema))
-                    {
-                        Log.Error("License report is invalid");
-                        return;
-                    }
+                    Log.Http(response);
 
-                    var events = sonatypeMessage["events"].Cast<JObject>().ToList();
-                    for (int i = 0; i < events.Count; i++)
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        var messageEvent = events[i];
-                        PackageLicenseReport report = CreateReport(messageEvent);
-
-                        bool success = true;
-                        try
+                        string content = (new StreamReader(response.GetResponseStream())).ReadToEnd();
+                        JObject sonatypeMessage = JObject.Parse(content);
+                        if (!sonatypeMessage.IsValid(sonatypeSchema))
                         {
-                            WithConnection((connection) =>
-                            {
-                                if (StoreReport(report, connection) == -1)
-                                {
-                                    Log.Error("[{0:000}/{1:000}] Package Not Found {2} {3}", i + 1, events.Count, report.PackageId, report.Version);
-                                    success = false;
-                                }
-                            });
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error("Database error\n\nCallstack:\n{0}", e.ToString());
+                            Log.Error("License report is invalid");
                             return;
                         }
-                        if (success)
-                        {
-                            Log.Info("[{0:000}/{1:000}] Updated {2} {3}", i + 1, events.Count, report.PackageId, report.Version);
-                        }
-                    }
 
-                    if (sonatypeMessage["next"].Value<string>().Length > 0)
-                    {
-                        var nextReportUrl = sonatypeMessage["next"].Value<string>();
-                        if (!Uri.TryCreate(nextReportUrl, UriKind.Absolute, out nextLicenseReport))
+                        var events = sonatypeMessage["events"].Cast<JObject>().ToList();
+                        for (int i = 0; i < events.Count; i++)
                         {
-                            Log.Error("Invalid NextLicenseReport value from license report service: {0}", nextReportUrl);
-                            return;
-                        }
-                        Log.Info("Found URL for the next license report: {0}", nextLicenseReport);
+                            var messageEvent = events[i];
+                            PackageLicenseReport report = CreateReport(messageEvent);
 
-                        // Record the next report to the database so we can check it again if we get aborted before finishing.
-                        if (!WhatIf)
-                        {
+                            bool success = true;
                             try
                             {
-                                WithConnection((connection, executor) =>
+                                WithConnection((connection) =>
                                 {
-                                    executor.Execute(@"
-                                    UPDATE GallerySettings
-                                    SET NextLicenseReport = @nextLicenseReport",
-                                        new { nextLicenseReport = nextLicenseReport.AbsoluteUri });
+                                    if (StoreReport(report, connection) == -1)
+                                    {
+                                        Log.Error("[{0:000}/{1:000}] Package Not Found {2} {3}", i + 1, events.Count, report.PackageId, report.Version);
+                                        success = false;
+                                    }
                                 });
                             }
                             catch (Exception e)
@@ -238,24 +207,56 @@ namespace NuGetGallery.Operations.Tasks
                                 Log.Error("Database error\n\nCallstack:\n{0}", e.ToString());
                                 return;
                             }
+                            if (success)
+                            {
+                                Log.Info("[{0:000}/{1:000}] Updated {2} {3}", i + 1, events.Count, report.PackageId, report.Version);
+                            }
                         }
 
-                        // Sleep for a few seconds before starting the next iteration
-                        Thread.Sleep(5 * 1000);
+                        if (sonatypeMessage["next"].Value<string>().Length > 0)
+                        {
+                            var nextReportUrl = sonatypeMessage["next"].Value<string>();
+                            if (!Uri.TryCreate(nextReportUrl, UriKind.Absolute, out nextLicenseReport))
+                            {
+                                Log.Error("Invalid NextLicenseReport value from license report service: {0}", nextReportUrl);
+                                return;
+                            }
+                            Log.Info("Found URL for the next license report: {0}", nextLicenseReport);
+
+                            // Record the next report to the database so we can check it again if we get aborted before finishing.
+                            if (!WhatIf)
+                            {
+                                try
+                                {
+                                    WithConnection((connection, executor) =>
+                                    {
+                                        executor.Execute(@"
+                                    UPDATE GallerySettings
+                                    SET NextLicenseReport = @nextLicenseReport",
+                                            new { nextLicenseReport = nextLicenseReport.AbsoluteUri });
+                                    });
+                                }
+                                catch (Exception e)
+                                {
+                                    Log.Error("Database error\n\nCallstack:\n{0}", e.ToString());
+                                    return;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            nextLicenseReport = null;
+                        }
+                    }
+                    else if (response.StatusCode != HttpStatusCode.NoContent)
+                    {
+                        Log.Info("Report is not available");
                     }
                     else
                     {
-                        nextLicenseReport = null;
+                        Log.Error("URL for the next license report caused HTTP status {0}", response.StatusCode);
+                        return;
                     }
-                }
-                else if (response.StatusCode != HttpStatusCode.NoContent)
-                {
-                    Log.Info("Report is not available");
-                }
-                else
-                {
-                    Log.Error("URL for the next license report caused HTTP status {0}", response.StatusCode);
-                    return;
                 }
             }
         }
