@@ -745,11 +745,6 @@ button.undo-button {
 
 /* Package Edit Page */
 
-#edit-list ul {
-    list-style-type: none;
-    list-style-image: none;
-}
-
 .edit-root {
     font-size: 1.3em;
 }
@@ -1366,13 +1361,13 @@ fieldset.form legend { display: none; }
     z-index: 550;
 }
 
-    .field-validation-error.block-validation-error
-    {
-        position: static;
-        display: block;
-        margin-left: 2px;
-        margin-top: 5px;
-    }
+.field-validation-error.block-validation-error
+{
+    position: static;
+    display: block;
+    margin-left: 2px;
+    margin-top: 5px;
+}
 
 
 #form-field-reason
