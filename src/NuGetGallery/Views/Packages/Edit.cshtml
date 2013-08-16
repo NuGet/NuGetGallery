@@ -212,16 +212,13 @@
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
     string value = temp == null ? null : temp.ToString();
-    <h4>@name
-        <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
-    </h4>
-    <div style="position: relative">
-        <div id="@(formid + "Field")" style="width: 100%">
-            <div class="form-field" style="display: inline">
-                @Html.EditorFor(func)
-                @Html.ValidationMessageFor(func)
-            </div>
+    <div class="form-field">
+        <div style="display: block" >
+            @Html.LabelFor(func, new { style = "display: inline-block" })
+            <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
         </div>
+        @Html.EditorFor(func)
+        @Html.ValidationMessageFor(func)
     </div>
 }
 
