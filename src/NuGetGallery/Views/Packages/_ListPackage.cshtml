@@ -55,7 +55,7 @@
                 </div>
             }
 
-            @if (!Model.HideLicenseReport && Model.LicenseNames.AnySafe())
+            @if (Config.Features.FriendlyLicenses && !Model.HideLicenseReport && Model.LicenseNames.AnySafe())
             {
                 <div class="licenses">
                     <h2>Licenses</h2>
