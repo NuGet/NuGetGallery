@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
@@ -569,7 +571,9 @@ namespace NuGetGallery
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
                 Version = package.Version,
-                PackageVersions = packageRegistration.Packages.ToList(),
+                PackageVersions = packageRegistration.Packages
+                    .OrderByDescending(p => new SemanticVersion(p.Version), Comparer<SemanticVersion>.Create((a, b) => a.CompareTo(b)))
+                    .ToList(),
             };
 
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
