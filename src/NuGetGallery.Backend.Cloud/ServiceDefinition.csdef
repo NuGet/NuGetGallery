@@ -11,6 +11,7 @@
             <Setting name="Operations.LicenseReport.Service" />
             <Setting name="Operations.LicenseReport.User" />
             <Setting name="Operations.LicenseReport.Password" />
+            <Setting name="Operations.LogentriesToken" />
         </ConfigurationSettings>
         <Imports>
             <Import moduleName="Diagnostics" />

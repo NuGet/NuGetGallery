@@ -42,6 +42,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\HalfOgre.DbExecutor.0.2.0.0\lib\net40\DbExecutor.dll</HintPath>
     </Reference>
+    <Reference Include="le_nlog">
+      <HintPath>..\..\packages\le_nlog.2.1.8\lib\Net40\le_nlog.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Data.Edm.5.5.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>

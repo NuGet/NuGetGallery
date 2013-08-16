@@ -23,6 +23,8 @@ namespace NuGetGallery.Backend
 
         public virtual string WarehouseConnectionString { get { return GetSetting("Sql.Warehouse"); } }
 
+        public virtual string LogentriesToken { get { return GetSetting("LogentriesToken"); } }
+
         public virtual bool WhatIf
         {
             get { return String.Equals("true", GetSetting("WhatIf"), StringComparison.OrdinalIgnoreCase); }

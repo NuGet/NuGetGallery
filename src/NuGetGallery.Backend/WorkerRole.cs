@@ -81,6 +81,24 @@ namespace NuGetGallery.Backend
                 LoggingRule jobLogs = new LoggingRule("Job.*", NLog.LogLevel.Debug, jobLogTarget);
                 config.LoggingRules.Add(jobLogs);
 
+                // Log entries target
+                if (!String.IsNullOrEmpty(settings.LogentriesToken))
+                {
+                    LogentriesTarget logentriesTarget = new LogentriesTarget()
+                    {
+                        Debug = true,
+                        HttpPut = false,
+                        Ssl = true,
+                        Token = settings.LogentriesToken,
+                        Name = "logentries",
+                        Layout = "${date:format=ddd MMM dd} ${time:format=HH:mm:ss} ${date:format=zzz yyyy} ${logger} : ${LEVEL}, ${message}"
+                    };
+                    config.AddTarget("logentries", logentriesTarget);
+
+                    LoggingRule allToLogentries = new LoggingRule("*", NLog.LogLevel.Debug, logentriesTarget);
+                    config.LoggingRules.Add(allToLogentries);
+                }
+
                 LogManager.Configuration = config;
 
                 _logger = LogManager.GetLogger("WorkerRole");
