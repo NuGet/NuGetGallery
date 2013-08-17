@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Web;
@@ -16,21 +17,26 @@ namespace NuGetGallery.Areas.Admin.Controllers
 {
     public partial class ConfigController : AdminControllerBase
     {
-        private readonly IAppConfiguration _config;
+        private readonly ConfigurationService _config;
 
-        public ConfigController(IAppConfiguration config)
+        public ConfigController(ConfigurationService config)
         {
             _config = config;
         }
 
         public virtual ActionResult Index()
         {
-            var dict = (from p in typeof(IAppConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            var settings = (from p in typeof(IAppConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                         where p.CanRead
                         select p)
-                       .ToDictionary(p => p.Name, p => Tuple.Create(p.PropertyType, p.GetValue(_config)));
+                       .ToDictionary(p => p.Name, p => Tuple.Create(p.PropertyType, p.GetValue(_config.Current)));
+            var features = (from p in typeof(FeatureConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                            where p.CanRead
+                            select new FeatureConfigViewModel(p, _config.Features))
+                            .ToList();
 
-            var configModel = new ConfigViewModel(dict);
+
+            var configModel = new ConfigViewModel(settings, features);
 
             return View(configModel);
         }

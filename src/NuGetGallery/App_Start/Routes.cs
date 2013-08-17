@@ -90,6 +90,18 @@ namespace NuGetGallery
                 null /*defaults*/,
                 new { version = new VersionRouteConstraint() });
 
+            routes.MapRoute(
+                RouteName.PackageEnableLicenseReport,
+                "packages/{id}/{version}/EnableLicenseReport",
+                new { controller = MVC.Packages.Name, action = "SetLicenseReportVisibility", visible = true },
+                new { version = new VersionRouteConstraint() });
+            
+            routes.MapRoute(
+                RouteName.PackageDisableLicenseReport,
+                "packages/{id}/{version}/DisableLicenseReport",
+                new { controller = MVC.Packages.Name, action = "SetLicenseReportVisibility", visible = false },
+                new { version = new VersionRouteConstraint() });
+
             var packageVersionActionRoute = routes.MapRoute(
                 RouteName.PackageVersionAction,
                 "packages/{id}/{version}/{action}",

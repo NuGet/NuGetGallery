@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Data.SqlClient;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
+using System.Data.Entity.Migrations.Infrastructure;
+using System.Data.SqlClient;
 using System.Reflection;
+using AnglicanGeek.DbExecutor;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGetGallery.Operations.Common;
-using System.Data.Entity.Migrations.Infrastructure;
-using AnglicanGeek.DbExecutor;
 using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery.Operations
@@ -65,6 +65,7 @@ namespace NuGetGallery.Operations
         public SqlConnectionStringBuilder ConnectionString { get; set; }
 
         protected string ServerName { get { return Util.GetDatabaseServerName(ConnectionString); } }
+
         protected string DatabaseName { get { return ConnectionString.InitialCatalog; } }
 
         public override void ValidateArguments()
@@ -87,10 +88,15 @@ namespace NuGetGallery.Operations
 
         protected void WithConnection(Action<SqlConnection, SqlExecutor> act)
         {
+            WithConnection((c, e) => { act(c, e); return true; });
+        }
+
+        protected bool WithConnection(Func<SqlConnection, SqlExecutor, bool> act)
+        {
             using (var c = OpenConnection())
             using (var e = new SqlExecutor(c))
             {
-                act(c, e);
+                return act(c, e);
             }
         }
 
@@ -101,10 +107,15 @@ namespace NuGetGallery.Operations
 
         protected void WithMasterConnection(Action<SqlConnection, SqlExecutor> act)
         {
+            WithMasterConnection((c, e) => { act(c, e); return true; });
+        }
+
+        protected bool WithMasterConnection(Func<SqlConnection, SqlExecutor, bool> act)
+        {
             using (var c = OpenMasterConnection())
             using (var e = new SqlExecutor(c))
             {
-                act(c, e);
+                return act(c, e);
             }
         }
 

@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -21,7 +21,10 @@ namespace NuGetGallery.Backend
         private JobRunner _runner;
         private Logger _logger;
 
-        public WorkerRole() : this(null) { }
+        public WorkerRole()
+            : this(null)
+        {
+        }
 
         public WorkerRole(Settings settings)
         {
@@ -54,15 +57,13 @@ namespace NuGetGallery.Backend
                 // File Target
                 FileTarget jobLogTarget = new FileTarget()
                 {
-                    FileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.log.json"),
-                    ArchiveFileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.${date:yyyy-MM-dd}.log")
+                    FileName = Path.Combine(logDir, "Jobs", "${logger:shortName=true}.${date:yyyy-MM-dd}.log.json"),
                 };
                 ConfigureFileTarget(jobLogTarget);
                 config.AddTarget("file", jobLogTarget);
                 FileTarget hostTarget = new FileTarget()
                 {
-                    FileName = Path.Combine(logDir, "Host", "Host.log.json"),
-                    ArchiveFileName = Path.Combine(logDir, "Host", "Host.${date:yyyy-MM-dd}.log")
+                    FileName = Path.Combine(logDir, "Host", "Host.${date:yyyy-MM-dd}.log")
                 };
                 ConfigureFileTarget(hostTarget);
                 config.AddTarget("file", hostTarget);
@@ -191,8 +192,9 @@ namespace NuGetGallery.Backend
 
         public override void Run()
         {
-            try {
-            _runner.Run();
+            try
+            {
+                _runner.Run();
             }
             catch (Exception ex)
             {
@@ -202,8 +204,9 @@ namespace NuGetGallery.Backend
 
         public void RunSingleJob(string jobName)
         {
-            try {
-            _runner.RunSingleJob(jobName);
+            try
+            {
+                _runner.RunSingleJob(jobName);
             }
             catch (Exception ex)
             {
