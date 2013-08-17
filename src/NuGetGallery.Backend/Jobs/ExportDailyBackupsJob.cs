@@ -9,7 +9,7 @@ using NuGetGallery.Operations.Tasks;
 
 namespace NuGetGallery.Backend.Jobs
 {
-    //[Export(typeof(WorkerJob))]
+    [Export(typeof(WorkerJob))]
     public class ExportDailyBackupsJob : WorkerJob
     {
         public override TimeSpan Offset

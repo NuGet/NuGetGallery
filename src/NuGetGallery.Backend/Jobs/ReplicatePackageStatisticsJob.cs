@@ -6,7 +6,7 @@ using NuGetGallery.Operations;
 
 namespace NuGetGallery.Backend.Jobs
 {
-    //[Export(typeof(WorkerJob))]
+    [Export(typeof(WorkerJob))]
     public class ReplicatePackageStatisticsJob : WorkerJob
     {
         private CancellationTokenSource _cts = new CancellationTokenSource();
