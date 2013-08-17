@@ -11,7 +11,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201308132048012_AddPackageLicenseReportSproc"; }
+            get { return "201308170024153_AddPackageLicenseReportSproc"; }
         }
         
         string IMigrationMetadata.Source

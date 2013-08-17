@@ -5,13 +5,13 @@ namespace NuGetGallery.Migrations
     using System.Data.Entity.Migrations.Infrastructure;
     using System.Resources;
     
-    public sealed partial class FriendlyLicenseNames : IMigrationMetadata
+    public sealed partial class LicenseReports : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(FriendlyLicenseNames));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(LicenseReports));
         
         string IMigrationMetadata.Id
         {
-            get { return "201308132043424_FriendlyLicenseNames"; }
+            get { return "201308170021456_LicenseReports"; }
         }
         
         string IMigrationMetadata.Source

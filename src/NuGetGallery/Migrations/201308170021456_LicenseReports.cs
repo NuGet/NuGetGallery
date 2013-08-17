@@ -2,8 +2,8 @@ namespace NuGetGallery.Migrations
 {
     using System;
     using System.Data.Entity.Migrations;
-
-    public partial class FriendlyLicenseNames : DbMigration
+    
+    public partial class LicenseReports : DbMigration
     {
         public override void Up()
         {
@@ -15,13 +15,13 @@ namespace NuGetGallery.Migrations
                         PackageKey = c.Int(nullable: false),
                         CreatedUtc = c.DateTime(nullable: false),
                         Sequence = c.Int(nullable: false),
-                        ReportUrl = c.String(maxLength: 256),
+                        ReportUrl = c.String(nullable: false, maxLength: 256),
                         Comment = c.String(maxLength: 256),
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
                 .Index(t => t.PackageKey);
-
+            
             CreateTable(
                 "dbo.PackageLicenses",
                 c => new
@@ -30,7 +30,7 @@ namespace NuGetGallery.Migrations
                         Name = c.String(nullable: false, maxLength: 128),
                     })
                 .PrimaryKey(t => t.Key);
-
+            
             CreateTable(
                 "dbo.PackageLicenseReportLicenses",
                 c => new
@@ -43,13 +43,13 @@ namespace NuGetGallery.Migrations
                 .ForeignKey("dbo.PackageLicenses", t => t.LicenseKey, cascadeDelete: true)
                 .Index(t => t.ReportKey)
                 .Index(t => t.LicenseKey);
-
+            
             AddColumn("dbo.Packages", "HideLicenseReport", c => c.Boolean(nullable: false));
             AddColumn("dbo.Packages", "LicenseNames", c => c.String());
             AddColumn("dbo.Packages", "LicenseReportUrl", c => c.String());
             AddColumn("dbo.GallerySettings", "NextLicenseReport", c => c.String());
         }
-
+        
         public override void Down()
         {
             DropIndex("dbo.PackageLicenseReportLicenses", new[] { "LicenseKey" });

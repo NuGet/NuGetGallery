@@ -786,16 +786,14 @@
     <Compile Include="Migrations\201308051913351_EditableMetadata.cs" />
     <Compile Include="Migrations\201308051913351_EditableMetadata.Designer.cs">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
-    <Compile Include="Migrations\201306270322551_LicenseMonikers.cs" />
-    <Compile Include="Migrations\201306270322551_LicenseMonikers.Designer.cs">
-      <DependentUpon>201306270322551_LicenseMonikers.cs</DependentUpon>
-    <Compile Include="Migrations\201308132043424_FriendlyLicenseNames.cs" />
-    <Compile Include="Migrations\201308132043424_FriendlyLicenseNames.Designer.cs">
-      <DependentUpon>201308132043424_FriendlyLicenseNames.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201308132048012_AddPackageLicenseReportSproc.cs" />
-    <Compile Include="Migrations\201308132048012_AddPackageLicenseReportSproc.Designer.cs">
-      <DependentUpon>201308132048012_AddPackageLicenseReportSproc.cs</DependentUpon>
+    <Compile Include="Migrations\201308170021456_LicenseReports.cs" />
+    <Compile Include="Migrations\201308170021456_LicenseReports.Designer.cs">
+      <DependentUpon>201308170021456_LicenseReports.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201308170024153_AddPackageLicenseReportSproc.cs" />
+    <Compile Include="Migrations\201308170024153_AddPackageLicenseReportSproc.Designer.cs">
+      <DependentUpon>201308170024153_AddPackageLicenseReportSproc.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1244,16 +1242,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308051913351_EditableMetadata.resx">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
-    <EmbeddedResource Include="Migrations\201306270322551_LicenseMonikers.resx">
-      <DependentUpon>201306270322551_LicenseMonikers.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201307172209360_DenormalizeLicenseReportData.resx">
-      <DependentUpon>201307172209360_DenormalizeLicenseReportData.cs</DependentUpon>
-    <EmbeddedResource Include="Migrations\201308132043424_FriendlyLicenseNames.resx">
-      <DependentUpon>201308132043424_FriendlyLicenseNames.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201308170021456_LicenseReports.resx">
+      <DependentUpon>201308170021456_LicenseReports.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201308132048012_AddPackageLicenseReportSproc.resx">
-      <DependentUpon>201308132048012_AddPackageLicenseReportSproc.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201308170024153_AddPackageLicenseReportSproc.resx">
+      <DependentUpon>201308170024153_AddPackageLicenseReportSproc.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

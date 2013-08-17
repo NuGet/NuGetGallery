@@ -2,7 +2,6 @@
 using System.Data.Entity.Infrastructure;
 using System.Diagnostics;
 using System.Web.Configuration;
-using NuGetGallery.Entities;
 
 namespace NuGetGallery
 {
@@ -23,7 +22,7 @@ namespace NuGetGallery
         /// (and read only mode is don't care).
         /// </summary>
         public EntitiesContext()
-            : base()
+            : base("Gallery.SqlServer" /* Default to the one specified in web.config */)
         {
         }
 
