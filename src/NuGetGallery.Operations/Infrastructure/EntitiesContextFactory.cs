@@ -6,7 +6,7 @@ namespace NuGetGallery.Infrastructure
     /// Used by EF Migrations to load the Entity Context for migrations and such like.
     /// Don't use it for anything else because it doesn't respect read-only mode.
     /// </summary>
-    public class EntitiesContextFactory : IDbContextFactory<EntitiesContext>
+    public class EntitiesContextFactory //: IDbContextFactory<EntitiesContext>
     {
         // Used by GalleryGateway
         internal static string OverrideConnectionString { get; set; }

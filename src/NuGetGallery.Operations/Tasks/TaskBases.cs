@@ -160,9 +160,6 @@ namespace NuGetGallery.Operations
             // Create the gateway instance
             var gateway = new GalleryGateway();
 
-            // Create the gateway instance
-            dynamic gateway = Activator.CreateInstance(configType);
-
             // Get a migrator from it
             DbMigrator migrator = gateway.CreateMigrator(ConnectionString.ConnectionString, "System.Data.SqlClient");
 
