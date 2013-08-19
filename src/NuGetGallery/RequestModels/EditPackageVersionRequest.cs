@@ -58,6 +58,7 @@ namespace NuGetGallery
         [Display(Name = "Summary (shown in package search results)")]
         public string Summary { get; set; }
 
+        [StringLength(4000)]
         [DataType(DataType.MultilineText)]
         [Display(Name = "Description")]
         [Required]
