@@ -47,7 +47,7 @@ namespace NuGetGallery
         [StringLength(256)]
         [Display(Name = "Icon URL")]
         [DataType(DataType.ImageUrl)]
-        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
+        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
         public string IconUrl { get; set; }
 
         [StringLength(1024)]
@@ -62,7 +62,7 @@ namespace NuGetGallery
         [StringLength(256)]
         [Display(Name = "Project Home Page URL")]
         [DataType(DataType.Text)]
-        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
+        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
         public string ProjectUrl { get; set; }
 
         [StringLength(512)]
