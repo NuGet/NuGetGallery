@@ -207,7 +207,7 @@
     }
 }
 
-@helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false)
+@helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false, bool multiline = false)
 {
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
@@ -217,7 +217,7 @@
             @Html.LabelFor(func, new { style = "display: inline-block" })
             <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
         </div>
-        @Html.EditorFor(func)
+        @Html.EditorFor(func, multiline ? new { style = "display: inline-block" } : new object())
         @Html.ValidationMessageFor(func)
     </div>
 }
@@ -234,14 +234,14 @@
         @if (Model.Edit != null)
         {
             <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
-            <li>@EditableField("Description (a longer description)", m => m.Edit.Description)</li>
-            <li>@EditableField("Summary (visible in search results)", m => m.Edit.Summary)</li>
+            <li>@EditableField("Description (a longer description)", m => m.Edit.Description, multiline: true)</li>
+            <li>@EditableField("Summary (visible in search results)", m => m.Edit.Summary, multiline: true)</li>
             <li>@EditableField("Icon URL", m => m.Edit.IconUrl, link: true)</li>
             <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
             <li>@EditableField("Authors (comma-separated list - example: 'Annie, Bob, Charlie')", m => m.Edit.Authors)</li>
             <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
             <li>@EditableField("Tags (space-separated keywords - example: 'CommandLine ASP.NET Proxies Scaffolding)", m => m.Edit.Tags)</li>
-            <li>@EditableField("Release Notes (for this version)", m => m.Edit.ReleaseNotes)</li>
+            <li>@EditableField("Release Notes (for this version)", m => m.Edit.ReleaseNotes, multiline: true)</li>
 
             if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
             {
