@@ -55,11 +55,11 @@ namespace NuGetGallery
 
         [StringLength(1024)]
         [DataType(DataType.MultilineText)]
-        [Display(Name = "Summary (visible in search results)")]
+        [Display(Name = "Summary (shown in package search results)")]
         public string Summary { get; set; }
 
         [DataType(DataType.MultilineText)]
-        [Display(Name = "Description (a longer description)")]
+        [Display(Name = "Description")]
         public string Description { get; set; }
 
         [StringLength(256)]
