@@ -93,31 +93,36 @@
         <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
         <li>@EditableField("Tags", m => m.Edit.Tags)</li>
         <li>@EditableField("Release Notes", m => m.Edit.ReleaseNotes, pre: true)</li>
-        <li>
-            <h4>Requires License Acceptance
-                @{
-                    var formid2 = "Edit_RequiresLicenseAcceptance";
-                    <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit"></span></button>
-                    <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
-                }
-            </h4>
-            <div style="position: relative">
-                <div id="Edit_RequiresLicenseAcceptanceText">
-                    <p>@(Model.Edit.RequiresLicenseAcceptance ? "Yes" : "No")</p>
-                </div>
-                <div id="Edit_RequiresLicenseAcceptanceField" style="display: none; width: 100%">
-                    <div class="form-field" style="display: inline">
-                        @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
-                            new List<SelectListItem>
-                            {
-                                new SelectListItem { Text = "Yes", Value = "true" },
-                                new SelectListItem { Text = "No", Value = "false" },
-                            })
-                        @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+
+        @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+        {
+            <li>
+                <h4>Requires License Acceptance
+                    @{
+                        var formid2 = "Edit_RequiresLicenseAcceptance";
+                        <button type="button" class="edit-button" id="@(formid2 + "Button")"><span class="icon-edit"></span></button>
+                        <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
+                    }
+                </h4>
+                <div style="position: relative">
+                    <div id="Edit_RequiresLicenseAcceptanceText">
+                        <p>@(Model.Edit.RequiresLicenseAcceptance ? "Yes" : "No")</p>
+                    </div>
+                    <div id="Edit_RequiresLicenseAcceptanceField" style="display: none; width: 100%">
+                        <div class="form-field" style="display: inline">
+                            @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
+                                new List<SelectListItem>
+                                {
+                                    new SelectListItem { Text = "Yes", Value = "true" },
+                                    new SelectListItem { Text = "No", Value = "false" },
+                                })
+                            @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                        </div>
                     </div>
                 </div>
-            </div>
-        </li>
+            </li>
+        }
+
         <li>
             <h4>Listed in Search Results</h4>
                 <div class="form-field">
@@ -127,7 +132,7 @@
                                 new SelectListItem { Text = "Yes", Value = "true", Selected = true },
                                 new SelectListItem { Text = "No", Value = "false" },
                             })
-                        @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                        @Html.ValidationMessageFor(model => model.Listed)
                     @*<label for="Listed" class="checkbox">
                         List this package in search results. 
                     </label>*@
@@ -201,11 +206,17 @@
             SetupInput('Edit_Copyright');
             SetupInput('Edit_Tags');
             SetupInput('Edit_ReleaseNotes');
-            SetupInput('Edit_RequiresLicenseAcceptance');
 
-            // Fix our SetupInput function to work with RequiresLicenseAcceptance
-            // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
-            $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")"
+            @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+            {
+                <text>
+                SetupInput('Edit_RequiresLicenseAcceptance');
+
+                // Fix our SetupInput function to work with RequiresLicenseAcceptance
+                // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
+                $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")";
+                </text>
+            }
         });
     </script>
 }

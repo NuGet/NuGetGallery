@@ -63,11 +63,17 @@
             SetupInput('Edit_Copyright');
             SetupInput('Edit_Tags');
             SetupInput('Edit_ReleaseNotes');
-            SetupInput('Edit_RequiresLicenseAcceptance');
 
-            // Fix our SetupInput function to work with RequiresLicenseAcceptance
-            // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
-            $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")"
+            @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+            {
+                <text>
+                SetupInput('Edit_RequiresLicenseAcceptance');
+
+                // Fix our SetupInput function to work with RequiresLicenseAcceptance
+                // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
+                $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")";
+                </text>
+            }
 
             $("#Edit_ProjectUrl").bind("focusin focusout", RunValidationForEvent);
             $("#Edit_IconUrl").bind("focusin focusout", UpdateIconAndRunValidation);
@@ -239,27 +245,31 @@
             <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
             <li>@EditableField("Tags (space-separated keywords - example: 'CommandLine ASP.NET Proxies Scaffolding)", m => m.Edit.Tags)</li>
             <li>@EditableField("Release Notes (for this version)", m => m.Edit.ReleaseNotes)</li>
-            <li>
-                <h4>Requires License Acceptance
-                    @{
-                        var formid2 = "Edit_RequiresLicenseAcceptance";
-                        <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
-                    }
-                </h4>
-                <div style="position: relative">
-                    <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
-                        <div class="form-field" style="display: inline">
-                            @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
-                                new List<SelectListItem>
-                                {
-                                    new SelectListItem { Text = "Yes", Value = "true" },
-                                    new SelectListItem { Text = "No", Value = "false" },
-                                })
-                            @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+
+            if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+            {
+                <li>
+                    <h4>Requires License Acceptance
+                        @{
+                            var formid2 = "Edit_RequiresLicenseAcceptance";
+                            <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
+                        }
+                    </h4>
+                    <div style="position: relative">
+                        <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
+                            <div class="form-field" style="display: inline">
+                                @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
+                                    new List<SelectListItem>
+                                    {
+                                        new SelectListItem { Text = "Yes", Value = "true" },
+                                        new SelectListItem { Text = "No", Value = "false" },
+                                    })
+                                @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                            </div>
                         </div>
                     </div>
-                </div>
-            </li>
+                </li>
+            }
         }
         </ul>
 
