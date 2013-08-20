@@ -30,7 +30,7 @@ namespace NuGetGallery
             Copyright = metadata.Copyright;
             Description = metadata.Description;
             IconUrl = metadata.IconUrl;
-            // no LicenseUrl - by current policy
+            LicenseUrl = metadata.LicenseUrl;
             ProjectUrl = metadata.ProjectUrl;
             ReleaseNotes = metadata.ReleaseNotes;
             RequiresLicenseAcceptance = metadata.RequiresLicenseAcceptance;
@@ -38,6 +38,9 @@ namespace NuGetGallery
             Tags = metadata.Tags;
             VersionTitle = metadata.Title;
         }
+
+        // We won't show this in the UI, and we won't actually honor edits to it at the moment, by our current policy.
+        public string LicenseUrl { get; set; }
 
         [StringLength(256)]
         [Display(Name = "Title")]
