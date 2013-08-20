@@ -273,11 +273,12 @@
         }
         </ul>
 
-    <h2>Note:</h2>
-    <p>
-        To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package. 
-        Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
-    </p>
-    <input type="submit" value="Save" title="Save" />
+        <h2>Note:</h2>
+        <p>
+            To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package. 
+            Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
+        </p>
+        <input type="submit" value="Save" title="Save Changes" />
+        <a class="cancel" href="@Url.Package(Model.PackageId, Model.Version)" title="Cancel Changes and go back to package page.">Cancel</a>
     </fieldset>
 }
