@@ -66,7 +66,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
 
         [StringLength(512)]
-        [Display(Name = "Authors (comma-separated list - example: 'Annie, Bob, Charlie')")]
+        [Display(Name = "Authors (comma-separated list - e.g. 'Anna, Bob, Carl')")]
         [DataType(DataType.Text)]
         public string Authors { get; set; }
 
@@ -77,7 +77,7 @@ namespace NuGetGallery
 
         [StringLength(1024)]
         [DataType(DataType.Text)]
-        [Display(Name = "Tags (space-separated keywords - example: 'CommandLine ASP.NET Proxies Scaffolding)")]
+        [Display(Name = "Tags (space-separated list - e.g. 'ASP.NET Templates MVC)")]
         public string Tags { get; set; }
 
         [Display(Name = "Release Notes (for this version)")]
