@@ -785,6 +785,10 @@
     <Compile Include="Migrations\201308051913351_EditableMetadata.Designer.cs">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.cs" />
+    <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.Designer.cs">
+      <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1230,6 +1234,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308051913351_EditableMetadata.resx">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.resx">
+      <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
