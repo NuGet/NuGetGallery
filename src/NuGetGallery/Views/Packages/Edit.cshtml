@@ -227,7 +227,7 @@
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "EditForm" }))
 {
-    <fieldset class="form">
+    <fieldset class="form" >
         <legend>Edit @(Model.PackageId) @(Model.Version)</legend>
 
         @Html.AntiForgeryToken()
@@ -272,12 +272,13 @@
             }
         }
         </ul>
+        <input type="submit" value="Save" title="Save Changes" />
+        <a class="cancel" href="@Url.Package(Model.PackageId, Model.Version)" title="Cancel Changes and go back to package page.">Cancel</a>
 
-    <h2>Note:</h2>
-    <p>
-        To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package. 
-        Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
-    </p>
-    <input type="submit" value="Save" title="Save" />
+        <h3>Note:</h3>
+        <p>
+            To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package. 
+            Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
+        </p>
     </fieldset>
 }
