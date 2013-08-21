@@ -28,67 +28,43 @@ namespace NuGetGallery.Operations.Tasks
             var connectionString = ConnectionString.ConnectionString;
             var storageAccount = StorageAccount;
 
-            var entitiesContext = new EntitiesContext(connectionString, readOnly: false);
+            // We group edits together by their package key and process them together - this is a read-only operation
+            var entitiesContext = new EntitiesContext(connectionString, readOnly: true);
             var editsPerPackage = entitiesContext.Set<PackageEdit>()
                 .Where(pe => pe.TriedCount < 3)
-                .Include(pe => pe.Package)
-                .Include(pe => pe.Package.PackageRegistration)
-                .Include(pe => pe.Package.User)
-                .ToList()
                 .GroupBy(pe => pe.PackageKey);
 
-            // Do edit with a 'most recent edit to this package wins - other edits are deleted' strategy.
-            // Not doing editing in parallel because
+            // Now that we have our list of packages with pending edits, we'll process the pending edits for each
+            // Note that we're not doing editing in parallel because
             // a) any particular blob may use a large amount of memory to process. Let's not multiply that!
             // b) we don't want multithreaded usage of the entitiesContext (and its implied transactions)!
             foreach (IGrouping<int, PackageEdit> editsGroup in editsPerPackage)
             {
-                ProcessPackageEdits(editsGroup, entitiesContext);
+                ProcessPackageEdits(editsGroup.Key);
             }
         }
 
-        /// <summary>
-        /// Creates an archived copy of the original package blob if it doesn't already exist.
-        /// </summary>
-        private void ArchiveOriginalPackageBlob(CloudBlockBlob originalPackageBlob, CloudBlockBlob latestPackageBlob)
+        private void ProcessPackageEdits(int packageKey)
         {
-            // Copy the blob to backup only if it isn't already successfully copied
-            if ((!originalPackageBlob.Exists()) || (originalPackageBlob.CopyState != null && originalPackageBlob.CopyState.Status != CopyStatus.Success))
-            {
-                if (!WhatIf)
-                {
-                    Log.Info("Backing up blob: {0} to {1}", latestPackageBlob.Name, originalPackageBlob.Name);
-                    originalPackageBlob.StartCopyFromBlob(latestPackageBlob);
-                    CopyState state = originalPackageBlob.CopyState;
+            // Create a fresh entities context so that we work in isolation
+            var entitiesContext = new EntitiesContext(ConnectionString.ConnectionString, readOnly: false);
 
-                    for (int i = 0; (state == null || state.Status == CopyStatus.Pending) && i < SleepTimes.Length; i++)
-                    {
-                        Log.Info("(sleeping for a copy completion)");
-                        Thread.Sleep(SleepTimes[i]); 
-                        originalPackageBlob.FetchAttributes(); // To get a refreshed CopyState
+            // Get the list of edits for this package
+            // Do edit with a 'most recent edit to this package wins - other edits are deleted' strategy.
+            var editsForThisPackage = entitiesContext.Set<PackageEdit>()
+                .Where(pe => pe.PackageKey == packageKey && pe.TriedCount < 3)
+                .Include(pe => pe.Package)
+                .Include(pe => pe.Package.PackageRegistration)
+                .Include(pe => pe.User)
+                .OrderByDescending(pe => pe.Timestamp)
+                .ToList();
 
-                        //refresh state
-                        state = originalPackageBlob.CopyState;
-                    }
-
-                    if (state.Status != CopyStatus.Success)
-                    {
-                        string msg = string.Format("Blob copy failed: CopyState={0}", state.StatusDescription);
-                        Log.Error("(error) " + msg);
-                        throw new BlobBackupFailedException(msg);
-                    }
-                }
-            }
-        }
-
-        private void ProcessPackageEdits(IEnumerable<PackageEdit> editsForThisPackage, EntitiesContext entitiesContext)
-        {
             // List of Work to do:
             // 1) Backup old blob, if the original has not been backed up yet
             // 2) Downloads blob, create new NUPKG locally
             // 3) Upload blob
             // 4) Update the database
-            PackageEdit edit = editsForThisPackage.OrderByDescending(pe => pe.Timestamp).First();
+            PackageEdit edit = editsForThisPackage.First();
 
             var blobClient = StorageAccount.CreateCloudBlobClient();
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
@@ -115,10 +91,11 @@ namespace NuGetGallery.Operations.Tasks
             };
 
             Log.Info(
-                "Processing Edit Key={0}, PackageId={1}, Version={2}",
+                "Processing Edit Key={0}, PackageId={1}, Version={2}, User={3}",
                 edit.Key,
                 edit.Package.PackageRegistration.Id,
-                edit.Package.Version);
+                edit.Package.Version,
+                edit.User.Username);
 
             if (!WhatIf)
             {
@@ -185,7 +162,7 @@ namespace NuGetGallery.Operations.Tasks
                                 // Uploading the updated nupkg failed.
                                 // Rollback the transaction, which restores the Edit to PackageEdits so it can be attempted again.
                                 Log.Error("(error) - package edit blob update failed. Rolling back the DB transaction.");
-                                Log.ErrorException("(exception", e);
+                                Log.ErrorException("(exception)", e);
                                 Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
                                 transaction.Rollback();
                                 throw; // To handler block that will record error in DB
@@ -201,7 +178,7 @@ namespace NuGetGallery.Operations.Tasks
                                 // Since our blob update wasn't part of the transaction (and doesn't AFAIK have a 'commit()' operator we can utilize for the type of blobs we are using)
                                 // try, (single attempt) to roll back the blob update by restoring the previous snapshot.
                                 Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
-                                Log.ErrorException("(exception", e);
+                                Log.ErrorException("(exception)", e);
                                 Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
                                 try
                                 {
@@ -212,7 +189,7 @@ namespace NuGetGallery.Operations.Tasks
                                     // In this case it may not be the end of the world - the package metadata mismatches the edit now, 
                                     // but there's still an edit in the queue, waiting to be rerun and put everything back in synch.
                                     Log.Error("(error) - rolling back the package blob to its previous snapshot failed.");
-                                    Log.ErrorException("(exception", e2);
+                                    Log.ErrorException("(exception)", e2);
                                     Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
                                 }
 
@@ -226,10 +203,64 @@ namespace NuGetGallery.Operations.Tasks
             {
                 if (!WhatIf)
                 {
-                    // Try to record the error into the PackageEdit database record
-                    // so that we can actually diagnose failures.
-                    edit.LastError = string.Format("{0} : {1}", e.GetType(), e);
-                    entitiesContext.SaveChanges();
+                    try
+                    {
+                        Log.Info("Storing the error on package edit with key {0}", edit.Key);
+
+                        // Try to record the error into the PackageEdit database record
+                        // so that we can actually diagnose failures.
+                        // This must be done on a fresh context to ensure no conflicts.
+                        var errorContext = new EntitiesContext(ConnectionString.ConnectionString, readOnly: false);
+                        var errorEdit = errorContext.Set<PackageEdit>().Where(pe => pe.Key == edit.Key).FirstOrDefault();
+
+                        if (errorEdit != null)
+                        {
+                            errorEdit.LastError = string.Format("{0} : {1}", e.GetType(), e);
+                            errorContext.SaveChanges();
+                        }
+                        else
+                        {
+                            Log.Info("The package edit with key {0} couldn't be found. It was likely canceled and deleted.", edit.Key);
+                        }
+                    }
+                    catch (Exception errorException)
+                    {
+                        Log.ErrorException("(error) - couldn't save the last error on the edit that was being applied.", errorException);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates an archived copy of the original package blob if it doesn't already exist.
+        /// </summary>
+        private void ArchiveOriginalPackageBlob(CloudBlockBlob originalPackageBlob, CloudBlockBlob latestPackageBlob)
+        {
+            // Copy the blob to backup only if it isn't already successfully copied
+            if ((!originalPackageBlob.Exists()) || (originalPackageBlob.CopyState != null && originalPackageBlob.CopyState.Status != CopyStatus.Success))
+            {
+                if (!WhatIf)
+                {
+                    Log.Info("Backing up blob: {0} to {1}", latestPackageBlob.Name, originalPackageBlob.Name);
+                    originalPackageBlob.StartCopyFromBlob(latestPackageBlob);
+                    CopyState state = originalPackageBlob.CopyState;
+
+                    for (int i = 0; (state == null || state.Status == CopyStatus.Pending) && i < SleepTimes.Length; i++)
+                    {
+                        Log.Info("(sleeping for a copy completion)");
+                        Thread.Sleep(SleepTimes[i]);
+                        originalPackageBlob.FetchAttributes(); // To get a refreshed CopyState
+
+                        //refresh state
+                        state = originalPackageBlob.CopyState;
+                    }
+
+                    if (state.Status != CopyStatus.Success)
+                    {
+                        string msg = string.Format("Blob copy failed: CopyState={0}", state.StatusDescription);
+                        Log.Error("(error) " + msg);
+                        throw new BlobBackupFailedException(msg);
+                    }
                 }
             }
         }
