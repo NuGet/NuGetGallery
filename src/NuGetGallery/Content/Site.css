@@ -1309,6 +1309,7 @@ fieldset.form legend { display: none; }
     color: #7f8c7d;
     font-size: 1.25em;
     padding: 2px;
+    margin: 0px 0px 10px 0;
 }
 
 .form-field select[data-edited=true] {
