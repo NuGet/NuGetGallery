@@ -27,6 +27,11 @@ namespace NuGetGallery.Operations
         [Option("Re-create all reports", AltName = "all")]
         public bool All { get; set; }
 
+        protected override SqlConnectionStringBuilder GetConnectionFromEnvironment(DeploymentEnvironment environment)
+        {
+          return environment.WarehouseDatabase;
+        }
+
         public override void ExecuteCommand()
         {
             Log.Info("Generate reports begin");
