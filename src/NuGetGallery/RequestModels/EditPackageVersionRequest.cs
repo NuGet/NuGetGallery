@@ -1,11 +1,20 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
     public class EditPackageVersionRequest
     {
+        public const string TitleStr = "Title";
+        public const string IconUrlStr = "Icon URL";
+        public const string DescriptionStr = "Description";
+        public const string SummaryStr = "Summary (shown in package search results)";
+        public const string ProjectUrlStr = "Project Home Page URL";
+        public const string AuthorsStr = "Authors (comma separated  - e.g. 'Anna, Bob, Carl')";
+        public const string CopyrightStr = "Copyright";
+        public const string TagsStr = "Tags (space separated - e.g. 'ASP.NET Templates MVC)";
+        public const string ReleaseNotesStr = "Release Notes (for this version)";
+        public const string RequiresLicenseAcceptanceStr = "Requires license acceptance";
+
         public EditPackageVersionRequest()
         {
         }
@@ -30,7 +39,7 @@ namespace NuGetGallery
             Copyright = metadata.Copyright;
             Description = metadata.Description;
             IconUrl = metadata.IconUrl;
-            // no LicenseUrl - by current policy
+            LicenseUrl = metadata.LicenseUrl;
             ProjectUrl = metadata.ProjectUrl;
             ReleaseNotes = metadata.ReleaseNotes;
             RequiresLicenseAcceptance = metadata.RequiresLicenseAcceptance;
@@ -39,52 +48,55 @@ namespace NuGetGallery
             VersionTitle = metadata.Title;
         }
 
+        // We won't show this in the UI, and we won't actually honor edits to it at the moment, by our current policy.
+        public string LicenseUrl { get; set; }
+
         [StringLength(256)]
-        [Display(Name = "Title")]
+        [Display(Name = TitleStr)]
         [DataType(DataType.Text)]
         public string VersionTitle { get; set; } // not naming it Title in our model because that would clash with page Title in the property bag. Blech.
 
         [StringLength(256)]
-        [Display(Name = "Icon URL")]
+        [Display(Name = IconUrlStr)]
         [DataType(DataType.ImageUrl)]
-        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
+        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
         public string IconUrl { get; set; }
 
         [StringLength(1024)]
         [DataType(DataType.MultilineText)]
-        [Display(Name = "Summary (visible in search results)")]
+        [Display(Name = SummaryStr)]
         public string Summary { get; set; }
 
         [DataType(DataType.MultilineText)]
-        [Display(Name = "Description (a longer description)")]
+        [Display(Name = DescriptionStr)]
         public string Description { get; set; }
 
         [StringLength(256)]
-        [Display(Name = "Project Home Page URL")]
+        [Display(Name = ProjectUrlStr)]
         [DataType(DataType.Text)]
-        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = "This doesn't appear to be a valid URL")]
+        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
         public string ProjectUrl { get; set; }
 
         [StringLength(512)]
-        [Display(Name = "Authors (comma-separated list - example: 'Annie, Bob, Charlie')")]
+        [Display(Name = AuthorsStr)]
         [DataType(DataType.Text)]
         public string Authors { get; set; }
 
         [StringLength(512)]
-        [Display(Name = "Copyright")]
+        [Display(Name = CopyrightStr)]
         [DataType(DataType.Text)]
         public string Copyright { get; set; }
 
         [StringLength(1024)]
         [DataType(DataType.Text)]
-        [Display(Name = "Tags (space-separated keywords - example: 'CommandLine ASP.NET Proxies Scaffolding)")]
+        [Display(Name = TagsStr)]
         public string Tags { get; set; }
 
-        [Display(Name = "Release Notes (for this version)")]
+        [Display(Name = ReleaseNotesStr)]
         [DataType(DataType.MultilineText)]
         public string ReleaseNotes { get; set; }
 
-        [Display(Name = "Requires license acceptance")]
+        [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
     }
 }

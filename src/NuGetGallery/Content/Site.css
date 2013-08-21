@@ -219,14 +219,13 @@ nav, section { display: block; }
 .pending-edit-message,
 .prerelease-message,
 .not-latest-message {
-    -moz-border-radius: 0 0 5px 5px;
-    -webkit-border-radius: 0 0 5px 5px;
+    -moz-border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
     border: 1px solid;
-    border-radius: 0 0 5px 5px;
-    border-top: none;
+    border-radius: 5px 5px 5px 5px;
     font-size: 1.5em;
-    margin-top: -20px;
-    padding: 10px;
+    margin: -0px 5px 20px 5px;
+    padding: 5px;
     text-align: center;
 }
 
@@ -1309,6 +1308,7 @@ fieldset.form legend { display: none; }
     color: #7f8c7d;
     font-size: 1.25em;
     padding: 2px;
+    margin: 0px 0px 10px 0;
 }
 
 .form-field select[data-edited=true] {
