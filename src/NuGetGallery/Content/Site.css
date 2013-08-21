@@ -1360,6 +1360,12 @@ fieldset.form legend { display: none; }
     z-index: 550;
 }
 
+textarea + .field-validation-error {
+    top: auto;
+    left: auto;
+    position: static;
+}
+
 .field-validation-error.block-validation-error
 {
     position: static;
