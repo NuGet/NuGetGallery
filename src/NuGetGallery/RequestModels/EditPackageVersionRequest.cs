@@ -1,11 +1,20 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
     public class EditPackageVersionRequest
     {
+        public const string TitleStr = "Title";
+        public const string IconUrlStr = "Icon URL";
+        public const string DescriptionStr = "Description";
+        public const string SummaryStr = "Summary (shown in package search results)";
+        public const string ProjectUrlStr = "Project Home Page URL";
+        public const string AuthorsStr = "Authors (comma separated  - e.g. 'Anna, Bob, Carl')";
+        public const string CopyrightStr = "Copyright";
+        public const string TagsStr = "Tags (space separated - e.g. 'ASP.NET Templates MVC)";
+        public const string ReleaseNotesStr = "Release Notes (for this version)";
+        public const string RequiresLicenseAcceptanceStr = "Requires license acceptance";
+
         public EditPackageVersionRequest()
         {
         }
@@ -43,51 +52,51 @@ namespace NuGetGallery
         public string LicenseUrl { get; set; }
 
         [StringLength(256)]
-        [Display(Name = "Title")]
+        [Display(Name = TitleStr)]
         [DataType(DataType.Text)]
         public string VersionTitle { get; set; } // not naming it Title in our model because that would clash with page Title in the property bag. Blech.
 
         [StringLength(256)]
-        [Display(Name = "Icon URL")]
+        [Display(Name = IconUrlStr)]
         [DataType(DataType.ImageUrl)]
         [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
         public string IconUrl { get; set; }
 
         [StringLength(1024)]
         [DataType(DataType.MultilineText)]
-        [Display(Name = "Summary (shown in package search results)")]
+        [Display(Name = SummaryStr)]
         public string Summary { get; set; }
 
         [DataType(DataType.MultilineText)]
-        [Display(Name = "Description")]
+        [Display(Name = DescriptionStr)]
         public string Description { get; set; }
 
         [StringLength(256)]
-        [Display(Name = "Project Home Page URL")]
+        [Display(Name = ProjectUrlStr)]
         [DataType(DataType.Text)]
         [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
         public string ProjectUrl { get; set; }
 
         [StringLength(512)]
-        [Display(Name = "Authors (comma-separated list - e.g. 'Anna, Bob, Carl')")]
+        [Display(Name = AuthorsStr)]
         [DataType(DataType.Text)]
         public string Authors { get; set; }
 
         [StringLength(512)]
-        [Display(Name = "Copyright")]
+        [Display(Name = CopyrightStr)]
         [DataType(DataType.Text)]
         public string Copyright { get; set; }
 
         [StringLength(1024)]
         [DataType(DataType.Text)]
-        [Display(Name = "Tags (space-separated list - e.g. 'ASP.NET Templates MVC)")]
+        [Display(Name = TagsStr)]
         public string Tags { get; set; }
 
-        [Display(Name = "Release Notes (for this version)")]
+        [Display(Name = ReleaseNotesStr)]
         [DataType(DataType.MultilineText)]
         public string ReleaseNotes { get; set; }
 
-        [Display(Name = "Requires license acceptance")]
+        [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
     }
 }
