@@ -24,6 +24,7 @@ namespace NuGetGallery.Configuration
 
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
+        private bool? runningInCloud;
 
         public ConfigurationService()
         {
@@ -103,25 +104,41 @@ namespace NuGetGallery.Configuration
                 value = GetAppSetting(settingName);
             }
 
-            string cloudValue = GetCloudSetting(settingName);
-            return String.IsNullOrEmpty(cloudValue) ? value : cloudValue;
+            if (!runningInCloud.HasValue)
+            {
+                try
+                {
+                    runningInCloud = RoleEnvironment.IsAvailable;
+                }
+                catch (Exception)
+                {
+                    runningInCloud = false;
+                }
+            }
+
+            if ((bool)runningInCloud)
+            {
+                string cloudValue = GetCloudSetting(settingName);
+                if (!String.IsNullOrEmpty(cloudValue))
+                {
+                    return cloudValue;
+                }
+            }
+
+            return value;
         }
 
         public virtual string GetCloudSetting(string settingName)
         {
-            string value = null;
             try
             {
-                if (RoleEnvironment.IsAvailable)
-                {
-                    value = RoleEnvironment.GetConfigurationSettingValue(settingName);
-                }
+                return RoleEnvironment.GetConfigurationSettingValue(settingName);
             }
             catch (Exception)
             {
                 // Not in the role environment or config setting not found...
+                return null;
             }
-            return value;
         }
 
         public virtual string GetAppSetting(string settingName)
