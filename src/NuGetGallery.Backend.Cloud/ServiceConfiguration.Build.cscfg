@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="NuGetGallery.Backend" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-03.2.0">
+    <!-- This service configuration is the minimal set required to allow the package to build. It doesn't correspond to any deployment environment -->
+    <Role name="NuGetGallery.Backend">
+        <Instances count="1" />
+        <ConfigurationSettings>
+            <Setting name="Operations.EnvironmentName" value="" />
+            <Setting name="Operations.Sql.Primary" value="" />
+            <Setting name="Operations.Sql.Warehouse" value="" />
+            <Setting name="Operations.Storage.Primary" value="" />
+            <Setting name="Operations.Storage.Backup" value="" />
+            <Setting name="Operations.SqlDac" value="" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.Enabled" value="" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountUsername" value="" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountEncryptedPassword" value="" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteAccess.AccountExpiration" value="" />
+            <Setting name="Microsoft.WindowsAzure.Plugins.RemoteForwarder.Enabled" value="" />
+        </ConfigurationSettings>
+        <Certificates>
+            <Certificate name="Microsoft.WindowsAzure.Plugins.RemoteAccess.PasswordEncryption" thumbprint="4456837edeabc85749289c8d8e743f2485728947" thumbprintAlgorithm="sha1" />
+        </Certificates>
+    </Role>
+</ServiceConfiguration>

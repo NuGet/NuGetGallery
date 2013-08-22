@@ -1,0 +1,6 @@
+<subscriptions>
+	<!-- 
+		'id': The Azure Subscription ID
+		'name': A friendly name for the subscription (should match the name in Azure for convenience but is not mandatory) -->
+	<subscription id="..." name="..." />
+</subscriptions>

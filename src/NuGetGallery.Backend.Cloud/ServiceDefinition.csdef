@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ServiceDefinition name="NuGetGallery.Backend" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceDefinition" schemaVersion="2013-03.2.0">
+  <WorkerRole name="NuGetGallery.Backend" vmsize="Small">
+    <ConfigurationSettings>
+      <Setting name="Operations.EnvironmentName" />
+      <Setting name="Operations.Sql.Primary" />
+      <Setting name="Operations.Sql.Warehouse" />
+      <Setting name="Operations.Storage.Primary" />
+      <Setting name="Operations.Storage.Backup" />
+      <Setting name="Operations.SqlDac" />
+    </ConfigurationSettings>
+    <Imports>
+      <Import moduleName="Diagnostics" />
+      <Import moduleName="RemoteAccess" />
+      <Import moduleName="RemoteForwarder" />
+    </Imports>
+    <LocalResources>
+      <LocalStorage name="Logs" cleanOnRoleRecycle="false" sizeInMB="2048" />
+    </LocalResources>
+  </WorkerRole>
+</ServiceDefinition>

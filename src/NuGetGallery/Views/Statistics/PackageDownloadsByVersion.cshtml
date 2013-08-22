@@ -1,0 +1,37 @@
+﻿@model StatisticsPackagesViewModel
+@{
+    ViewBag.Title = "Package Downloads for " + Model.PackageId;
+    ViewBag.Tab = "Statistics";
+}
+
+<h1 class="statistics-report-title">Package Downloads for <a href="@Url.Package(Model.PackageId)">@Model.PackageId</a> (Over the Last 6 Weeks)</h1>
+@if (Model.IsReportAvailable)
+{
+    @Html.Partial("_PivotTable", Model.Report)
+
+    <div class="statistics-graph" id="statistics-graph-id">
+    </div>
+    @Html.Partial("_LastUpdated", Model)
+}
+else
+{
+    <p>
+        Download statistics are not currently available for this package, please check back later. 
+    </p>
+}
+
+@section BottomScripts
+{
+    @if (Model.UseD3)
+    {
+        @Scripts.Render("~/Scripts/d3.v3.min.js")
+    }
+    @Scripts.Render("~/Scripts/statsdimensions.js")
+    @Scripts.Render("~/Scripts/perpackagestatsgraphs.js")
+    <script>
+        $(document).ready(function () {
+            groupbyNavigation();
+            packageDisplayGraphs();
+        });
+    </script>
+}
