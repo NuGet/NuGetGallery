@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.EntityClient;
@@ -134,67 +135,57 @@ namespace NuGetGallery.Operations.Tasks
                         // Snapshot the blob
                         var blobSnapshot = latestPackageBlob.CreateSnapshot();
 
-                        // Start Transaction: Complete the edit in the gallery DB.
-                        // Use explicit SQL transactions instead of EF operation-grouping 
-                        // so that we can manually roll the transaction back on a blob related failure.
-                        ObjectContext objectContext = (entitiesContext as IObjectContextAdapter).ObjectContext;
-                        ((objectContext.Connection) as EntityConnection).Open(); // must open in order to begin transaction
-                        using (EntityTransaction transaction = ((objectContext.Connection) as EntityConnection).BeginTransaction())
+                        // Build up the changes in the entities context
+                        edit.Apply(hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
+                        foreach (var eachEdit in editsForThisPackage)
                         {
-                            edit.Apply(hashAlgorithm: "SHA512", hash: newHash, packageFileSize: newPackageFileSize);
+                            entitiesContext.DeleteOnCommit(eachEdit);
+                        }
 
-                            // Add to transaction: delete all the pending edits of this package.
-                            foreach (var eachEdit in editsForThisPackage)
-                            {
-                                entitiesContext.DeleteOnCommit(eachEdit);
-                            }
+                        // Upload the blob before doing SaveChanges(). If blob update fails, we won't do SaveChanges() and the edit can be retried.
+                        // If SaveChanges() fails we can undo the blob upload.
+                        try
+                        {
+                            Log.Info("Uploading blob from memory {0}", latestPackageBlob.Name);
+                            readWriteStream.Position = 0;
+                            latestPackageBlob.UploadFromStream(readWriteStream);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error("(error) - package edit blob update failed.");
+                            Log.ErrorException("(exception)", e);
+                            Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
+                            throw; // To handler block that will record error in DB
+                        }
 
-                            entitiesContext.SaveChanges(); // (transaction is still not committed, but do some EF legwork up-front of modifying the blob)
+                        try
+                        {
+                            // SaveChanges tries to commit changes to DB
+                            entitiesContext.SaveChanges();
+                        }
+                        catch (Exception e)
+                        {
+                            // Commit changes to DB probably failed.
+                            // Since our blob update wasn't part of the transaction (and doesn't AFAIK have a 'commit()' operator we can utilize for the type of blobs we are using)
+                            // try, (single attempt) to roll back the blob update by restoring the previous snapshot.
+                            Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
+                            Log.ErrorException("(exception)", e);
+                            Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
                             try
                             {
-                                // Reupload blob
-                                Log.Info("Uploading blob from memory {0}", latestPackageBlob.Name);
-                                readWriteStream.Position = 0;
-                                latestPackageBlob.UploadFromStream(readWriteStream);
+                                latestPackageBlob.StartCopyFromBlob(blobSnapshot);
                             }
-                            catch (Exception e)
+                            catch (Exception e2)
                             {
-                                // Uploading the updated nupkg failed.
-                                // Rollback the transaction, which restores the Edit to PackageEdits so it can be attempted again.
-                                Log.Error("(error) - package edit blob update failed. Rolling back the DB transaction.");
-                                Log.ErrorException("(exception)", e);
+                                // If blob rollback fails it is not be the end of the world
+                                // - the package metadata mismatches the edit now, 
+                                // but there should still an edit in the queue, waiting to be rerun and put everything back in synch.
+                                Log.Error("(error) - rolling back the package blob to its previous snapshot failed.");
+                                Log.ErrorException("(exception)", e2);
                                 Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
-                                transaction.Rollback();
-                                throw; // To handler block that will record error in DB
                             }
 
-                            try
-                            {
-                                transaction.Commit();
-                            }
-                            catch (Exception e)
-                            {
-                                // Commit changes to DB failed.
-                                // Since our blob update wasn't part of the transaction (and doesn't AFAIK have a 'commit()' operator we can utilize for the type of blobs we are using)
-                                // try, (single attempt) to roll back the blob update by restoring the previous snapshot.
-                                Log.Error("(error) - package edit DB update failed. Trying to roll back the blob to its previous snapshot.");
-                                Log.ErrorException("(exception)", e);
-                                Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
-                                try
-                                {
-                                    latestPackageBlob.StartCopyFromBlob(blobSnapshot);
-                                }
-                                catch (Exception e2)
-                                {
-                                    // In this case it may not be the end of the world - the package metadata mismatches the edit now, 
-                                    // but there's still an edit in the queue, waiting to be rerun and put everything back in synch.
-                                    Log.Error("(error) - rolling back the package blob to its previous snapshot failed.");
-                                    Log.ErrorException("(exception)", e2);
-                                    Log.Error("(note) - blob snapshot URL = " + blobSnapshot.Uri);
-                                }
-
-                                throw; // To handler block that will record error in DB
-                            }
+                            throw; // To handler block that will record error in DB
                         }
                     }
                 }
