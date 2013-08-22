@@ -4,7 +4,6 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Web;
 using Glimpse.Core.Configuration;
 using Glimpse.Core.Framework;
 using Ninject;
