@@ -209,22 +209,19 @@
     }
 }
 
-@helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false)
+@helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false, bool multiline = false)
 {
     var formName = Html.EditorForModel();
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
     string value = temp == null ? null : temp.ToString();
-    <h4>@name
-        <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
-    </h4>
-    <div style="position: relative">
-        <div id="@(formid + "Field")" style="width: 100%">
-            <div class="form-field" style="display: inline">
-                @Html.EditorFor(func)
-                @Html.ValidationMessageFor(func)
-            </div>
+    <div class="form-field">
+        <div style="display: block" >
+            @Html.LabelFor(func, new { style = "display: inline-block" })
+            <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
         </div>
+        @Html.EditorFor(func, multiline ? new { style = "display: inline-block" } : new object())
+        @Html.ValidationMessageFor(func)
     </div>
 }
 
@@ -240,14 +237,14 @@
         @if (Model.Edit != null)
         {
             <li>@EditableField(EditPackageVersionRequest.TitleStr, m => m.Edit.VersionTitle)</li>
-            <li>@EditableField(EditPackageVersionRequest.DescriptionStr, m => m.Edit.Description)</li>
-            <li>@EditableField(EditPackageVersionRequest.SummaryStr, m => m.Edit.Summary)</li>
+            <li>@EditableField(EditPackageVersionRequest.DescriptionStr, m => m.Edit.Description, multiline: true)</li>
+            <li>@EditableField(EditPackageVersionRequest.SummaryStr, m => m.Edit.Summary, multiline: true)</li>
             <li>@EditableField(EditPackageVersionRequest.IconUrlStr, m => m.Edit.IconUrl, link: true)</li>
             <li>@EditableField(EditPackageVersionRequest.ProjectUrlStr, m => m.Edit.ProjectUrl, link: true)</li>
             <li>@EditableField(EditPackageVersionRequest.AuthorsStr, m => m.Edit.Authors)</li>
             <li>@EditableField(EditPackageVersionRequest.CopyrightStr, m => m.Edit.Copyright)</li>
             <li>@EditableField(EditPackageVersionRequest.TagsStr, m => m.Edit.Tags)</li>
-            <li>@EditableField(EditPackageVersionRequest.ReleaseNotesStr, m => m.Edit.ReleaseNotes)</li>
+            <li>@EditableField(EditPackageVersionRequest.ReleaseNotesStr, m => m.Edit.ReleaseNotes, multiline: true)</li>
 
             if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
             {
