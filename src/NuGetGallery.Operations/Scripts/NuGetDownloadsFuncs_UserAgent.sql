@@ -34,6 +34,8 @@ BEGIN
         RETURN 'Sonatype Nexus'
     IF CHARINDEX('Artifactory', @value) > 0 
         RETURN 'JFrog Artifactory'
+    IF CHARINDEX('ReSharper', @value) > 0 
+        RETURN 'ReSharper'
     RETURN 'Other'
 END
 GO
@@ -52,7 +54,8 @@ BEGIN
         OR CHARINDEX('NuGet Package Manager Console/', @value) > 0
         OR CHARINDEX('NuGet Visual Studio Extension/', @value) > 0
         OR CHARINDEX('WebMatrix', @value) > 0
-        OR CHARINDEX('Package-Installer/', @value) > 0)
+        OR CHARINDEX('Package-Installer/', @value) > 0
+        OR CHARINDEX('ReSharper', @value) > 0)
         
         RETURN CAST(SUBSTRING(
             @value, 
@@ -78,7 +81,8 @@ BEGIN
         OR CHARINDEX('NuGet Package Manager Console/', @value) > 0
         OR CHARINDEX('NuGet Visual Studio Extension/', @value) > 0
         OR CHARINDEX('WebMatrix', @value) > 0
-        OR CHARINDEX('Package-Installer/', @value) > 0)
+        OR CHARINDEX('Package-Installer/', @value) > 0
+        OR CHARINDEX('ReSharper', @value) > 0)
 
         RETURN CAST(SUBSTRING(
                 @value, 
@@ -112,6 +116,10 @@ BEGIN
 
     IF (CHARINDEX('Mozilla', @value) > 0 or CHARINDEX('Opera', @value) > 0)
         RETURN 'Browser'
+
+   IF CHARINDEX('ReSharper', @value) > 0
+        RETURN 'ReSharper'
+
 
     RETURN ''
 END

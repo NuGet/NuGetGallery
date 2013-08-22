@@ -298,7 +298,7 @@ namespace NuGetGallery.Operations
 
                 JObject obj = new JObject();
 
-                if (row[1].ToString() == "NuGet" || row[1].ToString() == "WebMatrix")
+                if (row[1].ToString() == "ReSharper")
                 {
                     obj.Add("Client", string.Format("{0} {1}.{2}", row[2], row[3], row[4]));
                     obj.Add("ClientName", row[2].ToString());
