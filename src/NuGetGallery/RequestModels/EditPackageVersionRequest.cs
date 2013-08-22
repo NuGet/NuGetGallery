@@ -67,8 +67,10 @@ namespace NuGetGallery
         [Display(Name = SummaryStr)]
         public string Summary { get; set; }
 
+        [StringLength(4000)]
         [DataType(DataType.MultilineText)]
         [Display(Name = DescriptionStr)]
+        [Required]
         public string Description { get; set; }
 
         [StringLength(256)]
@@ -80,6 +82,7 @@ namespace NuGetGallery
         [StringLength(512)]
         [Display(Name = AuthorsStr)]
         [DataType(DataType.Text)]
+        [Required]
         public string Authors { get; set; }
 
         [StringLength(512)]
