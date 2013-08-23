@@ -107,12 +107,15 @@
                 modal: true,
                 buttons: [{
                     text: "Save", click: function () {
+                        $("#navigate-away-dialog").dialog("close");
+                        var returnUrl = href.substr(window.location.origin.length);
+                        $(document.forms.EditForm).append($('<input type="hidden" name="returnUrl" value="' + returnUrl + '">'));
                         document.forms.EditForm.submit();
-                        window.location.href = href;
                     }
                 },
                 {
                     text: "Don't Save", click: function () {
+                        $("#navigate-away-dialog").dialog("close");
                         window.location.href = href;
                     }
                 },
@@ -160,11 +163,6 @@
 }
 
 @Styles.Render("~/Content/themes/custom/jquery-ui-1.10.3.custom.css")
-<div id="navigate-away-dialog" title="Save Changes?">
-    <p>
-    You are about to view a different page but your changes are not yet saved. Do you wish to save your changes?
-    </p>
-</div>
 
 @section SideColumn {
     @{
@@ -282,3 +280,9 @@
         </p>
     </fieldset>
 }
+
+<div id="navigate-away-dialog" title="Save Changes?" style="display: none">
+    <p>
+    You are about to view a different page but your changes are not yet saved. Do you wish to save your changes?
+    </p>
+</div>
