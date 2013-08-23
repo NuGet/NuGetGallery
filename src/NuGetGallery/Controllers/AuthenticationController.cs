@@ -90,19 +90,9 @@ namespace NuGetGallery
         }
 
         [NonAction]
-        public virtual ActionResult SafeRedirect(string returnUrl)
+        protected virtual ActionResult SafeRedirect(string returnUrl)
         {
-            if (!String.IsNullOrWhiteSpace(returnUrl)
-                && Url.IsLocalUrl(returnUrl)
-                && returnUrl.Length > 1
-                && returnUrl.StartsWith("/", StringComparison.Ordinal)
-                && !returnUrl.StartsWith("//", StringComparison.Ordinal)
-                && !returnUrl.StartsWith("/\\", StringComparison.Ordinal))
-            {
-                return Redirect(returnUrl);
-            }
-
-            return Redirect(Url.Home());
+            return Redirect(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
         }
     }
 }
