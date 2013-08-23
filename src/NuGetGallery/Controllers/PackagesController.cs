@@ -256,6 +256,12 @@ namespace NuGetGallery
 
             if (package.IsOwner(HttpContext.User))
             {
+                // Tell logged-in package owners not to cache the package page, so they won't be confused about the state of pending edits.
+                Response.Cache.SetCacheability(HttpCacheability.NoCache);
+                Response.Cache.SetNoStore();
+                Response.Cache.SetMaxAge(TimeSpan.Zero);
+                Response.Cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
+
                 var pendingMetadata = _editPackageService.GetPendingMetadata(package);
                 if (pendingMetadata != null)
                 {
@@ -585,7 +591,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult Edit(string id, string version, EditPackageRequest formData)
+        public virtual ActionResult Edit(string id, string version, EditPackageRequest formData, string returnUrl)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -593,12 +599,16 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!package.IsOwner(HttpContext.User))
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (user == null || !package.IsOwner(HttpContext.User))
             {
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
 
-            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
 
             // Add the edit request to a queue where it will be processed in the background.
             if (formData.Edit != null)
@@ -606,7 +616,8 @@ namespace NuGetGallery
                 _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                 _entitiesContext.SaveChanges();
             }
-            return Redirect(Url.Package(id, version));
+
+            return Redirect(RedirectHelper.SafeRedirectUrl(Url, returnUrl ?? Url.Package(id, version)));
         }
 
         [Authorize]
