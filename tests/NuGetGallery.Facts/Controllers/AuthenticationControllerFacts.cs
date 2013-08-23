@@ -173,7 +173,7 @@ namespace NuGetGallery.Controllers
                 Users = (MockUsers = new Mock<IUserService>()).Object;
             }
 
-            public override ActionResult SafeRedirect(string returnUrl)
+            protected override ActionResult SafeRedirect(string returnUrl)
             {
                 return new RedirectResult("aSafeRedirectUrl");
             }
