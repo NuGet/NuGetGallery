@@ -741,9 +741,9 @@ ul.dependencySet li {
 
 #sideColumn .logo {
     display: block;
-    height: 128px;
+    max-height: 128px;
     margin: 0 0 20px 0;
-    width: 128px;
+    max-width: 128px;
 }
 
     /* Stats */
@@ -858,8 +858,10 @@ section.package .side {
 }
 
 section.package .side img {
-    height: 50px;
-    width: 50px;
+    display: block;
+    margin: 0 auto;
+    max-width: 48px;
+    max-height: 48px;
 }
 
 /* Package Contents page */
