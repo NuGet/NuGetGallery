@@ -24,9 +24,6 @@ namespace NuGetGallery.Operations
         [Option("Blob container in which the backup should be placed", AltName = "c")]
         public string DestinationContainer { get; set; }
 
-        [Option("The name of the database to export (if not specified, the one in the connection string will be used)", AltName = "dbname")]
-        public string DatabaseName { get; set; }
-
         [Option("URL of the SQL DAC endpoint to talk to", AltName = "dac")]
         public Uri SqlDacEndpoint { get; set; }
 
@@ -53,10 +50,6 @@ namespace NuGetGallery.Operations
 
         public override void ExecuteCommand()
         {
-            if (!String.IsNullOrEmpty(DatabaseName))
-            {
-                ConnectionString.InitialCatalog = DatabaseName;
-            }
             Log.Info("Exporting {0} on {1} to {2}", ConnectionString.InitialCatalog, Util.GetDatabaseServerName(ConnectionString), DestinationStorage.Credentials.AccountName);
 
             string serverName = ConnectionString.DataSource;
