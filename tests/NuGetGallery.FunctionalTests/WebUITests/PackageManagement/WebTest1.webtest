@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WebTest Name="WebTest1" Id="fd453167-93fe-4202-bd93-7bff5ad2ee5a" Owner="" Priority="2147483647" Enabled="True" CssProjectStructure="" CssIteration="" Timeout="0" WorkItemIds="" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" Description="" CredentialUserName="" CredentialPassword="" PreAuthenticate="True" Proxy="" StopOnError="False" RecordedResultFile="WebTest1.e4305e86-77a2-4d80-a0e4-432e0a405492.rec.webtestresult">
+  <Items>
+    <Request Method="GET" Guid="1247b264-8c35-4fd3-ac3e-4bd0595bac46" Version="1.1" Url="https://staging.nuget.org/packages/SimpleTestPackageA/12.0.0/Edit" ThinkTime="0" Timeout="300" ParseDependentRequests="True" FollowRedirects="True" RecordResult="True" Cache="False" ResponseTimeGoal="0" Encoding="utf-8" ExpectedHttpStatusCode="0" ExpectedResponseUrl="https://staging.nuget.org/Users/Account/LogOn?ReturnUrl=%2fpackages%2fSimpleTestPackageA%2f12.0.0%2fEdit" ReportingName="">
+      <ExtractionRules>
+        <ExtractionRule Classname="Microsoft.VisualStudio.TestTools.WebTesting.Rules.ExtractHiddenFields, Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" VariableName="1" DisplayName="Extract Hidden Fields" Description="Extract all hidden fields from the response and place them into the test context.">
+          <RuleParameters>
+            <RuleParameter Name="Required" Value="True" />
+            <RuleParameter Name="HtmlDecode" Value="True" />
+          </RuleParameters>
+        </ExtractionRule>
+      </ExtractionRules>
+      <CorrelationExtractionRules>
+        <ExtractionRule Classname="Microsoft.VisualStudio.TestTools.WebTesting.Rules.ExtractText, Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" VariableName="QueryStringParam1.ReturnUrl" DisplayName="" Description="">
+          <RuleParameters>
+            <RuleParameter Name="StartsWith" Value="?ReturnUrl=" />
+            <RuleParameter Name="EndsWith" Value="&quot;" />
+            <RuleParameter Name="Index" Value="0" />
+            <RuleParameter Name="IgnoreCase" Value="False" />
+            <RuleParameter Name="UseRegularExpression" Value="False" />
+            <RuleParameter Name="HtmlDecode" Value="True" />
+            <RuleParameter Name="Required" Value="False" />
+          </RuleParameters>
+        </ExtractionRule>
+      </CorrelationExtractionRules>
+      <QueryStringParameters>
+        <QueryStringParameter Name="Parameter1" Value="{{PackageNames.PackageNames#csv.PackageNames}}" RecordedValue="" CorrelationBinding="" UrlEncode="True" UseToGroupResults="False" />
+      </QueryStringParameters>
+    </Request>
+    <Request Method="POST" Guid="ceedcbd0-0d5c-40c3-af85-592587cdf10e" Version="1.1" Url="https://staging.nuget.org/Users/Account/LogOn" ThinkTime="1" Timeout="300" ParseDependentRequests="True" FollowRedirects="True" RecordResult="True" Cache="False" ResponseTimeGoal="0" Encoding="utf-8" ExpectedHttpStatusCode="0" ExpectedResponseUrl="https://staging.nuget.org/packages/SimpleTestPackageA/12.0.0/Edit" ReportingName="">
+      <DependentRequests>
+        <Request Method="GET" Guid="881949ee-9fb6-43bd-aad6-64446c9fd32d" Version="1.1" Url="https://staging.nuget.org/Admin/Glimpse" ThinkTime="0" Timeout="300" ParseDependentRequests="True" FollowRedirects="True" RecordResult="True" Cache="False" ResponseTimeGoal="0" Encoding="utf-8" ExpectedHttpStatusCode="0" ExpectedResponseUrl="https://getglimpse.com/Api/Version/Check?Glimpse.Ado=1.2.0&amp;Glimpse.AspNet=1.2.0&amp;Glimpse=1.2.0&amp;Glimpse.EF43=1.2.0&amp;Glimpse.Mvc4=1.2.0&amp;stamp=1377492787789&amp;callback=glimpse.versionCheck.result" ReportingName="">
+          <QueryStringParameters>
+            <QueryStringParameter Name="n" Value="glimpse_version_check" RecordedValue="glimpse_version_check" CorrelationBinding="" UrlEncode="False" UseToGroupResults="False" />
+            <QueryStringParameter Name="version" Value="1.2.0" RecordedValue="1.2.0" CorrelationBinding="{{QueryStringParam6.version}}" UrlEncode="False" UseToGroupResults="False" />
+            <QueryStringParameter Name="stamp" Value="1377492787789" RecordedValue="1377492787789" CorrelationBinding="" UrlEncode="False" UseToGroupResults="False" />
+            <QueryStringParameter Name="callback" Value="glimpse.versionCheck.result" RecordedValue="glimpse.versionCheck.result" CorrelationBinding="" UrlEncode="False" UseToGroupResults="False" />
+            <QueryStringParameter Name="_" Value="1377492787790" RecordedValue="1377492787790" CorrelationBinding="" UrlEncode="False" UseToGroupResults="False" />
+          </QueryStringParameters>
+        </Request>
+        <Request Method="GET" Guid="480d8f2c-48d1-4d5c-afbd-e3e726be1ba1" Version="1.1" Url="https://staging.nuget.org/api/v2/service-alert" ThinkTime="0" Timeout="300" ParseDependentRequests="True" FollowRedirects="True" RecordResult="True" Cache="False" ResponseTimeGoal="0" Encoding="utf-8" ExpectedHttpStatusCode="0" ExpectedResponseUrl="" ReportingName="">
+          <QueryStringParameters>
+            <QueryStringParameter Name="cachebust" Value="1377492787803" RecordedValue="1377492787803" CorrelationBinding="" UrlEncode="False" UseToGroupResults="False" />
+          </QueryStringParameters>
+        </Request>
+        <Request Method="GET" Guid="c20df311-10b1-49cf-b796-84661c78aa6b" Version="1.1" Url="https://staging.nuget.org/Content/font/fontawesome-webfont.eot" ThinkTime="8" Timeout="300" ParseDependentRequests="True" FollowRedirects="True" RecordResult="True" Cache="False" ResponseTimeGoal="0" Encoding="utf-8" ExpectedHttpStatusCode="0" ExpectedResponseUrl="" ReportingName="">
+          <QueryStringParameters>
+            <QueryStringParameter Name="" Value="" RecordedValue="" CorrelationBinding="" UrlEncode="False" UseToGroupResults="False" />
+          </QueryStringParameters>
+        </Request>
+      </DependentRequests>
+      <ExtractionRules>
+        <ExtractionRule Classname="Microsoft.VisualStudio.TestTools.WebTesting.Rules.ExtractHiddenFields, Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" VariableName="1" DisplayName="Extract Hidden Fields" Description="Extract all hidden fields from the response and place them into the test context.">
+          <RuleParameters>
+            <RuleParameter Name="Required" Value="True" />
+            <RuleParameter Name="HtmlDecode" Value="True" />
+          </RuleParameters>
+        </ExtractionRule>
+      </ExtractionRules>
+      <CorrelationExtractionRules>
+        <ExtractionRule Classname="Microsoft.VisualStudio.TestTools.WebTesting.Rules.ExtractFormField, Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" VariableName="FormPostParam1.Edit.Authors" DisplayName="" Description="">
+          <RuleParameters>
+            <RuleParameter Name="Name" Value="Edit_Authors" />
+            <RuleParameter Name="HtmlDecode" Value="True" />
+            <RuleParameter Name="Required" Value="False" />
+            <RuleParameter Name="Index" Value="0" />
+          </RuleParameters>
+        </ExtractionRule>
+        <ExtractionRule Classname="Microsoft.VisualStudio.TestTools.WebTesting.Rules.ExtractFormField, Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" VariableName="FormPostParam2.Edit.Tags" DisplayName="" Description="">
+          <RuleParameters>
+            <RuleParameter Name="Name" Value="Edit_Tags" />
+            <RuleParameter Name="HtmlDecode" Value="True" />
+            <RuleParameter Name="Required" Value="False" />
+            <RuleParameter Name="Index" Value="0" />
+          </RuleParameters>
+        </ExtractionRule>
+        <ExtractionRule Classname="Microsoft.VisualStudio.TestTools.WebTesting.Rules.ExtractText, Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" VariableName="QueryStringParam6.version" DisplayName="" Description="">
+          <RuleParameters>
+            <RuleParameter Name="StartsWith" Value="&amp;amp;version=" />
+            <RuleParameter Name="EndsWith" Value="'" />
+            <RuleParameter Name="Index" Value="0" />
+            <RuleParameter Name="IgnoreCase" Value="False" />
+            <RuleParameter Name="UseRegularExpression" Value="False" />
+            <RuleParameter Name="HtmlDecode" Value="True" />
+            <RuleParameter Name="Required" Value="False" />
+          </RuleParameters>
+        </ExtractionRule>
+      </CorrelationExtractionRules>
+      <QueryStringParameters>
+        <QueryStringParameter Name="ReturnUrl" Value="%2fpackages%2fSimpleTestPackageA%2f12.0.0%2fEdit" RecordedValue="%2fpackages%2fSimpleTestPackageA%2f12.0.0%2fEdit" CorrelationBinding="{{QueryStringParam1.ReturnUrl}}" UrlEncode="False" UseToGroupResults="False" />
+      </QueryStringParameters>
+      <FormPostHttpBody>
+        <FormPostParameter Name="__RequestVerificationToken" Value="{{$HIDDEN1.__RequestVerificationToken}}" RecordedValue="ifA9HOgmnEjOEP2MwzEoxN7UK6ohqaANWKgYiigf5RsewX7nKRMGeL7bWbeJPZawe4XDrTJ2AYxJ17qIFg5iPTnAaLBkvAFOheVKAbHnl5w1" CorrelationBinding="" UrlEncode="True" />
+        <FormPostParameter Name="UserNameOrEmail" Value="bhuvak@live.com" RecordedValue="bhuvak@live.com" CorrelationBinding="" UrlEncode="True" />
+        <FormPostParameter Name="Password" Value="#Finally#" RecordedValue="#Finally#" CorrelationBinding="" UrlEncode="True" />
+      </FormPostHttpBody>
+    </Request>
+    <Request Method="POST" Guid="7b772c47-6b98-44bc-9b8b-3d3c1ea30cd2" Version="1.1" Url="https://staging.nuget.org/packages/SimpleTestPackageA/12.0.0/Edit" ThinkTime="0" Timeout="300" ParseDependentRequests="True" FollowRedirects="True" RecordResult="True" Cache="False" ResponseTimeGoal="0" Encoding="utf-8" ExpectedHttpStatusCode="0" ExpectedResponseUrl="https://staging.nuget.org/packages/SimpleTestPackageA/12.0.0" ReportingName="">
+      <DependentRequests>
+        <Request Method="GET" Guid="f002c49f-5b17-44e2-9637-41de32fe8191" Version="1.1" Url="https://staging.nuget.org/api/v2/service-alert" ThinkTime="0" Timeout="300" ParseDependentRequests="True" FollowRedirects="True" RecordResult="True" Cache="False" ResponseTimeGoal="0" Encoding="utf-8" ExpectedHttpStatusCode="0" ExpectedResponseUrl="" ReportingName="">
+          <QueryStringParameters>
+            <QueryStringParameter Name="cachebust" Value="1377492797562" RecordedValue="1377492797562" CorrelationBinding="" UrlEncode="False" UseToGroupResults="False" />
+          </QueryStringParameters>
+        </Request>
+      </DependentRequests>
+      <FormPostHttpBody>
+        <FormPostParameter Name="__RequestVerificationToken" Value="{{$HIDDEN1.__RequestVerificationToken}}" RecordedValue="UzxMSt3Q-j5w3wjf71JHmnts9a1AUN8ZYRt6f0k-T-MjhzmaUduISuKDYAdp0HnUu4rH9V9f_zYHliCJxgVh-XlsDbyG2V6HNCpsetPoS1g1" CorrelationBinding="" UrlEncode="True" />
+        <FormPostParameter Name="Edit.VersionTitle" Value="Edit Package Demo1" RecordedValue="Edit Package Demo1" CorrelationBinding="" UrlEncode="True" />
+        <FormPostParameter Name="Edit.Description" Value="My package description." RecordedValue="My package description." CorrelationBinding="" UrlEncode="True" />
+        <FormPostParameter Name="Edit.Summary" Value="" RecordedValue="" CorrelationBinding="" UrlEncode="True" />
+        <FormPostParameter Name="Edit.IconUrl" Value="" RecordedValue="" CorrelationBinding="" UrlEncode="True" />
+        <FormPostParameter Name="Edit.ProjectUrl" Value="" RecordedValue="" CorrelationBinding="" UrlEncode="True" />
+        <FormPostParameter Name="Edit.Authors" Value="bhuvana" RecordedValue="bhuvana" CorrelationBinding="{{FormPostParam1.Edit.Authors}}" UrlEncode="True" />
+        <FormPostParameter Name="Edit.Copyright" Value="" RecordedValue="" CorrelationBinding="" UrlEncode="True" />
+        <FormPostParameter Name="Edit.Tags" Value="demo" RecordedValue="demo" CorrelationBinding="{{FormPostParam2.Edit.Tags}}" UrlEncode="True" />
+        <FormPostParameter Name="Edit.ReleaseNotes" Value="" RecordedValue="" CorrelationBinding="" UrlEncode="True" />
+      </FormPostHttpBody>
+    </Request>
+  </Items>
+  <DataSources>
+    <DataSource Name="PackageNames" Provider="Microsoft.VisualStudio.TestTools.DataSource.CSV" Connection="|DataDirectory|\..\..\PackageNames.csv">
+      <Tables>
+        <DataSourceTable Name="PackageNames#csv" SelectColumns="SelectOnlyBoundColumns" AccessMethod="Sequential" />
+      </Tables>
+    </DataSource>
+  </DataSources>
+  <ValidationRules>
+    <ValidationRule Classname="Microsoft.VisualStudio.TestTools.WebTesting.Rules.ValidateResponseUrl, Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" DisplayName="Response URL" Description="Validates that the response URL after redirects are followed is the same as the recorded response URL.  QueryString parameters are ignored." Level="Low" ExectuionOrder="BeforeDependents" />
+    <ValidationRule Classname="Microsoft.VisualStudio.TestTools.WebTesting.Rules.ValidationRuleResponseTimeGoal, Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" DisplayName="Response Time Goal" Description="Validates that the response time for the request is less than or equal to the response time goal as specified on the request.  Response time goals of zero will be ignored." Level="Low" ExectuionOrder="AfterDependents">
+      <RuleParameters>
+        <RuleParameter Name="Tolerance" Value="0" />
+      </RuleParameters>
+    </ValidationRule>
+  </ValidationRules>
+</WebTest>
