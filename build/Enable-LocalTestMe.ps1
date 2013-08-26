@@ -4,7 +4,7 @@ if(!(([Security.Principal.WindowsPrincipal]([System.Security.Principal.WindowsId
     throw "This script must be run as an admin."
 }
 
-$WebSite = Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\Website")
+$WebSite = Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\src\NuGetGallery")
 
 # Enable access to the necessary URLs
 netsh http add urlacl url=http://nuget.localtest.me:80/ user=Everyone
