@@ -219,14 +219,13 @@ nav, section { display: block; }
 .pending-edit-message,
 .prerelease-message,
 .not-latest-message {
-    -moz-border-radius: 0 0 5px 5px;
-    -webkit-border-radius: 0 0 5px 5px;
+    -moz-border-radius: 5px 5px 5px 5px;
+    -webkit-border-radius: 5px 5px 5px 5px;
     border: 1px solid;
-    border-radius: 0 0 5px 5px;
-    border-top: none;
+    border-radius: 5px 5px 5px 5px;
     font-size: 1.5em;
-    margin-top: -20px;
-    padding: 10px;
+    margin: -0px 5px 20px 5px;
+    padding: 5px;
     text-align: center;
 }
 
@@ -744,11 +743,6 @@ button.undo-button {
 }
 
 /* Package Edit Page */
-
-#edit-list ul {
-    list-style-type: none;
-    list-style-image: none;
-}
 
 .edit-root {
     font-size: 1.3em;
@@ -1309,6 +1303,7 @@ fieldset.form legend { display: none; }
     color: #7f8c7d;
     font-size: 1.25em;
     padding: 2px;
+    margin: 0px 0px 10px 0;
 }
 
 .form-field select[data-edited=true] {
@@ -1366,13 +1361,19 @@ fieldset.form legend { display: none; }
     z-index: 550;
 }
 
-    .field-validation-error.block-validation-error
-    {
-        position: static;
-        display: block;
-        margin-left: 2px;
-        margin-top: 5px;
-    }
+textarea + .field-validation-error {
+    top: auto;
+    left: auto;
+    position: static;
+}
+
+.field-validation-error.block-validation-error
+{
+    position: static;
+    display: block;
+    margin-left: 2px;
+    margin-top: 5px;
+}
 
 
 #form-field-reason

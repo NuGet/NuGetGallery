@@ -63,11 +63,17 @@
             SetupInput('Edit_Copyright');
             SetupInput('Edit_Tags');
             SetupInput('Edit_ReleaseNotes');
-            SetupInput('Edit_RequiresLicenseAcceptance');
 
-            // Fix our SetupInput function to work with RequiresLicenseAcceptance
-            // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
-            $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")"
+            @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+            {
+                <text>
+                SetupInput('Edit_RequiresLicenseAcceptance');
+
+                // Fix our SetupInput function to work with RequiresLicenseAcceptance
+                // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
+                $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")";
+                </text>
+            }
 
             $("#Edit_ProjectUrl").bind("focusin focusout", RunValidationForEvent);
             $("#Edit_IconUrl").bind("focusin focusout", UpdateIconAndRunValidation);
@@ -101,12 +107,15 @@
                 modal: true,
                 buttons: [{
                     text: "Save", click: function () {
+                        $("#navigate-away-dialog").dialog("close");
+                        var returnUrl = href.substr(window.location.origin.length);
+                        $(document.forms.EditForm).append($('<input type="hidden" name="returnUrl" value="' + returnUrl + '">'));
                         document.forms.EditForm.submit();
-                        window.location.href = href;
                     }
                 },
                 {
                     text: "Don't Save", click: function () {
+                        $("#navigate-away-dialog").dialog("close");
                         window.location.href = href;
                     }
                 },
@@ -136,14 +145,16 @@
             ReadFormValues(initialDictionary);
 
             $("a").click(function (event) {
-                var dictionary = [];
-                ReadFormValues(dictionary);
-                for (var key in initialDictionary) {
-                    if (initialDictionary.hasOwnProperty(key) &&
-                        dictionary[key] != initialDictionary[key]) {
-                        href = event.target.href;
-                        $("#navigate-away-dialog").dialog("open");
-                        return false;
+                if (!(event.target.attributes["class"]) || event.target.attributes["class"].value.indexOf("cancel") < 0) {
+                    var dictionary = [];
+                    ReadFormValues(dictionary);
+                    for (var key in initialDictionary) {
+                        if (initialDictionary.hasOwnProperty(key) &&
+                            dictionary[key] != initialDictionary[key]) {
+                            href = event.target.href;
+                            $("#navigate-away-dialog").dialog("open");
+                            return false;
+                        }
                     }
                 }
             });
@@ -152,11 +163,6 @@
 }
 
 @Styles.Render("~/Content/themes/custom/jquery-ui-1.10.3.custom.css")
-<div id="navigate-away-dialog" title="Save Changes?">
-    <p>
-    You are about to view a different page but your changes are not yet saved. Do you wish to save your changes?
-    </p>
-</div>
 
 @section SideColumn {
     @{
@@ -201,27 +207,25 @@
     }
 }
 
-@helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false)
+@helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false, bool multiline = false)
 {
+    var formName = Html.EditorForModel();
     var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
     object temp = func.Compile().Invoke(Model);
     string value = temp == null ? null : temp.ToString();
-    <h4>@name
-        <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
-    </h4>
-    <div style="position: relative">
-        <div id="@(formid + "Field")" style="width: 100%">
-            <div class="form-field" style="display: inline">
-                @Html.EditorFor(func)
-                @Html.ValidationMessageFor(func)
-            </div>
+    <div class="form-field">
+        <div style="display: block" >
+            @Html.LabelFor(func, new { style = "display: inline-block" })
+            <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
         </div>
+        @Html.EditorFor(func, multiline ? new { style = "display: inline-block" } : new object())
+        @Html.ValidationMessageFor(func)
     </div>
 }
 
 @using (Html.BeginForm(null, null, FormMethod.Post, new { id = "EditForm" }))
 {
-    <fieldset class="form">
+    <fieldset class="form" >
         <legend>Edit @(Model.PackageId) @(Model.Version)</legend>
 
         @Html.AntiForgeryToken()
@@ -230,44 +234,55 @@
         <ul id="packageDetails" style="border-bottom: 1px solid gray; margin-bottom: 1em;">
         @if (Model.Edit != null)
         {
-            <li>@EditableField("Title", m => m.Edit.VersionTitle)</li>
-            <li>@EditableField("Description (a longer description)", m => m.Edit.Description)</li>
-            <li>@EditableField("Summary (visible in search results)", m => m.Edit.Summary)</li>
-            <li>@EditableField("Icon URL", m => m.Edit.IconUrl, link: true)</li>
-            <li>@EditableField("Project URL", m => m.Edit.ProjectUrl, link: true)</li>
-            <li>@EditableField("Authors (comma-separated list - example: 'Annie, Bob, Charlie')", m => m.Edit.Authors)</li>
-            <li>@EditableField("Copyright", m => m.Edit.Copyright)</li>
-            <li>@EditableField("Tags (space-separated keywords - example: 'CommandLine ASP.NET Proxies Scaffolding)", m => m.Edit.Tags)</li>
-            <li>@EditableField("Release Notes (for this version)", m => m.Edit.ReleaseNotes)</li>
-            <li>
-                <h4>Requires License Acceptance
-                    @{
-                        var formid2 = "Edit_RequiresLicenseAcceptance";
-                        <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
-                    }
-                </h4>
-                <div style="position: relative">
-                    <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
-                        <div class="form-field" style="display: inline">
-                            @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
-                                new List<SelectListItem>
-                                {
-                                    new SelectListItem { Text = "Yes", Value = "true" },
-                                    new SelectListItem { Text = "No", Value = "false" },
-                                })
-                            @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+            <li>@EditableField(EditPackageVersionRequest.TitleStr, m => m.Edit.VersionTitle)</li>
+            <li>@EditableField(EditPackageVersionRequest.DescriptionStr, m => m.Edit.Description, multiline: true)</li>
+            <li>@EditableField(EditPackageVersionRequest.SummaryStr, m => m.Edit.Summary, multiline: true)</li>
+            <li>@EditableField(EditPackageVersionRequest.IconUrlStr, m => m.Edit.IconUrl, link: true)</li>
+            <li>@EditableField(EditPackageVersionRequest.ProjectUrlStr, m => m.Edit.ProjectUrl, link: true)</li>
+            <li>@EditableField(EditPackageVersionRequest.AuthorsStr, m => m.Edit.Authors)</li>
+            <li>@EditableField(EditPackageVersionRequest.CopyrightStr, m => m.Edit.Copyright)</li>
+            <li>@EditableField(EditPackageVersionRequest.TagsStr, m => m.Edit.Tags)</li>
+            <li>@EditableField(EditPackageVersionRequest.ReleaseNotesStr, m => m.Edit.ReleaseNotes, multiline: true)</li>
+
+            if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
+            {
+                <li>
+                    <h4>@EditPackageVersionRequest.RequiresLicenseAcceptanceStr
+                        @{
+                            var formid2 = "Edit_RequiresLicenseAcceptance";
+                            <button type="button" class="undo-button" id="@("Undo" + formid2)" style="display: none"><span class="icon-undo"></span></button>
+                        }
+                    </h4>
+                    <div style="position: relative">
+                        <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
+                            <div class="form-field" style="display: inline">
+                                @Html.DropDownList("Edit.RequiresLicenseAcceptance", 
+                                    new List<SelectListItem>
+                                    {
+                                        new SelectListItem { Text = "Yes", Value = "true" },
+                                        new SelectListItem { Text = "No", Value = "false" },
+                                    })
+                                @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
+                            </div>
                         </div>
                     </div>
-                </div>
-            </li>
+                </li>
+            }
         }
         </ul>
+        <input type="submit" value="Save" title="Save Changes" />
+        <a class="cancel" href="@Url.Package(Model.PackageId, Model.Version)" title="Cancel Changes and go back to package page.">Cancel</a>
 
-    <h2>Note:</h2>
-    <p>
-        To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package. 
-        Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
-    </p>
-    <input type="submit" value="Save" title="Save" />
+        <h3>Note:</h3>
+        <p>
+            To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package. 
+            Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
+        </p>
     </fieldset>
 }
+
+<div id="navigate-away-dialog" title="Save Changes?" style="display: none">
+    <p>
+    You are about to view a different page but your changes are not yet saved. Do you wish to save your changes?
+    </p>
+</div>
