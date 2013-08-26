@@ -385,7 +385,7 @@ nav.main ul a:hover {
 /* User Info */
 
 .user-display {
-    background: url(../Content/Images/usericonwhite.png) no-repeat;
+    color: #fff;
     float: right;
     font-weight: 600;
     margin-top: 80px;
@@ -395,7 +395,8 @@ nav.main ul a:hover {
 
 .user-display a {
     color: #fff;
-    margin-left: 10px;
+    padding-left: 7px;
+    font-weight: 600;
 }
 
 .user-display a:hover { text-decoration: underline; }
