@@ -70,7 +70,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                 if (string.IsNullOrEmpty(testAccountName))
                 {
                     //testAccountName = Environment.GetEnvironmentVariable("TestAccountName");
-                    testAccountName = Environment.GetEnvironmentVariable("bhuvana");
+                    testAccountName = Environment.GetEnvironmentVariable("");
                 }
                 return testAccountName;
             }
@@ -86,7 +86,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                 if (string.IsNullOrEmpty(testAccountPassword))
                 {
                     //testAccountPassword = Environment.GetEnvironmentVariable("TestAccountPassword");
-                    testAccountPassword = Environment.GetEnvironmentVariable("#Finally#");
+                    testAccountPassword = Environment.GetEnvironmentVariable("");
                 }
                 return testAccountPassword;
             }

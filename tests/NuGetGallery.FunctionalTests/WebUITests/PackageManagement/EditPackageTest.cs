@@ -60,26 +60,9 @@ namespace NuGetGallery.FunctionalTests
                 request2.QueryStringParameters.Add("ReturnUrl", "%2fpackages%2fSimpleTestPackageA%2f12.0.0%2fEdit", false, false);
                 FormPostHttpBody request2Body = new FormPostHttpBody();
                 request2Body.FormPostParameters.Add("__RequestVerificationToken", this.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
-                request2Body.FormPostParameters.Add("UserNameOrEmail", "bhuvak@live.com");
-                request2Body.FormPostParameters.Add("Password", "#Finally#");
-                request2.Body = request2Body;
-                //WebTestRequest request2Dependent1 = new WebTestRequest("https://staging.nuget.org/Admin/Glimpse");
-                //request2Dependent1.ExpectedResponseUrl = "https://getglimpse.com/Api/Version/Check?Glimpse.Ado=1.2.0&Glimpse.AspNet=1.2.0&G" +
-                //    "limpse=1.2.0&Glimpse.EF43=1.2.0&Glimpse.Mvc4=1.2.0&stamp=1377492787789&callback=" +
-                //    "glimpse.versionCheck.result";
-                //request2Dependent1.QueryStringParameters.Add("n", "glimpse_version_check", false, false);
-                //request2Dependent1.QueryStringParameters.Add("version", "1.2.0", false, false);
-                //request2Dependent1.QueryStringParameters.Add("stamp", "1377492787789", false, false);
-                //request2Dependent1.QueryStringParameters.Add("callback", "glimpse.versionCheck.result", false, false);
-                //request2Dependent1.QueryStringParameters.Add("_", "1377492787790", false, false);
-                //request2.DependentRequests.Add(request2Dependent1);
-                //WebTestRequest request2Dependent2 = new WebTestRequest("https://staging.nuget.org/api/v2/service-alert");
-                //request2Dependent2.QueryStringParameters.Add("cachebust", "1377492787803", false, false);
-                //request2.DependentRequests.Add(request2Dependent2);
-                //WebTestRequest request2Dependent3 = new WebTestRequest("https://staging.nuget.org/Content/font/fontawesome-webfont.eot");
-                //request2Dependent3.ThinkTime = 8;
-                //request2Dependent3.QueryStringParameters.Add("", "", false, false);
-                //request2.DependentRequests.Add(request2Dependent3);
+                request2Body.FormPostParameters.Add("UserNameOrEmail", "");
+                request2Body.FormPostParameters.Add("Password", "");
+                request2.Body = request2Body;             
                 ExtractHiddenFields extractionRule2 = new ExtractHiddenFields();
                 extractionRule2.Required = true;
                 extractionRule2.HtmlDecode = true;
@@ -103,9 +86,7 @@ namespace NuGetGallery.FunctionalTests
                 request3Body.FormPostParameters.Add("Edit.Tags", "demo");
                 request3Body.FormPostParameters.Add("Edit.ReleaseNotes", "");
                 request3.Body = request3Body;
-                //WebTestRequest request3Dependent1 = new WebTestRequest("https://staging.nuget.org/api/v2/service-alert");
-                //request3Dependent1.QueryStringParameters.Add("cachebust", "1377492797562", false, false);
-                //request3.DependentRequests.Add(request3Dependent1);
+               
                 yield return request3;
                 request3 = null;
                 int count = 0;
