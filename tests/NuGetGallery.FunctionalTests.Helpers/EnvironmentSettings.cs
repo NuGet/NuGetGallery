@@ -16,10 +16,28 @@ namespace NuGetGallery.FunctionTests.Helpers
         private static string testAccountName;
         private static string testAccountPassword;
         private static string testEmailServerHost;
-
+        private static string runFunctionalTests;
       
         #endregion PrivateFields
         #region Properties
+
+        /// <summary>
+        /// Option to enable or disable functional tests from the current run.
+        /// </summary>
+        public static string RunFunctionalTests
+        {
+            get
+            {        
+               if (string.IsNullOrEmpty(runFunctionalTests))
+                {
+                    if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RunFunctionalTests")))
+                        runFunctionalTests = "False";
+                    else
+                        runFunctionalTests = Environment.GetEnvironmentVariable("RunFunctionalTests");
+                }
+                return runFunctionalTests;
+            }
+        }
 
 
         /// <summary>
