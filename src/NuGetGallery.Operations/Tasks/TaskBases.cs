@@ -65,7 +65,6 @@ namespace NuGetGallery.Operations
         public SqlConnectionStringBuilder ConnectionString { get; set; }
 
         protected string ServerName { get { return Util.GetDatabaseServerName(ConnectionString); } }
-        protected string DatabaseName { get { return ConnectionString.InitialCatalog; } }
 
         public override void ValidateArguments()
         {
