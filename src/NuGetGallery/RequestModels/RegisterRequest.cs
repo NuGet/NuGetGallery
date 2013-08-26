@@ -25,17 +25,6 @@ namespace NuGetGallery
             "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
 
         [Required]
-        [StringLength(255)]
-        [Display(Name = "Email")]
-        //[DataType(DataType.EmailAddress)] - does not work with client side validation
-        [RegularExpression(EmailValidationRegex, ErrorMessage = EmailValidationErrorMessage)]
-        [Hint(
-            "Your email will not be public unless you choose to disclose it. " +
-            "It is required to verify your registration and for password retrieval, important notifications, etc. ")]
-        [Subtext("We use <a href=\"http://www.gravatar.com\" target=\"_blank\">Gravatar</a> to get your profile picture", AllowHtml = true)]
-        public string EmailAddress { get; set; }
-
-        [Required]
         [StringLength(64)]
         [RegularExpression(UsernameValidationRegex, ErrorMessage = UsernameValidationErrorMessage)]
         [Hint("Choose something unique so others will know which contributions are yours.")]
@@ -48,14 +37,14 @@ namespace NuGetGallery
         public string Password { get; set; }
 
         [Required]
-        [Compare("Password")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password Confirmation")]
-        [Hint("Please reenter your password and ensure that it matches the one above.")]
-        public string ConfirmPassword { get; set; }
-
-        [Mandatory(ErrorMessage="You must accept the terms of use and privacy policy to create an account")]
-        [ScaffoldColumn(false)]
-        public bool AcceptTerms { get; set; }
+        [StringLength(255)]
+        [Display(Name = "Email")]
+        //[DataType(DataType.EmailAddress)] - does not work with client side validation
+        [RegularExpression(EmailValidationRegex, ErrorMessage = EmailValidationErrorMessage)]
+        [Hint(
+            "Your email will not be public unless you choose to disclose it. " +
+            "It is required to verify your registration and for password retrieval, important notifications, etc. ")]
+        [Subtext("We use <a href=\"http://www.gravatar.com\" target=\"_blank\">Gravatar</a> to get your profile picture", AllowHtml = true)]
+        public string EmailAddress { get; set; }
     }
 }

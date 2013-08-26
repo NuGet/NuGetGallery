@@ -1,17 +1,13 @@
 ﻿@model RegisterRequest
 @{
     ViewBag.Title = "Register";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    Layout = "~/Views/Shared/Layout.cshtml";
 }
 
-@section SideColumn {
-    <p>With your account, you’ll be able to achieve all kinds of fame and glory by submitting
-        your own packages.</p>
-    <p>Already have an account? <a href="@Url.LogOn()">Log On.</a></p>
-}
+<h1>New Account</h1>
 
-
-<h1>Create A New Account</h1>
+<p class="long note">With your account achieve fame and glory by submitting
+    your own packages. Already have an account? <a href="@Url.LogOn()">Log On.</a></p>
 
 @using (Html.BeginForm())
 {
@@ -23,14 +19,11 @@
 
         @Html.EditorForModel()
 
-        <div id="form-field-register-policies" class="form-field">
-            @Html.ValidationMessageFor(r => r.AcceptTerms)
-            @Html.CheckBoxFor(r => r.AcceptTerms)
-            <label for="AcceptTerms">
-                I have read and accept the @Html.ActionLink("Terms of Use", "Terms", MVC.Pages.Name)
-                        and the @Html.ActionLink("Privacy Policy", "Privacy", MVC.Pages.Name)
-                            </label>
-        </div>
+        <p id="form-field-register-policies">
+            By clicking Register you agree that you have read and accept our 
+                @Html.ActionLink("Terms of Use", "Terms", MVC.Pages.Name)
+            and @Html.ActionLink("Privacy Policy", "Privacy", MVC.Pages.Name)
+        </p>
 
         <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
 
