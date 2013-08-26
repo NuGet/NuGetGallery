@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Features\SearchTest.cs" />
+    <Compile Include="TempEditPackageTest.cs" />
     <Compile Include="WebUITests\AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="..\..\src\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
@@ -90,6 +91,7 @@
     <Compile Include="WebUITests\BasicPages\SecurityHeaderTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactOwnerTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ContactUsAndReportAbuseLinkTest.cs" />
+    <Compile Include="WebUITests\PackageManagement\EditPackageTest.cs" />
     <Compile Include="WebUITests\UploadAndDownload\UploadPackageWithMinClientVersionFromUITest.cs" />
     <Compile Include="WebUITests\PackageManagement\DeletePackageTest.cs" />
     <Compile Include="WebUITests\PackageManagement\ManagePackagesPageTest.cs" />
@@ -106,7 +108,6 @@
     <Compile Include="WebUITests\AccountManagement\UploadPackageWithoutLoginTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NuGetGallery.Frontend.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj" />
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Helpers\NuGetGallery.FunctionalTests.Helpers.csproj">
       <Project>{8fb56455-c688-44ae-95f1-48ffcb199bfe}</Project>
       <Name>NuGetGallery.Frontend.FunctionalTests.Helpers</Name>

@@ -130,6 +130,26 @@ namespace NuGetGallery.FunctionTests.Helpers
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
+        public static string GetPackageTitleFromNupkgFile(string filePath)
+        {
+            try
+            {
+                ZipPackage pack = new ZipPackage(filePath);
+                return pack.Title;
+                
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(" Exception thrown while trying to create zippackage for :{0}. Message {1}", filePath, e.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Given the path to the nupkg file, returns the corresponding package ID.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         public static bool IsPackageVersionUnListed(string packageId,string version)
         {
             IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl) as IPackageRepository;

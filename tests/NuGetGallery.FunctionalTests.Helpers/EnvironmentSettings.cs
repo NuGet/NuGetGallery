@@ -51,7 +51,7 @@ namespace NuGetGallery.FunctionTests.Helpers
                 if (string.IsNullOrEmpty(_baseurl))
                 {
                     if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GalleryUrl")))
-                        _baseurl = "https://preview.nuget.org/";
+                        _baseurl = "https://staging.nuget.org/";
                     else
                         _baseurl = Environment.GetEnvironmentVariable("GalleryUrl");
                 }
@@ -69,7 +69,8 @@ namespace NuGetGallery.FunctionTests.Helpers
             {
                 if (string.IsNullOrEmpty(testAccountName))
                 {
-                    testAccountName = Environment.GetEnvironmentVariable("TestAccountName");
+                    //testAccountName = Environment.GetEnvironmentVariable("TestAccountName");
+                    testAccountName = Environment.GetEnvironmentVariable("bhuvana");
                 }
                 return testAccountName;
             }
@@ -84,7 +85,8 @@ namespace NuGetGallery.FunctionTests.Helpers
             {
                 if (string.IsNullOrEmpty(testAccountPassword))
                 {
-                    testAccountPassword = Environment.GetEnvironmentVariable("TestAccountPassword");
+                    //testAccountPassword = Environment.GetEnvironmentVariable("TestAccountPassword");
+                    testAccountPassword = Environment.GetEnvironmentVariable("#Finally#");
                 }
                 return testAccountPassword;
             }
