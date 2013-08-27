@@ -149,6 +149,11 @@ namespace NuGetGallery
             return url.Action(originalResult);
         }
 
+        public static string Register(this UrlHelper url, string returnUrl)
+        {
+            return url.RouteUrl(RouteName.Authentication, new { action = "Register", returnUrl = returnUrl });
+        }
+
         public static string Search(this UrlHelper url, string searchTerm)
         {
             return url.RouteUrl(RouteName.ListPackages, new { q = searchTerm });

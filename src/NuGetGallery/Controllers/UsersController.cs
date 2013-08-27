@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -13,7 +12,6 @@ namespace NuGetGallery
         public IPrincipal CurrentUser { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
-        public IAppConfiguration Config { get; protected set; }
         public IUserService UserService { get; protected set; }
 
         protected UsersController() { }
@@ -23,14 +21,12 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IAppConfiguration config,
             IPrincipal currentUser) : this()
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
-            Config = config;
             CurrentUser = currentUser;
         }
 
@@ -101,71 +97,6 @@ namespace NuGetGallery
                 return RedirectToAction(MVC.Users.Account());
             }
             return View(profile);
-        }
-
-        public virtual ActionResult Register()
-        {
-            // We don't want Login to have us as a return URL. 
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public virtual ActionResult Register(RegisterRequest request)
-        {
-            // If we have to render a view, we don't want Login to have us as a return URL
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            // TODO: consider client-side validation for unique username
-            // TODO: add email validation
-
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
-            User user;
-            try
-            {
-                user = UserService.Create(
-                    request.Username,
-                    request.Password,
-                    request.EmailAddress);
-            }
-            catch (EntityException ex)
-            {
-                ModelState.AddModelError(String.Empty, ex.Message);
-                return View();
-            }
-
-            if (Config.ConfirmEmailAddresses)
-            {
-                // Passing in scheme to force fully qualified URL
-                var confirmationUrl = Url.ConfirmationUrl(
-                    MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                MessageService.SendNewAccountEmail(new MailAddress(request.EmailAddress, user.Username), confirmationUrl);
-            }
-            return RedirectToAction(MVC.Users.Thanks());
-        }
-
-        public virtual ActionResult Thanks()
-        {
-            // No need to redirect here after someone logs in...
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            if (Config.ConfirmEmailAddresses)
-            {
-                return View();
-            }
-            else
-            {
-                var model = new EmailConfirmationModel { SuccessfulConfirmation = true, ConfirmingNewAccount = true };
-                return View("Confirm", model);
-            }
         }
 
         [Authorize]
@@ -258,7 +189,7 @@ namespace NuGetGallery
                     var confirmationUrl = Url.ConfirmationUrl(
                         MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
                     MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
-                    return RedirectToAction(MVC.Users.Thanks());
+                    return RedirectToAction(MVC.Users.ConfirmationMailSent());
                 }
                 else if (usersClaimingEmailAddress.Count > 1)
                 {
@@ -270,6 +201,11 @@ namespace NuGetGallery
                 }
             }
             return View(model);
+        }
+
+        public virtual ActionResult ConfirmationMailSent()
+        {
+            throw new NotImplementedException("TODO");
         }
 
         public virtual ActionResult PasswordSent()

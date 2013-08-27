@@ -369,9 +369,6 @@ namespace Links {
                       
         public static readonly string statsgraphs_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/statsgraphs.min.js") ? Url("statsgraphs.min.js") : Url("statsgraphs.js");
                       
-        public static readonly string ZeroClipboard_js = T4MVCHelpers.IsProduction() && T4Extensions.FileExists(URLPATH + "/ZeroClipboard.min.js") ? Url("ZeroClipboard.min.js") : Url("ZeroClipboard.js");
-                      
-        public static readonly string ZeroClipboard_swf = Url("ZeroClipboard.swf");
     }
 
     [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
@@ -379,6 +376,7 @@ namespace Links {
         private const string URLPATH = "~/Content";
         public static string Url() { return T4MVCHelpers.ProcessVirtualPath(URLPATH); }
         public static string Url(string fileName) { return T4MVCHelpers.ProcessVirtualPath(URLPATH + "/" + fileName); }
+        public static readonly string clippy_swf = Url("clippy.swf");
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public static class font {
             private const string URLPATH = "~/Content/font";

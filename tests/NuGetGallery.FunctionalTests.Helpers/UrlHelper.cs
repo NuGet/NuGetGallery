@@ -129,7 +129,7 @@ namespace NuGetGallery.FunctionTests.Helpers
         private const string LogOffPageUrlSuffix = "/users/account/LogOff?returnUrl=%2F";
         private const string LogonPageUrlOnPackageUploadSuffix = "Users/Account/LogOn?ReturnUrl=%2fpackages%2fupload";
         private const string PackagesPageUrlSuffix = "/packages";
-        private const string RegisterPageUrlSuffix = "account/Register";
+        private const string RegisterPageUrlSuffix = "/users/account/Register";
         private const string RegistrationPendingPageUrlSuffix = "account/Thanks";
         private const string StatsPageUrlSuffix = "stats";
         private const string AggregateStatsPageUrlSuffix = "/stats/totals";     

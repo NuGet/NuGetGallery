@@ -1254,7 +1254,7 @@ fieldset.form legend { display: none; }
     width: 400px;
     display: block;
     vertical-align: middle;
-    margin-bottom: 5px;
+    margin: 5px;
     font-size: 1.25em;
 }
 

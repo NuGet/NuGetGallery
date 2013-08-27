@@ -46,5 +46,7 @@ namespace NuGetGallery
             "It is required to verify your registration and for password retrieval, important notifications, etc. ")]
         [Subtext("We use <a href=\"http://www.gravatar.com\" target=\"_blank\">Gravatar</a> to get your profile picture", AllowHtml = true)]
         public string EmailAddress { get; set; }
+
+        public string ReturnUrl { get; set; }
     }
 }
