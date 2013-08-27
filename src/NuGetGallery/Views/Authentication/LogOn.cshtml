@@ -5,8 +5,8 @@
 
 <h1>Sign In</h1>
 
-<p>
-    Don't have an account yet? <a href="@Url.Register(returnUrl: (string)ViewData[Constants.ReturnUrlViewDataKey])">Register now.</a>
+<p class="long note">
+    Don't have an account yet? <a href="@Url.Register(returnUrl: (string)ViewData[Constants.ReturnUrlViewDataKey])">Register now.</a><br />
 </p>
 
 @using (Html.BeginForm())
@@ -21,7 +21,6 @@
 
         <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
 
-        <input type="submit" value="Log On" title="Log On" />
-        @Html.ActionLink("Lost your Password?", "ForgotPassword", "Users")
+        <input type="submit" value="Log On" title="Log On" /> @Html.ActionLink("Lost your password?", "ForgotPassword", "Users")
     </fieldset>
 }
