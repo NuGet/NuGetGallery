@@ -161,7 +161,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            return new RedirectResult(returnUrl);
+            return SafeRedirect(returnUrl);
         }
     }
 }
