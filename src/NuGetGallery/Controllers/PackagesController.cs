@@ -171,7 +171,7 @@ namespace NuGetGallery
 
             if (_config.ConfirmEmailAddresses && !user.Confirmed)
             {
-                return RedirectToAction(MVC.Users.ConfirmationRequired(), new { returnUrl = Url.Current() });
+                return new RedirectResult(Url.ConfirmationRequired(Url.Current()));
             }
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(user.Key))
@@ -536,7 +536,7 @@ namespace NuGetGallery
 
             if (_config.ConfirmEmailAddresses && !user.Confirmed)
             {
-                return RedirectToAction(MVC.Users.ConfirmationRequired(), new { returnUrl = Url.Current() });
+                return new RedirectResult(Url.ConfirmationRequired(Url.Current()));
             }
 
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);

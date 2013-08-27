@@ -131,6 +131,10 @@ namespace NuGetGallery
         {
             return url.RouteUrl(RouteName.Authentication, new { action = "LogOn", returnUrl = returnUrl });
         }
+        public static string ConfirmationRequired(this UrlHelper url, string returnUrl)
+        {
+            return url.RouteUrl("Users", new { action = "LogOn", returnUrl = returnUrl });
+        }
 
         public static string LogOff(this UrlHelper url)
         {
