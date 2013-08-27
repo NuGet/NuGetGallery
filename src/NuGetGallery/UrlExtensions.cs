@@ -104,7 +104,7 @@ namespace NuGetGallery
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
-        public static string PackageDeafultIcon(this UrlHelper url)
+        public static string PackageDefaultIcon(this UrlHelper url)
         {
             string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
             string result = url.RouteUrl(RouteName.Home, null, protocol: protocol);
