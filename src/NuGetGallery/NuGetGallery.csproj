@@ -1138,9 +1138,6 @@
     <Content Include="Scripts\jquery-1.6.4.min.js" />
     <Content Include="Scripts\jquery-ui-1.10.3.js" />
     <Content Include="Scripts\jquery-ui-1.10.3.min.js" />
-    <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
-    <Content Include="Scripts\jquery-1.6.4.js" />
-    <Content Include="Scripts\jquery-1.6.4.min.js" />
     <Content Include="Scripts\perpackagestatsgraphs.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\statsgraphs.js" />
