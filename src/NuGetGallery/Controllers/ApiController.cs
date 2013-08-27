@@ -423,7 +423,7 @@ namespace NuGetGallery
                         item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
                         item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
                         item.Add("PackageDescription", row.PackageDescription);
-                        item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDeafultIcon());
+                        item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDefaultIcon());
                         item.Add("Downloads", row.Downloads);
 
                         content.Add(item);
