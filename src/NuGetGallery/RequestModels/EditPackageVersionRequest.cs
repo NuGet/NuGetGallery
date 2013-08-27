@@ -11,7 +11,7 @@ namespace NuGetGallery
         public const string ProjectUrlStr = "Project Home Page URL";
         public const string AuthorsStr = "Authors (comma separated  - e.g. 'Anna, Bob, Carl')";
         public const string CopyrightStr = "Copyright";
-        public const string TagsStr = "Tags (space separated - e.g. 'ASP.NET Templates MVC)";
+        public const string TagsStr = "Tags (space separated - e.g. 'ASP.NET Templates MVC')";
         public const string ReleaseNotesStr = "Release Notes (for this version)";
         public const string RequiresLicenseAcceptanceStr = "Requires license acceptance";
 

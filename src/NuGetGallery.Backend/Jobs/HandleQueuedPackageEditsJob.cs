@@ -18,12 +18,12 @@ namespace NuGetGallery.Backend.Jobs
 
         public override void RunOnce()
         {
-            new HandleQueuedPackageEditsTask
+            ExecuteTask(new HandleQueuedPackageEditsTask
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 StorageAccount = Settings.MainStorage,
                 WhatIf = Settings.WhatIf
-            }.Execute();
+            });
         }
     }
 } 
