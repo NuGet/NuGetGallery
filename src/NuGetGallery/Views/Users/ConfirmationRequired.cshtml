@@ -1,0 +1,19 @@
+﻿@{
+    ViewBag.Title = "Confirmation Required";
+}
+
+<h2>Confirm Your Email Address</h2>
+
+<p class="long note">
+    Before you can do this action, you need to confirm your email address. When you registered, 
+    we sent you an email with a URL that you can click to confirm your account.
+    Please check your spam folder if you did not receive the confirmation email.
+</p>
+
+<p>
+Once you have confirmed your address <a href="@((string)ViewData[Constants.ReturnUrlViewDataKey]))"> click here to continue</a>
+</p>
+
+<p class="validation-summary-errors">
+    @Html.ActionLink("Lost your confirmation email?", "ResendConfirmation", "Users")
+</p>

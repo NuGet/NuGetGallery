@@ -163,9 +163,18 @@ namespace NuGetGallery
         [Authorize]
         public async virtual Task<ActionResult> UploadPackage()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var user = _userService.FindByUsername(GetIdentity().Name);
+            if (user == null)
+            {
+                return new HttpStatusCodeResult(403);
+            }
 
-            using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
+            if (_config.ConfirmEmailAddresses && !user.Confirmed)
+            {
+                return RedirectToAction(MVC.Users.ConfirmationRequired(), new { returnUrl = Url.Current() });
+            }
+
+            using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(user.Key))
             {
                 if (existingUploadFile != null)
                 {
@@ -478,6 +487,17 @@ namespace NuGetGallery
         {
             var package = _packageService.FindPackageRegistrationById(id);
 
+            var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (user == null)
+            {
+                return new HttpStatusCodeResult(403);
+            }
+
+            if (_config.ConfirmEmailAddresses && !user.Confirmed)
+            {
+                return RedirectToAction(MVC.Users.ConfirmationRequired());
+            }
+
             if (package == null)
             {
                 return HttpNotFound();
@@ -509,6 +529,16 @@ namespace NuGetGallery
             }
 
             var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (user == null)
+            {
+                return new HttpStatusCodeResult(403);
+            }
+
+            if (_config.ConfirmEmailAddresses && !user.Confirmed)
+            {
+                return RedirectToAction(MVC.Users.ConfirmationRequired(), new { returnUrl = Url.Current() });
+            }
+
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
                 fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Edit(), protocol: Request.Url.Scheme));

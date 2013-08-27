@@ -60,6 +60,7 @@ namespace NuGetGallery {
             public readonly string GenerateApiKey = "GenerateApiKey";
             public readonly string ForgotPassword = "ForgotPassword";
             public readonly string ResendConfirmation = "ResendConfirmation";
+            public readonly string ConfirmationRequired = "ConfirmationRequired";
             public readonly string ConfirmationMailSent = "ConfirmationMailSent";
             public readonly string PasswordSent = "PasswordSent";
             public readonly string ResetPassword = "ResetPassword";
@@ -78,6 +79,7 @@ namespace NuGetGallery {
             public readonly string Account = "~/Views/Users/Account.cshtml";
             public readonly string ChangePassword = "~/Views/Users/ChangePassword.cshtml";
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
+            public readonly string ConfirmationRequired = "~/Views/Users/ConfirmationRequired.cshtml";
             public readonly string Edit = "~/Views/Users/Edit.cshtml";
             public readonly string ForgotPassword = "~/Views/Users/ForgotPassword.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
@@ -139,6 +141,11 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult ResendConfirmation(NuGetGallery.ResendConfirmationEmailViewModel model) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ResendConfirmation);
             callInfo.RouteValueDictionary.Add("model", model);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ConfirmationRequired() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequired);
             return callInfo;
         }
 

@@ -142,9 +142,19 @@ namespace NuGetGallery
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
+
+            // Note, the user may not yet have a confirmed email address. That's OK.
+            // But what should we do in this case?
+            // a) we could request account confirmation, and then make them go through that before they can do password reset again... (frustrating)
+            // or b) we could just send them a password reset request, and they can do the email confirmation later, whenever they really need it (e.g. upload package/contact owners)
+            // b) seems clearly better.
+            //
+            // When should we trust such a request, and who should get the email?
+            // a) the email address is attached to a NuGet user account as an unconfirmed email address
+            // b) that particular email address isn't confirmed as belonging to any other NuGet user.
             if (ModelState.IsValid)
             {
+                // TODO:
                 var user = UserService.GeneratePasswordResetToken(model.Email, Constants.DefaultPasswordResetTokenExpirationHours * 60);
                 if (user != null)
                 {
@@ -203,9 +213,14 @@ namespace NuGetGallery
             return View(model);
         }
 
+        public virtual ActionResult ConfirmationRequired()
+        {
+            return View();
+        }
+
         public virtual ActionResult ConfirmationMailSent()
         {
-            throw new NotImplementedException("TODO");
+            return View();
         }
 
         public virtual ActionResult PasswordSent()
