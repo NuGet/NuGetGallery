@@ -187,7 +187,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheSendNewAccountEmailMethod
+        public class TheSendConfirmationEmailMethod
         {
             [Fact]
             public void WillSendEmailToNewUser()
@@ -200,7 +200,7 @@ namespace NuGetGallery
                 MailMessage message = null;
                 mailSender.Setup(m => m.Send(It.IsAny<MailMessage>())).Callback<MailMessage>(m => { message = m; });
 
-                messageService.SendNewAccountEmail(to, "http://example.com/confirmation-token-url");
+                messageService.SendConfirmationEmail(to, "http://example.com/confirmation-token-url");
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryOwner.Address, message.From.Address);

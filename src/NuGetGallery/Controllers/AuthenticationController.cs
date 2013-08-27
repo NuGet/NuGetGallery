@@ -11,8 +11,6 @@ namespace NuGetGallery
     {
         public IFormsAuthenticationService FormsAuth { get; protected set; }
         public IUserService UserService { get; protected set; }
-        public IAppConfiguration Config { get; protected set; }
-        public IMessageService MessageService { get; protected set; }
         
         // For sub-classes to initialize services themselves
         protected AuthenticationController()
@@ -21,14 +19,10 @@ namespace NuGetGallery
 
         public AuthenticationController(
             IFormsAuthenticationService formsAuthService,
-            IUserService userService,
-            IAppConfiguration config,
-            IMessageService messageService)
+            IUserService userService)
         {
             FormsAuth = formsAuthService;
             UserService = userService;
-            Config = config;
-            MessageService = messageService;
         }
 
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -130,15 +124,6 @@ namespace NuGetGallery
             {
                 ModelState.AddModelError(String.Empty, ex.Message);
                 return View();
-            }
-
-            if (Config.ConfirmEmailAddresses)
-            {
-                // Passing in scheme to force fully qualified URL
-                var confirmationUrl = Url.ConfirmationUrl(
-                    MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-
-                MessageService.SendNewAccountEmail(new MailAddress(request.EmailAddress, user.Username), confirmationUrl);
             }
 
             // Set Authorization cookie. Make sure you do this last, after sign-up has in fact succeeded.

@@ -476,7 +476,7 @@ namespace NuGetGallery
                 MailAddress sentToAddress = null;
                 var controller = new TestableUsersController();
                 controller.MockMessageService
-                          .Setup(m => m.SendNewAccountEmail(It.IsAny<MailAddress>(), It.IsAny<string>()))
+                          .Setup(m => m.SendConfirmationEmail(It.IsAny<MailAddress>(), It.IsAny<string>()))
                           .Callback<MailAddress, string>((to, url) =>
                           {
                               sentToAddress = to;

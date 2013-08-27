@@ -33,6 +33,16 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ConfirmationRequired() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequired);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ConfirmationRequiredPost() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequiredPost);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult Confirm() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
         }
@@ -61,6 +71,7 @@ namespace NuGetGallery {
             public readonly string ForgotPassword = "ForgotPassword";
             public readonly string ResendConfirmation = "ResendConfirmation";
             public readonly string ConfirmationRequired = "ConfirmationRequired";
+            public readonly string ConfirmationRequiredPost = "ConfirmationRequired";
             public readonly string ConfirmationMailSent = "ConfirmationMailSent";
             public readonly string PasswordSent = "PasswordSent";
             public readonly string ResetPassword = "ResetPassword";
@@ -138,14 +149,23 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ResendConfirmation(NuGetGallery.ResendConfirmationEmailViewModel model) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ResendConfirmation);
-            callInfo.RouteValueDictionary.Add("model", model);
+        public override System.Web.Mvc.ActionResult ConfirmationRequired(string userAction, string returnUrl) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequired);
+            callInfo.RouteValueDictionary.Add("userAction", userAction);
+            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ConfirmationRequired() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequired);
+        public override System.Web.Mvc.ActionResult ConfirmationRequiredPost(string userAction, string returnUrl) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequiredPost);
+            callInfo.RouteValueDictionary.Add("userAction", userAction);
+            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ResendConfirmation(NuGetGallery.ResendConfirmationEmailViewModel model) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ResendConfirmation);
+            callInfo.RouteValueDictionary.Add("model", model);
             return callInfo;
         }
 

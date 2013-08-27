@@ -171,7 +171,7 @@ namespace NuGetGallery
 
             if (_config.ConfirmEmailAddresses && !user.Confirmed)
             {
-                return new RedirectResult(Url.ConfirmationRequired(Url.Current()));
+                return new RedirectResult(Url.ConfirmationRequired("upload packages", Url.Current()));
             }
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(user.Key))
@@ -495,7 +495,7 @@ namespace NuGetGallery
 
             if (_config.ConfirmEmailAddresses && !user.Confirmed)
             {
-                return RedirectToAction(MVC.Users.ConfirmationRequired());
+                return new RedirectResult(Url.ConfirmationRequired("contact package owners", Url.Current()));
             }
 
             if (package == null)
@@ -536,7 +536,7 @@ namespace NuGetGallery
 
             if (_config.ConfirmEmailAddresses && !user.Confirmed)
             {
-                return new RedirectResult(Url.ConfirmationRequired(Url.Current()));
+                return new RedirectResult(Url.ConfirmationRequired("contact package owners", Url.Current()));
             }
 
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);

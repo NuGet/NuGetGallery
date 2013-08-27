@@ -7,7 +7,7 @@ namespace NuGetGallery
         void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl);
         void ReportAbuse(ReportPackageRequest report);
         void ReportMyPackage(ReportPackageRequest report);
-        void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl);
+        void SendConfirmationEmail(MailAddress toAddress, string confirmationUrl);
         void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl);
         void SendPasswordResetInstructions(User user, string resetPasswordUrl);
         void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress);

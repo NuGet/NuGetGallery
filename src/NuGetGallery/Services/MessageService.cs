@@ -178,7 +178,7 @@ namespace NuGetGallery
             }
         }
 
-        public void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl)
+        public void SendConfirmationEmail(MailAddress toAddress, string confirmationUrl)
         {
             string body = @"Thank you for registering with the {0}. 
 We can't wait to see what packages you'll upload.

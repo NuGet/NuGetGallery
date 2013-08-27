@@ -1,14 +1,26 @@
-﻿@{
+﻿@model ConfirmationRequiredViewModel
+@{
     ViewBag.Title = "Confirmation Required";
 }
 
 <h2>Confirm Your Email Address</h2>
 
 <p class="long note">
-    Before you can do this action, you need to confirm your email address. When you registered, 
-    we sent you an email with a URL that you can click to confirm your account.
+    You must confirm your email address before you can @(Model.UserAction). 
     Please check your spam folder if you did not receive the confirmation email.
 </p>
+
+@Html.BeginForm()
+{
+    <fieldset class="form">
+        <legend>Confirm Email Address</legend>
+        @Html.Hidden("userAction", Model.UserAction);
+        @Html.Hidden("returnUrl", Model.ReturnUrl);
+        @Html.AntiForgeryToken()
+
+        <input type="submit" value="Send Email" title="Send Email" /> @Html.ActionLink("Wrong Email Address?", "Edit", "Users")
+    </fieldset>
+}
 
 <p>
 Once you have confirmed your address <a href="@((string)ViewData[Constants.ReturnUrlViewDataKey]))"> click here to continue</a>

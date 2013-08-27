@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -13,6 +14,7 @@ namespace NuGetGallery
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
         public IUserService UserService { get; protected set; }
+        public IAppConfiguration Config { get; protected set; }
 
         protected UsersController() { }
 
@@ -21,13 +23,15 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IPrincipal currentUser) : this()
+            IPrincipal currentUser,
+            IAppConfiguration config) : this()
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
             CurrentUser = currentUser;
+            Config = config;
         }
 
         [Authorize]
@@ -181,6 +185,60 @@ namespace NuGetGallery
             return View();
         }
 
+        [Authorize]
+        public virtual ActionResult ConfirmationRequired(string userAction, string returnUrl)
+        {
+            // I think it should be obvious why we don't want the current URL to be the return URL here ;)
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
+            User user = _userService.FindByUsername(HttpContext.User.Identity.Name);
+            if (user == null)
+            {
+                return new HttpStatusCodeResult(403);
+            }
+
+            if (!String.IsNullOrEmpty(user.EmailAddress))
+            {
+                // How did you get here? Never mind!
+                return new RedirectResult(RedirectHelper.SafeRedirectUrl(returnUrl));
+            }
+
+            var model = new ConfirmationRequiredViewModel
+            {
+                MailSent = false,
+                EmailAddress = user.EmailAddress,
+                UserAction = userAction,
+                ReturnUrl = returnUrl,
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ActionName("ConfirmationRequired")]
+        public virtual ActionResult ConfirmationRequiredPost(string userAction, string returnUrl)
+        {
+            // I think it should be obvious why we don't want the current URL to be the return URL here ;)
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
+            // Passing in scheme to force fully qualified URL
+            var confirmationUrl = Url.ConfirmationUrl(
+                MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+
+            MessageService.SendConfirmationEmail(new MailAddress(user.UnconfirmedEmailAddress), user.Username, confirmationUrl);
+
+            var model = new ConfirmationRequiredViewModel
+            {
+                MailSent = true,
+                EmailAddress = user.EmailAddress,
+                UserAction = userAction,
+                ReturnUrl = returnUrl,
+            };
+
+            return View(model);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual ActionResult ResendConfirmation(ResendConfirmationEmailViewModel model)
@@ -188,17 +246,17 @@ namespace NuGetGallery
             // We don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
+
             if (ModelState.IsValid)
             {
                 var usersClaimingEmailAddress = UserService.FindByUnconfirmedEmailAddress(model.Email, model.Username);
-                
+
                 if (usersClaimingEmailAddress.Count == 1)
                 {
                     var user = usersClaimingEmailAddress.SingleOrDefault();
                     var confirmationUrl = Url.ConfirmationUrl(
                         MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                    MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+                    MessageService.SendConfirmationEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
                     return RedirectToAction(MVC.Users.ConfirmationMailSent());
                 }
                 else if (usersClaimingEmailAddress.Count > 1)
@@ -211,11 +269,6 @@ namespace NuGetGallery
                 }
             }
             return View(model);
-        }
-
-        public virtual ActionResult ConfirmationRequired()
-        {
-            return View();
         }
 
         public virtual ActionResult ConfirmationMailSent()
