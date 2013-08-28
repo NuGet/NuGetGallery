@@ -19,7 +19,7 @@
 @if (!Model.ConfirmedUser)
 {
     <p>Note: if you are the owner of @Model.PackageId, please 
-        @Html.ActionLink("log on now before you complete this form.", "LogOn", "Authentication", new { returnUrl = returnUrl }, null)</p>
+        @Html.ActionLink("Sign in now before you complete this form.", "LogOn", "Authentication", new { returnUrl = returnUrl }, null)</p>
 }
 
 @using (Html.BeginForm())
