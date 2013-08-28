@@ -48,6 +48,12 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        public virtual ActionResult ConfirmationRequired(string returnUrl)
+        {
+            return View();
+        }
+
+        [Authorize]
         public virtual ActionResult Edit()
         {
             var user = UserService.FindByUsername(CurrentUser.Identity.Name);

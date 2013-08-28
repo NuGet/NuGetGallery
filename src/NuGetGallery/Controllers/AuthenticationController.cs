@@ -60,12 +60,6 @@ namespace NuGetGallery
                 return View();
             }
 
-            if (!user.Confirmed)
-            {
-                ViewBag.ConfirmationRequired = true;
-                return View();
-            }
-
             IEnumerable<string> roles = null;
             if (user.Roles.AnySafe())
             {

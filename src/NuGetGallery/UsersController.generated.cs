@@ -33,6 +33,11 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult ConfirmationRequired() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequired);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult Confirm() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
         }
@@ -55,6 +60,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string Account = "Account";
+            public readonly string ConfirmationRequired = "ConfirmationRequired";
             public readonly string Edit = "Edit";
             public readonly string Register = "Register";
             public readonly string Thanks = "Thanks";
@@ -79,6 +85,7 @@ namespace NuGetGallery {
             public readonly string Account = "~/Views/Users/Account.cshtml";
             public readonly string ChangePassword = "~/Views/Users/ChangePassword.cshtml";
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
+            public readonly string ConfirmationRequired = "~/Views/Users/ConfirmationRequired.cshtml";
             public readonly string Edit = "~/Views/Users/Edit.cshtml";
             public readonly string ForgotPassword = "~/Views/Users/ForgotPassword.cshtml";
             public readonly string Packages = "~/Views/Users/Packages.cshtml";
@@ -98,6 +105,12 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult Account() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Account);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ConfirmationRequired(string returnUrl) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequired);
+            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
             return callInfo;
         }
 

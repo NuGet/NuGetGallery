@@ -1226,6 +1226,7 @@
     </Content>
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
+    <Content Include="Views\Users\ConfirmationRequired.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">

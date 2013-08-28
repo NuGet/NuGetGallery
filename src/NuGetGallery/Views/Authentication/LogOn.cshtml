@@ -16,19 +16,6 @@
 
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true)
-
-        @if (ViewBag.ConfirmationRequired != null && ViewBag.ConfirmationRequired)
-        {
-            <p class="validation-summary-errors">
-                Before you can sign in, you&#8217;ll need to confirm your account. When you registered, 
-                we sent you an email with a URL you can click to confirm your account. 
-                Please check your spam folder if you did not receive the confirmation email.
-            </p>
-            <p class="validation-summary-errors">
-                @Html.ActionLink("Lost your confirmation email?", "ResendConfirmation", "Users")
-            </p>
-        }
-
         @Html.EditorForModel()
 
         <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
