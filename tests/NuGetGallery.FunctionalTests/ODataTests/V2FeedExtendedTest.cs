@@ -10,11 +10,7 @@ namespace NuGetGallery.FunctionalTests.ODataTests
     [TestClass]
     public partial class V2FeedTest : GalleryTestBase
     {
-        [TestMethod]
-        public void GetUpdatesTest()
-        {
-        }
-
+       
         [TestMethod]
         public void FindPackagesByIdTest()
         {
