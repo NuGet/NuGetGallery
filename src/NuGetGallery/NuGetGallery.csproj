@@ -580,6 +580,7 @@
     <Compile Include="Diagnostics\GlimpseRuntimePolicy.cs" />
     <Compile Include="Filters\CacheFilter.cs" />
     <Compile Include="Filters\CompressFilter.cs" />
+    <Compile Include="Helpers\HttpContextBaseExtensions.cs" />
     <Compile Include="Helpers\EnumHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\HtmlExtensions.cs" />

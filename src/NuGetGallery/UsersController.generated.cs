@@ -33,11 +33,6 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult ConfirmationRequired() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequired);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult Confirm() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.Confirm);
         }
@@ -108,9 +103,8 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult ConfirmationRequired(string returnUrl) {
+        public override System.Web.Mvc.ActionResult ConfirmationRequired() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmationRequired);
-            callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
             return callInfo;
         }
 

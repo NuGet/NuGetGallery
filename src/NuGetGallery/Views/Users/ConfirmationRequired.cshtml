@@ -1,12 +1,12 @@
-﻿@{
+﻿@model UserProfileModel
+@{
     ViewBag.Title = "Confirmation Required";
 }
 
 <h2>Confirm Your Email Address</h2>
 
 <p class="long note">
-    You must confirm your email address before you can @((string)TempData["Act"]). 
-    Please check your spam folder if you did not receive the confirmation email.
+    You must confirm your email address before you can @((string)ViewData["UserAction"]). 
 </p>
 
 @using (Html.BeginForm())
@@ -15,9 +15,20 @@
         <legend>Confirm Email Address</legend>
         @Html.AntiForgeryToken()
 
+        @* make it look like a form field even though it isn't exactly *@
+        <div class="form-field">
+            <p>
+            Email will be sent to: @(Model.UnconfirmedEmailAddress)
+            @Html.ActionLink("click here to change", "Edit", "Users")<br />
+            </p>
+        </div>
+
         <input type="submit" value="Send Confirmation Email" title="Send Confirmation Email" />
-        <p>
-            @Html.ActionLink("Wrong Email Address?", "Edit", "Users")<br />
-            @Html.ActionLink("Lost your confirmation email?", "ResendConfirmation", "Users")</p>
     </fieldset>
 }
+
+<h3>Problems with your confirmation email?</h3>
+
+<p>
+    Please check your spam folder if you did not receive the confirmation email.
+</p>

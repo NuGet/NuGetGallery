@@ -48,9 +48,12 @@ namespace NuGetGallery
         }
 
         [Authorize]
-        public virtual ActionResult ConfirmationRequired(string returnUrl)
+        public virtual ActionResult ConfirmationRequired()
         {
-            return View();
+            ViewData["UserAction"] = HttpContext.GetConfirmationAction();
+            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var model = new UserProfileModel(user);
+            return View(model);
         }
 
         [Authorize]
@@ -366,13 +369,11 @@ namespace NuGetGallery
                 .Select(c => new PackageViewModel(c.First()))
                 .ToList();
 
-            var model = new UserProfileModel
-                {
-                    Username = user.Username,
-                    EmailAddress = user.EmailAddress,
-                    Packages = packages,
-                    TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount)
-                };
+            var model = new UserProfileModel(user)
+            {
+                Packages = packages,
+                TotalPackageDownloadCount = packages.Sum(p => p.TotalDownloadCount),
+            };
 
             return View(model);
         }
