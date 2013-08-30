@@ -97,6 +97,11 @@ namespace NuGetGallery
             DateTime created = DateTime.Parse(doc.Get("Created"), CultureInfo.InvariantCulture);
             DateTime published = DateTime.Parse(doc.Get("Published"), CultureInfo.InvariantCulture);
             DateTime lastUpdated = DateTime.Parse(doc.Get("LastUpdated"), CultureInfo.InvariantCulture);
+            DateTime? lastEdited = null;
+            if (!String.IsNullOrEmpty(doc.Get("LastEdited")))
+            {
+                lastEdited = DateTime.Parse(doc.Get("LastEdited"), CultureInfo.InvariantCulture);
+            }
 
             var owners = doc.Get("FlattenedOwners")
                             .SplitSafe(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
@@ -130,6 +135,7 @@ namespace NuGetGallery
                 Key = key,
                 Language = doc.Get("Language"),
                 LastUpdated = lastUpdated,
+                LastEdited = lastEdited,
                 LicenseUrl = doc.Get("LicenseUrl"),
                 PackageRegistration = new PackageRegistration
                 {
@@ -337,6 +343,8 @@ namespace NuGetGallery
                     return new SortField("DownloadCount", SortField.INT, reverse: true);
                 case SortProperty.Recent:
                     return new SortField("PublishedDate", SortField.LONG, reverse: true);
+                case SortProperty.RecentlyEdited:
+                    return new SortField("EditedDate", SortField.LONG, reverse: true);
             }
 
             return SortField.FIELD_SCORE;

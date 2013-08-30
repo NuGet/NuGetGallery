@@ -28,6 +28,7 @@
         DownloadCount,
         DisplayName,
         Recent,
+        RecentlyEdited,
     }
 
     public enum SortDirection

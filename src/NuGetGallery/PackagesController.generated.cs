@@ -33,6 +33,16 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult UndoPendingEdits() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEdits);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult UndoPendingEditsPost() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEditsPost);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult DisplayPackage() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.DisplayPackage);
         }
@@ -73,16 +83,6 @@ namespace NuGetGallery {
         }
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult UndoPendingEdits() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEdits);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
-        public System.Web.Mvc.ActionResult UndoPendingEditsPost() {
-            return new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEditsPost);
-        }
-        [NonAction]
-        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult ConfirmOwner() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmOwner);
         }
@@ -100,6 +100,8 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string UploadPackageProgress = "UploadPackageProgress";
+            public readonly string UndoPendingEdits = "UndoPendingEdits";
+            public readonly string UndoPendingEditsPost = "UndoPendingEdits";
             public readonly string DisplayPackage = "DisplayPackage";
             public readonly string ListPackages = "ListPackages";
             public readonly string ReportAbuse = "ReportAbuse";
@@ -109,8 +111,6 @@ namespace NuGetGallery {
             public readonly string ManagePackageOwners = "ManagePackageOwners";
             public readonly string Delete = "Delete";
             public readonly string Edit = "Edit";
-            public readonly string UndoPendingEdits = "UndoPendingEdits";
-            public readonly string UndoPendingEditsPost = "UndoPendingEdits";
             public readonly string ConfirmOwner = "ConfirmOwner";
         }
 
@@ -122,7 +122,6 @@ namespace NuGetGallery {
         public class ViewNames {
             public readonly string _ListPackage = "~/Views/Packages/_ListPackage.cshtml";
             public readonly string _PackageDependencies = "~/Views/Packages/_PackageDependencies.cshtml";
-            public readonly string UndoPendingEdits = "~/Views/Packages/UndoPendingEdits.cshtml";
             public readonly string ConfirmOwner = "~/Views/Packages/ConfirmOwner.cshtml";
             public readonly string ContactOwners = "~/Views/Packages/ContactOwners.cshtml";
             public readonly string Delete = "~/Views/Packages/Delete.cshtml";
@@ -133,6 +132,7 @@ namespace NuGetGallery {
             public readonly string ManagePackageOwners = "~/Views/Packages/ManagePackageOwners.cshtml";
             public readonly string ReportAbuse = "~/Views/Packages/ReportAbuse.cshtml";
             public readonly string ReportMyPackage = "~/Views/Packages/ReportMyPackage.cshtml";
+            public readonly string UndoPendingEdits = "~/Views/Packages/UndoPendingEdits.cshtml";
             public readonly string UnverifiablePackage = "~/Views/Packages/UnverifiablePackage.cshtml";
             public readonly string UploadPackage = "~/Views/Packages/UploadPackage.cshtml";
             public readonly string VerifyPackage = "~/Views/Packages/VerifyPackage.cshtml";
@@ -145,6 +145,20 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult UploadPackageProgress() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UploadPackageProgress);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult UndoPendingEdits(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEdits);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult UndoPendingEditsPost(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEditsPost);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
@@ -247,20 +261,6 @@ namespace NuGetGallery {
             callInfo.RouteValueDictionary.Add("version", version);
             callInfo.RouteValueDictionary.Add("formData", formData);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult UndoPendingEdits(string id, string version) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEdits);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult UndoPendingEditsPost(string id, string version) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEditsPost);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
