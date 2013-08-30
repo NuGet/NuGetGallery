@@ -122,6 +122,11 @@ namespace NuGetGallery
             document.Add(new Field("HashAlgorithm", Package.HashAlgorithm.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Id-Original", Package.PackageRegistration.Id, Field.Store.YES, Field.Index.NO));
             document.Add(new Field("LastUpdated", Package.LastUpdated.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
+            if (Package.LastEdited != null)
+            {
+                document.Add(new Field("LastEdited", Package.LastEdited.Value.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
+            }
+
             document.Add(new Field("Language", Package.Language.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("LicenseUrl", Package.LicenseUrl.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("MinClientVersion", Package.MinClientVersion.ToStringSafe(), Field.Store.YES, Field.Index.NO));
@@ -146,6 +151,7 @@ namespace NuGetGallery
 
             // Fields meant for filtering, sorting
             document.Add(new Field("PublishedDate", Package.Published.Ticks.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
+            document.Add(new Field("EditedDate", (Package.LastEdited ?? Package.Published).Ticks.ToString(CultureInfo.InvariantCulture), Field.Store.NO, Field.Index.NOT_ANALYZED));
             document.Add(
                  new Field("DownloadCount", Package.PackageRegistration.DownloadCount.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NOT_ANALYZED));
 

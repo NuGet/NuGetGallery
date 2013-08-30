@@ -91,6 +91,7 @@ namespace NuGetGallery
                     Title = p.Title,
                     VersionDownloadCount = p.DownloadCount,
                     MinClientVersion = p.MinClientVersion,
+                    LastEdited = p.LastEdited,
                 });
         }
 
