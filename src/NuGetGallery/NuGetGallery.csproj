@@ -171,9 +171,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Ninject.MVC3.2.2.2.0\lib\net40-Full\Ninject.Web.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=2.7.40807.165, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Core, Version=2.7.40808.167, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.Core.2.7.0-alpha\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Core.2.7.0\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
@@ -789,6 +789,9 @@
     <Compile Include="Migrations\201308292200027_PackageLastEditedTimestamp.cs" />
     <Compile Include="Migrations\201308292200027_PackageLastEditedTimestamp.Designer.cs">
       <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
+    <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.cs" />
+    <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.Designer.cs">
+      <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1235,6 +1238,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308292200027_PackageLastEditedTimestamp.resx">
       <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.resx">
+      <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

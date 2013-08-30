@@ -19,8 +19,13 @@ namespace NuGetGallery.FunctionalTests.TestBase
         #region InitializeMethods
 
         [AssemblyInitialize()]
-        public static void ClassInit(TestContext context)
+        public static void AssemblyInit(TestContext context)
         {         
+            //Check if functional tests is enabled. If not, do an assert inconclusive.
+            if (!EnvironmentSettings.RunFunctionalTests.Equals("True", StringComparison.OrdinalIgnoreCase))
+            {
+                Assert.Inconclusive("Functional tests are disabled in the current run. Please set environment variable RunFuntionalTests to True to enable them");
+            }
             //Check if the BaseTestPackage exists in current source and if not upload it. This will be used by the download related tests.
             try
             {

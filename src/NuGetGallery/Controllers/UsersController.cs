@@ -103,6 +103,7 @@ namespace NuGetGallery
             return View(profile);
         }
 
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult Register()
         {
             // We don't want Login to have us as a return URL. 
@@ -113,6 +114,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult Register(RegisterRequest request)
         {
             // If we have to render a view, we don't want Login to have us as a return URL

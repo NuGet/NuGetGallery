@@ -28,6 +28,7 @@ namespace NuGetGallery
         /// Count so that the worker role can tell itself not to retry processing this edit forever if it gets stuck.
         /// </summary>
         public int TriedCount { get; set; }
+        public string LastError { get; set; }
 
         //////////////// The rest are same as on Package ////////////
 
