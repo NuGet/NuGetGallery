@@ -41,5 +41,6 @@ namespace NuGetGallery
         public string Title { get; set; }
         public int VersionDownloadCount { get; set; }
         public string MinClientVersion { get; set; }
+        public DateTime? LastEdited { get; set; }
     }
 }
