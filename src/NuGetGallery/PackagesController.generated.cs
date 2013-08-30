@@ -264,20 +264,6 @@ namespace NuGetGallery {
             return callInfo;
         }
 
-        public override System.Web.Mvc.ActionResult UndoPendingEdits(string id, string version) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEdits);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult UndoPendingEditsPost(string id, string version) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEditsPost);
-            callInfo.RouteValueDictionary.Add("id", id);
-            callInfo.RouteValueDictionary.Add("version", version);
-            return callInfo;
-        }
-
         public override System.Web.Mvc.ActionResult ConfirmOwner(string id, string username, string token) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ConfirmOwner);
             callInfo.RouteValueDictionary.Add("id", id);

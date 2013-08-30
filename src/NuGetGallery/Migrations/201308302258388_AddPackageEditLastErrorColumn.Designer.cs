@@ -11,7 +11,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201308201916523_AddPackageEditLastErrorColumn"; }
+            get { return "201308302258388_AddPackageEditLastErrorColumn"; }
         }
         
         string IMigrationMetadata.Source

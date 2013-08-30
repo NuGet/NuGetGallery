@@ -789,9 +789,10 @@
     <Compile Include="Migrations\201308292200027_PackageLastEditedTimestamp.cs" />
     <Compile Include="Migrations\201308292200027_PackageLastEditedTimestamp.Designer.cs">
       <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
-    <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.cs" />
-    <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.Designer.cs">
-      <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.cs" />
+    <Compile Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.Designer.cs">
+      <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1238,8 +1239,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308292200027_PackageLastEditedTimestamp.resx">
       <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
-    <EmbeddedResource Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.resx">
-      <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.resx">
+      <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
