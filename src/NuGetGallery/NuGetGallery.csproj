@@ -786,9 +786,13 @@
     <Compile Include="Migrations\201308051913351_EditableMetadata.Designer.cs">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.cs" />
-    <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.Designer.cs">
-      <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    <Compile Include="Migrations\201308292200027_PackageLastEditedTimestamp.cs" />
+    <Compile Include="Migrations\201308292200027_PackageLastEditedTimestamp.Designer.cs">
+      <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.cs" />
+    <Compile Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.Designer.cs">
+      <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1142,9 +1146,6 @@
     <Content Include="Scripts\jquery-1.6.4.min.js" />
     <Content Include="Scripts\jquery-ui-1.10.3.js" />
     <Content Include="Scripts\jquery-ui-1.10.3.min.js" />
-    <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
-    <Content Include="Scripts\jquery-1.6.4.js" />
-    <Content Include="Scripts\jquery-1.6.4.min.js" />
     <Content Include="Scripts\perpackagestatsgraphs.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\statsgraphs.js" />
@@ -1236,8 +1237,11 @@
     <EmbeddedResource Include="Migrations\201308051913351_EditableMetadata.resx">
       <DependentUpon>201308051913351_EditableMetadata.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.resx">
-      <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201308292200027_PackageLastEditedTimestamp.resx">
+      <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.resx">
+      <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

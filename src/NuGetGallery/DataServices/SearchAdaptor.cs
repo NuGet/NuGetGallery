@@ -191,6 +191,10 @@ namespace NuGetGallery
                 {
                     searchFilter.SortProperty = SortProperty.Recent;
                 }
+                else if (orderBy.StartsWith("LastEdited", StringComparison.Ordinal))
+                {
+                    searchFilter.SortProperty = SortProperty.RecentlyEdited;
+                }
                 else if (orderBy.StartsWith("Id", StringComparison.Ordinal))
                 {
                     searchFilter.SortProperty = SortProperty.DisplayName;
