@@ -108,7 +108,8 @@
                 buttons: [{
                     text: "Save", click: function () {
                         $("#navigate-away-dialog").dialog("close");
-                        var returnUrl = href.substr(window.location.origin.length);
+                        var origin = window.location.protocol + "//" + window.location.host;
+                        var returnUrl = href.substr(origin.length);
                         $(document.forms.EditForm).append($('<input type="hidden" name="returnUrl" value="' + returnUrl + '">'));
                         document.forms.EditForm.submit();
                     }
