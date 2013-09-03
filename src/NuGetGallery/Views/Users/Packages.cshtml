@@ -1,0 +1,102 @@
+﻿@using Links
+@model ManagePackagesViewModel
+@{
+    ViewBag.Tab = "Packages";
+}
+
+<h1 class="page-heading">Manage My Packages</h1>
+
+
+@if (Model.Packages.Any())
+{
+    <section id="published">
+        <h1>Packages</h1>
+        <p>These packages are currently published for the world to see.</p>
+
+        @PrintPublishedPackages(Model.Packages.Where(p => p.Listed), unlisted: false)
+    </section>
+
+    var unlistedPackages = Model.Packages.Where(p => !p.Listed);
+    if (unlistedPackages.Any())
+    {
+        <section id="unlisted">
+            <h1>Unlisted Packages</h1>
+            <p>These packages are currently unlisted.</p>
+
+            @PrintPublishedPackages(unlistedPackages, unlisted: true)
+        </section>
+    }
+}
+else
+{
+    <section id="published">
+        <h1>No Packages!</h1>
+        <p>
+            You don't have any packages. Maybe now is a good time to 
+            <a href="@Url.UploadPackage()" class="silverButtonBig">upload a package</a>.
+        </p>
+    </section>
+}
+
+@helper PrintPublishedPackages(IEnumerable<PackageViewModel> packages, bool unlisted)
+{
+    var totlalDownloads = 0;
+    <table class="sexy-table">
+        <thead>
+            <tr>
+                <th class="first actions">Actions</th>
+                <th>Package</th>
+                <th>Package ID</th>
+                <th>Description</th>
+                <th class="last">Downloads</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var package in packages)
+            {
+                <tr>
+                    <td class="actions">
+                        @if (unlisted)
+                        {
+                            <a href="@Url.DeletePackage(package)" title="List Package" class="editPackageLink"><img src="@Content.Images.editIcon_png" alt="List Package" /></a>
+                        }
+                        else
+                        {
+                            <a href="@Url.EditPackage(package.Id, package.Version)" title="Edit" class="editPackageLink"><img src="@Content.Images.editIcon_png" alt="Edit" /></a>
+                            <a href="@Url.DeletePackage(package)" title="Delete" class="deletePackageLink"><img src="@Content.Images.trash_png" alt="Delete" /></a>
+                        }
+                    </td>
+                    <td>
+                        <a href="@Url.Package(package)"  title="View package page.">@package.Title</a>
+                    </td>
+                    <td>@package.Id</td>
+                    <td>
+                        @if (String.IsNullOrEmpty(package.Description) || package.Description.Length < 65)
+                        {
+                            @package.Description
+                        }
+                        else
+                        {
+                            @package.Description.Substring(0, 65)
+                            <a href="@Url.Package(package)" title="View package page.">...</a>
+                        }
+                    </td>
+                
+                    <td>@package.DownloadCount</td>
+                </tr>
+                totlalDownloads += package.DownloadCount;
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4">
+                    You have a total of @packages.Count() packages.
+                </td>
+                <td class="total">
+                    @totlalDownloads
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+}

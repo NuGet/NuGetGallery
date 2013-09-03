@@ -1,3 +1,67 @@
+#Aug 1, 2013
+
+### Dependency update
+
+The dependencies of nuget.org website like OData, NuGet.Core and Azure Storage have been updated to point to their latest versions respectively. 
+
+### Other bug fixes
+
+Other changes include minor fixes in stats page, GetUpdates() API and email validation for new user registration. Complete list can be found here: [07/19 - QA (08/02 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=27)
+
+#July 19, 2013
+
+### Nuget.org deployed on Azure Websites
+
+The nuget.org website is now deployed on Azure web sites instead of Azure cloud services. Expect a detaiked blog post from the NuGet team on the steps involed in migration and key take aways.
+A couple of bug fixes were made to enable this migration( to be compatible with Azure web sites). 
+
+- Canonical domain name for nuget.org : nuget.org will now re-direct to www.nuget.org.
+ 
+- Lucence search index stored in Temp folder instead of AppData folder.
+   
+### Improved statistics
+
+The [stats page](https://www.nuget.org/stats) now shows graphs for client usage and monthly download trends.
+Also the stats for the individual packages now shows graphs for [downloads based on version](https://www.nuget.org/stats/packages/Newtonsoft.Json?groupby=Version) and "Install-Dependency" as an operation - which would help in indicating whether it is a direct install or install due to dependency.
+
+### Other bug fixes
+
+Other changes include [updated terms of use and privacy policy](https://www.nuget.org/policies/Privacy) and fixes to "Contact support" form. Complete list can be found here: [07/05 - QA (07/19 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=25&state=closed)
+
+#July 8, 2013
+
+### Accessiblity bug fixes
+
+A bunch of accessiblity issue like sorting, highlighting and WCAG level A HTMl 5 errors in the website are fixed.
+
+### Other bug fixes
+
+Other changes include code refactoring of the controllers for better testability, client side input validation for user registration and proper retrieval of tags from package file irrespective of the delimiter used. Complete list can be found here: [06/21 - QA (07/05 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=24&state=closed)
+
+# June 21, 2013
+
+### Filtering in GetUpdates() API based on target framework
+
+The GetUpdates() in nuget.org API (V2) feed now allows filtering based on a specific target framework.
+
+### Admin page bug fixes
+
+A bunch of bug fixes related to the nuget.org Admin page (which shows up only for Administrator account) to modify and update database.
+
+### Other bug fixes
+
+Other bug fixes related to new user registration form and database schemna changes. Complete list can be found here: [06/10 - QA (06/20 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=23&state=closed)
+
+# June 7, 2013
+
+### Bug fixes in Search
+
+Minor bug fixes in search to not show the version number of packages in search results and to support special characters in seeach queries. Now the search terms like "C++" ,"C#" should return precise results.
+
+### Other bug fixes
+
+Other bug fixes related to "Contact Support" form and unlisting packages. Complete list can be found here: [05/27 - QA (06/07 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=22&state=closed)
+
 # May 23, 2013
 
 ### Remove unlisted packages from search index 

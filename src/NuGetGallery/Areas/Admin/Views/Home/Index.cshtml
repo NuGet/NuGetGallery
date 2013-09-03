@@ -1,0 +1,41 @@
+﻿@using System.Reflection
+@{
+    ViewBag.Title = "Site Administration";
+    ViewBag.Tab = "Admin";
+    var nugetCore = typeof(NuGet.PackageBuilder).Assembly;
+    var infoVerAttr = nugetCore.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+}
+
+<section id="actions">
+    <h1>Site Administration</h1>
+    <ul>
+        <li id="dbAdmin">
+            <h2><a href="~/Admin/Database">Database Administration</a></h2>
+            <p>
+                Get direct access to the database to manipulate Users, Packages, etc. USE WITH CAUTION.
+            </p>
+        </li>
+        <li id="errorLogs">
+            <h2><a href="~/Admin/Errors.axd">Error Logs</a></h2>
+            <p>
+                View Application Error Logs.
+            </p>
+        </li>
+        <li id="luceneMaintainance">
+            <h2><a href="@Url.Action(MVC.Admin.Lucene.Index())">Lucene Index Maintainance</a></h2>
+            <p>
+                Maintain the Lucene full-text search index.
+            </p>
+        </li>
+        <li id="config">
+            <h2><a href="@Url.Action(MVC.Admin.Config.Index())">Configuration</a></h2>
+            <p>
+                View Application Configuration
+            </p>
+        </li>
+    </ul>
+    <div>
+        NuGet.Core version:
+        @typeof(NuGet.PackageBuilder).Assembly.GetName().Version
+        (@(infoVerAttr == null ? "<unknown package version>" : infoVerAttr.InformationalVersion))</div>
+</section>

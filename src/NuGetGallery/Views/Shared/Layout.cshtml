@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html> 
+<html lang="en" class="static " data-root="@Href("~/")">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        @RenderSection("OpenGraph", required: false)
+        <title>NuGet Gallery @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)</title>
+        @Styles.Render("~/Content/css")
+        <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
+        @Scripts.Render("~/Scripts/modernizr")
+        @ViewHelpers.AnalyticsScript()
+        @RenderSection("TopScripts", required: false)
+        @ViewHelpers.ReleaseMeta()
+    </head>
+    <body>
+        <div id="service-alert"></div>
+        <div id="outer-wrapper">
+            <div id="content-wrapper">
+                <header class="main">
+                    <div id="logo"><a href="@Url.Home()">NuGet Gallery</a></div>
+                    @Html.Partial(MVC.Shared.Views.UserDisplay)
+                </header>
+                <nav class="main">
+                    <ul id="menu">
+                        @{
+                            var homeClass = ViewBag.Tab == "Home" ? "current" : "";
+                            var packagesClass = ViewBag.Tab == "Packages" ? "current" : "";
+                            var uploadClass = ViewBag.Tab == "Upload" ? "current" : "";
+                            var statisticsClass = ViewBag.Tab == "Statistics" ? "current" : "";
+                            var adminClass = ViewBag.Tab == "Admin" ? "current" : "";
+                        }
+                        <li class="@homeClass"><a href="@Url.Home()">Home</a></li>
+                        <li class="@packagesClass"><a href="@Url.PackageList()">Packages</a></li>
+                        <li class="@uploadClass"><a href="@Url.UploadPackage()" class="upload">Upload Package</a></li>
+                        @if (StatisticsHelper.IsStatisticsPageAvailable)
+                        {
+                            <li class="@statisticsClass"><a href="@Url.Statistics()">Statistics</a></li>
+                        }
+                        @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
+                        {
+                            <li class="@adminClass"><a href="@Url.Action("Index", "Home", new { area="Admin" })">Admin</a></li>
+                        }
+                        <li><a href="http://docs.nuget.org">Documentation</a></li>
+                        <li><a href="http://blog.nuget.org">Blog</a></li>
+                    </ul>
+                    <div id="searchBox" role="search">
+                        <form action="@Url.PackageList()" method="get">
+                            <input name="q" id="searchBoxInput" placeholder="Search Packages" value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)" />
+                            <input id="searchBoxSubmit" type="submit" value=" " />
+                        </form>
+                    </div>
+                </nav>
+                <div id="body" role="main">
+                    @if (TempData.ContainsKey("Message"))
+                    {
+                        <p class="message">@TempData["Message"]</p>
+                    }
+                    @RenderBody()
+                </div>
+            </div>
+            <div id="layout-footer" class="group">
+                <footer id="footer">
+                    <ul class="recommended">
+                        <li>
+                            <a href="@Url.Action(MVC.Pages.Contact())">Contact Us</a>
+                            <p>Got questions about NuGet or the NuGet Gallery?</p>
+                        </li>
+                        <li>
+                            <a href="http://docs.nuget.org/docs/start-here/overview">Overview</a>
+                            <p>NuGet is a Visual Studio extension that makes it easy to add, remove, and update libraries and...</p>
+                        </li>
+                        <li>
+                            <a href="http://docs.nuget.org/docs/start-here/installing-nuget">Install</a>
+                            <p>NuGet can be installed and updated using the Visual Studio Extension Manager. To check if your copy...</p>
+                        </li>
+                        <li>
+                            <a href="http://docs.nuget.org/docs/start-here/videos">Videos</a>
+                            <p>Watch screencasts and presentations about anything and everything NuGet.</p>
+                        </li>
+                        <li>
+                            <a href="http://docs.nuget.org/docs/start-here/nuget-faq">FAQ</a>
+                            <p>Read the Frequently Asked Questions about NuGet and see if your question made the list.</p>
+                        </li>
+                    </ul>
+                    <div class="license">
+                        <a href="http://outercurve.org"><img src="@Links.Content.Images.outercurve_png" alt="Outercurve Foundation" /></a>
+                        <p>
+                            &copy; @DateTime.UtcNow.Year Outercurve Foundation -
+                            @Html.ActionLink("Terms of Use", "Terms", MVC.Pages.Name) -
+                            @Html.ActionLink("Privacy Policy", "Privacy", MVC.Pages.Name)
+                        </p>
+                        <p>
+                            Uses <a href="http://fontawesome.io">Font Awesome</a> by Dave Gandy
+                        </p>
+                        @ViewHelpers.ReleaseTag()
+                    </div>
+                </footer>
+            </div>
+        </div>
+        @Scripts.Render("~/Scripts/all")
+        @RenderSection("BottomScripts", required: false)
+    </body>
+</html>

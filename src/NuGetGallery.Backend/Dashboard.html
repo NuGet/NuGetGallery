@@ -1,0 +1,143 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color:azure;
+        }
+        #header {
+            font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+            text-align:center;
+            color:#000000;
+        }
+        #jobs {
+            font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+            width:100%;
+            border-collapse:collapse;
+        }
+        #jobs td, #jobs th 
+        {
+            font-size:1em;
+            border:1px solid #98bf21;
+            padding:3px 7px 2px 7px;
+        }
+        #jobs th {
+            font-size:1.2em;
+            text-align:left;
+            padding-top:5px;
+            padding-bottom:4px;
+            background-color:#A7C942;
+            color:#ffffff;
+        }
+        #jobs tr.alt {
+            color:#000000;
+            background-color:#EAF2D3;
+        }
+        #jobs td {
+            vertical-align:top;
+        }
+        .jobname {
+            width:150px;
+            font-weight:bold;
+        }
+        .statussuccess {
+            color:#ffffff;
+            background-color:green;
+            text-align:center;
+        }
+        .statusfailure {
+            color:#ffffff;
+            background-color:red;
+            text-align:center;
+        }
+    </style>
+
+    <title>NuGet Operations Dashboard</title>
+    <script src="http://ajax.microsoft.com/ajax/jquery/jquery-1.8.3.min.js" type="text/javascript"></script>  
+
+    <script type="text/JavaScript">
+
+        var makeJobTableHtml = function (data) {
+
+            //alert(JSON.stringify(data));
+
+            var html = '';
+
+            html += '<table id="jobs">';
+
+            html += '<th style="width:150px">&nbsp;Job</th>';
+            html += '<th style="width:50px">PID</th>';
+            html += '<th style="width:150px">&nbsp;Time (UTC)</th>';
+            html += '<th style="width:80px">Duration</th>';
+            html += '<th style="width:60px">Status</th>';
+            html += '<th>&nbsp;Message</th>';
+
+            var rowClass = 'alt';
+
+            for (var job in data) {
+
+                var jobEntry = data[job];
+
+                if (rowClass == 'alt') {
+                    rowClass = '';
+                }
+                else {
+                    rowClass = 'alt';
+                }
+
+                for (var i = 0; i < jobEntry.length; i += 1) {
+
+                    html += '<tr class="' + rowClass + '">';
+
+                    if (i == 0) {
+                        html += '<td class="jobname" rowspan="' + jobEntry.length + '">';
+                        html += job;
+                        html += '</td>';
+                    }
+
+                    html += '<td>' + jobEntry[i].pid + '</td>';
+
+                    var at = jobEntry[i].at.replace(/ /g, '&nbsp;');
+                    html += '<td>' + at + '</td>';
+
+                    html += '<td>' + jobEntry[i].duration + '</td>';
+
+                    var statusclass = 'statusfailure';
+                    if (jobEntry[i].status == 'success') {
+                        statusclass = 'statussuccess';
+                    }
+
+                    html += '<td class="' + statusclass + '">' + jobEntry[i].status + '</td>';
+
+                    html += '<td style="">' + jobEntry[i].message + '</td>';
+
+                    html += '</tr>';
+                }
+            }
+            html += '</table>';
+
+            return html;
+        }
+
+        var fetch = function () {
+            var address = 'http://' + $(location).attr('host') + '/ops/jobs.json';
+            $.getJSON(address, function (data, err) {
+                $('#results').html(makeJobTableHtml(data));
+            });
+        }
+
+        $(document).ready(function () {
+
+            fetch();
+        });
+
+    </script>
+</head>
+<body>
+
+    <h1 id="header">NuGet Operations Dashboard</h1>
+
+    <div id="results"></div>
+
+</body>
+</html>

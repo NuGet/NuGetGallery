@@ -1,0 +1,129 @@
+﻿@model AccountViewModel
+@{
+    ViewBag.Tab = "Contribute";
+}
+
+<h1 class="page-heading">My Account</h1>
+
+<section id="actions">
+    <h1>Actions</h1>
+    <ul>
+        <li id="uploadPackage">
+            <h2><a href="@Url.UploadPackage()">Upload Package</a></h2>
+            <p>
+                Upload and publish your package for other NuGet users to download and enjoy. 
+                You can upload multiple revisions of the same package, as long as the version 
+                is different.
+            </p>
+        </li>
+        @if (Model.CuratedFeeds.Any())
+        {
+            <li id="manageCuratedFeeds">
+                <h2>Manage My Curated Feeds</h2>
+                <p>Click a curated feed to manage the included packages.</p>
+                <ul>
+                    @foreach (var curatedFeed in Model.CuratedFeeds)
+                    {
+                        <li><a href="@Url.RouteUrl(RouteName.CuratedFeed, new { name = curatedFeed })">@curatedFeed</a></li>
+                    }
+                </ul>
+            </li>
+        }
+        <li id="managePackages">
+            <h2><a href="@Url.Action(MVC.Users.Packages())">Manage My Packages</a></h2>
+            <p>Edit package details or Remove packages that you have previously uploaded.</p>
+        </li>
+        <li id="editProfile">
+            <h2><a href="@Url.Action(MVC.Users.Edit())">Edit Profile</a></h2>
+            <p>Edit your public profile.</p>
+        </li>
+        <li id="changePassword">
+            <h2><a href="@Url.Action(MVC.Users.ChangePassword())">Change Password</a></h2>
+            <p>Change your password.</p>
+        </li>
+    </ul>
+</section>
+
+
+
+<section id="apiKey">
+    <h1>API Key</h1>
+    <p>
+        Your API key provides you with a token that identifies you to the gallery. 
+        Keep this a secret. You can always regenerate your key at any time (invalidating 
+        previous keys) if your token is accidentally revealed. The 
+        <a href="http://nuget.codeplex.com/">NuGet</a> command-line utility allows you to 
+        submit a NuGet package to the gallery, and you would pass you token like this:
+    </p>
+    
+    <div id="generateKey">
+        <h2>Your API key is:</h2>
+        
+        <div>
+            <p>
+                <span id="key">@Model.ApiKey</span>
+                @* Why width=0, height=0 for the object tag? See the script below *@
+                <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+                        width="0"
+                        height="0"
+                        id="clippy">
+                    <param name="movie" value="@Url.Content("~/Content/clippy.swf")">
+                    <param name="allowScriptAccess" value="always" />
+                    <param name="quality" value="high" />
+                    <param name="scale" value="noscale" />
+                    <param name="FlashVars" value="text=@Model.ApiKey">
+                    <param name="bgcolor" value="#fff">
+                    <embed src="@Url.Content("~/Content/clippy.swf")"
+                           width="110"
+                           height="14"
+                           name="clippy"
+                           quality="high"
+                           allowscriptaccess="always"
+                           type="application/x-shockwave-flash"
+                           pluginspage="http://www.macromedia.com/go/getflashplayer"
+                           flashvars="text=@Model.ApiKey"
+                           bgcolor="#fff" />
+                </object>
+            </p>
+            
+
+            <fieldset class="form">
+                <legend>Generate New API Key</legend>
+                @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="submit" value="Generate New API Key" />
+                }
+            </fieldset>
+
+            <h2>Example usage:</h2>
+            <p>
+                <pre>
+nuget.exe setApiKey @Model.ApiKey
+nuget.exe push MyPackage.1.0.nupkg</pre>
+            </p>
+        </div>
+
+        <div id="overlayWrapper" title="Click to show API Key">
+            Your key is hidden for privacy, click to show.
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script>
+        $(function() {
+            $("#overlayWrapper").click(function() {
+                $("#overlayWrapper").fadeOut(function () {
+                    // Show clippy!
+                    // We hide clippy using width=0,height=0 because IE9 renders it above 
+                    // the overlay wrapper no matter what we do :(. IE9 only looks at the object tag though
+                    // so we can avoid doing it on the embed for Chrome and Firefox.
+                    $("#clippy").attr('width', 110);
+                    $("#clippy").attr('height', 14);
+                });
+                return false;
+            });
+        });
+    </script>
+}

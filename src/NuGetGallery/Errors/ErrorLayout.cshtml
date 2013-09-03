@@ -1,0 +1,74 @@
+﻿@* Generator : WebPage *@
+@using System.Web.Optimization
+<!DOCTYPE html> 
+<html lang="en" class="static " data-root="@Href("~/")">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>NuGet Gallery</title>
+    @Styles.Render("~/Content/css")
+    <link href="@Href("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
+    @Scripts.Render("~/Scripts/modernizr")
+</head>
+<body>
+    <div id="content-wrapper">
+        <header class="main">
+            <div id="logo"><a href="@Href("~/")">NuGet Gallery</a></div>
+        </header>
+        <nav class="main">
+            <ul id="menu">
+                <li><a href="@Href("~/")">Home</a></li>
+                <li><a href="@Href("~/Packages")">Packages</a></li>
+
+                <li><a href="@Href("~/packages/upload")" class="upload">Upload Package</a></li>
+                <li><a href="@Href("~/stats")">Statistics</a></li>
+                <li><a href="http://docs.nuget.org">Documentation</a></li>
+                <li><a href="http://blog.nuget.org">Blog</a></li>
+            </ul>
+        </nav>
+        <div id="body">
+            <div class="error-show-code"></div>
+            @RenderBody()
+        </div>
+    </div>
+    <div id="layout-footer" class="group">
+        <footer id="footer">
+            <ul class="recommended">
+                <li>
+                    <a href="@Href("~/policies/Contact")">Contact Us</a>
+                    <p>Got questions about NuGet or the NuGet Gallery?</p>
+                </li>
+                <li>
+                    <a href="http://docs.nuget.org/docs/start-here/overview">Overview</a>
+                    <p>NuGet is a Visual Studio extension that makes it easy to add, remove, and update libraries and...</p>
+                </li>
+                <li>
+                    <a href="http://docs.nuget.org/docs/start-here/installing-nuget">Install</a>
+                    <p>NuGet can be installed and updated using the Visual Studio Extension Manager. To check if your copy...</p>
+                </li>
+                <li>
+                    <a href="http://docs.nuget.org/docs/start-here/videos">Videos</a>
+                    <p>Watch screencasts and presentations about anything and everything NuGet.</p>
+                </li>
+                <li>
+                    <a href="http://docs.nuget.org/docs/start-here/nuget-faq">FAQ</a>
+                    <p>Read the Frequently Asked Questions about NuGet and see if your question made the list.</p>
+                </li>
+            </ul>
+            <div class="license">
+                <a href="http://outercurve.org"><img src="@Links.Content.Images.outercurve_png" alt="Outercurve Foundation" /></a>
+                <p>
+                    &copy; @DateTime.UtcNow.Year Outercurve Foundation -
+                    <a href="~/policies/Terms">Terms of Use</a> -
+                    <a href="~/policies/Privacy">Privacy Policy</a>
+                </p>
+                <p>
+                    Uses <a href="http://fontawesome.io">Font Awesome</a> by Dave Gandy
+                </p>
+            </div>
+        </footer>
+    </div>
+    @Scripts.Render("~/Scripts/all")
+    @RenderSection("BottomScripts", required: false)
+</body>
+</html>
