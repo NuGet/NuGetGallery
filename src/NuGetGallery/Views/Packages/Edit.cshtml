@@ -144,17 +144,15 @@
             var initialDictionary = [];
             ReadFormValues(initialDictionary);
 
-            $("a").click(function (event) {
-                if (!(event.target.attributes["class"]) || event.target.attributes["class"].value.indexOf("cancel") < 0) {
-                    var dictionary = [];
-                    ReadFormValues(dictionary);
-                    for (var key in initialDictionary) {
-                        if (initialDictionary.hasOwnProperty(key) &&
-                            dictionary[key] != initialDictionary[key]) {
-                            href = event.target.href;
-                            $("#navigate-away-dialog").dialog("open");
-                            return false;
-                        }
+            $("a").not("a.cancel").click(function (event) {
+                var dictionary = [];
+                ReadFormValues(dictionary);
+                for (var key in initialDictionary) {
+                    if (initialDictionary.hasOwnProperty(key) &&
+                        dictionary[key] != initialDictionary[key]) {
+                        href = event.target.href;
+                        $("#navigate-away-dialog").dialog("open");
+                        return false;
                     }
                 }
             });
