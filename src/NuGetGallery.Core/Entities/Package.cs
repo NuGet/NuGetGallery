@@ -72,7 +72,16 @@ namespace NuGetGallery
 
         public bool IsLatest { get; set; }
         public bool IsLatestStable { get; set; }
+
+        /// <summary>
+        /// This is when the Package Entity was last touched (so caches can notice changes). In UTC.
+        /// </summary>
         public DateTime LastUpdated { get; set; }
+
+        /// <summary>
+        /// This is when the Package Metadata was last edited by a user. Or NULL. In UTC.
+        /// </summary>
+        public DateTime? LastEdited { get; set; }
 
         /// <remarks>
         ///     Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
@@ -162,7 +171,10 @@ namespace NuGetGallery
             Hash = hash;
             HashAlgorithm = hashAlgorithm;
             PackageFileSize = packageFileSize;
-            LastUpdated = DateTime.UtcNow;
+
+            var now = DateTime.UtcNow;
+            LastUpdated = now;
+            LastEdited = now;
         }
     }
 }

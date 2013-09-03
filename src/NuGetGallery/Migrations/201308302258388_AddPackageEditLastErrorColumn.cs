@@ -7,12 +7,12 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            AddColumn("dbo.PackageEdits", "LastError", c => c.String());
+            AddColumn("PackageEdits", "LastError", c => c.String());
         }
         
         public override void Down()
         {
-            DropColumn("dbo.PackageEdits", "LastError");
+            DropColumn("PackageEdits", "LastError");
         }
     }
 }
