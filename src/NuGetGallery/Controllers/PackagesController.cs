@@ -583,7 +583,6 @@ namespace NuGetGallery
             };
 
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
-            model.HasPendingMetadata = pendingMetadata != null;
             model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
             return View(model);
         }
@@ -607,7 +606,16 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return View();
+                formData.PackageId = package.PackageRegistration.Id;
+                formData.PackageTitle = package.Title;
+                formData.Version = package.Version;
+                
+                var packageRegistration = _packageService.FindPackageRegistrationById(id);
+                formData.PackageVersions = packageRegistration.Packages
+                        .OrderByDescending(p => new SemanticVersion(p.Version), Comparer<SemanticVersion>.Create((a, b) => a.CompareTo(b)))
+                        .ToList();
+
+                return View(formData);
             }
 
             // Add the edit request to a queue where it will be processed in the background.
