@@ -84,31 +84,10 @@ namespace NuGetGallery
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
 
-        [HttpGet]
-        [Authorize]
-        public virtual ActionResult UndoPendingEdits(string id, string version)
-        {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-
-            var model = new TrivialPackageVersionModel
-            {
-                Id = package.PackageRegistration.Id,
-                Version = package.Version,
-                Title = package.Title,
-            };
-
-            return View(model);
-        }
-
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [ActionName("UndoPendingEdits")]
-        public virtual ActionResult UndoPendingEditsPost(string id, string version)
+        public virtual ActionResult UndoPendingEdits(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
