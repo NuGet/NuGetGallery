@@ -20,6 +20,8 @@ namespace NuGetGallery
 {
     public static class ExtensionMethods
     {
+        static DataServiceHostFactory dataServiceHostFactory;
+
         public static string ToNuGetShortDateTimeString(this DateTime self)
         {
             return self.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.CurrentCulture);
@@ -57,7 +59,12 @@ namespace NuGetGallery
             string routeUrl,
             Type serviceType)
         {
-            var serviceRoute = new ServiceRoute(routeUrl, new DataServiceHostFactory(), serviceType);
+            if (dataServiceHostFactory == null)
+            {
+                dataServiceHostFactory = new DataServiceHostFactory();
+            }
+
+            var serviceRoute = new ServiceRoute(routeUrl, dataServiceHostFactory, serviceType);
             serviceRoute.Defaults = new RouteValueDictionary { { "serviceType", "odata" } };
             serviceRoute.Constraints = new RouteValueDictionary { { "serviceType", "odata" } };
             routes.Add(routeName, serviceRoute);

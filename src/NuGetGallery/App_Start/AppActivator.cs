@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Data.Entity;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -15,7 +13,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
 using NuGetGallery.Jobs;
-using NuGetGallery.Migrations;
 using WebActivator;
 using WebBackgrounder;
 
@@ -32,6 +29,11 @@ namespace NuGetGallery
 
         public static void PreStart()
         {
+            // Register RazorViewEngine first, since that's what we use for rendering non-admin sections of the site, it makes sense to look for views there first.
+            ViewEngines.Engines.Clear();
+            ViewEngines.Engines.Add(new RazorViewEngine());
+            ViewEngines.Engines.Add(new WebFormViewEngine());
+
             NinjectPreStart();
             ElmahPreStart();
             GlimpsePreStart();
@@ -98,6 +100,7 @@ namespace NuGetGallery
             GlobalFilters.Filters.Add(new ReadOnlyModeErrorFilter());
             GlobalFilters.Filters.Add(new AntiForgeryErrorFilter());
             GlobalFilters.Filters.Add(new RequireRemoteHttpsAttribute() { OnlyWhenAuthenticated = true });
+
             ValueProviderFactories.Factories.Add(new HttpHeaderValueProviderFactory());
         }
 
