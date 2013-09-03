@@ -112,56 +112,6 @@ namespace NuGetGallery
             return View(profile);
         }
 
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult Register()
-        {
-            // We don't want Login to have us as a return URL. 
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult Register(RegisterRequest request)
-        {
-            // If we have to render a view, we don't want Login to have us as a return URL
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            // TODO: consider client-side validation for unique username
-            // TODO: add email validation
-
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
-            User user;
-            try
-            {
-                user = UserService.Create(
-                    request.Username,
-                    request.Password,
-                    request.EmailAddress);
-            }
-            catch (EntityException ex)
-            {
-                ModelState.AddModelError(String.Empty, ex.Message);
-                return View();
-            }
-
-            if (Config.ConfirmEmailAddresses)
-            {
-                // Passing in scheme to force fully qualified URL
-                var confirmationUrl = Url.ConfirmationUrl(
-                    MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                MessageService.SendNewAccountEmail(new MailAddress(request.EmailAddress, user.Username), confirmationUrl);
-            }
-            return RedirectToAction(MVC.Users.Thanks());
-        }
-
         public virtual ActionResult Thanks()
         {
             // No need to redirect here after someone logs in...

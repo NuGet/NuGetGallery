@@ -135,6 +135,11 @@ namespace NuGetGallery
                 MVC.Users.Profiles());
 
             routes.MapRoute(
+                RouteName.LegacyRegister,
+                "account/register",
+                new { controller = MVC.Authentication.Name, action = MVC.Authentication.ActionNames.Register });
+
+            routes.MapRoute(
                 RouteName.PasswordReset,
                 "account/{action}/{username}/{token}",
                 MVC.Users.ResetPassword());

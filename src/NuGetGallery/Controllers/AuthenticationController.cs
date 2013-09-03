@@ -8,7 +8,7 @@ namespace NuGetGallery
     public partial class AuthenticationController : Controller
     {
         public IFormsAuthenticationService FormsAuth { get; protected set; }
-        public IUserService Users { get; protected set; }
+        public IUserService UserService { get; protected set; }
         
         // For sub-classes to initialize services themselves
         protected AuthenticationController()
@@ -20,7 +20,7 @@ namespace NuGetGallery
             IUserService userService)
         {
             FormsAuth = formsAuthService;
-            Users = userService;
+            UserService = userService;
         }
 
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
@@ -47,7 +47,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            var user = Users.FindByUsernameOrEmailAddressAndPassword(
+            var user = UserService.FindByUsernameOrEmailAddressAndPassword(
                 request.UserNameOrEmail,
                 request.Password);
 
@@ -81,6 +81,49 @@ namespace NuGetGallery
             FormsAuth.SignOut();
 
             return SafeRedirect(returnUrl);
+        }
+
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        public virtual ActionResult Register()
+        {
+            // We don't want Login to have us as a return URL. 
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        public virtual ActionResult Register(RegisterRequest request)
+        {
+            // If we have to render a view, we don't want Login to have us as a return URL
+            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
+            ViewData[Constants.ReturnUrlViewDataKey] = null;
+
+            // TODO: consider client-side validation for unique username
+            // TODO: add email validation
+
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
+            User user;
+            try
+            {
+                user = UserService.Create(
+                    request.Username,
+                    request.Password,
+                    request.EmailAddress);
+            }
+            catch (EntityException ex)
+            {
+                ModelState.AddModelError(String.Empty, ex.Message);
+                return View();
+            }
+
+            return RedirectToAction(MVC.Users.Thanks());
         }
 
         [NonAction]

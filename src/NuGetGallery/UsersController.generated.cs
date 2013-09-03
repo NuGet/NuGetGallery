@@ -57,7 +57,6 @@ namespace NuGetGallery {
             public readonly string Account = "Account";
             public readonly string ConfirmationRequired = "ConfirmationRequired";
             public readonly string Edit = "Edit";
-            public readonly string Register = "Register";
             public readonly string Thanks = "Thanks";
             public readonly string Packages = "Packages";
             public readonly string GenerateApiKey = "GenerateApiKey";
@@ -87,7 +86,6 @@ namespace NuGetGallery {
             public readonly string PasswordChanged = "~/Views/Users/PasswordChanged.cshtml";
             public readonly string PasswordSent = "~/Views/Users/PasswordSent.cshtml";
             public readonly string Profiles = "~/Views/Users/Profiles.cshtml";
-            public readonly string Register = "~/Views/Users/Register.cshtml";
             public readonly string ResendConfirmation = "~/Views/Users/ResendConfirmation.cshtml";
             public readonly string ResetPassword = "~/Views/Users/ResetPassword.cshtml";
             public readonly string Thanks = "~/Views/Users/Thanks.cshtml";
@@ -116,17 +114,6 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult Edit(NuGetGallery.EditProfileViewModel profile) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Edit);
             callInfo.RouteValueDictionary.Add("profile", profile);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Register() {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
-            return callInfo;
-        }
-
-        public override System.Web.Mvc.ActionResult Register(NuGetGallery.RegisterRequest request) {
-            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
-            callInfo.RouteValueDictionary.Add("request", request);
             return callInfo;
         }
 

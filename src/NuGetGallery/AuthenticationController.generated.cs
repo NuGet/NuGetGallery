@@ -56,6 +56,7 @@ namespace NuGetGallery {
         public class ActionNamesClass {
             public readonly string LogOn = "LogOn";
             public readonly string LogOff = "LogOff";
+            public readonly string Register = "Register";
         }
 
 
@@ -65,6 +66,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string LogOn = "~/Views/Authentication/LogOn.cshtml";
+            public readonly string Register = "~/Views/Authentication/Register.cshtml";
         }
     }
 
@@ -88,6 +90,17 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult LogOff(string returnUrl) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.LogOff);
             callInfo.RouteValueDictionary.Add("returnUrl", returnUrl);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Register() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult Register(NuGetGallery.RegisterRequest request) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Register);
+            callInfo.RouteValueDictionary.Add("request", request);
             return callInfo;
         }
 

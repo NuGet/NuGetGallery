@@ -170,7 +170,7 @@ namespace NuGetGallery.Controllers
             public TestableAuthenticationController()
             {
                 FormsAuth = (MockFormsAuth = new Mock<IFormsAuthenticationService>()).Object;
-                Users = (MockUsers = new Mock<IUserService>()).Object;
+                UserService = (MockUsers = new Mock<IUserService>()).Object;
             }
 
             protected override ActionResult SafeRedirect(string returnUrl)

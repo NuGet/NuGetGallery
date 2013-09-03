@@ -154,6 +154,11 @@ namespace NuGetGallery
             return url.Action(originalResult);
         }
 
+        public static string Register(this UrlHelper url)
+        {
+            return url.Action(MVC.Authentication.Register());
+        }
+
         public static string Search(this UrlHelper url, string searchTerm)
         {
             return url.RouteUrl(RouteName.ListPackages, new { q = searchTerm });
