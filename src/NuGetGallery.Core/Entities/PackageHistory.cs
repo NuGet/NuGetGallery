@@ -48,7 +48,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Time the metadata replacement occurred (UTC)
-        /// </summary
+        /// </summary>
         public DateTime Timestamp { get; set; }
 
         //////////////// The rest are same as on Package ////////////
