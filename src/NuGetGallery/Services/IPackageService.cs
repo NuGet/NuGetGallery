@@ -22,7 +22,7 @@ namespace NuGetGallery
         /// This method doesn't upload the package binary to the blob storage. The caller must do it after this call.
         /// </remarks>
         /// <param name="nugetPackage">The package to be created.</param>
-        /// <param name="currentUser">The owner of the package</param>
+        /// <param name="user">The owner of the package</param>
         /// <param name="commitChanges">Specifies whether to commit the changes to database.</param>
         /// <returns>The created package entity.</returns>
         Package CreatePackage(INupkg nugetPackage, User user, bool commitChanges = true);
