@@ -1,35 +1,11 @@
-﻿@if (!Request.IsAuthenticated)
-{
-    <h1 class="page-heading">
-        Thanks for registering</h1>
+﻿@{
+    ViewBag.Title = "Thanks";
 }
-else
-{
-    <h1 class="page-heading">
-        You are all set</h1>
-}
-@if (!Request.IsAuthenticated)
-{
-    <strong>But you're not done yet!</strong>
-    if (Request.IsLocal)
-    {
-        <p class="message">
-            Pssst! I see you're running this in a development environment. <strong>Check the <em>\App_Data\Mail</em> folder for the email</strong>.
-        </p>
-    }
-    else
-    {
-        <p>
-            An email with instructions on how to activate your account is on its way to you.
-        </p>
-    }
-}
-else
-{
-    <p>
-        It looks like you've already confirmed your account and are good to go.
-    </p>
-    <p>
-        Click on the <em>Upload package</em> link in the menu to start uploading packages.
-    </p>
-}
+
+<h1 class="page-heading">
+    Thanks for registering
+</h1>
+
+<p>
+    Click on <em>Upload package</em> in the menu to start uploading packages.
+</p>

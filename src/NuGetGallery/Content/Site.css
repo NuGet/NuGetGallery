@@ -411,6 +411,30 @@ nav.main ul a:hover {
     width: 25%;
 }
 
+div #SignIn {
+    float: left;
+    display: block;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    width: 45%;
+}
+
+div #MiddleSeparator {
+    border-right: solid;
+    border-right-width: 1px;
+    float: left;
+    width: 4%;
+    margin-top: 100px;
+    height: 200px;
+}
+
+div #Register {
+    float: left;
+    margin-left: 5%;
+    margin-bottom: 50px;
+    width: 45%;
+}
+
 #mainColumn {
     float: right;
     margin-bottom: 20px;

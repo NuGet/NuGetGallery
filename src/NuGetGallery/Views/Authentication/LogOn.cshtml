@@ -1,26 +1,19 @@
-﻿@model SignInRequest
+﻿@model SignInOrRegisterRequest
+@using System.Linq.Expressions
 @{
     ViewBag.Title = "Sign In";
 }
 
-<h1>Sign In</h1>
+<div id="SignIn">
+    <h1>Sign In</h1>
 
-<p>
-    Don't have an account yet? <a href="@Url.Register()">Register now.</a>
-</p>
+    @Html.Partial("_SignInForm", Model == null ? null : Model.SignInRequest)
+</div>
 
-@using (Html.BeginForm())
-{
-    <fieldset class="form">
-        <legend>Sign In Form</legend>
+<div id="MiddleSeparator"></div>
 
-        @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true)
-        @Html.EditorForModel()
+<div id="Register">
+    <h1>Register</h1>
 
-        <img src="@Url.Content("~/content/images/required.png")" alt="Blue border on left means required." />
-
-        <input type="submit" value="Sign In" title="Sign In" />
-        @Html.ActionLink("Lost your Password?", "ForgotPassword", "Users")
-    </fieldset>
-}
+    @Html.Partial("_RegisterForm", Model == null ? null : Model.SignInRequest)
+</div>
