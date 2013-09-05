@@ -60,16 +60,7 @@ namespace NuGetGallery
                 return View();
             }
 
-            IEnumerable<string> roles = null;
-            if (user.Roles.AnySafe())
-            {
-                roles = user.Roles.Select(r => r.Name);
-            }
-
-            FormsAuth.SetAuthCookie(
-                user.Username,
-                true,
-                roles);
+            SetAuthenticationCookie(user);
 
             return SafeRedirect(returnUrl);
         }
@@ -86,6 +77,12 @@ namespace NuGetGallery
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult Register()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                ModelState.AddModelError(String.Empty, "You cannot register because you are already logged in!");
+                return View();
+            }
+
             // We don't want Login to have us as a return URL. 
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
@@ -97,6 +94,12 @@ namespace NuGetGallery
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
         public virtual ActionResult Register(RegisterRequest request)
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                ModelState.AddModelError(String.Empty, "You cannot register because you are already logged in!");
+                return View();
+            }
+
             // If we have to render a view, we don't want Login to have us as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
@@ -123,6 +126,8 @@ namespace NuGetGallery
                 return View();
             }
 
+            SetAuthenticationCookie(user);
+
             return RedirectToAction(MVC.Users.Thanks());
         }
 
@@ -130,6 +135,21 @@ namespace NuGetGallery
         protected virtual ActionResult SafeRedirect(string returnUrl)
         {
             return Redirect(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
+        }
+
+        [NonAction]
+        protected virtual void SetAuthenticationCookie(User user)
+        {
+            IEnumerable<string> roles = null;
+            if (user.Roles.AnySafe())
+            {
+                roles = user.Roles.Select(r => r.Name);
+            }
+
+            FormsAuth.SetAuthCookie(
+                user.Username,
+                true,
+                roles);
         }
     }
 }
