@@ -4,43 +4,48 @@
     function attachSearchBoxBehavior($input, $menu) {
         // Remember the previous state in order to perform smooth animation transforms
         var prevstate = false;
-        function popit() {
-            // Calculate the new state
-            var state;
-            if ($input.val().length > 0 && $input.is(":focus")) {
-                state = true;
-            } else {
-                state = false;
-            }
-
-            // If there's a change
-            if (state != prevstate) {
-                // Record it and stop all current animations to avoid glitching
-                prevstate = state;
-                $input.stop();
-                $menu.stop();
-
-                // Start new ones to transition to the new state
-                if (state) {
-                    $menu.fadeOut({
-                        duration: 200, queue: true, complete: function () {
-                            $input.animate({ width: '920px' }, { duration: 200, queue: true });
-                        }
-                    });
+        function popit(assumeFocused) {
+            return function () {
+                // Calculate the new state
+                var state;
+                if ($input.val().length > 0 && ($input.is(":focus") || assumeFocused)) {
+                    state = true;
                 } else {
-                    $input.animate({ width: '160px' }, {
-                        duration: 200, queue: true, complete: function () {
-                            $menu.fadeIn({ duration: 200, queue: true });
-                            prevstate = state;
-                        }
-                    });
+                    state = false;
+                }
+
+                // If there's a change
+                if (state != prevstate) {
+                    // Record it and stop all current animations to avoid glitching
+                    prevstate = state;
+                    $input.stop();
+                    $menu.stop();
+
+                    // Start new ones to transition to the new state
+                    if (state) {
+                        $menu.animate({ opacity: 0 }, {
+                            duration: 200, queue: true, complete: function () {
+                                $menu.css({ position: 'absolute', top: -10000, left: -10000 });
+                                $input.animate({ width: '920px' }, { duration: 200, queue: true });
+                            }
+                        });
+                    } else {
+                        $input.animate({ width: '160px' }, {
+                            duration: 200, queue: true, complete: function () {
+                                $menu.css({ position: 'static', top: 'auto', left: 'auto' });
+                                $menu.animate({ opacity: 1 }, { duration: 200, queue: true });
+                                prevstate = state;
+                            }
+                        });
+                    }
                 }
             }
         }
 
         // Bind handlers
-        $input.delegate('', 'keyup', popit);
-        $input.delegate('', 'blur', popit);
+        $input.delegate('', 'keyup', popit(false));
+        $input.delegate('', 'blur', popit(false));
+        $input.delegate('', 'focus', popit(true));
     }
 
     function checkServiceStatus() {
