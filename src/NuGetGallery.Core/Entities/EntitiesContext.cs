@@ -22,7 +22,7 @@ namespace NuGetGallery
         /// (and read only mode is don't care).
         /// </summary>
         public EntitiesContext()
-            : base()
+            : base("Gallery.SqlServer") // Use the connection string in a web.config (if one is found)
         {
         }
 
