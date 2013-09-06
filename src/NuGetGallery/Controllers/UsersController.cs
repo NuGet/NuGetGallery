@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
@@ -48,11 +49,37 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [HttpGet]
         public virtual ActionResult ConfirmationRequired()
         {
-            ViewData["UserAction"] = HttpContext.GetConfirmationAction();
-            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
-            var model = new UserProfileModel(user);
+            User user = UserService.FindByUsername(User.Identity.Name);
+            var model = new ConfirmationViewModel
+            {
+                ConfirmingNewAccount = !(user.Confirmed),
+                DoAction = HttpContext.GetConfirmationAction(),
+                UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
+            };
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ActionName("ConfirmationRequired")]
+        public virtual ActionResult ConfirmationRequiredPost()
+        {
+            User user = UserService.FindByUsername(User.Identity.Name);
+            var confirmationUrl = Url.ConfirmationUrl(
+                MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+
+            MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+
+            var model = new ConfirmationViewModel
+            {
+                ConfirmingNewAccount = !(user.Confirmed),
+                DoAction = HttpContext.GetConfirmationAction(),
+                UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
+                SentEmail = true,
+            };
             return View(model);
         }
 
@@ -117,16 +144,7 @@ namespace NuGetGallery
             // No need to redirect here after someone logs in...
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            if (Config.ConfirmEmailAddresses)
-            {
-                return View();
-            }
-            else
-            {
-                var model = new EmailConfirmationModel { SuccessfulConfirmation = true, ConfirmingNewAccount = true };
-                return View("Confirm", model);
-            }
+            return View();
         }
 
         [Authorize]
@@ -192,47 +210,6 @@ namespace NuGetGallery
             return View(model);
         }
 
-        public virtual ActionResult ResendConfirmation()
-        {
-            // We don't want Login to have us as a return URL
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public virtual ActionResult ResendConfirmation(ResendConfirmationEmailViewModel model)
-        {
-            // We don't want Login to have us as a return URL
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            
-            if (ModelState.IsValid)
-            {
-                var usersClaimingEmailAddress = UserService.FindByUnconfirmedEmailAddress(model.Email, model.Username);
-                
-                if (usersClaimingEmailAddress.Count == 1)
-                {
-                    var user = usersClaimingEmailAddress.SingleOrDefault();
-                    var confirmationUrl = Url.ConfirmationUrl(
-                        MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                    MessageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
-                    return RedirectToAction(MVC.Users.Thanks());
-                }
-                else if (usersClaimingEmailAddress.Count > 1)
-                {
-                    ModelState.AddModelError("Username", "Multiple users registered with your email address. Enter your username in order to resend confirmation email.");
-                }
-                else
-                {
-                    ModelState.AddModelError("Email", "There was an issue resending your confirmation token.");
-                }
-            }
-            return View(model);
-        }
-
         public virtual ActionResult PasswordSent()
         {
             // We don't want Login to have us as a return URL
@@ -282,6 +259,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+
             var user = UserService.FindByUsername(username);
             if (user == null)
             {
@@ -289,18 +267,26 @@ namespace NuGetGallery
             }
 
             string existingEmail = user.EmailAddress;
-            var model = new EmailConfirmationModel
-                {
-                    ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
-                    SuccessfulConfirmation = UserService.ConfirmEmailAddress(user, token)
-                };
+            var model = new ConfirmationViewModel
+            {
+                ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
+                SuccessfulConfirmation = UserService.ConfirmEmailAddress(user, token)
+            };
 
             // SuccessfulConfirmation is required so that the confirm Action isn't a way to spam people.
             // Change notice not required for new accounts.
             if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
             {
                 MessageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
+
+                string returnUrl = HttpContext.GetConfirmationReturnUrl();
+                if (!String.IsNullOrEmpty(returnUrl))
+                {
+                    TempData["Message"] = "You have sucessfully confirmed your email address";
+                    return new RedirectResult(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
+                }
             }
+
             return View(model);
         }
 

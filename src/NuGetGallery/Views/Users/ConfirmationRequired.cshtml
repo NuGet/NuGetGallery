@@ -1,30 +1,38 @@
-﻿@model UserProfileModel
+﻿@model ConfirmationViewModel
 @{
     ViewBag.Title = "Confirmation Required";
 }
 
-<h2>Confirm Your Email Address</h2>
-
-<p class="long note">
-    You must confirm your email address before you can @((string)ViewData["UserAction"]). 
-</p>
-
-@using (Html.BeginForm())
+@if (Model.SentEmail)
 {
-    <fieldset class="form">
-        <legend>Confirm Email Address</legend>
-        @Html.AntiForgeryToken()
+    <h2>Confirmation Email Sent!</h2>
+}
+else
+{
+    <h2>Confirm Your Email Address</h2>
 
-        @* make it look like a form field even though it isn't exactly *@
-        <div class="form-field">
-            <p>
-            Email will be sent to: @(Model.UnconfirmedEmailAddress)
-            @Html.ActionLink("click here to change", "Edit", "Users")<br />
-            </p>
-        </div>
+    <p class="long note">
+        You must confirm your email address before you can @(Model.DoAction).
+    </p>
 
-        <input type="submit" value="Send Confirmation Email" title="Send Confirmation Email" />
-    </fieldset>
+    using (Html.BeginForm())
+    {
+        <fieldset class="form">
+            <legend>Confirm Email Address</legend>
+            @Html.AntiForgeryToken()
+
+            @* make it look like a form field even though it isn't exactly *@
+            <div class="form-field">
+                <p>
+                Email will be sent to: <u>@(Model.UnconfirmedEmailAddress)</u>
+                @Html.ActionLink("(click here to change)", "Edit", "Users")<br />
+                </p>
+            </div>
+
+            <input type="submit" value="Send Confirmation Email" title="Send Confirmation Email" style="width: auto;" />
+
+        </fieldset>
+    }
 }
 
 <h3>Problems with your confirmation email?</h3>

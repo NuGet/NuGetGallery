@@ -112,7 +112,7 @@ namespace NuGetGallery
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
                 
-                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
+                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
 
                 Assert.True(model.SuccessfulConfirmation);
             }
@@ -134,7 +134,7 @@ namespace NuGetGallery
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
                 
-                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
+                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
 
                 Assert.True(model.SuccessfulConfirmation);
                 Assert.False(model.ConfirmingNewAccount);
@@ -160,7 +160,7 @@ namespace NuGetGallery
                           .Returns(true);
                 
                 // act:
-                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
+                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
 
                 // verify:
                 Assert.True(model.SuccessfulConfirmation);
@@ -189,7 +189,7 @@ namespace NuGetGallery
                           .Returns(false);
                 
                 // act:
-                var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as EmailConfirmationModel;
+                var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as ConfirmationViewModel;
 
                 // verify:
                 Assert.False(model.SuccessfulConfirmation);
@@ -217,7 +217,7 @@ namespace NuGetGallery
                           .Setup(u => u.ConfirmEmailAddress(user, "not-the-token"))
                           .Returns(false);
                 
-                var model = (controller.Confirm("username", "not-the-token") as ViewResult).Model as EmailConfirmationModel;
+                var model = (controller.Confirm("username", "not-the-token") as ViewResult).Model as ConfirmationViewModel;
 
                 Assert.False(model.SuccessfulConfirmation);
             }
@@ -579,7 +579,7 @@ namespace NuGetGallery
                 var result = controller.Thanks() as ViewResult;
 
                 Assert.Equal("Confirm", result.ViewName);
-                var model = result.Model as EmailConfirmationModel;
+                var model = result.Model as ConfirmationViewModel;
                 Assert.True(model.ConfirmingNewAccount);
                 Assert.True(model.SuccessfulConfirmation);
             }
