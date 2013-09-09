@@ -799,6 +799,10 @@
     <Compile Include="Migrations\201308170024153_AddPackageLicenseReportSproc.Designer.cs">
       <DependentUpon>201308170024153_AddPackageLicenseReportSproc.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201309091947408_MergeModel.cs" />
+    <Compile Include="Migrations\201309091947408_MergeModel.Designer.cs">
+      <DependentUpon>201309091947408_MergeModel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1252,6 +1256,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308170024153_AddPackageLicenseReportSproc.resx">
       <DependentUpon>201308170024153_AddPackageLicenseReportSproc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309091947408_MergeModel.resx">
+      <DependentUpon>201309091947408_MergeModel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
