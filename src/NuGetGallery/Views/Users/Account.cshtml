@@ -8,6 +8,15 @@
 <section id="actions">
     <h1>Actions</h1>
     <ul>
+        @if (!Model.IsConfirmed)
+        {
+            <li id="confirmAccount">
+                <h2><a href="@Url.UploadPackage()">Confirm Your Account</a></h2>
+                <p>
+                    Before you can upload packages or use your API Key to manage packages you need to <a href="@Url.ConfirmationRequired()">confirm your account.</a>
+                </p>
+            </li>
+        }
         <li id="uploadPackage">
             <h2><a href="@Url.UploadPackage()">Upload Package</a></h2>
             <p>
@@ -48,15 +57,16 @@
 
 <section id="apiKey">
     <h1>API Key</h1>
+
     <p>
         Your API key provides you with a token that identifies you to the gallery. 
         Keep this a secret. You can always regenerate your key at any time (invalidating 
         previous keys) if your token is accidentally revealed.
     </p>
-    
+
     <div id="generateKey">
         <h2>Your API key is:</h2>
-        
+
         <div>
             <p>
                 <span id="key">@Model.ApiKey</span>

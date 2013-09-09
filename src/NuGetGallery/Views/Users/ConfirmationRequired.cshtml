@@ -9,23 +9,23 @@
 }
 else
 {
-    <h2>Confirm Your Email Address</h2>
+    <h2>Confirm Account</h2>
 
     <p class="long note">
-        You must confirm your email address before you can @(Model.DoAction ?? "proceed").
+        You must verify your email address before you can @(Model.DoAction ?? "upload packages").
     </p>
 
     using (Html.BeginForm())
     {
         <fieldset class="form">
-            <legend>Confirm Email Address</legend>
+            <legend>Verify Email Address</legend>
             @Html.AntiForgeryToken()
 
             @* make it look like a form field even though it isn't exactly *@
             <div class="form-field">
                 <p>
-                Email will be sent to: <u>@(Model.UnconfirmedEmailAddress)</u>
-                @Html.ActionLink("(click here to change)", "Edit", "Users")<br />
+                Confirmation email will be sent to: <u>@(Model.UnconfirmedEmailAddress)</u>
+                @Html.ActionLink("(change)", "Edit", "Users")<br />
                 </p>
             </div>
 

@@ -43,6 +43,7 @@ namespace NuGetGallery
                 new AccountViewModel
                     {
                         ApiKey = user.ApiKey.ToString(),
+                        IsConfirmed = user.Confirmed,
                         CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
                     });
         }
