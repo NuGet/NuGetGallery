@@ -174,4 +174,7 @@
   <data name="ParameterCannotBeNullOrEmpty" xml:space="preserve">
     <value>'{0}' cannot be null or an empty string</value>
   </data>
+  <data name="ApiKeyUserAccountIsUnconfirmed" xml:space="preserve">
+    <value>You must confirm the email address for the account that owns this API Key in order to  '{0}'.</value>
+  </data>
 </root>
