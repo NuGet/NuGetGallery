@@ -33,6 +33,11 @@ namespace NuGetGallery {
 
         [NonAction]
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
+        public System.Web.Mvc.ActionResult UndoPendingEdits() {
+            return new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEdits);
+        }
+        [NonAction]
+        [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public System.Web.Mvc.ActionResult DisplayPackage() {
             return new T4MVC_ActionResult(Area, Name, ActionNames.DisplayPackage);
         }
@@ -100,6 +105,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ActionNamesClass {
             public readonly string UploadPackageProgress = "UploadPackageProgress";
+            public readonly string UndoPendingEdits = "UndoPendingEdits";
             public readonly string DisplayPackage = "DisplayPackage";
             public readonly string ListPackages = "ListPackages";
             public readonly string ReportAbuse = "ReportAbuse";
@@ -145,6 +151,13 @@ namespace NuGetGallery {
 
         public override System.Web.Mvc.ActionResult UploadPackageProgress() {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UploadPackageProgress);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult UndoPendingEdits(string id, string version) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.UndoPendingEdits);
+            callInfo.RouteValueDictionary.Add("id", id);
+            callInfo.RouteValueDictionary.Add("version", version);
             return callInfo;
         }
 
