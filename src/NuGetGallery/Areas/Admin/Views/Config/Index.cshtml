@@ -28,3 +28,24 @@
         }
     </tbody>
 </table>
+
+<h2>Feature Status</h2>
+<table class="sexy-table" style="display: block; overflow: auto">
+    <thead>
+        <tr>
+            <th>Config Name</th>
+            <th>Description</th>
+            <th>Enabled</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var feature in Model.Features)
+        {
+            <tr>
+                <td>Feature.@feature.Property.Name</td>
+                <td>@feature.Description</td>
+                <td>@(feature.Enabled ? "✔ Enabled" : "✖ Disabled")</td>
+            </tr>
+        }
+    </tbody>
+</table>

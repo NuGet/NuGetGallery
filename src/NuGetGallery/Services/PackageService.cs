@@ -103,6 +103,7 @@ namespace NuGetGallery
             // This resulted in a gnarly query. 
             // Instead, we can always query for all packages with the ID.
             IEnumerable<Package> packagesQuery = _packageRepository.GetAll()
+                .Include(p => p.LicenseReports)
                 .Include(p => p.PackageRegistration)
                 .Where(p => (p.PackageRegistration.Id == id));
             if (String.IsNullOrEmpty(version) && !allowPrerelease)
@@ -640,6 +641,21 @@ namespace NuGetGallery
         private void NotifyIndexingService()
         {
             _indexingService.UpdateIndex();
+        }
+
+
+        public void SetLicenseReportVisibility(Package package, bool visible, bool commitChanges = true)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException("package");
+            }
+            package.HideLicenseReport = !visible;
+            if (commitChanges)
+            {
+                _packageRepository.CommitChanges();
+            }
+            _packageRepository.CommitChanges();
         }
     }
 }

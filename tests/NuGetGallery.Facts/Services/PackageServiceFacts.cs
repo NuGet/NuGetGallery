@@ -1651,5 +1651,42 @@ namespace NuGetGallery
                 packageOwnerRequestRepository.VerifyAll();
             }
         }
+
+        public class TheSetLicenseReportVisibilityMethod
+        {
+            [Fact]
+            public void SetsHideLicenseReportFalseWhenVisibleTrue()
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    HideLicenseReport = true
+                };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(packageRepository: packageRepository);
+
+                service.SetLicenseReportVisibility(package, true);
+
+                Assert.False(package.HideLicenseReport);
+            }
+
+            [Fact]
+            public void SetsHideLicenseReportTrueWhenVisibleFalse()
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    HideLicenseReport = false 
+                };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(packageRepository: packageRepository);
+
+                service.SetLicenseReportVisibility(package, false);
+
+                Assert.True(package.HideLicenseReport);
+            }
+        }
     }
 }
