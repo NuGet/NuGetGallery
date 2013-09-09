@@ -790,6 +790,7 @@
     <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.cs" />
     <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.Designer.cs">
       <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\201308170021456_LicenseReports.cs" />
     <Compile Include="Migrations\201308170021456_LicenseReports.Designer.cs">
       <DependentUpon>201308170021456_LicenseReports.cs</DependentUpon>
@@ -1245,6 +1246,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.resx">
       <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308170021456_LicenseReports.resx">
       <DependentUpon>201308170021456_LicenseReports.cs</DependentUpon>
     </EmbeddedResource>
