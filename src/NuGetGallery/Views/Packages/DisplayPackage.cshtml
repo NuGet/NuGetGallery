@@ -100,9 +100,18 @@
 <div class="package-page">
     @if (Model.HasPendingMetadata)
     {
-        <p class="pending-edit-message">
-            An edit is pending for this package version. You are seeing the <em>edited</em> package description now. These changes will be applied to the package file and become visible to everybody soon unless you <a href="@Url.UndoPendingEdits(Model)">undo pending edits</a>.
-        </p>
+        using (Html.BeginForm(MVC.Packages.UndoPendingEdits()))
+        {
+            @Html.AntiForgeryToken()
+            <fieldset class="form">
+                <p class="pending-edit-message">
+                    An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
+                    These changes will be applied to the package file and become visible to everybody soon unless you 
+                    <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
+                    first.
+                </p>
+            </fieldset>
+        }
     }
     @if (Model.Prerelease)
     {
