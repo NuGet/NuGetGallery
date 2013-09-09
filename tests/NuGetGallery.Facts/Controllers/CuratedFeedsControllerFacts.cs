@@ -42,7 +42,7 @@ namespace NuGetGallery
                 get { return StubIdentity.Object; }
             }
 
-            protected override T GetService<T>()
+            protected internal override T GetService<T>()
             {
                 if (typeof(T) == typeof(ICuratedFeedService))
                 {

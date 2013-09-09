@@ -19,7 +19,7 @@ using PoliteCaptcha;
 
 namespace NuGetGallery
 {
-    public partial class PackagesController : Controller
+    public partial class PackagesController : AppController
     {
         // TODO: add support for URL-based package submission
         // TODO: add support for uploading logos and screenshots
@@ -85,6 +85,7 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
+        [RequiresAccountConfirmation("undo pending edits")]
         [ValidateAntiForgeryToken]
         public virtual ActionResult UndoPendingEdits(string id, string version)
         {
@@ -139,14 +140,10 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("upload a package")]
         public async virtual Task<ActionResult> UploadPackage()
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
-            if (!currentUser.Confirmed)
-            {
-                HttpContext.SetConfirmationContext("upload a package", Url.Current());
-                return new RedirectResult(Url.ConfirmationRequired());
-            }
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -159,17 +156,13 @@ namespace NuGetGallery
             return View();
         }
 
-        [Authorize]
         [HttpPost]
+        [Authorize]
+        [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
-            if (!currentUser.Confirmed)
-            {
-                HttpContext.SetConfirmationContext("upload a package", Url.Current());
-                return new RedirectResult(Url.ConfirmationRequired());
-            }
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -309,6 +302,7 @@ namespace NuGetGallery
             ReportPackageReason.HasABug,
             ReportPackageReason.Other
         };
+
         public virtual ActionResult ReportAbuse(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -352,7 +346,9 @@ namespace NuGetGallery
             ReportPackageReason.ContainsMaliciousCode,
             ReportPackageReason.Other
         };
+
         [Authorize]
+        [RequiresAccountConfirmation("contact support about your package")]
         public virtual ActionResult ReportMyPackage(string id, string version)
         {
             var user = _userService.FindByUsername(HttpContext.User.Identity.Name);
@@ -428,6 +424,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        [RequiresAccountConfirmation("contact support about your package")]
         [ValidateAntiForgeryToken]
         [ValidateSpamPrevention]
         public virtual ActionResult ReportMyPackage(string id, string version, ReportAbuseViewModel reportForm)
@@ -462,6 +459,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id)
         {
             var package = _packageService.FindPackageRegistrationById(id);
@@ -469,13 +467,6 @@ namespace NuGetGallery
             if (package == null)
             {
                 return HttpNotFound();
-            }
-
-            var user = _userService.FindByUsername(GetIdentity().Name);
-            if (!user.Confirmed)
-            {
-                HttpContext.SetConfirmationContext("contact package owners", Url.Current());
-                return new RedirectResult(Url.ConfirmationRequired());
             }
 
             var model = new ContactOwnersViewModel
@@ -489,6 +480,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        [RequiresAccountConfirmation("contact package owners")]
         [ValidateAntiForgeryToken]
         public virtual ActionResult ContactOwners(string id, ContactOwnersViewModel contactForm)
         {
@@ -504,12 +496,6 @@ namespace NuGetGallery
             }
 
             var user = _userService.FindByUsername(GetIdentity().Name);
-            if (!user.Confirmed)
-            {
-                HttpContext.SetConfirmationContext("contact package owners", Url.Current());
-                return new RedirectResult(Url.ConfirmationRequired());
-            }
-
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
             _messageService.SendContactOwnersMessage(
                 fromAddress, package, contactForm.Message, Url.Action(MVC.Users.Edit(), protocol: Request.Url.Scheme));
@@ -544,6 +530,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("unlist a package")]
         public virtual ActionResult Delete(string id, string version)
         {
             return GetPackageOwnerActionFormResult(id, version);
@@ -551,6 +538,7 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
+        [RequiresAccountConfirmation("unlist a package")]
         [ValidateAntiForgeryToken]
         public virtual ActionResult Delete(string id, string version, bool? listed)
         {
@@ -559,6 +547,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("edit a package")]
         public virtual ActionResult Edit(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
@@ -590,6 +579,7 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
+        [RequiresAccountConfirmation("edit a package")]
         [ValidateAntiForgeryToken]
         public virtual ActionResult Edit(string id, string version, EditPackageRequest formData, string returnUrl)
         {
@@ -630,6 +620,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("accept ownership of a package")]
         public virtual ActionResult ConfirmOwner(string id, string username, string token)
         {
             if (String.IsNullOrEmpty(token))
@@ -723,6 +714,7 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<ActionResult> VerifyPackage()
         {
             var currentUser = _userService.FindByUsername(GetIdentity().Name);
@@ -796,6 +788,7 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
+        [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
         {

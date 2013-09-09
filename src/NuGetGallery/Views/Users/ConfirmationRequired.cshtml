@@ -12,7 +12,7 @@ else
     <h2>Confirm Your Email Address</h2>
 
     <p class="long note">
-        You must confirm your email address before you can @(Model.DoAction).
+        You must confirm your email address before you can @(Model.DoAction ?? "proceed").
     </p>
 
     using (Html.BeginForm())

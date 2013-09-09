@@ -23,7 +23,17 @@ namespace NuGetGallery
         public static string GetConfirmationAction(this HttpContextBase httpContext)
         {
             var cookie = httpContext.Request.Cookies.Get("ConfirmationContext");
+            if (cookie == null)
+            {
+                return null;
+            }
+
             var protectedJson = cookie.Value;
+            if (String.IsNullOrEmpty(protectedJson))
+            {
+                return null;
+            }
+
             string json = Encoding.UTF8.GetString(MachineKey.Unprotect(Convert.FromBase64String(protectedJson), "ConfirmationContext"));
             var confirmationContext = JsonConvert.DeserializeObject<ConfirmationContext>(json);
             return confirmationContext.Act;
@@ -32,6 +42,11 @@ namespace NuGetGallery
         public static string GetConfirmationReturnUrl(this HttpContextBase httpContext)
         {
             var cookie = httpContext.Request.Cookies.Get("ConfirmationContext");
+            if (cookie == null)
+            {
+                return null;
+            }
+
             var protectedJson = cookie.Value;
             if (String.IsNullOrEmpty(protectedJson))
             {

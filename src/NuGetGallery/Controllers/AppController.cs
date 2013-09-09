@@ -10,7 +10,7 @@ namespace NuGetGallery
             get { return User.Identity; }
         }
 
-        protected virtual T GetService<T>()
+        protected internal virtual T GetService<T>()
         {
             return DependencyResolver.Current.GetService<T>();
         }
