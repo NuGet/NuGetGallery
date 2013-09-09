@@ -121,6 +121,7 @@
     <Compile Include="Jobs\HandleQueuedPackageEditsJob.cs" />
     <Compile Include="Jobs\PurgePackageStatisticsJob.cs" />
     <Compile Include="Jobs\ReplicatePackageStatisticsJob.cs" />
+    <Compile Include="Jobs\UpdateLicenseReportsJob.cs" />
     <Compile Include="Jobs\WorkerJob.cs" />
     <Compile Include="JsonLayout.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

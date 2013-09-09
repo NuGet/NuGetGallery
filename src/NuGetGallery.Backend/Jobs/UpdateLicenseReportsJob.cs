@@ -1,28 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Data.SqlClient;
-using NuGetGallery.Operations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using NuGetGallery.Operations.Tasks;
 
 namespace NuGetGallery.Backend.Jobs
 {
     [Export(typeof(WorkerJob))]
-    public class BackupDatabaseJob : WorkerJob
+    public class UpdateLicenseReportsJob : WorkerJob
     {
         public override TimeSpan Period
         {
             get
             {
-                return TimeSpan.FromMinutes(5);
+                return TimeSpan.FromMinutes(30);
             }
         }
 
         public override void RunOnce()
         {
-            ExecuteTask(new BackupDatabaseTask
+            ExecuteTask(new UpdateLicenseReportsTask
             {
                 ConnectionString = new SqlConnectionStringBuilder(Settings.MainConnectionString),
                 WhatIf = Settings.WhatIf,
-                IfOlderThan = 30,
+                LicenseReportService = Settings.LicenseReportService,
+                LicenseReportCredentials = Settings.LicenseReportCredentials
             });
         }
     }

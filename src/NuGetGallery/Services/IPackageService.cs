@@ -49,5 +49,7 @@ namespace NuGetGallery
         ConfirmOwnershipResult ConfirmPackageOwner(PackageRegistration package, User user, string token);
         void AddPackageOwner(PackageRegistration package, User user);
         void RemovePackageOwner(PackageRegistration package, User user);
+
+        void SetLicenseReportVisibility(Package package, bool visible, bool commitChanges = true);
     }
 }

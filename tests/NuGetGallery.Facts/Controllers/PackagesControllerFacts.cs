@@ -1668,5 +1668,44 @@ namespace NuGetGallery
                 Assert.Equal("haha", progress.FileName);
             }
         }
+
+        public class TheSetLicenseReportVisibilityMethod
+        {
+            [Fact]
+            public void IndexingAndPackageServicesAreUpdated()
+            {
+                // Arrange
+                var package = new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Foo" },
+                        Version = "1.0",
+                        HideLicenseReport = true
+                    };
+                package.PackageRegistration.Owners.Add(new User("Smeagol", "foo"));
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.SetLicenseReportVisibility(It.IsAny<Package>(), It.Is<bool>(t => t == true), It.IsAny<bool>())).Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.SetLicenseReportVisibility(It.IsAny<Package>(), It.Is<bool>(t => t == false), It.IsAny<bool>())).Verifiable();
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", true)).Returns(package).Verifiable();
+
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
+                httpContext.Setup(h => h.User.Identity.Name).Returns("Smeagol");
+
+                var indexingService = new Mock<IIndexingService>();
+
+                var controller = CreateController(packageService: packageService, httpContext: httpContext, indexingService: indexingService);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = controller.SetLicenseReportVisibility("Foo", "1.0", visible: false, urlFactory: p => @"~\Bar.cshtml");
+
+                // Assert
+                packageService.Verify();
+                indexingService.Verify(i => i.UpdatePackage(package));
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+            }
+        }
     }
 }

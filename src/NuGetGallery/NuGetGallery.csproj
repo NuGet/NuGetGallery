@@ -288,6 +288,7 @@
     <Compile Include="Areas\Admin\Controllers\ConfigController.cs" />
     <Compile Include="Areas\Admin\ViewModels\ConfigViewModel.cs" />
     <Compile Include="Configuration\ConfigurationService.cs" />
+    <Compile Include="Configuration\FeatureConfiguration.cs" />
     <Compile Include="Configuration\LuceneIndexLocation.cs" />
     <Compile Include="Configuration\MailAddressConverter.cs" />
     <Compile Include="Configuration\SmtpUri.cs" />
@@ -789,6 +790,13 @@
     <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.cs" />
     <Compile Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.Designer.cs">
       <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    <Compile Include="Migrations\201308170021456_LicenseReports.cs" />
+    <Compile Include="Migrations\201308170021456_LicenseReports.Designer.cs">
+      <DependentUpon>201308170021456_LicenseReports.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201308170024153_AddPackageLicenseReportSproc.cs" />
+    <Compile Include="Migrations\201308170024153_AddPackageLicenseReportSproc.Designer.cs">
+      <DependentUpon>201308170024153_AddPackageLicenseReportSproc.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -941,6 +949,7 @@
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\TrivialPackageVersionModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
+    <Compile Include="Views\NuGetViewBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -1132,6 +1141,7 @@
     <Content Include="favicon.ico" />
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AggregateStatistics.sql" />
+    <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="robots.txt" />
     <Content Include="Content\font\fontawesome-webfont.eot" />
     <Content Include="Content\font\fontawesome-webfont.ttf" />
@@ -1235,6 +1245,11 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308201916523_AddPackageEditLastErrorColumn.resx">
       <DependentUpon>201308201916523_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201308170021456_LicenseReports.resx">
+      <DependentUpon>201308170021456_LicenseReports.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201308170024153_AddPackageLicenseReportSproc.resx">
+      <DependentUpon>201308170024153_AddPackageLicenseReportSproc.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
