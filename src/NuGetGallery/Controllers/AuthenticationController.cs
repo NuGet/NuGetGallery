@@ -117,11 +117,7 @@ namespace NuGetGallery
             if (RedirectHelper.SafeRedirectUrl(Url, returnUrl) != RedirectHelper.SafeRedirectUrl(Url, null))
             {
                 // User was on their way to a page other than the home page. Redirect them with a thank you for registering message.
-                TempData["Message"] = "Thank you for registering!";
-                if (RedirectHelper.SafeRedirectUrl(Url, returnUrl) != RedirectHelper.SafeRedirectUrl(Url, Url.ConfirmationRequired()))
-                {
-                    TempData["Message"] += " Please continue whatever you were doing. You can confirm your account later.";
-                }
+                TempData["Message"] = "Thank you for registering! Please continue whatever you were doing.";
                 return new RedirectResult(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
             }
 
