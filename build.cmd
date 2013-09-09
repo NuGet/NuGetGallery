@@ -1,1 +1,1 @@
-@"%windir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "%~dp0build\NuGetGallery.msbuild" /t:Build /v:M
+@"%windir%\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "%~dp0build\NuGetGallery.msbuild" /t:Build /v:M /p:Platform=x86 %*
