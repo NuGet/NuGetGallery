@@ -1,4 +1,5 @@
-﻿@{
+﻿@model RegisterRequest
+@{
     ViewBag.Title = "Sign In";
 }
 
@@ -12,6 +13,7 @@
 
 <div id="Register">
     <h1>Register</h1>
-
-    @Html.Partial("_RegisterForm", new RegisterRequest())
+    
+    @Html.ValidationSummary(true)
+    @Html.Partial("_RegisterForm", Model)
 </div>

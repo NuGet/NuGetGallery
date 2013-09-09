@@ -1553,6 +1553,10 @@ input:focus ~ .field-validation-error ~ .field-hint-message { display: none; }
     font-weight: 600;
 }
 
+.validation-summary-errors li {
+    list-style: none;
+}
+
 .PoliteCaptcha.editor-field .field-validation-error {
     position: static;
     width: 300px;

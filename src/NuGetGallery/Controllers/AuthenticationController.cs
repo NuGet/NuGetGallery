@@ -28,24 +28,36 @@ namespace NuGetGallery
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
+            if (User.Identity.IsAuthenticated)
+            {
+                ModelState.AddModelError(String.Empty, "You are already logged in!");
+                return View();
+            }
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult LogOn(SignInRequest request, string returnUrl)
+        public virtual ActionResult SignIn(SignInRequest request, string returnUrl)
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
-            // TODO: improve the styling of the validation summary
-            // TODO: modify the Object.cshtml partial to make the first text box autofocus, or use additional metadata
+            if (User.Identity.IsAuthenticated)
+            {
+                ModelState.AddModelError(String.Empty, "You are already logged in!");
+                return View();
+            }
 
             if (!ModelState.IsValid)
             {
                 return View();
             }
+
+            // TODO: improve the styling of the validation summary
+            // TODO: modify the Object.cshtml partial to make the first text box autofocus, or use additional metadata
 
             var user = UserService.FindByUsernameOrEmailAddressAndPassword(
                 request.UserNameOrEmail,
@@ -61,56 +73,30 @@ namespace NuGetGallery
             }
 
             SetAuthenticationCookie(user);
-
             return SafeRedirect(returnUrl);
-        }
-
-        public virtual ActionResult LogOff(string returnUrl)
-        {
-            // TODO: this should really be a POST
-
-            FormsAuth.SignOut();
-
-            return SafeRedirect(returnUrl);
-        }
-
-        [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult Register()
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                ModelState.AddModelError(String.Empty, "You cannot register because you are already logged in!");
-                return View();
-            }
-
-            // We don't want Login to have us as a return URL. 
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        public virtual ActionResult Register(RegisterRequest request)
+        public virtual ActionResult Register(RegisterRequest request, string returnUrl)
         {
+            // I think it should be obvious why we don't want the current URL to be the return URL here ;)
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
             if (User.Identity.IsAuthenticated)
             {
-                ModelState.AddModelError(String.Empty, "You cannot register because you are already logged in!");
+                ModelState.AddModelError(String.Empty, "You are already logged in!");
                 return View();
             }
-
-            // If we have to render a view, we don't want Login to have us as a return URL
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-
-            // TODO: consider client-side validation for unique username
-            // TODO: add email validation
 
             if (!ModelState.IsValid)
             {
                 return View();
             }
+
+            // TODO: consider client-side validation for unique username
+            // TODO: add email validation
 
             User user;
             try
@@ -127,8 +113,16 @@ namespace NuGetGallery
             }
 
             SetAuthenticationCookie(user);
-
             return RedirectToAction(MVC.Users.Thanks());
+        }
+
+        public virtual ActionResult LogOff(string returnUrl)
+        {
+            // TODO: this should really be a POST
+
+            FormsAuth.SignOut();
+
+            return SafeRedirect(returnUrl);
         }
 
         [NonAction]

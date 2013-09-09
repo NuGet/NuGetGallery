@@ -1227,6 +1227,8 @@
     <Content Include="Views\Users\ConfirmationRequired.cshtml" />
     <Content Include="Views\Authentication\_SignInForm.cshtml" />
     <Content Include="Views\Authentication\_RegisterForm.cshtml" />
+    <Content Include="Views\Authentication\Register.cshtml" />
+    <Content Include="Views\Authentication\SignIn.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">
