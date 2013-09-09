@@ -34,7 +34,7 @@ namespace NuGetGallery
                 version: 1,
                 name: userName,
                 issueDate: DateTime.UtcNow,
-                expiration: DateTime.UtcNow.AddDays(5),
+                expiration: DateTime.UtcNow.AddYears(200),
                 isPersistent: createPersistentCookie,
                 userData: formattedRoles
                 );
