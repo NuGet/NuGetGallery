@@ -51,9 +51,7 @@
     <p>
         Your API key provides you with a token that identifies you to the gallery. 
         Keep this a secret. You can always regenerate your key at any time (invalidating 
-        previous keys) if your token is accidentally revealed. The 
-        <a href="http://nuget.codeplex.com/">NuGet</a> command-line utility allows you to 
-        submit a NuGet package to the gallery, and you would pass you token like this:
+        previous keys) if your token is accidentally revealed.
     </p>
     
     <div id="generateKey">
@@ -66,7 +64,9 @@
                 <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
                         width="0"
                         height="0"
-                        id="clippy">
+                        id="clippy" 
+                        aria-hidden="true"
+                        role="presentation">
                     <param name="movie" value="@Url.Content("~/Content/clippy.swf")">
                     <param name="allowScriptAccess" value="always" />
                     <param name="quality" value="high" />
@@ -74,8 +74,10 @@
                     <param name="FlashVars" value="text=@Model.ApiKey">
                     <param name="bgcolor" value="#fff">
                     <embed src="@Url.Content("~/Content/clippy.swf")"
-                           width="110"
-                           height="14"
+                           width="0"
+                           height="0"
+                           aria-hidden="true"
+                           role="presentation"
                            name="clippy"
                            quality="high"
                            allowscriptaccess="always"
@@ -119,8 +121,8 @@ nuget.exe push MyPackage.1.0.nupkg</pre>
                     // We hide clippy using width=0,height=0 because IE9 renders it above 
                     // the overlay wrapper no matter what we do :(. IE9 only looks at the object tag though
                     // so we can avoid doing it on the embed for Chrome and Firefox.
-                    $("#clippy").attr('width', 110);
-                    $("#clippy").attr('height', 14);
+                    $("#clippy, #clippy embed").attr('width', 110);
+                    $("#clippy, #clippy embed").attr('height', 14);
                 });
                 return false;
             });
