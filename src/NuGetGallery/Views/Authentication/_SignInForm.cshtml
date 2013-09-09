@@ -6,6 +6,7 @@
         <legend>Sign In Form</legend>
 
         @Html.AntiForgeryToken()
+        @Html.Hidden("ReturnUrl", ViewData[Constants.ReturnUrlViewDataKey])
 
         <div class="form-field">
             @Html.LabelFor(m => m.UserNameOrEmail)

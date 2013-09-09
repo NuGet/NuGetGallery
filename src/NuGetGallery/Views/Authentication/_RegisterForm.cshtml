@@ -6,6 +6,7 @@
         <legend>Register Form</legend>
 
         @Html.AntiForgeryToken()
+        @Html.Hidden("ReturnUrl", ViewData[Constants.ReturnUrlViewDataKey])
 
         <div class="form-field">
             @Html.LabelFor(m => m.Username)
@@ -24,7 +25,7 @@
             @Html.EditorFor(m => m.EmailAddress)
             @Html.ValidationMessageFor(m => m.EmailAddress)
         </div>
-        
+
         <input type="submit" value="Register" title="Register" />
 
         <p id="form-field-register-policies">
