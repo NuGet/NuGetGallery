@@ -6,12 +6,12 @@
     Thanks for registering!
 </h1>
 
-<h2>You might like to...</h2>
+<h2>Now that you have an account you might like to...</h2>
 
 <ul>
     <li>
         <p>
-            Click <span class="welcome"><a href="@Url.Action(MVC.Users.Edit())">here</a></span> to set up your user profile.
+            Set up your <a href="@Url.Action(MVC.Users.Edit())">user profile</a>.
         </p>
     </li>
 
@@ -20,4 +20,20 @@
             Click on <em>Upload package</em> in the menu to start uploading packages.
         </p>
     </li>
+    
+    <li>
+        <p>
+            Contact the owners of a package with a question. You can do this from the package page.
+        </p>
+    </li>
+
+    <li>
+        <p>
+            Look up your <a href="@Url.Action(MVC.Users.Account())">API Key</a> for use with nuget.exe.<br />
+        </p>
+    </li>
 </ul>
+
+<p>
+    Note: you will need to <a href="@Url.ConfirmationRequired()">confirm your account</a> before you can use an API key to push packages.
+</p>
