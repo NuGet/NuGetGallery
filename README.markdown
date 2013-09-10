@@ -23,8 +23,9 @@ website for the NuGet client. For information about the NuGet clients, visit htt
 4. Create the Database!
  1. Open Visual Studio 2012
  2. Open the Package Manager Console window
- 2. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
- 3. Run the following command in the Package Manager Console:
+ 3. Ensure that the Default Project is set to `NugetGallery`
+ 4. Open the NuGetGallery.sln solution from the root of this repository. ***Important:*** Make sure the Package Manager Console has been opened once before you open the solution. If the solution was already open, open the package manager console and then close and re-open the solution (from the file menu)
+ 5. Run the following command in the Package Manager Console:
  
     ```
     Update-Database
