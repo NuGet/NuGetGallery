@@ -803,6 +803,10 @@
     <Compile Include="Migrations\201309092041546_AddPackageLicenseReportSproc.Designer.cs">
       <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.cs" />
+    <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.Designer.cs">
+      <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -825,6 +829,7 @@
     <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
+    <Compile Include="SemanticVersionExtensions.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
@@ -1259,6 +1264,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201309092041546_AddPackageLicenseReportSproc.resx">
       <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309101922464_NormalizedVersionColumn.resx">
+      <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
