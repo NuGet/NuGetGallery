@@ -30,7 +30,7 @@ namespace NuGetGallery
 
         }
 
-        public static string ToDisplayString(this SemanticVersion self)
+        public static string ToNormalizedStringSafe(this SemanticVersion self)
         {
             return self != null ? self.ToNormalizedString() : String.Empty;
         }

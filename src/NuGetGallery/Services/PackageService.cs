@@ -136,7 +136,10 @@ namespace NuGetGallery
             {
                 package = packageVersions.SingleOrDefault(
                     p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
-                         p.Version.Equals(version, StringComparison.OrdinalIgnoreCase));
+                         (
+                            p.Version.Equals(version, StringComparison.OrdinalIgnoreCase) ||
+                            p.NormalizedVersion.Equals(SemanticVersionExtensions.Normalize(version), StringComparison.OrdinalIgnoreCase)
+                         ));
             }
             return package;
         }
@@ -419,7 +422,10 @@ namespace NuGetGallery
 
             package = new Package
             {
-                Version = nugetPackage.Metadata.Version.ToString(),
+                // Both columns are the same for new packages, but old packages only have a new normalized package version
+                Version = nugetPackage.Metadata.Version.ToNormalizedString(),
+                NormalizedVersion = nugetPackage.Metadata.Version.ToNormalizedString(),
+
                 Description = nugetPackage.Metadata.Description,
                 ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
                 HashAlgorithm = Constants.Sha512HashAlgorithmId,

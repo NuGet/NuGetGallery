@@ -733,7 +733,7 @@ namespace NuGetGallery
                 new VerifyPackageRequest
                 {
                     Id = packageMetadata.Id,
-                    Version = packageMetadata.Version.ToStringSafe(),
+                    Version = packageMetadata.Version.ToNormalizedStringSafe(),
                     LicenseUrl = packageMetadata.LicenseUrl.ToStringSafe(),
                     Listed = true,
                     Edit = new EditPackageVersionRequest
@@ -795,7 +795,7 @@ namespace NuGetGallery
                 if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
                 {
                     if (!(String.Equals(nugetPackage.Metadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
-                        && String.Equals(nugetPackage.Metadata.Version.ToString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
+                        && String.Equals(nugetPackage.Metadata.Version.ToNormalizedString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
                         return new RedirectResult(Url.VerifyPackage());

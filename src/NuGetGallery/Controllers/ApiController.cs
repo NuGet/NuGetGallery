@@ -231,17 +231,17 @@ namespace NuGetGallery
                     }
 
                     // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                    bool packageExists =
-                        packageRegistration.Packages.Any(
-                            p =>
-                            p.Version.Equals(packageToPush.Metadata.Version.ToString(),
-                                             StringComparison.OrdinalIgnoreCase));
-                    if (packageExists)
+                    Package duplicatePackage =
+                        PackageService.FindPackageByIdAndVersion(
+                            packageToPush.Metadata.Id,
+                            packageToPush.Metadata.Version.ToStringSafe());
+
+                    if (duplicatePackage != null)
                     {
                         return new HttpStatusCodeWithBodyResult(
                             HttpStatusCode.Conflict,
                             String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                          packageToPush.Metadata.Id, packageToPush.Metadata.Version));
+                                          packageToPush.Metadata.Id, packageToPush.Metadata.Version.ToNormalizedStringSafe()));
                     }
                 }
 
