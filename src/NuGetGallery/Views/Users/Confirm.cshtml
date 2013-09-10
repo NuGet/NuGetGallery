@@ -5,31 +5,12 @@
 @if (Model.SuccessfulConfirmation)
 {
     <p>
-        @if (Model.ConfirmingNewAccount)
-        {
-            @: Account registration completed!
-        }
-        else
-        {
-            @: Email address change confirmed!
-        }
+        Account confirmed! Your email address has been verified.
     </p>
-    if (Model.ConfirmingNewAccount)
-    {
-        <p>
-            Click on the 'Sign In' link to log on to the site.
-        </p>
-        <p>
-            You may now upload packages and make your mark in 
-            the community.
-        </p>
-    }
-    else
-    {
-        <p>
-            Your email address is now updated.
-        </p>
-    }
+    <p>
+        You may now upload packages and make your mark in 
+        the community.
+    </p>
 }
 
 else

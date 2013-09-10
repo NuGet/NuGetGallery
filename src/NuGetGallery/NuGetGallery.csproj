@@ -821,6 +821,7 @@
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="Queries\PackageVersionsQuery.cs" />
     <Compile Include="Queries\PackageIdsQuery.cs" />
+    <Compile Include="RequestModels\ChangeEmailRequestModel.cs" />
     <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
@@ -1230,6 +1231,7 @@
     <Content Include="Views\Authentication\_RegisterForm.cshtml" />
     <Content Include="Views\Authentication\Register.cshtml" />
     <Content Include="Views\Authentication\SignIn.cshtml" />
+    <Content Include="Views\Users\ChangeEmail.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config">

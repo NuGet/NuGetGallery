@@ -67,22 +67,11 @@ namespace NuGetGallery
             return newUser;
         }
 
-        public void UpdateProfile(User user, string emailAddress, bool emailAllowed)
+        public void UpdateProfile(User user, bool emailAllowed)
         {
             if (user == null)
             {
                 throw new ArgumentNullException("user");
-            }
-
-            if (emailAddress != user.EmailAddress)
-            {
-                var existingUser = FindByEmailAddress(emailAddress);
-                if (existingUser != null && existingUser.Key != user.Key)
-                {
-                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
-                }
-                user.UnconfirmedEmailAddress = emailAddress;
-                user.EmailConfirmationToken = Crypto.GenerateToken();
             }
 
             user.EmailAllowed = emailAllowed;
@@ -175,6 +164,27 @@ namespace NuGetGallery
             user.ApiKey = newApiKey;
             UserRepository.CommitChanges();
             return newApiKey.ToString();
+        }
+
+        public bool ChangeEmailAddress(string username, string password, string newEmailAddress)
+        {
+            var user = FindByUsernameAndPassword(username, password);
+            if (user == null)
+            {
+                return false;
+            }
+
+            var existingUser = FindByEmailAddress(newEmailAddress);
+            if (existingUser != null && existingUser.Key != user.Key)
+            {
+                throw new EntityException(Strings.EmailAddressBeingUsed, newEmailAddress);
+            }
+
+            string existingConfirmationToken = user.EmailConfirmationToken;
+            user.UnconfirmedEmailAddress = newEmailAddress;
+            user.EmailConfirmationToken = Crypto.GenerateToken();
+            UserRepository.CommitChanges();
+            return true;
         }
 
         public bool ChangePassword(string username, string oldPassword, string newPassword)

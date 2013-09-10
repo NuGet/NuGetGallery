@@ -89,6 +89,7 @@ namespace NuGetGallery
             var user = UserService.FindByUsername(CurrentUser.Identity.Name);
             var model = new EditProfileViewModel
                 {
+                    Username = user.Username,
                     EmailAddress = user.EmailAddress,
                     EmailAllowed = user.EmailAllowed,
                     PendingNewEmailAddress = user.UnconfirmedEmailAddress
@@ -101,42 +102,19 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult Edit(EditProfileViewModel profile)
         {
-            if (ModelState.IsValid)
+            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            if (user == null)
             {
-                var user = UserService.FindByUsername(CurrentUser.Identity.Name);
-                if (user == null)
-                {
-                    return HttpNotFound();
-                }
-
-                string existingConfirmationToken = user.EmailConfirmationToken;
-                try
-                {
-                    UserService.UpdateProfile(user, profile.EmailAddress, profile.EmailAllowed);
-                }
-                catch (EntityException ex)
-                {
-                    ModelState.AddModelError(String.Empty, ex.Message);
-                    return View(profile);
-                }
-
-                if (existingConfirmationToken == user.EmailConfirmationToken)
-                {
-                    TempData["Message"] = "Account settings saved!";
-                }
-                else
-                {
-                    TempData["Message"] =
-                        "Account settings saved! We sent a confirmation email to verify your new email. When you confirm the email address, it will take effect and we will forget the old one.";
-
-                    var confirmationUrl = Url.ConfirmationUrl(
-                        MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
-                    MessageService.SendEmailChangeConfirmationNotice(new MailAddress(profile.EmailAddress, user.Username), confirmationUrl);
-                }
-
-                return RedirectToAction(MVC.Users.Account());
+                return HttpNotFound();
             }
-            return View(profile);
+
+            if (!ModelState.IsValid)
+            {
+                return View(profile);
+            }
+
+            UserService.UpdateProfile(user, profile.EmailAllowed);
+            return RedirectToAction(MVC.Users.Account());
         }
 
         public virtual ActionResult Thanks()
@@ -315,6 +293,58 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        public virtual ActionResult ChangeEmail()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        public virtual ActionResult ChangeEmail(ChangeEmailRequestModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            User user = UserService.FindByUsernameAndPassword(CurrentUser.Identity.Name, model.Password);
+            if (user == null)
+            {
+                ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
+                return View(model);
+            }
+            try
+            {
+                if (!UserService.ChangeEmailAddress(CurrentUser.Identity.Name, model.Password, model.NewEmail))
+                {
+                    ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
+                    return View(model);
+                }
+            }
+            catch (EntityException e)
+            {
+                ModelState.AddModelError("NewEmail", e.Message);
+                return View(model);
+            }
+
+            if (user.Confirmed)
+            {
+                var confirmationUrl = Url.ConfirmationUrl(
+                    MVC.Users.Confirm(), user.Username, user.EmailConfirmationToken, protocol: Request.Url.Scheme);
+                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
+
+                TempData["Message"] =
+                    "Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.";
+            }
+            else
+            {
+                TempData["Message"] = "Your new email address was saved!";
+            }
+
+            return RedirectToAction(MVC.Users.Edit());
+        }
+
+        [Authorize]
         public virtual ActionResult ChangePassword()
         {
             return View();
@@ -325,18 +355,17 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult ChangePassword(PasswordChangeViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                if (!UserService.ChangePassword(CurrentUser.Identity.Name, model.OldPassword, model.NewPassword))
-                {
-                    ModelState.AddModelError(
-                        "OldPassword",
-                        Strings.CurrentPasswordIncorrect);
-                }
-            }
-
             if (!ModelState.IsValid)
             {
+                return View(model);
+            }
+
+            if (!UserService.ChangePassword(CurrentUser.Identity.Name, model.OldPassword, model.NewPassword))
+            {
+                ModelState.AddModelError(
+                    "OldPassword",
+                    Strings.CurrentPasswordIncorrect);
+
                 return View(model);
             }
 

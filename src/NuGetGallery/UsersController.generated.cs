@@ -66,6 +66,7 @@ namespace NuGetGallery {
             public readonly string ResetPassword = "ResetPassword";
             public readonly string Confirm = "Confirm";
             public readonly string Profiles = "Profiles";
+            public readonly string ChangeEmail = "ChangeEmail";
             public readonly string ChangePassword = "ChangePassword";
             public readonly string PasswordChanged = "PasswordChanged";
         }
@@ -77,6 +78,7 @@ namespace NuGetGallery {
         [GeneratedCode("T4MVC", "2.0"), DebuggerNonUserCode]
         public class ViewNames {
             public readonly string Account = "~/Views/Users/Account.cshtml";
+            public readonly string ChangeEmail = "~/Views/Users/ChangeEmail.cshtml";
             public readonly string ChangePassword = "~/Views/Users/ChangePassword.cshtml";
             public readonly string Confirm = "~/Views/Users/Confirm.cshtml";
             public readonly string ConfirmationRequired = "~/Views/Users/ConfirmationRequired.cshtml";
@@ -175,6 +177,17 @@ namespace NuGetGallery {
         public override System.Web.Mvc.ActionResult Profiles(string username) {
             var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.Profiles);
             callInfo.RouteValueDictionary.Add("username", username);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ChangeEmail() {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangeEmail);
+            return callInfo;
+        }
+
+        public override System.Web.Mvc.ActionResult ChangeEmail(NuGetGallery.ChangeEmailRequestModel model) {
+            var callInfo = new T4MVC_ActionResult(Area, Name, ActionNames.ChangeEmail);
+            callInfo.RouteValueDictionary.Add("model", model);
             return callInfo;
         }
 
