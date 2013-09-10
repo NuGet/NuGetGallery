@@ -225,6 +225,13 @@ namespace NuGetGallery
 
         public virtual ActionResult DisplayPackage(string id, string version)
         {
+            string normalized = SemanticVersionExtensions.Normalize(version);
+            if (!String.Equals(version, normalized))
+            {
+                // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
+                return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
+            }
+
             var package = _packageService.FindPackageByIdAndVersion(id, version);
 
             if (package == null)
