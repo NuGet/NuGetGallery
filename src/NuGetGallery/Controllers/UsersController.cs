@@ -56,7 +56,6 @@ namespace NuGetGallery
             var model = new ConfirmationViewModel
             {
                 ConfirmingNewAccount = !(user.Confirmed),
-                DoAction = HttpContext.GetConfirmationAction(),
                 UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
             };
             return View(model);
@@ -76,7 +75,6 @@ namespace NuGetGallery
             var model = new ConfirmationViewModel
             {
                 ConfirmingNewAccount = !(user.Confirmed),
-                DoAction = HttpContext.GetConfirmationAction(),
                 UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
                 SentEmail = true,
             };

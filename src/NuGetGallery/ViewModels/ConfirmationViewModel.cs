@@ -2,8 +2,6 @@
 {
     public class ConfirmationViewModel
     {
-        public string DoAction { get; set; }
-
         public string UnconfirmedEmailAddress { get; set; }
 
         public bool ConfirmingNewAccount { get; set; }

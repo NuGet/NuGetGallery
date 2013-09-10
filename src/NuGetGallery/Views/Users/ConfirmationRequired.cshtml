@@ -1,6 +1,6 @@
 ﻿@model ConfirmationViewModel
 @{
-    ViewBag.Title = "Confirmation Required";
+    ViewBag.Title = "Confirm Your Account";
 }
 
 @if (Model.SentEmail)
@@ -9,11 +9,13 @@
 }
 else
 {
-    <h2>Confirm Account</h2>
-
-    <p class="long note">
-        You must verify your email address before you can @(Model.DoAction ?? "upload packages").
-    </p>
+    if (TempData.ContainsKey("ConfirmationRequiredMessage"))
+    {
+        <p class="message">@((string)TempData["ConfirmationRequiredMessage"])</p>
+    }
+    
+    <h2>Confirm Your Account</h2>    
+    
 
     using (Html.BeginForm())
     {
@@ -21,15 +23,13 @@ else
             <legend>Verify Email Address</legend>
             @Html.AntiForgeryToken()
 
-            @* make it look like a form field even though it isn't exactly *@
-            <div class="form-field">
-                <p>
-                Confirmation email will be sent to: <u>@(Model.UnconfirmedEmailAddress)</u>
-                @Html.ActionLink("(change)", "Edit", "Users")<br />
-                </p>
-            </div>
-
-            <input type="submit" value="Send Confirmation Email" title="Send Confirmation Email" style="width: auto;" />
+            <p>
+            Click the button to send confirmation email.
+            </p>
+            <p>
+            <input type="submit" value="Send Confirmation Email" title="Send Confirmation Email" style="width: auto; margin: 5px;" />
+            to @(Model.UnconfirmedEmailAddress) @Html.ActionLink("(change)", "Edit", "Users")
+            </p>
 
         </fieldset>
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Security.Principal;
 using System.Web.Mvc;
 
@@ -32,6 +33,9 @@ namespace NuGetGallery
             var currentUser = userService.FindByUsername(user.Identity.Name);
             if (!currentUser.Confirmed)
             {
+                controller.TempData["ConfirmationRequiredMessage"] = String.Format(
+                    CultureInfo.CurrentCulture,
+                    "Before you can {0} you must first confirm your email address.", _inOrderTo);
                 controller.HttpContext.SetConfirmationContext(_inOrderTo, controller.Url.Current());
                 filterContext.Result = new RedirectResult(controller.Url.ConfirmationRequired());
             }
