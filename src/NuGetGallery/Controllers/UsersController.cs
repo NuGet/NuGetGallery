@@ -260,7 +260,7 @@ namespace NuGetGallery
                 string returnUrl = HttpContext.GetConfirmationReturnUrl();
                 if (!String.IsNullOrEmpty(returnUrl))
                 {
-                    TempData["Message"] = "You have sucessfully confirmed your email address";
+                    TempData["Message"] = "You have successfully confirmed your email address!";
                     return new RedirectResult(RedirectHelper.SafeRedirectUrl(Url, returnUrl));
                 }
             }
