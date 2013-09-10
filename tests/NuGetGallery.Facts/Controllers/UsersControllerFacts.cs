@@ -413,62 +413,8 @@ namespace NuGetGallery
             }
         }
 
-        public class TheRegisterMethod
+        public class TheConfirmAction
         {
-            [Fact]
-            public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
-            {
-                var controller = new TestableUsersController();
-                controller.ModelState.AddModelError(String.Empty, "aFakeError");
-
-                var result = controller.Register(null) as ViewResult;
-
-                Assert.NotNull(result);
-                Assert.Empty(result.ViewName);
-            }
-
-            [Fact]
-            public void WillCreateTheUser()
-            {
-                var controller = new TestableUsersController();
-                controller.MockUserService
-                          .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                          .Returns(new User { Username = "theUsername", EmailAddress = "to@example.com" });
-                
-                controller.Register(
-                    new RegisterRequest
-                        {
-                            Username = "theUsername",
-                            Password = "thePassword",
-                            EmailAddress = "theEmailAddress",
-                        });
-
-                controller.MockUserService
-                          .Verify(x => x.Create("theUsername", "thePassword", "theEmailAddress"));
-            }
-
-            [Fact]
-            public void WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow()
-            {
-                var controller = new TestableUsersController();
-                controller.MockUserService
-                          .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                          .Throws(new EntityException("aMessage"));
-                
-                var result = controller.Register(
-                    new RegisterRequest
-                        {
-                            Username = "theUsername",
-                            Password = "thePassword",
-                            EmailAddress = "theEmailAddress",
-                        }) as ViewResult;
-
-                Assert.NotNull(result);
-                Assert.Empty(result.ViewName);
-                Assert.False(controller.ModelState.IsValid);
-                Assert.Equal("aMessage", controller.ModelState[String.Empty].Errors[0].ErrorMessage);
-            }
-
             [Fact]
             public void WillSendNewUserEmailIfConfirmationRequired()
             {
@@ -493,14 +439,14 @@ namespace NuGetGallery
                 controller.MockConfig
                           .Setup(x => x.ConfirmEmailAddresses)
                           .Returns(true);
-                
+
                 controller.Register(
                     new RegisterRequest
-                        {
-                            Username = "theUsername",
-                            Password = "thePassword",
-                            EmailAddress = "to@example.com",
-                        });
+                    {
+                        Username = "theUsername",
+                        Password = "thePassword",
+                        EmailAddress = "to@example.com",
+                    });
 
                 // We use a catch-all route for unit tests so we can see the parameters 
                 // are passed correctly.
