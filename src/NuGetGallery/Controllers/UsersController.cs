@@ -225,6 +225,7 @@ namespace NuGetGallery
             return RedirectToAction(MVC.Users.PasswordChanged());
         }
 
+        [Authorize]
         public virtual ActionResult Confirm(string username, string token)
         {
             // We don't want Login to have us as a return URL
