@@ -84,55 +84,57 @@ namespace NuGetGallery
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
             // The allow prerelease flag is ignored if both partialId and version are specified.
             // In general we want to try to add download statistics for any package regardless of whether a version was specified.
-            try
-            {
-                Package package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
-                if (package == null)
-                {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-                }
 
-                try
-                {
-                    var stats = new PackageStatistics
-                    {
-                        // IMPORTANT: Timestamp is managed by the database.
-                        IPAddress = Request.UserHostAddress,
-                        UserAgent = Request.UserAgent,
-                        Package = package,
-                        Operation = Request.Headers["NuGet-Operation"],
-                        DependentPackage = Request.Headers["NuGet-DependentPackage"],
-                        ProjectGuids = Request.Headers["NuGet-ProjectGuids"],
-                    };
+            // TEMPORARILY DISABLE Database Access
+            //try
+            //{
+            //    Package package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+            //    if (package == null)
+            //    {
+            //        return new HttpStatusCodeWithBodyResult(
+            //            HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+            //    }
 
-                    PackageService.AddDownloadStatistics(stats);
-                }
-                catch (ReadOnlyModeException)
-                {
-                    // *gulp* Swallowed. It's OK not to add statistics and ok to not log errors in read only mode.
-                }
-                catch (SqlException e)
-                {
-                    // Log the error and continue
-                    QuietlyLogException(e);
-                }
-                catch (DataException e)
-                {
-                    // Log the error and continue
-                    QuietlyLogException(e);
-                }
+            //    try
+            //    {
+            //        var stats = new PackageStatistics
+            //        {
+            //            // IMPORTANT: Timestamp is managed by the database.
+            //            IPAddress = Request.UserHostAddress,
+            //            UserAgent = Request.UserAgent,
+            //            Package = package,
+            //            Operation = Request.Headers["NuGet-Operation"],
+            //            DependentPackage = Request.Headers["NuGet-DependentPackage"],
+            //            ProjectGuids = Request.Headers["NuGet-ProjectGuids"],
+            //        };
 
-                return await PackageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
-            }
-            catch (SqlException e)
-            {
-                QuietlyLogException(e);
-            }
-            catch (DataException e)
-            {
-                QuietlyLogException(e);
-            }
+            //        PackageService.AddDownloadStatistics(stats);
+            //    }
+            //    catch (ReadOnlyModeException)
+            //    {
+            //        // *gulp* Swallowed. It's OK not to add statistics and ok to not log errors in read only mode.
+            //    }
+            //    catch (SqlException e)
+            //    {
+            //        // Log the error and continue
+            //        QuietlyLogException(e);
+            //    }
+            //    catch (DataException e)
+            //    {
+            //        // Log the error and continue
+            //        QuietlyLogException(e);
+            //    }
+
+            //    return await PackageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
+            //}
+            //catch (SqlException e)
+            //{
+            //    QuietlyLogException(e);
+            //}
+            //catch (DataException e)
+            //{
+            //    QuietlyLogException(e);
+            //}
 
             // Fall back to constructing the URL based on the package version and ID.
 
