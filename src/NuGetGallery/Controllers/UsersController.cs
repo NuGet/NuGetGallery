@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
 using System.Web.Mvc;
@@ -235,6 +236,11 @@ namespace NuGetGallery
             if (String.IsNullOrEmpty(token))
             {
                 return HttpNotFound();
+            }
+
+            if (!String.Equals(username, Identity.Name, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, "You cannot confirm another user's email address.");
             }
 
             var user = UserService.FindByUsername(username);
