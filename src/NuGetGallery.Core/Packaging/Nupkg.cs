@@ -230,7 +230,16 @@ namespace NuGetGallery.Packaging
             foreach (var file in GetFiles())
             {
                 string effectivePath;
-                var frameworkName = VersionUtility.ParseFrameworkNameFromFilePath(WebUtility.UrlDecode(file), out effectivePath);
+
+                //  depending on the version of the client the nupkg may contain either a full url encoded filename or not
+                //  url decoding will replace '+' with ' ' which will be a problem if the filename happened not to be url encoded
+                //  this impacts portable lib paths all of which contain '+'
+                //  solution is to always url decode but then put back in plus for a space - then the data should match the query
+
+                string decodedFilename = WebUtility.UrlDecode(file);
+                decodedFilename = decodedFilename.Replace(' ', '+');
+
+                var frameworkName = VersionUtility.ParseFrameworkNameFromFilePath(decodedFilename, out effectivePath);
                 if (frameworkName != null)
                 {
                     fileFrameworks.Add(frameworkName);
