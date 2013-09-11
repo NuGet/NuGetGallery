@@ -25,12 +25,23 @@ namespace NuGetGallery
 
         bool ConfirmEmailAddress(User user, string token);
 
-        bool ChangeEmailAddress(string username, string password, string newEmailAddress);
+        bool ChangeEmailAddress(User user, string newEmailAddress);
 
         bool ChangePassword(string username, string oldPassword, string newPassword);
 
         User GeneratePasswordResetToken(string usernameOrEmail, int tokenExpirationMinutes);
 
         bool ResetPasswordWithToken(string username, string token, string newPassword);
+    }
+
+    public static class IUserServiceExtensions
+    {
+        public static bool ChangeEmailAddress(this IUserService service, string username, string password, string newEmailAddress)
+        {
+            var user = service.FindByUsernameAndPassword(username, password);
+            return 
+                user != null &&
+                service.ChangeEmailAddress(user, newEmailAddress);
+        }
     }
 }

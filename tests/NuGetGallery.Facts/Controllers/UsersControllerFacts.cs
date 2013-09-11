@@ -239,7 +239,7 @@ namespace NuGetGallery
                           .Setup(u => u.FindByUsername(It.IsAny<string>()))
                           .Returns(user);
                 controller.MockUserService
-                          .Setup(u => u.UpdateProfile(user, "test@example.com", false))
+                          .Setup(u => u.UpdateProfile(user, false))
                           .Verifiable();
                 var model = new EditProfileViewModel { EmailAddress = "test@example.com", EmailAllowed = false };
 
@@ -247,61 +247,8 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 controller.MockUserService
-                          .Verify(u => u.UpdateProfile(user, "test@example.com", false));
+                          .Verify(u => u.UpdateProfile(user, false));
                 Assert.Equal("Account settings saved!", controller.TempData["Message"]);
-            }
-
-            [Fact]
-            public void SendsEmailChangeConfirmationNoticeWhenEmailConfirmationTokenChanges()
-            {
-                var user = new User
-                    {
-                        EmailAddress = "test@example.com",
-                        EmailAllowed = true
-                    };
-
-                var controller = new TestableUsersController();
-                controller.MockUserService
-                          .Setup(u => u.FindByUsername(It.IsAny<string>()))
-                          .Returns(user);
-                controller.MockUserService
-                          .Setup(u => u.UpdateProfile(user, "new@example.com", true))
-                          .Callback(() => user.EmailConfirmationToken = "token");
-                var model = new EditProfileViewModel { EmailAddress = "new@example.com", EmailAllowed = true };
-
-                var result = controller.Edit(model) as RedirectToRouteResult;
-
-                Assert.NotNull(result);
-                Assert.Equal(
-                    "Account settings saved! We sent a confirmation email to verify your new email. When you confirm the email address, it will take effect and we will forget the old one.",
-                    controller.TempData["Message"]);
-            }
-
-            [Fact]
-            public void DoesNotSendEmailChangeConfirmationNoticeWhenTokenDoesNotChange()
-            {
-                var user = new User
-                    {
-                        EmailAddress = "old@example.com",
-                        EmailAllowed = true,
-                        EmailConfirmationToken = "token"
-                    };
-
-                var controller = new TestableUsersController();
-                controller.MockUserService
-                          .Setup(u => u.FindByUsername(It.IsAny<string>()))
-                          .Returns(user);
-                controller.MockMessageService
-                          .Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()))
-                          .Throws(new InvalidOperationException());
-                var model = new EditProfileViewModel { EmailAddress = "old@example.com", EmailAllowed = true };
-
-                var result = controller.Edit(model) as RedirectToRouteResult;
-
-                Assert.NotNull(result);
-                Assert.Equal("Account settings saved!", controller.TempData["Message"]);
-                controller.MockUserService
-                          .Verify(u => u.UpdateProfile(user, It.IsAny<string>(), true));
             }
 
             [Fact]
@@ -413,10 +360,66 @@ namespace NuGetGallery
             }
         }
 
+        public class TheChangeEmailAction
+        {
+            [Fact]
+            public void SendsEmailChangeConfirmationNoticeWhenEmailConfirmationTokenChanges()
+            {
+                var user = new User
+                {
+                    EmailAddress = "test@example.com",
+                    EmailAllowed = true
+                };
+
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                          .Returns(user);
+                controller.MockUserService
+                          .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
+                          .Callback(() => user.EmailConfirmationToken = "token");
+                var model = new ChangeEmailRequestModel { NewEmail = "new@example.com" };
+
+                var result = controller.ChangeEmail(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(
+                    "Account settings saved! We sent a confirmation email to verify your new email. When you confirm the email address, it will take effect and we will forget the old one.",
+                    controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void DoesNotSendEmailChangeConfirmationNoticeWhenTokenDoesNotChange()
+            {
+                var user = new User
+                {
+                    EmailAddress = "old@example.com",
+                    EmailAllowed = true,
+                    EmailConfirmationToken = "token"
+                };
+
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                          .Returns(user);
+                controller.MockMessageService
+                          .Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()))
+                          .Throws(new InvalidOperationException());
+                var model = new ChangeEmailRequestModel{ NewEmail = "old@example.com" };
+
+                var result = controller.ChangeEmail(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("Account settings saved!", controller.TempData["Message"]);
+                controller.MockUserService
+                          .Verify(u => u.ChangeEmailAddress(user, "old@example.com"));
+            }
+        }
+
         public class TheConfirmAction
         {
             [Fact]
-            public void WillSendNewUserEmailIfConfirmationRequired()
+            public void WillSendNewUserEmailWhenPosted()
             {
                 string sentConfirmationUrl = null;
                 MailAddress sentToAddress = null;
@@ -440,13 +443,7 @@ namespace NuGetGallery
                           .Setup(x => x.ConfirmEmailAddresses)
                           .Returns(true);
 
-                controller.Register(
-                    new RegisterRequest
-                    {
-                        Username = "theUsername",
-                        Password = "thePassword",
-                        EmailAddress = "to@example.com",
-                    });
+                controller.ConfirmationRequiredPost();
 
                 // We use a catch-all route for unit tests so we can see the parameters 
                 // are passed correctly.

@@ -69,5 +69,26 @@ namespace NuGetGallery
             EmailConfirmationToken = null;
             UnconfirmedEmailAddress = null;
         }
+
+        public void UpdateEmailAddress(string newEmailAddress, Func<string> generateToken)
+        {
+            if (!String.IsNullOrEmpty(UnconfirmedEmailAddress))
+            {
+                if (String.Equals(UnconfirmedEmailAddress, newEmailAddress, StringComparison.Ordinal))
+                {
+                    return; // already set as latest (unconfirmed) email address
+                }
+            }
+            else
+            {
+                if (String.Equals(EmailAddress, newEmailAddress, StringComparison.Ordinal))
+                {
+                    return; // already set as latest (confirmed) email address
+                }
+            }
+
+            UnconfirmedEmailAddress = newEmailAddress;
+            EmailConfirmationToken = generateToken();
+        }
     }
 }

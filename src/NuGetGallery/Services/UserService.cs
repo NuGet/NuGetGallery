@@ -166,9 +166,8 @@ namespace NuGetGallery
             return newApiKey.ToString();
         }
 
-        public bool ChangeEmailAddress(string username, string password, string newEmailAddress)
+        public bool ChangeEmailAddress(User user, string newEmailAddress)
         {
-            var user = FindByUsernameAndPassword(username, password);
             if (user == null)
             {
                 return false;
@@ -180,9 +179,7 @@ namespace NuGetGallery
                 throw new EntityException(Strings.EmailAddressBeingUsed, newEmailAddress);
             }
 
-            string existingConfirmationToken = user.EmailConfirmationToken;
-            user.UnconfirmedEmailAddress = newEmailAddress;
-            user.EmailConfirmationToken = Crypto.GenerateToken();
+            user.UpdateEmailAddress(newEmailAddress, Crypto.GenerateToken);
             UserRepository.CommitChanges();
             return true;
         }
