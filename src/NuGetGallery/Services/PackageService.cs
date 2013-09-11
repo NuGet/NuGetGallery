@@ -11,6 +11,9 @@ namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
+        private static object _initLock = new object();
+        private static IDictionary<Tuple<string, string>, string> _versionMappingTable = null;
+
         private readonly IIndexingService _indexingService;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
@@ -662,6 +665,46 @@ namespace NuGetGallery
                 _packageRepository.CommitChanges();
             }
             _packageRepository.CommitChanges();
+        }
+
+        public string GetPackageFileVersion(string id, string version)
+        {
+            // Check if we have a version table
+            if (_versionMappingTable == null)
+            {
+                lock (_initLock)
+                {
+                    // Double check, since it could have been set while the lock was held.
+                    if (_versionMappingTable == null)
+                    {
+                        _versionMappingTable = LoadVersionMappingTable();
+                    }
+                }
+            }
+
+            // Normalize the provided input
+            version = SemanticVersionExtensions.Normalize(version);
+            
+            // Return the mapped value, if any. Otherwise, return the provided value
+            string mapped;
+            if (_versionMappingTable.TryGetValue(Tuple.Create(id, version), out mapped))
+            {
+                // Return the mapping
+                return mapped;
+            }
+            else
+            {
+                return version;
+            }
+        }
+
+        private IDictionary<Tuple<string, string>, string> LoadVersionMappingTable()
+        {
+            // Load all packages with a differing Version and NormalizedVersion
+            return _packageRepository.GetAll()
+                .Include(p => p.PackageRegistration)
+                .Where(p => p.Version != p.NormalizedVersion)
+                .ToDictionary(p => Tuple.Create(p.PackageRegistration.Id, p.NormalizedVersion), p => p.Version);
         }
     }
 }
