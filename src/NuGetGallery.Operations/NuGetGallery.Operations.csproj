@@ -206,6 +206,7 @@
     <Compile Include="Tasks\CuratedFeeds\CreateCuratedFeed.cs" />
     <Compile Include="Tasks\CuratedFeeds\DeleteCuratedFeedTask.cs" />
     <Compile Include="Tasks\CuratedFeeds\ListCuratedFeedsTask.cs" />
+    <Compile Include="Tasks\DataManagement\NormalizePackageVersionsTask.cs" />
     <Compile Include="Tasks\ExecuteAggregateStatisticsTask.cs" />
     <Compile Include="Tasks\CopyExternalPackagesTask.cs" />
     <Compile Include="Tasks\CreateWarehouseReportsTask.cs" />

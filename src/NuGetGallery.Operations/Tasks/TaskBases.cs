@@ -64,6 +64,9 @@ namespace NuGetGallery.Operations
         [Option("Connection string to the relevant database server", AltName = "db")]
         public SqlConnectionStringBuilder ConnectionString { get; set; }
 
+        [Option("Instead of -db, use this parameter to connect to a SQL LocalDb database of the specified name", AltName="ldb")]
+        public string LocalDbName { get; set; }
+
         protected string ServerName { get { return Util.GetDatabaseServerName(ConnectionString); } }
 
 
@@ -72,9 +75,21 @@ namespace NuGetGallery.Operations
             base.ValidateArguments();
 
             // Load defaults from environment
-            if (CurrentEnvironment != null && ConnectionString == null)
-            {
-                ConnectionString = GetConnectionFromEnvironment(CurrentEnvironment);
+            if(ConnectionString == null) {
+                if (CurrentEnvironment != null)
+                {
+                    ConnectionString = GetConnectionFromEnvironment(CurrentEnvironment);
+                }
+                if (ConnectionString == null && !String.IsNullOrEmpty(LocalDbName)) 
+                {
+                    Log.Info("Using LocalDB connection to {0}", LocalDbName);
+                    ConnectionString = new SqlConnectionStringBuilder()
+                    {
+                        DataSource = "(LocalDb)\v11.0",
+                        IntegratedSecurity = true,
+                        InitialCatalog = LocalDbName
+                    };
+                }
             }
 
             ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
