@@ -82,13 +82,13 @@ namespace NuGetGallery.Operations
                 }
                 if (ConnectionString == null && !String.IsNullOrEmpty(LocalDbName)) 
                 {
-                    Log.Info("Using LocalDB connection to {0}", LocalDbName);
                     ConnectionString = new SqlConnectionStringBuilder()
                     {
-                        DataSource = "(LocalDb)\v11.0",
+                        DataSource = @"(LocalDB)\v11.0",
                         IntegratedSecurity = true,
                         InitialCatalog = LocalDbName
                     };
+                    Log.Info("Using LocalDB connection: {0}", ConnectionString.ConnectionString);
                 }
             }
 
