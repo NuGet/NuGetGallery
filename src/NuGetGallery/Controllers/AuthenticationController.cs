@@ -31,9 +31,10 @@ namespace NuGetGallery
 
             if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
             {
-                ModelState.AddModelError(String.Empty, "You are already logged in!");
-                return View();
+                TempData["Message"] = "You are already logged in!";
+                return Redirect(returnUrl);
             }
+
             return View();
         }
 
