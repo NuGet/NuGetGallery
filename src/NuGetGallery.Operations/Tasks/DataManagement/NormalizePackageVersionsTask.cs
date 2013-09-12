@@ -94,7 +94,6 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                         string normalized = row.Field<string>("NormalizedVersion");
                         if (!String.Equals(version, normalized, StringComparison.Ordinal))
                         {
-                            //Log.Info("{0} {1} => {2}", id, version, normalized);
                             count++;
                         }
                     }
@@ -111,32 +110,6 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                             AND name = 'Temp_NormalizePackageVersionsInputType'
                         ) DROP TYPE Temp_NormalizePackageVersionsInputType");
                 }
-
-                // Crappy measurement of memory use by table
-                Log.Info("Measuring Memory Usage of In-Memory Table...");
-                var before = GC.GetTotalMemory(forceFullCollection: true);
-                Dictionary<Tuple<string, string>, string> mappingTable = new Dictionary<Tuple<string, string>, string>(count);
-                foreach (var row in output.Rows.Cast<DataRow>())
-                {
-                    string id = row.Field<string>("Id");
-                    string version = row.Field<string>("Version");
-                    string normalized = row.Field<string>("NormalizedVersion");
-                    if (!String.Equals(version, normalized, StringComparison.Ordinal))
-                    {
-                        var key = Tuple.Create(id, normalized);
-                        if (!mappingTable.ContainsKey(key))
-                        {
-                            mappingTable.Add(key, row.Field<string>("Version"));
-                        }
-                        else
-                        {
-                            Log.Warn("{0} {1} has duplicate source versions!", id, normalized);
-                        }
-                    }
-                }
-                var after = GC.GetTotalMemory(forceFullCollection: true);
-
-                Log.Info("Size of mapping table in memory: {1} items {0:0.00}MB", ((after - before) / (1024.0 * 1024.0)), mappingTable.Count);
             });
         }
     }
