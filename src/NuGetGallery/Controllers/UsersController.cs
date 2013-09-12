@@ -238,7 +238,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!String.Equals(username, Identity.Name, StringComparison.InvariantCultureIgnoreCase))
+            if (!String.Equals(username, CurrentUser.Identity.Name, StringComparison.InvariantCultureIgnoreCase))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, "You cannot confirm another user's email address.");
             }
@@ -312,7 +312,7 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            User user = UserService.FindByUsernameAndPassword(CurrentUser.Identity.Name, model.Password);
+            User user = UserService.FindByUsernameAndPassword(Identity.Name, model.Password);
             if (user == null)
             {
                 ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);

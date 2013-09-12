@@ -29,7 +29,7 @@ namespace NuGetGallery
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
-            if (User.Identity.IsAuthenticated)
+            if (User != null && User.Identity != null && User.Identity.IsAuthenticated)
             {
                 ModelState.AddModelError(String.Empty, "You are already logged in!");
                 return View();

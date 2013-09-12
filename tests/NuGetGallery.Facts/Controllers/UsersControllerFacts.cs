@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
+using FakeItEasy;
 
 namespace NuGetGallery
 {
@@ -378,8 +379,10 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
                           .Callback(() => user.EmailConfirmationToken = "token");
+                controller.MockCurrentIdentity
+                          .Setup(i => i.Name)
+                          .Returns("someName");
                 var model = new ChangeEmailRequestModel { NewEmail = "new@example.com" };
-
                 var result = controller.ChangeEmail(model) as RedirectToRouteResult;
 
                 Assert.NotNull(result);
@@ -398,9 +401,11 @@ namespace NuGetGallery
                     EmailConfirmationToken = "token"
                 };
 
-                var controller = new TestableUsersController();
+                var controller = A.Fake<TestableUsersController>(c => c.WithArgumentsForConstructor(new object[0]));
+                    //.Wrapping(new TestableUsersController()));
+                A.CallTo(() => controller.Identity).Returns(new GenericIdentity("aUsername"));
                 controller.MockUserService
-                          .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                          .Setup(u => u.FindByUsernameAndPassword(It.IsAny<string>(), It.IsAny<string>()))
                           .Returns(user);
                 controller.MockMessageService
                           .Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()))

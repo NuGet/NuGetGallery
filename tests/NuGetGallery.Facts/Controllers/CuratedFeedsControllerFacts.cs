@@ -37,7 +37,7 @@ namespace NuGetGallery
             public Mock<ISearchService> StubSearchService { get; private set; }
             public Mock<IIdentity> StubIdentity { get; private set; }
 
-            protected override IIdentity Identity
+            public override IIdentity Identity
             {
                 get { return StubIdentity.Object; }
             }
