@@ -82,13 +82,17 @@ namespace NuGetGallery
                 }
             }
 
+            // Normalize the version
+            version = SemanticVersionExtensions.Normalize(version);
+
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
             // The allow prerelease flag is ignored if both partialId and version are specified.
             // In general we want to try to add download statistics for any package regardless of whether a version was specified.
 
+            Package package = null;
             try
             {
-                Package package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+                package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
                 if (package == null)
                 {
                     return new HttpStatusCodeWithBodyResult(
@@ -134,11 +138,16 @@ namespace NuGetGallery
                 QuietlyLogException(e);
             }
             
-            // Check if there is a different file version from the specified package version
-            string fileVersion = PackageService.GetPackageFileVersion(id, version);
-
             // Fall back to constructing the URL based on the package version and ID.
-            return await PackageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, id, fileVersion);
+            if (String.IsNullOrEmpty(version) && package == null)
+            {
+                // Database was unavailable and we don't have a version, return a 503
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
+            }
+            return await PackageFileService.CreateDownloadPackageActionResultAsync(
+                HttpContext.Request.Url, 
+                id, 
+                String.IsNullOrEmpty(version) ? package.NormalizedVersion : version);
         }
 
         [HttpGet]
@@ -233,12 +242,15 @@ namespace NuGetGallery
                     }
 
                     // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                    Package duplicatePackage =
-                        PackageService.FindPackageByIdAndVersion(
-                            packageToPush.Metadata.Id,
-                            packageToPush.Metadata.Version.ToStringSafe());
+                    string normalizedVersion = packageToPush.Metadata.Version.ToNormalizedString();
+                    bool packageExists =
+                        packageRegistration.Packages.Any(
+                            p => String.Equals(
+                                p.NormalizedVersion,
+                                normalizedVersion,
+                                StringComparison.OrdinalIgnoreCase));
 
-                    if (duplicatePackage != null)
+                    if (packageExists)
                     {
                         return new HttpStatusCodeWithBodyResult(
                             HttpStatusCode.Conflict,

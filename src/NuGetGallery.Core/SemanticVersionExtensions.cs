@@ -14,7 +14,12 @@ namespace NuGetGallery
     {
         public static string Normalize(string version)
         {
-            return version == null ? null : new SemanticVersion(version).ToNormalizedString();
+            SemanticVersion parsed;
+            if (!SemanticVersion.TryParse(version, out parsed))
+            {
+                return version;
+            }
+            return parsed.ToNormalizedString();
         }
 
         public static string ToNormalizedString(this SemanticVersion self)

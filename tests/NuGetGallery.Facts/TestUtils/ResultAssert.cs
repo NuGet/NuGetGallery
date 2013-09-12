@@ -45,6 +45,33 @@ namespace NuGetGallery
             return view;
         }
 
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode)
+        {
+            return IsStatusCode(result, statusCode, statusDescription: null);
+        }
+
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode, string statusDescription)
+        {
+            var statusResult = Assert.IsType<HttpStatusCodeResult>(result);
+            Assert.Equal((int)statusCode, statusResult.StatusCode);
+            Assert.Equal(statusDescription, statusResult.StatusDescription);
+            return statusResult;
+        }
+
+        public static HttpStatusCodeResult IsStatusCodeWithBody(ActionResult result, HttpStatusCode statusCode, string statusDescription)
+        {
+            return IsStatusCodeWithBody(result, statusCode, statusDescription, body: statusDescription);
+        }
+
+        public static HttpStatusCodeWithBodyResult IsStatusCodeWithBody(ActionResult result, HttpStatusCode statusCode, string statusDescription, string body)
+        {
+            var statusResult = Assert.IsType<HttpStatusCodeWithBodyResult>(result);
+            Assert.Equal((int)statusCode, statusResult.StatusCode);
+            Assert.Equal(statusDescription, statusResult.StatusDescription);
+            Assert.Equal(body, statusResult.Body);
+            return statusResult;
+        }
+
         private static void DictionariesMatch<K, V>(IDictionary<K, V> expected, IDictionary<K, V> actual)
         {
             var expectedKeys = expected.Keys.Cast<object>().ToList();
@@ -58,17 +85,6 @@ namespace NuGetGallery
 
             // Make sure we used all the expected keys (Assert.True lets us provide a message)
             Assert.True(expectedKeys.Count == 0, "Missing keys: " + String.Join(",", expectedKeys));
-        }
-
-        public static void IsStatusCode(ActionResult result, HttpStatusCode code)
-        {
-            IsStatusCode(result, (int)code);
-        }
-
-        public static void IsStatusCode(ActionResult result, int code)
-        {
-            var statusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
-            Assert.Equal(code, statusCodeResult.StatusCode);
         }
     }
 }

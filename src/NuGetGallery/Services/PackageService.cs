@@ -140,7 +140,6 @@ namespace NuGetGallery
                 package = packageVersions.SingleOrDefault(
                     p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
                          (
-                            p.Version.Equals(version, StringComparison.OrdinalIgnoreCase) ||
                             p.NormalizedVersion.Equals(SemanticVersionExtensions.Normalize(version), StringComparison.OrdinalIgnoreCase)
                          ));
             }
