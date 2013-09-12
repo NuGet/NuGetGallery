@@ -5,12 +5,9 @@ namespace NuGetGallery
 {
     public abstract partial class AppController : Controller
     {
-        private IIdentity testHookIdentity;
-
         public virtual IIdentity Identity
         {
-            get { return testHookIdentity ?? User.Identity; }
-            set { testHookIdentity = value; }
+            get { return User.Identity; }
         }
 
         protected internal virtual T GetService<T>()

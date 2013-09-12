@@ -240,7 +240,7 @@ namespace NuGetGallery
 
             if (!String.Equals(username, CurrentUser.Identity.Name, StringComparison.InvariantCultureIgnoreCase))
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, "You cannot confirm another user's email address.");
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, "You are not logged in as the correct user to performthis action.");
             }
 
             var user = UserService.FindByUsername(username);
@@ -312,7 +312,7 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            User user = UserService.FindByUsernameAndPassword(Identity.Name, model.Password);
+            User user = UserService.FindByUsernameAndPassword(CurrentUser.Identity.Name, model.Password);
             if (user == null)
             {
                 ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);

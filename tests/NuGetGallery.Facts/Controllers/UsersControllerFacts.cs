@@ -7,7 +7,6 @@ using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
-using FakeItEasy;
 
 namespace NuGetGallery
 {
@@ -19,9 +18,9 @@ namespace NuGetGallery
             public void WillGetTheCurrentUserUsingTheRequestIdentityName()
             {
                 var controller = new TestableUsersController();
-                controller.MockCurrentIdentity
-                          .Setup(stub => stub.Name)
-                          .Returns("theUsername");
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("theUsername"));
                 controller.MockUserService
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(new User { Key = 42 });
@@ -88,10 +87,27 @@ namespace NuGetGallery
         public class TheConfirmMethod
         {
             [Fact]
+            public void Returns403ForbiddenWhenAuthenticatedAsWrongUser()
+            {
+                var controller = new TestableUsersController();
+
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("loggedInAsWrongUser"));
+                var result = controller.Confirm("username", "") as HttpStatusCodeWithBodyResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(403, result.StatusCode);
+            }
+
+            [Fact]
             public void Returns404WhenTokenIsEmpty()
             {
                 var controller = new TestableUsersController();
 
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("username"));
                 var result = controller.Confirm("username", "") as HttpNotFoundResult;
 
                 Assert.NotNull(result);
@@ -112,6 +128,9 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("username"));
                 
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
 
@@ -134,6 +153,9 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("username"));
                 
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
 
@@ -159,6 +181,9 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("username"));
                 
                 // act:
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
@@ -188,6 +213,9 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
                           .Returns(false);
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("username"));
                 
                 // act:
                 var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as ConfirmationViewModel;
@@ -217,6 +245,9 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "not-the-token"))
                           .Returns(false);
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("username"));
                 
                 var model = (controller.Confirm("username", "not-the-token") as ViewResult).Model as ConfirmationViewModel;
 
@@ -335,9 +366,9 @@ namespace NuGetGallery
             public void RedirectsToAccountPage()
             {
                 var controller = new TestableUsersController();
-                controller.MockCurrentIdentity
-                          .Setup(i => i.Name)
-                          .Returns("the-username");
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("the-username"));
                 
                 var result = controller.GenerateApiKey() as RedirectToRouteResult;
 
@@ -350,9 +381,9 @@ namespace NuGetGallery
             public void GeneratesAnApiKey()
             {
                 var controller = new TestableUsersController();
-                controller.MockCurrentIdentity
-                          .Setup(i => i.Name)
-                          .Returns("the-username");
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("the-username"));
                 
                 controller.GenerateApiKey();
 
@@ -364,7 +395,7 @@ namespace NuGetGallery
         public class TheChangeEmailAction
         {
             [Fact]
-            public void SendsEmailChangeConfirmationNoticeWhenEmailConfirmationTokenChanges()
+            public void SendsEmailChangeConfirmationNoticeWhenChangingAConfirmedEmailAddress()
             {
                 var user = new User
                 {
@@ -379,9 +410,9 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
                           .Callback(() => user.EmailConfirmationToken = "token");
-                controller.MockCurrentIdentity
-                          .Setup(i => i.Name)
-                          .Returns("someName");
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("theUsername"));
                 var model = new ChangeEmailRequestModel { NewEmail = "new@example.com" };
                 var result = controller.ChangeEmail(model) as RedirectToRouteResult;
 
@@ -392,21 +423,55 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void DoesNotSendEmailChangeConfirmationNoticeWhenTokenDoesNotChange()
+            public void DoesNotSendEmailChangeConfirmationNoticeWhenAddressDoesntChange()
             {
                 var user = new User
                 {
                     EmailAddress = "old@example.com",
                     EmailAllowed = true,
-                    EmailConfirmationToken = "token"
                 };
 
-                var controller = A.Fake<TestableUsersController>(c => c.WithArgumentsForConstructor(new object[0]));
-                    //.Wrapping(new TestableUsersController()));
-                A.CallTo(() => controller.Identity).Returns(new GenericIdentity("aUsername"));
+                var controller = new TestableUsersController();
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("aUsername"));
                 controller.MockUserService
                           .Setup(u => u.FindByUsernameAndPassword(It.IsAny<string>(), It.IsAny<string>()))
                           .Returns(user);
+                controller.MockUserService
+                          .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
+                          .Callback(() => user.UpdateEmailAddress("old@example.com")
+                          .Returns(true);
+                controller.MockMessageService
+                          .Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()))
+                          .Throws(new InvalidOperationException());
+                var model = new ChangeEmailRequestModel { NewEmail = "old@example.com" };
+
+                var result = controller.ChangeEmail(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("Account settings saved!", controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void DoesNotSendEmailChangeConfirmationNoticeWhenUserWasNotConfirmed()
+            {
+                var user = new User
+                {
+                    UnconfirmedEmailAddress = "old@example.com",
+                    EmailAllowed = true,
+                };
+
+                var controller = new TestableUsersController();
+                controller.MockCurrentUser
+                          .Setup(u => u.Identity)
+                          .Returns(new GenericIdentity("aUsername"));
+                controller.MockUserService
+                          .Setup(u => u.FindByUsernameAndPassword(It.IsAny<string>(), It.IsAny<string>()))
+                          .Returns(user);
+                controller.MockUserService
+                          .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
+                          .Returns(true);
                 controller.MockMessageService
                           .Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()))
                           .Throws(new InvalidOperationException());
@@ -537,7 +602,6 @@ namespace NuGetGallery
         {
             public Mock<ICuratedFeedService> MockCuratedFeedService { get; protected set; }
             public Mock<IPrincipal> MockCurrentUser { get; protected set; }
-            public Mock<IIdentity> MockCurrentIdentity { get; protected set; }
             public Mock<IMessageService> MockMessageService { get; protected set; }
             public Mock<IPackageService> MockPackageService { get; protected set; }
             public Mock<IAppConfiguration> MockConfig { get; protected set; }
@@ -551,9 +615,6 @@ namespace NuGetGallery
                 PackageService = (MockPackageService = new Mock<IPackageService>()).Object;
                 Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
                 UserService = (MockUserService = new Mock<IUserService>()).Object;
-
-                MockCurrentIdentity = new Mock<IIdentity>();
-                MockCurrentUser.Setup(u => u.Identity).Returns(MockCurrentIdentity.Object);
 
                 var mockContext = new Mock<HttpContextBase>();
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockContext, this);

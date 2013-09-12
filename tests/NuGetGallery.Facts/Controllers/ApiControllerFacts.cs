@@ -77,14 +77,14 @@ namespace NuGetGallery
             {
                 // Arrange
                 var guid = Guid.NewGuid().ToString();
-                var fakeUser = new User();
+                var user = new User() { EmailAddress = "confirmed@email.com" }; 
                 var userService = new Mock<IUserService>();
                 var packageRegistration = new PackageRegistration();
-                packageRegistration.Owners.Add(fakeUser);
+                packageRegistration.Owners.Add(user);
 
                 var controller = new TestableApiController();
                 controller.MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0)).Verifiable();
-                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(fakeUser);
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(user);
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration);
 
                 var nuGetPackage = new Mock<INupkg>();
@@ -132,6 +132,43 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void WillFindTheUserThatMatchesTheApiKey()
+            {
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+
+                var controller = new TestableApiController();
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var apiKey = Guid.NewGuid();
+
+                controller.CreatePackagePut(apiKey.ToString());
+
+                controller.MockUserService.Verify(x => x.FindByApiKey(apiKey));
+            }
+
+            [Fact]
+            public void WillReturn403ForbiddenWhenUserHasNotConfirmedEmailAddress()
+            {
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+
+                var user = new User() { UnconfirmedEmailAddress = "bogus@email.com" }; 
+                var controller = new TestableApiController();
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var apiKey = Guid.NewGuid();
+
+                var result = controller.CreatePackagePut(apiKey.ToString()).Result as HttpStatusCodeWithBodyResult;
+                Assert.NotNull(result);
+                Assert.Equal(403, result.StatusCode);
+            }
+
+            [Fact]
             public async Task WillReturnConflictIfAPackageWithTheIdAndSemanticVersionAlreadyExists()
             {
                 var version = new SemanticVersion("1.0.42");
@@ -139,7 +176,7 @@ namespace NuGetGallery
                 nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
                 nuGetPackage.Setup(x => x.Metadata.Version).Returns(version);
 
-                var user = new User();
+                var user = new User() { EmailAddress = "confirmed@email.com" }; 
 
                 var packageRegistration = new PackageRegistration
                     {
@@ -163,32 +200,14 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WillFindTheUserThatMatchesTheApiKey()
-            {
-                var nuGetPackage = new Mock<INupkg>();
-                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
-                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
-
-                var controller = new TestableApiController();
-                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                var apiKey = Guid.NewGuid();
-
-                controller.CreatePackagePut(apiKey.ToString());
-
-                controller.MockUserService.Verify(x => x.FindByApiKey(apiKey));
-            }
-
-            [Fact]
             public void WillCreateAPackageFromTheNuGetPackage()
             {
                 var nuGetPackage = new Mock<INupkg>();
                 nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
                 nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
-
+                var matchingUser = new User() { EmailAddress = "confirmed@email.com" }; 
                 var controller = new TestableApiController();
-                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(new User());
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 controller.CreatePackagePut(Guid.NewGuid().ToString());
@@ -202,7 +221,7 @@ namespace NuGetGallery
                 var nuGetPackage = new Mock<INupkg>();
                 nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
                 nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
-                var matchingUser = new User();
+                var matchingUser = new User() { EmailAddress = "confirmed@email.com" }; 
                 var controller = new TestableApiController();
                 controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(matchingUser);
                 controller.SetupPackageFromInputStream(nuGetPackage);
@@ -219,7 +238,7 @@ namespace NuGetGallery
                 var nuGetPackage = new Mock<INupkg>();
                 nuGetPackage.Setup(x => x.Metadata.Id).Returns("NuGet.CommandLine");
                 nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
-                var matchingUser = new User();
+                var matchingUser = new User() { EmailAddress = "confirmed@email.com" }; 
                 var controller = new TestableApiController();
                 controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
                           .Returns(new Package { IsLatestStable = true });
@@ -241,7 +260,7 @@ namespace NuGetGallery
                 var nuGetPackage = new Mock<INupkg>();
                 nuGetPackage.Setup(x => x.Metadata.Id).Returns("NuGet.CommandLine");
                 nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("2.0.0-alpha"));
-                var matchingUser = new User();
+                var matchingUser = new User() { EmailAddress = "confirmed@email.com" }; 
                 var controller = new TestableApiController();
                 controller.MockPackageService.Setup(p => p.CreatePackage(nuGetPackage.Object, It.IsAny<User>(), true))
                           .Returns(new Package { IsLatest = true, IsLatestStable = false });
@@ -665,7 +684,8 @@ namespace NuGetGallery
                 // Arrange
                 var guid = Guid.NewGuid();
                 var controller = new TestableApiController();
-                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(new User());
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(user);
 
                 // Act
                 var result = controller.VerifyPackageKey(guid.ToString(), null, null);
@@ -680,7 +700,8 @@ namespace NuGetGallery
                 // Arrange
                 var guid = Guid.NewGuid();
                 var controller = new TestableApiController();
-                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(new User());
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(user);
                 controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns<Package>(null);
 
                 // Act
@@ -696,7 +717,8 @@ namespace NuGetGallery
                 // Arrange
                 var guid = Guid.NewGuid();
                 var controller = new TestableApiController();
-                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(new User());
+                var user = new User { EmailAddress = "confirmed@email.com" };
+                controller.MockUserService.Setup(s => s.FindByApiKey(guid)).Returns(user);
                 controller.MockPackageService.Setup(s => s.FindPackageByIdAndVersion("foo", "1.0.0", true)).Returns(
                     new Package { PackageRegistration = new PackageRegistration() });
 
@@ -708,11 +730,30 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void VerifyPackageKeyReturns403WhenUserHasNotConfirmedEmailAddress()
+            {
+                var nuGetPackage = new Mock<INupkg>();
+                nuGetPackage.Setup(x => x.Metadata.Id).Returns("theId");
+                nuGetPackage.Setup(x => x.Metadata.Version).Returns(new SemanticVersion("1.0.42"));
+
+                var user = new User() { UnconfirmedEmailAddress = "bogus@email.com" };
+                var controller = new TestableApiController();
+                controller.MockUserService.Setup(x => x.FindByApiKey(It.IsAny<Guid>())).Returns(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var apiKey = Guid.NewGuid();
+
+                var result = controller.CreatePackagePut(apiKey.ToString()).Result as HttpStatusCodeWithBodyResult;
+                Assert.NotNull(result);
+                Assert.Equal(403, result.StatusCode);
+            }
+
+            [Fact]
             public void VerifyPackageKeyReturns200IfUserIsAnOwner()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
-                var user = new User();
+                var user = new User { EmailAddress = "confirmed@email.com" };
                 var package = new Package { PackageRegistration = new PackageRegistration() };
                 package.PackageRegistration.Owners.Add(user);
                 var controller = new TestableApiController();
