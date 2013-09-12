@@ -107,13 +107,11 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!ModelState.IsValid)
-            {
-                return View(profile);
-            }
-
+            profile.EmailAddress = user.EmailAddress;
+            profile.Username = user.Username;
+            profile.PendingNewEmailAddress = user.UnconfirmedEmailAddress;
             UserService.UpdateProfile(user, profile.EmailAllowed);
-            return RedirectToAction(MVC.Users.Account());
+            return View(profile);
         }
 
         public virtual ActionResult Thanks()

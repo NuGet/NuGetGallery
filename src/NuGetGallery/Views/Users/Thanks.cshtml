@@ -29,11 +29,7 @@
 
     <li>
         <p>
-            Look up your <a href="@Url.Action(MVC.Users.Account())">API Key</a> for use with nuget.exe.<br />
+            <a href="@Url.ConfirmationRequired()">Confirm your account</a> so that you can use an <a href="@Url.Action(MVC.Users.Account())">API Key</a> to push nuget packages from scripts.<br />
         </p>
     </li>
 </ul>
-
-<p>
-    Note: you will need to <a href="@Url.ConfirmationRequired()">confirm your account</a> before you can use an API key to push packages.
-</p>

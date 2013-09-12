@@ -57,18 +57,21 @@
         </div>
 
         <div class="form-field">
-            @Html.EditorFor(m => m.EmailAllowed)
             <label for="EmailAllowed" class="checkbox">
                 Receive Email Notifications 
             </label>
+            <input type="hidden" name="EmailAllowed" value="@(Model.EmailAllowed ? "false" : "true")" />
             <p>
-                <strong>Important:</strong> This setting allows other registered users of the site to contact you 
+                You are <em>@(Model.EmailAllowed ? "" : "not")</em> subscribed to email notifications.
+            </p>
+            <input type="submit" style="width: auto;" 
+                value="@(Model.EmailAllowed ? "Unsubscribe" : "Subscribe")" 
+                title="@(Model.EmailAllowed ? "Unsubscribe" : "Subscribe")" />
+            <p>
+                <strong>Important:</strong> Subscribing allows other registered users of the site to contact you 
                 about packages that you own using the <em>Contact Owners</em> form, or to request that you become an owner 
-                of their package. Unchecking this means users cannot contact you for these reasons.
+                of their package. Unsubscribing means users cannot contact you for these reasons.
             </p>
         </div>
-
-        <input type="submit" value="Save" title="Save Changes" />
-        <a class="cancel" href="@Url.Action("Account")" title="Cancel Changes and go back.">Cancel</a>
     </fieldset>
 }
