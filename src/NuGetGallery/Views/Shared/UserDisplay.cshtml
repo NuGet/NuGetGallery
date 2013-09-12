@@ -3,7 +3,7 @@
     {
         string returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
         <span class="welcome">
-            <a href="@Url.LogOn(returnUrl)">Sign in / Register</a>
+            <a href="@Url.LogOn(returnUrl)">Sign in</a>
         </span>
     }
     else
