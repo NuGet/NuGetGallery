@@ -10,6 +10,7 @@ using System.Web.Routing;
 using NuGet;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
+using QueryInterceptor;
 
 namespace NuGetGallery
 {
@@ -35,6 +36,7 @@ namespace NuGetGallery
                     Packages = PackageRepository.GetAll()
                         .WithoutVersionSort()
                         .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
+                        .InterceptWith(new NormalizeVersionInterceptor())
                 };
         }
 
