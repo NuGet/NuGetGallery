@@ -440,7 +440,7 @@ namespace NuGetGallery
                           .Returns(user);
                 controller.MockUserService
                           .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
-                          .Callback(() => user.UpdateEmailAddress("old@example.com")
+                          .Callback(() => user.UpdateEmailAddress("old@example.com", () => "new-token"))
                           .Returns(true);
                 controller.MockMessageService
                           .Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()))
