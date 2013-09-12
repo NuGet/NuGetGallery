@@ -15,7 +15,7 @@ namespace NuGetGallery
         /// <summary>
         ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
-        Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
+        Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion, string unsafeHash);
 
         /// <summary>
         ///     Deletes the nupkg from the file storage.

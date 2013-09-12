@@ -21,9 +21,9 @@ namespace NuGetGallery
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
-        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
+        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version, string hash)
         {
-            var fileName = BuildFileName(id, version);
+            var fileName = BuildFileName(id, version, hash);
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 

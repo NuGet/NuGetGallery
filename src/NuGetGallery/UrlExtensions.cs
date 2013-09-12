@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Web.Mvc;
 
 namespace NuGetGallery
@@ -112,14 +113,12 @@ namespace NuGetGallery
             return result;
         }
 
-        public static string PackageDownload(this UrlHelper url, int feedVersion, string id, string version)
+        public static string PackageDownload(this UrlHelper url, int feedVersion, string id, string version, string packageHash)
         {
             string routeName = "v" + feedVersion + RouteName.DownloadPackage;
             string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
-            string result = url.RouteUrl(routeName, new { Id = id, Version = version }, protocol: protocol);
-            
-            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
-            return version == null ? EnsureTrailingSlash(result) : result;
+            string result = url.RouteUrl(routeName, new { Id = id, Version = version, hash = packageHash }, protocol: protocol);
+            return result;
         }
 
         public static string LogOn(this UrlHelper url)

@@ -62,7 +62,7 @@ namespace NuGetGallery
 
         [ActionName("GetPackageApi")]
         [HttpGet]
-        public virtual async Task<ActionResult> GetPackage(string id, string version)
+        public virtual async Task<ActionResult> GetPackage(string id, string version, string hash)
         {
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
@@ -136,7 +136,7 @@ namespace NuGetGallery
 
             // Fall back to constructing the URL based on the package version and ID.
 
-            return await PackageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, id, version);
+            return await PackageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, id, version, hash);
         }
 
         [HttpGet]

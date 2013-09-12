@@ -169,7 +169,7 @@ namespace NuGetGallery
             var package = (V2FeedPackage)entity;
             var urlHelper = new UrlHelper(new RequestContext(HttpContext, new RouteData()));
 
-            string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version);
+            string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version, package.PackageHash);
 
             return new Uri(url, UriKind.Absolute);
         }

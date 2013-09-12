@@ -78,7 +78,7 @@
             <li><a href="@Url.Action(MVC.Packages.ContactOwners(Model.Id))">Contact Owners</a></li>
             @if (User.Identity.IsAuthenticated)
             {
-                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version)" title="Download the raw nupkg file.">Download</a></li>
+                <li><a href="@Url.PackageDownload(2, Model.Id, Model.Version, package.PackageHash)" title="Download the raw nupkg file.">Download</a></li>
             }
             else
             {
