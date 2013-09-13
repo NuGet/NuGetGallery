@@ -8,6 +8,29 @@ namespace NuGetGallery.ViewModels
     public class PackageViewModelFacts
     {
         [Fact]
+        public void UsesNormalizedVersionForDisplay()
+        {
+            var package = new Package()
+            {
+                Version = "01.02.00.00",
+                NormalizedVersion = "1.3.0" // Different just to prove the View Model is using the DB column.
+            };
+            var packageViewModel = new PackageViewModel(package);
+            Assert.Equal("1.3.0", packageViewModel.Version);
+        }
+
+        [Fact]
+        public void UsesNormalizedPackageVersionIfNormalizedVersionMissing()
+        {
+            var package = new Package()
+            {
+                Version = "01.02.00.00"
+            };
+            var packageViewModel = new PackageViewModel(package);
+            Assert.Equal("1.2.0", packageViewModel.Version);
+        }
+
+        [Fact]
         public void LicenseNamesAreParsedByCommas()
         {
             var package = new Package
