@@ -11,9 +11,6 @@ namespace NuGetGallery
 {
     public class PackageService : IPackageService
     {
-        private static object _initLock = new object();
-        private static IDictionary<Tuple<string, string>, string> _versionMappingTable = null;
-
         private readonly IIndexingService _indexingService;
         private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
