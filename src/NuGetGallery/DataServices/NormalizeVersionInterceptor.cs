@@ -19,7 +19,7 @@ namespace NuGetGallery
             {
                 // Figure out which side is the target
                 ConstantExpression constSide = (node.Left as ConstantExpression) ?? (node.Right as ConstantExpression);
-                if (constSide != null || constSide.Type != typeof(string))
+                if (constSide != null && constSide.Type == typeof(string))
                 {
                     MemberExpression memberSide = (node.Right as MemberExpression) ?? (node.Left as MemberExpression);
                     if (memberSide != null && memberSide.Member == _versionMember)
