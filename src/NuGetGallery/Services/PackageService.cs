@@ -421,8 +421,9 @@ namespace NuGetGallery
 
             package = new Package
             {
-                // Both columns are the same for new packages, but old packages only have a new normalized package version
-                Version = nugetPackage.Metadata.Version.ToNormalizedString(),
+                // Version must always be the exact string from the nuspec, which ToString will return to us. 
+                // However, we do also store a normalized copy for looking up later.
+                Version = nugetPackage.Metadata.Version.ToString(),
                 NormalizedVersion = nugetPackage.Metadata.Version.ToNormalizedString(),
 
                 Description = nugetPackage.Metadata.Description,
@@ -661,46 +662,6 @@ namespace NuGetGallery
                 _packageRepository.CommitChanges();
             }
             _packageRepository.CommitChanges();
-        }
-
-        public string GetPackageFileVersion(string id, string version)
-        {
-            // Check if we have a version table
-            if (_versionMappingTable == null)
-            {
-                lock (_initLock)
-                {
-                    // Double check, since it could have been set while the lock was held.
-                    if (_versionMappingTable == null)
-                    {
-                        _versionMappingTable = LoadVersionMappingTable();
-                    }
-                }
-            }
-
-            // Normalize the provided input
-            version = SemanticVersionExtensions.Normalize(version);
-            
-            // Return the mapped value, if any. Otherwise, return the provided value
-            string mapped;
-            if (_versionMappingTable.TryGetValue(Tuple.Create(id, version), out mapped))
-            {
-                // Return the mapping
-                return mapped;
-            }
-            else
-            {
-                return version;
-            }
-        }
-
-        private IDictionary<Tuple<string, string>, string> LoadVersionMappingTable()
-        {
-            // Load all packages with a differing Version and NormalizedVersion
-            return _packageRepository.GetAll()
-                .Include(p => p.PackageRegistration)
-                .Where(p => p.Version != p.NormalizedVersion)
-                .ToDictionary(p => Tuple.Create(p.PackageRegistration.Id, p.NormalizedVersion), p => p.Version);
         }
     }
 }

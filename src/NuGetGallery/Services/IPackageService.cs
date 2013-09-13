@@ -51,13 +51,5 @@ namespace NuGetGallery
         void RemovePackageOwner(PackageRegistration package, User user);
 
         void SetLicenseReportVisibility(Package package, bool visible, bool commitChanges = true);
-
-        /// <summary>
-        /// Gets the package file version (the version number used in the file name) for a package
-        /// </summary>
-        /// <param name="id">The id of the package to check for</param>
-        /// <param name="version">The normalized version of the package to check for</param>
-        /// <returns>The version number used in the file for this package</returns>
-        string GetPackageFileVersion(string id, string version);
     }
 }
