@@ -221,7 +221,7 @@ namespace NuGetGallery.Operations
                 version.ToLowerInvariant());
         }
 
-        internal static ICloudBlob GetPackageFileBlob(
+        internal static CloudBlockBlob GetPackageFileBlob(
             CloudBlobContainer packagesBlobContainer,
             string id,
             string version)
@@ -419,6 +419,15 @@ namespace NuGetGallery.Operations
         public static string RenderAuditRecord(AuditRecord auditRecord)
         {
             return JsonConvert.SerializeObject(auditRecord, _auditRecordSerializerSettings);
+        }
+
+        public static string GenerateStatusString(int total, ref int counter)
+        {
+            return String.Format(
+                "{0:000000}/{1:000000} {2:00.0}%",
+                ++counter,
+                total,
+                (((double)counter / (double)total) * 100.0));
         }
     }
 }

@@ -80,16 +80,18 @@ namespace NuGetGallery.Operations
                 {
                     ConnectionString = GetConnectionFromEnvironment(CurrentEnvironment);
                 }
-                if (ConnectionString == null && !String.IsNullOrEmpty(LocalDbName)) 
+            }
+            
+            // Local Db Name overrides others
+            if (!String.IsNullOrEmpty(LocalDbName))
+            {
+                ConnectionString = new SqlConnectionStringBuilder()
                 {
-                    ConnectionString = new SqlConnectionStringBuilder()
-                    {
-                        DataSource = @"(LocalDB)\v11.0",
-                        IntegratedSecurity = true,
-                        InitialCatalog = LocalDbName
-                    };
-                    Log.Info("Using LocalDB connection: {0}", ConnectionString.ConnectionString);
-                }
+                    DataSource = @"(LocalDB)\v11.0",
+                    IntegratedSecurity = true,
+                    InitialCatalog = LocalDbName
+                };
+                Log.Info("Using LocalDB connection: {0}", ConnectionString.ConnectionString);
             }
 
             ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
@@ -184,22 +186,30 @@ namespace NuGetGallery.Operations
         protected abstract void ExecuteCommandCore(MigratorBase migrator);
     }
 
-    public abstract class DatabaseAndStorageTask : StorageTask
+    public abstract class DatabaseAndStorageTask : DatabaseTask
     {
-        [Option("Connection string to the database server", AltName = "db")]
-        public SqlConnectionStringBuilder ConnectionString { get; set; }
+        [Option("The connection string to the storage server", AltName = "st")]
+        public CloudStorageAccount StorageAccount { get; set; }
+
+        protected string StorageAccountName
+        {
+            get { return StorageAccount.Credentials.AccountName; }
+        }
+
+        protected CloudBlobClient CreateBlobClient()
+        {
+            return StorageAccount.CreateCloudBlobClient();
+        }
 
         public override void ValidateArguments()
         {
             base.ValidateArguments();
 
-            // Load defaults from environment
-            if (CurrentEnvironment != null && ConnectionString == null)
+            if (CurrentEnvironment != null && StorageAccount == null)
             {
-                ConnectionString = CurrentEnvironment.MainDatabase;
+                StorageAccount = CurrentEnvironment.MainStorage;
             }
-
-            ArgCheck.RequiredOrConfig(ConnectionString, "ConnectionString");
+            ArgCheck.RequiredOrConfig(StorageAccount, "StorageAccount");
         }
     }
 
