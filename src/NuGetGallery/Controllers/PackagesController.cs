@@ -74,7 +74,7 @@ namespace NuGetGallery
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public virtual ActionResult UploadPackageProgress()
         {
-            string username = GetIdentity().Name;
+            string username = GetUser().Identity.Name;
 
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
@@ -142,7 +142,7 @@ namespace NuGetGallery
         [Authorize]
         public async virtual Task<ActionResult> UploadPackage()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -160,7 +160,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -240,7 +240,7 @@ namespace NuGetGallery
             }
             var model = new DisplayPackageViewModel(package);
 
-            if (package.IsOwner(HttpContext.User))
+            if (package.IsOwner(GetUser()))
             {
                 // Tell logged-in package owners not to cache the package page, so they won't be confused about the state of pending edits.
                 Response.Cache.SetCacheability(HttpCacheability.NoCache);
@@ -710,7 +710,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual async Task<ActionResult> VerifyPackage()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
 
             IPackageMetadata packageMetadata;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -784,7 +784,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
 
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -877,16 +877,16 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelUpload()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             return RedirectToAction("UploadPackage");
         }
 
         // this methods exist to make unit testing easier
-        protected internal virtual IIdentity GetIdentity()
+        protected internal virtual IPrincipal GetUser()
         {
-            return User.Identity;
+            return User;
         }
 
         // this methods exist to make unit testing easier
