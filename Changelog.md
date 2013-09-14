@@ -1,3 +1,17 @@
+#Sep 3, 2013
+
+### Edit Package
+
+You can now edit the metadata related to your NuGet package from the NuGet Gallery before and after uploading the package.
+More details can be found [here](http://blog.nuget.org/20130823/Introducing-Edit-Package.html) in our team blog.
+
+### Expandable Search box
+The search box now gets auto-expanded whenever user tries to search for packages, making it easier to type in large search queries.
+
+### Other bug fixes
+
+Other changes include minor fixes in stats page, GetUpdates() API and updating NuGet.Core to 2.7-alpha.Complete list can be found here: [08/14 - QA (09/03 - Production)](https://github.com/NuGet/NuGetGallery/issues?milestone=29)
+
 #Aug 1, 2013
 
 ### Dependency update
