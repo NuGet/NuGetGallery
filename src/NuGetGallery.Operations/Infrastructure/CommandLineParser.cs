@@ -123,9 +123,9 @@ namespace NuGet
             {
                 throw;
             }
-            catch
+            catch(Exception ex)
             {
-                throw new CommandLineException(TaskResources.InvalidOptionValueError, option, value);
+                throw new CommandLineException(ex, TaskResources.InvalidOptionValueError, option, value, ex.Message);
             }
         }
 
