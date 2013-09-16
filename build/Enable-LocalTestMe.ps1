@@ -1,10 +1,30 @@
-param([switch]$Force, [string]$Subdomain="nuget")
+param([switch]$Force, [string]$Subdomain="nuget", [string]$MakeCertPath)
 
 if(!(([Security.Principal.WindowsPrincipal]([System.Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator"))) {
     throw "This script must be run as an admin."
 }
 
-$WebSite = Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\Website")
+$WebSite = Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\src\NuGetGallery")
+if($MakeCertPath) {
+    $makecert = $MakeCertPath;
+} else {
+    $makecertCmd = (Get-Command makecert -ErrorAction SilentlyContinue)
+    if($makecertCmd -eq $null) {
+        $pf32 = (cat "Env:\ProgramFiles(x86)");
+        if(!$pf32) { $pf32 = $env:ProgramFiles; }
+        if(Test-Path "$pf32\Windows Kits\8.1\bin\x64\makecert.exe") {
+            $makecert = "$pf32\Windows Kits\8.1\bin\x64\makecert.exe";
+        } elseif(Test-Path "$pf32\Windows Kits\8.0\bin\x64\makecert.exe") {
+            $makecert = "$pf32\Windows Kits\8.0\bin\x64\makecert.exe";
+        }
+    }
+    else {
+        $makecert = $makecertCmd.Definition
+    }
+    if(!$makecert) {
+        throw "Could not find makecert. Specify it in the MakeCertPath argument, or install the Windows 8.0/8.1 SDK."
+    }
+}
 
 # Enable access to the necessary URLs
 netsh http add urlacl url=http://nuget.localtest.me:80/ user=Everyone

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using Xunit;
+using Xunit.Extensions;
 
 namespace NuGetGallery.ViewModels
 {
@@ -66,6 +67,22 @@ namespace NuGetGallery.ViewModels
             };
             var packageViewModel = new PackageViewModel(package);
             Assert.NotNull(packageViewModel.LicenseUrl);
+        }
+
+        [Theory]
+        [InlineData("http://foo", "//foo")]
+        [InlineData("https://foo", "//foo")]
+        [InlineData("foo/bar/baz", "foo/bar/baz")]
+        [InlineData("ftp://foo/bar/baz", "//foo/bar/baz")]
+        [InlineData("gopher://foo/bar/baz", "//foo/bar/baz")] // Because why not :)
+        public void IconUrlIsRewritten(string input, string result)
+        {
+            var package = new Package()
+            {
+                IconUrl = input
+            };
+            var viewModel = new PackageViewModel(package);
+            Assert.Equal(result, viewModel.IconUrl);
         }
     }
 }

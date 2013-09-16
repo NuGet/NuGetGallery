@@ -15,7 +15,7 @@ namespace NuGetGallery
             Version = package.Version;
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
-            IconUrl = package.IconUrl;
+            IconUrl = MakeProtocolIndependent(package.IconUrl);
             ProjectUrl = package.ProjectUrl;
             LicenseUrl = package.LicenseUrl;
             HideLicenseReport = package.HideLicenseReport;
@@ -70,6 +70,17 @@ namespace NuGetGallery
         public bool IsCurrent(IPackageVersionModel current)
         {
             return current.Version == Version && current.Id == Id;
+        }
+
+        private string MakeProtocolIndependent(string url)
+        {
+            Uri parsed;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out parsed))
+            {
+                return url; // Unknown URL type?
+            }
+            // Strip the scheme
+            return url.Substring(parsed.Scheme.Length + 1); // +1 for the colon
         }
     }
 }
