@@ -111,7 +111,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "push"), statusCodeResult.StatusDescription);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, statusCodeResult.StatusDescription);
             }
 
             [Theory]
@@ -304,7 +304,7 @@ namespace NuGetGallery
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(403, statusCodeResult.StatusCode);
-                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -360,7 +360,7 @@ namespace NuGetGallery
 
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -567,7 +567,7 @@ namespace NuGetGallery
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(403, statusCodeResult.StatusCode);
-                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "publish"), statusCodeResult.StatusDescription);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, statusCodeResult.StatusDescription);
             }
 
             [Fact]
@@ -624,7 +624,7 @@ namespace NuGetGallery
 
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(String.Format(Strings.ApiKeyNotAuthorized, "publish"), statusCodeResult.StatusDescription);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, statusCodeResult.StatusDescription);
             }
 
             [Fact]

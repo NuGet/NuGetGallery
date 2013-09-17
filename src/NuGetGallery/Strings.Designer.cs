@@ -70,7 +70,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must confirm the email address for the account that owns this API Key in order to  &apos;{0}&apos;..
+        ///   Looks up a localized string similar to You must confirm the email address for the account in order to use the API key..
         /// </summary>
         public static string ApiKeyUserAccountIsUnconfirmed {
             get {

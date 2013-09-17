@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Security.Principal;
 using System.Web.Mvc;
 
-namespace NuGetGallery
+namespace NuGetGallery.Filters
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
     public class RequiresAccountConfirmationAttribute : ActionFilterAttribute

@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -149,45 +150,47 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("VerifyPackageKeyApi")]
+        [ApiKeyAuthorizeAttribute("push")]
         public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
         {
-            return DoWithApiKey(apiKey, "push", (user) =>
+            if (!String.IsNullOrEmpty(id))
             {
-                if (!String.IsNullOrEmpty(id))
+                // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
+                var package = PackageService.FindPackageByIdAndVersion(id, version);
+                if (package == null)
                 {
-                    // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
-                    var package = PackageService.FindPackageByIdAndVersion(id, version);
-                    if (package == null)
-                    {
-                        return new HttpStatusCodeWithBodyResult(
-                            HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-                    }
-
-                    if (!package.IsOwner(user))
-                    {
-                        return new HttpStatusCodeWithBodyResult(
-                            HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
-                    }
+                    return new HttpStatusCodeWithBodyResult(
+                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                 }
 
-                return new EmptyResult();
-            });
+                var user = UserService.FindByUsername(Identity.Name);
+                if (!package.IsOwner(user))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                }
+            }
+
+            return new HttpStatusCodeResult(200);
         }
 
         [HttpPut]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [ApiKeyAuthorizeAttribute("push")]
         public virtual Task<ActionResult> CreatePackagePut(string apiKey)
         {
-            return DoWithApiKeyAsync(apiKey, "push", CreatePackageInternal);
+            var user = UserService.FindByUsername(Identity.Name);
+            return CreatePackageInternal(user);
         }
 
         [HttpPost]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [ApiKeyAuthorizeAttribute("push")]
         public virtual Task<ActionResult> CreatePackagePost(string apiKey)
         {
-            return DoWithApiKeyAsync(apiKey, "push", CreatePackageInternal);
+            var user = UserService.FindByUsername(Identity.Name);
+            return CreatePackageInternal(user);
         }
 
         private async Task<ActionResult> CreatePackageInternal(User user)
@@ -200,9 +203,7 @@ namespace NuGetGallery
                 {
                     if (!packageRegistration.IsOwner(user))
                     {
-                        return new HttpStatusCodeWithBodyResult(
-                            HttpStatusCode.Forbidden,
-                            String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                     }
 
                     // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
@@ -241,53 +242,50 @@ namespace NuGetGallery
         [HttpDelete]
         [ActionName("DeletePackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [ApiKeyAuthorizeAttribute("delete")]
         public virtual ActionResult DeletePackage(string apiKey, string id, string version)
         {
-            return DoWithApiKey(apiKey, "delete", (user) =>
+            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
             {
-                var package = PackageService.FindPackageByIdAndVersion(id, version);
-                if (package == null)
-                {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-                }
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+            }
 
-                if (!package.IsOwner(user))
-                {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
-                }
+            var user = UserService.FindByUsername(Identity.Name);
+            if (!package.IsOwner(user))
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
 
-                PackageService.MarkPackageUnlisted(package);
-                IndexingService.UpdatePackage(package);
-                return new EmptyResult();
-            });
+            PackageService.MarkPackageUnlisted(package);
+            IndexingService.UpdatePackage(package);
+            return new EmptyResult();
         }
 
         [HttpPost]
         [ActionName("PublishPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [ApiKeyAuthorizeAttribute("publish")]
         public virtual ActionResult PublishPackage(string apiKey, string id, string version)
         {
-            return DoWithApiKey(apiKey, "publish", (user) =>
+            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
             {
-                var package = PackageService.FindPackageByIdAndVersion(id, version);
-                if (package == null)
-                {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-                }
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+            }
 
-                if (!package.IsOwner(user))
-                {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
-                }
+            var user = UserService.FindByUsername(Identity.Name);
+            if (!package.IsOwner(user))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
 
-                PackageService.MarkPackageListed(package);
-                IndexingService.UpdatePackage(package);
-                return new EmptyResult();
-            });
+            PackageService.MarkPackageListed(package);
+            IndexingService.UpdatePackage(package);
+            return new EmptyResult();
         }
 
         public virtual async Task<ActionResult> ServiceAlert()
@@ -398,56 +396,6 @@ namespace NuGetGallery
             }
 
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-        }
-
-        private async Task<ActionResult> DoWithApiKeyAsync(string apiKey, string inOrderTo, Func<User, Task<ActionResult>> action)
-        {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
-            }
-
-            var user = UserService.FindByApiKey(parsedApiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, inOrderTo));
-            }
-
-            if (!user.Confirmed)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyUserAccountIsUnconfirmed, inOrderTo));
-            }
-
-            return await action(user);
-        }
-
-        private ActionResult DoWithApiKey(string apiKey, string inOrderTo, Func<User, ActionResult> action)
-        {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
-            }
-
-            var user = UserService.FindByApiKey(parsedApiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, inOrderTo));
-            }
-
-            if (!user.Confirmed)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyUserAccountIsUnconfirmed, inOrderTo));
-            }
-
-            return action(user);
         }
 
         private static void QuietlyLogException(Exception e)

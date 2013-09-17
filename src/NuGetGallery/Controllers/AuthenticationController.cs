@@ -57,9 +57,6 @@ namespace NuGetGallery
                 return View();
             }
 
-            // TODO: improve the styling of the validation summary
-            // TODO: modify the Object.cshtml partial to make the first text box autofocus, or use additional metadata
-
             var user = UserService.FindByUsernameOrEmailAddressAndPassword(
                 request.UserNameOrEmail,
                 request.Password);

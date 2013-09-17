@@ -13,6 +13,7 @@ using System.Web.Mvc;
 using NuGet;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Configuration;
+using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using PoliteCaptcha;
