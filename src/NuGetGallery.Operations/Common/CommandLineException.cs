@@ -21,13 +21,13 @@ namespace NuGetGallery.Operations
         {
         }
 
-        public CommandLineException(Exception exception, string format, params object[] args)
-            : base(String.Format(CultureInfo.CurrentCulture, format, args), exception)
+        public CommandLineException(Exception innerException, string format, params object[] args)
+            : base(String.Format(CultureInfo.CurrentCulture, format, args), innerException)
         {
         }
 
-        public CommandLineException(string message, Exception exception)
-            : base(message, exception)
+        public CommandLineException(string message, Exception innerException)
+            : base(message, innerException)
         {
         }
 
