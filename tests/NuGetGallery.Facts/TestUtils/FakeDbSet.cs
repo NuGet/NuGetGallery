@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -54,12 +53,6 @@ namespace NuGetGallery
                 var originalCollection = (ICollection<TElement>)property.GetValue(obj);
                 if (originalCollection == null)
                 {
-                    Trace.TraceWarning(
-                        "FakeDbSet is automatically initializing the collection property to Collection<T> - because the type "
-                        + typeof(TElement).ToString() +
-                        " failed to initialize its property " + property.Name + " to a non-null collection value."
-                    );
-
                     originalCollection = new Collection<TElement>();
                 }
 
