@@ -818,6 +818,9 @@
     <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.cs" />
     <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.Designer.cs">
       <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
+    <Compile Include="Migrations\201309172217450_CredentialsTable.cs" />
+    <Compile Include="Migrations\201309172217450_CredentialsTable.Designer.cs">
+      <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1282,6 +1285,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201309101922464_NormalizedVersionColumn.resx">
       <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201309172217450_CredentialsTable.resx">
+      <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

@@ -61,6 +61,7 @@ namespace NuGetGallery
                 return UnconfirmedEmailAddress ?? EmailAddress;
             }
         }
+        public virtual ICollection<Credential> Credentials { get; set; }
 
         public void ConfirmEmailAddress()
         {
