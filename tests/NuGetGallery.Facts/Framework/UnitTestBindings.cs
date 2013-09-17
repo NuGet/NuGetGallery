@@ -30,7 +30,7 @@ namespace NuGetGallery.Framework
                 .ToMethod(_ =>
                 {
                     var mockContext = new Mock<HttpContextBase>();
-                    mockContext.Setup(c => c.User).Returns(Fakes.User.Principal);
+                    mockContext.Setup(c => c.User).Returns(Fakes.User.ToPrincipal());
                     mockContext.Setup(c => c.Request.Url).Returns(new Uri("https://nuget.local/"));
                     mockContext.Setup(c => c.Request.ApplicationPath).Returns("/");
                     mockContext.Setup(c => c.Response.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(s => s);
@@ -53,9 +53,9 @@ namespace NuGetGallery.Framework
                 .ToMethod(_ =>
                 {
                     var mockService = new Mock<IUserService>();
-                    mockService.Setup(u => u.FindByUsername(Fakes.User.UserName)).Returns(Fakes.User.User);
-                    mockService.Setup(u => u.FindByUsername(Fakes.Owner.UserName)).Returns(Fakes.Owner.User);
-                    mockService.Setup(u => u.FindByUsername(Fakes.Admin.UserName)).Returns(Fakes.Admin.User);
+                    mockService.Setup(u => u.FindByUsername(Fakes.User.Username)).Returns(Fakes.User);
+                    mockService.Setup(u => u.FindByUsername(Fakes.Owner.Username)).Returns(Fakes.Owner);
+                    mockService.Setup(u => u.FindByUsername(Fakes.Admin.Username)).Returns(Fakes.Admin);
                     return mockService.Object;
                 });
         }

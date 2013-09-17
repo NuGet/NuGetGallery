@@ -39,7 +39,7 @@ namespace NuGetGallery.Controllers
             public void ReturnsFailureWhenRequestedNewOwnerDoesNotExist()
             {
                 var controller = GetController<JsonApiController>();
-                controller.SetUser(Fakes.Owner.Principal);
+                controller.SetUser(Fakes.Owner);
 
                 dynamic result = controller.AddPackageOwner(Fakes.Package.Id, "notARealUser");
 
@@ -51,22 +51,22 @@ namespace NuGetGallery.Controllers
             public void CreatesPackageOwnerRequestSendsEmailAndReturnsPendingState()
             {
                 var controller = GetController<JsonApiController>();
-                controller.SetUser(Fakes.Owner.Principal);
+                controller.SetUser(Fakes.Owner);
 
                 GetMock<IPackageService>()
-                    .Setup(p => p.CreatePackageOwnerRequest(Fakes.Package, Fakes.Owner.User, Fakes.User.User))
+                    .Setup(p => p.CreatePackageOwnerRequest(Fakes.Package, Fakes.Owner, Fakes.User))
                     .Returns(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" });
 
-                dynamic result = controller.AddPackageOwner(Fakes.Package.Id, Fakes.User.UserName);
+                dynamic result = controller.AddPackageOwner(Fakes.Package.Id, Fakes.User.Username);
 
                 Assert.True(result.success);
-                Assert.Equal(Fakes.User.UserName, result.name);
+                Assert.Equal(Fakes.User.Username, result.name);
                 Assert.True(result.pending);
 
                 GetMock<IMessageService>()
                     .Verify(m => m.SendPackageOwnerRequest(
-                        Fakes.Owner.User,
-                        Fakes.User.User,
+                        Fakes.Owner,
+                        Fakes.User,
                         Fakes.Package,
                         "https://nuget.local/packages/FakePackage/owners/testUser/confirm/confirmation-code"));
             }
