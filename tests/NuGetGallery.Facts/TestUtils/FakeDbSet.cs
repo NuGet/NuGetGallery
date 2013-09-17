@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -51,10 +52,22 @@ namespace NuGetGallery
             return obj =>
             {
                 var originalCollection = (ICollection<TElement>)property.GetValue(obj);
+                if (originalCollection == null)
+                {
+                    Trace.TraceWarning(
+                        "FakeDbSet is automatically initializing the collection property to Collection<T> - because the type "
+                        + typeof(TElement).ToString() +
+                        " failed to initialize its property " + property.Name + " to a non-null collection value."
+                    );
+
+                    originalCollection = new Collection<TElement>();
+                }
+
                 var mutatedCollection = new ObservableCollection<TElement>(originalCollection);
-                mutatedCollection.CollectionChanged += 
+                mutatedCollection.CollectionChanged +=
                     new System.Collections.Specialized.NotifyCollectionChangedEventHandler(
-                    (col, args) => {
+                    (col, args) =>
+                    {
                         var set = fakeContext.Set<TElement>();
                         if (args.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
                         {
