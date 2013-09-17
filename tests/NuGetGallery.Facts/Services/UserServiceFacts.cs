@@ -536,28 +536,41 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void FindsUsersUpdatesPasswordIfUsingLegacyHashAlgorithm()
+            public void FindsUserBasedOnPasswordInCredentialsTable()
             {
-                var user = new User
-                {
-                    Username = "theUsername",
-                    HashedPassword = CryptographyService.GenerateSaltedHash("thePassword", "SHA1"),
-                    PasswordHashAlgorithm = "SHA1",
-                    EmailAddress = "test@example.com",
-                };
-
+                var user = CreateAUser("theUsername", "test@example.com");
+                user.Credentials.Add(CreatePasswordCredential("thePassword"));
                 var service = new TestableUserService();
                 service.MockUserRepository
-                       .Setup(r => r.GetAll())
+                       .Setup(u => u.GetAll())
                        .Returns(new[] { user }.AsQueryable());
-                service.MockUserRepository
-                       .Setup(r => r.CommitChanges())
-                       .Verifiable();
+                service.MockCredentialRepository
+                       .Setup(c => c.GetAll())
+                       .Returns(user.Credentials.AsQueryable());
 
-                service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
-                Assert.Equal("PBKDF2", user.PasswordHashAlgorithm);
-                Assert.True(VerifyPasswordHash(user, "thePassword"));
-                service.MockUserRepository.Verify(r => r.CommitChanges(), Times.Once());
+                var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
+
+                Assert.NotNull(foundByUserName);
+                Assert.Same(user, foundByUserName);
+            }
+
+            [Fact]
+            public void IfSomehowBothPasswordsExistItFindsUserBasedOnPasswordInCredentialsTable()
+            {
+                var user = CreateAUser("theUsername", "theWrongPassword", "test@example.com");
+                user.Credentials.Add(CreatePasswordCredential("thePassword"));
+                var service = new TestableUserService();
+                service.MockUserRepository
+                       .Setup(u => u.GetAll())
+                       .Returns(new[] { user }.AsQueryable());
+                service.MockCredentialRepository
+                       .Setup(c => c.GetAll())
+                       .Returns(user.Credentials.AsQueryable());
+
+                var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
+
+                Assert.NotNull(foundByUserName);
+                Assert.Same(user, foundByUserName);
             }
         }
 
