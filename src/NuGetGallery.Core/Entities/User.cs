@@ -59,6 +59,8 @@ namespace NuGetGallery
 
         public DateTime? CreatedUtc { get; set; }
 
+        public virtual ICollection<Credential> Credentials { get; set; }
+
         public void ConfirmEmailAddress()
         {
             if (String.IsNullOrEmpty(UnconfirmedEmailAddress))
