@@ -111,7 +111,6 @@ namespace NuGetGallery
 
         public virtual User FindByUsernameAndPassword(string username, string password)
         {
-            // TODO: validate input
             var user = UserRepository.GetAll()
                 .Include(u => u.Roles)
                 .Include(u => u.Credentials)
@@ -122,28 +121,12 @@ namespace NuGetGallery
 
         public virtual User FindByUsernameOrEmailAddressAndPassword(string usernameOrEmail, string password)
         {
-            // TODO: validate input
+            var user = UserRepository.GetAll()
+                .Include(u => u.Roles)
+                .Include(u => u.Credentials)
+                .SingleOrDefault(u => u.Username == usernameOrEmail || u.EmailAddress == usernameOrEmail);
 
-            var user = FindByUsername(usernameOrEmail)
-                       ?? FindByEmailAddress(usernameOrEmail);
-
-            if (user == null)
-            {
-                return null;
-            }
-
-            if (!Crypto.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
-            {
-                return null;
-            }
-            else if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
-            {
-                // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
-                ChangePasswordInternal(user, password);
-                UserRepository.CommitChanges();
-            }
-
-            return user;
+            return AuthenticateUser(password, user);
         }
 
         public string GenerateApiKey(string username)
