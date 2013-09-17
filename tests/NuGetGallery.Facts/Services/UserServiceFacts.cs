@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using NuGetGallery.Configuration;
@@ -11,6 +12,13 @@ namespace NuGetGallery
     public class UserServiceFacts
     {
         public static User CreateAUser(
+            string username,
+            string emailAddress)
+        {
+            return CreateAUser(username, password: null, emailAddress: emailAddress);
+        }
+
+        public static User CreateAUser(
             string username, 
             string password,
             string emailAddress)
@@ -18,8 +26,12 @@ namespace NuGetGallery
             return new User
             {
                 Username = username,
-                HashedPassword = CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId),
-                PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
+                HashedPassword = String.IsNullOrEmpty(password) ? 
+                    null : 
+                    CryptographyService.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId),
+                PasswordHashAlgorithm = String.IsNullOrEmpty(password) ?
+                    null :
+                    Constants.PBKDF2HashAlgorithmId,
                 EmailAddress = emailAddress,
             };
         }
@@ -39,6 +51,15 @@ namespace NuGetGallery
             return canAuthenticate && !sanity;
         }
 
+        public static Credential CreatePasswordCredential(string password)
+        {
+            return new Credential(
+                type: Constants.CredentialTypes.PasswordPbkdf2,
+                value: CryptographyService.GenerateSaltedHash(
+                    password, 
+                    Constants.PBKDF2HashAlgorithmId));
+        }
+
         // Now only for things that actually need a MOCK UserService object.
         private static UserService CreateMockUserService(Action<Mock<UserService>> setup, Mock<IEntityRepository<User>> userRepo = null, Mock<IAppConfiguration> config = null)
         {
@@ -49,10 +70,12 @@ namespace NuGetGallery
             }
 
             userRepo = userRepo ?? new Mock<IEntityRepository<User>>();
+            var credRepo = new Mock<IEntityRepository<Credential>>();
 
             var userService = new Mock<UserService>(
                 config.Object,
-                userRepo.Object)
+                userRepo.Object,
+                credRepo.Object)
             {
                 CallBase = true
             };
@@ -406,8 +429,7 @@ namespace NuGetGallery
             [Fact]
             public void WillNotFindsUsersByEmailAddress()
             {
-                var hash = CryptographyService.GenerateSaltedHash("thePassword", Constants.PBKDF2HashAlgorithmId);
-                var user = new User { Username = "theUsername", HashedPassword = hash, EmailAddress = "test@example.com" };
+                var user = CreateAUser("theUsername", "thePassword", "test@example.com");
                 var service = new TestableUserService();
                 service.MockUserRepository
                        .Setup(r => r.GetAll())
@@ -416,6 +438,58 @@ namespace NuGetGallery
                 var foundByEmailAddress = service.FindByUsernameAndPassword("test@example.com", "thePassword");
 
                 Assert.Null(foundByEmailAddress);
+            }
+
+            [Fact]
+            public void DoesNotReturnUserIfPasswordIsInvalid()
+            {
+                var user = CreateAUser("theUsername", "thePassword", "test@example.com");
+                var service = new TestableUserService();
+                service.MockUserRepository
+                       .Setup(r => r.GetAll())
+                       .Returns(new[] { user }.AsQueryable());
+
+                var foundByUserName = service.FindByUsernameAndPassword("theUsername", "theWrongPassword");
+
+                Assert.Null(foundByUserName);
+            }
+
+            [Fact]
+            public void FindsUserBasedOnPasswordInCredentialsTable()
+            {
+                var user = CreateAUser("theUsername", "test@example.com");
+                user.Credentials.Add(CreatePasswordCredential("thePassword"));
+                var service = new TestableUserService();
+                service.MockUserRepository
+                       .Setup(u => u.GetAll())
+                       .Returns(new[] { user }.AsQueryable());
+                service.MockCredentialRepository
+                       .Setup(c => c.GetAll())
+                       .Returns(user.Credentials.AsQueryable());
+                
+                var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
+
+                Assert.NotNull(foundByUserName);
+                Assert.Same(user, foundByUserName);
+            }
+
+            [Fact]
+            public void IfSomehowBothPasswordsExistItFindsUserBasedOnPasswordInCredentialsTable()
+            {
+                var user = CreateAUser("theUsername", "theWrongPassword", "test@example.com");
+                user.Credentials.Add(CreatePasswordCredential("thePassword"));
+                var service = new TestableUserService();
+                service.MockUserRepository
+                       .Setup(u => u.GetAll())
+                       .Returns(new[] { user }.AsQueryable());
+                service.MockCredentialRepository
+                       .Setup(c => c.GetAll())
+                       .Returns(user.Credentials.AsQueryable());
+
+                var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
+
+                Assert.NotNull(foundByUserName);
+                Assert.Same(user, foundByUserName);
             }
         }
 
@@ -814,11 +888,13 @@ namespace NuGetGallery
         {
             public Mock<IAppConfiguration> MockConfig { get; protected set; }
             public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
+            public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
 
             public TestableUserService()
             {
                 Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
                 UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
+                CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
 
                 // Set ConfirmEmailAddress to a default of true
                 MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);

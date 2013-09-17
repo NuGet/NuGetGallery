@@ -11,15 +11,18 @@ namespace NuGetGallery
     {
         public IAppConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
+        public IEntityRepository<Credential> CredentialRepository { get; protected set; }
 
         protected UserService() {}
 
         public UserService(
             IAppConfiguration config,
-            IEntityRepository<User> userRepository) : this()
+            IEntityRepository<User> userRepository,
+            IEntityRepository<Credential> credentialRepository) : this()
         {
             Config = config;
             UserRepository = userRepository;
+            CredentialRepository = credentialRepository;
         }
 
         public virtual User Create(
@@ -109,20 +112,12 @@ namespace NuGetGallery
         public virtual User FindByUsernameAndPassword(string username, string password)
         {
             // TODO: validate input
+            var user = UserRepository.GetAll()
+                .Include(u => u.Roles)
+                .Include(u => u.Credentials)
+                .SingleOrDefault(u => u.Username == username);
 
-            var user = FindByUsername(username);
-
-            if (user == null)
-            {
-                return null;
-            }
-
-            if (!Crypto.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
-            {
-                return null;
-            }
-
-            return user;
+            return AuthenticateUser(password, user);
         }
 
         public virtual User FindByUsernameOrEmailAddressAndPassword(string usernameOrEmail, string password)
@@ -274,6 +269,39 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        private static User AuthenticateUser(string password, User user)
+        {
+            if (user == null)
+            {
+                return null;
+            }
+
+            // Check for a credential
+            var cred = user.Credentials
+                .FirstOrDefault(c => String.Equals(
+                    c.Type,
+                    Constants.CredentialTypes.PasswordPbkdf2,
+                    StringComparison.OrdinalIgnoreCase));
+
+            bool valid;
+            if (cred != null)
+            {
+                valid = Crypto.ValidateSaltedHash(
+                    cred.Value,
+                    password,
+                    Constants.PBKDF2HashAlgorithmId);
+            }
+            else
+            {
+                valid = Crypto.ValidateSaltedHash(
+                    user.HashedPassword,
+                    password,
+                    user.PasswordHashAlgorithm);
+            }
+
+            return valid ? user : null;
         }
 
         private static void ChangePasswordInternal(User user, string newPassword)

@@ -32,6 +32,9 @@
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
 
+        public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
+        public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
+
         public static class ContentNames
         {
             public static readonly string FrontPageAnnouncement = "FrontPage-Announcement";
@@ -43,7 +46,9 @@
             public static readonly string PrivacyPolicy = "Privacy-Policy";
         }
 
-        public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
-        public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
+        public static class CredentialTypes
+        {
+            public static readonly string PasswordPbkdf2 = "password.pbkdf2";
+        }
     }
 }

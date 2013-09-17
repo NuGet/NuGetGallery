@@ -8,6 +8,19 @@ namespace NuGetGallery
 {
     public class Credential : IEntity
     {
+        public Credential() { }
+
+        public Credential(string type, string value)
+        {
+            Type = type;
+            Value = value;
+        }
+
+        public Credential(string type, string identifier, string value) : this(type, value)
+        {
+            Identifier = identifier;
+        }
+
         public int Key { get; set; }
         public int UserKey { get; set; }
 
