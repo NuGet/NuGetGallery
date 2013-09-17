@@ -17,6 +17,7 @@ namespace NuGetGallery
         {
             HashedPassword = hashedPassword;
             Messages = new HashSet<EmailMessage>();
+            Credentials = new List<Credential>();
             Username = username;
         }
 
