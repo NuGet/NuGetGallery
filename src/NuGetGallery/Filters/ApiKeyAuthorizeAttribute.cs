@@ -56,9 +56,6 @@ namespace NuGetGallery.Filters
                 filterContext.Result = new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyUserAccountIsUnconfirmed);
                 return;
             }
-
-            var principal = new GenericPrincipal(new GenericIdentity(user.Username), new string[0]);
-            filterContext.HttpContext.User = Thread.CurrentPrincipal = principal;
         }
     }
 }

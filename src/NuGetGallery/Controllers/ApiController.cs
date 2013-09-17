@@ -163,7 +163,7 @@ namespace NuGetGallery
                         HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                 }
 
-                var user = UserService.FindByUsername(Identity.Name);
+                var user = UserService.FindByApiKey(new Guid(apiKey));
                 if (!package.IsOwner(user))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
@@ -179,7 +179,7 @@ namespace NuGetGallery
         [ApiKeyAuthorizeAttribute("push")]
         public virtual Task<ActionResult> CreatePackagePut(string apiKey)
         {
-            var user = UserService.FindByUsername(Identity.Name);
+            var user = UserService.FindByApiKey(new Guid(apiKey));
             return CreatePackageInternal(user);
         }
 
@@ -189,7 +189,7 @@ namespace NuGetGallery
         [ApiKeyAuthorizeAttribute("push")]
         public virtual Task<ActionResult> CreatePackagePost(string apiKey)
         {
-            var user = UserService.FindByUsername(Identity.Name);
+            var user = UserService.FindByApiKey(new Guid(apiKey));
             return CreatePackageInternal(user);
         }
 
@@ -252,7 +252,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            var user = UserService.FindByUsername(Identity.Name);
+            var user = UserService.FindByApiKey(new Guid(apiKey));
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -277,7 +277,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            var user = UserService.FindByUsername(Identity.Name);
+            var user = UserService.FindByApiKey(new Guid(apiKey));
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
