@@ -6,17 +6,12 @@ namespace NuGetGallery
 {
     public class User : IEntity
     {
-        public User()
-            : this(null, null)
+        public User() : this(null)
         {
         }
 
-        public User(
-            string username,
-            string hashedPassword)
+        public User(string username)
         {
-            HashedPassword = hashedPassword;
-            Messages = new HashSet<EmailMessage>();
             Username = username;
         }
 

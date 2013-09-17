@@ -44,17 +44,16 @@ namespace NuGetGallery
 
             var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
-            var newUser = new User(
-                username,
-                hashedPassword)
-                {
-                    ApiKey = Guid.NewGuid(),
-                    EmailAllowed = true,
-                    UnconfirmedEmailAddress = emailAddress,
-                    EmailConfirmationToken = Crypto.GenerateToken(),
-                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
-                    CreatedUtc = DateTime.UtcNow
-                };
+            var newUser = new User(username)
+            {
+                ApiKey = Guid.NewGuid(),
+                EmailAllowed = true,
+                UnconfirmedEmailAddress = emailAddress,
+                EmailConfirmationToken = Crypto.GenerateToken(),
+                HashedPassword = hashedPassword,
+                PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
+                CreatedUtc = DateTime.UtcNow
+            };
 
             if (!Config.ConfirmEmailAddresses)
             {

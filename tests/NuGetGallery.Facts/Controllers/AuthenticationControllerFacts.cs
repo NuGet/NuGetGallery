@@ -27,7 +27,7 @@ namespace NuGetGallery.Controllers
                 var controller = new TestableAuthenticationController();
                 controller.MockUsers
                           .Setup(x => x.FindByUsernameOrEmailAddressAndPassword(It.IsAny<string>(), It.IsAny<string>()))
-                          .Returns(new User("theUsername", null));
+                          .Returns(new User("theUsername"));
                 
 
                 var result = controller.LogOff("theReturnUrl") as RedirectResult;
@@ -56,7 +56,7 @@ namespace NuGetGallery.Controllers
             public void CanLogTheUserOnWithUserName()
             {
                 var controller = new TestableAuthenticationController();
-                var user = new User("theUsername", null) { EmailAddress = "confirmed@example.com" };
+                var user = new User("theUsername") { EmailAddress = "confirmed@example.com" };
                 controller.MockUsers
                           .Setup(x => x.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword"))
                           .Returns(user);
@@ -76,7 +76,7 @@ namespace NuGetGallery.Controllers
             public void CanLogTheUserOnWithEmailAddress()
             {
                 var controller = new TestableAuthenticationController();
-                var user = new User("theUsername", null) { EmailAddress = "confirmed@example.com" };
+                var user = new User("theUsername") { EmailAddress = "confirmed@example.com" };
                 controller.MockUsers
                           .Setup(x => x.FindByUsernameOrEmailAddressAndPassword("confirmed@example.com", "thePassword"))
                           .Returns(user);
@@ -98,8 +98,8 @@ namespace NuGetGallery.Controllers
                 var controller = new TestableAuthenticationController();
                 controller.MockUsers
                           .Setup(x => x.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword"))
-                          .Returns(new User("theUsername", null));
-
+                          .Returns(new User("theUsername"));
+                
                 controller.SignIn(
                     new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
@@ -114,7 +114,7 @@ namespace NuGetGallery.Controllers
             public void WillLogTheUserOnWithRoles()
             {
                 var controller = new TestableAuthenticationController();
-                var user = new User("theUsername", null)
+                var user = new User("theUsername")
                 {
                     Roles = new[] { new Role { Name = "Administrators" } },
                     EmailAddress = "confirmed@example.com"
@@ -156,7 +156,7 @@ namespace NuGetGallery.Controllers
                 var controller = new TestableAuthenticationController();
                 controller.MockUsers
                           .Setup(x => x.FindByUsernameOrEmailAddressAndPassword(It.IsAny<string>(), It.IsAny<string>()))
-                          .Returns(new User("theUsername", null) { EmailAddress = "confirmed@example.com" });
+                          .Returns(new User("theUsername") { EmailAddress = "confirmed@example.com" });
 
                 var result = controller.SignIn(new SignInRequest(), "theReturnUrl");
 
