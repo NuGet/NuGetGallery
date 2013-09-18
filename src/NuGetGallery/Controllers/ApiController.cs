@@ -260,7 +260,7 @@ namespace NuGetGallery
                 }
             }
 
-            return new HttpStatusCodeResult(201);
+            return new HttpStatusCodeResult(HttpStatusCode.Created);
         }
 
         [HttpDelete]
@@ -449,7 +449,7 @@ namespace NuGetGallery
 
         private User GetUserByApiKey(string apiKey)
         {
-            var cred = UserService.AuthenticateCredential(Constants.CredentialTypes.ApiKeyV1, apiKey);
+            var cred = UserService.AuthenticateCredential(Constants.CredentialTypes.ApiKeyV1, apiKey.ToLowerInvariant());
             User user;
             if (cred == null)
             {

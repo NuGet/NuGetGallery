@@ -614,7 +614,75 @@ namespace NuGetGallery
 
         public class TheReplaceCredentialMethod
         {
+            [Fact]
+            public void ThrowsExceptionIfNoUserWithProvidedUserName()
+            {
+                // Arrange
+                var users = new List<User>() {
+                    new User("foo", "baz")
+                };
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(users);
 
+                // Act
+                var ex = Assert.Throws<InvalidOperationException>(() =>
+                    service.ReplaceCredential("biz", new Credential()));
+
+                // Assert
+                Assert.Equal(Strings.UserNotFound, ex.Message);
+            }
+
+            [Fact]
+            public void AddsNewCredentialIfNoneWithSameTypeForUser()
+            {
+                // Arrange
+                var existingCred = new Credential("foo", "bar");
+                var newCred = new Credential("baz", "boz");
+                var users = new List<User>() {
+                    new User("foo", "baz") { 
+                        Credentials = new List<Credential>() {
+                            existingCred
+                        }
+                    }
+                };
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(users);
+
+                // Act
+                service.ReplaceCredential("foo", newCred);
+
+                // Assert
+                Assert.Equal(2, users[0].Credentials.Count);
+                Assert.Equal(new[] { existingCred, newCred }, users[0].Credentials.ToArray());
+                service.MockUserRepository.VerifyCommitted();
+            }
+
+            [Fact]
+            public void ReplacesExistingCredentialIfOneWithSameTypeExistsForUser()
+            {
+                // Arrange
+                var frozenCred = new Credential("foo", "bar");
+                var existingCred = new Credential("baz", "bar");
+                var newCred = new Credential("baz", "boz");
+                var users = new List<User>() {
+                    new User("foo", "baz") { 
+                        Credentials = new List<Credential>() {
+                            existingCred,
+                            frozenCred
+                        }
+                    }
+                };
+                var service = new TestableUserService();
+                service.MockUserRepository.HasData(users);
+
+                // Act
+                service.ReplaceCredential("foo", newCred);
+
+                // Assert
+                Assert.Equal(2, users[0].Credentials.Count);
+                Assert.Equal(new[] { frozenCred, newCred }, users[0].Credentials.ToArray());
+                service.MockUserRepository.VerifyCommitted();
+            }
         }
 
         public class TheGenerateApiKeyMethod

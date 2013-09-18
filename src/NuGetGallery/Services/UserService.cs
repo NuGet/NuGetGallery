@@ -283,7 +283,8 @@ namespace NuGetGallery
         {
             // Find the credentials we're replacing, if any
             var creds = user.Credentials
-                .Where(cred => cred.Type == credential.Type);
+                .Where(cred => cred.Type == credential.Type)
+                .ToList();
             foreach(var cred in creds)
             {
                 user.Credentials.Remove(cred);

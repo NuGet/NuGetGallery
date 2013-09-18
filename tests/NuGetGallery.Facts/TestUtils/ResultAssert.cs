@@ -62,13 +62,29 @@ namespace NuGetGallery
 
         public static void IsStatusCode(ActionResult result, HttpStatusCode code)
         {
-            IsStatusCode(result, (int)code);
+            IsStatusCode(result, (int)code, description: null);
         }
 
         public static void IsStatusCode(ActionResult result, int code)
         {
-            var statusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
+            IsStatusCode(result, code, description: null);
+        }
+
+        public static void IsStatusCode(ActionResult result, HttpStatusCode code, string description)
+        {
+            IsStatusCode(result, (int)code, description);
+        }
+
+        public static void IsStatusCode(ActionResult result, int code, string description)
+        {
+            var statusCodeResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
             Assert.Equal(code, statusCodeResult.StatusCode);
+            Assert.Equal(description, statusCodeResult.StatusDescription);
+        }
+
+        public static EmptyResult IsEmpty(ActionResult result)
+        {
+            return Assert.IsType<EmptyResult>(result);
         }
     }
 }
