@@ -360,15 +360,17 @@ namespace NuGetGallery
                     .Returns(user);
                 var result = controller.GenerateApiKey();
 
-                ResultAssert.IsRedirectToRoute(result, new { Controller = "Users", Action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account", controller = "Users" });
             }
 
             [Fact]
-            public void GeneratesAnApiKey()
+            public void ClearsOldApiKeyField()
             {
-                var controller = GetController<UsersController>();
-                var user = new User { Username = "the-username" };
-                controller.SetUser(user);
+                var controller = new TestableUsersController();
+                var user = new User() { ApiKey = Guid.NewGuid() };
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername("the-username"))
+                          .Returns(user);
 
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(It.IsAny<string>()))
@@ -376,8 +378,27 @@ namespace NuGetGallery
 
                 controller.GenerateApiKey();
 
-                GetMock<IUserService>()
-                          .Verify(s => s.GenerateApiKey("the-username"));
+                Assert.Null(user.ApiKey);
+            }
+
+            [Fact]
+            public void ReplacesTheApiKeyCredential()
+            {
+                var controller = new TestableUsersController();
+                var user = new User();
+                controller.MockCurrentIdentity
+                          .Setup(i => i.Name)
+                          .Returns("the-username");
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername("the-username"))
+                          .Returns(user);
+
+                controller.GenerateApiKey();
+
+                controller.MockUserService
+                    .Verify(u => u.ReplaceCredential(
+                        user, 
+                        It.Is<Credential>(c => c.Type == Constants.CredentialTypes.ApiKeyV1)));
             }
         }
 
