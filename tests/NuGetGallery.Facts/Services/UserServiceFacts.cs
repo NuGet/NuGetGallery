@@ -578,6 +578,40 @@ namespace NuGetGallery
                 // Assert
                 Assert.Null(result);
             }
+
+            [Fact]
+            public void ReturnsNullIfNoCredentialOfSpecifiedTypeWithSpecifiedValueExists()
+            {
+                // Arrange
+                var creds = new List<Credential>() {
+                    new Credential("foo", "bar")
+                };
+                var service = new TestableUserService();
+                service.MockCredentialRepository.HasData(creds);
+
+                // Act
+                var result = service.AuthenticateCredential(type: "foo", value: "baz");
+
+                // Assert
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public void ReturnsCredentialIfOneExistsWithSpecifiedTypeAndValue()
+            {
+                // Arrange
+                var creds = new List<Credential>() {
+                    new Credential("foo", "bar")
+                };
+                var service = new TestableUserService();
+                service.MockCredentialRepository.HasData(creds);
+
+                // Act
+                var result = service.AuthenticateCredential(type: "foo", value: "bar");
+
+                // Assert
+                Assert.Same(creds[0], result);
+            }
         }
 
         public class TheReplaceCredentialMethod
