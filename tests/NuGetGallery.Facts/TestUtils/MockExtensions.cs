@@ -13,16 +13,27 @@ namespace NuGetGallery
             return self.Returns((TRet)null);
         }
 
-        public static IReturnsResult<IEntityRepository<TType>> HasData<TType>(this Mock<IEntityRepository<TType>> self, params TType[] fakeData)
-            where TType : class, IEntity, new()
+        public static IReturnsResult<IEntityRepository<T>> HasData<T>(this Mock<IEntityRepository<T>> self, params T[] fakeData)
+            where T : class, IEntity, new()
         {
-            return HasData(self, (IEnumerable<TType>)fakeData);
+            return HasData(self, (IEnumerable<T>)fakeData);
         }
 
-        public static IReturnsResult<IEntityRepository<TType>> HasData<TType>(this Mock<IEntityRepository<TType>> self, IEnumerable<TType> fakeData)
-            where TType : class, IEntity, new()
+        public static IReturnsResult<IEntityRepository<T>> HasData<T>(this Mock<IEntityRepository<T>> self, IEnumerable<T> fakeData)
+            where T : class, IEntity, new()
         {
             return self.Setup(e => e.GetAll()).Returns(fakeData.AsQueryable());
+        }
+
+        public static void VerifyCommitted<T>(this Mock<IEntityRepository<T>> self)
+            where T : class, IEntity, new()
+        {
+            self.Verify(e => e.CommitChanges());
+        }
+
+        public static void VerifyCommitted(this Mock<IEntitiesContext> self)
+        {
+            self.Verify(e => e.SaveChanges());
         }
     }
 }
