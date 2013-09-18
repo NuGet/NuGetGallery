@@ -177,6 +177,9 @@
     <Reference Include="NuGet.Core, Version=2.7.40905.79, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Core.2.7.0.1\lib\net40-Client\NuGet.Core.dll</HintPath>
+    <Reference Include="NuGet.Core, Version=2.7.40808.167, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NuGet.Core.2.7.0\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="ODataNullPropagationVisitor">
       <HintPath>..\..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
@@ -793,6 +796,10 @@
     <Compile Include="Migrations\201308292200027_PackageLastEditedTimestamp.Designer.cs">
       <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.cs" />
+    <Compile Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.Designer.cs">
+      <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1238,6 +1245,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201308292200027_PackageLastEditedTimestamp.resx">
       <DependentUpon>201308292200027_PackageLastEditedTimestamp.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201308302258388_AddPackageEditLastErrorColumn.resx">
+      <DependentUpon>201308302258388_AddPackageEditLastErrorColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

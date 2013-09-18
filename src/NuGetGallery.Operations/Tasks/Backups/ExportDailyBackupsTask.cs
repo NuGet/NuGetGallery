@@ -84,9 +84,11 @@ namespace NuGetGallery.Operations.Tasks
                         Log.Info("Exporting '{0}'...", dailyBackup.DatabaseName);
                         (new ExportDatabaseTask()
                         {
-                            ConnectionString = ConnectionString,
+                            ConnectionString = new SqlConnectionStringBuilder(ConnectionString.ConnectionString)
+                            {
+                                InitialCatalog = dailyBackup.DatabaseName
+                            },
                             DestinationStorage = StorageAccount,
-                            DatabaseName = dailyBackup.DatabaseName,
                             DestinationContainer = "database-backups",
                             SqlDacEndpoint = SqlDacEndpoint,
                             WhatIf = WhatIf

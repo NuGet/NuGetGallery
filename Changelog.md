@@ -26,7 +26,7 @@ Other changes include minor fixes in stats page, GetUpdates() API and email vali
 
 ### Nuget.org deployed on Azure Websites
 
-The nuget.org website is now deployed on Azure web sites instead of Azure cloud services. Expect a detaiked blog post from the NuGet team on the steps involed in migration and key take aways.
+The nuget.org website is now deployed on Azure web sites instead of Azure cloud services. Expect a detailed blog post from the NuGet team on the steps involed in migration and key take aways.
 A couple of bug fixes were made to enable this migration( to be compatible with Azure web sites). 
 
 - Canonical domain name for nuget.org : nuget.org will now re-direct to www.nuget.org.
@@ -46,7 +46,7 @@ Other changes include [updated terms of use and privacy policy](https://www.nuge
 
 ### Accessiblity bug fixes
 
-A bunch of accessiblity issue like sorting, highlighting and WCAG level A HTMl 5 errors in the website are fixed.
+A bunch of accessiblity issue like sorting, highlighting and WCAG level A HTML 5 errors in the website are fixed.
 
 ### Other bug fixes
 
