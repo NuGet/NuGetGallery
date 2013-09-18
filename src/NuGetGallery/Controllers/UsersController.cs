@@ -193,9 +193,17 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult GenerateApiKey()
         {
-            UserService.ReplaceCredential(
-                User.Identity.Name,
-                CredentialBuilder.CreateV1ApiKey());
+            // Get the user
+            var user = UserService.FindByUsername(User.Identity.Name);
+
+            // Clear the existing API Key, if there is one
+            if (user.ApiKey != null)
+            {
+                user.ApiKey = null;
+            }
+
+            // Add/Replace the API Key credential, and save to the database
+            UserService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey());
             return RedirectToAction(MVC.Users.Account());
         }
 

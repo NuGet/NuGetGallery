@@ -393,23 +393,44 @@ namespace NuGetGallery
                 
                 var result = controller.GenerateApiKey() as RedirectToRouteResult;
 
-                Assert.NotNull(result);
-                Assert.Equal("Account", result.RouteValues["action"]);
-                Assert.Equal("Users", result.RouteValues["controller"]);
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account", controller = "Users" });
             }
 
             [Fact]
-            public void GeneratesAnApiKey()
+            public void ClearsOldApiKeyField()
             {
                 var controller = new TestableUsersController();
+                var user = new User() { ApiKey = Guid.NewGuid() };
                 controller.MockCurrentIdentity
                           .Setup(i => i.Name)
                           .Returns("the-username");
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername("the-username"))
+                          .Returns(user);
                 
                 controller.GenerateApiKey();
 
+                Assert.Null(user.ApiKey);
+            }
+
+            [Fact]
+            public void ReplacesTheApiKeyCredential()
+            {
+                var controller = new TestableUsersController();
+                var user = new User();
+                controller.MockCurrentIdentity
+                          .Setup(i => i.Name)
+                          .Returns("the-username");
                 controller.MockUserService
-                          .Verify(s => s.GenerateApiKey("the-username"));
+                          .Setup(u => u.FindByUsername("the-username"))
+                          .Returns(user);
+
+                controller.GenerateApiKey();
+
+                controller.MockUserService
+                    .Verify(u => u.ReplaceCredential(
+                        user, 
+                        It.Is<Credential>(c => c.Type == Constants.CredentialTypes.ApiKeyV1)));
             }
         }
 
