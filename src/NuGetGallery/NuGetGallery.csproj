@@ -592,6 +592,7 @@
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AntiForgeryErrorFilter.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />

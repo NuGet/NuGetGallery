@@ -158,7 +158,7 @@ namespace NuGetGallery
                     HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
-            var user = UserService.FindByApiKey(parsedApiKey);
+            User user = GetUserByApiKey(apiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -210,7 +210,7 @@ namespace NuGetGallery
                     HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
-            var user = UserService.FindByApiKey(parsedApiKey);
+            User user = GetUserByApiKey(apiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -275,7 +275,7 @@ namespace NuGetGallery
                     HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
-            var user = UserService.FindByApiKey(parsedApiKey);
+            User user = GetUserByApiKey(apiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -312,7 +312,7 @@ namespace NuGetGallery
                     HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
             }
 
-            var user = UserService.FindByApiKey(parsedApiKey);
+            User user = GetUserByApiKey(apiKey);
             if (user == null)
             {
                 return new HttpStatusCodeWithBodyResult(
@@ -445,6 +445,23 @@ namespace NuGetGallery
             }
 
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+        }
+
+        private User GetUserByApiKey(string apiKey)
+        {
+            var cred = UserService.AuthenticateCredential(Constants.CredentialTypes.ApiKeyV1, apiKey);
+            User user;
+            if (cred == null)
+            {
+#pragma warning disable 0618
+                user = UserService.FindByApiKey(Guid.Parse(apiKey));
+#pragma warning restore 0618
+            }
+            else
+            {
+                user = cred.User;
+            }
+            return user;
         }
 
         private static void QuietlyLogException(Exception e)

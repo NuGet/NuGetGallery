@@ -193,7 +193,9 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult GenerateApiKey()
         {
-            UserService.GenerateApiKey(CurrentUser.Identity.Name);
+            UserService.ReplaceCredential(
+                User.Identity.Name,
+                CredentialBuilder.CreateV1ApiKey());
             return RedirectToAction(MVC.Users.Account());
         }
 

@@ -123,7 +123,7 @@
   <data name="UsernameNotAvailable" xml:space="preserve">
     <value>The username '{0}' is not available.</value>
   </data>
-  <data name="UserNotFound" xml:space="preserve">
+  <data name="UsernameAndPasswordNotFound" xml:space="preserve">
     <value>A user with the provided user name and password does not exist.</value>
   </data>
   <data name="PackageIdNotAvailable" xml:space="preserve">
@@ -173,5 +173,8 @@
   </data>
   <data name="ParameterCannotBeNullOrEmpty" xml:space="preserve">
     <value>'{0}' cannot be null or an empty string</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>A user with the provided user name does not exist.</value>
   </data>
 </root>
