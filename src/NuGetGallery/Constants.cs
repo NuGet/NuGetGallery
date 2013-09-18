@@ -49,6 +49,7 @@
         public static class CredentialTypes
         {
             public static readonly string PasswordPbkdf2 = "password.pbkdf2";
+            public static readonly string ApiKeyV1 = "apikey.v1";
         }
     }
 }

@@ -164,6 +164,20 @@ namespace NuGetGallery
         [ApiKeyAuthorizeAttribute]
         public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
         {
+            Guid parsedApiKey;
+            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+            }
+
+            User user = GetUserByApiKey(apiKey);
+            if (user == null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+            }
+
             if (!String.IsNullOrEmpty(id))
             {
                 // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
@@ -206,6 +220,20 @@ namespace NuGetGallery
 
         private async Task<ActionResult> CreatePackageInternal(User user)
         {
+            Guid parsedApiKey;
+            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+            }
+
+            User user = GetUserByApiKey(apiKey);
+            if (user == null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+            }
+
             using (var packageToPush = ReadPackageFromRequest())
             {
                 // Ensure that the user can push packages for this partialId.
@@ -259,6 +287,20 @@ namespace NuGetGallery
         [ApiKeyAuthorizeAttribute]
         public virtual ActionResult DeletePackage(string apiKey, string id, string version)
         {
+            Guid parsedApiKey;
+            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+            }
+
+            User user = GetUserByApiKey(apiKey);
+            if (user == null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+            }
+
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
@@ -284,6 +326,20 @@ namespace NuGetGallery
         [ApiKeyAuthorizeAttribute]
         public virtual ActionResult PublishPackage(string apiKey, string id, string version)
         {
+            Guid parsedApiKey;
+            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+            }
+
+            User user = GetUserByApiKey(apiKey);
+            if (user == null)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
+            }
+
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
@@ -410,6 +466,23 @@ namespace NuGetGallery
             }
 
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+        }
+
+        private User GetUserByApiKey(string apiKey)
+        {
+            var cred = UserService.AuthenticateCredential(Constants.CredentialTypes.ApiKeyV1, apiKey);
+            User user;
+            if (cred == null)
+            {
+#pragma warning disable 0618
+                user = UserService.FindByApiKey(Guid.Parse(apiKey));
+#pragma warning restore 0618
+            }
+            else
+            {
+                user = cred.User;
+            }
+            return user;
         }
 
         private static void QuietlyLogException(Exception e)

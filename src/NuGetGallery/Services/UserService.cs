@@ -81,7 +81,7 @@ namespace NuGetGallery
             UserRepository.CommitChanges();
         }
 
-        [Obsolete("Use FindByCredential instead")]
+        [Obsolete("Use AuthenticateCredential instead")]
         public User FindByApiKey(Guid apiKey)
         {
             return UserRepository.GetAll().SingleOrDefault(u => u.ApiKey == apiKey);
@@ -118,7 +118,7 @@ namespace NuGetGallery
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
 
-            return AuthenticateUser(password, user);
+            return AuthenticatePassword(password, user);
         }
 
         public virtual User FindByUsernameOrEmailAddressAndPassword(string usernameOrEmail, string password)
@@ -128,9 +128,10 @@ namespace NuGetGallery
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == usernameOrEmail || u.EmailAddress == usernameOrEmail);
 
-            return AuthenticateUser(password, user);
+            return AuthenticatePassword(password, user);
         }
 
+        [Obsolete("Use ReplaceCredential instead")]
         public string GenerateApiKey(string username)
         {
             var user = FindByUsername(username);
@@ -265,7 +266,34 @@ namespace NuGetGallery
                 .SingleOrDefault(c => c.Type == type && c.Value == value);
         }
 
-        private static User AuthenticateUser(string password, User user)
+        public void ReplaceCredential(string userName, Credential credential)
+        {
+            var user = UserRepository
+                .GetAll()
+                .Include(u => u.Credentials)
+                .SingleOrDefault(u => u.Username == userName);
+            if (user == null)
+            {
+                throw new InvalidOperationException(Strings.UserNotFound);
+            }
+            ReplaceCredential(user, credential);
+        }
+
+        public void ReplaceCredential(User user, Credential credential)
+        {
+            // Find the credentials we're replacing, if any
+            var creds = user.Credentials
+                .Where(cred => cred.Type == credential.Type);
+            foreach(var cred in creds)
+            {
+                user.Credentials.Remove(cred);
+            }
+
+            user.Credentials.Add(credential);
+            UserRepository.CommitChanges();
+        }
+
+        private static User AuthenticatePassword(string password, User user)
         {
             if (user == null)
             {

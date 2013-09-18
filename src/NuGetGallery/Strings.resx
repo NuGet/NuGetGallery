@@ -123,7 +123,7 @@
   <data name="UsernameNotAvailable" xml:space="preserve">
     <value>The username '{0}' is not available.</value>
   </data>
-  <data name="UserNotFound" xml:space="preserve">
+  <data name="UsernameAndPasswordNotFound" xml:space="preserve">
     <value>A user with the provided user name and password does not exist.</value>
   </data>
   <data name="PackageIdNotAvailable" xml:space="preserve">
@@ -176,6 +176,9 @@
   </data>
   <data name="DatabaseUnavailable_TrySpecificVersion" xml:space="preserve">
     <value>The NuGet service is experiencing a service interruption. Try requesting a specific package version instead.</value>
+  </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>A user with the provided user name does not exist.</value>
   </data>
   <data name="ApiKeyUserAccountIsUnconfirmed" xml:space="preserve">
     <value>You must confirm the email address for the account in order to use the API key.</value>

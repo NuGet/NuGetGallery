@@ -580,6 +580,11 @@ namespace NuGetGallery
             }
         }
 
+        public class TheReplaceCredentialMethod
+        {
+
+        }
+
         public class TheGenerateApiKeyMethod
         {
             [Fact]
