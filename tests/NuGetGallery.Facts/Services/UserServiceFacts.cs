@@ -458,12 +458,8 @@ namespace NuGetGallery
                 var user = CreateAUser("theUsername", "test@example.com");
                 user.Credentials.Add(CreatePasswordCredential("thePassword"));
                 var service = new TestableUserService();
-                service.MockUserRepository
-                       .Setup(u => u.GetAll())
-                       .Returns(new[] { user }.AsQueryable());
-                service.MockCredentialRepository
-                       .Setup(c => c.GetAll())
-                       .Returns(user.Credentials.AsQueryable());
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
                 
                 var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
 
@@ -477,12 +473,8 @@ namespace NuGetGallery
                 var user = CreateAUser("theUsername", "theWrongPassword", "test@example.com");
                 user.Credentials.Add(CreatePasswordCredential("thePassword"));
                 var service = new TestableUserService();
-                service.MockUserRepository
-                       .Setup(u => u.GetAll())
-                       .Returns(new[] { user }.AsQueryable());
-                service.MockCredentialRepository
-                       .Setup(c => c.GetAll())
-                       .Returns(user.Credentials.AsQueryable());
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
 
                 var foundByUserName = service.FindByUsernameAndPassword("theUsername", "thePassword");
 
@@ -541,12 +533,8 @@ namespace NuGetGallery
                 var user = CreateAUser("theUsername", "test@example.com");
                 user.Credentials.Add(CreatePasswordCredential("thePassword"));
                 var service = new TestableUserService();
-                service.MockUserRepository
-                       .Setup(u => u.GetAll())
-                       .Returns(new[] { user }.AsQueryable());
-                service.MockCredentialRepository
-                       .Setup(c => c.GetAll())
-                       .Returns(user.Credentials.AsQueryable());
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
 
                 var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
 
@@ -560,17 +548,33 @@ namespace NuGetGallery
                 var user = CreateAUser("theUsername", "theWrongPassword", "test@example.com");
                 user.Credentials.Add(CreatePasswordCredential("thePassword"));
                 var service = new TestableUserService();
-                service.MockUserRepository
-                       .Setup(u => u.GetAll())
-                       .Returns(new[] { user }.AsQueryable());
-                service.MockCredentialRepository
-                       .Setup(c => c.GetAll())
-                       .Returns(user.Credentials.AsQueryable());
+                service.MockUserRepository.HasData(user);
+                service.MockCredentialRepository.HasData(user.Credentials);
 
                 var foundByUserName = service.FindByUsernameOrEmailAddressAndPassword("test@example.com", "thePassword");
 
                 Assert.NotNull(foundByUserName);
                 Assert.Same(user, foundByUserName);
+            }
+        }
+
+        public class TheAuthenticateCredentialMethod
+        {
+            [Fact]
+            public void ReturnsNullIfNoCredentialOfSpecifiedTypeExists()
+            {
+                // Arrange
+                var creds = new List<Credential>() {
+                    new Credential("foo", "bar")
+                };
+                var service = new TestableUserService();
+                service.MockCredentialRepository.HasData(creds);
+
+                // Act
+                var result = service.AuthenticateCredential(type: "baz", value: "bar");
+
+                // Assert
+                Assert.Null(result);
             }
         }
 

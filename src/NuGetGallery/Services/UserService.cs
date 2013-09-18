@@ -13,12 +13,13 @@ namespace NuGetGallery
         public IEntityRepository<User> UserRepository { get; protected set; }
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
 
-        protected UserService() {}
+        protected UserService() { }
 
         public UserService(
             IAppConfiguration config,
             IEntityRepository<User> userRepository,
-            IEntityRepository<Credential> credentialRepository) : this()
+            IEntityRepository<Credential> credentialRepository)
+            : this()
         {
             Config = config;
             UserRepository = userRepository;
@@ -92,6 +93,7 @@ namespace NuGetGallery
             UserRepository.CommitChanges();
         }
 
+        [Obsolete("Use FindByCredential instead")]
         public User FindByApiKey(Guid apiKey)
         {
             return UserRepository.GetAll().SingleOrDefault(u => u.ApiKey == apiKey);
@@ -252,6 +254,15 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        public Credential AuthenticateCredential(string type, string value)
+        {
+            // Search for the cred
+            return CredentialRepository
+                .GetAll()
+                .Include(c => c.User)
+                .SingleOrDefault(c => c.Type == type && c.Value == value);
         }
 
         private static User AuthenticateUser(string password, User user)

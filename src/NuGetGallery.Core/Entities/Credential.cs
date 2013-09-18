@@ -16,20 +16,19 @@ namespace NuGetGallery
             Value = value;
         }
 
-        public Credential(string type, string identifier, string value) : this(type, value)
-        {
-            Identifier = identifier;
-        }
-
         public int Key { get; set; }
+        
+        [Required]
         public int UserKey { get; set; }
 
+        [Required]
         [StringLength(maximumLength: 64)]
         public string Type { get; set; }
         
         [StringLength(maximumLength: 256)]
         public string Identifier { get; set; }
         
+        [Required]
         [StringLength(maximumLength: 256)]
         public string Value { get; set; }
 

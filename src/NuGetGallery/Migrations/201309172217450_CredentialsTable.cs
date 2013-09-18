@@ -13,19 +13,25 @@ namespace NuGetGallery.Migrations
                     {
                         Key = c.Int(nullable: false, identity: true),
                         UserKey = c.Int(nullable: false),
-                        Type = c.String(maxLength: 64),
+                        Type = c.String(nullable: false, maxLength: 64),
                         Identifier = c.String(maxLength: 256),
-                        Value = c.String(maxLength: 256),
+                        Value = c.String(nullable: false, maxLength: 256),
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Users", t => t.UserKey, cascadeDelete: true)
                 .Index(t => t.UserKey);
-            
+
+            CreateIndex(
+                "dbo.Credentials",
+                new[] { "Type", "Value" },
+                unique: true,
+                name: "IX_Credentials_Type_Value");
         }
         
         public override void Down()
         {
             DropIndex("dbo.Credentials", new[] { "UserKey" });
+            DropIndex("dbo.Credentials", "IX_Credentials_Type_Value");
             DropForeignKey("dbo.Credentials", "UserKey", "dbo.Users");
             DropTable("dbo.Credentials");
         }
