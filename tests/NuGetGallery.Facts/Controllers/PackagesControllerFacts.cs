@@ -345,7 +345,7 @@ namespace NuGetGallery
                         Version = "1.0",
                         Listed = true
                     };
-                package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
+                package.PackageRegistration.Owners.Add(new User("Frodo"));
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>(), It.IsAny<bool>())).Throws(new Exception("Shouldn't be called"));
@@ -381,7 +381,7 @@ namespace NuGetGallery
                         Version = "1.0",
                         Listed = true
                     };
-                package.PackageRegistration.Owners.Add(new User("Frodo", "foo"));
+                package.PackageRegistration.Owners.Add(new User("Frodo"));
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.MarkPackageListed(It.IsAny<Package>(), It.IsAny<bool>())).Verifiable();
@@ -1681,7 +1681,7 @@ namespace NuGetGallery
                         Version = "1.0",
                         HideLicenseReport = true
                     };
-                package.PackageRegistration.Owners.Add(new User("Smeagol", "foo"));
+                package.PackageRegistration.Owners.Add(new User("Smeagol"));
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.SetLicenseReportVisibility(It.IsAny<Package>(), It.Is<bool>(t => t == true), It.IsAny<bool>())).Throws(new Exception("Shouldn't be called"));

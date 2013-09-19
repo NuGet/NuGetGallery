@@ -44,17 +44,16 @@ namespace NuGetGallery
 
             var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
-            var newUser = new User(
-                username,
-                hashedPassword)
-                {
-                    ApiKey = Guid.NewGuid(),
-                    EmailAllowed = true,
-                    UnconfirmedEmailAddress = emailAddress,
-                    EmailConfirmationToken = Crypto.GenerateToken(),
-                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
-                    CreatedUtc = DateTime.UtcNow
-                };
+            var newUser = new User(username)
+            {
+                ApiKey = Guid.NewGuid(),
+                EmailAllowed = true,
+                UnconfirmedEmailAddress = emailAddress,
+                EmailConfirmationToken = Crypto.GenerateToken(),
+                HashedPassword = hashedPassword,
+                PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
+                CreatedUtc = DateTime.UtcNow
+            };
 
             if (!Config.ConfirmEmailAddresses)
             {
@@ -67,22 +66,11 @@ namespace NuGetGallery
             return newUser;
         }
 
-        public void UpdateProfile(User user, string emailAddress, bool emailAllowed)
+        public void UpdateProfile(User user, bool emailAllowed)
         {
             if (user == null)
             {
                 throw new ArgumentNullException("user");
-            }
-
-            if (emailAddress != user.EmailAddress)
-            {
-                var existingUser = FindByEmailAddress(emailAddress);
-                if (existingUser != null && existingUser.Key != user.Key)
-                {
-                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
-                }
-                user.UnconfirmedEmailAddress = emailAddress;
-                user.EmailConfirmationToken = Crypto.GenerateToken();
             }
 
             user.EmailAllowed = emailAllowed;
@@ -175,6 +163,18 @@ namespace NuGetGallery
             user.ApiKey = newApiKey;
             UserRepository.CommitChanges();
             return newApiKey.ToString();
+        }
+
+        public void ChangeEmailAddress(User user, string newEmailAddress)
+        {
+            var existingUser = FindByEmailAddress(newEmailAddress);
+            if (existingUser != null && existingUser.Key != user.Key)
+            {
+                throw new EntityException(Strings.EmailAddressBeingUsed, newEmailAddress);
+            }
+
+            user.UpdateEmailAddress(newEmailAddress, Crypto.GenerateToken);
+            UserRepository.CommitChanges();
         }
 
         public bool ChangePassword(string username, string oldPassword, string newPassword)

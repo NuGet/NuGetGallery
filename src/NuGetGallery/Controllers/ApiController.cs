@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -149,22 +150,9 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("VerifyPackageKeyApi")]
+        [ApiKeyAuthorizeAttribute]
         public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
         {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
-            }
-
-            var user = UserService.FindByApiKey(parsedApiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
-            }
-
             if (!String.IsNullOrEmpty(id))
             {
                 // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
@@ -175,10 +163,10 @@ namespace NuGetGallery
                         HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                 }
 
+                var user = UserService.FindByApiKey(new Guid(apiKey));
                 if (!package.IsOwner(user))
                 {
-                    return new HttpStatusCodeWithBodyResult(
-                        HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
             }
 
@@ -188,35 +176,25 @@ namespace NuGetGallery
         [HttpPut]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [ApiKeyAuthorizeAttribute]
         public virtual Task<ActionResult> CreatePackagePut(string apiKey)
         {
-            return CreatePackageInternal(apiKey);
+            var user = UserService.FindByApiKey(new Guid(apiKey));
+            return CreatePackageInternal(user);
         }
 
         [HttpPost]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [ApiKeyAuthorizeAttribute]
         public virtual Task<ActionResult> CreatePackagePost(string apiKey)
         {
-            return CreatePackageInternal(apiKey);
+            var user = UserService.FindByApiKey(new Guid(apiKey));
+            return CreatePackageInternal(user);
         }
 
-        private async Task<ActionResult> CreatePackageInternal(string apiKey)
+        private async Task<ActionResult> CreatePackageInternal(User user)
         {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
-            }
-
-            var user = UserService.FindByApiKey(parsedApiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
-            }
-
             using (var packageToPush = ReadPackageFromRequest())
             {
                 // Ensure that the user can push packages for this partialId.
@@ -225,9 +203,7 @@ namespace NuGetGallery
                 {
                     if (!packageRegistration.IsOwner(user))
                     {
-                        return new HttpStatusCodeWithBodyResult(
-                            HttpStatusCode.Forbidden,
-                            String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                     }
 
                     // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
@@ -266,22 +242,9 @@ namespace NuGetGallery
         [HttpDelete]
         [ActionName("DeletePackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [ApiKeyAuthorizeAttribute]
         public virtual ActionResult DeletePackage(string apiKey, string id, string version)
         {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
-            }
-
-            var user = UserService.FindByApiKey(parsedApiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
-            }
-
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
@@ -289,10 +252,11 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
+            var user = UserService.FindByApiKey(new Guid(apiKey));
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
+                    HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
             PackageService.MarkPackageUnlisted(package);
@@ -303,22 +267,9 @@ namespace NuGetGallery
         [HttpPost]
         [ActionName("PublishPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
+        [ApiKeyAuthorizeAttribute]
         public virtual ActionResult PublishPackage(string apiKey, string id, string version)
         {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
-            }
-
-            var user = UserService.FindByApiKey(parsedApiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
-            }
-
             var package = PackageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
@@ -326,10 +277,10 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
+            var user = UserService.FindByApiKey(new Guid(apiKey));
             if (!package.IsOwner(user))
             {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
             PackageService.MarkPackageListed(package);
@@ -423,7 +374,7 @@ namespace NuGetGallery
                         item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
                         item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
                         item.Add("PackageDescription", row.PackageDescription);
-                        item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDeafultIcon());
+                        item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDefaultIcon());
                         item.Add("Downloads", row.Downloads);
 
                         content.Add(item);

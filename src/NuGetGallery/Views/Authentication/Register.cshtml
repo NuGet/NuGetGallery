@@ -1,0 +1,19 @@
+﻿@model RegisterRequest
+@{
+    ViewBag.Title = "Sign In";
+}
+
+<div id="SignIn">
+    <h1>Sign In</h1>
+
+    @Html.Partial("_SignInForm", new SignInRequest())
+</div>
+
+<div id="MiddleSeparator"></div>
+
+<div id="Register">
+    <h1>Register</h1>
+    
+    @Html.ValidationSummary(true)
+    @Html.Partial("_RegisterForm", Model)
+</div>
