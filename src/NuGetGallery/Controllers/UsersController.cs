@@ -39,10 +39,15 @@ namespace NuGetGallery
         {
             var user = UserService.FindByUsername(CurrentUser.Identity.Name);
             var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
+            var apiCredential = user
+                .Credentials
+                .FirstOrDefault(c => c.Type == Constants.CredentialTypes.ApiKeyV1);
             return View(
                 new AccountViewModel
                     {
-                        ApiKey = user.ApiKey.ToString(),
+                        ApiKey = apiCredential == null ? 
+                            user.ApiKey.ToString() :
+                            apiCredential.Value,
                         CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
                     });
         }

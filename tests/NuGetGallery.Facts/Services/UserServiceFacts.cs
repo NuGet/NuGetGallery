@@ -733,6 +733,8 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(2, users[0].Credentials.Count);
                 Assert.Equal(new[] { frozenCred, newCred }, users[0].Credentials.ToArray());
+                service.MockCredentialRepository
+                    .Verify(x => x.DeleteOnCommit(existingCred));
                 service.MockUserRepository.VerifyCommitted();
             }
         }
