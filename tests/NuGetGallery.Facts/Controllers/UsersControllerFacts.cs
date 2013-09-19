@@ -352,11 +352,11 @@ namespace NuGetGallery
             [Fact]
             public void RedirectsToAccountPage()
             {
-                var controller = GetController<UsersController>();
-                var user = new User { Username = "the-username" };
-                controller.SetUser(user);
-                GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                var user = new User();
+                    .Setup(i => i.Name)
+                    .Returns("the-username");
+                controller.MockUserService
+                    .Setup(u => u.FindByUsername("the-username"))
                     .Returns(user);
                 var result = controller.GenerateApiKey();
 
@@ -364,13 +364,20 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void ClearsOldApiKeyField()
+            public void PutsNewCredentialInOldField()
             {
                 var controller = new TestableUsersController();
                 var user = new User() { ApiKey = Guid.NewGuid() };
+                controller.MockCurrentIdentity
+                    .Setup(i => i.Name)
+                    .Returns("the-username");
                 controller.MockUserService
-                          .Setup(u => u.FindByUsername("the-username"))
-                          .Returns(user);
+                    .Setup(u => u.FindByUsername("the-username"))
+                    .Returns(user);
+                Credential created = null;
+                controller.MockUserService
+                    .Setup(u => u.ReplaceCredential(user, It.IsAny<Credential>()))
+                    .Callback<User, Credential>((_, c) => created = c);
 
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(It.IsAny<string>()))
@@ -378,7 +385,7 @@ namespace NuGetGallery
 
                 controller.GenerateApiKey();
 
-                Assert.Null(user.ApiKey);
+                Assert.Equal(created.Value, user.ApiKey.ToString().ToLowerInvariant());
             }
 
             [Fact]
@@ -387,11 +394,11 @@ namespace NuGetGallery
                 var controller = new TestableUsersController();
                 var user = new User();
                 controller.MockCurrentIdentity
-                          .Setup(i => i.Name)
-                          .Returns("the-username");
+                    .Setup(i => i.Name)
+                    .Returns("the-username");
                 controller.MockUserService
-                          .Setup(u => u.FindByUsername("the-username"))
-                          .Returns(user);
+                    .Setup(u => u.FindByUsername("the-username"))
+                    .Returns(user);
 
                 controller.GenerateApiKey();
 

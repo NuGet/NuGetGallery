@@ -57,7 +57,7 @@ namespace NuGetGallery
             return view;
         }
 
-        public static T IsView<T>(ActionResult result, string viewName = "", string masterName = "", object viewData = null)
+        private static void DictionariesMatch<V>(IDictionary<string, V> expected, IDictionary<string, V> actual)
         {
             var view = IsView(result, viewName, masterName, viewData);
             return Assert.IsType<T>(view.Model);
@@ -68,9 +68,10 @@ namespace NuGetGallery
             return Assert.IsType<HttpNotFoundResult>(result);
         }
 
-        private static void DictionariesMatch<K, V>(IDictionary<K, V> expected, IDictionary<K, V> actual)
         {
-            var expectedKeys = expected.Keys.Cast<object>().ToList();
+            var expectedKeys = new HashSet<string>(
+                expected.Keys,
+                StringComparer.OrdinalIgnoreCase);
 
             foreach (var key in actual.Keys)
             {

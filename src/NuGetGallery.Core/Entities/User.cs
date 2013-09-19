@@ -16,7 +16,7 @@ namespace NuGetGallery
             Username = username;
         }
 
-        public Guid? ApiKey { get; set; }
+        public Guid ApiKey { get; set; }
 
         [StringLength(256)]
         public string EmailAddress { get; set; }

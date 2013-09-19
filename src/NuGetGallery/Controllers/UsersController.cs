@@ -143,16 +143,16 @@ namespace NuGetGallery
         public virtual ActionResult GenerateApiKey()
         {
             // Get the user
-            var user = UserService.FindByUsername(User.Identity.Name);
+            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
 
-            // Clear the existing API Key, if there is one
-            if (user.ApiKey != null)
-            {
-                user.ApiKey = null;
-            }
+            // Generate an API Key
+            var apiKey = Guid.NewGuid();
+
+            // Set the existing API Key field
+            user.ApiKey = apiKey;
 
             // Add/Replace the API Key credential, and save to the database
-            UserService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey());
+            UserService.ReplaceCredential(user, CredentialBuilder.CreateV1ApiKey(apiKey));
             return RedirectToAction(MVC.Users.Account());
         }
 
