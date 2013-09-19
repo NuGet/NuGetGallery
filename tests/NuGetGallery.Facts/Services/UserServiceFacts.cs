@@ -34,17 +34,17 @@ namespace NuGetGallery
             };
         }
 
-        public static bool VerifyPasswordHash(User user, string password)
+        public static bool VerifyPasswordHash(string hash, string algorithm, string password)
         {
             bool canAuthenticate = CryptographyService.ValidateSaltedHash(
-                user.HashedPassword,
+                hash,
                 password,
-                user.PasswordHashAlgorithm);
+                algorithm);
 
             bool sanity = CryptographyService.ValidateSaltedHash(
-                user.HashedPassword,
+                hash,
                 "not_the_password",
-                user.PasswordHashAlgorithm);
+                algorithm);
 
             return canAuthenticate && !sanity;
         }
@@ -160,7 +160,7 @@ namespace NuGetGallery
                        .Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
 
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");
-                Assert.True(VerifyPasswordHash(user, "newpwd"));
+                Assert.True(VerifyPasswordHash(user.HashedPassword, user.PasswordHashAlgorithm, "newpwd"));
             }
 
             [Fact]
@@ -178,7 +178,7 @@ namespace NuGetGallery
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");
 
                 Assert.True(changed);
-                Assert.True(VerifyPasswordHash(user, "newpwd"));
+                Assert.True(VerifyPasswordHash(user.HashedPassword, user.PasswordHashAlgorithm, "newpwd"));
                 Assert.Equal("PBKDF2", user.PasswordHashAlgorithm);
             }
         }
@@ -299,7 +299,7 @@ namespace NuGetGallery
                     "theEmailAddress");
 
                 Assert.Equal("PBKDF2", user.PasswordHashAlgorithm);
-                Assert.True(VerifyPasswordHash(user, "thePassword"));
+                Assert.True(VerifyPasswordHash(user.HashedPassword, user.PasswordHashAlgorithm, "thePassword"));
             }
 
             [Fact]
@@ -321,6 +321,28 @@ namespace NuGetGallery
                                     u.UnconfirmedEmailAddress == "theEmailAddress")));
                 userService.MockUserRepository
                            .Verify(x => x.CommitChanges());
+            }
+
+            [Fact]
+            public void WillSaveThePasswordInTheCredentialsTable()
+            {
+                var userService = new TestableUserService();
+                
+                var user = userService.Create(
+                    "theUsername",
+                    "thePassword",
+                    "theEmailAddress");
+
+                Assert.NotNull(user);
+                var passwordCred = user.Credentials.FirstOrDefault(c => c.Type == Constants.CredentialTypes.PasswordPbkdf2);
+                Assert.NotNull(passwordCred);
+                Assert.Equal(Constants.CredentialTypes.PasswordPbkdf2, passwordCred.Type);
+                Assert.True(VerifyPasswordHash(passwordCred.Value, Constants.PBKDF2HashAlgorithmId, "thePassword"));
+
+                userService.MockUserRepository
+                    .Verify(x => x.InsertOnCommit(user));
+                userService.MockUserRepository
+                    .Verify(x => x.CommitChanges());
             }
 
             [Fact]
@@ -357,7 +379,13 @@ namespace NuGetGallery
                     "thePassword",
                     "theEmailAddress");
 
+                userService.MockUserRepository
+                    .Verify(x => x.InsertOnCommit(user));
                 Assert.NotEqual(Guid.Empty, user.ApiKey);
+
+                var apiKeyCred = user.Credentials.FirstOrDefault(c => c.Type == Constants.CredentialTypes.ApiKeyV1);
+                Assert.NotNull(apiKeyCred);
+                Assert.Equal(user.ApiKey.ToString().ToLowerInvariant(), apiKeyCred.Value);
             }
 
             [Fact]
@@ -852,7 +880,7 @@ namespace NuGetGallery
                 bool result = userService.ResetPasswordWithToken("user", "some-token", "new-password");
 
                 Assert.True(result);
-                Assert.True(VerifyPasswordHash(user, "new-password"));
+                Assert.True(VerifyPasswordHash(user.HashedPassword, user.PasswordHashAlgorithm, "new-password"));
                 Assert.Null(user.PasswordResetToken);
                 Assert.Null(user.PasswordResetTokenExpirationDate);
                 userService.MockUserRepository.Verify(u => u.CommitChanges());
@@ -879,7 +907,7 @@ namespace NuGetGallery
 
                 Assert.True(result);
                 Assert.Equal("PBKDF2", user.PasswordHashAlgorithm);
-                Assert.True(VerifyPasswordHash(user, "new-password"));
+                Assert.True(VerifyPasswordHash(user.HashedPassword, user.PasswordHashAlgorithm, "new-password"));
                 Assert.Null(user.PasswordResetToken);
                 Assert.Null(user.PasswordResetTokenExpirationDate);
                 userService.MockUserRepository

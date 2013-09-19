@@ -45,9 +45,11 @@ namespace NuGetGallery
             return view;
         }
 
-        private static void DictionariesMatch<K, V>(IDictionary<K, V> expected, IDictionary<K, V> actual)
+        private static void DictionariesMatch<V>(IDictionary<string, V> expected, IDictionary<string, V> actual)
         {
-            var expectedKeys = expected.Keys.Cast<object>().ToList();
+            var expectedKeys = new HashSet<string>(
+                expected.Keys,
+                StringComparer.OrdinalIgnoreCase);
 
             foreach (var key in actual.Keys)
             {

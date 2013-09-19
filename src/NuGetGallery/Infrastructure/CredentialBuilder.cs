@@ -12,7 +12,12 @@ namespace NuGetGallery
     {
         public static Credential CreateV1ApiKey()
         {
-            var value = Guid.NewGuid()
+            return CreateV1ApiKey(Guid.NewGuid());
+        }
+
+        public static Credential CreateV1ApiKey(Guid apiKey)
+        {
+            var value = apiKey
                 .ToString()
                 .ToLowerInvariant();
             return new Credential(Constants.CredentialTypes.ApiKeyV1, value);
