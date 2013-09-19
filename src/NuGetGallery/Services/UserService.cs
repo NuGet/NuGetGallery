@@ -287,16 +287,7 @@ namespace NuGetGallery
 
         public void ReplaceCredential(User user, Credential credential)
         {
-            // Find the credentials we're replacing, if any
-            var creds = user.Credentials
-                .Where(cred => cred.Type == credential.Type)
-                .ToList();
-            foreach(var cred in creds)
-            {
-                user.Credentials.Remove(cred);
-            }
-
-            user.Credentials.Add(credential);
+            ReplaceCredentialInternal(user, credential);
             UserRepository.CommitChanges();
         }
 
@@ -335,9 +326,24 @@ namespace NuGetGallery
 
         private static void ChangePasswordInternal(User user, string newPassword)
         {
-            var hashedPassword = Crypto.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
+            var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
-            user.HashedPassword = hashedPassword;
+            user.HashedPassword = cred.Value;
+            ReplaceCredentialInternal(user, cred);
+        }
+
+        private static void ReplaceCredentialInternal(User user, Credential credential)
+        {
+            // Find the credentials we're replacing, if any
+            var creds = user.Credentials
+                .Where(cred => cred.Type == credential.Type)
+                .ToList();
+            foreach (var cred in creds)
+            {
+                user.Credentials.Remove(cred);
+            }
+
+            user.Credentials.Add(credential);
         }
     }
 }

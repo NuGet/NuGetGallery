@@ -49,12 +49,18 @@ namespace NuGetGallery
 
             Assert.Equal(viewName, view.ViewName);
             Assert.Equal(masterName, view.MasterName);
-            
+
             if (viewData != null)
             {
                 DictionariesMatch(new RouteValueDictionary(viewData), view.ViewData);
             }
             return view;
+        }
+
+        public static TModel IsView<TModel>(ActionResult result, string viewName = "", string masterName = "", object viewData = null)
+        {
+            var model = Assert.IsType<TModel>(IsView(result, viewName, masterName, viewData).Model);
+            return model;
         }
 
         private static void DictionariesMatch<V>(IDictionary<string, V> expected, IDictionary<string, V> actual)

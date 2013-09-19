@@ -536,7 +536,88 @@ namespace NuGetGallery
             }
         }
 
-        public class TheResetPasswordMethod : TestContainer
+        public class TheChangePasswordMethod
+        {
+            [Fact]
+            public void ReturnsViewIfModelStateInvalid()
+            {
+                // Arrange
+                var controller = new TestableUsersController();
+                controller.ModelState.AddModelError("test", "test");
+                var inputModel = new PasswordChangeViewModel();
+
+                // Act
+                var result = controller.ChangePassword(inputModel);
+
+                // Assert
+                var outputModel = ResultAssert.IsView<PasswordChangeViewModel>(result);
+                Assert.Same(inputModel, outputModel);
+            }
+
+            [Fact]
+            public void AddsModelErrorIfUserServiceFails()
+            {
+                // Arrange
+                var controller = new TestableUsersController();
+                controller.MockCurrentIdentity
+                    .Setup(i => i.Name)
+                    .Returns("user");
+                controller.MockUserService
+                    .Setup(u => u.ChangePassword("user", "old", "new"))
+                    .Returns(false);
+                var inputModel = new PasswordChangeViewModel()
+                {
+                    OldPassword = "old",
+                    NewPassword = "new",
+                    ConfirmPassword = "new"
+                };
+
+                // Act
+                var result = controller.ChangePassword(inputModel);
+
+                // Assert
+                var outputModel = ResultAssert.IsView<PasswordChangeViewModel>(result);
+                Assert.Same(inputModel, outputModel);
+
+                var errorMessages = controller
+                    .ModelState["OldPassword"]
+                    .Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToArray();
+                Assert.Equal(errorMessages, new[] { Strings.CurrentPasswordIncorrect });
+            }
+
+            [Fact]
+            public void RedirectsToPasswordChangedIfUserServiceSucceeds()
+            {
+                // Arrange
+                var controller = new TestableUsersController();
+                controller.MockCurrentIdentity
+                    .Setup(i => i.Name)
+                    .Returns("user");
+                controller.MockUserService
+                    .Setup(u => u.ChangePassword("user", "old", "new"))
+                    .Returns(true);
+                var inputModel = new PasswordChangeViewModel()
+                {
+                    OldPassword = "old",
+                    NewPassword = "new",
+                    ConfirmPassword = "new"
+                };
+
+                // Act
+                var result = controller.ChangePassword(inputModel);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new
+                {
+                    controller = "Users",
+                    action = "PasswordChanged"
+                });
+            }
+        }
+
+        public class TheResetPasswordMethod
         {
             [Fact]
             public void ShowsErrorIfTokenExpired()

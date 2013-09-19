@@ -163,6 +163,29 @@ namespace NuGetGallery
 
                 var changed = service.ChangePassword("user", "oldpwd", "newpwd");
                 Assert.True(VerifyPasswordHash(user.HashedPassword, user.PasswordHashAlgorithm, "newpwd"));
+                service.MockUserRepository.VerifyCommitted();
+            }
+
+            [Fact]
+            public void UpdatesThePasswordCredential()
+            {
+                var hash = CryptographyService.GenerateSaltedHash("oldpwd", "PBKDF2");
+                var user = new User { 
+                    Username = "user",
+                    Credentials = new List<Credential>()
+                    {
+                        new Credential(Constants.CredentialTypes.PasswordPbkdf2, hash)
+                    }
+                };
+                var service = new TestableUserService();
+                service.MockUserRepository
+                       .Setup(r => r.GetAll()).Returns(new[] { user }.AsQueryable());
+
+                var changed = service.ChangePassword("user", "oldpwd", "newpwd");
+                var cred = user.Credentials.Single();
+                Assert.Equal(Constants.CredentialTypes.PasswordPbkdf2, cred.Type);
+                Assert.True(VerifyPasswordHash(cred.Value, Constants.PBKDF2HashAlgorithmId, "newpwd"));
+                service.MockUserRepository.VerifyCommitted();
             }
 
             [Fact]
@@ -182,6 +205,7 @@ namespace NuGetGallery
                 Assert.True(changed);
                 Assert.True(VerifyPasswordHash(user.HashedPassword, user.PasswordHashAlgorithm, "newpwd"));
                 Assert.Equal("PBKDF2", user.PasswordHashAlgorithm);
+                service.MockUserRepository.VerifyCommitted();
             }
         }
 
@@ -885,7 +909,36 @@ namespace NuGetGallery
                 Assert.True(VerifyPasswordHash(user.HashedPassword, user.PasswordHashAlgorithm, "new-password"));
                 Assert.Null(user.PasswordResetToken);
                 Assert.Null(user.PasswordResetTokenExpirationDate);
-                userService.MockUserRepository.Verify(u => u.CommitChanges());
+                userService.MockUserRepository.VerifyCommitted();
+            }
+
+            [Fact]
+            public void ResetsPasswordCredential()
+            {
+                var oldCred = CredentialBuilder.CreatePbkdf2Password("thePassword");
+                var user = new User
+                {
+                    Username = "user",
+                    EmailAddress = "confirmed@example.com",
+                    PasswordResetToken = "some-token",
+                    PasswordResetTokenExpirationDate = DateTime.UtcNow.AddDays(1),
+                    HashedPassword = oldCred.Value,
+                    PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
+                    Credentials = new List<Credential>() { oldCred }
+                };
+
+                var userService = new TestableUserService();
+                userService.MockUserRepository
+                           .Setup(r => r.GetAll())
+                           .Returns(new[] { user }.AsQueryable());
+
+                bool result = userService.ResetPasswordWithToken("user", "some-token", "new-password");
+
+                Assert.True(result);
+                var newCred = user.Credentials.Single();
+                Assert.Equal(Constants.CredentialTypes.PasswordPbkdf2, newCred.Type);
+                Assert.True(VerifyPasswordHash(newCred.Value, Constants.PBKDF2HashAlgorithmId, "new-password"));
+                userService.MockUserRepository.VerifyCommitted();
             }
 
             [Fact]
@@ -912,8 +965,7 @@ namespace NuGetGallery
                 Assert.True(VerifyPasswordHash(user.HashedPassword, user.PasswordHashAlgorithm, "new-password"));
                 Assert.Null(user.PasswordResetToken);
                 Assert.Null(user.PasswordResetTokenExpirationDate);
-                userService.MockUserRepository
-                           .Verify(u => u.CommitChanges());
+                userService.MockUserRepository.VerifyCommitted();
             }
         }
 
