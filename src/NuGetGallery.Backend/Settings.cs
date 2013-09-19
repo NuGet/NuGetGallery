@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Net;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using Microsoft.WindowsAzure.Storage;
 
@@ -13,9 +14,13 @@ namespace NuGetGallery.Backend
         private CloudStorageAccount _mainStorage;
         private CloudStorageAccount _backupStorage;
         private Uri _sqlDac;
+        private Uri _licenseReportService;
+        private NetworkCredential _licenseReportCredentials;
 
         public virtual string EnvironmentName { get { return GetSetting("EnvironmentName"); } }
+
         public virtual string MainConnectionString { get { return GetSetting("Sql.Primary"); } }
+
         public virtual string WarehouseConnectionString { get { return GetSetting("Sql.Warehouse"); } }
 
         public virtual bool WhatIf
@@ -29,6 +34,29 @@ namespace NuGetGallery.Backend
             {
                 return _sqlDac ??
                     (_sqlDac = new Uri(GetSetting("SqlDac")));
+            }
+        }
+
+        public virtual Uri LicenseReportService
+        {
+            get
+            {
+                return _licenseReportService ??
+                    (_licenseReportService = new Uri(GetSetting("LicenseReport.Service")));
+            }
+        }
+
+        public virtual NetworkCredential LicenseReportCredentials
+        {
+            get
+            {
+                if (_licenseReportCredentials == null)
+                {
+                    string user = GetSetting("LicenseReport.User");
+                    string pass = GetSetting("LicenseReport.Password");
+                    _licenseReportCredentials = new NetworkCredential(user, pass);
+                }
+                return _licenseReportCredentials;
             }
         }
 
@@ -50,7 +78,11 @@ namespace NuGetGallery.Backend
             }
         }
 
-        public Settings() : this(new Dictionary<string, string>()) { }
+        public Settings()
+            : this(new Dictionary<string, string>())
+        {
+        }
+
         public Settings(IDictionary<string, string> overrideSettings)
         {
             _overrideSettings = overrideSettings;

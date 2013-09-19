@@ -88,6 +88,8 @@ namespace NuGetGallery
         /// </remarks>
         public string LicenseUrl { get; set; }
 
+        public bool HideLicenseReport { get; set; }
+
         [StringLength(20)]
         public string Language { get; set; }
 
@@ -119,6 +121,12 @@ namespace NuGetGallery
         [StringLength(64)]
         [Required]
         public string Version { get; set; }
+
+        public virtual ICollection<PackageLicenseReport> LicenseReports { get; set; }
+
+        // Pre-calcuated data for the feed
+        public string LicenseNames { get; set; }
+        public string LicenseReportUrl { get; set; }
 
         public bool Listed { get; set; }
         public bool IsPrerelease { get; set; }
