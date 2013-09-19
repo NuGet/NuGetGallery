@@ -96,9 +96,9 @@ namespace NuGetGallery
             public void Returns403ForbiddenWhenAuthenticatedAsWrongUser()
             {
                 var controller = GetController<UsersController>();
-
                 controller.SetUser(Fakes.User);
-                var result = controller.Confirm("wrongUsername", "");
+
+                var result = controller.Confirm("wrongUsername", "someToken");
 
                 ResultAssert.IsStatusCode(result, 403);
             }
@@ -106,8 +106,11 @@ namespace NuGetGallery
             [Fact]
             public void Returns404WhenTokenIsEmpty()
             {
-                var controller = Get<UsersController>();
+                var controller = GetController<UsersController>();
+                controller.SetUser(Fakes.User);
+                
                 var result = controller.Confirm(Fakes.User.Username, "");
+                
                 ResultAssert.IsStatusCode(result, 404);
             }
 
@@ -194,7 +197,7 @@ namespace NuGetGallery
             {
                 var user = new User
                 {
-                    Username = "theUser",
+                    Username = "username",
                     EmailAddress = "old@example.com",
                     UnconfirmedEmailAddress = "new@example.com",
                     EmailConfirmationToken = "the-token"
@@ -202,7 +205,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetUser(user);
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername("username"))
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
                     .Returns(user);
                 GetMock<IUserService>()
                     .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
@@ -224,19 +227,20 @@ namespace NuGetGallery
             public void ReturnsFalseWhenTokenDoesNotMatchUser()
             {
                 var user = new User
-                    {
-                        EmailAddress = "old@example.com",
-                        UnconfirmedEmailAddress = "new@example.com",
-                        EmailConfirmationToken = "the-token"
-                    };
+                {
+                    Username = "username",
+                    EmailAddress = "old@example.com",
+                    UnconfirmedEmailAddress = "new@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
                 var controller = GetController<UsersController>();
+                controller.SetUser(user);
                 GetMock<IUserService>()
                           .Setup(u => u.FindByUsername("username"))
                           .Returns(user);
                 GetMock<IUserService>()
                           .Setup(u => u.ConfirmEmailAddress(user, "not-the-token"))
                           .Returns(false);
-                controller.SetUser(user);
 
                 var model = (controller.Confirm("username", "not-the-token") as ViewResult).Model as ConfirmationViewModel;
 
@@ -344,10 +348,13 @@ namespace NuGetGallery
             {
                 var controller = GetController<UsersController>();
                 var user = new User { Username = "the-username" };
-                
+                controller.SetUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(user);
                 var result = controller.GenerateApiKey();
 
-                ResultAssert.IsRedirectToRoute(result, MVC.Users.Account());
+                ResultAssert.IsRedirectToRoute(result, new { Controller = "Users", Action = "Account" });
             }
 
             [Fact]
@@ -356,6 +363,10 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 var user = new User { Username = "the-username" };
                 controller.SetUser(user);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(user);
 
                 controller.GenerateApiKey();
 
