@@ -93,9 +93,6 @@ namespace NuGetGallery
                 return View();
             }
 
-            // TODO: consider client-side validation for unique username
-            // TODO: add email validation
-
             User user;
             try
             {

@@ -210,13 +210,13 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Throws(new EntityException("aMessage"));
 
-                var result = controller.Register(
-                    new RegisterRequest
-                    {
-                        Username = "theUsername",
-                        Password = "thePassword",
-                        EmailAddress = "theEmailAddress",
-                    }, null);
+                var request = new RegisterRequest
+                {
+                    Username = "theUsername",
+                    Password = "thePassword",
+                    EmailAddress = "theEmailAddress",
+                };
+                var result = controller.Register(request, null);
 
                 ResultAssert.IsView(result);
                 Assert.False(controller.ModelState.IsValid);

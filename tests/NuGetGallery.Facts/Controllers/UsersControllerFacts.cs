@@ -118,18 +118,20 @@ namespace NuGetGallery
             public void ReturnsConfirmedWhenTokenMatchesUser()
             {
                 var user = new User
-                    {
-                        UnconfirmedEmailAddress = "email@example.com",
-                        EmailConfirmationToken = "the-token"
-                    };
+                {
+                    Username = "username",
+                    UnconfirmedEmailAddress = "email@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
                 var controller = GetController<UsersController>();
+                controller.SetUser(user);
+
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername("username"))
                     .Returns(user);
                 GetMock<IUserService>()
                     .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                     .Returns(true);
-                controller.SetUser(user);
 
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
 
@@ -140,20 +142,22 @@ namespace NuGetGallery
             public void SendsAccountChangedNoticeWhenConfirmingChangedEmail()
             {
                 var user = new User
-                    {
-                        EmailAddress = "old@example.com",
-                        UnconfirmedEmailAddress = "new@example.com",
-                        EmailConfirmationToken = "the-token"
-                    };
+                {
+                    Username = "username",
+                    EmailAddress = "old@example.com",
+                    UnconfirmedEmailAddress = "new@example.com",
+                    EmailConfirmationToken = "the-token"
+                };
                 var controller = GetController<UsersController>();
+                controller.SetUser(user);
+
                 GetMock<IUserService>()
                           .Setup(u => u.FindByUsername("username"))
                           .Returns(user);
                 GetMock<IUserService>()
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
-                controller.SetUser(user);
-
+                    
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
 
                 Assert.True(model.SuccessfulConfirmation);
@@ -167,6 +171,7 @@ namespace NuGetGallery
             {
                 var user = new User
                 {
+                    Username = "username",
                     EmailAddress = null,
                     UnconfirmedEmailAddress = "new@example.com",
                     EmailConfirmationToken = "the-token"

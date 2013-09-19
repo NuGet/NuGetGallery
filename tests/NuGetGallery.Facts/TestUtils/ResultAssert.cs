@@ -38,10 +38,6 @@ namespace NuGetGallery
             {
                 DictionariesMatch(new RouteValueDictionary(viewData), view.ViewData);
             }
-            else
-            {
-                Assert.Equal(0, view.ViewData.Count);
-            }
             return view;
         }
 
@@ -67,6 +63,12 @@ namespace NuGetGallery
 
         public static void IsStatusCode(ActionResult result, int code)
         {
+            if (result is EmptyResult)
+            {
+                Assert.Equal(code, 200);
+                return;
+            }
+
             var statusCodeResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
             Assert.Equal(code, statusCodeResult.StatusCode);
         }

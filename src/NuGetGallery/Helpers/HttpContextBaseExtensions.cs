@@ -21,7 +21,12 @@ namespace NuGetGallery
 
         public static string GetConfirmationReturnUrl(this HttpContextBase httpContext)
         {
-            var cookie = httpContext.Request.Cookies.Get("ConfirmationContext");
+            HttpCookie cookie = null;
+            if (httpContext.Request.Cookies != null)
+            {
+                cookie = httpContext.Request.Cookies.Get("ConfirmationContext");
+            }
+
             if (cookie == null)
             {
                 return null;
