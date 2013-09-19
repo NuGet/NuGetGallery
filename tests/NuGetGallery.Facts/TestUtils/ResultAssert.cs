@@ -26,13 +26,12 @@ namespace NuGetGallery
             return redirect;
         }
 
-        public static ViewResult IsView(ActionResult result, string viewName = "", string masterName = "", object model = null, object viewData = null)
+        public static ViewResult IsView(ActionResult result, string viewName = "", string masterName = "", object viewData = null)
         {
             var view = Assert.IsType<ViewResult>(result);
 
             Assert.Equal(viewName, view.ViewName);
             Assert.Equal(masterName, view.MasterName);
-            Assert.Equal(model, view.ViewData.Model);
 
             if (viewData != null)
             {
@@ -43,6 +42,12 @@ namespace NuGetGallery
                 Assert.Equal(0, view.ViewData.Count);
             }
             return view;
+        }
+
+        public static TModel IsView<TModel>(ActionResult result, string viewName = "", string masterName = "", object viewData = null)
+        {
+            var model = Assert.IsType<TModel>(IsView(result, viewName, masterName, viewData).Model);
+            return model;
         }
 
         private static void DictionariesMatch<V>(IDictionary<string, V> expected, IDictionary<string, V> actual)

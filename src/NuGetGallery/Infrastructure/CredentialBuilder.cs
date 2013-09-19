@@ -22,5 +22,12 @@ namespace NuGetGallery
                 .ToLowerInvariant();
             return new Credential(Constants.CredentialTypes.ApiKeyV1, value);
         }
+
+        public static Credential CreatePbkdf2Password(string plaintextPassword)
+        {
+            return new Credential(
+                Constants.CredentialTypes.PasswordPbkdf2,
+                CryptographyService.GenerateSaltedHash(plaintextPassword, Constants.PBKDF2HashAlgorithmId));
+        }
     }
 }
