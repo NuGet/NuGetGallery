@@ -108,7 +108,8 @@
                 buttons: [{
                     text: "Save", click: function () {
                         $("#navigate-away-dialog").dialog("close");
-                        var returnUrl = href.substr(window.location.origin.length);
+                        var origin = window.location.protocol + "//" + window.location.host;
+                        var returnUrl = href.substr(origin.length);
                         $(document.forms.EditForm).append($('<input type="hidden" name="returnUrl" value="' + returnUrl + '">'));
                         document.forms.EditForm.submit();
                     }
@@ -144,17 +145,15 @@
             var initialDictionary = [];
             ReadFormValues(initialDictionary);
 
-            $("a").click(function (event) {
-                if (!(event.target.attributes["class"]) || event.target.attributes["class"].value.indexOf("cancel") < 0) {
-                    var dictionary = [];
-                    ReadFormValues(dictionary);
-                    for (var key in initialDictionary) {
-                        if (initialDictionary.hasOwnProperty(key) &&
-                            dictionary[key] != initialDictionary[key]) {
-                            href = event.target.href;
-                            $("#navigate-away-dialog").dialog("open");
-                            return false;
-                        }
+            $("a").not("a.cancel").click(function (event) {
+                var dictionary = [];
+                ReadFormValues(dictionary);
+                for (var key in initialDictionary) {
+                    if (initialDictionary.hasOwnProperty(key) &&
+                        dictionary[key] != initialDictionary[key]) {
+                        href = event.target.href;
+                        $("#navigate-away-dialog").dialog("open");
+                        return false;
                     }
                 }
             });

@@ -26,13 +26,12 @@ namespace NuGetGallery
             return redirect;
         }
 
-        public static ViewResult IsView(ActionResult result, string viewName = "", string masterName = "", object model = null, object viewData = null)
+        public static ViewResult IsView(ActionResult result, string viewName = "", string masterName = "", object viewData = null)
         {
             var view = Assert.IsType<ViewResult>(result);
 
             Assert.Equal(viewName, view.ViewName);
             Assert.Equal(masterName, view.MasterName);
-            Assert.Equal(model, view.ViewData.Model);
 
             if (viewData != null)
             {
@@ -45,9 +44,17 @@ namespace NuGetGallery
             return view;
         }
 
-        private static void DictionariesMatch<K, V>(IDictionary<K, V> expected, IDictionary<K, V> actual)
+        public static TModel IsView<TModel>(ActionResult result, string viewName = "", string masterName = "", object viewData = null)
         {
-            var expectedKeys = expected.Keys.Cast<object>().ToList();
+            var model = Assert.IsType<TModel>(IsView(result, viewName, masterName, viewData).Model);
+            return model;
+        }
+
+        private static void DictionariesMatch<V>(IDictionary<string, V> expected, IDictionary<string, V> actual)
+        {
+            var expectedKeys = new HashSet<string>(
+                expected.Keys,
+                StringComparer.OrdinalIgnoreCase);
 
             foreach (var key in actual.Keys)
             {
@@ -62,13 +69,29 @@ namespace NuGetGallery
 
         public static void IsStatusCode(ActionResult result, HttpStatusCode code)
         {
-            IsStatusCode(result, (int)code);
+            IsStatusCode(result, (int)code, description: null);
         }
 
         public static void IsStatusCode(ActionResult result, int code)
         {
-            var statusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
+            IsStatusCode(result, code, description: null);
+        }
+
+        public static void IsStatusCode(ActionResult result, HttpStatusCode code, string description)
+        {
+            IsStatusCode(result, (int)code, description);
+        }
+
+        public static void IsStatusCode(ActionResult result, int code, string description)
+        {
+            var statusCodeResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
             Assert.Equal(code, statusCodeResult.StatusCode);
+            Assert.Equal(description, statusCodeResult.StatusDescription);
+        }
+
+        public static EmptyResult IsEmpty(ActionResult result)
+        {
+            return Assert.IsType<EmptyResult>(result);
         }
     }
 }

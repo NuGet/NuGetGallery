@@ -17,6 +17,7 @@ namespace NuGetGallery
         {
             HashedPassword = hashedPassword;
             Messages = new HashSet<EmailMessage>();
+            Credentials = new List<Credential>();
             Username = username;
         }
 
@@ -58,6 +59,8 @@ namespace NuGetGallery
         public int Key { get; set; }
 
         public DateTime? CreatedUtc { get; set; }
+
+        public virtual ICollection<Credential> Credentials { get; set; }
 
         public void ConfirmEmailAddress()
         {

@@ -55,7 +55,7 @@ namespace NuGetGallery
             {
                 ModelState.AddModelError(
                     String.Empty,
-                    Strings.UserNotFound);
+                    Strings.UsernameAndPasswordNotFound);
 
                 return View();
             }

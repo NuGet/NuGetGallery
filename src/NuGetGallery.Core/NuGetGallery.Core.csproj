@@ -61,6 +61,7 @@
     <Compile Include="..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\EmailMessage.cs" />
@@ -77,6 +78,8 @@
     <Compile Include="Entities\PackageEdit.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Entities\PackageHistory.cs" />
+    <Compile Include="Entities\PackageLicense.cs" />
+    <Compile Include="Entities\PackageLicenseReport.cs" />
     <Compile Include="Entities\PackageOwnerRequest.cs" />
     <Compile Include="Entities\PackageRegistration.cs" />
     <Compile Include="Entities\PackageStatistics.cs" />

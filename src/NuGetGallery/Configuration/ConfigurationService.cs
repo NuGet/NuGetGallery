@@ -15,12 +15,22 @@ namespace NuGetGallery.Configuration
     public class ConfigurationService : IConfigurationSource
     {
         private const string SettingPrefix = "Gallery.";
+        private const string FeaturePrefix = "Feature.";
 
         private IAppConfiguration _current;
-        public IAppConfiguration Current
+
+        public virtual IAppConfiguration Current
         {
-            get { return _current ?? (_current = Resolve()); }
+            get { return _current ?? (_current = ResolveSettings()); }
             set { _current = value; }
+        }
+
+        private FeatureConfiguration _features;
+
+        public virtual FeatureConfiguration Features
+        {
+            get { return _features ?? (_features = ResolveFeatures()); }
+            set { _features = value; }
         }
 
         private readonly Lazy<string> _httpSiteRootThunk;
@@ -42,15 +52,24 @@ namespace NuGetGallery.Configuration
             return useHttps ? _httpsSiteRootThunk.Value : _httpSiteRootThunk.Value;
         }
 
-        public virtual IAppConfiguration Resolve()
+        public virtual FeatureConfiguration ResolveFeatures()
+        {
+            return ResolveConfigObject(new FeatureConfiguration(), FeaturePrefix);
+        }
+
+        public virtual IAppConfiguration ResolveSettings()
+        {
+            return ResolveConfigObject(new AppConfiguration(), SettingPrefix);
+        }
+
+        private T ResolveConfigObject<T>(T instance, string prefix)
         {
             // Iterate over the properties
-            var instance = new AppConfiguration();
             foreach (var property in TypeDescriptor.GetProperties(instance).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly))
             {
                 // Try to get a config setting value
                 string baseName = String.IsNullOrEmpty(property.DisplayName) ? property.Name : property.DisplayName;
-                string settingName = SettingPrefix + baseName;
+                string settingName = prefix + baseName;
 
                 string value = ReadSetting(settingName);
 
@@ -108,8 +127,16 @@ namespace NuGetGallery.Configuration
             return String.IsNullOrEmpty(cloudValue) ? value : cloudValue;
         }
 
+        public bool _notInCloud = false;
+
         public virtual string GetCloudSetting(string settingName)
         {
+            // Short-circuit if we've already determined we're not in the cloud
+            if (_notInCloud)
+            {
+                return null;
+            }
+
             string value = null;
             try
             {
@@ -117,10 +144,15 @@ namespace NuGetGallery.Configuration
                 {
                     value = RoleEnvironment.GetConfigurationSettingValue(settingName);
                 }
+                else
+                {
+                    _notInCloud = true;
+                }
             }
             catch (Exception)
             {
                 // Not in the role environment or config setting not found...
+                _notInCloud = true; // Skip future checks to save perf
             }
             return value;
         }
