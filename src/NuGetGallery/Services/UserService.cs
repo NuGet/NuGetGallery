@@ -114,15 +114,13 @@ namespace NuGetGallery
         {
             return UserRepository.GetAll()
                 .Include(u => u.Roles)
+                .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
         }
 
         public virtual User FindByUsernameAndPassword(string username, string password)
         {
-            var user = UserRepository.GetAll()
-                .Include(u => u.Roles)
-                .Include(u => u.Credentials)
-                .SingleOrDefault(u => u.Username == username);
+            var user = FindByUsername(username);
 
             return AuthenticatePassword(password, user);
         }
@@ -324,7 +322,7 @@ namespace NuGetGallery
             return valid ? user : null;
         }
 
-        private static void ChangePasswordInternal(User user, string newPassword)
+        private void ChangePasswordInternal(User user, string newPassword)
         {
             var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
@@ -332,7 +330,7 @@ namespace NuGetGallery
             ReplaceCredentialInternal(user, cred);
         }
 
-        private static void ReplaceCredentialInternal(User user, Credential credential)
+        private void ReplaceCredentialInternal(User user, Credential credential)
         {
             // Find the credentials we're replacing, if any
             var creds = user.Credentials
@@ -341,6 +339,7 @@ namespace NuGetGallery
             foreach (var cred in creds)
             {
                 user.Credentials.Remove(cred);
+                CredentialRepository.DeleteOnCommit(cred);
             }
 
             user.Credentials.Add(credential);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -24,7 +25,7 @@ namespace NuGetGallery
                 GetMock<IUserService>()
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(user);
-                
+
                 //act
                 controller.Account();
 
@@ -42,7 +43,7 @@ namespace NuGetGallery
                 GetMock<IUserService>()
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(user);
-                
+
                 // act
                 controller.Account();
 
@@ -56,11 +57,10 @@ namespace NuGetGallery
             {
                 var controller = GetController<UsersController>();
                 var stubApiKey = Guid.NewGuid();
-                var user = new User { Username = "aUser", Key = 42, ApiKey = stubApiKey };
-                GetMock<IUserService>()
-                    .Setup(s => s.FindByUsername(It.IsAny<string>()))
-                    .Returns(user);
-                controller.SetUser(user);
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(s => s.FindByUsername(It.IsAny<string>()))
+                          .Returns(new User { Key = 42, ApiKey = stubApiKey });
 
                 // act
                 var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
@@ -72,21 +72,66 @@ namespace NuGetGallery
             [Fact]
             public void WillReturnTheAccountViewModelWithTheCuratedFeeds()
             {
-                var user = new User { Key = 42, Username = "aUsername" };
-                var controller = GetController<UsersController>();
-                GetMock<IUserService>()
-                    .Setup(s => s.FindByUsername(It.IsAny<string>()))
-                    .Returns(user);
-                GetMock<ICuratedFeedService>()
-                    .Setup(stub => stub.GetFeedsForManager(It.IsAny<int>()))
-                    .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
-                controller.SetUser(user);
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(s => s.FindByUsername(It.IsAny<string>()))
+                          .Returns(new User { Key = 42 });
+                controller.MockCuratedFeedService
+                          .Setup(stub => stub.GetFeedsForManager(It.IsAny<int>()))
+                          .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
 
                 // act
                 var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
 
                 // verify
                 Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
+            }
+
+            [Fact]
+            public void WillUseApiKeyInColumnIfNoCredentialPresent()
+            {
+                var apiKey = Guid.NewGuid();
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(s => s.FindByUsername(It.IsAny<string>()))
+                          .Returns(new User { Key = 42, ApiKey = apiKey });
+                controller.MockCuratedFeedService
+                          .Setup(stub => stub.GetFeedsForManager(It.IsAny<int>()))
+                          .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
+
+                // act
+                var result = controller.Account();
+                
+                // verify
+                var model = ResultAssert.IsView<AccountViewModel>(result);
+                Assert.Equal(apiKey.ToString().ToLowerInvariant(), model.ApiKey);
+            }
+
+            [Fact]
+            public void WillUseApiKeyInCredentialIfPresent()
+            {
+                var apiKey = Guid.NewGuid();
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                    .Setup(s => s.FindByUsername(It.IsAny<string>()))
+                    .Returns(new User
+                    {
+                        Key = 42,
+                        ApiKey = Guid.NewGuid(),
+                        Credentials = new List<Credential>() {
+                            CredentialBuilder.CreateV1ApiKey(apiKey)
+                        }
+                    });
+                controller.MockCuratedFeedService
+                    .Setup(stub => stub.GetFeedsForManager(It.IsAny<int>()))
+                    .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
+
+                // act
+                var result = controller.Account();
+                
+                // verify
+                var model = ResultAssert.IsView<AccountViewModel>(result);
+                Assert.Equal(apiKey.ToString().ToLowerInvariant(), model.ApiKey);
             }
         }
 
@@ -118,13 +163,17 @@ namespace NuGetGallery
             public void ReturnsConfirmedWhenTokenMatchesUser()
             {
                 var user = new User
-                {
-                    Username = "username",
-                    UnconfirmedEmailAddress = "email@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-                var controller = GetController<UsersController>();
-                controller.SetUser(user);
+                    {
+                        UnconfirmedEmailAddress = "email@example.com",
+                        EmailConfirmationToken = "the-token"
+                    };
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername("username"))
+                          .Returns(user);
+                controller.MockUserService
+                          .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
+                          .Returns(true);
 
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername("username"))
@@ -157,8 +206,8 @@ namespace NuGetGallery
                 GetMock<IUserService>()
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
-                    
-                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as ConfirmationViewModel;
+
+                var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
 
                 Assert.True(model.SuccessfulConfirmation);
                 Assert.False(model.ConfirmingNewAccount);
@@ -207,14 +256,13 @@ namespace NuGetGallery
                     UnconfirmedEmailAddress = "new@example.com",
                     EmailConfirmationToken = "the-token"
                 };
-                var controller = GetController<UsersController>();
-                controller.SetUser(user);
-                GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
-                    .Returns(user);
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
-                    .Returns(false);
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername("username"))
+                          .Returns(user);
+                controller.MockUserService
+                          .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
+                          .Returns(false);
 
                 // act:
                 var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as ConfirmationViewModel;
@@ -280,6 +328,72 @@ namespace NuGetGallery
                 Assert.Same(model, viewModel);
                 GetMock<IUserService>().Verify(u => u.UpdateProfile(user, false));
             }
+
+            [Fact]
+            public void SendsEmailChangeConfirmationNoticeWhenEmailConfirmationTokenChanges()
+            {
+                var user = new User
+                    {
+                        EmailAddress = "test@example.com",
+                        EmailAllowed = true
+                    };
+
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                          .Returns(user);
+                controller.MockUserService
+                          .Setup(u => u.UpdateProfile(user, "new@example.com", true))
+                          .Callback(() => user.EmailConfirmationToken = "token");
+                var model = new EditProfileViewModel { EmailAddress = "new@example.com", EmailAllowed = true };
+
+                var result = controller.Edit(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(
+                    "Account settings saved! We sent a confirmation email to verify your new email. When you confirm the email address, it will take effect and we will forget the old one.",
+                    controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void DoesNotSendEmailChangeConfirmationNoticeWhenTokenDoesNotChange()
+            {
+                var user = new User
+                    {
+                        EmailAddress = "old@example.com",
+                        EmailAllowed = true,
+                        EmailConfirmationToken = "token"
+                    };
+
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                          .Returns(user);
+                controller.MockMessageService
+                          .Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()))
+                          .Throws(new InvalidOperationException());
+                var model = new EditProfileViewModel { EmailAddress = "old@example.com", EmailAllowed = true };
+
+                var result = controller.Edit(model) as RedirectToRouteResult;
+
+                Assert.NotNull(result);
+                Assert.Equal("Account settings saved!", controller.TempData["Message"]);
+                controller.MockUserService
+                          .Verify(u => u.UpdateProfile(user, It.IsAny<string>(), true));
+            }
+
+            [Fact]
+            public void WithInvalidUsernameReturnsFileNotFound()
+            {
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                          .ReturnsNull();
+
+                var result = controller.Edit(new EditProfileViewModel()) as HttpNotFoundResult;
+
+                Assert.NotNull(result);
+            }
         }
 
         public class TheForgotPasswordMethod : TestContainer
@@ -337,9 +451,9 @@ namespace NuGetGallery
                 GetMock<IUserService>()
                           .Setup(s => s.GeneratePasswordResetToken("user", 1440))
                           .Returns((User)null);
-                
+
                 var model = new ForgotPasswordViewModel { Email = "user" };
-                
+
                 var result = controller.ForgotPassword(model) as ViewResult;
 
                 Assert.NotNull(result);
@@ -358,6 +472,7 @@ namespace NuGetGallery
                 controller.MockUserService
                     .Setup(u => u.FindByUsername("the-username"))
                     .Returns(user);
+
                 var result = controller.GenerateApiKey();
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account", controller = "Users" });
@@ -404,7 +519,7 @@ namespace NuGetGallery
 
                 controller.MockUserService
                     .Verify(u => u.ReplaceCredential(
-                        user, 
+                        user,
                         It.Is<Credential>(c => c.Type == Constants.CredentialTypes.ApiKeyV1)));
             }
         }
@@ -441,11 +556,10 @@ namespace NuGetGallery
             [Fact]
             public void DoesNotSendEmailChangeConfirmationNoticeWhenAddressDoesntChange()
             {
-                var user = new User
-                {
-                    EmailAddress = "old@example.com",
-                    Username = "aUsername",
-                };
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                          .Returns(new User { Username = "theUsername", EmailAddress = "to@example.com" });
 
                 var controller = GetController<UsersController>();
                 controller.SetUser(user);
@@ -469,11 +583,10 @@ namespace NuGetGallery
             [Fact]
             public void DoesNotSendEmailChangeConfirmationNoticeWhenUserWasNotConfirmed()
             {
-                var user = new User
-                {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                };
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                          .Throws(new EntityException("aMessage"));
 
                 var controller = GetController<UsersController>();
                 controller.SetUser(user);
@@ -669,11 +782,54 @@ namespace NuGetGallery
                 GetMock<IAppConfiguration>()
                           .Setup(x => x.ConfirmEmailAddresses)
                           .Returns(true);
-                
+
                 var result = controller.Thanks() as ViewResult;
 
                 Assert.Empty(result.ViewName);
                 Assert.Null(result.Model);
+            }
+
+            [Fact]
+            public void ShowsConfirmViewWithModelWhenConfirmingEmailAddressIsNotRequired()
+            {
+                var controller = new TestableUsersController();
+                controller.MockConfig
+                          .Setup(x => x.ConfirmEmailAddresses)
+                          .Returns(false);
+
+                var result = controller.Thanks() as ViewResult;
+
+                Assert.Equal("Confirm", result.ViewName);
+                var model = result.Model as EmailConfirmationModel;
+                Assert.True(model.ConfirmingNewAccount);
+                Assert.True(model.SuccessfulConfirmation);
+            }
+        }
+
+        public class TestableUsersController : UsersController
+        {
+            public Mock<ICuratedFeedService> MockCuratedFeedService { get; protected set; }
+            public Mock<IPrincipal> MockCurrentUser { get; protected set; }
+            public Mock<IIdentity> MockCurrentIdentity { get; protected set; }
+            public Mock<IMessageService> MockMessageService { get; protected set; }
+            public Mock<IPackageService> MockPackageService { get; protected set; }
+            public Mock<IAppConfiguration> MockConfig { get; protected set; }
+            public Mock<IUserService> MockUserService { get; protected set; }
+
+            public TestableUsersController()
+            {
+                CuratedFeedService = (MockCuratedFeedService = new Mock<ICuratedFeedService>()).Object;
+                CurrentUser = (MockCurrentUser = new Mock<IPrincipal>()).Object;
+                MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
+                PackageService = (MockPackageService = new Mock<IPackageService>()).Object;
+                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
+                UserService = (MockUserService = new Mock<IUserService>()).Object;
+
+                MockCurrentIdentity = new Mock<IIdentity>();
+                MockCurrentUser.Setup(u => u.Identity).Returns(MockCurrentIdentity.Object);
+
+                var mockContext = new Mock<HttpContextBase>();
+                TestUtility.SetupHttpContextMockForUrlGeneration(mockContext, this);
             }
         }
     }
