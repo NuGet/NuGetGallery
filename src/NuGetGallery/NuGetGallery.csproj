@@ -285,7 +285,6 @@
     <Compile Include="ApiController.generated.cs">
       <DependentUpon>T4MVC.tt</DependentUpon>
     </Compile>
-    <Compile Include="App_Start\NinjectWebCommon.cs" />
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
     <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
     <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />

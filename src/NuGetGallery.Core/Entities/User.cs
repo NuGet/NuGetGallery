@@ -54,6 +54,14 @@ namespace NuGetGallery
 
         public DateTime? CreatedUtc { get; set; }
 
+        public string LastSavedEmailAddress
+        {
+            get
+            {
+                return UnconfirmedEmailAddress ?? EmailAddress;
+            }
+        }
+
         public void ConfirmEmailAddress()
         {
             if (String.IsNullOrEmpty(UnconfirmedEmailAddress))

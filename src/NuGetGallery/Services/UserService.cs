@@ -165,13 +165,8 @@ namespace NuGetGallery
             return newApiKey.ToString();
         }
 
-        public bool ChangeEmailAddress(User user, string newEmailAddress)
+        public void ChangeEmailAddress(User user, string newEmailAddress)
         {
-            if (user == null)
-            {
-                return false;
-            }
-
             var existingUser = FindByEmailAddress(newEmailAddress);
             if (existingUser != null && existingUser.Key != user.Key)
             {
@@ -180,7 +175,6 @@ namespace NuGetGallery
 
             user.UpdateEmailAddress(newEmailAddress, Crypto.GenerateToken);
             UserRepository.CommitChanges();
-            return true;
         }
 
         public bool ChangePassword(string username, string oldPassword, string newPassword)

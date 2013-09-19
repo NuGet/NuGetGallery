@@ -8,7 +8,7 @@ namespace NuGetGallery.Framework
     {
         public static readonly User User = new User("testUser");
         public static readonly User Admin = new User("testAdmin");
-        public static readonly User Owner = new User("testPackageOwner");
+        public static readonly User Owner = new User("testPackageOwner") { EmailAddress = "confirmed@example.com" }; //package owners need confirmed email addresses, obviously.
 
         public static readonly PackageRegistration Package = new PackageRegistration()
         {
@@ -24,6 +24,7 @@ namespace NuGetGallery.Framework
         {
             return new GenericPrincipal(
                 new GenericIdentity(user.Username),
+                user.Roles == null ? new string[0] :
                 user.Roles.Select(r => r.Name).ToArray());
         }
 

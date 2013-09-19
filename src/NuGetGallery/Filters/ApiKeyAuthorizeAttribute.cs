@@ -1,22 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Security.Principal;
-using System.Threading;
-using System.Web;
 using System.Web.Mvc;
+using Ninject;
 
 namespace NuGetGallery.Filters
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
     public class ApiKeyAuthorizeAttribute : ActionFilterAttribute
     {
-        private string _inOrderTo;
+        private IUserService _userService; // for tests
 
-        public ApiKeyAuthorizeAttribute(string inOrderTo)
+        public IUserService UserService
         {
-            _inOrderTo = inOrderTo;
+            get { return _userService ?? Container.Kernel.TryGet<IUserService>(); }
+            set { _userService = value; }
         }
 
         public override void OnActionExecuting(ActionExecutingContext filterContext)
@@ -26,36 +23,40 @@ namespace NuGetGallery.Filters
                 throw new ArgumentNullException("filterContext");
             }
 
-            var controller = ((AppController)filterContext.Controller);
-            Guid apiKey = default(Guid);
+            var controller = filterContext.Controller;
+            string apiKeyStr = (string)((Controller)controller).RouteData.Values["apiKey"];
+            filterContext.Result = CheckForResult(apiKeyStr);
+        }
+
+        public ActionResult CheckForResult(string apiKeyStr)
+        {
+            if (String.IsNullOrEmpty(apiKeyStr))
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.InvalidApiKey);
+            }
+
+            Guid apiKey;
             try
             {
-                apiKey = new Guid((string)controller.RouteData.Values["apiKey"]);
+                apiKey = new Guid(apiKeyStr);
             }
             catch
             {
-                filterContext.Result = new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.InvalidApiKey);
-                return;
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.InvalidApiKey);
             }
 
-            var userService = controller.GetService<UserService>();
-            if (userService == null)
-            {
-                throw new InvalidOperationException("The controller must have a UserService to use [AuthorizeWithApiKeyAttribute] attribute.");
-            }
-
-            User user = userService.FindByApiKey(apiKey);
+            User user = UserService.FindByApiKey(apiKey);
             if (user == null)
             {
-                filterContext.Result = new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                return;
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
             if (!user.Confirmed)
             {
-                filterContext.Result = new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyUserAccountIsUnconfirmed);
-                return;
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyUserAccountIsUnconfirmed);
             }
+
+            return null;
         }
     }
 }

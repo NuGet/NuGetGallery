@@ -4,6 +4,7 @@ using System.Web.Mvc;
 using Moq;
 using Xunit;
 using System.Net.Mail;
+using NuGetGallery.Framework;
 
 namespace NuGetGallery.Controllers
 {
@@ -35,7 +36,7 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public class TheSignInAction
+        public class TheSignInAction : TestContainer
         {
             [Fact]
             public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
@@ -95,19 +96,19 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void WillLogTheUserOnWithUsernameEvenWithoutConfirmedEmailAddress()
             {
-                var controller = new TestableAuthenticationController();
-                controller.MockUsers
-                          .Setup(x => x.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword"))
-                          .Returns(new User("theUsername"));
-                
+                var controller = GetController<AuthenticationController>();
+                var user = new User { Key = 42, Username = "theUsername", UnconfirmedEmailAddress = "anAddress@email.org" };
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsernameOrEmailAddressAndPassword("theUsername", "thePassword"))
+                    .Returns(user);
+
                 controller.SignIn(
                     new SignInRequest { UserNameOrEmail = "theUsername", Password = "thePassword" },
                     "theReturnUrl");
 
-                controller.MockFormsAuth
-                          .Verify(
-                              x => x.SetAuthCookie(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IEnumerable<string>>()),
-                              Times.Never());
+                GetMock<IFormsAuthenticationService>()
+                    .Verify(
+                        x => x.SetAuthCookie(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IEnumerable<string>>()));
             }
 
             [Fact]
@@ -164,12 +165,12 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public class TheRegisterAction
+        public class TheRegisterAction : TestContainer
         {
             [Fact]
             public void WillShowTheViewWithErrorsIfTheModelStateIsInvalid()
             {
-                var controller = new TestableAuthenticationController();
+                var controller = GetController<AuthenticationController>();
                 controller.ModelState.AddModelError(String.Empty, "aFakeError");
 
                 var result = controller.Register(null, null);
@@ -183,10 +184,11 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void WillCreateTheUser()
             {
-                var controller = new TestableAuthenticationController();
-                controller.MockUsers
-                            .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                            .Returns(new User { Username = "theUsername", EmailAddress = "to@example.com" });
+                var controller = GetController<AuthenticationController>();
+                var user = new User("theUsername");
+                GetMock<IUserService>()
+                    .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(user);
 
                 controller.Register(
                     new RegisterRequest
@@ -196,17 +198,17 @@ namespace NuGetGallery.Controllers
                         EmailAddress = "theEmailAddress",
                     }, null);
 
-                controller.MockUsers
-                            .Verify(x => x.Create("theUsername", "thePassword", "theEmailAddress"));
+                GetMock<IUserService>()
+                    .Verify(x => x.Create("theUsername", "thePassword", "theEmailAddress"));
             }
 
             [Fact]
             public void WillInvalidateModelStateAndShowTheViewWhenAnEntityExceptionIsThrow()
             {
-                var controller = new TestableAuthenticationController();
-                controller.MockUsers
-                            .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                            .Throws(new EntityException("aMessage"));
+                var controller = GetController<AuthenticationController>();
+                GetMock<IUserService>()
+                    .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Throws(new EntityException("aMessage"));
 
                 var result = controller.Register(
                     new RegisterRequest
@@ -214,10 +216,9 @@ namespace NuGetGallery.Controllers
                         Username = "theUsername",
                         Password = "thePassword",
                         EmailAddress = "theEmailAddress",
-                    }, null) as ViewResult;
+                    }, null);
 
-                Assert.NotNull(result);
-                Assert.Empty(result.ViewName);
+                ResultAssert.IsView(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal("aMessage", controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
@@ -225,14 +226,20 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void WillRedirectToTheReturnUrl()
             {
-                var controller = new TestableAuthenticationController();
-                controller.MockUsers
-                          .Setup(x => x.FindByUsernameOrEmailAddressAndPassword(It.IsAny<string>(), It.IsAny<string>()))
-                          .Returns(new User("theUsername", null) { EmailAddress = "confirmed@example.com" });
+                var controller = GetController<AuthenticationController>();
+                var user = new User("theUsername") { UnconfirmedEmailAddress = "unconfirmed@example.com" };
+                GetMock<IUserService>()
+                    .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(user);
 
-                var result = controller.Register(new RegisterRequest(), "theReturnUrl");
+                var result = controller.Register(new RegisterRequest
+                    {
+                        EmailAddress = "unconfirmed@example.com",
+                        Password = "thepassword",
+                        Username = "theUsername",
+                    }, "/theReturnUrl");
 
-                ResultAssert.IsRedirectTo(result, "aSafeRedirectUrl");
+                ResultAssert.IsRedirectTo(result, "/theReturnUrl");
             }
         }
 

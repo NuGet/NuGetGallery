@@ -67,7 +67,7 @@ namespace NuGetGallery
 
         public static void IsStatusCode(ActionResult result, int code)
         {
-            var statusCodeResult = Assert.IsType<HttpStatusCodeResult>(result);
+            var statusCodeResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
             Assert.Equal(code, statusCodeResult.StatusCode);
         }
     }

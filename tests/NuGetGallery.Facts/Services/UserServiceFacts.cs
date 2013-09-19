@@ -693,9 +693,9 @@ namespace NuGetGallery
 
         public class TheChangeEmailMethod
         {
-            IEnumerable<User> CreateUser(string username, string password, string emailAddress)
+            User CreateUser(string username, string password, string emailAddress)
             {
-                yield return new User
+                return new User
                 {
                     Username = username,
                     EmailAddress = emailAddress,
@@ -707,13 +707,13 @@ namespace NuGetGallery
             [Fact]
             public void SetsUnconfirmedEmailWhenEmailIsChanged()
             {
+                var user = CreateUser("Bob", "ThePassword", "old@example.org");
                 var service = new TestableUserServiceWithDBFaking
                 {
-                    Users = CreateUser("Bob", "ThePassword", "old@example.org")
+                    Users = new[] { user }
                 };
 
-                service.ChangeEmailAddress("Bob", "ThePassword", "new@example.org");                
-                User user = service.FindByUsernameAndPassword("Bob", "ThePassword");
+                service.ChangeEmailAddress(user, "new@example.org");
 
                 Assert.Equal("old@example.org", user.EmailAddress);
                 Assert.Equal("new@example.org", user.UnconfirmedEmailAddress);

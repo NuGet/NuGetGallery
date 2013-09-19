@@ -11,7 +11,6 @@ namespace NuGetGallery
     public partial class UsersController : AppController
     {
         public ICuratedFeedService CuratedFeedService { get; protected set; }
-        public IPrincipal CurrentUser { get; protected set; }
         public IMessageService MessageService { get; protected set; }
         public IPackageService PackageService { get; protected set; }
         public IAppConfiguration Config { get; protected set; }
@@ -24,21 +23,19 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IAppConfiguration config,
-            IPrincipal currentUser) : this()
+            IAppConfiguration config) : this()
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
             Config = config;
-            CurrentUser = currentUser;
         }
 
         [Authorize]
         public virtual ActionResult Account()
         {
-            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var user = UserService.FindByUsername(Identity.Name);
             var curatedFeeds = CuratedFeedService.GetFeedsForManager(user.Key);
             return View(
                 new AccountViewModel
@@ -85,7 +82,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Edit()
         {
-            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var user = UserService.FindByUsername(Identity.Name);
             var model = new EditProfileViewModel
                 {
                     Username = user.Username,
@@ -101,7 +98,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult Edit(EditProfileViewModel profile)
         {
-            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var user = UserService.FindByUsername(Identity.Name);
             if (user == null)
             {
                 return HttpNotFound();
@@ -125,7 +122,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Packages()
         {
-            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var user = UserService.FindByUsername(Identity.Name);
             var packages = PackageService.FindPackagesByOwner(user);
 
             var model = new ManagePackagesViewModel
@@ -145,7 +142,7 @@ namespace NuGetGallery
         [HttpPost]
         public virtual ActionResult GenerateApiKey()
         {
-            UserService.GenerateApiKey(CurrentUser.Identity.Name);
+            UserService.GenerateApiKey(Identity.Name);
             return RedirectToAction(MVC.Users.Account());
         }
 
@@ -236,7 +233,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!String.Equals(username, CurrentUser.Identity.Name, StringComparison.InvariantCultureIgnoreCase))
+            if (!String.Equals(username, Identity.Name, StringComparison.InvariantCultureIgnoreCase))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, "You are not logged in as the correct user to performthis action.");
             }
@@ -310,19 +307,22 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            User user = UserService.FindByUsernameAndPassword(CurrentUser.Identity.Name, model.Password);
+            User user = UserService.FindByUsernameAndPassword(Identity.Name, model.Password);
             if (user == null)
             {
                 ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
                 return View(model);
             }
+
+            if (String.Equals(model.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
+            {
+                // email address unchanged - accept
+                return RedirectToAction(MVC.Users.Edit());
+            }
+
             try
             {
-                if (!UserService.ChangeEmailAddress(CurrentUser.Identity.Name, model.Password, model.NewEmail))
-                {
-                    ModelState.AddModelError("Password", Strings.CurrentPasswordIncorrect);
-                    return View(model);
-                }
+                UserService.ChangeEmailAddress(user, model.NewEmail);
             }
             catch (EntityException e)
             {
@@ -363,7 +363,7 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            if (!UserService.ChangePassword(CurrentUser.Identity.Name, model.OldPassword, model.NewPassword))
+            if (!UserService.ChangePassword(Identity.Name, model.OldPassword, model.NewPassword))
             {
                 ModelState.AddModelError(
                     "OldPassword",

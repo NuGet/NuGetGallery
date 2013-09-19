@@ -43,8 +43,10 @@ namespace NuGetGallery.Framework
             return Kernel.Get<T>();
         }
 
-        protected Mock<T> GetMock<T>() where T : class {
-            return Mock.Get(Kernel.Get<T>());
+        protected Mock<T> GetMock<T>() where T : class
+        {
+            T instance = Kernel.Get<T>();
+            return Mock.Get(instance);
         }
 
         public void Dispose()

@@ -150,7 +150,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("VerifyPackageKeyApi")]
-        [ApiKeyAuthorizeAttribute("push")]
+        [ApiKeyAuthorizeAttribute]
         public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
         {
             if (!String.IsNullOrEmpty(id))
@@ -170,13 +170,13 @@ namespace NuGetGallery
                 }
             }
 
-            return new HttpStatusCodeResult(200);
+            return new EmptyResult();
         }
 
         [HttpPut]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorizeAttribute("push")]
+        [ApiKeyAuthorizeAttribute]
         public virtual Task<ActionResult> CreatePackagePut(string apiKey)
         {
             var user = UserService.FindByApiKey(new Guid(apiKey));
@@ -186,7 +186,7 @@ namespace NuGetGallery
         [HttpPost]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorizeAttribute("push")]
+        [ApiKeyAuthorizeAttribute]
         public virtual Task<ActionResult> CreatePackagePost(string apiKey)
         {
             var user = UserService.FindByApiKey(new Guid(apiKey));
@@ -242,7 +242,7 @@ namespace NuGetGallery
         [HttpDelete]
         [ActionName("DeletePackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorizeAttribute("delete")]
+        [ApiKeyAuthorizeAttribute]
         public virtual ActionResult DeletePackage(string apiKey, string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
@@ -267,7 +267,7 @@ namespace NuGetGallery
         [HttpPost]
         [ActionName("PublishPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorizeAttribute("publish")]
+        [ApiKeyAuthorizeAttribute]
         public virtual ActionResult PublishPackage(string apiKey, string id, string version)
         {
             var package = PackageService.FindPackageByIdAndVersion(id, version);
