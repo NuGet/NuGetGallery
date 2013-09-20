@@ -189,6 +189,7 @@
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="DataServices\PackageExtensionsFacts.cs" />
     <Compile Include="DataServices\RewriteBaseUrlMessageInspectorFacts.cs" />
     <Compile Include="Diagnostics\DiagnosticsServiceFacts.cs" />
     <Compile Include="Diagnostics\GlimpseRuntimePolicyFacts.cs" />
@@ -232,6 +233,7 @@
     <Compile Include="UrlExtensionsFacts.cs" />
     <Compile Include="ViewModels\DependencySetsViewModelFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
+    <Compile Include="ViewModels\PackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
   </ItemGroup>
   <ItemGroup>

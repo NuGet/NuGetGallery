@@ -84,31 +84,10 @@ namespace NuGetGallery
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
 
-        [HttpGet]
-        [Authorize]
-        public virtual ActionResult UndoPendingEdits(string id, string version)
-        {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return HttpNotFound();
-            }
-
-            var model = new TrivialPackageVersionModel
-            {
-                Id = package.PackageRegistration.Id,
-                Version = package.Version,
-                Title = package.Title,
-            };
-
-            return View(model);
-        }
-
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [ActionName("UndoPendingEdits")]
-        public virtual ActionResult UndoPendingEditsPost(string id, string version)
+        public virtual ActionResult UndoPendingEdits(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -583,7 +562,6 @@ namespace NuGetGallery
             };
 
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
-            model.HasPendingMetadata = pendingMetadata != null;
             model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
             return View(model);
         }
@@ -607,7 +585,16 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                return View();
+                formData.PackageId = package.PackageRegistration.Id;
+                formData.PackageTitle = package.Title;
+                formData.Version = package.Version;
+                
+                var packageRegistration = _packageService.FindPackageRegistrationById(id);
+                formData.PackageVersions = packageRegistration.Packages
+                        .OrderByDescending(p => new SemanticVersion(p.Version), Comparer<SemanticVersion>.Create((a, b) => a.CompareTo(b)))
+                        .ToList();
+
+                return View(formData);
             }
 
             // Add the edit request to a queue where it will be processed in the background.
@@ -913,6 +900,40 @@ namespace NuGetGallery
                 default:
                     return "PackageRegistration.DownloadCount desc";
             }
+        }
+
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult SetLicenseReportVisibility(string id, string version, bool visible)
+        {
+            return SetLicenseReportVisibility(id, version, visible, Url.Package);
+        }
+
+        internal virtual ActionResult SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, string> urlFactory)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+            if (!package.IsOwner(HttpContext.User))
+            {
+                return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            _packageService.SetLicenseReportVisibility(package, visible);
+
+            TempData["Message"] = String.Format(
+                CultureInfo.CurrentCulture,
+                "The license report for this package has been {0}. It may take several hours for this change to propagate through our system.",
+                visible ? "enabled" : "disabled");
+
+            // Update the index
+            _indexingService.UpdatePackage(package);
+
+            return Redirect(urlFactory(package));
         }
     }
 }

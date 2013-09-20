@@ -803,6 +803,80 @@ button.undo-button {
     margin: -7px 0 0 5px;
 }
 
+    /* License */
+
+.block {
+    margin-top: 1.5em;
+    margin-bottom: 2em;
+    margin-left: 0;
+    margin-right: 2em;
+    padding: 1.1em;
+    background: #e4f1f7;
+}
+
+.block-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    text-align: left;
+    font-size: 1.25em;
+    color: #0071BC;
+}
+
+.block-notice {
+    color: red;
+    padding: 0.1em;
+    display: inline-block;
+}
+
+#sonatypeHeader {
+    margin-top: 0;
+    margin-bottom: 1.75em;
+    text-align: left;
+    font-size: 0.7em;
+    color: black;
+}
+
+.licenseName {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.block-link {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+    font-size: 0.9em;
+}
+
+.block-text {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+    font-size: 0.9em;
+}
+
+#enableDisableLicenseReportButton {
+    margin: 0 auto;
+    margin-top: 1.5em;
+    display: block;
+    font-size: 0.9em;
+}
+
+.fadedLicenseName {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: grey;
+}
+
+.block-fadedLink {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+    font-size: 0.9em;
+    color: lightblue;
+}
+
     /* Side Column Navigation */
 
 #sideColumn nav ul {
@@ -891,6 +965,15 @@ section.package div.tags {
 }
 
 section.package div.tags h2 { margin-right: 5px; }
+
+section.package div.licenses {
+    border-left: 1px solid #ccc;
+    display: inline;
+    margin-left: 10px;
+    padding-left: 10px;
+}
+section.package div.licenses h2 { margin-right: 5px; }
+section.package div.licenses p  { display: inline; }
 
 section.package .side {
     float: left;

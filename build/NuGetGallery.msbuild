@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)' == ''">
     <Configuration>Debug</Configuration>
   </PropertyGroup>
@@ -8,10 +8,11 @@
   </PropertyGroup>
   
   <Target Name="Clean">
-    <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform)"/>
+    <MSBuild Projects="..\NuGetGallery.sln" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
   </Target>
   
   <Target Name="Build" DependsOnTargets="Clean">
     <MSBuild Projects="..\NuGetGallery.sln" Targets="Build" Properties="Configuration=$(Configuration);CodeAnalysis=true;Platform=$(Platform);RunFacts=true" />
+    <MSBuild Projects="..\src\NuGetGallery.Backend.Cloud\NuGetGallery.Backend.Cloud.ccproj" Targets="Publish" Properties="Configuration=$(Configuration);Platform=AnyCPU" />
   </Target>
 </Project>
