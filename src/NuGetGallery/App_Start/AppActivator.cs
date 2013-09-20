@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using System.Web.UI;
 using Elmah;
 using Elmah.Contrib.Mvc;
 using Microsoft.Web.Infrastructure.DynamicModuleHelper;
@@ -63,6 +64,12 @@ namespace NuGetGallery
             var jQueryBundle = new ScriptBundle("~/Scripts/jquery")
                 .Include("~/Scripts/jquery-{version}.js");
             BundleTable.Bundles.Add(jQueryBundle);
+
+            ScriptManager.ScriptResourceMapping.AddDefinition("jquery",
+                new ScriptResourceDefinition
+                {
+                    Path = jQueryBundle.Path
+                });
 
             var scriptBundle = new ScriptBundle("~/Scripts/all")
                 .Include("~/Scripts/jquery-{version}.js")
