@@ -187,7 +187,9 @@ namespace NuGetGallery
             {
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername("username")).Returns(new User { Username = "username" });
-                var controller = CreateController(userService: userService);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.User.Identity.Name).Returns("username");
+                var controller = CreateController(userService: userService, httpContext: httpContext);
 
                 var result = controller.ConfirmOwner("foo", "username", "token");
 
@@ -236,9 +238,11 @@ namespace NuGetGallery
                 httpContext.Setup(c => c.User.Identity.Name).Returns("not-username");
                 var controller = CreateController(packageService: packageService, userService: userService, httpContext: httpContext);
 
-                var result = controller.ConfirmOwner("foo", "username", "token") as HttpStatusCodeResult;
+                var result = controller.ConfirmOwner("foo", "username", "token");
 
-                Assert.NotNull(result);
+                var viewModel = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
+                Assert.Equal("username", viewModel.Username);
+                Assert.Equal(ConfirmOwnershipResult.NotYourRequest, viewModel.Result);
             }
 
             [Theory]
