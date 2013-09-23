@@ -187,7 +187,9 @@ namespace NuGetGallery
             {
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername("username")).Returns(new User { Username = "username" });
-                var controller = CreateController(userService: userService);
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.User.Identity.Name).Returns("username");
+                var controller = CreateController(userService: userService, httpContext: httpContext);
 
                 var result = controller.ConfirmOwner("foo", "username", "token");
 
@@ -209,6 +211,20 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void WithIdentityNotMatchingUserInRequestReturnsViewWithMessage()
+            {
+                var httpContext = new Mock<HttpContextBase>();
+                httpContext.Setup(c => c.User.Identity.Name).Returns("userA");
+                var controller = CreateController(httpContext: httpContext);
+
+                var result = controller.ConfirmOwner("foo", "userB", "token");
+
+                var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
+                Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
+                Assert.Equal("userB", model.Username);
+            }
+
+            [Fact]
             public void RequiresUserBeLoggedInToConfirm()
             {
                 var package = new PackageRegistration { Id = "foo" };
@@ -222,54 +238,35 @@ namespace NuGetGallery
                 httpContext.Setup(c => c.User.Identity.Name).Returns("not-username");
                 var controller = CreateController(packageService: packageService, userService: userService, httpContext: httpContext);
 
-                var result = controller.ConfirmOwner("foo", "username", "token") as HttpStatusCodeResult;
+                var result = controller.ConfirmOwner("foo", "username", "token");
 
-                Assert.NotNull(result);
+                var viewModel = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
+                Assert.Equal("username", viewModel.Username);
+                Assert.Equal(ConfirmOwnershipResult.NotYourRequest, viewModel.Result);
             }
 
             [Theory]
             [InlineData(ConfirmOwnershipResult.Success)]
             [InlineData(ConfirmOwnershipResult.AlreadyOwner)]
             [InlineData(ConfirmOwnershipResult.Failure)]
-            public void AcceptsResultOfPackageServiceIfOtherwiseValid(ConfirmOwnershipResult result)
+            public void AcceptsResultOfPackageServiceIfOtherwiseValid(ConfirmOwnershipResult confirmationResult)
             {
                 var package = new PackageRegistration { Id = "foo" };
                 var user = new User { Username = "username" };
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
-                packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(result);
+                packageService.Setup(p => p.ConfirmPackageOwner(package, user, "token")).Returns(confirmationResult);
                 var userService = new Mock<IUserService>();
                 userService.Setup(u => u.FindByUsername("username")).Returns(user);
                 var httpContext = new Mock<HttpContextBase>();
                 httpContext.Setup(c => c.User.Identity.Name).Returns("username");
                 var controller = CreateController(packageService: packageService, userService: userService, httpContext: httpContext);
 
+                var result = controller.ConfirmOwner("foo", "username", "token");
 
-                var model = (controller.ConfirmOwner("foo", "username", "token") as ViewResult).Model as PackageOwnerConfirmationModel;
-
-                Assert.Equal(result, model.Result);
+                var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result);
+                Assert.Equal(confirmationResult, model.Result);
                 Assert.Equal("foo", model.PackageId);
-            }
-
-            [Fact]
-            public void WhenUserIsAdminReturnsAlreadyOwner()
-            {
-                var package = new PackageRegistration { Id = "foo" };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
-                var userService = new Mock<IUserService>();
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(c => c.User.Identity.Name).Returns("username");
-                httpContext.Setup(c => c.User.IsInRole(Constants.AdminRoleName)).Returns(true);
-                var controller = CreateController(packageService: packageService, userService: userService, httpContext: httpContext);
-
-
-                var model = (controller.ConfirmOwner("foo", "username", "token") as ViewResult).Model as PackageOwnerConfirmationModel;
-
-                Assert.Equal(ConfirmOwnershipResult.AlreadyOwner, model.Result);
-                Assert.Equal("foo", model.PackageId);
-                userService.Verify(u => u.FindByUsername("username"), Times.Never());
-                packageService.Verify(p => p.ConfirmPackageOwner(package, It.IsAny<User>(), "token"), Times.Never());
             }
         }
 
