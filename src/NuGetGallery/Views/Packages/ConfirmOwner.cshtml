@@ -22,6 +22,12 @@
             If you manage multiple accounts, make sure you sign-in as the user who received the request before clicking the confirmation link.
         </p>
         break;
+    case ConfirmOwnershipResult.NotYourRequest:
+        @* Note that we're not confirming that a request even exists for this user, it's just a string compare against the name in the URL *@
+        <p class="message error">
+            This request link is for the user '@Model.Username', if you wish to accept it, please sign in as that user and click the link again.
+        </p>
+        break;
     default:
         <p class="message error">
             Could not confirm package ownership for '@Model.PackageId'.

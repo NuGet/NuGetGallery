@@ -615,32 +615,33 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return View(new PackageOwnerConfirmationModel()
+                {
+                    Username = username,
+                    Result = ConfirmOwnershipResult.NotYourRequest
+                });
+            }
+
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {
                 return HttpNotFound();
             }
 
-            ConfirmOwnershipResult result;
-            if (User.IsAdministrator())
+            var user = _userService.FindByUsername(username);
+            if (user == null)
             {
-                result = ConfirmOwnershipResult.AlreadyOwner;
+                return HttpNotFound();
             }
-            else
+
+            if (!String.Equals(user.Username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                var user = _userService.FindByUsername(username);
-                if (user == null)
-                {
-                    return HttpNotFound();
-                }
-
-                if (!String.Equals(user.Username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return new HttpStatusCodeResult(403);
-                }
-
-                result = _packageService.ConfirmPackageOwner(package, user, token);
+                return new HttpStatusCodeResult(403);
             }
+
+            ConfirmOwnershipResult result = _packageService.ConfirmPackageOwner(package, user, token);
 
             var model = new PackageOwnerConfirmationModel
                 {
