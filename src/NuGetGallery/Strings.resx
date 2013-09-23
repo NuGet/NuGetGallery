@@ -174,4 +174,7 @@
   <data name="ParameterCannotBeNullOrEmpty" xml:space="preserve">
     <value>'{0}' cannot be null or an empty string</value>
   </data>
+  <data name="DatabaseUnavailable_TrySpecificVersion" xml:space="preserve">
+    <value>The NuGet service is experiencing a service interruption. Try requesting a specific package version instead.</value>
+  </data>
 </root>

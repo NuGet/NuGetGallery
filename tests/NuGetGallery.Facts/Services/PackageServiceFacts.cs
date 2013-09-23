@@ -29,7 +29,7 @@ namespace NuGetGallery
             nugetPackage.Setup(x => x.Metadata).Returns(metadata.Object);
 
             metadata.Setup(x => x.Id).Returns("theId");
-            metadata.Setup(x => x.Version).Returns(new SemanticVersion("1.0.42.0"));
+            metadata.Setup(x => x.Version).Returns(new SemanticVersion("01.0.42.0"));
 
             metadata.Setup(x => x.Authors).Returns(new[] { "theFirstAuthor", "theSecondAuthor" });
             metadata.Setup(x => x.DependencySets).Returns(
@@ -355,7 +355,8 @@ namespace NuGetGallery
                 // That said, it's still asserting one "thing": that the package data was read. 
                 // I'm sorry, but I just can't imagine adding a test per property.
                 // Note that there is no assertion on package identifier, because that's at the package registration level (and covered in another test).
-                Assert.Equal("1.0.42.0", package.Version);
+                Assert.Equal("01.0.42.0", package.Version);
+                Assert.Equal("1.0.42", package.NormalizedVersion);
                 Assert.Equal("theFirstDependency", package.Dependencies.ElementAt(0).Id);
                 Assert.Equal("[1.0, 2.0)", package.Dependencies.ElementAt(0).VersionSpec);
                 Assert.Equal("theSecondDependency", package.Dependencies.ElementAt(1).Id);

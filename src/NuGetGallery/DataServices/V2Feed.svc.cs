@@ -10,6 +10,7 @@ using System.Web.Routing;
 using NuGet;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
+using QueryInterceptor;
 
 namespace NuGetGallery
 {
@@ -35,6 +36,7 @@ namespace NuGetGallery
                     Packages = PackageRepository.GetAll()
                         .WithoutVersionSort()
                         .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
+                        .InterceptWith(new NormalizeVersionInterceptor())
                 };
         }
 
@@ -169,7 +171,7 @@ namespace NuGetGallery
             var package = (V2FeedPackage)entity;
             var urlHelper = new UrlHelper(new RequestContext(HttpContext, new RouteData()));
 
-            string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.Version);
+            string url = urlHelper.PackageDownload(FeedVersion, package.Id, package.NormalizedVersion);
 
             return new Uri(url, UriKind.Absolute);
         }

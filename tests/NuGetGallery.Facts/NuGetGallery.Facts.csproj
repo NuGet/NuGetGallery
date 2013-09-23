@@ -189,6 +189,7 @@
     <Compile Include="Controllers\PackagesControllerFacts.cs" />
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
+    <Compile Include="DataServices\NormalizeVersionInterceptorFacts.cs" />
     <Compile Include="DataServices\PackageExtensionsFacts.cs" />
     <Compile Include="DataServices\RewriteBaseUrlMessageInspectorFacts.cs" />
     <Compile Include="Diagnostics\DiagnosticsServiceFacts.cs" />
@@ -210,6 +211,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequireRemoteHttpsAttributeFacts.cs" />
     <Compile Include="Routing\VersionRouteConstraintFacts.cs" />
+    <Compile Include="SemanticVersionExtensionsFacts.cs" />
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
     <Compile Include="Services\CuratedFeedServiceFacts.cs" />
     <Compile Include="Services\ContentServiceFacts.cs" />
@@ -251,6 +253,9 @@
       <Project>{1DACF781-5CD0-4123-8BAC-CD385D864BE5}</Project>
       <Name>NuGetGallery</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
