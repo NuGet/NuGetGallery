@@ -11,15 +11,19 @@ namespace NuGetGallery
     {
         public IAppConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
+        public IEntityRepository<Credential> CredentialRepository { get; protected set; }
 
-        protected UserService() {}
+        protected UserService() { }
 
         public UserService(
             IAppConfiguration config,
-            IEntityRepository<User> userRepository) : this()
+            IEntityRepository<User> userRepository,
+            IEntityRepository<Credential> credentialRepository)
+            : this()
         {
             Config = config;
             UserRepository = userRepository;
+            CredentialRepository = credentialRepository;
         }
 
         public virtual User Create(
@@ -44,17 +48,22 @@ namespace NuGetGallery
 
             var hashedPassword = Crypto.GenerateSaltedHash(password, Constants.PBKDF2HashAlgorithmId);
 
+            var apiKey = Guid.NewGuid();
             var newUser = new User(
                 username,
                 hashedPassword)
                 {
-                    ApiKey = Guid.NewGuid(),
+                    ApiKey = apiKey,
                     EmailAllowed = true,
                     UnconfirmedEmailAddress = emailAddress,
                     EmailConfirmationToken = Crypto.GenerateToken(),
                     PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId,
                     CreatedUtc = DateTime.UtcNow
                 };
+
+            // Add a credential for the password and the API Key
+            newUser.Credentials.Add(CredentialBuilder.CreateV1ApiKey(apiKey));
+            newUser.Credentials.Add(new Credential(Constants.CredentialTypes.PasswordPbkdf2, newUser.HashedPassword));
 
             if (!Config.ConfirmEmailAddresses)
             {
@@ -89,6 +98,7 @@ namespace NuGetGallery
             UserRepository.CommitChanges();
         }
 
+        [Obsolete("Use AuthenticateCredential instead")]
         public User FindByApiKey(Guid apiKey)
         {
             return UserRepository.GetAll().SingleOrDefault(u => u.ApiKey == apiKey);
@@ -115,54 +125,28 @@ namespace NuGetGallery
         {
             return UserRepository.GetAll()
                 .Include(u => u.Roles)
+                .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
         }
 
         public virtual User FindByUsernameAndPassword(string username, string password)
         {
-            // TODO: validate input
-
             var user = FindByUsername(username);
 
-            if (user == null)
-            {
-                return null;
-            }
-
-            if (!Crypto.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
-            {
-                return null;
-            }
-
-            return user;
+            return AuthenticatePassword(password, user);
         }
 
         public virtual User FindByUsernameOrEmailAddressAndPassword(string usernameOrEmail, string password)
         {
-            // TODO: validate input
+            var user = UserRepository.GetAll()
+                .Include(u => u.Roles)
+                .Include(u => u.Credentials)
+                .SingleOrDefault(u => u.Username == usernameOrEmail || u.EmailAddress == usernameOrEmail);
 
-            var user = FindByUsername(usernameOrEmail)
-                       ?? FindByEmailAddress(usernameOrEmail);
-
-            if (user == null)
-            {
-                return null;
-            }
-
-            if (!Crypto.ValidateSaltedHash(user.HashedPassword, password, user.PasswordHashAlgorithm))
-            {
-                return null;
-            }
-            else if (!user.PasswordHashAlgorithm.Equals(Constants.PBKDF2HashAlgorithmId, StringComparison.OrdinalIgnoreCase))
-            {
-                // If the user can be authenticated and they are using an older password algorithm, migrate them to the current one.
-                ChangePasswordInternal(user, password);
-                UserRepository.CommitChanges();
-            }
-
-            return user;
+            return AuthenticatePassword(password, user);
         }
 
+        [Obsolete("Use ReplaceCredential instead")]
         public string GenerateApiKey(string username)
         {
             var user = FindByUsername(username);
@@ -276,11 +260,88 @@ namespace NuGetGallery
             return false;
         }
 
-        private static void ChangePasswordInternal(User user, string newPassword)
+        public Credential AuthenticateCredential(string type, string value)
         {
-            var hashedPassword = Crypto.GenerateSaltedHash(newPassword, Constants.PBKDF2HashAlgorithmId);
+            // Search for the cred
+            return CredentialRepository
+                .GetAll()
+                .Include(c => c.User)
+                .SingleOrDefault(c => c.Type == type && c.Value == value);
+        }
+
+        public void ReplaceCredential(string userName, Credential credential)
+        {
+            var user = UserRepository
+                .GetAll()
+                .Include(u => u.Credentials)
+                .SingleOrDefault(u => u.Username == userName);
+            if (user == null)
+            {
+                throw new InvalidOperationException(Strings.UserNotFound);
+            }
+            ReplaceCredential(user, credential);
+        }
+
+        public void ReplaceCredential(User user, Credential credential)
+        {
+            ReplaceCredentialInternal(user, credential);
+            UserRepository.CommitChanges();
+        }
+
+        private static User AuthenticatePassword(string password, User user)
+        {
+            if (user == null)
+            {
+                return null;
+            }
+
+            // Check for a credential
+            var cred = user.Credentials
+                .FirstOrDefault(c => String.Equals(
+                    c.Type,
+                    Constants.CredentialTypes.PasswordPbkdf2,
+                    StringComparison.OrdinalIgnoreCase));
+
+            bool valid;
+            if (cred != null)
+            {
+                valid = Crypto.ValidateSaltedHash(
+                    cred.Value,
+                    password,
+                    Constants.PBKDF2HashAlgorithmId);
+            }
+            else
+            {
+                valid = Crypto.ValidateSaltedHash(
+                    user.HashedPassword,
+                    password,
+                    user.PasswordHashAlgorithm);
+            }
+
+            return valid ? user : null;
+        }
+
+        private void ChangePasswordInternal(User user, string newPassword)
+        {
+            var cred = CredentialBuilder.CreatePbkdf2Password(newPassword);
             user.PasswordHashAlgorithm = Constants.PBKDF2HashAlgorithmId;
-            user.HashedPassword = hashedPassword;
+            user.HashedPassword = cred.Value;
+            ReplaceCredentialInternal(user, cred);
+        }
+
+        private void ReplaceCredentialInternal(User user, Credential credential)
+        {
+            // Find the credentials we're replacing, if any
+            var creds = user.Credentials
+                .Where(cred => cred.Type == credential.Type)
+                .ToList();
+            foreach (var cred in creds)
+            {
+                user.Credentials.Remove(cred);
+                CredentialRepository.DeleteOnCommit(cred);
+            }
+
+            user.Credentials.Add(credential);
         }
     }
 }

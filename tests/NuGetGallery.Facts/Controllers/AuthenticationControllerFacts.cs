@@ -145,7 +145,7 @@ namespace NuGetGallery.Controllers
                 Assert.NotNull(result);
                 Assert.Empty(result.ViewName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.UserNotFound, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState[String.Empty].Errors[0].ErrorMessage);
             }
 
             [Fact]

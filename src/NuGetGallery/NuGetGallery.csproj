@@ -597,6 +597,7 @@
     <Compile Include="ImageResult.cs" />
     <Compile Include="Infrastructure\AntiForgeryErrorFilter.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
@@ -807,6 +808,10 @@
     <Compile Include="Migrations\201309092041546_AddPackageLicenseReportSproc.cs" />
     <Compile Include="Migrations\201309092041546_AddPackageLicenseReportSproc.Designer.cs">
       <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201309172217450_CredentialsTable.cs" />
+    <Compile Include="Migrations\201309172217450_CredentialsTable.Designer.cs">
+      <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
@@ -1264,6 +1269,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201309092041546_AddPackageLicenseReportSproc.resx">
       <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309172217450_CredentialsTable.resx">
+      <DependentUpon>201309172217450_CredentialsTable.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

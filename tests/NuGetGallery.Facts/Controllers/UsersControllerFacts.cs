@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Principal;
@@ -24,7 +25,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(new User { Key = 42 });
-                
+
                 //act
                 controller.Account();
 
@@ -40,7 +41,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(new User { Key = 42 });
-                
+
                 // act
                 controller.Account();
 
@@ -57,7 +58,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(s => s.FindByUsername(It.IsAny<string>()))
                           .Returns(new User { Key = 42, ApiKey = stubApiKey });
-                
+
                 // act
                 var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
 
@@ -75,12 +76,59 @@ namespace NuGetGallery
                 controller.MockCuratedFeedService
                           .Setup(stub => stub.GetFeedsForManager(It.IsAny<int>()))
                           .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
-                
+
                 // act
                 var model = ((ViewResult)controller.Account()).Model as AccountViewModel;
 
                 // verify
                 Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
+            }
+
+            [Fact]
+            public void WillUseApiKeyInColumnIfNoCredentialPresent()
+            {
+                var apiKey = Guid.NewGuid();
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                          .Setup(s => s.FindByUsername(It.IsAny<string>()))
+                          .Returns(new User { Key = 42, ApiKey = apiKey });
+                controller.MockCuratedFeedService
+                          .Setup(stub => stub.GetFeedsForManager(It.IsAny<int>()))
+                          .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
+
+                // act
+                var result = controller.Account();
+                
+                // verify
+                var model = ResultAssert.IsView<AccountViewModel>(result);
+                Assert.Equal(apiKey.ToString().ToLowerInvariant(), model.ApiKey);
+            }
+
+            [Fact]
+            public void WillUseApiKeyInCredentialIfPresent()
+            {
+                var apiKey = Guid.NewGuid();
+                var controller = new TestableUsersController();
+                controller.MockUserService
+                    .Setup(s => s.FindByUsername(It.IsAny<string>()))
+                    .Returns(new User
+                    {
+                        Key = 42,
+                        ApiKey = Guid.NewGuid(),
+                        Credentials = new List<Credential>() {
+                            CredentialBuilder.CreateV1ApiKey(apiKey)
+                        }
+                    });
+                controller.MockCuratedFeedService
+                    .Setup(stub => stub.GetFeedsForManager(It.IsAny<int>()))
+                    .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
+
+                // act
+                var result = controller.Account();
+                
+                // verify
+                var model = ResultAssert.IsView<AccountViewModel>(result);
+                Assert.Equal(apiKey.ToString().ToLowerInvariant(), model.ApiKey);
             }
         }
 
@@ -111,7 +159,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
-                
+
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
 
                 Assert.True(model.SuccessfulConfirmation);
@@ -133,7 +181,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
-                
+
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
 
                 Assert.True(model.SuccessfulConfirmation);
@@ -158,7 +206,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
                           .Returns(true);
-                
+
                 // act:
                 var model = (controller.Confirm("username", "the-token") as ViewResult).Model as EmailConfirmationModel;
 
@@ -187,7 +235,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
                           .Returns(false);
-                
+
                 // act:
                 var model = (controller.Confirm("username", "faketoken") as ViewResult).Model as EmailConfirmationModel;
 
@@ -216,7 +264,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.ConfirmEmailAddress(user, "not-the-token"))
                           .Returns(false);
-                
+
                 var model = (controller.Confirm("username", "not-the-token") as ViewResult).Model as EmailConfirmationModel;
 
                 Assert.False(model.SuccessfulConfirmation);
@@ -311,7 +359,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(u => u.FindByUsername(It.IsAny<string>()))
                           .ReturnsNull();
-                
+
                 var result = controller.Edit(new EditProfileViewModel()) as HttpNotFoundResult;
 
                 Assert.NotNull(result);
@@ -371,9 +419,9 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(s => s.GeneratePasswordResetToken("user", 1440))
                           .Returns((User)null);
-                
+
                 var model = new ForgotPasswordViewModel { Email = "user" };
-                
+
                 var result = controller.ForgotPassword(model) as ViewResult;
 
                 Assert.NotNull(result);
@@ -386,30 +434,59 @@ namespace NuGetGallery
             [Fact]
             public void RedirectsToAccountPage()
             {
+                var user = new User();
                 var controller = new TestableUsersController();
                 controller.MockCurrentIdentity
-                          .Setup(i => i.Name)
-                          .Returns("the-username");
-                
-                var result = controller.GenerateApiKey() as RedirectToRouteResult;
+                    .Setup(i => i.Name)
+                    .Returns("the-username");
+                controller.MockUserService
+                    .Setup(u => u.FindByUsername("the-username"))
+                    .Returns(user);
 
-                Assert.NotNull(result);
-                Assert.Equal("Account", result.RouteValues["action"]);
-                Assert.Equal("Users", result.RouteValues["controller"]);
+                var result = controller.GenerateApiKey();
+
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account", controller = "Users" });
             }
 
             [Fact]
-            public void GeneratesAnApiKey()
+            public void PutsNewCredentialInOldField()
             {
                 var controller = new TestableUsersController();
+                var user = new User() { ApiKey = Guid.NewGuid() };
                 controller.MockCurrentIdentity
-                          .Setup(i => i.Name)
-                          .Returns("the-username");
-                
+                    .Setup(i => i.Name)
+                    .Returns("the-username");
+                controller.MockUserService
+                    .Setup(u => u.FindByUsername("the-username"))
+                    .Returns(user);
+                Credential created = null;
+                controller.MockUserService
+                    .Setup(u => u.ReplaceCredential(user, It.IsAny<Credential>()))
+                    .Callback<User, Credential>((_, c) => created = c);
+
+                controller.GenerateApiKey();
+
+                Assert.Equal(created.Value, user.ApiKey.ToString().ToLowerInvariant());
+            }
+
+            [Fact]
+            public void ReplacesTheApiKeyCredential()
+            {
+                var controller = new TestableUsersController();
+                var user = new User();
+                controller.MockCurrentIdentity
+                    .Setup(i => i.Name)
+                    .Returns("the-username");
+                controller.MockUserService
+                    .Setup(u => u.FindByUsername("the-username"))
+                    .Returns(user);
+
                 controller.GenerateApiKey();
 
                 controller.MockUserService
-                          .Verify(s => s.GenerateApiKey("the-username"));
+                    .Verify(u => u.ReplaceCredential(
+                        user,
+                        It.Is<Credential>(c => c.Type == Constants.CredentialTypes.ApiKeyV1)));
             }
         }
 
@@ -434,7 +511,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                           .Returns(new User { Username = "theUsername", EmailAddress = "to@example.com" });
-                
+
                 controller.Register(
                     new RegisterRequest
                         {
@@ -454,7 +531,7 @@ namespace NuGetGallery
                 controller.MockUserService
                           .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                           .Throws(new EntityException("aMessage"));
-                
+
                 var result = controller.Register(
                     new RegisterRequest
                         {
@@ -493,7 +570,7 @@ namespace NuGetGallery
                 controller.MockConfig
                           .Setup(x => x.ConfirmEmailAddresses)
                           .Returns(true);
-                
+
                 controller.Register(
                     new RegisterRequest
                         {
@@ -506,6 +583,87 @@ namespace NuGetGallery
                 // are passed correctly.
                 Assert.Equal("https://example.org/?Controller=Users&Action=Confirm&username=theUsername&token=confirmation", sentConfirmationUrl);
                 Assert.Equal("to@example.com", sentToAddress.Address);
+            }
+        }
+
+        public class TheChangePasswordMethod
+        {
+            [Fact]
+            public void ReturnsViewIfModelStateInvalid()
+            {
+                // Arrange
+                var controller = new TestableUsersController();
+                controller.ModelState.AddModelError("test", "test");
+                var inputModel = new PasswordChangeViewModel();
+
+                // Act
+                var result = controller.ChangePassword(inputModel);
+
+                // Assert
+                var outputModel = ResultAssert.IsView<PasswordChangeViewModel>(result);
+                Assert.Same(inputModel, outputModel);
+            }
+
+            [Fact]
+            public void AddsModelErrorIfUserServiceFails()
+            {
+                // Arrange
+                var controller = new TestableUsersController();
+                controller.MockCurrentIdentity
+                    .Setup(i => i.Name)
+                    .Returns("user");
+                controller.MockUserService
+                    .Setup(u => u.ChangePassword("user", "old", "new"))
+                    .Returns(false);
+                var inputModel = new PasswordChangeViewModel()
+                {
+                    OldPassword = "old",
+                    NewPassword = "new",
+                    ConfirmPassword = "new"
+                };
+
+                // Act
+                var result = controller.ChangePassword(inputModel);
+
+                // Assert
+                var outputModel = ResultAssert.IsView<PasswordChangeViewModel>(result);
+                Assert.Same(inputModel, outputModel);
+
+                var errorMessages = controller
+                    .ModelState["OldPassword"]
+                    .Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToArray();
+                Assert.Equal(errorMessages, new[] { Strings.CurrentPasswordIncorrect });
+            }
+
+            [Fact]
+            public void RedirectsToPasswordChangedIfUserServiceSucceeds()
+            {
+                // Arrange
+                var controller = new TestableUsersController();
+                controller.MockCurrentIdentity
+                    .Setup(i => i.Name)
+                    .Returns("user");
+                controller.MockUserService
+                    .Setup(u => u.ChangePassword("user", "old", "new"))
+                    .Returns(true);
+                var inputModel = new PasswordChangeViewModel()
+                {
+                    OldPassword = "old",
+                    NewPassword = "new",
+                    ConfirmPassword = "new"
+                };
+
+                // Act
+                var result = controller.ChangePassword(inputModel);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new
+                {
+                    controller = "Users",
+                    action = "PasswordChanged"
+                });
             }
         }
 
@@ -561,7 +719,7 @@ namespace NuGetGallery
                 controller.MockConfig
                           .Setup(x => x.ConfirmEmailAddresses)
                           .Returns(true);
-                
+
                 var result = controller.Thanks() as ViewResult;
 
                 Assert.Empty(result.ViewName);
@@ -575,7 +733,7 @@ namespace NuGetGallery
                 controller.MockConfig
                           .Setup(x => x.ConfirmEmailAddresses)
                           .Returns(false);
-                
+
                 var result = controller.Thanks() as ViewResult;
 
                 Assert.Equal("Confirm", result.ViewName);
@@ -594,7 +752,7 @@ namespace NuGetGallery
             public Mock<IPackageService> MockPackageService { get; protected set; }
             public Mock<IAppConfiguration> MockConfig { get; protected set; }
             public Mock<IUserService> MockUserService { get; protected set; }
-            
+
             public TestableUsersController()
             {
                 CuratedFeedService = (MockCuratedFeedService = new Mock<ICuratedFeedService>()).Object;
