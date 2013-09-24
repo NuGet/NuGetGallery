@@ -25,6 +25,12 @@ namespace NuGetGallery.Monitoring
             Password = password;
         }
 
+        protected SqlMonitorBase(SqlConnectionStringBuilder connectionString)
+            : base(connectionString.DataSource, connectionString.UserID, connectionString.Password)
+        {
+        }
+        
+
         protected virtual Task Connect(Action<SqlConnection> onConnect)
         {
             return Connect(c =>
