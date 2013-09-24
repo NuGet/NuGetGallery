@@ -12,8 +12,8 @@ namespace MonitoringQuickTest
         static void Main(string[] args)
         {
             ConsoleMonitorRunner.Run(new MonitorSet(
-                "Tests", TimeSpan.FromSeconds(5),
-                new SqlServerRunningMonitor(ConnectionString.Value)));
+                "Tests", TimeSpan.FromSeconds(1),
+                new SqlDatabaseRunningMonitor(ConnectionString.Value)));
         }
     }
 }

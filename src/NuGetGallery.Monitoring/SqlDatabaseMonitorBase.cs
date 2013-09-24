@@ -10,7 +10,13 @@ namespace NuGetGallery.Monitoring
     public abstract class SqlDatabaseMonitorBase : SqlMonitorBase
     {
         public string Database { get; private set; }
-        
+
+        public SqlDatabaseMonitorBase(SqlConnectionStringBuilder connectionString)
+            : this(connectionString.DataSource, connectionString.InitialCatalog, connectionString.UserID, connectionString.Password)
+        {
+
+        }
+
         public SqlDatabaseMonitorBase(string server, string database, string user, string password) : base(server, user, password)
         {
             Database = database;

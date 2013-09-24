@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,8 @@ namespace NuGetGallery.Monitoring
     public class SqlDatabaseRunningMonitor : SqlDatabaseMonitorBase
     {
         public SqlDatabaseRunningMonitor(string server, string database, string user, string password) : base(server, database, user, password) { }
+        public SqlDatabaseRunningMonitor(SqlConnectionStringBuilder connectionString) : base(connectionString) { }
+        public SqlDatabaseRunningMonitor(string connectionString) : base(new SqlConnectionStringBuilder(connectionString)) { }
 
         protected override Task Invoke()
         {
