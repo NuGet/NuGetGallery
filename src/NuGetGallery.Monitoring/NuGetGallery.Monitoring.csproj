@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper">
+      <HintPath>..\..\packages\Dapper.1.13\lib\net40\Dapper.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Threading.Tasks">
       <HintPath>..\..\packages\Microsoft.Bcl.Async.1.0.16\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
     </Reference>
@@ -72,12 +75,12 @@
     <Compile Include="MonitoringEvent.cs" />
     <Compile Include="ApplicationMonitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlBackupMonitor.cs" />
     <Compile Include="SqlDatabaseMonitorBase.cs" />
     <Compile Include="SqlDatabaseRunningMonitor.cs" />
     <Compile Include="SqlDatabaseSizeMonitor.cs" />
     <Compile Include="SqlMonitorBase.cs" />
     <Compile Include="SqlServerRunningMonitor.cs" />
-    <Compile Include="SqlConnectionExtensions.cs" />
     <Compile Include="TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

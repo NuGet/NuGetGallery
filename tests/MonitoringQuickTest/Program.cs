@@ -13,7 +13,7 @@ namespace MonitoringQuickTest
         {
             ConsoleMonitorRunner.Run(new MonitorSet(
                 "Tests", TimeSpan.FromSeconds(1),
-                new SqlDatabaseSizeMonitor(ConnectionString.Value)));
+                new SqlBackupMonitor(ConnectionString.Value)));
         }
     }
 }

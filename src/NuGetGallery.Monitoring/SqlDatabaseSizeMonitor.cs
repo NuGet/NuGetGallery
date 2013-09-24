@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 
 namespace NuGetGallery.Monitoring
 {
@@ -48,7 +49,7 @@ group by sys.objects.name";
             {
                 // Calculate overall database size
                 // Source: http://social.msdn.microsoft.com/Forums/en-US/ssdsgetstarted/thread/a234d6e9-a9a4-4be3-9c35-4b9525491f1a
-                decimal dbSizeInMB = (decimal)c.ExecuteScalar(DatabaseSizeQuery);
+                decimal dbSizeInMB = (decimal)c.Query<decimal>(DatabaseSizeQuery).Single();
 
                 QoS("Database Size in KB", success: true, value: (int)Math.Ceiling(dbSizeInMB * 1024));
                 if (dbSizeInMB > FailureThreshold)
