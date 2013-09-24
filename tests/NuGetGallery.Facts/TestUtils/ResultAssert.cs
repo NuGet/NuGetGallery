@@ -109,5 +109,22 @@ namespace NuGetGallery
             // Make sure we used all the expected keys (Assert.True lets us provide a message)
             Assert.True(expectedKeys.Count == 0, "Missing keys: " + String.Join(",", expectedKeys));
         }
+
+        public static void IsStatusCode(ActionResult result, HttpStatusCode code)
+        {
+            IsStatusCode(result, (int)code);
+        }
+
+        public static void IsStatusCode(ActionResult result, int code)
+        {
+            if (result is EmptyResult)
+            {
+                Assert.Equal(code, 200);
+                return;
+            }
+
+            var statusCodeResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
+            Assert.Equal(code, statusCodeResult.StatusCode);
+        }
     }
 }

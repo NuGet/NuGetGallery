@@ -177,4 +177,7 @@
   <data name="DatabaseUnavailable_TrySpecificVersion" xml:space="preserve">
     <value>The NuGet service is experiencing a service interruption. Try requesting a specific package version instead.</value>
   </data>
+  <data name="ApiKeyUserAccountIsUnconfirmed" xml:space="preserve">
+    <value>You must confirm the email address for the account in order to use the API key.</value>
+  </data>
 </root>
