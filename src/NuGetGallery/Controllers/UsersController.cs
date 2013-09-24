@@ -233,7 +233,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!String.Equals(username, Identity.Name, StringComparison.InvariantCultureIgnoreCase))
+            if (!String.Equals(username, Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, "You are not logged in as the correct user to performthis action.");
             }

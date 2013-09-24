@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public static class HttpContextBaseExtensions
     {
-        public static void SetConfirmationContext(this HttpContextBase httpContext, string userAction, string returnUrl)
+        public static void SetConfirmationReturnUrl(this HttpContextBase httpContext, string returnUrl)
         {
             var confirmationContext = new ConfirmationContext
             {

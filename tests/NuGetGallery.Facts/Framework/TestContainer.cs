@@ -49,9 +49,18 @@ namespace NuGetGallery.Framework
             return Mock.Get(instance);
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (Kernel != null)
+            {
+                Kernel.Dispose();
+                Kernel = null;
+            }
+        }
+
         public void Dispose()
         {
-            Kernel.Dispose();
+            this.Dispose(true);
         }
     }
 }

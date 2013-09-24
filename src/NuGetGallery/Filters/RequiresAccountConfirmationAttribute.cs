@@ -6,7 +6,7 @@ using System.Web.Mvc;
 namespace NuGetGallery.Filters
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
-    public class RequiresAccountConfirmationAttribute : ActionFilterAttribute
+    public sealed class RequiresAccountConfirmationAttribute : ActionFilterAttribute
     {
         private string _inOrderTo;
 
@@ -26,7 +26,7 @@ namespace NuGetGallery.Filters
             IPrincipal user = controller.User;
             if (!user.Identity.IsAuthenticated)
             {
-                throw new InvalidOperationException("[RequiresAccountConfirmation] attribute is only valid on [Authenticated] actions.");
+                throw new InvalidOperationException("Requires account confirmation attribute is only valid on authenticated actions.");
             }
 
             var userService = controller.GetService<IUserService>();
@@ -36,7 +36,7 @@ namespace NuGetGallery.Filters
                 controller.TempData["ConfirmationRequiredMessage"] = String.Format(
                     CultureInfo.CurrentCulture,
                     "Before you can {0} you must first confirm your email address.", _inOrderTo);
-                controller.HttpContext.SetConfirmationContext(_inOrderTo, controller.Url.Current());
+                controller.HttpContext.SetConfirmationReturnUrl(controller.Url.Current());
                 filterContext.Result = new RedirectResult(controller.Url.ConfirmationRequired());
             }
         }
