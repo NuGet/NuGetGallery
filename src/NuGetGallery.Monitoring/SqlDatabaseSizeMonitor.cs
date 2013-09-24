@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,6 +26,18 @@ group by sys.objects.name";
         private const string DatabaseSizeQuery = @"SELECT SUM(reserved_page_count)*8.0/1024 FROM sys.dm_db_partition_stats";
 
         public SqlDatabaseSizeMonitor(string server, string database, string user, string password) : base(server, database, user, password) {
+            DegradedThreshold = DefaultDegradedThreshold;
+            FailureThreshold = DefaultFailureThreshold;
+        }
+
+        public SqlDatabaseSizeMonitor(SqlConnectionStringBuilder connectionString) : base(connectionString) {
+            DegradedThreshold = DefaultDegradedThreshold;
+            FailureThreshold = DefaultFailureThreshold;
+        }
+
+        public SqlDatabaseSizeMonitor(string connectionString)
+            : base(new SqlConnectionStringBuilder(connectionString))
+        {
             DegradedThreshold = DefaultDegradedThreshold;
             FailureThreshold = DefaultFailureThreshold;
         }
