@@ -63,33 +63,6 @@ namespace NuGetGallery
             return Assert.IsType<T>(view.Model);
         }
 
-        public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode)
-        {
-            return IsStatusCode(result, statusCode, statusDescription: null);
-        }
-
-        public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode, string statusDescription)
-        {
-            var statusResult = Assert.IsType<HttpStatusCodeResult>(result);
-            Assert.Equal((int)statusCode, statusResult.StatusCode);
-            Assert.Equal(statusDescription, statusResult.StatusDescription);
-            return statusResult;
-        }
-
-        public static HttpStatusCodeResult IsStatusCodeWithBody(ActionResult result, HttpStatusCode statusCode, string statusDescription)
-        {
-            return IsStatusCodeWithBody(result, statusCode, statusDescription, body: statusDescription);
-        }
-
-        public static HttpStatusCodeWithBodyResult IsStatusCodeWithBody(ActionResult result, HttpStatusCode statusCode, string statusDescription, string body)
-        {
-            var statusResult = Assert.IsType<HttpStatusCodeWithBodyResult>(result);
-            Assert.Equal((int)statusCode, statusResult.StatusCode);
-            Assert.Equal(statusDescription, statusResult.StatusDescription);
-            Assert.Equal(body, statusResult.Body);
-            return statusResult;
-        }
-
         public static HttpNotFoundResult IsNotFound(ActionResult result)
         {
             return Assert.IsType<HttpNotFoundResult>(result);
@@ -110,21 +83,57 @@ namespace NuGetGallery
             Assert.True(expectedKeys.Count == 0, "Missing keys: " + String.Join(",", expectedKeys));
         }
 
-        public static void IsStatusCode(ActionResult result, HttpStatusCode code)
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode)
         {
-            IsStatusCode(result, (int)code);
+            return IsStatusCode(result, (int)statusCode);
         }
 
-        public static void IsStatusCode(ActionResult result, int code)
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, int statusCode)
         {
             if (result is EmptyResult)
             {
-                Assert.Equal(code, 200);
-                return;
+                Assert.Equal(statusCode, 200);
+                return null;
             }
 
-            var statusCodeResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
-            Assert.Equal(code, statusCodeResult.StatusCode);
+            return IsStatusCode(result, statusCode, statusDescription: null);
+        }
+
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, HttpStatusCode statusCode, string statusDescription)
+        {
+            return IsStatusCode(result, (int)statusCode, statusDescription);
+        }
+
+        public static HttpStatusCodeResult IsStatusCode(ActionResult result, int statusCode, string statusDescription)
+        {
+            var statusResult = Assert.IsAssignableFrom<HttpStatusCodeResult>(result);
+            Assert.Equal(statusCode, statusResult.StatusCode);
+            Assert.Equal(statusDescription, statusResult.StatusDescription);
+            return statusResult;
+        }
+
+        public static HttpStatusCodeResult IsStatusCodeWithBody(ActionResult result, HttpStatusCode statusCode, string statusDescription)
+        {
+            return IsStatusCodeWithBody(result, (int)statusCode, statusDescription, body: statusDescription);
+        }
+
+        public static HttpStatusCodeResult IsStatusCodeWithBody(ActionResult result, int statusCode, string statusDescription)
+        {
+            return IsStatusCodeWithBody(result, statusCode, statusDescription, body: statusDescription);
+        }
+
+        public static HttpStatusCodeWithBodyResult IsStatusCodeWithBody(ActionResult result, HttpStatusCode statusCode, string statusDescription, string body)
+        {
+            return IsStatusCodeWithBody(result, (int)statusCode, statusDescription, body);
+        }
+
+        public static HttpStatusCodeWithBodyResult IsStatusCodeWithBody(ActionResult result, int statusCode, string statusDescription, string body)
+        {
+            var statusResult = Assert.IsAssignableFrom<HttpStatusCodeWithBodyResult>(result);
+            Assert.Equal(statusCode, statusResult.StatusCode);
+            Assert.Equal(statusDescription, statusResult.StatusDescription);
+            Assert.Equal(body, statusResult.Body);
+            return statusResult;
         }
     }
 }

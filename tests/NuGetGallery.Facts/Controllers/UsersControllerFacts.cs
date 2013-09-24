@@ -276,7 +276,8 @@ namespace NuGetGallery
 
                 var result = controller.Edit(model);
 
-                ResultAssert.IsView(result, model: model);
+                var viewModel = ResultAssert.IsView<EditProfileViewModel>(result);
+                Assert.Same(model, viewModel);
                 GetMock<IUserService>().Verify(u => u.UpdateProfile(user, false));
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Net;
 using System.Web.Mvc;
 using Ninject;
@@ -42,7 +43,7 @@ namespace NuGetGallery.Filters
             }
             catch
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.InvalidApiKey);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKeyStr));
             }
 
             User user = UserService.FindByApiKey(apiKey);

@@ -634,7 +634,7 @@ namespace NuGetGallery
                 // Act
                 var result = controller.VerifyPackageKey(guid.ToString(), "foo", "1.0.0");
 
-                ResultAssert.IsStatusCode(result, 403);
+                ResultAssert.IsStatusCode(result, 403, "The specified API key does not provide the authority to push packages.");
             }
 
             [Fact]

@@ -53,7 +53,7 @@ namespace NuGetGallery.Filters
             var result = attribute.CheckForResult(value);
 
             // Assert
-            ResultAssert.IsStatusCode(result, 400);
+            ResultAssert.IsStatusCode(result, 400, String.Format(Strings.InvalidApiKey, ""));
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace NuGetGallery.Filters
             var result = attribute.CheckForResult("invalid-key");
 
             // Assert
-            ResultAssert.IsStatusCode(result, 400);
+            ResultAssert.IsStatusCode(result, 400, String.Format(Strings.InvalidApiKey, "invalid-key"));
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace NuGetGallery.Filters
             var result = attribute.CheckForResult(unknownApiKey);
 
             // Assert
-            ResultAssert.IsStatusCode(result, 403);
+            ResultAssert.IsStatusCode(result, 403, String.Format(Strings.ApiKeyNotAuthorized, "push"));
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace NuGetGallery.Filters
             var result = attribute.CheckForResult(user.ApiKey.ToString());
 
             // Assert
-            ResultAssert.IsStatusCode(result, 403);
+            ResultAssert.IsStatusCode(result, 403, Strings.ApiKeyUserAccountIsUnconfirmed);
         }
     }
 }
