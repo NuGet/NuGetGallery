@@ -74,7 +74,7 @@ namespace NuGetGallery
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public virtual ActionResult UploadPackageProgress()
         {
-            string username = GetIdentity().Name;
+            string username = GetUser().Identity.Name;
 
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
@@ -142,7 +142,7 @@ namespace NuGetGallery
         [Authorize]
         public async virtual Task<ActionResult> UploadPackage()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -160,7 +160,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -225,6 +225,13 @@ namespace NuGetGallery
 
         public virtual ActionResult DisplayPackage(string id, string version)
         {
+            string normalized = SemanticVersionExtensions.Normalize(version);
+            if (!String.Equals(version, normalized))
+            {
+                // Permanent redirect to the normalized one (to avoid multiple URLs for the same content)
+                return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
+            }
+
             var package = _packageService.FindPackageByIdAndVersion(id, version);
 
             if (package == null)
@@ -233,7 +240,7 @@ namespace NuGetGallery
             }
             var model = new DisplayPackageViewModel(package);
 
-            if (package.IsOwner(HttpContext.User))
+            if (package.IsOwner(GetUser()))
             {
                 // Tell logged-in package owners not to cache the package page, so they won't be confused about the state of pending edits.
                 Response.Cache.SetCacheability(HttpCacheability.NoCache);
@@ -704,7 +711,7 @@ namespace NuGetGallery
         [Authorize]
         public virtual async Task<ActionResult> VerifyPackage()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
 
             IPackageMetadata packageMetadata;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -734,7 +741,7 @@ namespace NuGetGallery
                 new VerifyPackageRequest
                 {
                     Id = packageMetadata.Id,
-                    Version = packageMetadata.Version.ToStringSafe(),
+                    Version = packageMetadata.Version.ToNormalizedStringSafe(),
                     LicenseUrl = packageMetadata.LicenseUrl.ToStringSafe(),
                     Listed = true,
                     Edit = new EditPackageVersionRequest
@@ -778,7 +785,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> VerifyPackage(VerifyPackageRequest formData)
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
 
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -796,7 +803,7 @@ namespace NuGetGallery
                 if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.Version)))
                 {
                     if (!(String.Equals(nugetPackage.Metadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
-                        && String.Equals(nugetPackage.Metadata.Version.ToString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
+                        && String.Equals(nugetPackage.Metadata.Version.ToNormalizedString(), formData.Version, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = "Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again.";
                         return new RedirectResult(Url.VerifyPackage());
@@ -871,16 +878,16 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelUpload()
         {
-            var currentUser = _userService.FindByUsername(GetIdentity().Name);
+            var currentUser = _userService.FindByUsername(GetUser().Identity.Name);
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             return RedirectToAction("UploadPackage");
         }
 
         // this methods exist to make unit testing easier
-        protected internal virtual IIdentity GetIdentity()
+        protected internal virtual IPrincipal GetUser()
         {
-            return User.Identity;
+            return User;
         }
 
         // this methods exist to make unit testing easier

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
@@ -81,12 +82,17 @@ namespace NuGetGallery
                 }
             }
 
+            // Normalize the version
+            version = SemanticVersionExtensions.Normalize(version);
+
             // if the version is null, the user is asking for the latest version. Presumably they don't want includePrerelease release versions. 
             // The allow prerelease flag is ignored if both partialId and version are specified.
             // In general we want to try to add download statistics for any package regardless of whether a version was specified.
+
+            Package package = null;
             try
             {
-                Package package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
+                package = PackageService.FindPackageByIdAndVersion(id, version, allowPrerelease: false);
                 if (package == null)
                 {
                     return new HttpStatusCodeWithBodyResult(
@@ -122,8 +128,6 @@ namespace NuGetGallery
                     // Log the error and continue
                     QuietlyLogException(e);
                 }
-
-                return await PackageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, package);
             }
             catch (SqlException e)
             {
@@ -133,10 +137,17 @@ namespace NuGetGallery
             {
                 QuietlyLogException(e);
             }
-
+            
             // Fall back to constructing the URL based on the package version and ID.
-
-            return await PackageFileService.CreateDownloadPackageActionResultAsync(HttpContext.Request.Url, id, version);
+            if (String.IsNullOrEmpty(version) && package == null)
+            {
+                // Database was unavailable and we don't have a version, return a 503
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
+            }
+            return await PackageFileService.CreateDownloadPackageActionResultAsync(
+                HttpContext.Request.Url, 
+                id, 
+                String.IsNullOrEmpty(version) ? package.NormalizedVersion : version);
         }
 
         [HttpGet]
@@ -231,17 +242,20 @@ namespace NuGetGallery
                     }
 
                     // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
+                    string normalizedVersion = packageToPush.Metadata.Version.ToNormalizedString();
                     bool packageExists =
                         packageRegistration.Packages.Any(
-                            p =>
-                            p.Version.Equals(packageToPush.Metadata.Version.ToString(),
-                                             StringComparison.OrdinalIgnoreCase));
+                            p => String.Equals(
+                                p.NormalizedVersion,
+                                normalizedVersion,
+                                StringComparison.OrdinalIgnoreCase));
+
                     if (packageExists)
                     {
                         return new HttpStatusCodeWithBodyResult(
                             HttpStatusCode.Conflict,
                             String.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                          packageToPush.Metadata.Id, packageToPush.Metadata.Version));
+                                          packageToPush.Metadata.Id, packageToPush.Metadata.Version.ToNormalizedStringSafe()));
                     }
                 }
 

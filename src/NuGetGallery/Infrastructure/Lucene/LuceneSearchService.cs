@@ -159,6 +159,7 @@ namespace NuGetGallery
                 Tags = doc.Get("Tags"),
                 Title = doc.Get("Title"),
                 Version = doc.Get("Version"),
+                NormalizedVersion = doc.Get("NormalizedVersion"),
                 SupportedFrameworks = frameworks,
                 MinClientVersion = doc.Get("MinClientVersion"),
                 LicenseUrl = doc.Get("LicenseUrl"),

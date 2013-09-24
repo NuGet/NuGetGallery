@@ -298,6 +298,7 @@
     <Compile Include="Configuration\MailAddressConverter.cs" />
     <Compile Include="Configuration\SmtpUri.cs" />
     <Compile Include="Controllers\AppController.cs" />
+    <Compile Include="DataServices\NormalizeVersionInterceptor.cs" />
     <Compile Include="DataServices\RewriteBaseUrlMessageInspector.cs" />
     <Compile Include="Diagnostics\ConcurrentInMemoryPersistenceStore.cs" />
     <Compile Include="Diagnostics\DiagnosticsService.cs" />
@@ -808,6 +809,10 @@
     <Compile Include="Migrations\201309092041546_AddPackageLicenseReportSproc.Designer.cs">
       <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.cs" />
+    <Compile Include="Migrations\201309101922464_NormalizedVersionColumn.Designer.cs">
+      <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\MigrationsConfiguration.cs" />
     <Compile Include="Migrations\SqlResourceMigration.cs" />
     <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
@@ -1264,6 +1269,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201309092041546_AddPackageLicenseReportSproc.resx">
       <DependentUpon>201309092041546_AddPackageLicenseReportSproc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201309101922464_NormalizedVersionColumn.resx">
+      <DependentUpon>201309101922464_NormalizedVersionColumn.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Strings.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

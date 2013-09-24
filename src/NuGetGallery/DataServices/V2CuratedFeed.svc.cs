@@ -8,6 +8,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery;
 using NuGetGallery.Configuration;
+using QueryInterceptor;
 
 namespace NuGetGallery
 {
@@ -49,7 +50,9 @@ namespace NuGetGallery
 
             return new V2FeedContext
                 {
-                    Packages = packages.ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
+                    Packages = packages
+                        .ToV2FeedPackageQuery(Configuration.GetSiteRoot(UseHttps()), Configuration.Features.FriendlyLicenses)
+                        .InterceptWith(new NormalizeVersionInterceptor())
                 };
         }
 
