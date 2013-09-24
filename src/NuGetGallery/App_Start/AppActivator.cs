@@ -152,7 +152,7 @@ namespace NuGetGallery
         private static void NinjectPreStart()
         {
             DynamicModuleUtility.RegisterModule(typeof(OnePerRequestHttpModule));
-            DynamicModuleUtility.RegisterModule(typeof(HttpApplicationInitializationHttpModule));
+            DynamicModuleUtility.RegisterModule(typeof(NinjectHttpModule));
             NinjectBootstrapper.Initialize(() => Container.Kernel);
         }
 
