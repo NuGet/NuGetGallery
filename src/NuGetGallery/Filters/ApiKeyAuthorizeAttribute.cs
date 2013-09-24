@@ -49,7 +49,7 @@ namespace NuGetGallery.Filters
             User user = UserService.FindByApiKey(apiKey);
             if (user == null)
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(Strings.ApiKeyNotAuthorized, "push"));
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
             }
 
             if (!user.Confirmed)
