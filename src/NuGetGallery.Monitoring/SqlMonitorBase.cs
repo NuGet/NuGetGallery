@@ -26,7 +26,7 @@ namespace NuGetGallery.Monitoring
         }
 
         protected SqlMonitorBase(SqlConnectionStringBuilder connectionString)
-            : base(connectionString.DataSource, connectionString.UserID, connectionString.Password)
+            : this(connectionString.DataSource, connectionString.UserID, connectionString.Password)
         {
         }
         
@@ -78,7 +78,7 @@ namespace NuGetGallery.Monitoring
         protected virtual SqlConnectionStringBuilder BuildConnectionString()
         {
             string connStr = String.Format(
-                        "Server=tcp:{0};" +
+                        "Server={0};" +
                         "User ID={1};" +
                         "Password={2};" +
                         "Trusted_Connection=False;" +
