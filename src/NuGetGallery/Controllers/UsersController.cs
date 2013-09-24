@@ -235,7 +235,7 @@ namespace NuGetGallery
 
             if (!String.Equals(username, Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, "You are not logged in as the correct user to performthis action.");
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, "You are not logged in as the correct user to perform this action.");
             }
 
             var user = UserService.FindByUsername(username);

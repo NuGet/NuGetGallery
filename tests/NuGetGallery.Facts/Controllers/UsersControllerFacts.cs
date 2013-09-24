@@ -100,7 +100,7 @@ namespace NuGetGallery
 
                 var result = controller.Confirm("wrongUsername", "someToken");
 
-                ResultAssert.IsStatusCode(result, 403);
+                ResultAssert.IsStatusCode(result, 403, "You are not logged in as the correct user to perform this action.");
             }
 
             [Fact]

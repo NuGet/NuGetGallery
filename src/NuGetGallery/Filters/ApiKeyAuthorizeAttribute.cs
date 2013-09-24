@@ -33,7 +33,7 @@ namespace NuGetGallery.Filters
         {
             if (String.IsNullOrEmpty(apiKeyStr))
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.InvalidApiKey);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKeyStr));
             }
 
             Guid apiKey;
@@ -49,7 +49,7 @@ namespace NuGetGallery.Filters
             User user = UserService.FindByApiKey(apiKey);
             if (user == null)
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(Strings.ApiKeyNotAuthorized, "push"));
             }
 
             if (!user.Confirmed)
