@@ -21,9 +21,12 @@ namespace NuGetGallery
         private readonly ConcurrentDictionary<string, CloudBlobContainer> _containers = new ConcurrentDictionary<string, CloudBlobContainer>();
 
         // Internal VTable Pattern
-        Func<CloudBlobContainer, Task> Container_CreateIfNotExistAsync { get; set; }
-        Func<CloudBlobContainer, BlobContainerPermissions, Task> Container_SetPermissionsAsync { get; set; }
-        Func<CloudBlobContainer, string, ISimpleCloudBlob> Container_GetBlobReference { get; set; }
+        public Func<CloudBlobContainer, Task> Container_CreateIfNotExistAsync { get; set; }
+        public Func<CloudBlobContainer, BlobContainerPermissions, Task> Container_SetPermissionsAsync { get; set; }
+        public Func<CloudBlobContainer, string, ISimpleCloudBlob> Container_GetBlobReference { get; set; }
+
+        // Internal Hooks
+        public Func<string, Task<CloudBlobContainer>> This_GetContainer { get; set; }
 
         public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration)
         {
@@ -44,11 +47,12 @@ namespace NuGetGallery
                     c.EndSetPermissions);
             };
             Container_GetBlobReference = (c, blobName) => new CloudBlobWrapper(c.GetBlockBlobReference(blobName));
+            This_GetContainer = (name) => GetContainer(name);
         }
 
         public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
         {
-            var container = await GetContainer(folderName);
+            var container = await This_GetContainer(folderName);
             var blob = Container_GetBlobReference(container, fileName);
 
             var redirectUri = GetRedirectUri(requestUrl, blob.Uri);
@@ -57,14 +61,14 @@ namespace NuGetGallery
 
         public async Task DeleteFileAsync(string folderName, string fileName)
         {
-            var container = await GetContainer(folderName);
+            var container = await This_GetContainer(folderName);
             var blob = Container_GetBlobReference(container, fileName);
             await blob.DeleteIfExistsAsync();
         }
 
         public async Task<bool> FileExistsAsync(string folderName, string fileName)
         {
-            CloudBlobContainer container = await GetContainer(folderName);
+            CloudBlobContainer container = await This_GetContainer(folderName);
             var blob = Container_GetBlobReference(container, fileName);
             return await blob.ExistsAsync();
         }
@@ -96,7 +100,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            var container = await GetContainer(folderName);
+            var container = await This_GetContainer(folderName);
             var blob = Container_GetBlobReference(container, fileName);
             var result = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
             if (result.StatusCode == HttpStatusCode.NotModified)
@@ -120,7 +124,7 @@ namespace NuGetGallery
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
-            var container = await GetContainer(folderName);
+            var container = await This_GetContainer(folderName);
             var blob = Container_GetBlobReference(container, fileName);
             await blob.DeleteIfExistsAsync();
             await blob.UploadFromStreamAsync(packageFile);
@@ -128,7 +132,7 @@ namespace NuGetGallery
             await blob.SetPropertiesAsync();
         }
 
-        private async Task<CloudBlobContainer> GetContainer(string folderName)
+        public async Task<CloudBlobContainer> GetContainer(string folderName)
         {
             CloudBlobContainer container;
             if (_containers.TryGetValue(folderName, out container))
@@ -161,7 +165,7 @@ namespace NuGetGallery
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
-            var container = await GetContainer(folderName);
+            var container = await This_GetContainer(folderName);
             var blob = Container_GetBlobReference(container, fileName);
 
             var stream = new MemoryStream();
@@ -242,7 +246,7 @@ namespace NuGetGallery
             string folderName,
             string fileName)
         {
-            var container = await GetContainer(folderName);
+            var container = await This_GetContainer(folderName);
             var blob = Container_GetBlobReference(container, fileName);
 
             var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri);
