@@ -18,18 +18,42 @@ namespace NuGetGallery
     {
         private readonly ICloudBlobClient _client;
         private readonly IAppConfiguration _configuration;
-        private readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
+        private readonly ConcurrentDictionary<string, CloudBlobContainer> _containers = new ConcurrentDictionary<string, CloudBlobContainer>();
+
+        // Internal VTable Pattern
+        public Func<CloudBlobContainer, Task> Container_CreateIfNotExistAsync { get; set; }
+        public Func<CloudBlobContainer, BlobContainerPermissions, Task> Container_SetPermissionsAsync { get; set; }
+        public Func<CloudBlobContainer, string, ISimpleCloudBlob> Container_GetBlobReference { get; set; }
+
+        // Internal Hooks
+        public Func<string, Task<CloudBlobContainer>> This_GetContainer { get; set; }
 
         public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration)
         {
             _client = client;
             _configuration = configuration;
+
+            // Internal VTable
+            Container_CreateIfNotExistAsync = c =>
+            {
+                return Task.Factory.FromAsync<bool>(
+                    c.BeginCreateIfNotExists(null, null),
+                    c.EndCreateIfNotExists);
+            };
+            Container_SetPermissionsAsync = (c, permissions) =>
+            {
+                return Task.Factory.FromAsync(
+                    c.BeginSetPermissions(permissions, null, null),
+                    c.EndSetPermissions);
+            };
+            Container_GetBlobReference = (c, blobName) => new CloudBlobWrapper(c.GetBlockBlobReference(blobName));
+            This_GetContainer = (name) => GetContainer(name);
         }
 
         public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
+            var container = await This_GetContainer(folderName);
+            var blob = Container_GetBlobReference(container, fileName);
 
             var redirectUri = GetRedirectUri(requestUrl, blob.Uri);
             return new RedirectResult(redirectUri.OriginalString, false);
@@ -37,15 +61,15 @@ namespace NuGetGallery
 
         public async Task DeleteFileAsync(string folderName, string fileName)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
+            var container = await This_GetContainer(folderName);
+            var blob = Container_GetBlobReference(container, fileName);
             await blob.DeleteIfExistsAsync();
         }
 
         public async Task<bool> FileExistsAsync(string folderName, string fileName)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
+            CloudBlobContainer container = await This_GetContainer(folderName);
+            var blob = Container_GetBlobReference(container, fileName);
             return await blob.ExistsAsync();
         }
 
@@ -76,8 +100,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            ICloudBlobContainer container = await GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
+            var container = await This_GetContainer(folderName);
+            var blob = Container_GetBlobReference(container, fileName);
             var result = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
             if (result.StatusCode == HttpStatusCode.NotModified)
             {
@@ -100,23 +124,23 @@ namespace NuGetGallery
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
+            var container = await This_GetContainer(folderName);
+            var blob = Container_GetBlobReference(container, fileName);
             await blob.DeleteIfExistsAsync();
             await blob.UploadFromStreamAsync(packageFile);
             blob.Properties.ContentType = GetContentType(folderName);
             await blob.SetPropertiesAsync();
         }
 
-        private async Task<ICloudBlobContainer> GetContainer(string folderName)
+        public async Task<CloudBlobContainer> GetContainer(string folderName)
         {
-            ICloudBlobContainer container;
+            CloudBlobContainer container;
             if (_containers.TryGetValue(folderName, out container))
             {
                 return container;
             }
 
-            Task<ICloudBlobContainer> creationTask;
+            Task<CloudBlobContainer> creationTask;
             switch (folderName)
             {
                 case Constants.PackagesFolderName:
@@ -141,9 +165,8 @@ namespace NuGetGallery
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
-
-            var blob = container.GetBlobReference(fileName);
+            var container = await This_GetContainer(folderName);
+            var blob = Container_GetBlobReference(container, fileName);
 
             var stream = new MemoryStream();
             try
@@ -205,11 +228,11 @@ namespace NuGetGallery
             }
         }
 
-        private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic)
+        private async Task<CloudBlobContainer> PrepareContainer(string folderName, bool isPublic)
         {
             var container = _client.GetContainerReference(folderName);
-            await container.CreateIfNotExistAsync();
-            await container.SetPermissionsAsync(
+            await Container_CreateIfNotExistAsync(container);
+            await Container_SetPermissionsAsync(container,
                 new BlobContainerPermissions
                 {
                     PublicAccess = isPublic ? BlobContainerPublicAccessType.Blob : BlobContainerPublicAccessType.Off
@@ -223,8 +246,8 @@ namespace NuGetGallery
             string folderName,
             string fileName)
         {
-            var container = await GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
+            var container = await This_GetContainer(folderName);
+            var blob = Container_GetBlobReference(container, fileName);
 
             var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri);
             return new RedirectResult(redirectUri.OriginalString, false);

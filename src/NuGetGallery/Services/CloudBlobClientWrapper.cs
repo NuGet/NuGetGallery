@@ -13,13 +13,13 @@ namespace NuGetGallery
             _storageConnectionString = storageConnectionString;
         }
 
-        public ICloudBlobContainer GetContainerReference(string containerAddress)
+        public CloudBlobContainer GetContainerReference(string containerAddress)
         {
             if (_blobClient == null)
             {
                 _blobClient = CloudStorageAccount.Parse(_storageConnectionString).CreateCloudBlobClient();
             }
-            return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
+            return _blobClient.GetContainerReference(containerAddress);
         }
     }
 }
