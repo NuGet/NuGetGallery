@@ -11,23 +11,16 @@ namespace NuGetGallery.Monitoring
 {
     public abstract class SqlMonitorBase : ApplicationMonitor
     {
-        public string Server { get; private set; }
-        public string User { get; private set; }
-        public string Password { get; private set; }
+        public SqlConnectionStringBuilder ConnectionString { get; private set; }
 
         protected TimeSpan TimeToConnect { get; private set; }
 
         protected override string DefaultResourceName { get { return FormatResourceName(); } }
-        
-        protected SqlMonitorBase(string server, string user, string password) {
-            Server = server;
-            User = user;
-            Password = password;
-        }
 
+        protected SqlMonitorBase(string connectionString) : this(new SqlConnectionStringBuilder(connectionString)) { }
         protected SqlMonitorBase(SqlConnectionStringBuilder connectionString)
-            : this(connectionString.DataSource, connectionString.UserID, connectionString.Password)
         {
+            ConnectionString = connectionString;
         }
         
 
@@ -42,15 +35,15 @@ namespace NuGetGallery.Monitoring
 
         protected virtual async Task Connect(Func<SqlConnection, Task> onConnect)
         {
-            SqlConnectionStringBuilder builder = BuildConnectionString();
-            
+            string connectionString = GetConnectionString();
+
             SqlConnection connection = null;
             try
             {
                 try
                 {
                     SqlConnection.ClearAllPools();
-                    connection = new SqlConnection(builder.ConnectionString);
+                    connection = new SqlConnection(connectionString);
 
                     Stopwatch sw = new Stopwatch();
                     sw.Start();
@@ -75,24 +68,17 @@ namespace NuGetGallery.Monitoring
             }
         }
 
-        protected virtual SqlConnectionStringBuilder BuildConnectionString()
+        protected virtual string GetConnectionString()
         {
-            string connStr = String.Format(
-                        "Server={0};" +
-                        "User ID={1};" +
-                        "Password={2};" +
-                        "Trusted_Connection=False;" +
-                        "Encrypt=True;",
-                        Server,
-                        User,
-                        Password);
-            SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(connStr);
-            return builder;
+            return new SqlConnectionStringBuilder(ConnectionString.ConnectionString)
+            {
+                InitialCatalog = null
+            }.ConnectionString;
         }
 
         protected virtual string FormatResourceName()
         {
-            return "Server=" + Server;
+            return "Server=" + ConnectionString.DataSource;
         }
     }
 }

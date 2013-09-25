@@ -22,15 +22,6 @@ namespace NuGetGallery.Monitoring
         public string BackupPrefix { get; set; }
         public TimeSpan BackupMinAge { get; set; }
 
-        public SqlBackupMonitor(string server, string user, string password)
-            : base(server, user, password)
-        {
-            MaximumBackups = DefaultMaximumBackups;
-            MinimumBackups = DefaultMinimumBackups;
-            BackupMinAge = DefaultBackupMinAge;
-            BackupPrefix = DefaultBackupPrefix;
-        }
-
         public SqlBackupMonitor(SqlConnectionStringBuilder connectionString)
             : base(connectionString)
         {
@@ -41,7 +32,7 @@ namespace NuGetGallery.Monitoring
         }
 
         public SqlBackupMonitor(string connectionString)
-            : base(new SqlConnectionStringBuilder(connectionString))
+            : base(connectionString)
         {
             MaximumBackups = DefaultMaximumBackups;
             MinimumBackups = DefaultMinimumBackups;

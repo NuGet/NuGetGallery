@@ -68,6 +68,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ConsoleMonitorRunner.cs" />
+    <Compile Include="DataModel\PackageEditMonitor.cs" />
     <Compile Include="MonitorSet.cs" />
     <Compile Include="EventType.cs" />
     <Compile Include="IEventReporter.cs" />
@@ -75,12 +76,12 @@
     <Compile Include="MonitoringEvent.cs" />
     <Compile Include="ApplicationMonitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlBackupMonitor.cs" />
-    <Compile Include="SqlDatabaseMonitorBase.cs" />
-    <Compile Include="SqlDatabaseRunningMonitor.cs" />
-    <Compile Include="SqlDatabaseSizeMonitor.cs" />
-    <Compile Include="SqlMonitorBase.cs" />
-    <Compile Include="SqlServerRunningMonitor.cs" />
+    <Compile Include="Database\SqlBackupMonitor.cs" />
+    <Compile Include="Database\SqlDatabaseMonitorBase.cs" />
+    <Compile Include="Database\SqlDatabaseRunningMonitor.cs" />
+    <Compile Include="Database\SqlDatabaseSizeMonitor.cs" />
+    <Compile Include="Database\SqlMonitorBase.cs" />
+    <Compile Include="Database\SqlServerRunningMonitor.cs" />
     <Compile Include="TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -8,6 +8,6 @@ namespace MonitoringQuickTest
 {
     class ConnectionString
     {
-        public static readonly string ConnectionString = "";
+        public static readonly string Value = @"Data Source=(localdb)\v11.0;Initial Catalog=NuGetGallery;Trusted_Connection=True";
     }
 }

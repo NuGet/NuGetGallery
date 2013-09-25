@@ -9,9 +9,8 @@ namespace NuGetGallery.Monitoring
 {
     public class SqlDatabaseRunningMonitor : SqlDatabaseMonitorBase
     {
-        public SqlDatabaseRunningMonitor(string server, string database, string user, string password) : base(server, database, user, password) { }
         public SqlDatabaseRunningMonitor(SqlConnectionStringBuilder connectionString) : base(connectionString) { }
-        public SqlDatabaseRunningMonitor(string connectionString) : base(new SqlConnectionStringBuilder(connectionString)) { }
+        public SqlDatabaseRunningMonitor(string connectionString) : base(connectionString) { }
 
         protected override Task Invoke()
         {
