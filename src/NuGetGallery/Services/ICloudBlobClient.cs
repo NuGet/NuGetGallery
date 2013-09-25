@@ -1,7 +1,9 @@
-﻿namespace NuGetGallery
+﻿using Microsoft.WindowsAzure.Storage.Blob;
+
+namespace NuGetGallery
 {
     public interface ICloudBlobClient
     {
-        ICloudBlobContainer GetContainerReference(string containerAddress);
+        CloudBlobContainer GetContainerReference(string containerAddress);
     }
 }
