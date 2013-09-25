@@ -89,6 +89,7 @@
     <Compile Include="Packaging\Nupkg.cs" />
     <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SemanticVersionExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

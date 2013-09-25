@@ -20,4 +20,4 @@ using System.Runtime.InteropServices;
 [assembly: NeutralResourcesLanguage("en-us")]
 [assembly: AssemblyVersion("2.0.0")]
 [assembly: AssemblyFileVersion("2.13.0805")]
-[assembly: AssemblyInformationalVersion("2.13.0805-aadevbuild")]
+[assembly: AssemblyInformationalVersion("2.13.0805-alpha")]

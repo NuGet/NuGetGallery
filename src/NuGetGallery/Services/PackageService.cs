@@ -136,7 +136,9 @@ namespace NuGetGallery
             {
                 package = packageVersions.SingleOrDefault(
                     p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase) &&
-                         p.Version.Equals(version, StringComparison.OrdinalIgnoreCase));
+                         (
+                            p.NormalizedVersion.Equals(SemanticVersionExtensions.Normalize(version), StringComparison.OrdinalIgnoreCase)
+                         ));
             }
             return package;
         }
@@ -419,7 +421,11 @@ namespace NuGetGallery
 
             package = new Package
             {
+                // Version must always be the exact string from the nuspec, which ToString will return to us. 
+                // However, we do also store a normalized copy for looking up later.
                 Version = nugetPackage.Metadata.Version.ToString(),
+                NormalizedVersion = nugetPackage.Metadata.Version.ToNormalizedString(),
+
                 Description = nugetPackage.Metadata.Description,
                 ReleaseNotes = nugetPackage.Metadata.ReleaseNotes,
                 HashAlgorithm = Constants.Sha512HashAlgorithmId,
