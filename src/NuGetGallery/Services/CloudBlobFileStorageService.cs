@@ -26,13 +26,26 @@ namespace NuGetGallery
             _configuration = configuration;
         }
 
-        public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
+        public async Task<ActionResult> CreateDownloadFileActionResult(Uri requestUrl, string folderName, string fileName)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
+            var blobUri = GetBlobUri(folderName, fileName, requireHttps: false);
+            var redirectUri = GetRedirectUri(blobUri, requireHttps: false);
+            return Task.FromResult(new RedirectResult(redirectUri.OriginalString, false));
+        }
 
-            var redirectUri = GetRedirectUri(requestUrl, blob.Uri);
-            return new RedirectResult(redirectUri.OriginalString, false);
+        public string GetBlobUri(string folderName, string fileName, bool requireHttps)
+        {
+            ICloudBlobContainer container = _client.GetContainerReference(folderName);
+            var blob = container.GetBlobReference(fileName);
+            var uri = blob.Uri;
+            if (requireHttps)
+            {
+                var builder = new UriBuilder(uri);
+                builder.Scheme = "https";
+                return builder.Uri.AbsoluteUri;
+            }
+
+            return uri.AbsoluteUri;
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
