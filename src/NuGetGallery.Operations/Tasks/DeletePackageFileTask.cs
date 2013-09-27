@@ -35,21 +35,14 @@ namespace NuGetGallery.Operations
                     WhatIf = WhatIf
                 }.ExecuteCommand();
 
-            var blobClient = CreateBlobClient();
-            var packagesBlobContainer = Util.GetPackagesBlobContainer(blobClient);
-            var packageFileBlob = Util.GetPackageFileBlob(
-                packagesBlobContainer,
-                PackageId,
-                PackageVersion);
-            var fileName = Util.GetPackageFileName(
-                PackageId,
-                PackageVersion);
-            if (packageFileBlob.Exists())
+            var packageFiles = GetPackageFileService();
+            var fileName = FileConventions.GetPackageFileName(PackageId, PackageVersion);
+            if (packageFiles.PackageFileExists(PackageId, PackageVersion))
             {
                 Log.Info("Deleting package file '{0}'.", fileName);
                 if (!WhatIf)
                 {
-                    packageFileBlob.DeleteIfExists();
+                    packageFiles.DeletePackageFileAsync(PackageId, PackageVersion).Wait();
                 }
             }
             else

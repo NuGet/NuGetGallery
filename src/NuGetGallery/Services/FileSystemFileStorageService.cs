@@ -20,7 +20,7 @@ namespace NuGetGallery
             _fileSystemService = fileSystemService;
         }
 
-        public Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
+        public UriOrStream GetDownloadUriOrStream(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -35,15 +35,10 @@ namespace NuGetGallery
             var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
             if (!_fileSystemService.FileExists(path))
             {
-                return Task.FromResult<ActionResult>(new HttpNotFoundResult());
+                return UriOrStream.NotFound;
             }
 
-            var result = new FilePathResult(path, GetContentType(folderName))
-            {
-                FileDownloadName = new FileInfo(fileName).Name
-            };
-
-            return Task.FromResult<ActionResult>(result);
+            return new UriOrStream(new Uri(path));
         }
 
         public Task DeleteFileAsync(string folderName, string fileName)
@@ -118,7 +113,7 @@ namespace NuGetGallery
             return Task.FromResult<IFileReference>(file.Exists ? new LocalFileReference(file) : null);
         }
 
-        public Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
+        public Task SaveFileAsync(string folderName, string fileName, Stream packageFile, string contentType)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -188,6 +183,16 @@ namespace NuGetGallery
                     throw new InvalidOperationException(
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
             }
+        }
+
+        public Task DownloadToFileAsync(string folderName, string fileName, string downloadedPackageFilePath)
+        {
+            throw new NotSupportedException("downloading local files to local files sounds crazy. let's not do that unless we need to.");
+        }
+
+        public Task UploadFromFileAsync(string folderName, string fileName, string path, string contentType)
+        {
+            throw new NotSupportedException("uploading local files to local files sounds crazy. let's not do that unless we need to.");
         }
     }
 }

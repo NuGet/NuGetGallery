@@ -52,8 +52,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentNullException>(
-                    () => service.CreateDownloadFileActionResultAsync(
-                        HttpRequestUrl,
+                    () => service.GetDownloadUriOrStream(
                         folderName,
                         "theFileName"));
 
@@ -68,8 +67,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = Assert.Throws<ArgumentNullException>(
-                    () => service.CreateDownloadFileActionResultAsync(
-                        HttpRequestUrl,
+                    () => service.GetDownloadUriOrStream(
                         Constants.PackagesFolderName,
                         fileName));
 

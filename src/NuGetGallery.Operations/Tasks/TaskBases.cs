@@ -49,6 +49,14 @@ namespace NuGetGallery.Operations
         {
             return environment.MainStorage;
         }
+
+        protected PackageFileService GetPackageFileService()
+        {
+            return new PackageFileService(
+                new CloudBlobFileStorageService(
+                    new CloudBlobClientWrapper(CreateBlobClient()),
+                    _ => true));
+        }
     }
 
     public abstract class BackupStorageTask : StorageTaskBase
@@ -199,6 +207,14 @@ namespace NuGetGallery.Operations
         protected CloudBlobClient CreateBlobClient()
         {
             return StorageAccount.CreateCloudBlobClient();
+        }
+
+        protected PackageFileService GetPackageFileService()
+        {
+            return new PackageFileService(
+                new CloudBlobFileStorageService(
+                    new CloudBlobClientWrapper(CreateBlobClient()),
+                    _ => true));
         }
 
         public override void ValidateArguments()

@@ -178,16 +178,6 @@ namespace NuGetGallery.Operations
             return container;
         }
 
-        internal static string GetPackageFileName(
-            string id,
-            string version)
-        {
-            return string.Format(
-                "{0}.{1}.nupkg",
-                id.ToLowerInvariant(),
-                version.ToLowerInvariant());
-        }
-
         internal static string GetTempFolder()
         {
             string ret = Path.Combine(Path.GetTempPath(), "NuGetGallery.Operations");
@@ -226,9 +216,7 @@ namespace NuGetGallery.Operations
             string id,
             string version)
         {
-            var packageFileName = GetPackageFileName(
-                id,
-                version);
+            string packageFileName = FileConventions.GetPackageFileName(id, version);
             return packagesBlobContainer.GetBlockBlobReference(packageFileName);
         }
 

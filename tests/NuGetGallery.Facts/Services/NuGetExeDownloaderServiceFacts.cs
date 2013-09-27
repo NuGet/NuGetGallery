@@ -22,8 +22,8 @@ namespace NuGetGallery
             fileStorage.Setup(s => s.FileExistsAsync("downloads", "nuget.exe"))
                 .Returns(Task.FromResult(true)).Verifiable();
 
-            fileStorage.Setup(s => s.CreateDownloadFileActionResultAsync(HttpRequestUrl, "downloads", "nuget.exe"))
-                .Returns(Task.FromResult(Mock.Of<ActionResult>()))
+            fileStorage.Setup(s => s.GetDownloadUriOrStream("downloads", "nuget.exe"))
+                .Returns(new UriOrStream(new MemoryStream()))
                 .Verifiable();
 
             // Act
@@ -40,11 +40,11 @@ namespace NuGetGallery
             // Arrange
             var fileStorage = new Mock<IFileStorageService>(MockBehavior.Strict);
             fileStorage.Setup(s => s.FileExistsAsync("downloads", "nuget.exe")).Returns(Task.FromResult(false));
-            fileStorage.Setup(s => s.SaveFileAsync("downloads", "nuget.exe", It.IsAny<Stream>()))
+            fileStorage.Setup(s => s.SaveFileAsync("downloads", "nuget.exe", It.IsAny<Stream>(), "application/octet-stream"))
                 .Returns(Task.FromResult(0))
                 .Verifiable();
-            fileStorage.Setup(s => s.CreateDownloadFileActionResultAsync(HttpRequestUrl, "downloads", "nuget.exe"))
-                .Returns(Task.FromResult(Mock.Of<ActionResult>()))
+            fileStorage.Setup(s => s.GetDownloadUriOrStream("downloads", "nuget.exe"))
+                .Returns(new UriOrStream(new MemoryStream()))
                 .Verifiable();
 
             var package = new Package { Version = "2.0.0" };
@@ -71,7 +71,7 @@ namespace NuGetGallery
         {
             // Arrange
             var fileStorage = new Mock<IFileStorageService>(MockBehavior.Strict);
-            fileStorage.Setup(s => s.SaveFileAsync("downloads", "nuget.exe", It.IsAny<Stream>()))
+            fileStorage.Setup(s => s.SaveFileAsync("downloads", "nuget.exe", It.IsAny<Stream>(), "application/octet-stream"))
                 .Returns(Task.FromResult(0))
                 .Verifiable();
 

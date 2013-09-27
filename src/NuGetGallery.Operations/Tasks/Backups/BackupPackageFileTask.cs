@@ -47,23 +47,18 @@ namespace NuGetGallery.Operations
                 return;
             }
 
-            var packageFileBlob = Util.GetPackageFileBlob(
-                packageBlobs,
-                PackageId,
-                PackageVersion);
-            var packageFileName = Util.GetPackageFileName(
-                PackageId,
-                PackageVersion);
+            var packageFileName = FileConventions.GetPackageFileName(PackageId, PackageVersion);
             var downloadedPackageFilePath = Path.Combine(Util.GetTempFolder(), packageFileName);
 
             // Why are we still downloading/uploading instead of using Async Blob Copy?
             // Because it feels a little safer to ensure we know the copy is truely complete before continuing.
             // I could be convinced otherwise though 
             //  - anurse
+            var packageFiles = GetPackageFileService();
             Log.Trace("Downloading package file '{0}' to temporary file '{1}'.", packageFileName, downloadedPackageFilePath);
             if (!WhatIf)
             {
-                packageFileBlob.DownloadToFile(downloadedPackageFilePath);
+                packageFiles.DownloadToFileAsync(PackageId, PackageVersion, downloadedPackageFilePath);
             }
 
             Log.Trace("Uploading package file backup '{0}' from temporary file '{1}'.", backupFileName, downloadedPackageFilePath);

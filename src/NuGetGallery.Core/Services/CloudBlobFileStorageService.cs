@@ -5,47 +5,22 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class CloudBlobFileStorageService : IFileStorageService
     {
         private readonly ICloudBlobClient _client;
-        private readonly IAppConfiguration _configuration;
         private readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
+        private Func<string, bool> _isPublicFolderPolicy;
 
-        public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration)
+        public CloudBlobFileStorageService(ICloudBlobClient client, Func<string, bool> isPublicFolderPolicy)
         {
             _client = client;
-            _configuration = configuration;
-        }
-
-        public async Task<ActionResult> CreateDownloadFileActionResult(Uri requestUrl, string folderName, string fileName)
-        {
-            var blobUri = GetBlobUri(folderName, fileName, requireHttps: false);
-            var redirectUri = GetRedirectUri(blobUri, requireHttps: false);
-            return Task.FromResult(new RedirectResult(redirectUri.OriginalString, false));
-        }
-
-        public string GetBlobUri(string folderName, string fileName, bool requireHttps)
-        {
-            ICloudBlobContainer container = _client.GetContainerReference(folderName);
-            var blob = container.GetBlobReference(fileName);
-            var uri = blob.Uri;
-            if (requireHttps)
-            {
-                var builder = new UriBuilder(uri);
-                builder.Scheme = "https";
-                return builder.Uri.AbsoluteUri;
-            }
-
-            return uri.AbsoluteUri;
+            _isPublicFolderPolicy = isPublicFolderPolicy;
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
@@ -53,6 +28,22 @@ namespace NuGetGallery
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             await blob.DeleteIfExistsAsync();
+        }
+
+        public async Task DownloadToFileAsync(string folderName, string fileName, string downloadedPackageFilePath)
+        {
+            ICloudBlobContainer container = await GetContainer(folderName);
+            var blob = container.GetBlobReference(fileName);
+            await blob.DownloadToFileAsync(downloadedPackageFilePath);
+        }
+
+        public async Task UploadFromFileAsync(string folderName, string fileName, string path, string contentType)
+        {
+            ICloudBlobContainer container = await GetContainer(folderName);
+            var blob = container.GetBlobReference(fileName);
+            await blob.UploadFromFileAsync(path);
+            blob.Properties.ContentType = "application/zip";
+            await blob.SetPropertiesAsync();
         }
 
         public async Task<bool> FileExistsAsync(string folderName, string fileName)
@@ -111,17 +102,17 @@ namespace NuGetGallery
             }
         }
 
-        public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile)
+        public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile, string contentType)
         {
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             await blob.DeleteIfExistsAsync();
             await blob.UploadFromStreamAsync(packageFile);
-            blob.Properties.ContentType = GetContentType(folderName);
+            blob.Properties.ContentType = contentType;
             await blob.SetPropertiesAsync();
         }
 
-        private async Task<ICloudBlobContainer> GetContainer(string folderName)
+        public async Task<ICloudBlobContainer> GetContainer(string folderName)
         {
             ICloudBlobContainer container;
             if (_containers.TryGetValue(folderName, out container))
@@ -129,25 +120,7 @@ namespace NuGetGallery
                 return container;
             }
 
-            Task<ICloudBlobContainer> creationTask;
-            switch (folderName)
-            {
-                case Constants.PackagesFolderName:
-                case Constants.DownloadsFolderName:
-                    creationTask = PrepareContainer(folderName, isPublic: true);
-                    break;
-
-                case Constants.ContentFolderName:
-                case Constants.UploadsFolderName:
-                    creationTask = PrepareContainer(folderName, isPublic: false);
-                    break;
-
-                default:
-                    throw new InvalidOperationException(
-                        String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
-            }
-
-            container = await creationTask;
+            container = await PrepareContainer(folderName, _isPublicFolderPolicy(folderName));
             _containers[folderName] = container;
             return container;
         }
@@ -201,23 +174,6 @@ namespace NuGetGallery
             return new StorageResult(HttpStatusCode.OK, stream);
         }
 
-        private static string GetContentType(string folderName)
-        {
-            switch (folderName)
-            {
-                case Constants.PackagesFolderName:
-                case Constants.UploadsFolderName:
-                    return Constants.PackageContentType;
-
-                case Constants.DownloadsFolderName:
-                    return Constants.OctetStreamContentType;
-
-                default:
-                    throw new InvalidOperationException(
-                        String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
-            }
-        }
-
         private async Task<ICloudBlobContainer> PrepareContainer(string folderName, bool isPublic)
         {
             var container = _client.GetContainerReference(folderName);
@@ -231,28 +187,13 @@ namespace NuGetGallery
             return container;
         }
 
-        internal async Task<ActionResult> CreateDownloadFileActionResult(
-            HttpContextBase httpContext,
+        public UriOrStream GetDownloadUriOrStream(
             string folderName,
             string fileName)
         {
-            var container = await GetContainer(folderName);
+            ICloudBlobContainer container = _client.GetContainerReference(folderName);
             var blob = container.GetBlobReference(fileName);
-
-            var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri);
-            return new RedirectResult(redirectUri.OriginalString, false);
-        }
-
-        internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri)
-        {
-            string host = String.IsNullOrEmpty(_configuration.AzureCdnHost) ? blobUri.Host : _configuration.AzureCdnHost;
-            var urlBuilder = new UriBuilder(requestUrl.Scheme, host)
-            {
-                Path = blobUri.LocalPath,
-                Query = blobUri.Query
-            };
-
-            return urlBuilder.Uri;
+            return new UriOrStream(blob.Uri);
         }
 
         private struct StorageResult

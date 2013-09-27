@@ -13,12 +13,18 @@ namespace NuGetGallery
             _storageConnectionString = storageConnectionString;
         }
 
+        public CloudBlobClientWrapper(CloudBlobClient client)
+        {
+            _blobClient = client;
+        }
+
         public ICloudBlobContainer GetContainerReference(string containerAddress)
         {
             if (_blobClient == null)
             {
                 _blobClient = CloudStorageAccount.Parse(_storageConnectionString).CreateCloudBlobClient();
             }
+
             return new CloudBlobContainerWrapper(_blobClient.GetContainerReference(containerAddress));
         }
     }

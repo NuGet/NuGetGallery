@@ -36,18 +36,16 @@ namespace NuGetGallery.Operations.Tasks
                         Console.WriteLine("You should ask the package owner to unlist the package " + pkg.Id + " " + pkg.Version);
                     }
 
-                    var bytesTask = response.Content.ReadAsByteArrayAsync();
-                    byte[] bytes = bytesTask.Result;
-                    var blobClient = CreateBlobClient();
-                    var packagesBlobContainer = Util.GetPackagesBlobContainer(blobClient);
-                    var packageFileBlob = Util.GetPackageFileBlob(
-                        packagesBlobContainer,
-                        pkg.Id,
-                        pkg.Version);
-                    var fileName = Util.GetPackageFileName(
-                        pkg.Id,
-                        pkg.Version);
-                    if (packageFileBlob.Exists())
+                    var contentStream = response.Content.ReadAsStreamAsync().Result;
+                    if (contentStream.CanSeek)
+                    {
+                        // may not be necessary?
+                        contentStream.Seek(0, SeekOrigin.Begin);
+                    }
+
+                    var packageFiles = GetPackageFileService();
+                    var fileName = FileConventions.GetPackageFileName(pkg.Id, pkg.Version);
+                    if (packageFiles.PackageFileExists(pkg.Id, pkg.Version))
                     {
                         Console.WriteLine("SKIPPED! Package file blob " + fileName + " already exists");
                     }
@@ -56,9 +54,7 @@ namespace NuGetGallery.Operations.Tasks
                         Console.WriteLine("Saving the package file " + pkg.ExternalPackageUrl + " to blob storage as " + fileName);
                         if (!WhatIf)
                         {
-                            packageFileBlob.UploadFromStream(
-                                new MemoryStream(bytes),
-                                AccessCondition.GenerateIfNoneMatchCondition("*"));
+                            packageFiles.SavePackageFileAsync(pkg.Id, pkg.Version, contentStream).Wait();
                         }
                     }
                 }

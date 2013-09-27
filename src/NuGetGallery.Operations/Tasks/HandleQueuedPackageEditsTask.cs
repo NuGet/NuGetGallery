@@ -70,7 +70,7 @@ namespace NuGetGallery.Operations.Tasks
             var blobClient = StorageAccount.CreateCloudBlobClient();
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
 
-            var latestPackageFileName = Util.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
+            var latestPackageFileName = FileConventions.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
             var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
 
             var originalPackageBackupBlob = packagesContainer.GetBlockBlobReference(originalPackageFileName);

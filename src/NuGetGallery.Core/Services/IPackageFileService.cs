@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 
 namespace NuGetGallery
 {
@@ -10,12 +9,12 @@ namespace NuGetGallery
         /// <summary>
         ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
-        Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package);
+        UriOrStream GetDownloadUriOrStream(Package package);
 
         /// <summary>
         ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
-        Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
+        UriOrStream GetDownloadUriOrStream(string unsafeId, string unsafeVersion);
 
         /// <summary>
         ///     Deletes the nupkg from the file storage.
@@ -30,6 +29,6 @@ namespace NuGetGallery
         /// <summary>
         ///     Downloads the package from the file storage and reads it into a Stream asynchronously.
         /// </summary>
-        Task<Stream> DownloadPackageFileAsync(Package packge);
+        Task<Stream> DownloadPackageFileAsync(Package package);
     }
 }

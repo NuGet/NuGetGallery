@@ -73,7 +73,8 @@ namespace NuGetGallery.Operations
             {
                 try
                 {
-                    var packageBlob = packageBlobs.GetBlockBlobReference(Util.GetPackageFileName(package.Id, package.Version));
+                    var packageBlob = packageBlobs.GetBlockBlobReference(
+                        FileConventions.GetPackageFileName(package.Id, package.Version));
                     var backupBlob = backupBlobs.GetBlockBlobReference(Util.GetPackageBackupFileName(package.Id, package.Version, package.Hash));
                     if (packageBlob.Exists())
                     {

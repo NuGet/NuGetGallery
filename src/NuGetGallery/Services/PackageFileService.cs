@@ -15,16 +15,16 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService;
         }
 
-        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
+        public UriOrStream GetDownloadUriOrStream(Package package)
         {
             var fileName = BuildFileName(package);
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
+            return _fileStorageService.GetDownloadUriOrStream(Constants.PackagesFolderName, fileName);
         }
 
-        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
+        public UriOrStream GetDownloadUriOrStream(string id, string version)
         {
             var fileName = BuildFileName(id, version);
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
+            return _fileStorageService.GetDownloadUriOrStream(Constants.PackagesFolderName, fileName);
         }
 
         public Task DeletePackageFileAsync(string id, string version)
@@ -45,44 +45,47 @@ namespace NuGetGallery
 
         public Task SavePackageFileAsync(Package package, Stream packageFile)
         {
-            if (packageFile == null)
-            {
-                throw new ArgumentNullException("packageFile");
-            }
-
-            var fileName = BuildFileName(package);
-            return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile);
+            return SavePackageFileAsync(package.PackageRegistration.Id, package.Version, packageFile);
         }
 
-        public async Task<Stream> DownloadPackageFileAsync(Package package)
+        public Task SavePackageFileAsync(string packageId, string version, Stream packageFile)
         {
-            var fileName = BuildFileName(package);
+            var fileName = BuildFileName(packageId, version);
+            return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile, Constants.PackageContentType);
+        }
+
+        public Task UploadFromFileAsync(string packageId, string version, string path)
+        {
+            var fileName = BuildFileName(packageId, version);
+            return _fileStorageService.UploadFromFileAsync(Constants.PackagesFolderName, fileName, path, Constants.PackageContentType);
+        }
+
+        public Task<Stream> DownloadPackageFileAsync(Package package)
+        {
+            return DownloadPackageFileAsync(package.PackageRegistration.Id, package.Version);
+        }
+
+        public async Task<Stream> DownloadPackageFileAsync(string packageId, string version)
+        {
+            var fileName = BuildFileName(packageId, version);
             return (await _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName));
+        }
+
+        public Task DownloadToFileAsync(string packageId, string version, string downloadedPackageFilePath)
+        {
+            var fileName = BuildFileName(packageId, version);
+            return _fileStorageService.DownloadToFileAsync(Constants.PackagesFolderName, fileName, downloadedPackageFilePath);
+        }
+
+        public bool PackageFileExists(string packageId, string version)
+        {
+            var fileName = BuildFileName(packageId, version);
+            return _fileStorageService.FileExistsAsync(Constants.PackagesFolderName, fileName).Result;
         }
 
         private static string BuildFileName(string id, string version)
         {
-            if (id == null)
-            {
-                throw new ArgumentNullException("id");
-            }
-            
-            if (version == null)
-            {
-                throw new ArgumentNullException("version");
-            }
-
-            // Note: packages should be saved and retrieved in blob storage using the lower case version of their filename because
-            // a) package IDs can and did change case over time
-            // b) blob storage is case sensitive
-            // c) it sucks to hit the database just to look up the right case
-            // and remember - version can contain letters too.
-            return String.Format(
-                CultureInfo.InvariantCulture,
-                Constants.PackageFileSavePathTemplate,
-                id.ToLowerInvariant(),
-                version.ToLowerInvariant(),
-                Constants.NuGetPackageFileExtension);
+            return FileConventions.GetPackageFileName(id, version);
         }
 
         private static string BuildFileName(Package package)

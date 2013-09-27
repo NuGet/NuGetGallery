@@ -44,10 +44,20 @@ namespace NuGetGallery
 
         public Task DeleteIfExistsAsync()
         {
-            return Task.Factory.FromAsync<bool>(
-                (cb, state) => _blob.BeginDeleteIfExists(cb, state), 
-                ar => _blob.EndDeleteIfExists(ar),
-                state: null);
+            return _blob.DeleteIfExistsAsync();
+        }
+
+        public void DownloadToFile(string fileName)
+        {
+            using (Stream strm = File.OpenWrite(fileName))
+            {
+                _blob.DownloadToStream(strm);
+            }
+        }
+
+        public Task DownloadToFileAsync(string path)
+        {
+            return _blob.DownloadToFileAsync(path, FileMode.Create);
         }
 
         public Task DownloadToStreamAsync(Stream target)
@@ -57,56 +67,43 @@ namespace NuGetGallery
 
         public Task DownloadToStreamAsync(Stream target, AccessCondition accessCondition)
         {
-            // Note: Overloads of FromAsync that take an AsyncCallback and State to pass through are more efficient:
-            //  http://blogs.msdn.com/b/pfxteam/archive/2009/06/09/9716439.aspx
             var options = new BlobRequestOptions()
             {
                 // The default retry policy treats a 304 as an error that requires a retry. We don't want that!
                 RetryPolicy = new DontRetryOnNotModifiedPolicy(new LinearRetry())
             };
 
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginDownloadToStream(
-                    target,
-                    accessCondition,
-                    options: options,
-                    operationContext: null,
-                    callback: cb,
-                    state: state),
-                ar => _blob.EndDownloadToStream(ar),
-                state: null);
+            return _blob.DownloadToStreamAsync(target, accessCondition, options, operationContext: null);
         }
 
         public Task<bool> ExistsAsync()
         {
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginExists(cb, state), 
-                ar => _blob.EndExists(ar),
-                state: null);
+            return _blob.ExistsAsync();
         }
 
         public Task SetPropertiesAsync()
         {
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginSetProperties(cb, state), 
-                ar => _blob.EndSetProperties(ar),
-                state: null);
+            return _blob.SetPropertiesAsync();
         }
 
-        public Task UploadFromStreamAsync(Stream packageFile)
+        public Task UploadFromStreamAsync(Stream content)
         {
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginUploadFromStream(packageFile, cb, state), 
-                ar => _blob.EndUploadFromStream(ar),
-                state: null);
+            return _blob.UploadFromStreamAsync(content);
+        }
+
+        public Task UploadFromFileAsync(string path)
+        {
+            return _blob.UploadFromFileAsync(path, FileMode.Open);
+        }
+
+        public void UploadFromFile(string path)
+        {
+            _blob.UploadFromFile(path, FileMode.Open);
         }
 
         public Task FetchAttributesAsync()
         {
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginFetchAttributes(cb, state),
-                ar => _blob.EndFetchAttributes(ar),
-                state: null);
+            return _blob.FetchAttributesAsync();
         }
 
         // The default retry policy treats a 304 as an error that requires a retry. We don't want that!

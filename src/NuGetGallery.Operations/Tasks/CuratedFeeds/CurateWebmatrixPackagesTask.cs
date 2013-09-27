@@ -98,7 +98,7 @@ namespace NuGetGallery.Operations.CuratedFeeds
 
             var packagesBlobContainer = Util.GetPackagesBlobContainer(cloudClient);
 
-            var packageFileName = Util.GetPackageFileName(package.Id, package.Version);
+            var packageFileName = FileConventions.GetPackageFileName(package.Id, package.Version);
 
             var downloadPath = Path.Combine(_tempFolder, packageFileName);
 

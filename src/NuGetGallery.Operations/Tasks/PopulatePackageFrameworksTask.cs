@@ -223,17 +223,10 @@ namespace NuGetGallery.Operations
 
         string DownloadPackage(Package package)
         {
-            var cloudClient = CreateBlobClient();
-
-            var packagesBlobContainer = Util.GetPackagesBlobContainer(cloudClient);
-
-            var packageFileName = Util.GetPackageFileName(package.Id, package.Version);
-
-            var downloadPath = Path.Combine(_tempFolder, packageFileName);
-
-            var blob = packagesBlobContainer.GetBlockBlobReference(packageFileName);
-            blob.DownloadToFile(downloadPath);
-
+            string fileName = FileConventions.GetPackageFileName(package.Id, package.Version);
+            string downloadPath = Path.Combine(_tempFolder, fileName);
+            var packageFiles = GetPackageFileService();
+            packageFiles.DownloadToFileAsync(package.Id, package.Version, downloadPath);
             return downloadPath;
         }
 

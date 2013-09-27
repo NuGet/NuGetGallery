@@ -17,10 +17,12 @@ namespace NuGetGallery
         Task DeleteIfExistsAsync();
         Task DownloadToStreamAsync(Stream target);
         Task DownloadToStreamAsync(Stream target, AccessCondition accessCondition);
+        Task DownloadToFileAsync(string path);
 
         Task<bool> ExistsAsync();
         Task SetPropertiesAsync();
         Task UploadFromStreamAsync(Stream packageFile);
+        Task UploadFromFileAsync(string path);
 
         Task FetchAttributesAsync();
     }

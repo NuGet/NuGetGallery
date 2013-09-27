@@ -60,6 +60,7 @@ namespace NuGetGallery.Operations
                         package.Id,
                         package.Version,
                         package.Hash);
+
                     UploadPackage(
                         package.Id,
                         package.Version,
@@ -106,24 +107,14 @@ namespace NuGetGallery.Operations
                         JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey 
                     WHERE p.ExternalPackageUrl IS NULL
                     ORDER BY Id, Version, Hash");
-                return packages.ToDictionary(p => Util.GetPackageFileName(p.Id, p.Version));
+                return packages.ToDictionary(p => FileConventions.GetPackageFileName(p.Id, p.Version));
             }
         }
 
-        void UploadPackage(
-            string id,
-            string version,
-            string downloadPath)
+        void UploadPackage(string id, string version, string downloadPath)
         {
-            var blobClient = CreateBlobClient();
-            var packagesBlobContainer = Util.GetPackagesBlobContainer(blobClient);
-            var packageFileName = Util.GetPackageFileName(
-                id,
-                version);
-            var packageBlob = packagesBlobContainer.GetBlockBlobReference(packageFileName);
-            packageBlob.UploadFile(downloadPath);
-            packageBlob.Properties.ContentType = "application/zip";
-            packageBlob.SetProperties();
+            var packageFiles = GetPackageFileService();
+            packageFiles.UploadFromFileAsync(id, version, downloadPath).Wait();
         }
     }
 }

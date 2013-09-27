@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Packaging;
 
@@ -26,6 +27,7 @@ namespace NuGetGallery
         public IStatisticsService StatisticsService { get; set; }
         public IContentService ContentService { get; set; }
         public IIndexingService IndexingService { get; set; }
+        public IAppConfiguration Configuration { get; set; }
 
         protected ApiController() { }
 
@@ -36,7 +38,8 @@ namespace NuGetGallery
             IUserService userService,
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
-            IIndexingService indexingService)
+            IIndexingService indexingService,
+            IAppConfiguration configuration)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -46,6 +49,7 @@ namespace NuGetGallery
             ContentService = contentService;
             StatisticsService = null;
             IndexingService = indexingService;
+            Configuration = configuration;
         }
 
         public ApiController(
@@ -56,15 +60,16 @@ namespace NuGetGallery
             INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
-            IStatisticsService statisticsService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService)
+            IStatisticsService statisticsService,
+            IAppConfiguration configuration)
+            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService, indexingService, configuration)
         {
             StatisticsService = statisticsService;
         }
 
         [ActionName("GetPackageApi")]
         [HttpGet]
-        public virtual async Task<ActionResult> GetPackage(string id, string version)
+        public virtual ActionResult GetPackage(string id, string version)
         {
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
@@ -145,10 +150,47 @@ namespace NuGetGallery
                 // Database was unavailable and we don't have a version, return a 503
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
             }
-            return await PackageFileService.CreateDownloadPackageActionResultAsync(
-                HttpContext.Request.Url, 
-                id, 
-                String.IsNullOrEmpty(version) ? package.NormalizedVersion : version);
+
+            string bestVersion = String.IsNullOrEmpty(version) ? package.NormalizedVersion : version;
+            var uriOrStream = PackageFileService.GetDownloadUriOrStream(id, bestVersion);
+            return GetDownloadResult(Request.Url, uriOrStream, Constants.PackageContentType);
+        }
+
+        internal ActionResult GetDownloadResult(Uri requestUrl, UriOrStream uriOrStream, string contentType)
+        {
+            if (uriOrStream.Uri != null)
+            {
+                if (uriOrStream.Uri.IsFile)
+                {
+                    var ret = new FilePathResult(uriOrStream.Uri.LocalPath, contentType);
+                    ret.FileDownloadName = new FileInfo(uriOrStream.Uri.LocalPath).Name;
+                    return ret;
+                }
+                else
+                {
+                    return new RedirectResult(GetRedirectUri(requestUrl, uriOrStream.Uri));
+                }
+            }
+            else if (uriOrStream.Stream != null)
+            {
+                return new FileStreamResult(uriOrStream.Stream, Constants.PackageContentType);
+            }
+            else
+            {
+                return HttpNotFound();
+            }
+        }
+
+        internal string GetRedirectUri(Uri requestUrl, Uri blobUri)
+        {
+            string host = String.IsNullOrEmpty(Configuration.AzureCdnHost) ? blobUri.Host : Configuration.AzureCdnHost;
+            var urlBuilder = new UriBuilder(requestUrl.Scheme, host)
+            {
+                Path = blobUri.LocalPath,
+                Query = blobUri.Query
+            };
+
+            return urlBuilder.Uri.AbsoluteUri;
         }
 
         [HttpGet]

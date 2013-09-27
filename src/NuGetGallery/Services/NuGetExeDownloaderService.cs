@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGetGallery.Configuration;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -13,21 +14,62 @@ namespace NuGetGallery
         private readonly IFileStorageService _fileStorageService;
         private readonly IPackageFileService _packageFileService;
         private readonly IPackageService _packageService;
+        private readonly IAppConfiguration _configuration;
 
         public NuGetExeDownloaderService(
             IPackageService packageService,
             IPackageFileService packageFileService,
-            IFileStorageService fileStorageService)
+            IFileStorageService fileStorageService,
+            IAppConfiguration configuration)
         {
             _packageService = packageService;
             _packageFileService = packageFileService;
             _fileStorageService = fileStorageService;
+            _configuration = configuration;
         }
 
         public async Task<ActionResult> CreateNuGetExeDownloadActionResultAsync(Uri requestUrl)
         {
             await EnsureNuGetExe();
-            return await _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.DownloadsFolderName, "nuget.exe");
+            var uriOrStream = _fileStorageService.GetDownloadUriOrStream(Constants.DownloadsFolderName, "nuget.exe");
+            return GetDownloadResult(requestUrl, uriOrStream, Constants.OctetStreamContentType);
+        }
+
+        internal ActionResult GetDownloadResult(Uri requestUrl, UriOrStream uriOrStream, string contentType)
+        {
+            if (uriOrStream.Uri != null)
+            {
+                if (uriOrStream.Uri.IsFile)
+                {
+                    var ret = new FilePathResult(uriOrStream.Uri.LocalPath, contentType);
+                    ret.FileDownloadName = new FileInfo(uriOrStream.Uri.LocalPath).Name;
+                    return ret;
+                }
+                else
+                {
+                    return new RedirectResult(GetRedirectUri(requestUrl, uriOrStream.Uri));
+                }
+            }
+            else if (uriOrStream.Stream != null)
+            {
+                return new FileStreamResult(uriOrStream.Stream, Constants.PackageContentType);
+            }
+            else
+            {
+                return new HttpNotFoundResult();
+            }
+        }
+
+        internal string GetRedirectUri(Uri requestUrl, Uri blobUri)
+        {
+            string host = String.IsNullOrEmpty(_configuration.AzureCdnHost) ? blobUri.Host : _configuration.AzureCdnHost;
+            var urlBuilder = new UriBuilder(requestUrl.Scheme, host)
+            {
+                Path = blobUri.LocalPath,
+                Query = blobUri.Query
+            };
+
+            return urlBuilder.Uri.AbsoluteUri;
         }
 
         public Task UpdateExecutableAsync(INupkg nupkg)
@@ -60,7 +102,7 @@ namespace NuGetGallery
         {
             using (Stream nugetExeStream = package.GetSizeVerifiedFileStream(@"tools\NuGet.exe", MaxNuGetExeFileSize))
             {
-                return _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", nugetExeStream);
+                return _fileStorageService.SaveFileAsync(Constants.DownloadsFolderName, "nuget.exe", nugetExeStream, Constants.OctetStreamContentType);
             }
         }
     }

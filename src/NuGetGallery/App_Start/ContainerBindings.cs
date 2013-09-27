@@ -13,6 +13,7 @@ using Ninject.Web.Common;
 using Ninject.Modules;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
+using System.Globalization;
 
 namespace NuGetGallery
 {
@@ -220,6 +221,24 @@ namespace NuGetGallery
                 .InSingletonScope();
         }
 
+        private bool GalleryPublicFolderPolicy(string folderName)
+        {
+            switch (folderName)
+            {
+                case Constants.PackagesFolderName:
+                case Constants.DownloadsFolderName:
+                    return true;
+
+                case Constants.ContentFolderName:
+                case Constants.UploadsFolderName:
+                    return false;
+
+                default:
+                    throw new InvalidOperationException(
+                        String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+            }
+        }
+
         private void ConfigureForAzureStorage(ConfigurationService configuration)
         {
             Bind<ICloudBlobClient>()
@@ -227,7 +246,8 @@ namespace NuGetGallery
                     _ => new CloudBlobClientWrapper(configuration.Current.AzureStorageConnectionString))
                 .InSingletonScope();
             Bind<IFileStorageService>()
-                .To<CloudBlobFileStorageService>()
+                .ToMethod(context =>
+                    new CloudBlobFileStorageService(context.Kernel.Get<ICloudBlobClient>(), GalleryPublicFolderPolicy))
                 .InSingletonScope();
 
             // when running on Windows Azure, pull the statistics from the warehouse via storage
