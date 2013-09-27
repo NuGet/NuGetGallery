@@ -37,6 +37,12 @@
     <Reference Include="EntityFramework">
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net">
+      <HintPath>..\..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Core, Version=2.7.40808.167, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Nuget.Core.2.7.0\lib\net40-Client\NuGet.Core.dll</HintPath>
@@ -87,6 +93,11 @@
     <Compile Include="Packaging\Nupkg.cs" />
     <Compile Include="Packaging\NupkgRewriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Search\CamelCaseFilter.cs" />
+    <Compile Include="Search\DescriptionAnalyzer.cs" />
+    <Compile Include="Search\DotTokenizer.cs" />
+    <Compile Include="Search\IdentifierAnalyzer.cs" />
+    <Compile Include="Search\TokenizingHelper.cs" />
     <Compile Include="SemanticVersionExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
