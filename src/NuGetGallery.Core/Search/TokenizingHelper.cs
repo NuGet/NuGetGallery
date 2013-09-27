@@ -20,12 +20,14 @@ namespace NuGetGallery
 
             string word = term[0].ToString();
             bool lastIsUpper = Char.IsUpper(term[0]);
+            bool lastIsLetter = Char.IsLetter(term[0]);
 
             for (int i = 1; i < term.Length; i++)
             {
                 bool currentIsUpper = Char.IsUpper(term[i]);
+                bool currentIsLetter = Char.IsLetter(term[i]);
 
-                if (lastIsUpper == false && currentIsUpper == true)
+                if ((lastIsLetter && currentIsLetter) && (!lastIsUpper && currentIsUpper))
                 {
                     yield return word;
                     word = string.Empty;
