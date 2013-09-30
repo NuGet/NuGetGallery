@@ -12,6 +12,7 @@ using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
@@ -41,6 +42,7 @@ namespace NuGetGallery
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
             StatisticsService = (MockStatisticsService = new Mock<IStatisticsService>()).Object;
             IndexingService = (MockIndexingService = new Mock<IIndexingService>()).Object;
+            Configuration = new Mock<IAppConfiguration>().Object;
 
             MockPackageFileService = new Mock<IPackageFileService>(MockBehavior.Strict);
             MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>())).Returns(Task.FromResult(0));
@@ -354,7 +356,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "1.0.1", false)).Returns(package);
                 controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
                 controller.MockPackageFileService.Setup(s => s.GetDownloadUriOrStream(PackageId, package.NormalizedVersion))
-                              .Returns(new UriOrStream(new Uri("http://someUrl/forDownload")))
+                              .Returns(new UriOrStream(new Uri("http://someurl/forDownload")))
                               .Verifiable();
                 controller.MockUserService.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
@@ -376,7 +378,7 @@ namespace NuGetGallery
                 var result = controller.GetPackage(PackageId, "1.0.01");
 
                 // Assert
-                ResultAssert.IsRedirectTo(result, "http://someUrl/forDownload");
+                ResultAssert.IsRedirectTo(result, "http://someurl/forDownload");
                 controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
                 controller.MockUserService.Verify();
@@ -391,8 +393,8 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(MockBehavior.Strict);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.0", false)).Throws(new DataException("Can't find the database")).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.GetDownloadUriOrStream(package))
-                              .Returns(new UriOrStream(new Uri("http://someUrl/forDownload")))
+                controller.MockPackageFileService.Setup(s => s.GetDownloadUriOrStream("Baz", "1.0.0"))
+                              .Returns(new UriOrStream(new Uri("http://someurl/forDownload")))
                               .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
@@ -413,7 +415,7 @@ namespace NuGetGallery
                 var result = controller.GetPackage("Baz", "1.0.0");
 
                 // Assert
-                ResultAssert.IsRedirectTo(result, "http://someUrl/forDownload");
+                ResultAssert.IsRedirectTo(result, "http://someurl/forDownload");
                 controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
             }
@@ -429,8 +431,8 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "", false)).Returns(package);
                 controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
 
-                controller.MockPackageFileService.Setup(s => s.GetDownloadUriOrStream(package))
-                              .Returns(new UriOrStream(new Uri("http://someUrl/forDownload")))
+                controller.MockPackageFileService.Setup(s => s.GetDownloadUriOrStream(PackageId, "1.2.408"))
+                              .Returns(new UriOrStream(new Uri("http://someurl/forDownload")))
                               .Verifiable();
                 controller.MockUserService.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
@@ -452,7 +454,7 @@ namespace NuGetGallery
                 var result = controller.GetPackage(PackageId, "");
 
                 // Assert
-                ResultAssert.IsRedirectTo(result, "http://someUrl/forDownload");
+                ResultAssert.IsRedirectTo(result, "http://someurl/forDownload");
                 controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
                 controller.MockUserService.Verify();

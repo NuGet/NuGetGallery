@@ -135,7 +135,7 @@ namespace NuGetGallery
 
                 service.SaveUploadFileAsync(1, new MemoryStream());
 
-                fakeFileStorageService.Verify(x => x.SaveFileAsync(Constants.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), "application/octet-stream"));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(Constants.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), "application/zip"));
             }
 
             [Fact]
@@ -147,7 +147,7 @@ namespace NuGetGallery
 
                 service.SaveUploadFileAsync(1, new MemoryStream());
 
-                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), expectedFileName, It.IsAny<Stream>(), "application/octet-stream"));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), expectedFileName, It.IsAny<Stream>(), "application/zip"));
             }
 
             [Fact]
@@ -159,7 +159,7 @@ namespace NuGetGallery
 
                 service.SaveUploadFileAsync(1, fakeUploadFileStream);
 
-                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeUploadFileStream, "application/octet-stream"));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeUploadFileStream, "application/zip"));
             }
         }
     }

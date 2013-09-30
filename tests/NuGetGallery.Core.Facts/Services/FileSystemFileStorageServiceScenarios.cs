@@ -74,14 +74,17 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void ReturnsLocalUrlsForFiles_ThatDontExistYet()
+            public void ReturnsLocalUrlsOrNullForFiles_ThatDontExistYet()
             {
                 var service = CreateService();
                 var uriOrStream = service.GetDownloadUriOrStream("downloads", "doesntexist.exe");
 
-                Assert.NotNull(uriOrStream.Uri);
-                Assert.True(uriOrStream.Uri.IsFile);
-                Assert.NotNull(uriOrStream.Uri.LocalPath);
+                Assert.Null(uriOrStream.Stream);
+                if (uriOrStream.Uri != null)
+                {
+                    Assert.True(uriOrStream.Uri.IsFile);
+                    Assert.NotNull(uriOrStream.Uri.LocalPath);
+                }
             }
         }
 
