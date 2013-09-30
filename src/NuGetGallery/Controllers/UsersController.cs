@@ -49,6 +49,7 @@ namespace NuGetGallery
                         ApiKey = apiCredential == null ? 
                             user.ApiKey.ToString() :
                             apiCredential.Value,
+                        IsConfirmed = user.Confirmed,
                         CuratedFeeds = curatedFeeds.Select(cf => cf.Name)
                     });
         }
