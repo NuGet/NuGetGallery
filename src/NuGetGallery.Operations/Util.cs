@@ -203,23 +203,6 @@ namespace NuGetGallery.Operations
                 HttpServerUtility.UrlTokenEncode(hashBytes));
         }
 
-        public static string GetBackupOfOriginalPackageFileName(string id, string version)
-        {
-            return string.Format(
-                "packagehistories/{0}/{0}.{1}.nupkg",
-                id.ToLowerInvariant(),
-                version.ToLowerInvariant());
-        }
-
-        internal static CloudBlockBlob GetPackageFileBlob(
-            CloudBlobContainer packagesBlobContainer,
-            string id,
-            string version)
-        {
-            string packageFileName = FileConventions.GetPackageFileName(id, version);
-            return packagesBlobContainer.GetBlockBlobReference(packageFileName);
-        }
-
         internal static Package GetPackage(
             IDbExecutor dbExecutor,
             string id,

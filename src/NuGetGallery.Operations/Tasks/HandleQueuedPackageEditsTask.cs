@@ -71,7 +71,7 @@ namespace NuGetGallery.Operations.Tasks
             var packagesContainer = Util.GetPackagesBlobContainer(blobClient);
 
             var latestPackageFileName = FileConventions.GetPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
-            var originalPackageFileName = Util.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
+            var originalPackageFileName = FileConventions.GetBackupOfOriginalPackageFileName(edit.Package.PackageRegistration.Id, edit.Package.Version);
 
             var originalPackageBackupBlob = packagesContainer.GetBlockBlobReference(originalPackageFileName);
             var latestPackageBlob = packagesContainer.GetBlockBlobReference(latestPackageFileName);

@@ -46,10 +46,10 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                 int counter = 0;
                 foreach (var package in deduped)
                 {
-                    var blob = Util.GetPackageFileBlob(container, package.Id, package.Version);
+                    var blob = GetPackageFileBlob(container, package.Id, package.Version);
                     if (blob.Exists())
                     {
-                        var normalizedBlob = Util.GetPackageFileBlob(container, package.Id, package.NormalizedVersion);
+                        var normalizedBlob = GetPackageFileBlob(container, package.Id, package.NormalizedVersion);
                         if (normalizedBlob.Exists())
                         {
                             Log.Warn("Normalized Blob exists: {0}", normalizedBlob.Name);
@@ -80,5 +80,15 @@ namespace NuGetGallery.Operations.Tasks.DataManagement
                 }
             });
         }
+
+        private static CloudBlockBlob GetPackageFileBlob(
+            CloudBlobContainer packagesBlobContainer,
+            string id,
+            string version)
+        {
+            string packageFileName = FileConventions.GetPackageFileName(id, version);
+            return packagesBlobContainer.GetBlockBlobReference(packageFileName);
+        }
+
     }
 }
