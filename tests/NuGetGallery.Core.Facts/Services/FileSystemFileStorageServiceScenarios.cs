@@ -23,18 +23,21 @@ namespace NuGetGallery
             return new FileSystemFileStorageService(directory);
         }
 
-        [Fact]
-        public void CanSaveAndLoadFilesInANewContainer()
+        public class TheGetFileAsyncMethod_AndTheSaveFileAsyncMethod
         {
-            var service = CreateService();
-            string newContainerName = "d" + new Random().Next();
+            [Fact]
+            public void CanSaveAndLoadFilesInANewContainer()
+            {
+                var service = CreateService();
+                string newContainerName = "d" + new Random().Next();
 
-            service.SaveFileAsync(newContainerName, "foo.nupkg", new MemoryStream(new byte[] { 0x42 }), "application/zip").Wait();
-            Stream readBack = service.GetFileAsync(newContainerName, "foo.nupkg").Result;
+                service.SaveFileAsync(newContainerName, "foo.nupkg", new MemoryStream(new byte[] { 0x42 }), "application/zip").Wait();
+                Stream readBack = service.GetFileAsync(newContainerName, "foo.nupkg").Result;
 
-            var x = new MemoryStream(1);
-            readBack.CopyTo(x);
-            Assert.Equal(new byte[] { 0x42 }, x.GetBuffer());
+                var x = new MemoryStream(1);
+                readBack.CopyTo(x);
+                Assert.Equal(new byte[] { 0x42 }, x.GetBuffer());
+            }
         }
 
         public class TheGetDownloadUriOrStreamMethod
@@ -88,7 +91,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheDeleteFileMethod
+        public class TheDeleteFileMethod_And_TheFileExistsMethod
         {
             [Fact]
             public void WillDeleteTheFileIfItExists()
