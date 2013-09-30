@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -10,6 +11,18 @@ namespace NuGetGallery.Services
 {
     public class CloudBlobFileStorageServiceScenarios
     {
+        public CloudBlobFileStorageServiceScenarios()
+        {
+            Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = @"C:\Program Files\Microsoft SDKs\Windows Azure\Emulator\csrun.exe",
+                    Arguments = "/devstore",
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                });
+        }
+
         string constr = "UseDevelopmentStorage=true";
         //string constr = "UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://myhost:8888"; - can be used for fiddler debugging - set myhost in your hosts file
 
