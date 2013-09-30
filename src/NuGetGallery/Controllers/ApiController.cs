@@ -161,23 +161,9 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("VerifyPackageKeyApi")]
-        [ApiKeyAuthorizeAttribute]
+        [ApiKeyAuthorize]
         public virtual ActionResult VerifyPackageKey(string apiKey, string id, string version)
         {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
-            }
-
-            User user = GetUserByApiKey(apiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
-            }
-
             if (!String.IsNullOrEmpty(id))
             {
                 // If the partialId is present, then verify that the user has permission to push for the specific Id \ version combination.
@@ -188,8 +174,8 @@ namespace NuGetGallery
                         HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                 }
 
-                var user = UserService.FindByApiKey(new Guid(apiKey));
-                if (!package.IsOwner(user))
+                var user = GetUserByApiKey(apiKey);
+                if (user == null || !package.IsOwner(user))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
                 }
@@ -201,39 +187,25 @@ namespace NuGetGallery
         [HttpPut]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorizeAttribute]
+        [ApiKeyAuthorize]
         public virtual Task<ActionResult> CreatePackagePut(string apiKey)
         {
-            var user = UserService.FindByApiKey(new Guid(apiKey));
+            var user = GetUserByApiKey(apiKey);
             return CreatePackageInternal(user);
         }
 
         [HttpPost]
         [ActionName("PushPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorizeAttribute]
+        [ApiKeyAuthorize]
         public virtual Task<ActionResult> CreatePackagePost(string apiKey)
         {
-            var user = UserService.FindByApiKey(new Guid(apiKey));
+            var user = GetUserByApiKey(apiKey);
             return CreatePackageInternal(user);
         }
 
         private async Task<ActionResult> CreatePackageInternal(User user)
         {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
-            }
-
-            User user = GetUserByApiKey(apiKey);
-            if (user == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "push"));
-            }
-
             using (var packageToPush = ReadPackageFromRequest())
             {
                 // Ensure that the user can push packages for this partialId.
@@ -284,14 +256,14 @@ namespace NuGetGallery
         [HttpDelete]
         [ActionName("DeletePackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorizeAttribute]
+        [ApiKeyAuthorize]
         public virtual ActionResult DeletePackage(string apiKey, string id, string version)
         {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             User user = GetUserByApiKey(apiKey);
@@ -301,18 +273,10 @@ namespace NuGetGallery
                     HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
             }
 
-            var package = PackageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-            }
-
-            var user = UserService.FindByApiKey(new Guid(apiKey));
             if (!package.IsOwner(user))
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                    HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "delete"));
             }
 
             PackageService.MarkPackageUnlisted(package);
@@ -323,14 +287,14 @@ namespace NuGetGallery
         [HttpPost]
         [ActionName("PublishPackageApi")]
         [RequireRemoteHttps(OnlyWhenAuthenticated = false)]
-        [ApiKeyAuthorizeAttribute]
+        [ApiKeyAuthorize]
         public virtual ActionResult PublishPackage(string apiKey, string id, string version)
         {
-            Guid parsedApiKey;
-            if (!Guid.TryParse(apiKey, out parsedApiKey))
+            var package = PackageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.BadRequest, String.Format(CultureInfo.CurrentCulture, Strings.InvalidApiKey, apiKey));
+                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             User user = GetUserByApiKey(apiKey);
@@ -340,17 +304,9 @@ namespace NuGetGallery
                     HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
             }
 
-            var package = PackageService.FindPackageByIdAndVersion(id, version);
-            if (package == null)
-            {
-                return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
-            }
-
-            var user = UserService.FindByApiKey(new Guid(apiKey));
             if (!package.IsOwner(user))
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
             }
 
             PackageService.MarkPackageListed(package);

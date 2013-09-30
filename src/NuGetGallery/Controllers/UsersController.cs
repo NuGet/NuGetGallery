@@ -15,6 +15,7 @@ namespace NuGetGallery
         public IPackageService PackageService { get; protected set; }
         public IAppConfiguration Config { get; protected set; }
         public IUserService UserService { get; protected set; }
+        public IPrincipal CurrentUser { get; protected set; }
 
         protected UsersController() { }
 
@@ -23,13 +24,15 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IMessageService messageService,
-            IAppConfiguration config) : this()
+            IAppConfiguration config,
+            IPrincipal currentUser) : this()
         {
             CuratedFeedService = feedsQuery;
             UserService = userService;
             PackageService = packageService;
             MessageService = messageService;
             Config = config;
+            CurrentUser = currentUser;
         }
 
         [Authorize]
@@ -147,7 +150,7 @@ namespace NuGetGallery
         public virtual ActionResult GenerateApiKey()
         {
             // Get the user
-            var user = UserService.FindByUsername(CurrentUser.Identity.Name);
+            var user = UserService.FindByUsername(User.Identity.Name);
 
             // Generate an API Key
             var apiKey = Guid.NewGuid();

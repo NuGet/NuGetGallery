@@ -4,7 +4,6 @@ using System.Linq;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
-using System.Collections.Generic;
 using Xunit.Extensions;
 
 namespace NuGetGallery
@@ -673,7 +672,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var users = new List<User>() {
-                    new User("foo", "baz")
+                    new User("foo")
                 };
                 var service = new TestableUserService();
                 service.MockUserRepository.HasData(users);
@@ -693,7 +692,7 @@ namespace NuGetGallery
                 var existingCred = new Credential("foo", "bar");
                 var newCred = new Credential("baz", "boz");
                 var users = new List<User>() {
-                    new User("foo", "baz") { 
+                    new User("foo") { 
                         Credentials = new List<Credential>() {
                             existingCred
                         }
@@ -719,7 +718,7 @@ namespace NuGetGallery
                 var existingCred = new Credential("baz", "bar");
                 var newCred = new Credential("baz", "boz");
                 var users = new List<User>() {
-                    new User("foo", "baz") { 
+                    new User("foo") { 
                         Credentials = new List<Credential>() {
                             existingCred,
                             frozenCred
