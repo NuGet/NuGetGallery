@@ -4,20 +4,18 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
-using System.Web.Mvc;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class FileSystemFileStorageService : IFileStorageService
     {
-        private readonly IAppConfiguration _configuration;
-        private readonly IFileSystemService _fileSystemService;
+        private readonly string _logicalDirectory;
+        private readonly string _storageDirectory;
 
-        public FileSystemFileStorageService(IAppConfiguration configuration, IFileSystemService fileSystemService)
+        public FileSystemFileStorageService(string fileStorageDirectory)
         {
-            _configuration = configuration;
-            _fileSystemService = fileSystemService;
+            _logicalDirectory = fileStorageDirectory;
+            _storageDirectory = ResolvePath(_logicalDirectory);
         }
 
         public UriOrStream GetDownloadUriOrStream(string folderName, string fileName)
@@ -32,8 +30,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            if (!_fileSystemService.FileExists(path))
+            var path = Path.GetFullPath(Path.Combine(_storageDirectory, folderName, fileName));
+            if (!File.Exists(path))
             {
                 return UriOrStream.NotFound;
             }
@@ -52,10 +50,10 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            if (_fileSystemService.FileExists(path))
+            var path = Path.Combine(_storageDirectory, folderName, fileName);
+            if (File.Exists(path))
             {
-                _fileSystemService.DeleteFile(path);
+                File.Delete(path);
             }
 
             return Task.FromResult(0);
@@ -72,8 +70,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            bool fileExists = _fileSystemService.FileExists(path);
+            var path = Path.Combine(_storageDirectory, folderName, fileName);
+            bool fileExists = File.Exists(path);
 
             return Task.FromResult(fileExists);
         }
@@ -89,9 +87,9 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-
-            Stream fileStream = _fileSystemService.FileExists(path) ? _fileSystemService.OpenRead(path) : null;
+            var path = Path.Combine(_storageDirectory, folderName, fileName);
+            
+            Stream fileStream = File.Exists(path) ? File.OpenRead(path) : null;
             return Task.FromResult(fileStream);
         }
 
@@ -106,8 +104,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException("fileName");
             }
 
-            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-
+            var path = Path.Combine(_storageDirectory, folderName, fileName);
+            
             // Get the last modified date of the file and use that as the ContentID
             var file = new FileInfo(path);
             return Task.FromResult<IFileReference>(file.Exists ? new LocalFileReference(file) : null);
@@ -130,34 +128,24 @@ namespace NuGetGallery
                 throw new ArgumentNullException("packageFile");
             }
 
-            var storageDirectory = ResolvePath(_configuration.FileStorageDirectory);
-
-            if (!_fileSystemService.DirectoryExists(storageDirectory))
+            if (!Directory.Exists(_storageDirectory))
             {
-                _fileSystemService.CreateDirectory(storageDirectory);
+                Directory.CreateDirectory(_storageDirectory);
             }
 
-            var folderPath = Path.Combine(storageDirectory, folderName);
-            if (!_fileSystemService.DirectoryExists(folderPath))
+            var folderPath = Path.Combine(_storageDirectory, folderName);
+            if (!Directory.Exists(folderPath))
             {
-                _fileSystemService.CreateDirectory(folderPath);
+                Directory.CreateDirectory(folderPath);
             }
 
-            var filePath = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
-            using (var file = _fileSystemService.OpenWrite(filePath))
+            var filePath = Path.Combine(_storageDirectory, folderName, fileName);
+            using (var file = File.OpenWrite(filePath))
             {
                 packageFile.CopyTo(file);
             }
 
             return Task.FromResult(0);
-        }
-
-        private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)
-        {
-            // Resolve the file storage directory
-            fileStorageDirectory = ResolvePath(fileStorageDirectory);
-
-            return Path.Combine(fileStorageDirectory, folderName, fileName);
         }
 
         private static string ResolvePath(string fileStorageDirectory)
@@ -167,22 +155,6 @@ namespace NuGetGallery
                 fileStorageDirectory = HostingEnvironment.MapPath(fileStorageDirectory);
             }
             return fileStorageDirectory;
-        }
-
-        private static string GetContentType(string folderName)
-        {
-            switch (folderName)
-            {
-                case Constants.PackagesFolderName:
-                    return Constants.PackageContentType;
-
-                case Constants.DownloadsFolderName:
-                    return Constants.OctetStreamContentType;
-
-                default:
-                    throw new InvalidOperationException(
-                        String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
-            }
         }
 
         public Task DownloadToFileAsync(string folderName, string fileName, string downloadedPackageFilePath)

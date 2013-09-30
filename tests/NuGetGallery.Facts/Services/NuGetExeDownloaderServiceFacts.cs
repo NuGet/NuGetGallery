@@ -6,6 +6,7 @@ using Moq;
 using NuGet;
 using NuGetGallery.Packaging;
 using Xunit;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -125,7 +126,8 @@ namespace NuGetGallery
             packageFileService = packageFileService ?? new Mock<IPackageFileService>(MockBehavior.Strict);
             fileStorageService = fileStorageService ?? new Mock<IFileStorageService>(MockBehavior.Strict);
 
-            return new NuGetExeDownloaderService(packageService.Object, packageFileService.Object, fileStorageService.Object);
+            return new NuGetExeDownloaderService(packageService.Object, packageFileService.Object, fileStorageService.Object,
+                new Mock<IAppConfiguration>().Object);
         }
     }
 }

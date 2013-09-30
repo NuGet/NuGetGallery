@@ -307,25 +307,25 @@ namespace NuGetGallery
         public class TheGetPackageAction
         {
             [Fact]
-            public async Task GetPackageReturns400ForEvilPackageName()
+            public void GetPackageReturns400ForEvilPackageName()
             {
                 var controller = new TestableApiController();
-                var result = await controller.GetPackage("../..", "1.0.0.0");
+                var result = controller.GetPackage("../..", "1.0.0.0");
                 var badRequestResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(400, badRequestResult.StatusCode);
             }
 
             [Fact]
-            public async Task GetPackageReturns400ForEvilPackageVersion()
+            public void GetPackageReturns400ForEvilPackageVersion()
             {
                 var controller = new TestableApiController();
-                var result2 = await controller.GetPackage("Foo", "10../..1.0");
+                var result2 = controller.GetPackage("Foo", "10../..1.0");
                 var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
                 Assert.Equal(400, badRequestResult2.StatusCode);
             }
 
             [Fact]
-            public async Task GetPackageReturns404IfPackageIsNotFound()
+            public void GetPackageReturns404IfPackageIsNotFound()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
@@ -334,7 +334,7 @@ namespace NuGetGallery
                 controller.MockUserService.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
                 // Act
-                var result = await controller.GetPackage("Baz", "1.0.1");
+                var result = controller.GetPackage("Baz", "1.0.1");
 
                 // Assert
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
@@ -344,18 +344,17 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GetPackageReturnsPackageIfItExists()
+            public void GetPackageReturnsPackageIfItExists()
             {
                 // Arrange
                 const string PackageId = "Baz";
                 var guid = Guid.NewGuid();
                 var package = new Package() { Version = "1.0.01", NormalizedVersion = "1.0.1" };
-                var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "1.0.1", false)).Returns(package);
                 controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, PackageId, package.NormalizedVersion))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
+                controller.MockPackageFileService.Setup(s => s.GetDownloadUriOrStream(PackageId, package.NormalizedVersion))
+                              .Returns(new UriOrStream(new Uri("http://someUrl/forDownload")))
                               .Verifiable();
                 controller.MockUserService.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
@@ -374,27 +373,26 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(PackageId, "1.0.01");
+                var result = controller.GetPackage(PackageId, "1.0.01");
 
                 // Assert
-                Assert.Same(actionResult, result);
+                ResultAssert.IsRedirectTo(result, "http://someUrl/forDownload");
                 controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
                 controller.MockUserService.Verify();
             }
 
             [Fact]
-            public async Task GetPackageReturnsSpecificPackageEvenIfDatabaseIsOffline()
+            public void GetPackageReturnsSpecificPackageEvenIfDatabaseIsOffline()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
                 var package = new Package();
-                var actionResult = new EmptyResult();
 
                 var controller = new TestableApiController(MockBehavior.Strict);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.0", false)).Throws(new DataException("Can't find the database")).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
+                controller.MockPackageFileService.Setup(s => s.GetDownloadUriOrStream(package))
+                              .Returns(new UriOrStream(new Uri("http://someUrl/forDownload")))
                               .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
@@ -412,28 +410,27 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage("Baz", "1.0.0");
+                var result = controller.GetPackage("Baz", "1.0.0");
 
                 // Assert
-                Assert.Same(actionResult, result);
+                ResultAssert.IsRedirectTo(result, "http://someUrl/forDownload");
                 controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
             }
 
             [Fact]
-            public async Task GetPackageReturnsLatestPackageIfNoVersionIsProvided()
+            public void GetPackageReturnsLatestPackageIfNoVersionIsProvided()
             {
                 // Arrange
                 const string PackageId = "Baz";
                 var guid = Guid.NewGuid();
                 var package = new Package() { Version = "1.2.0408", NormalizedVersion = "1.2.408" };
-                var actionResult = new EmptyResult();
                 var controller = new TestableApiController(MockBehavior.Strict);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "", false)).Returns(package);
                 controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
 
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, PackageId, package.NormalizedVersion))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
+                controller.MockPackageFileService.Setup(s => s.GetDownloadUriOrStream(package))
+                              .Returns(new UriOrStream(new Uri("http://someUrl/forDownload")))
                               .Verifiable();
                 controller.MockUserService.Setup(x => x.FindByApiKey(guid)).Returns(new User());
 
@@ -452,17 +449,17 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(PackageId, "");
+                var result = controller.GetPackage(PackageId, "");
 
                 // Assert
-                Assert.Same(actionResult, result);
+                ResultAssert.IsRedirectTo(result, "http://someUrl/forDownload");
                 controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
                 controller.MockUserService.Verify();
             }
 
             [Fact]
-            public async Task GetPackageReturns503IfNoVersionIsProvidedAndDatabaseUnavailable()
+            public void GetPackageReturns503IfNoVersionIsProvidedAndDatabaseUnavailable()
             {
                 // Arrange
                 var guid = Guid.NewGuid();
@@ -488,7 +485,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage("Baz", "");
+                var result = controller.GetPackage("Baz", "");
 
                 // Assert
                 ResultAssert.IsStatusCodeWithBody(result, HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);

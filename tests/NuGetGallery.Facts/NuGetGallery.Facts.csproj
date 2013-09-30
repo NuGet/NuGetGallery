@@ -234,7 +234,6 @@
     <Compile Include="SemanticVersionExtensionsFacts.cs" />
     <Compile Include="Services\CuratedFeedServiceFacts.cs" />
     <Compile Include="Services\ContentServiceFacts.cs" />
-    <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="Services\NuGetExeDownloaderServiceFacts.cs" />
     <Compile Include="Services\ODataRemoveVersionSorterFacts.cs" />

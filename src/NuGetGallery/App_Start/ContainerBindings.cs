@@ -178,10 +178,6 @@ namespace NuGetGallery
                     break;
             }
 
-            Bind<IFileSystemService>()
-                .To<FileSystemService>()
-                .InSingletonScope();
-
             Bind<IPackageFileService>()
                 .To<PackageFileService>();
 
